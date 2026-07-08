@@ -1,0 +1,44 @@
+---
+// Components
+import NavBtn from "@components/layout/NavBtn.astro";
+
+// Icons
+import HomeIcon from "@icons/home-circle.svg";
+import DartboardIcon from "@icons/dartboard.svg";
+import UserIcon from "@icons/user.svg";
+import StatsIcon from "@icons/stats.svg";
+
+// Data
+const pages = [
+  {
+    label: "Home",
+    icon: HomeIcon,
+    href: "/",
+  },
+  {
+    label: "Games",
+    icon: DartboardIcon,
+    href: "/games",
+  },
+  {
+    label: "Stats",
+    icon: StatsIcon,
+    href: "/statistics",
+  },
+  {
+    label: "Profile",
+    icon: UserIcon,
+    href: "/profile",
+  },
+];
+---
+
+<nav class="bg-background/80 shrink-0 grid grid-cols-4 items-center justify-between border-t border-border p-4 backdrop-blur-sm">
+  {
+    pages.map((page) => (
+        <NavBtn href={page.href}>
+          <page.icon class="size-6 text-foreground" aria-label={page.label} />
+        </NavBtn>
+    ))
+  }
+</nav>

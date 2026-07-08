@@ -1,0 +1,51 @@
+---
+import "@styles/global.css";
+// import ConfirmationModal from "@components/ui/ConfirmationModal.astro";
+
+const url = Astro.url;
+
+const title =
+  url.pathname === "/"
+    ? "Dart Counter"
+    : `${url.pathname.slice(1)} - Dart Counter`;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="flex h-dvh flex-col overflow-hidden touch-manipulation" x-data>
+    <slot />
+    <!-- <ConfirmationModal /> -->
+  </body>
+  <!-- <script is:inline>
+    document.addEventListener(
+      "dblclick",
+      (event) => {
+        event.preventDefault();
+      },
+      { passive: false },
+    );
+    document.addEventListener(
+      "gesturestart",
+      (event) => {
+        event.preventDefault();
+      },
+      { passive: false },
+    );
+  </script> -->
+</html>

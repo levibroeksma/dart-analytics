@@ -1,0 +1,480 @@
+@import 'tailwindcss';
+@plugin 'tailwindcss-animate';
+
+@theme {
+  --color-blue-50: #f2f2ff;
+  --color-blue-100: #e7e7ff;
+  --color-blue-200: #d3d3ff;
+  --color-blue-300: #b2b0ff;
+  --color-blue-400: #8c83ff;
+  --color-blue-500: #6751ff;
+  --color-blue-600: #542dfa;
+  --color-blue-700: #4118db;
+  --color-blue-800: #3a16c1;
+  --color-blue-900: #31149e;
+  --color-blue-950: #1b0a6b;
+
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-display: 'Bebas Neue', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: var(--app-shadow-card);
+  --shadow-menu: var(--app-shadow-menu);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  Tailwind v4 border default is currentColor — restore explicit border color.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 221 39% 11%;
+    --card-foreground: 220 14% 96%;
+    --popover: 221 39% 11%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 248 100% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 221 39% 11%;
+    --muted-foreground: 218 11% 65%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 248 100% 66%;
+    --radius: 1rem;
+
+    --chart-1: 248 100% 66%;
+    --chart-2: 251 95% 58%;
+    --chart-3: 243 100% 84%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 215 28% 17%;
+
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 248 100% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 221 39% 11%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 248 100% 66%;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      var(--color-blue-400) 0%,
+      var(--color-blue-600) 100%
+    );
+    --gradient-background:
+      radial-gradient(
+        ellipse 120% 80% at 50% -30%,
+        color-mix(in srgb, var(--color-blue-950) 85%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 70% 50% at 100% 100%,
+        color-mix(in srgb, var(--color-blue-900) 35%, transparent) 0%,
+        transparent 50%
+      ),
+      var(--color-gray-950);
+    --gradient-card: linear-gradient(
+      145deg,
+      var(--color-gray-900) 0%,
+      var(--color-gray-800) 100%
+    );
+    --gradient-card-surface:
+      radial-gradient(
+        circle at 100% 0%,
+        color-mix(in srgb, var(--color-blue-900) 22%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 0% 100%,
+        color-mix(in srgb, var(--color-blue-950) 18%, transparent) 0%,
+        transparent 45%
+      ),
+      var(--gradient-card);
+    --gradient-card-accent: linear-gradient(
+      145deg,
+      var(--color-blue-100) 0%,
+      var(--color-blue-200) 100%
+    );
+    --app-shadow-card: 0 1px 3px
+      color-mix(in srgb, var(--color-gray-950) 60%, transparent);
+    --app-shadow-menu: 0 4px 16px
+      color-mix(in srgb, var(--color-gray-950) 70%, transparent);
+
+    --duration-fast: 160ms;
+    --duration-ui: 200ms;
+
+    button,
+    [role='button'] {
+      touch-action: manipulation;
+    }
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply text-foreground font-sans;
+    min-height: 100dvh;
+    background: var(--gradient-background);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.35);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .btn-press {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .btn-press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    @apply text-primary-foreground focus-visible:ring-ring rounded-full px-4 py-2.5 font-medium focus-visible:ring-2 focus-visible:outline-none disabled:opacity-70;
+    background: var(--gradient-primary);
+  }
+
+  .btn-secondary {
+    @apply border-border text-foreground rounded-full border px-4 py-2 text-sm;
+    background: var(--gradient-card);
+  }
+
+  .link-subtle {
+    @apply text-muted-foreground text-sm;
+  }
+
+  .nav-link-inactive {
+    @apply text-muted-foreground;
+  }
+
+  .section-label {
+    @apply font-display text-muted-foreground text-sm tracking-wider uppercase;
+  }
+
+  .game-panel {
+    @apply border-border shadow-card h-fit rounded-lg border;
+    background: var(--gradient-card-surface);
+  }
+
+  .checkout-hint {
+    @apply flex min-h-10 w-2/3 items-center justify-center gap-2 rounded-lg p-1 font-mono text-sm;
+    background: color-mix(
+      in srgb,
+      var(--color-gray-800) 80%,
+      var(--color-blue-950)
+    );
+  }
+
+  .card {
+    @apply border-border shadow-card rounded-xl border;
+    background: var(--gradient-card-surface);
+  }
+
+  .card-accent {
+    @apply border-blue-300/30 shadow-card rounded-xl border text-blue-900;
+    background: var(--gradient-card-accent);
+  }
+
+  .card-metric-liquid {
+    @apply border-border/50 shadow-card isolate min-h-28 overflow-hidden rounded-xl border;
+    display: grid;
+    background: var(--gradient-card-surface);
+  }
+
+  .card-metric-liquid-canvas,
+  .card-metric-liquid-scrim,
+  .card-metric-liquid-content {
+    grid-area: 1 / 1;
+  }
+
+  .card-metric-liquid-canvas {
+    @apply pointer-events-none min-h-0 h-full w-full;
+  }
+
+  .card-metric-liquid-scrim {
+    @apply pointer-events-none min-h-28;
+    background: linear-gradient(
+      155deg,
+      hsl(var(--card) / 0.88) 0%,
+      hsl(var(--card) / 0.5) 40%,
+      hsl(var(--card) / 0.15) 100%
+    );
+  }
+
+  .card-metric-liquid-content {
+    @apply relative z-10 flex min-h-28 flex-col justify-end p-3;
+  }
+
+  .card-interactive {
+    @apply border-border shadow-card w-full cursor-pointer rounded-xl border p-4;
+    background: var(--gradient-card-surface);
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      background-color var(--duration-ui) var(--ease-out),
+      color var(--duration-ui) var(--ease-out),
+      border-color var(--duration-ui) var(--ease-out);
+  }
+
+  .toast-panel {
+    transform-origin: bottom center;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:not(:disabled) {
+      transition:
+        transform var(--duration-fast) var(--ease-out),
+        filter var(--duration-ui) var(--ease-out);
+    }
+
+    .btn-primary:not(:disabled):hover {
+      filter: brightness(1.1);
+    }
+
+    .link-subtle {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .link-subtle:hover {
+      @apply text-foreground;
+    }
+
+    .nav-link-inactive {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .nav-link-inactive:hover {
+      @apply text-primary;
+    }
+
+    .icon-btn-hover {
+      transition:
+        color var(--duration-ui) var(--ease-out),
+        background-color var(--duration-ui) var(--ease-out);
+    }
+
+    .icon-btn-hover:hover:not(:disabled) {
+      @apply text-primary;
+      background: color-mix(
+        in srgb,
+        var(--color-gray-800) 70%,
+        var(--color-blue-900)
+      );
+    }
+
+    .menu-item-hover {
+      transition: background-color var(--duration-fast) var(--ease-out);
+    }
+
+    .menu-item-hover:hover {
+      background: color-mix(
+        in srgb,
+        var(--color-gray-800) 80%,
+        var(--color-blue-950)
+      );
+    }
+
+    .game-card-link {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .game-card-link:hover {
+      @apply text-primary;
+    }
+
+    .card-interactive:hover {
+      border-color: color-mix(
+        in srgb,
+        var(--color-blue-500) 35%,
+        var(--color-gray-800)
+      );
+    }
+  }
+
+  .input-field {
+    @apply border-input text-foreground w-full rounded-md border px-3 py-2;
+    background: color-mix(
+      in srgb,
+      var(--color-gray-900) 90%,
+      var(--color-blue-950)
+    );
+    transition:
+      border-color var(--duration-ui) var(--ease-out),
+      box-shadow var(--duration-ui) var(--ease-out);
+  }
+
+  .input-field:focus {
+    @apply border-primary outline-none;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.4);
+  }
+
+  .spinner {
+    @apply border-primary inline-block h-5 w-5 animate-spin rounded-full border-2 border-t-transparent;
+  }
+
+  .menu-panel {
+    transform-origin: top right;
+    background: var(--gradient-card-surface);
+  }
+
+  .transition-fade-scale-enter {
+    transition:
+      transform var(--duration-ui) var(--ease-out),
+      opacity var(--duration-ui) var(--ease-out);
+  }
+
+  .transition-fade-scale-leave {
+    transition:
+      transform 150ms var(--ease-out),
+      opacity 150ms var(--ease-out);
+  }
+
+  .skeleton {
+    @apply animate-pulse;
+    background: linear-gradient(
+      90deg,
+      var(--color-gray-900) 0%,
+      var(--color-gray-800) 50%,
+      var(--color-gray-900) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .btn-press:active:not(:disabled) {
+    transform: none;
+  }
+}

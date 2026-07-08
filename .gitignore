@@ -1,0 +1,9 @@
+.DS_Store
+.cursor/
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+.wrangler/

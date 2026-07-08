@@ -1,0 +1,25 @@
+---
+interface Props {
+  href: string;
+  matchPrefix?: string;
+  class?: string;
+}
+
+// Props
+const { href, matchPrefix}: Props = Astro.props;
+
+// Lib
+import { isNavActive } from "@lib/shared/nav/is-nav-active";
+
+// Styles
+const baseClassName =
+  "icon-btn-hover btn-press inline-flex items-center justify-center rounded-md p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:block [&_svg]:size-6";
+const active = isNavActive(Astro.url.pathname, href, matchPrefix);
+const className = active
+  ? `${baseClassName} text-primary`
+  : `${baseClassName} nav-link-inactive`;
+---
+
+<a href={href} class={className}>
+  <slot />
+</a>

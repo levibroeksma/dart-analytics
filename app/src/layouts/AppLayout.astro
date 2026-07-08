@@ -1,0 +1,21 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import BottomNav from "@components/layout/BottomNav.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  backHref?: string;
+}
+
+const { title, description, backHref } = Astro.props;
+---
+
+<BaseLayout>
+  <div class="flex h-full min-h-0 flex-1 touch-manipulation flex-col overflow-hidden">
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+      <slot />
+    </div>
+    <BottomNav />
+  </div>
+</BaseLayout>
