@@ -36,6 +36,10 @@ If lower-priority files conflict with higher-priority files, update lower-priori
 6. `05-Database/10-Database-Agent-Guide.md`
 7. `05-Database/06-Database-Specification.md`
 8. `06-API/00-Overview.md`
+9. `06-API/01-Implementation-Strategy.md` (2026-07-09)
+10. `06-API/02-Middleware-And-Layering.md` (2026-07-09)
+11. `07-Frontend/00-Overview.md` (2026-07-09)
+12. `05-Database/11-Neon-Integration.md` (2026-07-09)
 
 Use `architecture/000_master_context.md` as historical context and decision lineage, not as the final source of truth.
 
@@ -61,6 +65,8 @@ For requests in `architecture/`, identify impacted layer first:
 - **Pattern-level changes:** update `04`, then impacted domain docs.
 - **Database model changes:** update `05-Database/06-Database-Specification.md`, then migrations/seeds, then related `05-Database/*` guides.
 - **API contract changes:** update `06-API/00-Overview.md` before or with implementation changes.
+- **API implementation guidance:** update `06-API/01-Implementation-Strategy.md` and `06-API/02-Middleware-And-Layering.md` (2026-07-09).
+- **Frontend integration guidance:** update `07-Frontend/00-Overview.md` (2026-07-09).
 - **Any docs file update:** add an ISO date (`YYYY-MM-DD`) to each newly added and/or changed row entry.
 
 Always apply minimal diffs and propagate only necessary consistency edits.
@@ -101,3 +107,4 @@ Before finishing, verify:
 3. Related docs remain internally consistent.
 4. If schema or API behavior changed, canonical docs were updated accordingly.
 5. Historical records were preserved unless explicitly requested otherwise.
+6. If `app/` validation commands are documented/changed, they include `npx fallow` for stale-type detection.
