@@ -180,6 +180,28 @@ CREATE TABLE participant_types (
 );
 COMMENT ON TABLE participant_types IS 'Defines supported participant categories.';
 -- ============================================================
+-- stage_types
+--
+-- Defines hierarchical gameplay stages.
+--
+-- Examples:
+-- MATCH
+-- SET
+-- LEG
+-- ROUND
+-- EXERCISE_BLOCK
+--
+-- ============================================================
+CREATE TABLE stage_types (
+    id SMALLINT PRIMARY KEY,
+    implementation_key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT uq_stage_types_implementation_key UNIQUE (implementation_key)
+);
+COMMENT ON TABLE stage_types IS 'Defines supported exercise hierarchy levels.';
+-- ============================================================
 -- ruleset_versions
 --
 -- Immutable rule versions.
@@ -239,4 +261,5 @@ DROP TABLE IF EXISTS capture_modes;
 DROP TABLE IF EXISTS input_modes;
 DROP TABLE IF EXISTS duration_types;
 DROP TABLE IF EXISTS participant_types;
+DROP TABLE IF EXISTS stage_types;
 DROP TABLE IF EXISTS dart_zones;
