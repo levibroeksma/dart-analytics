@@ -380,6 +380,10 @@ Baseline contract is defined in:
 
 `06-API/00-Overview.md`
 
+Implementation guidance is defined in:
+
+`06-API/01-Implementation-Strategy.md` and `06-API/02-Middleware-And-Layering.md` (2026-07-09)
+
 Current baseline includes:
 
 - Cloudflare Worker runtime for API endpoints
@@ -395,6 +399,8 @@ Current baseline includes:
 ## Rule
 
 Do not implement or change API behavior that is not reflected in `06-API/00-Overview.md` (or a superseding API architecture document).
+
+Do not substitute Astro Actions for the v1 REST API surface. See `06-API/01-Implementation-Strategy.md` (2026-07-09).
 
 ---
 
