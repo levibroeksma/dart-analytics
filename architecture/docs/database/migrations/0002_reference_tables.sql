@@ -17,7 +17,8 @@
 -- Domain entities use UUIDv7.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- game_types
 --
@@ -204,7 +205,6 @@ CREATE TABLE ruleset_versions (
     )
 );
 COMMENT ON TABLE ruleset_versions IS 'Immutable game rule versions used for historical replay.';
-COMMIT;
 -- ============================================================
 -- dart_zones
 --
@@ -228,3 +228,15 @@ CREATE TABLE dart_zones (
     CONSTRAINT uq_dart_zones_implementation_key UNIQUE (implementation_key)
 );
 COMMENT ON TABLE dart_zones IS 'Defines dart board scoring zones.';
+
+-- migrate:down
+DROP TABLE IF EXISTS game_type_features;
+DROP TABLE IF EXISTS ruleset_versions;
+DROP TABLE IF EXISTS game_types;
+DROP TABLE IF EXISTS game_features;
+DROP TABLE IF EXISTS game_statuses;
+DROP TABLE IF EXISTS capture_modes;
+DROP TABLE IF EXISTS input_modes;
+DROP TABLE IF EXISTS duration_types;
+DROP TABLE IF EXISTS participant_types;
+DROP TABLE IF EXISTS dart_zones;

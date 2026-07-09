@@ -8,7 +8,8 @@
 -- They are not executed gameplay.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- exercise_templates
 --
@@ -72,4 +73,8 @@ CREATE TABLE routine_steps (
     CONSTRAINT fk_routine_steps_duration_type FOREIGN KEY (duration_type_id) REFERENCES duration_types(id) ON DELETE RESTRICT
 );
 COMMENT ON TABLE routine_steps IS 'Ordered composition of exercises inside a routine.';
-COMMIT;
+
+-- migrate:down
+DROP TABLE IF EXISTS routine_steps;
+DROP TABLE IF EXISTS routine_templates;
+DROP TABLE IF EXISTS exercise_templates;
