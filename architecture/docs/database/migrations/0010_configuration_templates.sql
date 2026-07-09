@@ -14,7 +14,8 @@
 -- Values are copied into the snapshot at session start.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- configuration_templates
 --
@@ -62,4 +63,6 @@ COMMENT ON COLUMN configuration_templates.configuration IS 'Preset values. Struc
 CREATE INDEX idx_configuration_templates_game_type ON configuration_templates (game_type_id);
 CREATE INDEX idx_configuration_templates_player ON configuration_templates (player_id)
 WHERE player_id IS NOT NULL;
-COMMIT;
+
+-- migrate:down
+DROP TABLE IF EXISTS configuration_templates;
