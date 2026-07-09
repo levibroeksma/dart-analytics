@@ -37,7 +37,7 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 **Frontend API integration additionally requires:**
 
 12. `architecture/docs/architecture/07-Frontend/00-Overview.md` — client pattern and state ownership (2026-07-09)
-13. `app/AGENT.md` — app-scope implementation rules
+13. `app/CLAUDE.md` — app-scope implementation rules
 
 ---
 

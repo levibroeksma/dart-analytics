@@ -171,4 +171,4 @@ Apply migrations per branch during promotion.
 - `10-Database-Agent-Guide.md`
 - `../06-API/00-Overview.md`
 - [`../../database/README.md`](../../database/README.md)
-- [`../../../../app/AGENT.md`](../../../../app/AGENT.md)
+- [`../../../../app/CLAUDE.md`](../../../../app/CLAUDE.md)

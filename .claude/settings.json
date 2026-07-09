@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npx fallow:*)",
+      "Bash(npx astro:*)",
+      "Bash(astro:*)",
+      "Bash(drizzle-kit introspect:*)",
+      "Bash(dbmate status:*)",
+      "Bash(wrangler types:*)",
+      "Bash(neon env:*)",
+      "Bash(neon branches list:*)",
+      "Bash(neon projects list:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)"
+    ],
+    "deny": [
+      "Bash(drizzle-kit generate:*)",
+      "Bash(drizzle-kit push:*)"
+    ]
+  }
+}

@@ -66,4 +66,4 @@ astro check
 - `../architecture/docs/architecture/README.md`
 - `../architecture/docs/architecture/06-API/00-Overview.md`
 - `../architecture/docs/architecture/05-Database/11-Neon-Integration.md`
-- `./AGENT.md`
+- `./CLAUDE.md`
