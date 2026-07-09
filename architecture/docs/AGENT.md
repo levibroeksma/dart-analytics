@@ -28,6 +28,9 @@ Keep architecture and database documentation internally consistent and aligned w
 - Architecture map: `architecture/docs/architecture/README.md`
 - Canonical DB spec: `architecture/docs/architecture/05-Database/06-Database-Specification.md`
 - Canonical API baseline: `architecture/docs/architecture/06-API/00-Overview.md`
+- API implementation guidance: `architecture/docs/architecture/06-API/01-Implementation-Strategy.md`, `02-Middleware-And-Layering.md` (2026-07-09)
+- Frontend integration: `architecture/docs/architecture/07-Frontend/00-Overview.md` (2026-07-09)
+- Neon platform integration: `architecture/docs/architecture/05-Database/11-Neon-Integration.md` (2026-07-09)
 
 ## Consistency Checks Before Finish
 
@@ -35,3 +38,4 @@ Keep architecture and database documentation internally consistent and aligned w
 - IDs ownership is consistent (Worker/API generates UUIDv7 for runtime entities).
 - API read/write responsibilities remain CQRS-lite (writes to tables, reads from views).
 - Any changed claim is reflected in relevant summary context files when requested by user.
+- If validation command lists are updated, include `npx fallow` as standard stale-type check for `app/`.
