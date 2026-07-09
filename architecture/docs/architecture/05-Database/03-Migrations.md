@@ -105,6 +105,41 @@ architecture/docs/database/
 
 ---
 
+# dbmate Format
+
+Migration files executed by `dbmate` must use section markers:
+
+```sql
+-- migrate:up
+-- DDL statements (no explicit BEGIN/COMMIT)
+
+-- migrate:down
+-- structural reverse DDL
+```
+
+Rules:
+
+- Every migration requires both `-- migrate:up` and `-- migrate:down`.
+- Down blocks reverse structural DDL only (DROP TABLE/VIEW/INDEX/CONSTRAINT).
+- Do not wrap sections in `BEGIN`/`COMMIT` — dbmate runs each section in a transaction.
+- Header comments and inline documentation are preserved above the markers.
+
+Example:
+
+```sql
+-- ============================================================
+-- Migration: 0001_extensions.sql
+-- ============================================================
+
+-- migrate:up
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+-- migrate:down
+DROP EXTENSION IF EXISTS pg_stat_statements;
+```
+
+---
+
 # Migration Naming
 
 Migration files use:
@@ -388,17 +423,11 @@ Never manually modify production databases.
 
 # Migration Atomicity
 
-Migrations should use transactions where possible.
+dbmate wraps each `-- migrate:up` and `-- migrate:down` section in a transaction automatically.
 
-Preferred:
+Authors should **not** add explicit `BEGIN`/`COMMIT` inside migration files.
 
-```sql
-BEGIN;
-
--- changes
-
-COMMIT;
-```
+PostgreSQL supports transactional DDL, so a failed migration rolls back cleanly.
 
 If a migration fails:
 
@@ -456,7 +485,7 @@ Existing:
 New change:
 
 ```
-0012_add_dart_coordinates.sql
+0013_add_dart_coordinates.sql
 ```
 
 ---
@@ -478,9 +507,9 @@ inside one migration unless tightly coupled.
 Prefer:
 
 ```
-0012_add_nickname_column.sql
+0013_add_nickname_column.sql
 
-0013_migrate_existing_nicknames.sql
+0014_migrate_existing_nicknames.sql
 ```
 
 ---
@@ -694,7 +723,7 @@ Modify 0005_runtime_core.sql after deployment
 Good:
 
 ```
-Create 0012_runtime_update.sql
+Create 0013_runtime_update.sql
 ```
 
 ---

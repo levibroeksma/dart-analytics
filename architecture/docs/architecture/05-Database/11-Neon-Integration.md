@@ -28,15 +28,34 @@ It complements:
 
 - Region: `aws-eu-central-1` (Frankfurt)
 - Always-on production compute is deferred post-v1.
+- Non-`main` branches are created as children of `main`.
 
 ---
 
 ## `neon.ts` Configuration
 
-Use `@neon/config` to declare branch-level services and policy:
+Use `@neon/config/v1` with a `branch` callback (not a static `branches` map):
 
-- `auth: true`
-- Data API remains deferred for v1
+```typescript
+import { defineConfig } from "@neon/config/v1";
+
+export default defineConfig({
+  auth: true,
+  branch: (branch) => ({
+    protected: branch.name === "main",
+    ...(branch.name === "main" ? {} : { parent: "main" }),
+    postgres: {
+      computeSettings: {
+        autoscalingLimitMinCu: 0.25,
+        suspendTimeout: "5m",
+      },
+    },
+  }),
+});
+```
+
+- Data API remains deferred for v1.
+- Typed env parsing: `parseEnv(config)` in `app/src/lib/env.ts` (requires all vars implied by config).
 
 Provisioning sequence:
 
@@ -45,14 +64,24 @@ neon init
 neon config apply
 ```
 
+Branch workflow:
+
+```sh
+neon link
+neon checkout dev
+```
+
 ---
 
 ## Connection String Rules
 
-| Use case | Variable | Type |
+| Use case | Variable | Notes |
 | --- | --- | --- |
-| Worker runtime | `DATABASE_URL` | Direct, non-pooler |
-| Migrations / seeds / introspection | `DATABASE_URL_POOLED` | Pooled (`-pooler`) |
+| Worker runtime (`getDb()`) | `DATABASE_URL` | Neon-pulled; used by `@neondatabase/serverless` |
+| Migrations / seeds / introspection | `DATABASE_URL_POOLED` | Local alias — set to Neon’s pooled `DATABASE_URL` value |
+| Reference only | `DATABASE_URL_UNPOOLED` | Pulled by Neon CLI; not used by dbmate scripts |
+
+Neon CLI (`neon checkout`, `neon env pull`) writes `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, and auth vars. Copy the pooled `DATABASE_URL` into `DATABASE_URL_POOLED` for dbmate and Drizzle introspection (see `app/.env.example`).
 
 ---
 
@@ -60,12 +89,16 @@ neon config apply
 
 Source template: `app/.env.example`
 
-Required keys:
+Neon-pulled keys:
 
 - `DATABASE_URL`
-- `DATABASE_URL_POOLED`
+- `DATABASE_URL_UNPOOLED`
+- `NEON_AUTH_BASE_URL`
 - `NEON_AUTH_JWKS_URL`
-- `NEON_AUTH_URL`
+
+Local alias (manual):
+
+- `DATABASE_URL_POOLED` — same value as Neon’s pooled `DATABASE_URL`
 
 Never commit `.env`.
 
@@ -73,12 +106,11 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `architecture/docs/database/migrations/`.
+Migrations remain in `architecture/docs/database/migrations/` (`0001`–`0012`).
 
-Execution runs from `app/` with:
+Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
-- `DBMATE_MIGRATIONS_DIR=../architecture/docs/database/migrations`
-- pooled connection URL
+Execution runs from `app/` via `package.json` scripts using `DATABASE_URL_POOLED`.
 
 Standard workflow:
 
@@ -90,6 +122,8 @@ drizzle-kit introspect
 npx fallow
 astro check
 ```
+
+See also [`../../database/README.md`](../../database/README.md).
 
 ---
 
@@ -105,7 +139,8 @@ astro check
 ## Neon Auth and Identity
 
 - Authentication provider: Neon Auth
-- API boundary verifies JWT claims (`sub`, `exp`)
+- API boundary verifies JWT claims (`sub`, `exp`) via `NEON_AUTH_JWKS_URL`
+- Frontend/auth client uses `NEON_AUTH_BASE_URL`
 - Identity mapping: JWT `sub` -> `players.auth_user_id`
 - Unprovisioned users receive `403 PLAYER_NOT_PROVISIONED`
 
@@ -135,5 +170,5 @@ Apply migrations per branch during promotion.
 - `03-Migrations.md`
 - `10-Database-Agent-Guide.md`
 - `../06-API/00-Overview.md`
-- `../../database/README.md`
-- `../../../app/AGENT.md`
+- [`../../database/README.md`](../../database/README.md)
+- [`../../../../app/AGENT.md`](../../../../app/AGENT.md)

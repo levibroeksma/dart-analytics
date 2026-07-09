@@ -6,13 +6,14 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 architecture/docs/database/
-├── migrations/   # ordered schema migrations (0001+)
+├── migrations/   # ordered schema migrations (0001–0012)
 └── seeds/        # controlled reference/system data
 ```
 
 ## Execution Model
 
 - Migrations are applied with `dbmate`.
+- Migration files must include `-- migrate:up` and `-- migrate:down` markers (see `03-Migrations.md`).
 - Seeds run after migrations in deterministic order.
 - App schema ownership stays in SQL files here (not ORM-generated migrations).
 
@@ -36,7 +37,8 @@ astro check
 
 ## References
 
-- `../architecture/05-Database/03-Migrations.md`
-- `../architecture/05-Database/10-Database-Agent-Guide.md`
-- `../architecture/05-Database/11-Neon-Integration.md`
-- `./AGENT.md`
+- [`../architecture/05-Database/03-Migrations.md`](../architecture/05-Database/03-Migrations.md)
+- [`../architecture/05-Database/10-Database-Agent-Guide.md`](../architecture/05-Database/10-Database-Agent-Guide.md)
+- [`../architecture/05-Database/11-Neon-Integration.md`](../architecture/05-Database/11-Neon-Integration.md)
+- [`../../../app/AGENT.md`](../../../app/AGENT.md)
+- [`./AGENT.md`](./AGENT.md)
