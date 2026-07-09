@@ -26,6 +26,9 @@ If two docs conflict, higher authority wins and lower doc must be corrected.
 - Do not mark speculative ideas as decisions; use explicit "Open Decisions" sections.
 - Keep historical records (`05-Database/07` to `09`) historical; do not rewrite history.
 - For API docs, keep Worker/Neon/PostgreSQL responsibility split explicit.
+- For API implementation, follow `06-API/01-Implementation-Strategy.md` and `06-API/02-Middleware-And-Layering.md` (2026-07-09).
+- For frontend API integration, follow `07-Frontend/00-Overview.md` (2026-07-09).
+- For Neon environment and tooling standards, follow `05-Database/11-Neon-Integration.md` (2026-07-09).
 - For every docs-file edit, add an ISO date (`YYYY-MM-DD`) to all newly added and/or changed row entries.
 
 ## Required Current Baselines
