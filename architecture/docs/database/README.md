@@ -40,5 +40,5 @@ astro check
 - [`../architecture/05-Database/03-Migrations.md`](../architecture/05-Database/03-Migrations.md)
 - [`../architecture/05-Database/10-Database-Agent-Guide.md`](../architecture/05-Database/10-Database-Agent-Guide.md)
 - [`../architecture/05-Database/11-Neon-Integration.md`](../architecture/05-Database/11-Neon-Integration.md)
-- [`../../../app/AGENT.md`](../../../app/AGENT.md)
+- [`../../../app/CLAUDE.md`](../../../app/CLAUDE.md)
 - [`./AGENT.md`](./AGENT.md)
