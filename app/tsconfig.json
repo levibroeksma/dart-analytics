@@ -3,6 +3,7 @@
   "include": [".astro/types.d.ts", "**/*", "./worker-configuration.d.ts"],
   "exclude": ["dist"],
   "compilerOptions": {
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@icons/*": ["./src/icons/*"],

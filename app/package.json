@@ -16,7 +16,8 @@
     "db:migrate": "dbmate --url \"$DATABASE_URL_POOLED\" --migrations-dir ../architecture/docs/database/migrations up",
     "db:seed": "tsx scripts/seed.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && astro check"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^1.0.0",
@@ -31,12 +32,14 @@
     "alpinejs": "^3.15.12",
     "astro": "^7.0.6",
     "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.3",
     "tailwindcss": "^4.3.2",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^6.0.3",
     "wrangler": "^4.107.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "dbmate": "^2.33.0",
     "drizzle-kit": "^0.31.10",
     "postgres": "^3.4.9",
