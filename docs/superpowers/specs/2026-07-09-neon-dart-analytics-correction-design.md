@@ -1,6 +1,6 @@
 # Neon Project Correction — Design
 
-> **Status:** Approved (brainstorming session 2026-07-09)
+> **Status:** Implemented (2026-07-09)
 >
 > **Scope:** Correct mistaken Neon provisioning (wrong project, polluted branches), provision a clean `dart-analytics` project, and deliver phased DB + Auth integration on `fix/neon-dart-analytics`.
 >
