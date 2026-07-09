@@ -7,7 +7,8 @@
 -- These tables form the analytical foundation.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- turns
 --
@@ -62,3 +63,7 @@ CREATE TABLE darts (
         OR hit_target_number BETWEEN 1 AND 25
     )
 );
+
+-- migrate:down
+DROP TABLE IF EXISTS darts;
+DROP TABLE IF EXISTS turns;

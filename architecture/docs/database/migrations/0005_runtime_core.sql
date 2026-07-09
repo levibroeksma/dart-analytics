@@ -7,7 +7,8 @@
 -- Runtime data represents actual executed sessions.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- activities
 --
@@ -138,4 +139,10 @@ CREATE TABLE exercise_stages (
     CONSTRAINT fk_stage_type FOREIGN KEY(stage_type_id) REFERENCES stage_types(id) ON DELETE RESTRICT
 );
 COMMENT ON TABLE exercise_stages IS 'Hierarchical structure of an executed exercise.';
-COMMIT;
+
+-- migrate:down
+DROP TABLE IF EXISTS exercise_stages;
+DROP TABLE IF EXISTS participants;
+DROP TABLE IF EXISTS exercise_configurations;
+DROP TABLE IF EXISTS exercise_sessions;
+DROP TABLE IF EXISTS activities;
