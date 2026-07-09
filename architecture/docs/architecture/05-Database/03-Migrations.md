@@ -1,6 +1,6 @@
 # Database Migration Strategy
 
-> **Version:** 1.1.0
+> **Version:** 1.2.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -605,6 +605,31 @@ RUN SEEDS
 ↓
 
 START APPLICATION
+```
+
+---
+
+# Migration Execution (Application Workflow)
+
+Migrations are executed from `app/` using `dbmate` with SQL stored under `architecture/docs/database/migrations/`.
+
+Required environment settings:
+
+```
+DATABASE_URL=<pooled connection string>
+DBMATE_MIGRATIONS_DIR=../architecture/docs/database/migrations
+DBMATE_SCHEMA_FILE=../architecture/docs/database/schema.sql
+```
+
+Standard validation sequence:
+
+```
+npm run db:status
+npm run db:migrate
+npm run db:seed
+drizzle-kit introspect
+npx fallow
+astro check
 ```
 
 ---
