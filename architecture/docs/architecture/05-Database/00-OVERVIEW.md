@@ -1,6 +1,6 @@
 # Database Architecture Overview
 
-> **Version:** 1.1.0
+> **Version:** 1.2.0
 >
 > This document defines the database architecture philosophy, structure and operating principles of the PostgreSQL database.
 >
@@ -126,6 +126,8 @@ The database is hosted using:
 Neon PostgreSQL
 
 ```
+
+Neon integration topology, branch policy, and tooling workflow are documented in `11-Neon-Integration.md`.
 
 The application communicates with PostgreSQL exclusively through the API layer.
 
