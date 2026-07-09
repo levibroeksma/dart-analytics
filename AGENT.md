@@ -26,10 +26,18 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 6. `architecture/docs/architecture/05-Database/10-Database-Agent-Guide.md` — condensed DB rules
 7. `architecture/docs/architecture/05-Database/06-Database-Specification.md` — every table and relationship
+8. `architecture/docs/architecture/05-Database/11-Neon-Integration.md` — Neon setup, branch policy, tooling
 
 **API work additionally requires:**
 
-8. `architecture/docs/architecture/06-API/00-Overview.md` — API baseline contract
+9. `architecture/docs/architecture/06-API/00-Overview.md` — API baseline contract
+10. `architecture/docs/architecture/06-API/01-Implementation-Strategy.md` — REST server endpoints, Cloudflare + Neon (2026-07-09)
+11. `architecture/docs/architecture/06-API/02-Middleware-And-Layering.md` — middleware and folder structure (2026-07-09)
+
+**Frontend API integration additionally requires:**
+
+12. `architecture/docs/architecture/07-Frontend/00-Overview.md` — client pattern and state ownership (2026-07-09)
+13. `app/AGENT.md` — app-scope implementation rules
 
 ---
 
@@ -67,6 +75,9 @@ Historical docs (`05-Database/07`–`09`) are design-gate records — not canoni
 
 ## General
 
+- **Git workflow:** Never merge task work into `main` directly. Every task uses a dedicated branch (e.g. `neon-setup`). Commit on that branch (or a worktree checked out to it) and push to `origin/<task-branch>`. Open a PR when the task is ready.
+- Default isolated workspace location: `.worktrees/<branch-name>/` at repo root.
+- Before creating a project-local worktree, ensure `.worktrees/` remains git-ignored.
 - Architecture before implementation. No coding that bypasses documented design.
 - Minimal diffs. Match existing conventions. Reuse before creating.
 - One responsibility per migration, endpoint, service, and table.
@@ -80,7 +91,7 @@ Historical docs (`05-Database/07`–`09`) are design-gate records — not canoni
 - Templates copy into runtime snapshots. Runtime never FK-references templates.
 - Darts: intention + result zones. No multiplier column.
 - Completed sessions immutable. Statistics in views only.
-- Migrations `0001`–`0011`. Never modify applied migrations.
+- Migrations `0001`–`0012`. Never modify applied migrations.
 - New schema change = new numbered migration + spec update.
 
 ## API
@@ -98,6 +109,16 @@ Historical docs (`05-Database/07`–`09`) are design-gate records — not canoni
 - Sends completed gameplay batches to API
 - Never queries database directly
 
+## Validation Standard Procedure
+
+For application-layer changes in `app/`, run this sequence before claiming completion:
+
+1. `npm run db:status`
+2. `npm run db:migrate`
+3. `drizzle-kit introspect`
+4. `npx fallow`
+5. `astro check`
+
 ---
 
 # Task Routing
@@ -109,7 +130,7 @@ Historical docs (`05-Database/07`–`09`) are design-gate records — not canoni
 | New seed data | `seeds/0001` or `0002` → match existing id ranges |
 | New API endpoint | `06-API/00-Overview.md` → `02-System-Architecture.md` |
 | New game type | `10-Database-Agent-Guide.md` "Add a new game type" |
-| Bug in migration chain | Read full chain `0001`–`0011`; never patch applied files |
+| Bug in migration chain | Read full chain `0001`–`0012`; never patch applied files |
 | Architecture question | `01-Principles.md` + `04-Architecture-patterns.md` |
 
 ---
@@ -148,12 +169,13 @@ architecture/docs/architecture/
 │   ├── 05-Views.md
 │   ├── 06-Database-Specification.md   ← CANONICAL entity reference
 │   ├── 07–09                          ← historical design gates
-│   └── 10-Database-Agent-Guide.md     ← condensed DB agent rules
+│   ├── 10-Database-Agent-Guide.md     ← condensed DB agent rules
+│   └── 11-Neon-Integration.md         ← Neon environment/tooling guide
 └── 06-API/
     └── 00-Overview.md                 ← API baseline contract
 
 architecture/docs/database/
-├── migrations/0001–0011.sql
+├── migrations/0001–0012.sql
 └── seeds/0001–0002.sql
 ```
 
@@ -164,7 +186,7 @@ architecture/docs/database/
 | Area | Status |
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
-| Migrations | `0001`–`0011` complete |
+| Migrations | `0001`–`0012` complete |
 | Seeds | `0001` reference data, `0002` default templates |
 | Database spec | `06-Database-Specification.md` v2.1.0 |
 | Database handbook | `00`–`10` complete |
@@ -182,6 +204,7 @@ architecture/docs/database/
 - [ ] No forbidden patterns introduced
 - [ ] Id strategy respected (UUIDv7 / SMALLINT)
 - [ ] Views used for reads, tables for writes (if API work)
+- [ ] `npx fallow` passes for `app/` changes
 
 ---
 

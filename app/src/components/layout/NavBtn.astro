@@ -6,7 +6,7 @@ interface Props {
 }
 
 // Props
-const { href, matchPrefix}: Props = Astro.props;
+const { href, matchPrefix, class: classNameProp }: Props = Astro.props;
 
 // Lib
 import { isNavActive } from "@lib/shared/nav/is-nav-active";
@@ -15,9 +15,13 @@ import { isNavActive } from "@lib/shared/nav/is-nav-active";
 const baseClassName =
   "icon-btn-hover btn-press inline-flex items-center justify-center rounded-md p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:block [&_svg]:size-6";
 const active = isNavActive(Astro.url.pathname, href, matchPrefix);
-const className = active
-  ? `${baseClassName} text-primary`
-  : `${baseClassName} nav-link-inactive`;
+const className = [
+  baseClassName,
+  active ? "text-primary" : "nav-link-inactive",
+  classNameProp,
+]
+  .filter(Boolean)
+  .join(" ");
 ---
 
 <a href={href} class={className}>

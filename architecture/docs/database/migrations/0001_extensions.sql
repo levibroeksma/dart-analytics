@@ -8,15 +8,9 @@
 -- IDs are generated using UUIDv7 before persistence.
 --
 -- ============================================================
-BEGIN;
--- ------------------------------------------------------------
--- Query performance monitoring
---
--- Required for:
--- - query statistics
--- - performance analysis
--- - optimisation decisions
---
--- ------------------------------------------------------------
+
+-- migrate:up
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-COMMIT;
+
+-- migrate:down
+DROP EXTENSION IF EXISTS pg_stat_statements;

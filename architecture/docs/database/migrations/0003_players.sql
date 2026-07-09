@@ -8,7 +8,8 @@
 -- This table only stores application profile data.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- players
 --
@@ -57,4 +58,7 @@ CREATE TABLE player_settings (
     CONSTRAINT fk_player_settings_player FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 );
 COMMENT ON TABLE player_settings IS 'Stores player-specific application preferences.';
-COMMIT;
+
+-- migrate:down
+DROP TABLE IF EXISTS player_settings;
+DROP TABLE IF EXISTS players;

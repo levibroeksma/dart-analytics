@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-> **Version:** 1.2.0
+> **Version:** 1.4.0
 >
 > This repository follows a strict architecture-first development philosophy. Every change to the application must be designed before it is implemented. The goal is to create a maintainable, scalable and extensible platform that can evolve for many years without accumulating technical debt.
 
@@ -56,7 +56,9 @@ architecture/docs/
 │   ├── 03-Engineering-Workflow.md
 │   ├── 04-Architecture-patterns.md
 │   ├── 099-engineering-workflow-and-decision-framework.md
-│   └── 05-Database/     # Database handbook (00–10)
+│   ├── 05-Database/     # Database handbook (00–11)
+│   ├── 06-API/          # API contract and implementation (00–02)
+│   └── 07-Frontend/     # Frontend integration (00)
 └── database/
     ├── migrations/      # 0001–0011
     └── seeds/           # 0001–0002
@@ -106,11 +108,14 @@ README.md (this file)
 ↓
 
 06-API/
-  00-Overview.md                 ← canonical API baseline
+  00-Overview.md                 ← canonical API contract baseline (frozen v1)
+  01-Implementation-Strategy.md  ← REST vs Actions, Cloudflare + Neon (2026-07-09)
+  02-Middleware-And-Layering.md  ← middleware, folder structure, layer ownership (2026-07-09)
 
 ↓
 
-07-Frontend/   (planned)
+07-Frontend/
+  00-Overview.md                 ← API client pattern, state ownership (2026-07-09)
 
 ↓
 
@@ -119,7 +124,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0011` and seeds `0001`–`0002` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0012` and seeds `0001`–`0002` implement it.
 
 ---
 
@@ -149,6 +154,8 @@ Before implementing a change, determine whether it affects architecture, databas
 
 Changes affecting architecture must update the corresponding documentation before implementation begins.
 
+For `app/` implementation validation, include `npx fallow` in the standard verification sequence to catch stale types/usages before completion.
+
 ---
 
 # Versioning
@@ -168,6 +175,10 @@ Architecture documents use semantic versioning. Major changes require a version 
 | `05-Database/00-OVERVIEW.md`               | Database philosophy and operating model                           |
 | `05-Database/06-Database-Specification.md` | Every table, relationship, and lifecycle rule                     |
 | `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0011`                        |
+| `05-Database/11-Neon-Integration.md`       | Neon project topology, env, dbmate/drizzle workflow (2026-07-09)  |
 | `06-API/00-Overview.md`                    | API runtime, route, auth, read/write, and error contract baseline |
+| `06-API/01-Implementation-Strategy.md`     | REST endpoints vs Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |
+| `06-API/02-Middleware-And-Layering.md`     | Middleware responsibilities, `locals` contract, `app/` folder structure (2026-07-09) |
+| `07-Frontend/00-Overview.md`               | Frontend state ownership, API client pattern, skeleton hydration (2026-07-09) |
 
 Every migration, view, API endpoint, and frontend component should be explainable by referring back to these documents.

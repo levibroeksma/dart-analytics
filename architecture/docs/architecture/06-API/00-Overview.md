@@ -16,7 +16,9 @@ This document defines:
 - write/read contracts
 - error envelope and retry semantics
 
-This is the source of truth for API behavior until deeper per-domain docs are added under `06-API/`.
+Implementation guidance (middleware, folder structure, REST vs Actions, Cloudflare + Neon) is in `01-Implementation-Strategy.md` and `02-Middleware-And-Layering.md`.
+
+This is the source of truth for API contract behavior. Deeper per-domain endpoint docs may be added under `06-API/` in future.
 
 ---
 
@@ -29,11 +31,11 @@ This is the source of truth for API behavior until deeper per-domain docs are ad
 
 Layer ownership:
 
-| Layer | Owns |
-| ----- | ---- |
-| Frontend | UX, game engine, temporary state |
+| Layer      | Owns                                                                            |
+| ---------- | ------------------------------------------------------------------------------- |
+| Frontend   | UX, game engine, temporary state                                                |
 | Worker API | Identity verification, validation, orchestration, transactions, UUID generation |
-| PostgreSQL | Storage, constraints, historical truth, views |
+| PostgreSQL | Storage, constraints, historical truth, views                                   |
 
 ---
 
@@ -114,12 +116,12 @@ Rules:
 
 Reads are view-backed and player-scoped.
 
-| Endpoint | Source |
-| -------- | ------ |
-| `GET /api/sessions/active` | `v_active_sessions` |
-| `GET /api/sessions?limit=&cursor=` | `v_session_overview` |
-| `GET /api/sessions/:sessionId/replay` | `v_game_replay` |
-| `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` |
+| Endpoint                                 | Source                |
+| ---------------------------------------- | --------------------- |
+| `GET /api/sessions/active`               | `v_active_sessions`   |
+| `GET /api/sessions?limit=&cursor=`       | `v_session_overview`  |
+| `GET /api/sessions/:sessionId/replay`    | `v_game_replay`       |
+| `GET /api/sessions/:sessionId/darts`     | `v_dart_analytics`    |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` |
 
 Policy:
@@ -183,3 +185,14 @@ Policy:
 - JWT middleware verification contract (v1): required claims are `sub` and `exp`.
 - Statistics scope (v1): `GET /api/statistics/overview` only; `trends` and `checkouts` are deferred.
 
+---
+
+## Related Documents
+
+Implementation guidance that extends this contract without changing it:
+
+| Document                        | Purpose                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `01-Implementation-Strategy.md` | REST vs Astro Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |
+| `02-Middleware-And-Layering.md` | Middleware responsibilities, layer ownership, `app/` folder structure (2026-07-09)   |
+| `../07-Frontend/00-Overview.md` | Frontend API client integration and state ownership (2026-07-09)                     |

@@ -11,6 +11,8 @@ Maintain a valid, sequential, auditable migration/seed chain aligned with archit
 1. `architecture/docs/architecture/05-Database/10-Database-Agent-Guide.md`
 2. `architecture/docs/architecture/05-Database/06-Database-Specification.md`
 3. `architecture/docs/architecture/05-Database/03-Migrations.md`
+4. `architecture/docs/architecture/05-Database/11-Neon-Integration.md`
+5. `architecture/docs/database/README.md`
 
 ## Hard Constraints
 
@@ -30,3 +32,4 @@ Maintain a valid, sequential, auditable migration/seed chain aligned with archit
 - New constraints/indexes match documented access patterns.
 - View naming uses `v_*`.
 - Any schema change is reflected in canonical DB specification.
+- For `app/` integration updates tied to DB changes, standard validation includes `npx fallow`.

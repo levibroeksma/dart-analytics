@@ -189,6 +189,7 @@ Validation includes:
 - replay verification
 - API verification
 - SQL verification
+- stale type validation (`npx fallow`) for `app/` changes
 - performance considerations
 
 Validation should confirm that the implementation satisfies the original requirements.

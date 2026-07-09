@@ -8,15 +8,8 @@
 -- It must not be executed as part of documentation-only changes.
 --
 -- ============================================================
-BEGIN;
 
--- ============================================================
--- session_write_idempotency
---
--- Stores persisted outcomes for POST /api/sessions/:sessionId/events:batch
--- requests keyed by idempotency.
---
--- ============================================================
+-- migrate:up
 CREATE TABLE session_write_idempotency (
     id UUID PRIMARY KEY,
     session_id UUID NOT NULL,
@@ -41,5 +34,5 @@ CREATE TABLE session_write_idempotency (
 COMMENT ON TABLE session_write_idempotency IS
     'Stores batch-write idempotency results for POST /api/sessions/:sessionId/events:batch.';
 
-COMMIT;
-
+-- migrate:down
+DROP TABLE IF EXISTS session_write_idempotency;

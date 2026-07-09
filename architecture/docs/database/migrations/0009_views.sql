@@ -8,7 +8,8 @@
 -- between PostgreSQL and the API layer.
 --
 -- ============================================================
-BEGIN;
+
+-- migrate:up
 -- ============================================================
 -- ACTIVE SESSIONS
 --
@@ -150,4 +151,10 @@ FROM routine_templates rt
     JOIN game_types gt ON gt.id = et.game_type_id
     JOIN duration_types dt ON dt.id = rs.duration_type_id;
 COMMENT ON VIEW v_routine_execution IS 'Ordered routine execution definition.';
-COMMIT;
+
+-- migrate:down
+DROP VIEW IF EXISTS v_routine_execution;
+DROP VIEW IF EXISTS v_dart_analytics;
+DROP VIEW IF EXISTS v_game_replay;
+DROP VIEW IF EXISTS v_session_overview;
+DROP VIEW IF EXISTS v_active_sessions;

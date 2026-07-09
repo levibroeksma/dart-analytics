@@ -4,14 +4,12 @@ import BottomNav from "@components/layout/BottomNav.astro";
 
 interface Props {
   title?: string;
-  description?: string;
-  backHref?: string;
 }
 
-const { title, description, backHref } = Astro.props;
+const { title } = Astro.props;
 ---
 
-<BaseLayout>
+<BaseLayout title={title}>
   <div class="flex h-full min-h-0 flex-1 touch-manipulation flex-col overflow-hidden">
     <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
       <slot />

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://fallow.tools/schema/config.json",
+  "entry": [
+    "neon.ts",
+    "astro.config.mjs",
+    "scripts/seed.ts",
+    "scripts/smoke.ts"
+  ],
+  "ignoreDependencies": [
+    "@astrojs/alpinejs",
+    "@astrojs/cloudflare",
+    "@tailwindcss/vite",
+    "postgres",
+    "jose"
+  ],
+  "duplicates": {
+    "ignore": ["src/db/schema.ts"]
+  },
+  "health": {
+    "ignore": ["src/middleware.ts", "src/lib/auth/verify-jwt.ts"]
+  }
+}
