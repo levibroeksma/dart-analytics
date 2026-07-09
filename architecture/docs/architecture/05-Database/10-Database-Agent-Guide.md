@@ -1,6 +1,6 @@
 # Database Agent Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.1.0
 >
 > Condensed operating rules for AI agents (and developers) touching PostgreSQL in this project.
 >
@@ -84,9 +84,9 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0011` current chain
+- Four-digit prefix: `0001`–`0012` current chain
 - Schema in migrations; reference data in seeds
-- **Never modify an applied migration** — create `0012_*` instead
+- **Never modify an applied migration** — create `0013_*` (or next) instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
 - Always use `BEGIN` / `COMMIT` transactions
 
@@ -193,7 +193,7 @@ No existing table changes required.
 
 ## Add a column to runtime table
 
-1. New migration `0012_add_<column>.sql`
+1. New migration `0013_add_<column>.sql`
 2. Update `06-Database-Specification.md` entity section
 3. Update views if API needs the column
 4. Update `03-Migrations.md` chain
@@ -252,3 +252,15 @@ configuration_templates → exercise_configurations → exercise_session
 3. Check `04-Architecture-patterns.md` for the applicable pattern
 4. If the change affects architecture, stop and propose a design before implementing
 5. Never guess at JSONB configuration key vocabulary — check `seeds/0002_default_templates.sql` and ruleset version
+
+---
+
+# Application Validation Procedure
+
+For DB-related work that touches `app/` integration:
+
+1. `npm run db:status`
+2. `npm run db:migrate`
+3. `drizzle-kit introspect`
+4. `npx fallow`
+5. `astro check`
