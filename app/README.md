@@ -1,43 +1,69 @@
-# Astro Starter Kit: Minimal
+# Dart Analytics App
+
+**Astro frontend + Worker API for long-term darts progression tracking, backed by Neon Postgres.**
 
 ```sh
-npm create astro@latest -- --template minimal
+cp .env.example .env
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Prerequisites
 
-## 🚀 Project Structure
+- Node.js `>=22.12.0`
+- Neon CLI (`npx -y neon@latest`)
+- Access to the Neon project/branches described in architecture docs
 
-Inside of your Astro project, you'll see the following folders and files:
+## Quick Start
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+1. Copy environment template:
+
+```sh
+cp .env.example .env
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+2. Authenticate and pull dev environment values:
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```sh
+neon auth
+neon env dev
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+3. Install dependencies:
 
-## 🧞 Commands
+```sh
+npm install
+```
 
-All commands are run from the root of the project, from a terminal:
+4. Start local development:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+```sh
+astro dev --background
+```
 
-## 👀 Want to learn more?
+Use:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```sh
+astro dev status
+astro dev logs
+astro dev stop
+```
+
+## Validation Standard Procedure
+
+Run this before closing an `app/` task:
+
+```sh
+npm run db:status
+npm run db:migrate
+drizzle-kit introspect
+npx fallow
+astro check
+```
+
+## Architecture References
+
+- `../architecture/docs/architecture/README.md`
+- `../architecture/docs/architecture/06-API/00-Overview.md`
+- `../architecture/docs/architecture/05-Database/11-Neon-Integration.md`
+- `./AGENT.md`
