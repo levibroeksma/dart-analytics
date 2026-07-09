@@ -11,7 +11,10 @@
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
-    "check": "astro check"
+    "check": "astro check",
+    "db:status": "dbmate --url \"$DATABASE_URL_POOLED\" --migrations-dir ../architecture/docs/database/migrations status",
+    "db:migrate": "dbmate --url \"$DATABASE_URL_POOLED\" --migrations-dir ../architecture/docs/database/migrations up",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^1.0.0",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "dbmate": "^2.33.0",
     "drizzle-kit": "^0.31.10",
+    "postgres": "^3.4.9",
     "tsx": "^4.23.0"
   }
 }
