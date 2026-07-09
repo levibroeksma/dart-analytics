@@ -1,6 +1,6 @@
 # Validation Blockers Fix — Design
 
-> **Status:** Draft (brainstorming session 2026-07-09)
+> **Status:** Implemented (2026-07-09)
 >
 > **Scope:** Unblock `npm run validate:app` after Neon DB integration by converting SQL migrations to dbmate format and clearing fallow violations.
 >
