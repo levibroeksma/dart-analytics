@@ -43,6 +43,22 @@
 - Auth failure mapping frozen: `401 UNAUTHORIZED` for missing/invalid/expired/missing-required-claims tokens; `403` for domain authorization failures (`PLAYER_NOT_PROVISIONED`, `SESSION_OWNERSHIP_MISMATCH`).
 - Statistics API v1 scope narrowed and frozen to **`GET /api/statistics/overview`**; `trends` and `checkouts` explicitly deferred post-v1.
 
+**API implementation guidance (2026-07-09):**
+
+- `06-API/01-Implementation-Strategy.md` (**v0.2.0**) — REST server endpoints as the only v1 surface; Astro Actions documentation removed; proxy terminology clarified; Cloudflare + Neon driver constraints.
+- `06-API/02-Middleware-And-Layering.md` (v0.1.0) — middleware responsibilities, `locals.auth` contract, Controller → Service → Repository folder structure.
+- `07-Frontend/00-Overview.md` (v0.1.0) — frontend state ownership, skeleton-first hydration, `lib/api/client.ts` pattern.
+
+**Neon integration design session (2026-07-09):**
+
+- Migration tooling resolved: **dbmate** (SQL-first) + **Drizzle introspect** (query layer only).
+- Neon project topology fixed: new `dart-analytics` in `aws-eu-central-1` with branches `main` / `preview` / `dev`.
+- v1 compute policy: **scale-to-zero on all branches**; always-on `main` deferred post-v1/paid plan.
+- Local development model: shared `dev` branch (no local Docker Postgres baseline).
+- Neon Auth included in phase 1 with explicit `POST /api/players/provision`.
+- Canonical design spec written: `docs/superpowers/specs/2026-07-09-neon-db-integration-design.md`.
+- Validation procedure now includes `npx fallow` for stale-type checks in `app/` changes.
+
 **Purpose:** Validate `architecture/docs/` remains aligned with original conversational intent. Use the Validation Checklist at the end.
 
 ---
@@ -324,10 +340,10 @@ Doc sync plan (Prompt 65) addresses these across `05-Database/00`–`09`.
 | board_segments lookup                                                        | Prompt 37                                                                                                                                             |
 | dart board coordinates (location_x/y)                                        | Prompt 67 — deferred until UI captures                                                                                                                |
 | Event sourcing                                                               | Prompt 37                                                                                                                                             |
-| Migration tooling selection                                                  | Prompt 50                                                                                                                                             |
 | Zero-downtime migrations                                                     | Prompt 50                                                                                                                                             |
 | API endpoint strategy                                                        | Prompt 24 — **defined baseline:** resource REST by domain + batch write endpoint; middleware JWT identity; Worker-generated UUIDv7; view-backed reads |
-| 06-API/ documentation                                                        | **Resolved (2026-07-08):** `06-API/00-Overview.md` frozen at `1.0.0` with security/auth/statistics scope decisions                                    |
+| 06-API/ documentation                                                        | **Resolved (2026-07-08):** `06-API/00-Overview.md` frozen at `1.0.0` with security/auth/statistics scope decisions; **extended (2026-07-09):** `01-Implementation-Strategy.md`, `02-Middleware-And-Layering.md` at `0.1.0` |
+| 07-Frontend/ documentation                                                   | **Added (2026-07-09):** `07-Frontend/00-Overview.md` at `0.1.0` — API client integration and state ownership |
 | JSONB configuration key vocabulary per ruleset (review against game engines) | Continuation session — first draft in seeds/0002                                                                                                      |
 | Final requirements traceability review                                       | Prompt 64                                                                                                                                             |
 
