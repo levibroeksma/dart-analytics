@@ -101,7 +101,7 @@ type ListResult<T> = { items: T[]; nextCursor: string | null };
 
 Three invariants ensure type safety and maintainability across all contracts.
 
-### Zod single source of truth
+### Zod single source of truth (z.infer<>)
 
 Every request and response contract is defined as one Zod schema. TypeScript types are never hand-authored in parallel; they are derived via `z.infer<>`.
 

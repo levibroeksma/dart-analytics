@@ -98,7 +98,33 @@ const CreateSessionRequest = z.object({
   config: ConfigInput,
 });
 type CreateSessionRequest = z.infer<typeof CreateSessionRequest>;
+
+const CreateSessionResponse = z.object({
+  sessionId: z.string(),                     // server-generated UUIDv7
+});
+type CreateSessionResponse = z.infer<typeof CreateSessionResponse>;
 ```
+
+The server generates the session (and its activity, configuration snapshot, and participants) and returns `sessionId` in the `ok()` envelope.
+
+---
+
+## Session Lifecycle — `PATCH /api/sessions/:sessionId`
+
+Updates a session's status during its lifecycle — primarily the transition to completion. Consistent with the immutability principle (sessions are mutable during active play, immutable once `COMPLETED`), a session already in a terminal status rejects further updates with `409 SESSION_ALREADY_COMPLETED` (from the error-code registry in `03-Shared-Conventions.md`).
+
+```typescript
+// design sketch — status transition is validated server-side against the game_statuses lifecycle
+const UpdateSessionRequest = z.object({
+  status: z.string(),                        // game_statuses.implementation_key (e.g. "completed")
+  completedAt: z.string().datetime().optional(),
+});
+type UpdateSessionRequest = z.infer<typeof UpdateSessionRequest>;
+```
+
+- The server validates the requested transition against the `game_statuses` lifecycle; invalid transitions are rejected using a registered error code from `03-Shared-Conventions.md`.
+- Ownership is enforced (`403 SESSION_OWNERSHIP_MISMATCH`) before any mutation.
+- Success returns the standard envelope (via `ok()` from `03`) with the updated session summary.
 
 ---
 
@@ -134,11 +160,15 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | -------- | ---- | ----- | ---- |
 | `GET /api/sessions/active` | `v_active_sessions` | object or null | 2026-07-10 |
 | `GET /api/sessions?limit=&cursor=` | `v_session_overview` | `ListResult<SessionOverview>` | 2026-07-10 |
+| `GET /api/sessions/:sessionId` | `v_session_overview` | object (1:1 view) | 2026-07-10 |
 | `GET /api/sessions/:sessionId/replay` | `v_game_replay` | object (1:1 view) | 2026-07-10 |
 | `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | array (1:1 view) | 2026-07-10 |
 | `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
+| `GET /api/routines/:routineId` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
 | `GET /api/statistics/overview` | overview aggregation | object | 2026-07-10 |
+
+`v_routine_execution` backs both the routine list and the single-routine execution detail; the list projects summary columns and the detail returns the full execution definition.
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded.
 
