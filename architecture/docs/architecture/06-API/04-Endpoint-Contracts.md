@@ -20,12 +20,12 @@ Reference values travel as `implementation_key`s; the client sends no persistenc
 
 ## Write Path — `POST /api/sessions/:sessionId/events:batch`
 
-The engine-agnostic batch write payload is the centerpiece of this contract. It carries ordered gameplay across three nested levels: stages (e.g., legs, rounds, frames), turns (a participant's action in a stage), and darts (individual dart observations). The shape is invariant across all game types; the ruleset decides which levels are required and which fields are populated.
+The engine-agnostic batch write payload is the centerpiece of this contract. It carries ordered gameplay across three nested levels: stages (e.g., legs, rounds), turns (a participant's action in a stage), and darts (individual dart observations). The shape is invariant across all game types; the ruleset decides which levels are required and which fields are populated.
 
 **Recursive tree structure:**
 
-- **Stage:** A logical grouping of turns (e.g., a leg in 501, a frame in bowling). Nests turns and optionally child stages (`parentClientKey` for tree structure).
-- **Turn:** A participant's action within a stage (e.g., one player's three darts in 501, one bowl in bowling). Contains dart facts (empty array in recreational mode).
+- **Stage:** A logical grouping of turns (e.g., a leg in 501, a round in Score training). Nests turns and optionally child stages (`parentClientKey` for tree structure).
+- **Turn:** A participant's action within a stage (e.g., one player's three darts in 501). Contains dart facts (empty array in recreational mode).
 - **Dart:** One observed throw result (hit zone, score). Idempotency is handled by `clientKey` at each level for client-side deduplication.
 
 **Rules:**
@@ -82,9 +82,9 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 **Outcomes:**
 
 - Server creates activity / exercise session / config snapshot row / participant references.
-- Config is **always** copied (materialized in `session_configs` table snapshot), never referenced.
+- Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
 - Returns server-generated `sessionId` (UUIDv7), enclosed in standard `ok()` envelope.
-- Template resolution or config validation failure → error with appropriate code (e.g., `TEMPLATE_NOT_FOUND`, domain-specific validation errors).
+- Template resolution or config validation failure → error using an appropriate code from the error-code registry in `03-Shared-Conventions.md` (do not introduce ad-hoc codes here).
 
 ```typescript
 // discriminated config input — template-based OR ad-hoc inline; server snapshots + validates in every case
@@ -148,7 +148,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 ## Extensibility — Ruleset Validator Registry
 
-The v1 API transport contract (envelope, headers, pagination) and write-path shape (`EventsBatchRequest`) are engine-agnostic and frozen. New game types and rulesets do **not** modify this document or any endpoint signature.
+The v1 API transport contract (envelope, headers, pagination) and write-path shape (`EventsBatchRequest`) are engine-agnostic and stable by design. New game types and rulesets do **not** modify this document or any endpoint signature.
 
 **Extensibility pattern:**
 
