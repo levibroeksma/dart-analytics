@@ -60,7 +60,7 @@ architecture/docs/
 │   ├── 06-API/          # API contract and implementation (00–04)
 │   └── 07-Frontend/     # Frontend integration (00)
 └── database/
-    ├── migrations/      # 0001–0011
+    ├── migrations/      # 0001–0012
     └── seeds/           # 0001–0002
 ```
 
@@ -176,7 +176,7 @@ Architecture documents use semantic versioning. Major changes require a version 
 | `04-Architecture-patterns.md`              | How recurring problems are solved                                 |
 | `05-Database/00-OVERVIEW.md`               | Database philosophy and operating model                           |
 | `05-Database/06-Database-Specification.md` | Every table, relationship, and lifecycle rule                     |
-| `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0011`                        |
+| `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0012` (2026-07-11)           |
 | `05-Database/11-Neon-Integration.md`       | Neon project topology, env, dbmate/drizzle workflow (2026-07-09)  |
 | `06-API/00-Overview.md`                    | API runtime, route, auth, read/write, and error contract baseline |
 | `06-API/01-Implementation-Strategy.md`     | REST endpoints vs Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |

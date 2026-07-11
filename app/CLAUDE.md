@@ -9,7 +9,7 @@ Scope: everything under `app/`.
 3. `architecture/docs/architecture/02-System-Architecture.md`
 4. `architecture/docs/architecture/06-API/00-Overview.md`
 5. `architecture/docs/architecture/05-Database/06-Database-Specification.md`
-6. Scope guides: `app/src/db/AGENT.md`, `app/src/pages/api/AGENT.md`
+6. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`
 7. Application code
 
 ## Required Reading By Task
