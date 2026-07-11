@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/sql-artifacts
+read-when: applying migrations and seeds
+updated: 2026-07-11
+-->
+
 # Database SQL Artifacts
 
 This directory contains SQL source-of-truth artifacts used by the application.
@@ -41,4 +48,4 @@ astro check
 - [`../architecture/05-Database/10-Database-Agent-Guide.md`](../architecture/05-Database/10-Database-Agent-Guide.md)
 - [`../architecture/05-Database/11-Neon-Integration.md`](../architecture/05-Database/11-Neon-Integration.md)
 - [`../../../app/CLAUDE.md`](../../../app/CLAUDE.md)
-- [`./AGENT.md`](./AGENT.md)
+- [`./CLAUDE.md`](./CLAUDE.md)

@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/design-rules
+read-when: schema design decisions
+updated: 2026-07-11
+-->
+
 # Database Design Rules
 
 > **Version:** 1.1.0

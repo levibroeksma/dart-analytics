@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/migrations
+read-when: adding migrations, understanding the chain
+updated: 2026-07-11
+-->
+
 # Database Migration Strategy
 
 > **Version:** 1.2.0

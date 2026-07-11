@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: api/endpoint-contracts
+read-when: adding or changing endpoint contracts
+updated: 2026-07-11
+-->
+
 # API Endpoint Contracts
 
 > **Version:** 0.1.0 (draft)

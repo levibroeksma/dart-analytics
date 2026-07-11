@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/philosophy
+read-when: database philosophy and operating model
+updated: 2026-07-11
+-->
+
 # Database Architecture Overview
 
 > **Version:** 1.2.0

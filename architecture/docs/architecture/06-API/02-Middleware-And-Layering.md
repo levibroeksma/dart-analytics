@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: api/middleware-layering
+read-when: middleware or folder-layering changes
+updated: 2026-07-11
+-->
+
 # API Middleware And Layering
 
 > **Version:** 0.1.0

@@ -1,6 +1,6 @@
 # Agent Operating Manual — Dart Analytics
 
-> Rules for AI agents working in this repository. Human developers may use this as a quick reference.
+> Router file — auto-loaded every session. Every rule lives in exactly one place; this file tells you where. (2026-07-11)
 
 ---
 
@@ -8,130 +8,46 @@
 
 Personal darts scoring app with long-term progression tracking. Architecture-first: design before implementation.
 
-**Stack:** Astro.js, TypeScript, Alpine.js, PostgreSQL (Neon), Cloudflare Worker proxy API.
+**Stack:** Astro.js, TypeScript, Alpine.js, PostgreSQL (Neon), Cloudflare Workers API (in `app/`).
 
 **Principle:** Store what happened. Derive what it means.
 
 ---
 
-# Read Order (first session)
+# Context Loading Protocol
 
-1. This file (`AGENT.md`)
-2. `architecture/docs/architecture/README.md` — documentation map
-3. `architecture/docs/architecture/01-Principles.md` — beliefs
-4. `architecture/docs/architecture/02-System-Architecture.md` — structure
-5. `architecture/docs/architecture/04-Architecture-patterns.md` — how to solve recurring problems
+1. Open `architecture/docs/architecture/00-Context-Map.md`.
+2. Find your task type in its Context Packs table and load exactly those files.
+3. Do not preload anything else. Escalate to additional files only when the pack demonstrably lacks the answer.
 
-**Database work additionally requires:**
-
-6. `architecture/docs/architecture/05-Database/10-Database-Agent-Guide.md` — condensed DB rules
-7. `architecture/docs/architecture/05-Database/06-Database-Specification.md` — every table and relationship
-8. `architecture/docs/architecture/05-Database/11-Neon-Integration.md` — Neon setup, branch policy, tooling
-
-**API work additionally requires:**
-
-9. `architecture/docs/architecture/06-API/00-Overview.md` — API baseline contract
-10. `architecture/docs/architecture/06-API/01-Implementation-Strategy.md` — REST server endpoints, Cloudflare + Neon (2026-07-09)
-11. `architecture/docs/architecture/06-API/02-Middleware-And-Layering.md` — middleware and folder structure (2026-07-09)
-
-**Frontend API integration additionally requires:**
-
-12. `architecture/docs/architecture/07-Frontend/00-Overview.md` — client pattern and state ownership (2026-07-09)
-13. `app/CLAUDE.md` — app-scope implementation rules
+The authority order for conflicts is defined once, in the context map. Docs win over code.
 
 ---
 
-# Authority and Conflict Resolution
+# Hard Invariants
 
-| Priority | Source |
-| -------- | ------ |
-| 1 | User instructions in the current task |
-| 2 | `01-Principles.md` |
-| 3 | `02-System-Architecture.md` |
-| 4 | `04-Architecture-patterns.md` |
-| 5 | `05-Database/06-Database-Specification.md` |
-| 6 | SQL migrations `0001`–`0011` |
-| 7 | Application code |
-
-If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise.
-
-Historical docs (`05-Database/07`–`09`) are design-gate records — not canonical. Check their "Superseded Decisions" tables.
+- Completed gameplay is immutable; corrections create new records.
+- Store facts; statistics live in views (`v_*`) only — never persisted.
+- IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
+- Runtime tables never FK-reference templates; configuration is copied as a snapshot.
+- Never modify applied migrations (`0001`–`0012`); new schema change = new numbered migration + spec update.
+- Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
+- Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks.
+- Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
 
 ---
 
-# Layer Responsibilities
+# Context Maintenance (mandatory, every task)
 
-| Layer | Owns | Must not |
-| ----- | ---- | -------- |
-| **Database** | Integrity, constraints, historical truth, views | UI logic, auth credentials, workflow |
-| **API** | Auth, validation, orchestration, transactions | Expose raw tables; duplicate DB truth |
-| **Frontend** | UX, game engine, temp state | Become source of truth; touch DB directly |
+The context system is part of every deliverable. Before claiming any task done:
 
-**Data flow:** Frontend → API → PostgreSQL (writes) / Views → API → Frontend (reads).
+1. Update the `CLAUDE.md` nearest to what you changed if your change adds, alters, or invalidates a rule in it.
+2. Register new, moved, renamed, or deleted docs in `00-Context-Map.md` in the same change.
+3. Record new architectural decisions as one-line entries in `architecture/DECISIONS.md`.
+4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
+5. Run `scripts/check-context-map.sh` — it must pass.
 
----
-
-# Safe Development Rules
-
-## General
-
-- **Git workflow:** Never merge task work into `main` directly. Every task uses a dedicated branch (e.g. `neon-setup`). Commit on that branch (or a worktree checked out to it) and push to `origin/<task-branch>`. Open a PR when the task is ready.
-- Default isolated workspace location: `.worktrees/<branch-name>/` at repo root.
-- Before creating a project-local worktree, ensure `.worktrees/` remains git-ignored.
-- Architecture before implementation. No coding that bypasses documented design.
-- Minimal diffs. Match existing conventions. Reuse before creating.
-- One responsibility per migration, endpoint, service, and table.
-- When updating any docs file, add an ISO date (`YYYY-MM-DD`) to every newly added and/or changed row entry so documentation evolution is traceable.
-- Do not commit unless the user asks.
-- Do not regenerate architecture docs from scratch — validate and fix deviations only.
-
-## Database (summary — full rules in `10-Database-Agent-Guide.md`)
-
-- UUIDv7 domain entities; SMALLINT lookups with seeded ids. App generates all ids.
-- Templates copy into runtime snapshots. Runtime never FK-references templates.
-- Darts: intention + result zones. No multiplier column.
-- Completed sessions immutable. Statistics in views only.
-- Migrations `0001`–`0012`. Never modify applied migrations.
-- New schema change = new numbered migration + spec update.
-
-## API
-
-- Repository pattern: Controller → Service → Repository → DB
-- Read from views (`v_*`), write to runtime tables in transactions
-- Batch session upload (not per-dart API calls)
-- Worker/API generates UUIDv7 for runtime persistence entities
-- Expose UUID + `implementation_key` in responses where applicable
-- Auth via Neon Auth; API validates, DB stores `auth_user_id` reference only
-
-## Frontend
-
-- Game engine runs client-side
-- Sends completed gameplay batches to API
-- Never queries database directly
-
-## Validation Standard Procedure
-
-For application-layer changes in `app/`, run this sequence before claiming completion:
-
-1. `npm run db:status`
-2. `npm run db:migrate`
-3. `drizzle-kit introspect`
-4. `npx fallow`
-5. `astro check`
-
----
-
-# Task Routing
-
-| Task type | Start here |
-| --------- | ---------- |
-| New table / column / constraint | `10-Database-Agent-Guide.md` → `06-Database-Specification.md` → `03-Migrations.md` |
-| New view / analytics query | `05-Views.md` → `06-Database-Specification.md` Read Model Layer |
-| New seed data | `seeds/0001` or `0002` → match existing id ranges |
-| New API endpoint | `06-API/00-Overview.md` → `02-System-Architecture.md` |
-| New game type | `10-Database-Agent-Guide.md` "Add a new game type" |
-| Bug in migration chain | Read full chain `0001`–`0012`; never patch applied files |
-| Architecture question | `01-Principles.md` + `04-Architecture-patterns.md` |
+A change that leaves the context map, CLAUDE.md files, or decision ledger stale is incomplete, even if the code works.
 
 ---
 
@@ -142,77 +58,19 @@ For application-layer changes in `app/`, run this sequence before claiming compl
 - Store derivable statistics in tables
 - Add template foreign keys to runtime tables
 - Use database-generated UUIDs or SERIAL ids
-- Create generic EAV / polymorphic FK patterns for gameplay
-- Skip documentation updates when changing schema
-- Regenerate entire architecture docs instead of targeted fixes
-- Force-push to main/master
-- Commit secrets (`.env`, credentials)
+- Generic EAV / polymorphic FK patterns for gameplay
+- Skip documentation/context updates when changing schema or repo structure
+- Regenerate architecture docs instead of targeted fixes
+- Force-push to main/master; commit secrets (`.env`, credentials)
 
 ---
 
-# Documentation Map
+# Where Everything Lives
 
-```
-architecture/docs/architecture/
-├── README.md                          ← start here
-├── 01-Principles.md
-├── 02-System-Architecture.md
-├── 03-Engineering-Workflow.md
-├── 04-Architecture-patterns.md
-├── 099-engineering-workflow-and-decision-framework.md
-├── 05-Database/
-│   ├── 00-OVERVIEW.md                 ← DB philosophy
-│   ├── 01-Naming-Conventions.md
-│   ├── 02-Design-Rules.md
-│   ├── 03-Migrations.md               ← migration process + chain
-│   ├── 04-Indexes.md
-│   ├── 05-Views.md
-│   ├── 06-Database-Specification.md   ← CANONICAL entity reference
-│   ├── 07–09                          ← historical design gates
-│   ├── 10-Database-Agent-Guide.md     ← condensed DB agent rules
-│   └── 11-Neon-Integration.md         ← Neon environment/tooling guide
-└── 06-API/
-    └── 00-Overview.md                 ← API baseline contract
-
-architecture/docs/database/
-├── migrations/0001–0012.sql
-└── seeds/0001–0002.sql
-```
-
----
-
-# Current Implementation State
-
-| Area | Status |
-| ---- | ------ |
-| Domain model v1.0 | Frozen |
-| Migrations | `0001`–`0012` complete |
-| Seeds | `0001` reference data, `0002` default templates |
-| Database spec | `06-Database-Specification.md` v2.1.0 |
-| Database handbook | `00`–`10` complete |
-| API docs | Baseline started (`06-API/00-Overview.md`) |
-| Frontend docs | Not started |
-| Application code | Not in scope of architecture docs |
-
----
-
-# Verification Before Claiming Done
-
-- [ ] Changes align with `06-Database-Specification.md` (if DB work)
-- [ ] Migration is numbered, transactional, single-responsibility (if schema change)
-- [ ] Spec and handbook docs updated (if schema change)
-- [ ] No forbidden patterns introduced
-- [ ] Id strategy respected (UUIDv7 / SMALLINT)
-- [ ] Views used for reads, tables for writes (if API work)
-- [ ] `npx fallow` passes for `app/` changes
-
----
-
-# Context Files
-
-Conversation history and decisions are summarized in:
-
-- `original-conversation/summarized-context/000_master_context.md` — master handoff
-- `architecture/CONVERSATION.md` / `CONVERSATION_PART_2.md` — full design history
-
-Use master context for intent validation. Use formal docs in `architecture/docs/` for implementation.
+| Need | File |
+| ---- | ---- |
+| Context packs, file inventory, authority order | `architecture/docs/architecture/00-Context-Map.md` |
+| Why a decision was made | `architecture/DECISIONS.md` |
+| App implementation rules + validation procedure | `app/CLAUDE.md` |
+| Condensed database rules | `architecture/docs/architecture/05-Database/10-Database-Agent-Guide.md` |
+| Historical handoff (context only, never authority) | `architecture/000_master_context.md` |

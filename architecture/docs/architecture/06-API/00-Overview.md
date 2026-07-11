@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: api/contract-baseline
+read-when: any API work (frozen v1 baseline)
+updated: 2026-07-11
+-->
+
 # API Overview
 
 > **Version:** 1.0.0 (frozen v1 API baseline)

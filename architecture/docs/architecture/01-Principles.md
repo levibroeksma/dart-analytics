@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/principles
+read-when: architecture questions, new patterns, conflict resolution
+updated: 2026-07-11
+-->
+
 # Project Principles
 
 > **Version:** 1.1.0

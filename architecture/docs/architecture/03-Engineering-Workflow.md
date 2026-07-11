@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/process
+read-when: process and change-lifecycle questions
+updated: 2026-07-11
+-->
+
 # Engineering Workflow
 
 > **Version:** 1.1.0

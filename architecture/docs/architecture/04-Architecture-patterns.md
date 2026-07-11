@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/patterns
+read-when: solving recurring design problems
+updated: 2026-07-11
+-->
+
 # Architecture Patterns
 
 > **Version:** 1.2.0

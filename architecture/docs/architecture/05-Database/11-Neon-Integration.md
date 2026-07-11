@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/platform
+read-when: Neon environment and tooling work
+updated: 2026-07-11
+-->
+
 # Neon Integration Guide
 
 > **Version:** 1.0.0

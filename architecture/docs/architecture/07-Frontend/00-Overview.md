@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: frontend/integration
+read-when: frontend API integration and state ownership
+updated: 2026-07-11
+-->
+
 # Frontend Overview
 
 > **Version:** 0.1.0
