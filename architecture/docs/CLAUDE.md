@@ -1,41 +1,26 @@
 # Agent Rules — `architecture/docs/`
 
-Scope: all files under `architecture/docs/`.
+Scope: all documentation under `architecture/docs/` (foundation docs, database handbook, API/frontend docs). Authority order and canonical-file inventory live in `architecture/docs/architecture/00-Context-Map.md`. (2026-07-11)
 
-## Mission
+## Editing Workflow
 
-Keep architecture and database documentation internally consistent and aligned with implemented SQL artifacts.
+1. Identify the canonical target doc for the change (use the context map inventory).
+2. Apply a minimal diff in the canonical doc first; align secondary docs to it.
+3. Propagate only required consistency edits.
 
-## Read Order
-
-1. `architecture/docs/architecture/README.md`
-2. `architecture/docs/architecture/01-Principles.md`
-3. `architecture/docs/architecture/02-System-Architecture.md`
-4. `architecture/docs/architecture/04-Architecture-patterns.md`
-5. relevant domain handbook/doc (API, DB)
-
-## Non-Negotiable Rules
+## Strict Rules
 
 - Documentation-first: update design docs before implementation guidance.
-- Prefer targeted edits; do not regenerate entire document sets.
 - Preserve folder hierarchy and numbering conventions.
-- Keep terminology stable across files (`activity`, `exercise_session`, `turn`, `dart`, etc.).
-- If a canonical document exists for a topic, update it first and align secondary docs to it.
-- For any docs update, include an ISO date (`YYYY-MM-DD`) in every newly added and/or changed row entry.
-
-## Canonical Sources
-
-- Architecture map: `architecture/docs/architecture/README.md`
-- Canonical DB spec: `architecture/docs/architecture/05-Database/06-Database-Specification.md`
-- Canonical API baseline: `architecture/docs/architecture/06-API/00-Overview.md`
-- API implementation guidance: `architecture/docs/architecture/06-API/01-Implementation-Strategy.md`, `02-Middleware-And-Layering.md` (2026-07-09)
-- Frontend integration: `architecture/docs/architecture/07-Frontend/00-Overview.md` (2026-07-09)
-- Neon platform integration: `architecture/docs/architecture/05-Database/11-Neon-Integration.md` (2026-07-09)
+- Keep terminology stable across files (`activity`, `exercise_session`, `turn`, `dart`, …).
+- Do not mark speculative ideas as decisions; use explicit "Open Decisions" sections.
+- Keep historical records historical (`05-Database/07`–`09`); do not rewrite history.
+- Keep the Worker/Neon/PostgreSQL responsibility split explicit in API docs.
+- Keep naming conventions stable (`v_*`, `idx_*`, `fk_*`, `uq_*`, `chk_*`).
 
 ## Consistency Checks Before Finish
 
-- No contradiction between architecture docs and migration/seed chain.
-- IDs ownership is consistent (Worker/API generates UUIDv7 for runtime entities).
-- API read/write responsibilities remain CQRS-lite (writes to tables, reads from views).
-- Any changed claim is reflected in relevant summary context files when requested by user.
-- If validation command lists are updated, include `npx fallow` as standard stale-type check for `app/`.
+- No contradiction between architecture docs and the migration/seed chain (`0001`–`0012`).
+- ID ownership consistent: Worker/API generates UUIDv7 for runtime entities.
+- CQRS-lite intact: writes to runtime tables, reads from `v_*` views.
+- Context Maintenance protocol (root `CLAUDE.md`) completed — including the ISO-date rule and context-map registration.
