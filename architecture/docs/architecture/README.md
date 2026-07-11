@@ -101,7 +101,8 @@ README.md (this file)
   03-Migrations.md
   04-Indexes.md
   05-Views.md
-  06-Database-Specification.md   ← canonical entity reference
+  06-Database-Specification.md   ← canonical spec: invariants + chapter index (2026-07-11)
+  06-Spec/01–06                  ← per-layer entity chapters (2026-07-11)
   07–09                          ← historical design-gate records
   10-Database-Agent-Guide.md     ← agent operating rules
 
@@ -175,7 +176,9 @@ Architecture documents use semantic versioning. Major changes require a version 
 | `03-Engineering-Workflow.md`               | How changes are introduced                                        |
 | `04-Architecture-patterns.md`              | How recurring problems are solved                                 |
 | `05-Database/00-OVERVIEW.md`               | Database philosophy and operating model                           |
-| `05-Database/06-Database-Specification.md` | Every table, relationship, and lifecycle rule                     |
+| `00-Context-Map.md`                        | Context packs, file inventory, authority order (2026-07-11)       |
+| `05-Database/06-Database-Specification.md` | Cross-layer invariants + per-layer chapter index (2026-07-11)     |
+| `05-Database/06-Spec/01`–`06`              | Per-layer entity detail: reference, template, player, runtime, read model, relationships (2026-07-11) |
 | `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0012` (2026-07-11)           |
 | `05-Database/11-Neon-Integration.md`       | Neon project topology, env, dbmate/drizzle workflow (2026-07-09)  |
 | `06-API/00-Overview.md`                    | API runtime, route, auth, read/write, and error contract baseline |

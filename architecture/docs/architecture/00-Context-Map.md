@@ -20,7 +20,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
 | New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~7k |
-| New view / analytics query | `05-Database/05-Views.md`, `05-Database/06-Spec/04-Read-Model-Layer.md` | ~5k |
+| New view / analytics query | `05-Database/05-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges), `05-Database/06-Spec/01-Reference-Layer.md` | ~5k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~2k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~6k |
@@ -80,11 +80,13 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `03-Migrations.md` | Migration process + chain `0001`–`0012` | canonical | ~2.9k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.5k |
 | `05-Views.md` | View categories and replay rules | canonical | ~2.0k |
-| `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~1.5k |
-| `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … dart_zones) | canonical | ~2.5k |
-| `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~2k |
-| `06-Spec/03-Runtime-Layer.md` | Activities, sessions, stages, turns, darts | canonical | ~3.5k |
-| `06-Spec/04-Read-Model-Layer.md` | View contracts (`v_*`) | canonical | ~1.5k |
+| `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
+| `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types) | canonical | ~1.6k |
+| `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
+| `06-Spec/03-Player-Layer.md` | players, player_settings | canonical | ~0.6k |
+| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency | canonical | ~2.8k |
+| `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`) | canonical | ~1.2k |
+| `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.2k |
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
 | `09-Pre-Implementation-Review.md` | Design-gate record | historical | ~1.4k |
