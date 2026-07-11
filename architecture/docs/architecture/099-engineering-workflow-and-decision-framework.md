@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/process-quick-reference
+read-when: quick workflow/decision reference
+updated: 2026-07-11
+-->
+
 # Engineering Workflow & Decision Framework
 
 > Defines the mandatory engineering workflow for all contributors, including AI agents.

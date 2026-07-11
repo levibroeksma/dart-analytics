@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/agent-rules
+read-when: before any SQL, migration, seed, or view work
+updated: 2026-07-11
+-->
+
 # Database Agent Guide
 
 > **Version:** 1.1.0
@@ -218,7 +225,7 @@ No existing table changes required.
 architecture/docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── database/
-    ├── migrations/0001–0011.sql
+    ├── migrations/0001–0012.sql
     └── seeds/0001–0002.sql
 ```
 

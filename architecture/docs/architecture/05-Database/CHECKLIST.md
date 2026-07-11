@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/checklist
+read-when: pre-completion DB verification
+updated: 2026-07-11
+-->
+
 # Database architecture checklist
 
 **Files that should be present:**

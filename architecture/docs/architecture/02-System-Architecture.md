@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/system-structure
+read-when: system layers, data flow, ownership questions
+updated: 2026-07-11
+-->
+
 # System Architecture
 
 > **Version:** 1.2.0

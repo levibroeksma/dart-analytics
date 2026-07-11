@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: api/implementation-strategy
+read-when: implementing endpoints on Cloudflare + Neon
+updated: 2026-07-11
+-->
+
 # API Implementation Strategy
 
 > **Version:** 0.2.0

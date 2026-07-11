@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/naming
+read-when: naming tables, views, indexes, constraints
+updated: 2026-07-11
+-->
+
 # Database Naming Conventions
 
 > **Version:** 1.1.0

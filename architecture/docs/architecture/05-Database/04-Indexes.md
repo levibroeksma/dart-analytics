@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/indexes
+read-when: adding or reviewing indexes
+updated: 2026-07-11
+-->
+
 # Database Index Strategy
 
 > **Version:** 1.1.0

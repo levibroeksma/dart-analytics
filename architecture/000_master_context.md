@@ -1,3 +1,10 @@
+<!--
+status: historical
+scope: history/design-journey
+read-when: decision archaeology when DECISIONS.md is insufficient
+updated: 2026-07-11
+-->
+
 # Master context Dart Analytics Architecture
 
 # Context Summary — Prompts 1–81 (Complete) + Continuation Session

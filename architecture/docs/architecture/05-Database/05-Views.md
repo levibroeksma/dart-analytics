@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: database/views
+read-when: adding or changing views
+updated: 2026-07-11
+-->
+
 # Database View Strategy
 
 > **Version:** 1.1.0

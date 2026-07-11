@@ -1,3 +1,10 @@
+<!--
+status: historical
+scope: database/design-gate
+read-when: decision archaeology only
+updated: 2026-07-11
+-->
+
 # Physical Schema Mapping
 
 > **Version:** 1.0.1

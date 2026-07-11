@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/documentation-philosophy
+read-when: understanding doc hierarchy and philosophy
+updated: 2026-07-11
+-->
+
 # Architecture Documentation
 
 > **Version:** 1.4.0

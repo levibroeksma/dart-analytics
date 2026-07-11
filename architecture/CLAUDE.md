@@ -7,7 +7,7 @@ Scope: architecture docs, database migrations/seeds, and context files. Global r
 Identify the impacted layer first, then edit the canonical doc before cascading:
 
 - **Principles/System:** `01-Principles.md` / `02-System-Architecture.md` first, then cascade.
-- **Workflow/process:** `03-Engineering-Workflow.md` and `099-…-decision-framework.md`.
+- **Workflow/process:** `03-Engineering-Workflow.md` and `099-engineering-workflow-and-decision-framework.md`.
 - **Pattern-level:** `04-Architecture-patterns.md`, then impacted domain docs.
 - **Database model:** `05-Database/06-Database-Specification.md` (+ `06-Spec/` chapter), then migrations/seeds, then related `05-Database/*` guides.
 - **API contract:** `06-API/00-Overview.md` before or with implementation changes.
