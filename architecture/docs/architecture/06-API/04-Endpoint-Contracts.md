@@ -126,7 +126,7 @@ const CreateSessionResponse = z.object({
 type CreateSessionResponse = z.infer<typeof CreateSessionResponse>;
 ```
 
-The server generates the session (and its activity, configuration snapshot, and participants) and returns `sessionId` in the `ok()` envelope.
+The server generates the session (and its activity, configuration snapshot, and participants) and returns `sessionId` together with the participant ref(s) in the `ok()` envelope. <!-- 2026-07-12 -->
 
 ---
 

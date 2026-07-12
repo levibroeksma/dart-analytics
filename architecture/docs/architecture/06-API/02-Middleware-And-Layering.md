@@ -77,6 +77,8 @@ Middleware must set `locals.auth` on protected routes:
 }
 ```
 
+On the authenticated-unprovisioned route (`POST /api/players/provision`), `locals.auth` carries `authUserId` only; `playerId` is absent because the player row may not exist yet. <!-- 2026-07-12 -->
+
 Extend `App.Locals` in `env.d.ts` to type `auth` and `requestId`.
 
 ## Failure mapping
