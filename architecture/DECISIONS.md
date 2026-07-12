@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Architectural Decision Ledger
@@ -55,8 +55,13 @@ updated: 2026-07-11
 | D33 | P82–85 | Worker/API generates UUIDv7 for runtime persistence entities; frontend sends gameplay payloads only | Trust boundary: ids minted server-side |
 | D34 | 2026-07-08 | Trusted Worker service-role DB access; PostgreSQL RLS explicitly deferred post-v1 | Single trusted writer in v1 |
 | D35 | Cont. session | Standard envelope `ok/data/requestId` · `ok/error/requestId` with domain error-code registry and retryable semantics | Uniform client handling |
-| D36 | 2026-07-08 | Statistics v1 scope = `GET /api/statistics/overview` only; trends/checkouts deferred | Scope control |
+| D36 | 2026-07-08 | Statistics v1 scope = `GET /api/statistics/overview` only; trends/checkouts deferred (superseded by D63, 2026-07-12: overview also deferred) | Scope control |
 | D37 | 2026-07-09 | Neon Auth in phase 1 with explicit `POST /api/players/provision`; DB stores `auth_user_id` reference only | Decouple identity provider from domain |
+| D60 | 2026-07-12 | `POST /api/sessions` requires `captureModeKey` + `inputModeKey`; every session self-describes its capture/input mode | `exercise_sessions` NOT-NULL mode columns need an input path |
+| D61 | 2026-07-12 | v1 session is single-participant (server-derived `PLAYER`); guest/DartBot deferred as additive `participants[]` | Close participant gap without multiplayer scope |
+| D62 | 2026-07-12 | Provision-exempt route class: `POST /api/players/provision` is JWT-verified but skips player resolution | Endpoint must be reachable by an unprovisioned user |
+| D63 | 2026-07-12 | Statistics endpoints (overview/trends/checkouts) fully deferred post-v1; each must be view-backed when built | No viewless read at freeze; acquire the data first |
+| D64 | 2026-07-12 | v1 = one activity per session, server-managed; multi-session activities + routine-run writes deferred | Defer, not contradict, the activities-group-sessions model |
 
 ## Frontend
 
@@ -75,4 +80,4 @@ updated: 2026-07-11
 
 ## Deferred (open, not rejected)
 
-ROUTINE_RUN entity (P25) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics trends/checkouts endpoints (post-v1) · JSONB config key vocabulary review against game engines.
+ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines.

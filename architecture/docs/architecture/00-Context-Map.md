@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Context Map
 
-> **Version:** 1.0.0 (2026-07-11)
+> **Version:** 1.0.1 (2026-07-12)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -133,7 +133,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Seeds | `0001` reference data, `0002` default templates |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
-| API docs | v1 baseline frozen; contracts `00`–`04` (2026-07-10) |
+| API docs | v1 baseline frozen; contracts `00`–`04`; freeze validation reconciliation (2026-07-12) |
 | Frontend docs | `07-Frontend/00-Overview.md` (2026-07-09) |
 | Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
 
