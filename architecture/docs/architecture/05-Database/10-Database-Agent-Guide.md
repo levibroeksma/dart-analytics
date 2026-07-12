@@ -85,7 +85,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 
 - Prefix: `v_*` (not `vw_*`)
 - API reads views, never raw runtime tables
-- Expose `implementation_key` alongside ids
+- Expose `implementation_key`s (as `*_key`), not internal lookup ids; keep only entity UUIDs (see `01-Naming-Conventions.md` §"View Column Key And Label Naming")
 - Five implemented views in `0009`; new views = new migration
 
 ## 6. Migrations
