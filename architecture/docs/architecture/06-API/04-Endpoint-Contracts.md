@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 0.1.0 (draft)
+> **Version:** 0.2.0 (draft)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -44,6 +44,7 @@ The engine-agnostic batch write payload is the centerpiece of this contract. It 
 - Single transaction: all stages, turns, darts created atomically.
 - Completed session → `409 SESSION_ALREADY_COMPLETED` (from error registry in `03-Shared-Conventions.md`).
 - Referential failures (`clientKey` lookup, `parentClientKey` tree breaks) → `BATCH_INCONSISTENT_ORDERING` or `BATCH_REFERENCE_MISSING`.
+- `TurnFact.participantRef` must match a participant `ref` returned by `POST /api/sessions`; an unmatched ref → `BATCH_REFERENCE_MISSING`. In v1 there is exactly one (the `PLAYER`). <!-- 2026-07-12 -->
 - Success returns standard envelope (via `ok()` builder from `03`) with created-row summary (counts + server UUIDs).
 
 ```typescript
@@ -88,9 +89,12 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 
 **Outcomes:**
 
-- Server creates activity / exercise session / config snapshot row / participant references.
+- Server creates activity / exercise session / config snapshot row / participant(s).
+- `captureModeKey` and `inputModeKey` are required and stored on the session (self-describing runtime record); both are validated against the ruleset (a ruleset may require `ANALYTICS` / `DETAILED_DARTS`). <!-- 2026-07-12 -->
+- **Participants (v1):** the server derives exactly one participant of type `PLAYER` for the authenticated player, `displayName` copied from `players.display_name`, and returns its `ref`. Guest/DartBot participants are deferred post-v1 (added later as an optional `participants[]` input — additive, non-breaking). <!-- 2026-07-12 -->
+- **Activity (v1):** the session's activity is created and managed server-side, one activity per session; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
-- Returns server-generated `sessionId` (UUIDv7), enclosed in standard `ok()` envelope.
+- Returns server-generated `sessionId` (UUIDv7) and participant ref(s), enclosed in standard `ok()` envelope.
 - Template resolution or config validation failure → error using an appropriate code from the error-code registry in `03-Shared-Conventions.md` (do not introduce ad-hoc codes here).
 
 ```typescript
@@ -102,17 +106,27 @@ const ConfigInput = z.discriminatedUnion("source", [
 const CreateSessionRequest = z.object({
   gameTypeKey: z.string(),                   // game_types.implementation_key
   rulesetVersionKey: z.string(),             // ruleset_versions.implementation_key
+  captureModeKey: z.string(),                // capture_modes.implementation_key (RECREATIONAL | ANALYTICS)
+  inputModeKey: z.string(),                  // input_modes.implementation_key (QUICK_SCORE | DETAILED_DARTS)
   config: ConfigInput,
 });
 type CreateSessionRequest = z.infer<typeof CreateSessionRequest>;
 
+// v1: the server derives a single PLAYER participant; the response returns its
+// ref so the client can populate TurnFact.participantRef on the batch write.
+const ParticipantRef = z.object({
+  ref: z.string(),                           // referenced by TurnFact.participantRef
+  participantTypeKey: z.string(),            // participant_types.implementation_key (v1: always PLAYER)
+  displayName: z.string(),                   // copied from players.display_name
+});
 const CreateSessionResponse = z.object({
   sessionId: z.string(),                     // server-generated UUIDv7
+  participants: z.array(ParticipantRef),     // v1: exactly one (PLAYER)
 });
 type CreateSessionResponse = z.infer<typeof CreateSessionResponse>;
 ```
 
-The server generates the session (and its activity, configuration snapshot, and participants) and returns `sessionId` in the `ok()` envelope.
+The server generates the session (and its activity, configuration snapshot, and participants) and returns `sessionId` together with the participant ref(s) in the `ok()` envelope. <!-- 2026-07-12 -->
 
 ---
 
@@ -173,11 +187,14 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
 | `GET /api/routines/:routineId` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
-| `GET /api/statistics/overview` | overview aggregation | object | 2026-07-10 |
 
-`v_routine_execution` backs both the routine list and the single-routine execution detail; the list projects summary columns and the detail returns the full execution definition.
+**Deferred (post-v1):** `GET /api/statistics/overview`, `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. Statistics endpoints do not ship in v1; when built they must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`) per the view-backed-reads rule. v1 stores all dart/turn/session facts these derive from. <!-- 2026-07-12 -->
+
+`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded.
+
+**Analytics-only darts:** `GET /api/sessions/:sessionId/darts` (`v_dart_analytics`) includes only darts with complete intention data and returns an empty array for recreational sessions — expected behaviour, not an error. <!-- 2026-07-12 -->
 
 **Authorization:** All reads are player-scoped; filters applied at view level or service layer ensure only the requesting player's data is returned.
 

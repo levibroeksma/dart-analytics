@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # API Overview
 
-> **Version:** 1.0.0 (frozen v1 API baseline)
+> **Version:** 1.1.0 (frozen v1 API baseline; validation reconciliation 2026-07-12)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -61,20 +61,23 @@ Resource-first REST by domain.
 - `GET /api/sessions/:sessionId/replay`
 - `GET /api/sessions/:sessionId/darts`
 
+`POST /api/sessions` requires `captureModeKey` and `inputModeKey` and creates a single `PLAYER` participant; full request/response shape in `04-Endpoint-Contracts.md`. <!-- 2026-07-12 -->
+
 ### Routines
 
 - `GET /api/routines`
 - `GET /api/routines/:routineId`
 - `GET /api/routines/:routineId/execution`
 
-### Statistics (v1)
+### Statistics
+
+Deferred (post-v1) — no statistics endpoints ship in v1:
 
 - `GET /api/statistics/overview`
-
-Deferred (post-v1):
-
 - `GET /api/statistics/trends`
 - `GET /api/statistics/checkouts`
+
+v1 captures the dart/turn/session facts statistics are derived from; the aggregated read endpoints are added post-v1 and must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`). <!-- 2026-07-12 -->
 
 ### Players
 
@@ -133,14 +136,19 @@ Reads are view-backed and player-scoped.
 | ---------------------------------------- | --------------------- |
 | `GET /api/sessions/active`               | `v_active_sessions`   |
 | `GET /api/sessions?limit=&cursor=`       | `v_session_overview`  |
+| `GET /api/sessions/:sessionId`           | `v_session_overview`  |
 | `GET /api/sessions/:sessionId/replay`    | `v_game_replay`       |
 | `GET /api/sessions/:sessionId/darts`     | `v_dart_analytics`    |
+| `GET /api/routines`                      | `v_routine_execution` |
+| `GET /api/routines/:routineId`           | `v_routine_execution` |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` |
 
 Policy:
 
 - replay/analytics endpoints stay close to 1:1 view contracts
 - list/overview endpoints may wrap view output for stable API response shape and pagination
+- `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
+- `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
 
 ---
 
@@ -196,7 +204,9 @@ Policy:
 - Worker-to-database security model (v1): trusted Worker service-role only.
 - PostgreSQL RLS is deferred from v1 and may be introduced later as defense-in-depth.
 - JWT middleware verification contract (v1): required claims are `sub` and `exp`.
-- Statistics scope (v1): `GET /api/statistics/overview` only; `trends` and `checkouts` are deferred.
+- Statistics scope (v1): no statistics endpoints; `overview`, `trends`, and `checkouts` are all deferred post-v1 and must be view-backed when built. <!-- 2026-07-12 -->
+- Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
+- Activity grouping (v1): one activity per session, server-managed; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
 
 ---
 

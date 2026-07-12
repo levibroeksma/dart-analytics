@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/process-quick-reference
 read-when: quick workflow/decision reference
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Engineering Workflow & Decision Framework
@@ -325,6 +325,8 @@ Every implementation should answer:
 ✓ Does this require new documentation?
 
 ✓ Does this require an ADR?
+
+This checklist is rendered as an actionable checkbox list in `.github/pull_request_template.md`, which prefills every pull request. (2026-07-12)
 
 Only after every answer has been reviewed should implementation be merged.
 
