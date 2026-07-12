@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Frontend Overview
 
-> **Version:** 0.1.0
+> **Version:** 0.1.1
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -183,6 +183,8 @@ app/src/lib/
 └── auth/
     └── token.ts           # Neon Auth token access for API calls
 ```
+
+> **v1 note:** statistics API endpoints are deferred post-v1 (see `../06-API/00-Overview.md`), so `lib/api/statistics.ts` and any statistics page are post-v1 additions. v1 focuses on capturing gameplay facts and the session/routine reads. <!-- 2026-07-12 -->
 
 ## Client wrapper responsibilities
 
