@@ -7,7 +7,7 @@ updated: 2026-07-12
 
 # Context Map
 
-> **Version:** 1.0.1 (2026-07-12)
+> **Version:** 1.0.2 (2026-07-12)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -118,6 +118,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `architecture/DECISIONS.md` | One-line ledger of every architectural decision | canonical |
+| `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `architecture/000_master_context.md` | Full design-journey handoff (prompts 1–85) | historical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure | canonical |
