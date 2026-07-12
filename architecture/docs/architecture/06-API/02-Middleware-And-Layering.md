@@ -2,12 +2,12 @@
 status: canonical
 scope: api/middleware-layering
 read-when: middleware or folder-layering changes
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # API Middleware And Layering
 
-> **Version:** 0.1.0
+> **Version:** 0.2.0
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -37,7 +37,7 @@ Per `00-Overview.md`, middleware verifies identity once per request and sets `lo
 | Required claims (`sub`, `exp`)              | Yes                    | Never                   |
 | `requestId` generation                      | Yes                    | Use from `locals`       |
 | Player lookup (`auth_user_id` → `playerId`) | Yes (per request)      | Never re-verify JWT     |
-| Route classification (public vs protected)  | Yes                    | —                       |
+| Route classification (public / protected / provision-exempt) | Yes    | —                       |
 | Session ownership                           | No                     | Service layer           |
 | Business validation                         | No                     | Service layer           |
 | Idempotency logic                           | No                     | Write handler + service |
@@ -52,6 +52,18 @@ Per `00-Overview.md`, middleware verifies identity once per request and sets `lo
 | Neon Auth     | login, token issuance, token refresh (external to API)    |
 | Middleware    | verify JWT, map `sub` to `authUserId`, resolve `playerId` |
 | Service layer | domain authorization (`SESSION_OWNERSHIP_MISMATCH`, etc.) |
+
+## Route classes
+
+Middleware classifies every request into exactly one class:
+
+| Class | JWT verified | Player resolved | Members |
+| ----- | ------------ | --------------- | ------- |
+| Public | No | No | unauthenticated routes (if any) |
+| Protected | Yes | Yes — missing player → `403 PLAYER_NOT_PROVISIONED` | all domain routes (sessions, routines) |
+| Authenticated-unprovisioned | Yes | Skipped | `POST /api/players/provision` only |
+
+The **authenticated-unprovisioned** class exists because `POST /api/players/provision` must be reachable by a JWT-valid user who has no `players` row yet — precisely the state it resolves. For this class, middleware verifies the JWT and sets `locals.auth.authUserId` from `sub`, but does **not** run player resolution and never returns `PLAYER_NOT_PROVISIONED`. The handler creates or returns the player row. <!-- 2026-07-12 -->
 
 ## `locals.auth` contract
 
@@ -237,6 +249,8 @@ Request arrives
     │
     ├─ verify JWT (sub, exp)
     │   └─ failed → 401 UNAUTHORIZED
+    │
+    ├─ provision-exempt route? → set locals.auth (authUserId only) → next()
     │
     ├─ resolve player from auth_user_id
     │   └─ not found → 403 PLAYER_NOT_PROVISIONED
