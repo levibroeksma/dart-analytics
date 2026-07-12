@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Future analytics views are described under Future Expansion.
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -65,7 +65,7 @@ Used by application startup and browser refresh recovery.
 
 ## Exposes
 
-Session identity, player, game type (id + key + name), capture mode, input mode, ruleset version, start time.
+Session identity, player, game type (key + name), capture mode key, input mode key, ruleset version key, start time.
 
 ## Design Rationale
 
@@ -94,7 +94,7 @@ High-level gameplay history for list screens.
 
 ## Exposes
 
-Session identity, game labels, status, capture mode, start/completion times and a computed `duration_seconds`.
+Session identity, player, game type (key + name), status key, capture mode key, start/completion times and a computed `duration_seconds`.
 
 ## Design Rationale
 
@@ -123,7 +123,7 @@ Reconstructs the exact gameplay sequence of a session.
 
 ## Exposes
 
-Stage sequence and type, turn sequence, participant, dart number, intended target/zone, hit target/zone, score.
+Stage sequence and stage type key, turn sequence, participant name, dart number, intended target + intended zone key, hit target + hit zone key, score.
 
 ## Design Rationale
 
@@ -152,7 +152,7 @@ Intention-complete, analytics-ready dart dataset.
 
 ## Exposes
 
-Player, game type, intended target/zone, hit target/zone, score, and a computed `exact_hit` flag (intended target and zone both match the hit).
+Player, game type key, intended target + intended zone key, hit target + hit zone key, score, and a computed `exact_hit` flag (intended target and zone both match the hit).
 
 ## Design Rationale
 
@@ -183,7 +183,7 @@ Shows the ordered exercises of a routine for execution.
 
 ## Exposes
 
-Routine identity and name, step sequence, exercise identity and name, game type key, duration value and duration type key.
+Routine identity and name, step sequence, exercise identity and name, game type key, duration value and duration type key. Every lookup is exposed as a `*_key`; no internal lookup ids are exposed. <!-- 2026-07-12 -->
 
 ## Design Rationale
 

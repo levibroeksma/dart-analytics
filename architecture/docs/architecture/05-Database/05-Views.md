@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Database View Strategy
@@ -380,6 +380,8 @@ average_score
 ```
 
 Avoid aliases that introduce frontend terminology.
+
+**Read-model column standard (migration `0013`):** expose implementation keys as `<concept>_key`, human labels as `<concept>_name` only where a screen renders the label, and **do not expose internal lookup `*_id` columns**. Keep only entity UUIDs a client must address later (`session_id`, `routine_id`, `exercise_template_id`, `player_id`). See `01-Naming-Conventions.md` §"View Column Key And Label Naming". <!-- 2026-07-12 -->
 
 ---
 
