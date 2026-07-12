@@ -67,7 +67,7 @@ architecture/docs/
 │   ├── 06-API/          # API contract and implementation (00–04)
 │   └── 07-Frontend/     # Frontend integration (00)
 └── database/
-    ├── migrations/      # 0001–0012
+    ├── migrations/      # 0001–0013
     └── seeds/           # 0001–0002
 ```
 
@@ -134,7 +134,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0012` and seeds `0001`–`0002` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0013` and seeds `0001`–`0002` implement it.
 
 ---
 
@@ -186,7 +186,7 @@ Architecture documents use semantic versioning. Major changes require a version 
 | `00-Context-Map.md`                        | Context packs, file inventory, authority order (2026-07-11)       |
 | `05-Database/06-Database-Specification.md` | Cross-layer invariants + per-layer chapter index (2026-07-11)     |
 | `05-Database/06-Spec/01`–`06`              | Per-layer entity detail: reference, template, player, runtime, read model, relationships (2026-07-11) |
-| `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0012` (2026-07-11)           |
+| `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0013` (2026-07-12)           |
 | `05-Database/11-Neon-Integration.md`       | Neon project topology, env, dbmate/drizzle workflow (2026-07-09)  |
 | `06-API/00-Overview.md`                    | API runtime, route, auth, read/write, and error contract baseline |
 | `06-API/01-Implementation-Strategy.md`     | REST endpoints vs Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |

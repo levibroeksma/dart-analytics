@@ -2,12 +2,12 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # Database Migration Strategy
 
-> **Version:** 1.2.0
+> **Version:** 1.3.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -103,7 +103,8 @@ architecture/docs/database/
 │   ├── 0009_views.sql
 │   ├── 0010_configuration_templates.sql
 │   ├── 0011_ordering_and_uniqueness.sql
-│   └── 0012_session_write_idempotency.sql
+│   ├── 0012_session_write_idempotency.sql
+│   └── 0013_normalize_read_model_views.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
@@ -402,6 +403,20 @@ Stores persisted outcomes for `POST /api/sessions/:sessionId/events:batch`.
 Uniqueness:
 
 - same session + same idempotency key
+
+---
+
+## 0013_normalize_read_model_views.sql
+
+Purpose:
+
+Normalize read-model view columns to one consistent standard.
+
+Contains:
+
+- rewritten v_active_sessions, v_session_overview, v_game_replay, v_dart_analytics, v_routine_execution
+
+Renames implementation-key/label columns to `<concept>_key` / `<concept>_name`, drops internal lookup ids, and adds `ruleset_version_key` to `v_active_sessions`. Behaviour-preserving; never edits `0009`.
 
 ---
 

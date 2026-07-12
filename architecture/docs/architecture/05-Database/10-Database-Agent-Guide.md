@@ -91,7 +91,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0012` current chain
+- Four-digit prefix: `0001`–`0013` current chain
 - Schema in migrations; reference data in seeds
 - **Never modify an applied migration** — create `0013_*` (or next) instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
@@ -225,7 +225,7 @@ No existing table changes required.
 architecture/docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── database/
-    ├── migrations/0001–0012.sql
+    ├── migrations/0001–0013.sql
     └── seeds/0001–0002.sql
 ```
 

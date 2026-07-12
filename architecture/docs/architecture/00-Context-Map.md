@@ -7,7 +7,7 @@ updated: 2026-07-12
 
 # Context Map
 
-> **Version:** 1.0.2 (2026-07-12)
+> **Version:** 1.0.3 (2026-07-12)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -30,7 +30,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5k |
 | Workflow / process question | `03-Engineering-Workflow.md`, `099-engineering-workflow-and-decision-framework.md` | ~3.5k |
 | "Why was X decided?" | `architecture/DECISIONS.md`; only if insufficient: `architecture/000_master_context.md` | ~2k |
-| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0012`; never patch applied files | ~6k |
+| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0013`; never patch applied files | ~6k |
 
 Paths are relative to `architecture/docs/architecture/` unless they start with `architecture/`, `database/`, or `app/`.
 
@@ -47,7 +47,7 @@ When documents conflict, higher wins; correct the lower one:
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
 7. `03-Engineering-Workflow.md` / `099-engineering-workflow-and-decision-framework.md`
-8. SQL migrations `0001`–`0012` and seeds
+8. SQL migrations `0001`–`0013` and seeds
 9. Application code in `app/`
 
 If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. `architecture/000_master_context.md` and `architecture/DECISIONS.md` are context, never authority.
@@ -77,7 +77,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~1.9k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0012` | canonical | ~2.9k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0013` | canonical | ~2.9k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.5k |
 | `05-Views.md` | View categories and replay rules | canonical | ~2.0k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
@@ -110,7 +110,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0012` | Applied schema chain — never modify | canonical (applied) |
+| `migrations/0001`–`0013` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`–`0002` | Reference data + default templates | canonical |
 
 ## Context & history (`architecture/`, repo root)
@@ -130,7 +130,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Area | Status |
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
-| Migrations | `0001`–`0012` complete (2026-07-11) |
+| Migrations | `0001`–`0013` complete; `0013` normalizes read-model view columns (2026-07-12) |
 | Seeds | `0001` reference data, `0002` default templates |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
