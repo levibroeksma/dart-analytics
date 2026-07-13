@@ -7,7 +7,7 @@ updated: 2026-07-13
 
 # API Shared Conventions
 
-> **Version:** 1.1.0 (frozen v1; alias + barrel convention amended 2026-07-13)
+> **Version:** 1.2.0 (frozen v1; barrel-raising chain defined 2026-07-13)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -122,20 +122,47 @@ This pattern is the only valid way to define contracts. No separate `.d.ts` file
 
 ### `types.ts` barrels (type-raising)
 
-TypeScript types live as close as possible to their source. Each **area**
-(`services`, `repositories`, `routes`, `lib`) exposes a `types.ts` barrel that
-re-exports its contract types, *raising* them so every consumer imports a
-shallow, stable path regardless of where the type is defined:
+TypeScript types live as close as possible to their source. Types are then
+*raised* through a chain of `types.ts` barrels until they reach the
+**top-level area barrel** (`services/types.ts`, `repositories/types.ts`,
+`routes/types.ts`, `lib/types.ts`), so every consumer imports one shallow,
+stable path — `@<area>/types` — regardless of how deep the type is defined.
 
-```typescript
-// good: import from the area barrel — always one level deep
-import type { CreateSessionRequest, SessionResponse } from '@services/types';
+**The raising rule (applies at every level):**
 
-// bad: deep path into the defining module
-import type { SessionResponse } from '@services/sessions/response';
+- Every folder that defines contract types has its own `types.ts` that
+  re-exports the types defined directly in that folder.
+- Every **parent** folder's `types.ts` re-raises each child folder's barrel
+  (`export * from './<child>/types'`), so types bubble up one level at a time.
+- The chain terminates at the area root (`<area>/types.ts`), which therefore
+  transitively exposes every type defined anywhere beneath it.
+- A folder's `types.ts` only ever re-exports its own types plus its direct
+  children's barrels — never a grandchild's path directly. Each level raises
+  the level immediately below it.
+
+```
+src/services/
+├── types.ts                    # export * from './sessions/types'; export * from './routines/types'
+├── sessions/
+│   ├── types.ts                # export * from './create/types'; own types
+│   └── create/
+│       ├── types.ts            # defines CreateSessionInput, re-raised by parent
+│       └── create.service.ts
+└── routines/
+    └── types.ts                # own types
 ```
 
-A type never travels through a deeper import path than `@<area>/types`.
+```typescript
+// good: import from the area barrel — always one level deep,
+// even though CreateSessionInput is defined three levels down
+import type { CreateSessionInput } from '@services/types';
+
+// bad: deep path into the defining module (skips the raising chain)
+import type { CreateSessionInput } from '@services/sessions/create/types';
+```
+
+A type never travels through a deeper import path than `@<area>/types`, and no
+barrel reaches past its direct children.
 
 ### Path aliases
 
