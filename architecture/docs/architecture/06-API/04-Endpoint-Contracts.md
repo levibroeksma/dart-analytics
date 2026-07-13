@@ -7,7 +7,7 @@ updated: 2026-07-12
 
 # API Endpoint Contracts
 
-> **Version:** 0.2.0 (draft)
+> **Version:** 1.0.0 (frozen v1)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -45,7 +45,7 @@ The engine-agnostic batch write payload is the centerpiece of this contract. It 
 - Completed session → `409 SESSION_ALREADY_COMPLETED` (from error registry in `03-Shared-Conventions.md`).
 - Referential failures (`clientKey` lookup, `parentClientKey` tree breaks) → `BATCH_INCONSISTENT_ORDERING` or `BATCH_REFERENCE_MISSING`.
 - `TurnFact.participantRef` must match a participant `ref` returned by `POST /api/sessions`; an unmatched ref → `BATCH_REFERENCE_MISSING`. In v1 there is exactly one (the `PLAYER`). <!-- 2026-07-12 -->
-- Success returns standard envelope (via `ok()` builder from `03`) with created-row summary (counts + server UUIDs).
+- Success returns the standard envelope (via `ok()` from `03`) with a `BatchWriteResponse` created-row count summary (see Response DTOs below). <!-- 2026-07-12 -->
 
 ```typescript
 // design sketch — reference values are implementation_key strings; no persistence UUIDs
@@ -145,7 +145,7 @@ type UpdateSessionRequest = z.infer<typeof UpdateSessionRequest>;
 
 - The server validates the requested transition against the `game_statuses` lifecycle; invalid transitions are rejected using a registered error code from `03-Shared-Conventions.md`.
 - Ownership is enforced (`403 SESSION_OWNERSHIP_MISMATCH`) before any mutation.
-- Success returns the standard envelope (via `ok()` from `03`) with the updated session summary.
+- Success returns the standard envelope (via `ok()` from `03`) with the updated `SessionOverview` (see Response DTOs below). <!-- 2026-07-12 -->
 
 ---
 
@@ -179,14 +179,14 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 | Endpoint | View | Shape | Date |
 | -------- | ---- | ----- | ---- |
-| `GET /api/sessions/active` | `v_active_sessions` | object or null | 2026-07-10 |
+| `GET /api/sessions/active` | `v_active_sessions` | `SessionActive[]` | 2026-07-12 |
 | `GET /api/sessions?limit=&cursor=` | `v_session_overview` | `ListResult<SessionOverview>` | 2026-07-10 |
-| `GET /api/sessions/:sessionId` | `v_session_overview` | object (1:1 view) | 2026-07-10 |
-| `GET /api/sessions/:sessionId/replay` | `v_game_replay` | object (1:1 view) | 2026-07-10 |
-| `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | array (1:1 view) | 2026-07-10 |
+| `GET /api/sessions/:sessionId` | `v_session_overview` | `SessionOverview` | 2026-07-12 |
+| `GET /api/sessions/:sessionId/replay` | `v_game_replay` | `ReplayEntry[]` | 2026-07-12 |
+| `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | `DartAnalytics[]` | 2026-07-12 |
 | `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
-| `GET /api/routines/:routineId` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
-| `GET /api/routines/:routineId/execution` | `v_routine_execution` | object (1:1 view) | 2026-07-10 |
+| `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
+| `GET /api/routines/:routineId/execution` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 
 **Deferred (post-v1):** `GET /api/statistics/overview`, `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. Statistics endpoints do not ship in v1; when built they must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`) per the view-backed-reads rule. v1 stores all dart/turn/session facts these derive from. <!-- 2026-07-12 -->
 
@@ -197,6 +197,68 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 **Analytics-only darts:** `GET /api/sessions/:sessionId/darts` (`v_dart_analytics`) includes only darts with complete intention data and returns an empty array for recreational sessions — expected behaviour, not an error. <!-- 2026-07-12 -->
 
 **Authorization:** All reads are player-scoped; filters applied at view level or service layer ensure only the requesting player's data is returned.
+
+---
+
+## Response DTOs
+
+camelCase Zod sketches (source of truth; `type = z.infer<>`). Mapped from the normalized views in the repository (snake→camel). Read DTOs omit `playerId` and internal lookup ids; timestamps are ISO strings; `durationSeconds` is an integer. <!-- 2026-07-12 -->
+
+```typescript
+const SessionActive = z.object({            // v_active_sessions — GET /sessions/active → SessionActive[]
+  sessionId: z.string(),
+  gameTypeKey: z.string(), gameTypeName: z.string(),
+  captureModeKey: z.string(), inputModeKey: z.string(),
+  rulesetVersionKey: z.string(),
+  startedAt: z.string().datetime(),
+});
+
+const SessionOverview = z.object({          // v_session_overview — list, GET /sessions/:id, PATCH result
+  sessionId: z.string(),
+  gameTypeKey: z.string(), gameTypeName: z.string(),
+  statusKey: z.string(), captureModeKey: z.string(),
+  startedAt: z.string().datetime(),
+  completedAt: z.string().datetime().nullable(),
+  durationSeconds: z.number().int(),
+});
+
+const ReplayEntry = z.object({              // v_game_replay — GET /sessions/:id/replay → ReplayEntry[]
+  stageSequence: z.number().int(), stageTypeKey: z.string(),
+  turnSequence: z.number().int(), participantName: z.string(),
+  dartNumber: z.number().int(),
+  intendedTargetNumber: z.number().int().nullable(), intendedZoneKey: z.string().nullable(),
+  hitTargetNumber: z.number().int().nullable(), hitZoneKey: z.string().nullable(),
+  score: z.number().int(),
+});
+
+const DartAnalytics = z.object({            // v_dart_analytics (session-filtered) — GET /sessions/:id/darts → DartAnalytics[]
+  gameTypeKey: z.string(),
+  intendedTargetNumber: z.number().int(), intendedZoneKey: z.string(), // non-null: view WHERE guarantees
+  hitTargetNumber: z.number().int().nullable(), hitZoneKey: z.string().nullable(),
+  score: z.number().int(), exactHit: z.boolean(),
+});                                          // session_id/player_id filter but are not echoed
+
+const RoutineSummary = z.object({           // v_routine_execution aggregated — GET /routines → ListResult<RoutineSummary>
+  routineId: z.string(), routineName: z.string(), stepCount: z.number().int(),
+});
+
+const RoutineStep = z.object({              // v_routine_execution row
+  sequenceNumber: z.number().int(),
+  exerciseTemplateId: z.string(), exerciseName: z.string(),
+  gameTypeKey: z.string(),
+  durationValue: z.number().int(), durationTypeKey: z.string(),
+});
+const RoutineExecution = z.object({         // GET /routines/:id and /:id/execution → RoutineExecution
+  routineId: z.string(), routineName: z.string(),
+  steps: z.array(RoutineStep),
+});
+
+const BatchWriteResponse = z.object({       // POST /sessions/:id/events:batch — counts only
+  created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
+});
+```
+
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation).
 
 ---
 
