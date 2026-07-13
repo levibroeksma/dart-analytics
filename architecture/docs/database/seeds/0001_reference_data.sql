@@ -310,7 +310,6 @@ VALUES (
         'Initial Score Training ruleset.',
         now()
     ) ON CONFLICT (id) DO NOTHING;
-COMMIT;
 -- ============================================================
 -- Participant types
 -- ============================================================
@@ -439,3 +438,4 @@ VALUES (
         'Thrown dart that misses a scoring segment.',
         now()
     ) ON CONFLICT (id) DO NOTHING;
+COMMIT;
