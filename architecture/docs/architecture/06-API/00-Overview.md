@@ -2,7 +2,7 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # API Overview
