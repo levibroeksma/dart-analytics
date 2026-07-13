@@ -2,12 +2,12 @@
 status: canonical
 scope: api/middleware-layering
 read-when: middleware or folder-layering changes
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # API Middleware And Layering
 
-> **Version:** 0.2.0
+> **Version:** 1.0.0 (frozen v1)
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -163,6 +163,7 @@ app/src/
 │   ├── sessions/
 │   │   ├── index.ts                 # POST, GET (list)
 │   │   ├── active.ts                # GET
+│   │   ├── types.ts                 # domain contract barrel (@routes/... via alias)
 │   │   └── [sessionId]/
 │   │       ├── index.ts             # GET, PATCH
 │   │       ├── events/
@@ -171,31 +172,40 @@ app/src/
 │   │       └── darts.ts
 │   ├── routines/
 │   │   ├── index.ts
+│   │   ├── types.ts
 │   │   └── [routineId]/
 │   │       ├── index.ts
 │   │       └── execution.ts
-│   └── statistics/
-│       └── overview.ts
-└── lib/
-    ├── api/
-    │   ├── envelope.ts              # ok/error response helpers
-    │   └── errors.ts                # domain error codes and HTTP mapping
-    ├── auth/
-    │   ├── verify-jwt.ts
-    │   └── resolve-player.ts
-    ├── db/
-    │   └── client.ts                # neon client factory (http vs transaction)
-    ├── services/
-    │   ├── session.service.ts
-    │   └── ...
-    └── repositories/
-        ├── session.repository.ts
-        └── ...
+│   └── players/
+│       └── provision.ts             # POST (authenticated-unprovisioned route)
+├── lib/
+│   ├── api/
+│   │   ├── envelope.ts              # ok/error response helpers
+│   │   └── errors.ts                # domain error codes and HTTP mapping (registry in 03)
+│   └── auth/
+│       ├── verify-jwt.ts
+│       └── resolve-player.ts
+├── db/
+│   └── client.ts                    # neon client factory (http vs transaction)
+├── services/
+│   ├── session.service.ts
+│   ├── types.ts                     # raised service contract types (@services/types)
+│   └── ...
+└── repositories/
+    ├── session.repository.ts
+    ├── types.ts
+    └── ...
 ```
 
 ## Route file mapping note
 
 Astro file-based routing may use `events/batch.ts` instead of a literal `events:batch` path segment. The logical contract remains `POST /api/sessions/:sessionId/events:batch` per `00-Overview.md`. Document any file-to-route mapping in implementation; do not change the public contract.
+
+## Statistics (deferred)
+
+No `statistics/` route folder exists in v1. Statistics endpoints
+(`overview`, `trends`, `checkouts`) are deferred post-v1 and must each be
+view-backed when built (see `00-Overview.md` and D63). <!-- 2026-07-13 -->
 
 ---
 
@@ -234,6 +244,16 @@ Factory for `@neondatabase/serverless`:
 - WebSocket transaction client for batch writes and multi-table orchestration
 
 Do not expose the raw client to controllers or repositories outside the established factory pattern.
+
+## Path aliases & type barrels
+
+Import conventions are owned by `03-Shared-Conventions.md`: `@`-prefixed
+aliases and `@<area>/types` type-raising barrels. The target alias set is
+`@services`, `@repositories`, `@routes`, `@lib`, `@db`. This alias set and the
+per-area `types.ts` barrels are the documented target for the frontend/API
+implementation phase; `app/tsconfig.json` currently defines only a subset
+(`@lib`, `@components`, …) and is extended when the endpoints are built.
+<!-- 2026-07-13 -->
 
 ---
 
@@ -282,5 +302,7 @@ Request arrives
 | -------------------------------- | ------------------------------------------------------- |
 | `00-Overview.md`                 | Frozen auth flow, error envelope, route surface         |
 | `01-Implementation-Strategy.md`  | REST vs Actions decision, Cloudflare + Neon constraints |
+| `03-Shared-Conventions.md`       | Envelope builders, header contract, pagination, error registry, alias/barrel conventions <!-- 2026-07-13 --> |
+| `04-Endpoint-Contracts.md`       | Per-domain request/response contracts <!-- 2026-07-13 --> |
 | `../07-Frontend/00-Overview.md`  | How the frontend calls the API                          |
 | `../04-Architecture-patterns.md` | Pattern 6 (Repository Pattern)                          |
