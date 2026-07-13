@@ -2,7 +2,7 @@
 status: canonical
 scope: database/player-layer
 read-when: adding/changing player identity or settings
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Database Specification — Chapter 3: Player Layer
@@ -51,7 +51,7 @@ UUIDv7
 
 - id
 - auth_user_id (unique — external identity reference)
-- display_name
+- display_name (NOT NULL; set at provisioning: request displayName → JWT name claim → 'Player')
 - created_at
 - updated_at
 
@@ -68,6 +68,8 @@ Referenced by:
 ## Design Rationale
 
 `display_name` is a configurable nickname (for example "The Power"). It is intentionally **not unique** — it represents persona, not identity.
+
+Initial value comes from POST /api/players/provision; a rename endpoint is deferred post-v1. <!-- 2026-07-13 -->
 
 `auth_user_id` is the only link to the authentication system. Swapping the auth provider would only affect this column.
 
@@ -93,6 +95,8 @@ Owned by the player.
 Mutable.
 
 Settings are **defaults only** — they are read at session start and copied onto the session. They never represent history.
+
+**v1 status:** deferred — no settings endpoints ship in v1; the client persists last-used capture/input modes locally and sends them on session creation (D60). The table remains for post-v1. <!-- 2026-07-13 -->
 
 ## Primary Key
 
