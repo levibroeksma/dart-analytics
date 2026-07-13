@@ -2,7 +2,7 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # API Shared Conventions
