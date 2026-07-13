@@ -2,12 +2,12 @@
 status: canonical
 scope: api/implementation-strategy
 read-when: implementing endpoints on Cloudflare + Neon
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # API Implementation Strategy
 
-> **Version:** 0.2.0
+> **Version:** 1.0.0 (frozen v1)
 >
 > This document defines how the v1 API baseline (`00-Overview.md`) is implemented in `app/`.
 >
@@ -113,9 +113,9 @@ Client (fetch / Alpine)
         │  Bearer JWT, Idempotency-Key, standard HTTP
         ▼
 src/middleware.ts
-  • verify JWT (sub, exp)
-  • resolve playerId → locals.auth
-  • assign requestId
+  • assign requestId → locals.requestId
+  • classify route (public / protected / provision-exempt)
+  • verify JWT (sub, exp); resolve playerId per class → locals.auth
         ▼
 src/pages/api/**  (thin controllers)
   • parse and validate input (Zod)
@@ -132,6 +132,8 @@ src/lib/repositories/**  (SQL against views and runtime tables)
 This follows Pattern 6 (Controller → Service → Repository) and Pattern 8 (API Contract Boundary).
 
 See `02-Middleware-And-Layering.md` for middleware responsibilities and folder structure.
+
+Route classification and the exact per-class middleware behavior are owned by `02-Middleware-And-Layering.md`; this diagram is a summary and defers to it. <!-- 2026-07-13 -->
 
 ---
 
@@ -197,6 +199,8 @@ The repository and service layer enables future extraction. The routing mechanis
 | -------------------------------- | ---------------------------------------------------------------- |
 | `00-Overview.md`                 | Frozen v1 API contract (routes, auth, envelopes)                 |
 | `02-Middleware-And-Layering.md`  | Middleware responsibilities, folder structure, `locals` contract |
+| `03-Shared-Conventions.md`       | Envelope, headers, pagination, error registry, alias/barrel conventions <!-- 2026-07-13 --> |
+| `04-Endpoint-Contracts.md`       | Per-domain request/response contracts <!-- 2026-07-13 --> |
 | `../07-Frontend/00-Overview.md`  | Frontend API client integration pattern                          |
 | `../04-Architecture-patterns.md` | Pattern 6 (Repository), Pattern 8 (API Contract)                 |
 | `../02-System-Architecture.md`   | Layer ownership and data flow                                    |
