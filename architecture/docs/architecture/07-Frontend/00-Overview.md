@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Frontend Overview
 
-> **Version:** 0.1.1
+> **Version:** 0.2.0
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -54,11 +54,11 @@ During an active session, the frontend owns:
 - in-progress dart entry before batch upload
 - Alpine.js component state
 
-This state is lost on page refresh unless recovered via `GET /api/sessions/active` and replay reconstruction.
+Temporary state is held in Alpine stores using the `$persist` plugin (localStorage), so it survives page refreshes and browser restarts on the same device. Recovery is client-local: on load, the client checks `GET /api/sessions/active` for an orphaned active session and offers **resume** (rehydrating from the persisted store) or **abandon** (`PATCH` → `ABANDONED`). The server holds no mid-session gameplay; losing the device (or clearing storage) loses the in-progress session. <!-- 2026-07-13 -->
 
 ## Persistent state (API-owned)
 
-After session completion (or at defined sync boundaries), persistent state is written via the API:
+After session completion, persistent state is written via the API:
 
 - activities, exercise sessions, stages, turns, darts
 - configuration snapshots
@@ -82,10 +82,10 @@ Game engine (frontend)
 Temporary client state
     │
     ▼
-Session complete (or sync boundary)
+Session complete
     │
     ▼
-POST /api/sessions/:sessionId/events:batch
+POST /api/sessions/:sessionId/events/batch
     │  Authorization: Bearer <JWT>
     │  Idempotency-Key: <uuid>
     ▼
@@ -179,12 +179,15 @@ app/src/lib/
 │   ├── client.ts          # fetch wrapper: auth header, envelope parsing, error handling
 │   ├── sessions.ts        # typed calls for session endpoints
 │   ├── routines.ts
+│   ├── configuration-templates.ts
 │   └── statistics.ts
 └── auth/
     └── token.ts           # Neon Auth token access for API calls
 ```
 
 > **v1 note:** statistics API endpoints are deferred post-v1 (see `../06-API/00-Overview.md`), so `lib/api/statistics.ts` and any statistics page are post-v1 additions. v1 focuses on capturing gameplay facts and the session/routine reads. <!-- 2026-07-12 -->
+
+Server-side response helpers live in `lib/server/` — `lib/api/` is browser code only (see `../06-API/02-Middleware-And-Layering.md`). <!-- 2026-07-13 -->
 
 ## Client wrapper responsibilities
 
@@ -216,7 +219,7 @@ await apiClient.post(`/api/sessions/${sessionId}/events/batch`, {
 });
 ```
 
-The exact payload shape is defined per domain in future `06-API/` endpoint docs. Payloads contain gameplay facts, not persistence UUIDs.
+The payload shape is `EventsBatchRequest` in `../06-API/04-Endpoint-Contracts.md`. Payloads contain gameplay facts, not persistence UUIDs.
 
 ---
 
@@ -244,6 +247,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | Store completed gameplay as source of truth locally | PostgreSQL is authoritative |
 | Parse or verify JWT in page scripts | middleware owns identity verification |
 | Per-dart API calls during active play | batch write at session boundary |
+| Rely on the server for mid-session recovery | in-progress state is client-local (persisted Alpine store) |
 
 ---
 
@@ -264,7 +268,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 
 | Document | Purpose |
 | -------- | ------- |
-| `../06-API/00-Overview.md` | Frozen API contract |
+| `../06-API/00-Overview.md` | Frozen API contract (v1.3.0) |
 | `../06-API/01-Implementation-Strategy.md` | Why REST endpoints over Actions |
 | `../06-API/02-Middleware-And-Layering.md` | Middleware and service layer structure |
 | `../02-System-Architecture.md` | Presentation layer responsibilities |
