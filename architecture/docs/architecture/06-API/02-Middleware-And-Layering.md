@@ -7,7 +7,7 @@ updated: 2026-07-13
 
 # API Middleware And Layering
 
-> **Version:** 1.0.0 (frozen v1)
+> **Version:** 1.1.0 (layout reconciliation 2026-07-13)
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -100,9 +100,9 @@ src/middleware.ts
         ▼
 src/pages/api/**          Controller — HTTP parsing, envelope mapping
         ▼
-src/lib/services/**       Service — orchestration, transactions, validation, UUIDv7
+src/services/**       Service — orchestration, transactions, validation, UUIDv7
         ▼
-src/lib/repositories/**   Repository — SQL queries
+src/repositories/**   Repository — SQL queries
         ▼
 Neon Postgres
 ```
@@ -123,7 +123,7 @@ Does not handle:
 - raw SQL
 - multi-step transaction orchestration
 
-## Service (`src/lib/services/`)
+## Service (`src/services/`)
 
 Handles:
 
@@ -139,7 +139,7 @@ Does not handle:
 - HTTP status code selection (controller maps domain errors)
 - direct JWT verification
 
-## Repository (`src/lib/repositories/`)
+## Repository (`src/repositories/`)
 
 Handles:
 
@@ -167,7 +167,7 @@ app/src/
 │   │   └── [sessionId]/
 │   │       ├── index.ts             # GET, PATCH
 │   │       ├── events/
-│   │       │   └── batch.ts         # POST (maps to events:batch contract)
+│   │       │   └── batch.ts         # POST /api/sessions/:sessionId/events/batch
 │   │       ├── replay.ts
 │   │       └── darts.ts
 │   ├── routines/
@@ -179,7 +179,7 @@ app/src/
 │   └── players/
 │       └── provision.ts             # POST (authenticated-unprovisioned route)
 ├── lib/
-│   ├── api/
+│   ├── server/                      # server-side response helpers (ok/error, registry mapping)
 │   │   ├── envelope.ts              # ok/error response helpers
 │   │   └── errors.ts                # domain error codes and HTTP mapping (registry in 03)
 │   └── auth/
@@ -199,7 +199,7 @@ app/src/
 
 ## Route file mapping note
 
-Astro file-based routing may use `events/batch.ts` instead of a literal `events:batch` path segment. The logical contract remains `POST /api/sessions/:sessionId/events:batch` per `00-Overview.md`. Document any file-to-route mapping in implementation; do not change the public contract.
+The public batch route is `POST /api/sessions/:sessionId/events/batch` (amended 2026-07-13 from the earlier `events:batch` custom-method spelling), served natively by the `events/batch.ts` route file. No rewrite machinery exists or is permitted.
 
 ## Statistics (deferred)
 
@@ -211,7 +211,9 @@ view-backed when built (see `00-Overview.md` and D63). <!-- 2026-07-13 -->
 
 # Shared Library Modules
 
-## `lib/api/envelope.ts`
+## `lib/server/envelope.ts`
+
+`lib/api/` is reserved for the browser-facing API client (see `../07-Frontend/00-Overview.md`, D41); browser and Worker code never share a folder. <!-- 2026-07-13 -->
 
 Standardizes success and error response shape per `00-Overview.md`:
 
@@ -232,7 +234,7 @@ Standardizes success and error response shape per `00-Overview.md`:
 }
 ```
 
-## `lib/api/errors.ts`
+## `lib/server/errors.ts`
 
 Maps domain error codes to HTTP status codes. Controllers use this; services throw or return typed domain errors.
 

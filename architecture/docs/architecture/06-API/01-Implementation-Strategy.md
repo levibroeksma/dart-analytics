@@ -7,7 +7,7 @@ updated: 2026-07-13
 
 # API Implementation Strategy
 
-> **Version:** 1.0.0 (frozen v1)
+> **Version:** 1.0.1 (frozen v1; layout reconciliation 2026-07-13)
 >
 > This document defines how the v1 API baseline (`00-Overview.md`) is implemented in `app/`.
 >
@@ -87,7 +87,7 @@ REST + middleware is the standard pattern for external consumers.
 
 ## 3. Batch write and idempotency
 
-The critical write path (`POST /api/sessions/:sessionId/events:batch`) requires:
+The critical write path (`POST /api/sessions/:sessionId/events/batch`) requires:
 
 - `Idempotency-Key` header inspection
 - normalized payload hash comparison
@@ -122,9 +122,9 @@ src/pages/api/**  (thin controllers)
   • call service layer
   • map to ok/error envelope
         ▼
-src/lib/services/**  (orchestration, transactions, UUIDv7)
+src/services/**  (orchestration, transactions, UUIDv7)
         ▼
-src/lib/repositories/**  (SQL against views and runtime tables)
+src/repositories/**  (SQL against views and runtime tables)
         ▼
 @neondatabase/serverless → Neon Postgres (Frankfurt)
 ```
@@ -149,7 +149,7 @@ Cloudflare Workers are fully isolated and stateless per request. No persistent T
 | `@neondatabase/serverless` HTTP      | Good — simple reads                     | `GET` endpoints                         |
 | `@neondatabase/serverless` WebSocket | Good — transactions                     | batch writes, multi-table orchestration |
 
-For `POST /api/sessions/:sessionId/events:batch` (single transaction + idempotency check), use WebSocket transactions via the serverless driver. Simple view reads may use HTTP queries.
+For `POST /api/sessions/:sessionId/events/batch` (single transaction + idempotency check), use WebSocket transactions via the serverless driver. Simple view reads may use HTTP queries.
 
 ## Latency profile
 
