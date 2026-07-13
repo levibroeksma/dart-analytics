@@ -7,7 +7,7 @@ updated: 2026-07-12
 
 # API Shared Conventions
 
-> **Version:** 1.0.0 (frozen v1)
+> **Version:** 1.1.0 (frozen v1; alias + barrel convention amended 2026-07-13)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -120,22 +120,30 @@ type CreateSessionRequest = z.infer<typeof CreateSessionRequest>;
 
 This pattern is the only valid way to define contracts. No separate `.d.ts` files for request types.
 
-### `types.ts` barrels
+### `types.ts` barrels (type-raising)
 
-Each domain exposes a `types.ts` barrel that re-exports its contract types. Consumers import from the barrel path, never from scattered files:
+TypeScript types live as close as possible to their source. Each **area**
+(`services`, `repositories`, `routes`, `lib`) exposes a `types.ts` barrel that
+re-exports its contract types, *raising* them so every consumer imports a
+shallow, stable path regardless of where the type is defined:
 
 ```typescript
-// good: import from barrel
-import type { CreateSessionRequest, SessionResponse } from '#types/sessions';
+// good: import from the area barrel — always one level deep
+import type { CreateSessionRequest, SessionResponse } from '@services/types';
 
-// bad: scattered imports
-import type { CreateSessionRequest } from '#routes/sessions/schema';
-import type { SessionResponse } from '#lib/services/sessions/response';
+// bad: deep path into the defining module
+import type { SessionResponse } from '@services/sessions/response';
 ```
+
+A type never travels through a deeper import path than `@<area>/types`.
 
 ### Path aliases
 
-All imports go through `tsconfig.json` path aliases (e.g., `#types/`, `#routes/`, `#services/`). Deep relative import chains (`../../../`) are forbidden.
+All imports go through `tsconfig.json` path aliases, `@`-prefixed by area
+(e.g. `@services/*`, `@repositories/*`, `@routes/*`, `@lib/*`, `@db/*`). Deep
+relative import chains (`../../../`) are forbidden. (Barrel type imports use
+the `@<area>/types` form above.) <!-- alias set is documented target; see
+02-Middleware-And-Layering.md for tsconfig realization status --> <!-- 2026-07-13 -->
 
 ---
 
@@ -181,6 +189,6 @@ The transport contract (envelope, headers, pagination) is engine-agnostic. New g
 | Document | Purpose | Date |
 | -------- | ------- | ---- |
 | `00-Overview.md` | Frozen API baseline contract (routes, auth, error shapes) | 2026-07-10 |
-| `01-Implementation-Strategy.md` | REST vs Astro Actions, proxy terminology, Cloudflare + Neon constraints | 2026-07-10 |
-| `02-Middleware-And-Layering.md` | Middleware responsibilities, layer ownership, `app/` folder structure | 2026-07-10 |
+| `01-Implementation-Strategy.md` | REST vs Astro Actions, proxy terminology, Cloudflare + Neon constraints | 2026-07-13 |
+| `02-Middleware-And-Layering.md` | Middleware responsibilities, layer ownership, `app/` folder structure | 2026-07-13 |
 | `04-Endpoint-Contracts.md` | Per-domain endpoint contracts and ruleset extensibility patterns | 2026-07-10 |
