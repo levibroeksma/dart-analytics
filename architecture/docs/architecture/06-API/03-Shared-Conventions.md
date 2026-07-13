@@ -2,12 +2,12 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-11
+updated: 2026-07-12
 -->
 
 # API Shared Conventions
 
-> **Version:** 0.1.0 (draft)
+> **Version:** 1.0.0 (frozen v1)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -136,6 +136,20 @@ import type { SessionResponse } from '#lib/services/sessions/response';
 ### Path aliases
 
 All imports go through `tsconfig.json` path aliases (e.g., `#types/`, `#routes/`, `#services/`). Deep relative import chains (`../../../`) are forbidden.
+
+---
+
+## Response DTOs & Mapping
+
+Response bodies are typed DTOs, defined per endpoint in `04-Endpoint-Contracts.md`. Rules:
+
+- **Naming:** DTO fields are camelCase. PostgreSQL view columns are snake_case; the **repository** maps snake_case rows → camelCase DTOs (Drizzle already surfaces columns as camelCase). snake_case never leaks past the repository.
+- **Single source of truth:** one Zod schema per response; the TypeScript type is `z.infer<>`, never hand-authored — the same rule as request contracts.
+- **Omit internal fields:** read DTOs never expose internal lookup ids or `player_id` (reads are player-scoped to the caller). They expose `*_key` implementation keys and only the entity UUIDs a client addresses later.
+- **Timestamps:** ISO 8601 strings (`z.string().datetime()`).
+- **Lists:** wrapped in `ListResult<T>`; other reads are the DTO object or an array of DTOs, close to 1:1 with the backing view.
+
+DTO types live in the domain `types.ts` barrels and are imported via path aliases (same rules as request contracts). <!-- 2026-07-12 -->
 
 ---
 
