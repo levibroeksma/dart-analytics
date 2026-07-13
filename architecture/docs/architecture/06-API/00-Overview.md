@@ -7,7 +7,7 @@ updated: 2026-07-13
 
 # API Overview
 
-> **Version:** 1.2.0 (frozen v1 API baseline; response contracts 2026-07-12)
+> **Version:** 1.3.0 (frozen v1 API baseline; hardening amendments 2026-07-13)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -57,7 +57,7 @@ Resource-first REST by domain.
 - `GET /api/sessions?limit=&cursor=`
 - `GET /api/sessions/:sessionId`
 - `PATCH /api/sessions/:sessionId`
-- `POST /api/sessions/:sessionId/events:batch`
+- `POST /api/sessions/:sessionId/events/batch`
 - `GET /api/sessions/:sessionId/replay`
 - `GET /api/sessions/:sessionId/darts`
 
@@ -68,6 +68,12 @@ Resource-first REST by domain.
 - `GET /api/routines`
 - `GET /api/routines/:routineId`
 - `GET /api/routines/:routineId/execution`
+
+### Configuration Templates
+
+- `GET /api/configuration-templates?gameType=<implementation_key>`
+
+Lists configuration presets (system + the caller's own) for a game type; backed by `v_configuration_presets`. `templateRef` in `POST /api/sessions` is the preset UUID from this endpoint. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-07-13 -->
 
 ### Statistics
 
@@ -108,7 +114,7 @@ Idempotent; creates the `players` row for a JWT-valid user. Full contract in `04
 
 Batch write endpoint:
 
-- `POST /api/sessions/:sessionId/events:batch`
+- `POST /api/sessions/:sessionId/events/batch`
 
 Rules:
 
@@ -117,6 +123,7 @@ Rules:
 - Writes are persisted in a single transaction.
 - Completed sessions reject writes (`409`).
 - Ruleset-owned limits are validated in service layer.
+- Route amended from the earlier `events:batch` custom-method spelling; `/events/batch` is the public contract. <!-- 2026-07-13 -->
 
 ### Idempotency
 
@@ -142,6 +149,7 @@ Reads are view-backed and player-scoped.
 | `GET /api/routines`                      | `v_routine_execution` |
 | `GET /api/routines/:routineId`           | `v_routine_execution` |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` |
+| `GET /api/configuration-templates`       | `v_configuration_presets` |
 
 Policy:
 
@@ -185,6 +193,10 @@ Policy:
 - `BATCH_INCONSISTENT_ORDERING`
 - `BATCH_REFERENCE_MISSING`
 - `INTERNAL_ERROR`
+- `NOT_FOUND`
+- `VALIDATION_FAILED`
+- `INVALID_STATUS_TRANSITION`
+- `SERVICE_UNAVAILABLE`
 
 ### Authorization mapping
 
@@ -194,7 +206,7 @@ Policy:
 
 ### Retry semantics
 
-- Retryable: transient failures (`503`, `504`) with `retryable: true`, when idempotency key is provided.
+- Retryable: `503 SERVICE_UNAVAILABLE` (transient failures) with `retryable: true`; batch writes retry only with the same idempotency key. <!-- 2026-07-13 -->
 - Not retryable: validation/auth `4xx` and idempotency mismatch `409`.
 
 ---
@@ -207,7 +219,10 @@ Policy:
 - Statistics scope (v1): no statistics endpoints; `overview`, `trends`, and `checkouts` are all deferred post-v1 and must be view-backed when built. <!-- 2026-07-12 -->
 - Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
 - Activity grouping (v1): one activity per session, server-managed; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
-- Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` are frozen at 1.0.0. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
+- Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
+- Freeze semantics: the route surface and behavioral semantics are frozen; documents may take doc-only version bumps without violating the freeze. <!-- 2026-07-13 -->
+- Session lifecycle (v1): every terminal transition (`COMPLETED`, `ABANDONED`) sets `completed_at` (server default `now()`); `ACTIVE` ⇔ `completed_at IS NULL` is a service-enforced invariant. <!-- 2026-07-13 -->
+- Recovery model (v1): in-progress gameplay state is client-local (persisted Alpine stores); the server holds no mid-session gameplay. `GET /api/sessions/active` exists to resume-from-local or abandon. <!-- 2026-07-13 -->
 
 ---
 
