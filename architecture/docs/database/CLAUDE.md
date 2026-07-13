@@ -11,7 +11,7 @@ Scope: SQL migrations and seeds. Load the "New table / column / constraint" or "
 
 ## Validation Checklist
 
-- Migration numbering contiguous (`0001`–`0012` applied) and single-responsibility.
+- Migration numbering contiguous (`0001`–`0014` applied) and single-responsibility.
 - New constraints/indexes match documented access patterns (`04-Indexes.md`).
 - Any schema change is reflected in `06-Database-Specification.md` and its `06-Spec/` chapters.
 - Context Maintenance protocol (root `CLAUDE.md`) completed.

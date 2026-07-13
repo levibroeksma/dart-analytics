@@ -20,12 +20,12 @@ export const POST: APIRoute = async ({ locals }) => {
     );
   }
 
-  const player = await provisionPlayer(locals.auth.authUserId);
+  const provisioned = await provisionPlayer(locals.auth.authUserId);
 
   return new Response(
     JSON.stringify({
       ok: true,
-      data: player,
+      data: provisioned, // { playerId, authUserId, created } — matches ProvisionPlayerResponse
       requestId: locals.requestId,
     }),
     { status: 200, headers: JSON_HEADERS },

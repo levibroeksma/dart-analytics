@@ -85,13 +85,13 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 
 - Prefix: `v_*` (not `vw_*`)
 - API reads views, never raw runtime tables
-- Expose `implementation_key` alongside ids
+- Expose `implementation_key`s (as `*_key`), not internal lookup ids; keep only entity UUIDs (see `01-Naming-Conventions.md` §"View Column Key And Label Naming")
 - Five implemented views in `0009`; new views = new migration
 
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0012` current chain
+- Four-digit prefix: `0001`–`0014` current chain
 - Schema in migrations; reference data in seeds
 - **Never modify an applied migration** — create `0013_*` (or next) instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
@@ -225,7 +225,7 @@ No existing table changes required.
 architecture/docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── database/
-    ├── migrations/0001–0012.sql
+    ├── migrations/0001–0014.sql
     └── seeds/0001–0002.sql
 ```
 

@@ -7,7 +7,7 @@ updated: 2026-07-12
 
 # API Overview
 
-> **Version:** 1.1.0 (frozen v1 API baseline; validation reconciliation 2026-07-12)
+> **Version:** 1.2.0 (frozen v1 API baseline; response contracts 2026-07-12)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -207,6 +207,7 @@ Policy:
 - Statistics scope (v1): no statistics endpoints; `overview`, `trends`, and `checkouts` are all deferred post-v1 and must be view-backed when built. <!-- 2026-07-12 -->
 - Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
 - Activity grouping (v1): one activity per session, server-managed; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
+- Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` are frozen at 1.0.0. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
 
 ---
 
