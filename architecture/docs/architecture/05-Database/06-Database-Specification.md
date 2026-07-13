@@ -2,7 +2,7 @@
 status: canonical
 scope: database/cross-layer-invariants + chapter index
 read-when: any schema work — read this, then the relevant 06-Spec/ chapter
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Database Specification
@@ -302,6 +302,8 @@ TIMESTAMPTZ
 ```
 
 No exceptions.
+
+`created_at` is always row persistence time (server clock). Gameplay chronology is derived from sequence numbers and client-observed lifecycle timestamps (`turns.completed_at`), never from `created_at`. <!-- 2026-07-13 -->
 
 Standard timestamp columns:
 

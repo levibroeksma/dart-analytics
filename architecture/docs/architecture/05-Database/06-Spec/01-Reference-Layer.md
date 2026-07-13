@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -204,6 +204,8 @@ Referenced by:
 ## Design Rationale
 
 Capture depth is a per-session fact. Recreational sessions may store turn totals without individual dart rows. Analytics sessions require full intention and result capture for every dart.
+
+Capture mode × input mode matrix: RECREATIONAL + QUICK_SCORE stores turn totals with no dart rows; RECREATIONAL + DETAILED_DARTS stores hit-only dart rows (no intention); ANALYTICS requires full intention + result on every dart regardless of input mode. <!-- 2026-07-13 -->
 
 ---
 

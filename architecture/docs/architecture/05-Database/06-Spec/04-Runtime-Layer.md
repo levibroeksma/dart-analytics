@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -85,7 +85,7 @@ Owned by the player.
 
 ACTIVE → COMPLETED or ABANDONED.
 
-Supports browser refresh recovery and abandoned session detection.
+Terminal transitions (COMPLETED/ABANDONED) set completed_at. In-progress recovery is client-local (persisted frontend state); the abandon flow is client-driven. <!-- 2026-07-13 -->
 
 ## Primary Key
 
@@ -182,6 +182,8 @@ Referenced by:
 ## Rules
 
 A player can have only one active exercise session per game type.
+
+Terminal statuses (COMPLETED, ABANDONED) always set completed_at ("when the session ended"); ACTIVE ⇔ completed_at IS NULL is a service-enforced invariant that uq_sessions_single_active keys on. <!-- 2026-07-13 -->
 
 ## Design Rationale
 
@@ -295,6 +297,7 @@ Referenced by:
 - participant_type_id = PLAYER => display_name = players.display_name
 - participant_type_id = GUEST => display_name = guest-chosen name
 - participant_type_id = DARTBOT => display_name = 'DartBot'
+- The PLAYER player_id-presence and DartBot display-name rules are DB CHECK constraints keyed on seeded ids 1/3 (migration 0005); the GUEST naming rule is application-enforced. <!-- 2026-07-13 -->
 
 ## Design Rationale
 
@@ -442,7 +445,7 @@ Owned by an exercise stage, thrown by a participant.
 
 Created when the visit starts.
 
-`completed_at` NULL means the turn was interrupted mid-visit — this is how resumable games recover position.
+`completed_at` is the client-observed end of the visit (from `TurnFact.completedAt`); NULL means the visit never completed. It may legitimately precede `created_at` (persistence time) under batch upload — migration `0015` removed the old ordering check. <!-- 2026-07-13 -->
 
 Immutable after session completion.
 
@@ -541,7 +544,8 @@ References:
 
 Capture depth follows the session's capture mode:
 
-- RECREATIONAL — dart rows may be omitted entirely (turn totals only)
+- RECREATIONAL + QUICK_SCORE — dart rows omitted entirely (turn totals only)
+- RECREATIONAL + DETAILED_DARTS — hit-only dart rows (intention pair NULL) <!-- 2026-07-13 -->
 - ANALYTICS — every dart stores full intention and result
 
 ## Design Rationale
