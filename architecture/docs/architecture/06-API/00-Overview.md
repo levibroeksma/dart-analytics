@@ -217,8 +217,8 @@ Implementation guidance that extends this contract without changing it:
 
 | Document                        | Purpose                                                                              |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| `01-Implementation-Strategy.md` | REST vs Astro Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |
-| `02-Middleware-And-Layering.md` | Middleware responsibilities, layer ownership, `app/` folder structure (2026-07-09)   |
+| `01-Implementation-Strategy.md` | REST vs Astro Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-13) |
+| `02-Middleware-And-Layering.md` | Middleware responsibilities, layer ownership, `app/` folder structure (2026-07-13)   |
 | `../07-Frontend/00-Overview.md` | Frontend API client integration and state ownership (2026-07-09)                     |
 | `03-Shared-Conventions.md`      | Envelope builders, header contract, pagination, type system, error registry (2026-07-10) |
 | `04-Endpoint-Contracts.md`      | Per-domain request/response contracts for the v1 surface (2026-07-10)                     |
