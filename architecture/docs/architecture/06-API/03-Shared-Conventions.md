@@ -7,7 +7,7 @@ updated: 2026-07-13
 
 # API Shared Conventions
 
-> **Version:** 1.2.0 (frozen v1; barrel-raising chain defined 2026-07-13)
+> **Version:** 1.3.0 (frozen v1; barrel-raising chain defined 2026-07-13)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -92,6 +92,7 @@ List endpoints support cursor-based pagination, matching the frozen `?limit=&cur
 
 - **Opaque:** cursors are base64url-encoded and server-owned; clients treat them as opaque and never construct them.
 - **Next cursor:** `nextCursor: null` signals no further pages.
+- **Ordering key:** the sessions list orders by `session_id DESC` (UUIDv7 is creation-time ordered, so the primary key doubles as the pagination key); the opaque cursor encodes the last-seen `session_id`. <!-- 2026-07-13 -->
 
 ### Standard list data shape
 
@@ -202,6 +203,12 @@ A single enumerated registry is the only source of domain code → HTTP status �
 | `BATCH_INCONSISTENT_ORDERING` | 422 | no | 2026-07-10 |
 | `BATCH_REFERENCE_MISSING` | 422 | no | 2026-07-10 |
 | `INTERNAL_ERROR` | 500 | no | 2026-07-10 |
+| `NOT_FOUND` | 404 | no | 2026-07-13 |
+| `VALIDATION_FAILED` | 422 | no | 2026-07-13 |
+| `INVALID_STATUS_TRANSITION` | 409 | no | 2026-07-13 |
+| `SERVICE_UNAVAILABLE` | 503 | **yes** | 2026-07-13 |
+
+`VALIDATION_FAILED` covers all input-schema, config, template-resolution, and ruleset validation failures; specifics travel in `error.details`, never as new codes. `SERVICE_UNAVAILABLE` is the only retryable code — it is what activates the client retry rule. The registry is closed for v1. <!-- 2026-07-13 -->
 
 ---
 
