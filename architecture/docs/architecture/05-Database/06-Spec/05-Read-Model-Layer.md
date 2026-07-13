@@ -152,7 +152,7 @@ Intention-complete, analytics-ready dart dataset.
 
 ## Exposes
 
-Player, game type key, intended target + intended zone key, hit target + hit zone key, score, and a computed `exact_hit` flag (intended target and zone both match the hit).
+Session id (migration `0014`), player, game type key, intended target + intended zone key, hit target + hit zone key, score, and a computed `exact_hit` flag (intended target and zone both match the hit). <!-- 2026-07-12 -->
 
 ## Design Rationale
 
