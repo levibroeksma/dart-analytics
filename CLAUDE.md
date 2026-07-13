@@ -30,7 +30,7 @@ The authority order for conflicts is defined once, in the context map. Docs win 
 - Store facts; statistics live in views (`v_*`) only — never persisted.
 - IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
-- Never modify applied migrations (`0001`–`0013`); new schema change = new numbered migration + spec update.
+- Never modify applied migrations (`0001`–`0014`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
