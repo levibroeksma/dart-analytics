@@ -2,12 +2,12 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Database Migration Strategy
 
-> **Version:** 1.4.0
+> **Version:** 1.5.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -105,7 +105,9 @@ architecture/docs/database/
 │   ├── 0011_ordering_and_uniqueness.sql
 │   ├── 0012_session_write_idempotency.sql
 │   ├── 0013_normalize_read_model_views.sql
-│   └── 0014_dart_analytics_session_scope.sql
+│   ├── 0014_dart_analytics_session_scope.sql
+│   ├── 0015_time_semantics_constraints.sql
+│   └── 0016_read_model_replay_and_presets.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
@@ -432,6 +434,37 @@ Contains:
 - rewritten v_dart_analytics (adds session_id)
 
 Adds `session_id` so `GET /api/sessions/:sessionId/darts` can filter by session through the view; `player_id` retained for future player-global statistics. Behaviour-preserving; never edits `0013`.
+
+---
+
+## 0015_time_semantics_constraints.sql
+
+Purpose:
+
+Align time constraints with the batch write model. <!-- 2026-07-13 -->
+
+Contains:
+
+- drop `chk_turn_completed_after_created` (client-observed `turns.completed_at` legitimately predates row insert under batch upload)
+- replace `chk_players_display_name_not_empty` without the dead NULL arm
+
+Doctrine: `created_at` is row persistence time (server clock); gameplay chronology comes from sequence numbers and client-observed timestamps.
+
+---
+
+## 0016_read_model_replay_and_presets.sql
+
+Purpose:
+
+Rebuild replay/overview read models; add the preset read model. <!-- 2026-07-13 -->
+
+Contains:
+
+- rewritten `v_game_replay` (LEFT JOIN darts, `turn_total_score`, `stage_id`/`parent_stage_id` for tree reconstruction)
+- rewritten `v_session_overview` (`duration_seconds` floored to integer)
+- new `v_configuration_presets` backing `GET /api/configuration-templates`
+
+Never edits `0009`/`0013`/`0014`.
 
 ---
 

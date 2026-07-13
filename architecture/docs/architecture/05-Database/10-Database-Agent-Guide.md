@@ -2,12 +2,12 @@
 status: canonical
 scope: database/agent-rules
 read-when: before any SQL, migration, seed, or view work
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Database Agent Guide
 
-> **Version:** 1.1.0
+> **Version:** 1.2.0
 >
 > Condensed operating rules for AI agents (and developers) touching PostgreSQL in this project.
 >
@@ -86,16 +86,16 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 - Prefix: `v_*` (not `vw_*`)
 - API reads views, never raw runtime tables
 - Expose `implementation_key`s (as `*_key`), not internal lookup ids; keep only entity UUIDs (see `01-Naming-Conventions.md` §"View Column Key And Label Naming")
-- Five implemented views in `0009`; new views = new migration
+- Six implemented views (`0009` originals normalized by `0013`/`0014`; `0016` adds `v_configuration_presets` and rebuilds replay/overview); new views = new migration
 
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0014` current chain
+- Four-digit prefix: `0001`–`0016` current chain
 - Schema in migrations; reference data in seeds
-- **Never modify an applied migration** — create `0013_*` (or next) instead
+- **Never modify an applied migration** — create a migration with the next unused number instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
-- Always use `BEGIN` / `COMMIT` transactions
+- No `BEGIN`/`COMMIT` in migrations (dbmate wraps each section in a transaction); seeds keep explicit `BEGIN`/`COMMIT`
 
 ## 7. Controlled sets = lookup tables
 
@@ -139,8 +139,8 @@ Answer these questions:
 
 ```
 [ ] One clear responsibility
-[ ] Numbered sequentially after 0011
-[ ] BEGIN/COMMIT transaction
+[ ] Numbered sequentially after the current chain end (0016)
+[ ] No BEGIN/COMMIT (dbmate owns the transaction)
 [ ] FK constraints with fk_ prefix
 [ ] CHECK constraints with chk_ prefix
 [ ] Unique constraints with uq_ prefix
@@ -200,7 +200,7 @@ No existing table changes required.
 
 ## Add a column to runtime table
 
-1. New migration `0013_add_<column>.sql`
+1. New migration with the next unused number (currently `0017_add_<column>.sql`)
 2. Update `06-Database-Specification.md` entity section
 3. Update views if API needs the column
 4. Update `03-Migrations.md` chain
@@ -225,7 +225,7 @@ No existing table changes required.
 architecture/docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── database/
-    ├── migrations/0001–0014.sql
+    ├── migrations/0001–0016.sql
     └── seeds/0001–0002.sql
 ```
 
@@ -248,7 +248,7 @@ Activity → Exercise Session → Participant
 configuration_templates → exercise_configurations → exercise_session
 ```
 
-**Five views:** `v_active_sessions`, `v_session_overview`, `v_game_replay`, `v_dart_analytics`, `v_routine_execution`
+**Six views:** `v_active_sessions`, `v_session_overview`, `v_game_replay`, `v_dart_analytics`, `v_routine_execution`, `v_configuration_presets`
 
 ---
 
