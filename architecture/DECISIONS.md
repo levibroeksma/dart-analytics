@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Architectural Decision Ledger
@@ -46,6 +46,7 @@ updated: 2026-07-12
 | D26 | 2026-07-08 | Session write idempotency table (migration `0012`) backing the batch endpoint's idempotency key | Safe client retries of batch uploads |
 | D27 | 2026-07-12 | Read-model views normalized (migration `0013`): implementation keys as `*_key`, labels as `*_name`, no internal lookup ids exposed; `ruleset_version_key` added to `v_active_sessions` | Consistent, key-based read contract; fixes inconsistency the freeze missed |
 | D28 | 2026-07-12 | `session_id` added to `v_dart_analytics` (migration `0014`) so `GET /sessions/:id/darts` filters by session through the view | Endpoint is per-session but the view was player-global |
+| D74 | 2026-07-13 | Migration `0016` rebuilds `v_game_replay` (LEFT JOIN darts, `turn_total_score`, `stage_id`/`parent_stage_id`) and floors `v_session_overview.duration_seconds` | Recreational + nested-stage replay; integer DTO contract |
 
 ## API (v1 baseline frozen 2026-07-08)
 
@@ -65,7 +66,17 @@ updated: 2026-07-12
 | D63 | 2026-07-12 | Statistics endpoints (overview/trends/checkouts) fully deferred post-v1; each must be view-backed when built | No viewless read at freeze; acquire the data first |
 | D64 | 2026-07-12 | v1 = one activity per session, server-managed; multi-session activities + routine-run writes deferred | Defer, not contradict, the activities-group-sessions model |
 | D65 | 2026-07-12 | v1 API response contracts defined as camelCase Zod DTOs over the normalized views; `03`/`04` frozen at 1.0.0; read shapes corrected (`active`/`replay`/`darts` return arrays); provision endpoint returns `{ playerId, authUserId, created }` | Frozen, typed response surface for the frontend |
-| D66 | 2026-07-13 | `06-API/` frozen v1: `01`/`02` frozen at 1.0.0, `03`→1.1.0; adopted `@`-prefixed aliases + `@<area>/types` type-raising barrels; removed the statistics route folder from the layering tree (statistics stay post-v1) | Close the API design layer with one coherent, self-consistent frozen contract before frontend work |
+| D66 | 2026-07-13 | `06-API/` frozen v1: `01`/`02` frozen at 1.0.0, `03`→1.1.0; adopted `@`-prefixed aliases + `@<area>/types` type-raising barrels; removed the statistics route folder from the layering tree (statistics stay post-v1) (`03` later 1.2.0/1.3.0 under the freeze-semantics rule, 2026-07-13) | Close the API design layer with one coherent, self-consistent frozen contract before frontend work |
+| D67 | 2026-07-13 | Local-first recovery: in-progress state in persisted Alpine stores (`$persist`); one batch at session completion; `clientKey` payload-internal only; no server mid-session recovery or cross-batch reconciliation | Resolves recovery-vs-batch contradiction with zero schema cost |
+| D68 | 2026-07-13 | `created_at` = row persistence time everywhere; chronology from sequence numbers + client timestamps; migration `0015` drops `chk_turn_completed_after_created` | Batch upload makes client `completedAt` predate insert |
+| D69 | 2026-07-13 | Terminal statuses (COMPLETED, ABANDONED) always set `completed_at` (server default `now()`); `ACTIVE` ⇔ `completed_at IS NULL` invariant | Aligns `uq_sessions_single_active` with `v_active_sessions`; unblocks abandon flow |
+| D70 | 2026-07-13 | Error registry completed with `NOT_FOUND`/`VALIDATION_FAILED`/`INVALID_STATUS_TRANSITION`/`SERVICE_UNAVAILABLE` (only retryable code); registry closed for v1 | Registry must cover its own frozen surface |
+| D71 | 2026-07-13 | `GET /api/configuration-templates` backed by `v_configuration_presets` (migration `0016`); `templateRef` = preset UUID; "no persistence UUIDs" scoped to runtime-write payloads | Game setup needs preset discovery; presets have no implementation_key by design |
+| D72 | 2026-07-13 | Batch route amended to `POST /api/sessions/:sessionId/events/batch` | Astro file routing serves it natively; `:batch` spelling was unservable |
+| D73 | 2026-07-13 | `DartFact` intention is a nullable pair; ANALYTICS capture ⇒ intention required (service-validated); RECREATIONAL + DETAILED_DARTS = hit-only dart rows | Contract must express what the schema models |
+| D75 | 2026-07-13 | Sessions list pagination orders by `session_id DESC` (UUIDv7 creation-ordered); cursor encodes last-seen `session_id` | PK doubles as pagination key; no new index |
+| D76 | 2026-07-13 | Provision accepts optional `displayName`; fallback JWT `name` claim → `'Player'`; rename endpoint deferred | `players.display_name` NOT NULL needs a source at provisioning |
+| D78 | 2026-07-13 | Authoritative `app/src` tree: top-level `services`/`repositories`/`db` areas; `lib/api/` = browser client (D41); `lib/server/` = envelope/error helpers | Frozen docs contradicted each other on layout |
 
 ## Frontend
 
@@ -73,6 +84,7 @@ updated: 2026-07-12
 | - | ------ | -------- | --------- |
 | D40 | 2026-07-09 | Game engine runs client-side; frontend owns temporary state, uploads completed gameplay batches; never touches DB | Offline-tolerant play, DB owns truth |
 | D41 | 2026-07-09 | Single API client (`lib/api/client.ts`), skeleton-first hydration | One integration seam |
+| D77 | 2026-07-13 | `player_settings` deferred post-v1: no endpoints; client persists last-used modes and sends them per D60 | Table was unreachable; local persistence covers the need |
 
 ## Context & documentation system
 
@@ -84,4 +96,4 @@ updated: 2026-07-12
 
 ## Deferred (open, not rejected)
 
-ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines.
+ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · player_settings endpoints (2026-07-13) · configuration-preset CRUD (2026-07-13) · PATCH /api/players/me rename (2026-07-13) · per-dart thrown_at timestamp (2026-07-13)
