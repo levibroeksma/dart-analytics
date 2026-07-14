@@ -126,48 +126,62 @@ Sections that do not apply are omitted (BottomNav skips §1; NavBtn skips §4). 
 
 ### 4.2 Alpine store pattern
 
+Store files are **pure factories**: they receive only the `$persist` function they depend on (not the whole `Alpine` object) and **return** a store object. They never call `Alpine.store()` themselves. All plugin registration and store instantiation is centralized in one file, `lib/app.init.ts`.
+
 Location: `app/src/lib/stores/*.store.ts`. One store per bounded concern.
 
 ```ts
 // lib/stores/session.store.ts
-import type { Alpine } from 'alpinejs';
+// `Persist` = the type of Alpine's $persist magic fn; exact type resolved at implementation.
 
 const SESSION_STORE_VERSION = 1;                 // bump on shape change
 
-export function registerSessionStore(Alpine: Alpine) {
-  Alpine.store('session', {
-    _v: Alpine.$persist(SESSION_STORE_VERSION).as('session._v'),
-    sessionId: Alpine.$persist<string | null>(null).as('session.id'),
-    idempotencyKey: Alpine.$persist<string | null>(null).as('session.idem'),
+export function sessionStore(persist: Persist) {
+  return {
+    _v: persist(SESSION_STORE_VERSION).as('session._v').using(localStorage),
+    sessionId: persist<string | null>(null).as('session.id').using(localStorage),
+    idempotencyKey: persist<string | null>(null).as('session.idem').using(localStorage),
     // …draft fields
     init()  { if (this._v !== SESSION_STORE_VERSION) this.reset(); },   // discard on drift
     reset() { this.sessionId = null; this.idempotencyKey = null; this._v = SESSION_STORE_VERSION; },
-  });
+  };
 }
 ```
 
 **Rules:**
 
+- Store files are **DI factories** `xStore(persist)` returning the store object; they never reference the global `Alpine` and never register themselves.
 - Every **persisted** store carries `_v` + an `init()` version guard + a `reset()`.
+- `.using(...)` **always states the storage backend explicitly** (`localStorage` for v1). This call site is the exact seam for the documented outbox → IndexedDB forward path (§3.3) — only the outbox factory changes, nothing else.
 - Stores hold **data + intent only** — no rules/scoring logic (that is the engine, a separate pure module in `lib/engine/`).
-- All stores are registered centrally through the `@astrojs/alpinejs` **entrypoint**, which calls each `registerXStore(Alpine)` on `alpine:init`:
+
+**Central registration** — one focused file at the `lib/` root registers the plugin and instantiates every store:
+
+```ts
+// lib/app.init.ts
+import type { Alpine } from 'alpinejs';
+import persist from '@alpinejs/persist';
+import { sessionStore } from '@stores/session.store';
+import { outboxStore }  from '@stores/outbox.store';
+
+export default (Alpine: Alpine) => {
+  Alpine.plugin(persist);
+
+  Alpine.store('session', sessionStore(Alpine.$persist));
+  Alpine.store('outbox',  outboxStore(Alpine.$persist));
+};
+```
+
+Wired as the `@astrojs/alpinejs` entrypoint:
 
 ```js
 // astro.config.mjs
-alpinejs({ entrypoint: '/src/lib/stores/register' })
+alpinejs({ entrypoint: '/src/lib/app.init' })
 ```
 
-```ts
-// lib/stores/register.ts
-import type { Alpine } from 'alpinejs';
-import { registerSessionStore } from './session.store';
-import { registerOutboxStore } from './outbox.store';
-
-export default (Alpine: Alpine) => {
-  registerSessionStore(Alpine);
-  registerOutboxStore(Alpine);
-};
-```
+> **Naming:** the factory is `sessionStore` and the store key is `"session"` (matching the `session.*` persist keys). Do **not** name the factory or key `sessionStorage` — it shadows the `sessionStorage` Web Storage global and reads confusingly next to `.using(localStorage)`.
+>
+> **Dependency:** `@alpinejs/persist` must be added to `app/package.json` (only `alpinejs` is present today).
 
 ### 4.3 Form pattern
 
@@ -220,9 +234,10 @@ app/src/
 ├── components/{ui, layout, game, forms}/
 ├── layouts/
 ├── lib/
+│   ├── app.init.ts # Alpine entrypoint: registers plugins + instantiates all stores
 │   ├── api/       # browser API client (D41): client.ts + per-domain wrappers
 │   ├── auth/      # token access            → detailed in the auth spec
-│   ├── stores/    # Alpine stores + register entrypoint  (session, outbox, …)
+│   ├── stores/    # Alpine store factories  (session.store.ts, outbox.store.ts, …)
 │   ├── forms/     # Alpine.data form factories
 │   ├── engine/    # pure game engine        → detailed in the engine spec
 │   └── shared/    # cross-cutting pure utils (nav/is-nav-active, …)
@@ -255,7 +270,8 @@ This spec is realized as targeted edits (minimal-diff invariant), not regenerati
 5. **`architecture/DECISIONS.md`** — one-line entries:
    - Outbox / two-store client-state model with per-store versioning and the two boundary rules.
    - Client-pattern codification (`01-Client-Patterns.md`).
-6. **`scripts/check-context-map.sh`** — must pass.
+6. **`app/package.json`** — add `@alpinejs/persist` (only `alpinejs` is present today); **`astro.config.mjs`** — set `alpinejs({ entrypoint: '/src/lib/app.init' })`; **`app/tsconfig.json`** — add the `@stores/*` path alias.
+7. **`scripts/check-context-map.sh`** — must pass.
 
 ---
 
