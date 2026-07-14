@@ -13,7 +13,7 @@ updated: 2026-07-13
 >
 > It serves as the canonical reference for all persistent data used by the application.
 >
-> Every database table, relationship, ownership rule and lifecycle described in this specification maps directly to the SQL migrations contained in the database project (`0001`–`0014`).
+> Every database table, relationship, ownership rule and lifecycle described in this specification maps directly to the SQL migrations contained in the database project (`0001`–`0016`).
 >
 > **v2.2.0 (2026-07-11):** per-layer entity detail moved verbatim into `06-Spec/` chapters (see Specification Chapters below); cross-layer invariants remain in this file. No content was rewritten.
 

@@ -38,7 +38,7 @@ updated: 2026-07-13
 | # | Source | Decision | Rationale |
 | - | ------ | -------- | --------- |
 | D20 | P21–30 | CQRS-lite: writes to runtime tables in transactions, reads via `v_*` views only; API never exposes raw tables | Stable read contracts, schema freedom underneath |
-| D21 | P48–53 | Migrations are schema-only, seeds hold controlled data; applied migrations are never modified; chain `0001`–`0014` | Auditable, reproducible schema history |
+| D21 | P48–53 | Migrations are schema-only, seeds hold controlled data; applied migrations are never modified; chain `0001`–`0016` | Auditable, reproducible schema history |
 | D22 | P51–53 | Index philosophy: real query paths only, partial index for active sessions, no blind FK indexing | Write cost control |
 | D23 | 2026-07-09 | dbmate owns migrations (SQL-first); `drizzle-kit introspect` provides typed query layer only — Drizzle never generates schema | Keeps SQL chain canonical while getting types |
 | D24 | 2026-07-09 | Neon project in `aws-eu-central-1`, branches `main`/`preview`/`dev`; scale-to-zero on all branches for v1; shared `dev` branch for local work (no Docker Postgres) | Cost + low ops for solo operator |
