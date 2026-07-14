@@ -49,6 +49,8 @@ app/src/
 ├── components/
 │   ├── ui/                          # portable Astro + Alpine wiring
 │   └── <domain>/
+├── icons/                           # @icons — SVG sources (astro-icon style imports)
+├── styles/                          # @styles — global.css, Tailwind layers
 ├── pages/
 │   └── <route>/
 │       ├── index.astro
@@ -92,6 +94,9 @@ All imports use `@`-prefixed aliases. Deep relative paths (`../../../`) are forb
 | `@repositories/*` | `src/repositories/*` |
 | `@routes/*` | `src/pages/api/*` |
 | `@db/*` | `src/db/*` |
+| `@icons/*` | `src/icons/*` |
+| `@styles/*` | `src/styles/*` |
+| `@lib/*` | `src/lib/*` (legacy — browser code migrates to `@client`, D66/D78) |
 
 ### Barrel type imports
 
