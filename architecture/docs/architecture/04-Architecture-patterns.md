@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-07-13
+updated: 2026-07-14
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.2.1
+> **Version:** 1.3.0 (Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -715,6 +715,40 @@ Every significant change must be evaluated against these quality attributes.
 | Cohesion       | Does functionality belong together?             |
 | Performance    | Is optimization justified by evidence?          |
 | Simplicity     | Is this the simplest sufficient solution?       |
+
+---
+
+# Pattern 17 — Frontend Layering
+
+## Principle
+
+The frontend uses Alpine-native layering with prerender-default shells, not API-style controllers.
+
+## Pattern
+
+```
+Astro page (prerender + middleware)
+    ↓
+Alpine.data (*.data.ts) — x-data="componentState()"
+    ↓
+Alpine.store / form (*.store.ts, *.form.ts)
+    ↓
+Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
+    ↓
+@client/api/ (orchestrated by pages/forms/stores only)
+```
+
+## Application
+
+- Alpine boots only via `lib/client/alpine/app.factory.ts` (`@astrojs/alpinejs` entrypoint).
+- No `x-init`. Always `x-data="factory()"`.
+- `$persist` only in `*.store.ts` and `*.form.ts`.
+- Modules never import `@client/api` or Alpine.
+- Client recovery auto-cleans on session mismatch (D88).
+
+## Rule
+
+Detail lives in `07-Frontend/01`–`04` and `10-Frontend-Agent-Guide.md`. API integration boundary remains in `07-Frontend/00-Overview.md`.
 
 ---
 

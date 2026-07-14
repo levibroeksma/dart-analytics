@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-13
+updated: 2026-07-14
 -->
 
 # Architectural Decision Ledger
@@ -67,7 +67,7 @@ updated: 2026-07-13
 | D64 | 2026-07-12 | v1 = one activity per session, server-managed; multi-session activities + routine-run writes deferred | Defer, not contradict, the activities-group-sessions model |
 | D65 | 2026-07-12 | v1 API response contracts defined as camelCase Zod DTOs over the normalized views; `03`/`04` frozen at 1.0.0; read shapes corrected (`active`/`replay`/`darts` return arrays); provision endpoint returns `{ playerId, authUserId, created }` | Frozen, typed response surface for the frontend |
 | D66 | 2026-07-13 | `06-API/` frozen v1: `01`/`02` frozen at 1.0.0, `03`→1.1.0; adopted `@`-prefixed aliases + `@<area>/types` type-raising barrels; removed the statistics route folder from the layering tree (statistics stay post-v1) (`03` later 1.2.0/1.3.0 under the freeze-semantics rule, 2026-07-13) | Close the API design layer with one coherent, self-consistent frozen contract before frontend work |
-| D67 | 2026-07-13 | Local-first recovery: in-progress state in persisted Alpine stores (`$persist`); one batch at session completion; `clientKey` payload-internal only; no server mid-session recovery or cross-batch reconciliation | Resolves recovery-vs-batch contradiction with zero schema cost |
+| D67 | 2026-07-13 | Local-first recovery: in-progress state in persisted Alpine stores (`$persist`); one batch at session completion; `clientKey` payload-internal only; no server mid-session recovery or cross-batch reconciliation. **UX (2026-07-14, D88):** auto-abandon on mismatch — no manual abandon prompt | Resolves recovery-vs-batch contradiction with zero schema cost |
 | D68 | 2026-07-13 | `created_at` = row persistence time everywhere; chronology from sequence numbers + client timestamps; migration `0015` drops `chk_turn_completed_after_created` | Batch upload makes client `completedAt` predate insert |
 | D69 | 2026-07-13 | Terminal statuses (COMPLETED, ABANDONED) always set `completed_at` (server default `now()`); `ACTIVE` ⇔ `completed_at IS NULL` invariant | Aligns `uq_sessions_single_active` with `v_active_sessions`; unblocks abandon flow |
 | D70 | 2026-07-13 | Error registry completed with `NOT_FOUND`/`VALIDATION_FAILED`/`INVALID_STATUS_TRANSITION`/`SERVICE_UNAVAILABLE` (only retryable code); registry closed for v1 | Registry must cover its own frozen surface |
@@ -84,7 +84,18 @@ updated: 2026-07-13
 | - | ------ | -------- | --------- |
 | D40 | 2026-07-09 | Game engine runs client-side; frontend owns temporary state, uploads completed gameplay batches; never touches DB | Offline-tolerant play, DB owns truth |
 | D41 | 2026-07-09 | Single API client (`lib/api/client.ts`), skeleton-first hydration | One integration seam |
-| D77 | 2026-07-13 | `player_settings` deferred post-v1: no endpoints; client persists last-used modes and sends them per D60 | Table was unreachable; local persistence covers the need |
+| D77 | 2026-07-13 | `player_settings` deferred post-v1: no endpoints; `forms/` persist last-used modes and send them per D60 | Table was unreachable; local persistence covers the need |
+| D79 | 2026-07-14 | Frontend handbook 0.1.0: prerender-default on Cloudflare (`output: 'server'` + per-route prerender) | Honest adapter model; fast shells |
+| D80 | 2026-07-14 | Middleware protected-prefix allowlist; v1 public = `/login` only | HTML nav gate; extensible public list |
+| D81 | 2026-07-14 | Alpine `app.factory` entry + `register*(Alpine)`; no `x-init`; `x-data="foo()"`; store factories invoked with `()` | Single Alpine bootstrap; init runs |
+| D82 | 2026-07-14 | Alpine-native layering; pages/forms/stores orchestrate `@client/api`; modules never fetch | Testable modules; clear HTTP ownership |
+| D83 | 2026-07-14 | Frontend domain at `src/` level; browser infra under `@client/`; `@utils/` for shared helpers | Agent-enforceable boundaries |
+| D84 | 2026-07-14 | Suffix conventions: `.store.ts`, `.form.ts`, `.data.ts`, `.module.ts`, `.engine.module.ts`, `.payload.module.ts` | Filename encodes role |
+| D85 | 2026-07-14 | OOP in `modules/` only; portable UI kit with peer-dep disclosure for Chart | Reusable primitives |
+| D86 | 2026-07-14 | `$persist` in stores/forms only; timer state in game store; forms = v1 `player_settings` substitute | Predictable persistence |
+| D87 | 2026-07-14 | Shared API types via Zod `z.infer<>` in `src/types/api/` with barrel raising | No DTO drift from frozen contract |
+| D88 | 2026-07-14 | Client recovery: auto-abandon on mismatch/missing local; no manual abandon UI; server owns DB orphan sweeps | Amends D67 UX wording |
+| D89 | 2026-07-14 | Persisted schemas additive-only in 0.1.0; no runtime schema versioning | Extend never break |
 
 ## Context & documentation system
 
