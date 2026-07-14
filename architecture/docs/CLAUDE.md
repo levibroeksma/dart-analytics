@@ -17,7 +17,7 @@ Scope: all documentation under `architecture/docs/` (foundation docs, database h
 - Keep historical records historical (`05-Database/07`–`09`); do not rewrite history.
 - Keep the Worker/Neon/PostgreSQL responsibility split explicit in API docs.
 - Keep naming conventions stable (`v_*`, `idx_*`, `fk_*`, `uq_*`, `chk_*`).
-- Frontend handbook canonical targets: `07-Frontend/01-Rendering-Strategy.md` through `04-Modules-And-OOP.md`.
+- Frontend handbook canonical targets: `07-Frontend/01-Rendering-Strategy.md` through `05-Astro-Components.md`.
 
 ## Consistency Checks Before Finish
 

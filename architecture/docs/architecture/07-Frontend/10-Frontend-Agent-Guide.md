@@ -11,7 +11,7 @@ updated: 2026-07-14
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
-> Read this before creating pages, stores, modules, or client API wiring. For detail, use `07-Frontend/01`–`04`.
+> Read this before creating pages, stores, modules, or client API wiring. For detail, use `07-Frontend/01`–`05`.
 
 ---
 
@@ -78,6 +78,10 @@ Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fix
 
 Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
+## 9. Components (`.astro`)
+
+Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
+
 ---
 
 # Forbidden
@@ -96,6 +100,7 @@ Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 # Pre-Completion Checklist
 
 - [ ] File suffix matches role
+- [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`
