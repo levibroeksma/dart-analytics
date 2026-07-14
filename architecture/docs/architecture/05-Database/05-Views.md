@@ -2,12 +2,12 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Database View Strategy
 
-> **Version:** 1.1.0
+> **Version:** 1.2.0
 >
 > This document defines the strategy and rules for PostgreSQL views.
 >
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migration 0009)
+# Implemented Views (migrations 0009–0016)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -147,6 +147,7 @@ The name should describe the returned data, not the underlying tables.
 | `v_game_replay` | Replay | Chronological reconstruction |
 | `v_dart_analytics` | Analytics | Intention-complete dart dataset |
 | `v_routine_execution` | API Read Model | Ordered routine steps |
+| `v_configuration_presets` | API Read Model | Preset discovery for game setup (2026-07-13) |
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
@@ -451,7 +452,7 @@ with:
 WHERE completed_at IS NULL
 ```
 
-when the purpose is specifically active sessions.
+when the purpose is specifically active sessions, with a filter on the ACTIVE status key — equivalent to `completed_at IS NULL` under the terminal-status invariant (terminal statuses always set `completed_at`). <!-- 2026-07-13 -->
 
 ---
 
