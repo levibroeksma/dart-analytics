@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-13
+updated: 2026-07-14
 -->
 
 # Context Map
 
-> **Version:** 1.1.0 (2026-07-13)
+> **Version:** 1.2.0 (2026-07-14)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -25,7 +25,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~2k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~6k |
 | API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~5k |
-| Frontend / page work | `07-Frontend/00-Overview.md`, `app/CLAUDE.md` | ~3k |
+| Frontend / page work | `07-Frontend/00-Overview.md`, `07-Frontend/01-Client-Patterns.md`, `app/CLAUDE.md` | ~5k |
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~7k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5k |
 | Workflow / process question | `03-Engineering-Workflow.md`, `099-engineering-workflow-and-decision-framework.md` | ~3.5k |
@@ -104,6 +104,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry | canonical | ~1.4k |
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts | canonical | ~2.9k |
 | `07-Frontend/00-Overview.md` | Client pattern, state ownership, hydration | canonical | ~1.7k |
+| `07-Frontend/01-Client-Patterns.md` | Client conventions: stores, forms, components, folder taxonomy | canonical | ~1.7k |
 
 ## SQL (`architecture/docs/database/`)
 
@@ -135,7 +136,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Frontend docs | `07-Frontend/00-Overview.md` 0.2.0 — local-first recovery model (2026-07-13) |
+| Frontend docs | `00-Overview.md` 0.3.0 (two-store state model, boundary/perf rules); `01-Client-Patterns.md` 1.0.0 (conventions) (2026-07-14) |
 | Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
 
 ---
