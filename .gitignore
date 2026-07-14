@@ -8,3 +8,8 @@ dist/
 !.env.example
 .wrangler/
 .worktrees/
+
+# graphify — commit graph.json only (Task 3); ignore regenerable/local artifacts
+graphify-out/graph.html
+graphify-out/GRAPH_REPORT.md
+.graphify_python

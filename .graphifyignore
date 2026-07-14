@@ -1,0 +1,16 @@
+# build & vendored
+node_modules/
+dist/
+.astro/
+.wrangler/
+.worktrees/
+
+# graphify's own output (never graph the graph)
+graphify-out/
+
+# lockfiles & snapshots add noise, not structure
+*.lock
+package-lock.json
+app/src/db/meta/
+
+# keep: app/src, architecture/docs, database migrations+seeds, root config
