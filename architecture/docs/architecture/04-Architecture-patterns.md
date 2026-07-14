@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-07-11
+updated: 2026-07-13
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.2.0
+> **Version:** 1.2.1
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -396,7 +396,7 @@ Current baseline includes:
 - Cloudflare Worker runtime for API endpoints
 - Bearer JWT identity verification in middleware
 - resource-first REST route surface by domain
-- batch write endpoint (`POST /api/sessions/:sessionId/events:batch`)
+- batch write endpoint (`POST /api/sessions/:sessionId/events/batch`)
 - Worker-generated UUIDv7 for runtime persistence entities
 - view-backed read endpoints from `v_*` contracts
 - standard success/error envelope with domain codes and retry semantics
@@ -430,7 +430,6 @@ dart thrown
 intended_target_number + intended_zone_id
 hit_target_number + hit_zone_id
 score
-timestamp
 ```
 
 Calculate:

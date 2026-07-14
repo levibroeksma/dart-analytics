@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -53,7 +53,7 @@ API Read Model
 
 Lists sessions available for resume.
 
-Used by application startup and browser refresh recovery.
+Used by application startup to detect an orphaned active session and offer resume (from client-local state) or abandon; the view itself does not reconstruct gameplay state. <!-- 2026-07-13 -->
 
 ## Sources
 
@@ -94,7 +94,7 @@ High-level gameplay history for list screens.
 
 ## Exposes
 
-Session identity, player, game type (key + name), status key, capture mode key, start/completion times and a computed `duration_seconds`.
+Session identity, player, game type (key + name), status key, capture mode key, start/completion times and a computed integer `duration_seconds` (floored; migration `0016`).
 
 ## Design Rationale
 
@@ -118,12 +118,12 @@ Reconstructs the exact gameplay sequence of a session.
 - exercise_stages + stage_types
 - turns
 - participants
-- darts
+- darts (LEFT JOIN — turn-total-only turns appear with NULL dart columns)
 - dart_zones (intended and hit, LEFT JOIN)
 
 ## Exposes
 
-Stage sequence and stage type key, turn sequence, participant name, dart number, intended target + intended zone key, hit target + hit zone key, score.
+Stage identity (stage_id, parent_stage_id) for tree reconstruction, stage sequence and stage type key, turn sequence, participant name, turn total score, dart number, intended target + zone key, hit target + zone key, score. <!-- 2026-07-13 -->
 
 ## Design Rationale
 
@@ -132,6 +132,8 @@ Ordering columns (stage sequence, turn sequence, dart number) let the consumer r
 Zone joins are LEFT JOINs because recreational capture may omit intention and result detail.
 
 Replay depends only on runtime data — never on current templates or rulesets.
+
+Stage sequence numbers are only unique per parent, so consumers order and nest via stage_id/parent_stage_id. Recreational sessions replay at turn resolution via turn_total_score. <!-- 2026-07-13 -->
 
 ---
 
@@ -191,6 +193,31 @@ The frontend renders and executes a routine from this single view without touchi
 
 ---
 
+# v_configuration_presets
+
+## Category
+
+API Read Model
+
+## Purpose
+
+Lists configuration presets (system + player-owned) per game type for game setup. Backs `GET /api/configuration-templates`. <!-- 2026-07-13 -->
+
+## Sources
+
+- configuration_templates
+- game_types
+
+## Exposes
+
+`configuration_template_id` (the UUID the API accepts as `templateRef`), `player_id` (scoping), game type key, name, description, configuration JSONB, `is_system_template`.
+
+## Design Rationale
+
+The only template-layer read model: presets must be discoverable before session creation, and referencing an entity obtained from a read endpoint is normal REST addressing. Runtime still never references templates — the snapshot copy rule is untouched.
+
+---
+
 # Read Model Layer Summary
 
 The initial read models cover the three core read paths:
@@ -201,6 +228,7 @@ The initial read models cover the three core read paths:
 | History | v_session_overview, v_game_replay |
 | Analytics | v_dart_analytics |
 | Routine execution | v_routine_execution |
+| Game setup | v_configuration_presets |
 
 New statistics are delivered as new views — never as stored aggregates.
 

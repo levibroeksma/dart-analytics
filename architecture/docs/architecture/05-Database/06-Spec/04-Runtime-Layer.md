@@ -313,7 +313,7 @@ Replay labels use persisted `display_name`, so replay output does not depend on 
 
 ## Purpose
 
-Stores persisted outcomes for `POST /api/sessions/:sessionId/events:batch` so the API can honor idempotent retries.
+Stores persisted outcomes for `POST /api/sessions/:sessionId/events/batch` so the API can honor idempotent retries.
 
 ## Ownership
 

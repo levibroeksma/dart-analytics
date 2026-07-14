@@ -2,12 +2,12 @@
 status: canonical
 scope: database/naming
 read-when: naming tables, views, indexes, constraints
-updated: 2026-07-12
+updated: 2026-07-13
 -->
 
 # Database Naming Conventions
 
-> **Version:** 1.2.0
+> **Version:** 1.3.0
 >
 > This document defines naming standards for the PostgreSQL database.
 >
@@ -300,6 +300,8 @@ Example:
 implementation_key TEXT NOT NULL UNIQUE
 ```
 
+Uniqueness may be composite where the key is scoped (e.g. `ruleset_versions` is unique per `(game_type_id, implementation_key)`). <!-- 2026-07-13 -->
+
 Rules:
 
 - must be lowercase or uppercase consistently within the domain
@@ -549,7 +551,7 @@ View columns follow the table conventions, with one read-model rule that keeps e
 
 - **Implementation keys** are exposed as `<concept>_key` (e.g. `game_type_key`, `capture_mode_key`, `input_mode_key`, `status_key`, `stage_type_key`, `intended_zone_key`, `hit_zone_key`, `duration_type_key`, `ruleset_version_key`).
 - **Human labels** are exposed as `<concept>_name`, and only where a screen renders the label directly (`game_type_name`, plus entity names such as `routine_name` / `exercise_name`). Enum-like lookups (capture/input mode, status, dart zones, stage types) are key-only.
-- **Internal lookup `*_id` columns are never exposed** by a read model. Keep only the entity UUIDs a client must address in a later request: `session_id`, `routine_id`, `exercise_template_id`, and `player_id` (for player-scoping).
+- **Internal lookup `*_id` columns are never exposed** by a read model. Keep entity UUIDs for two purposes only: ids a client addresses in a later request (`session_id`, `routine_id`, `exercise_template_id`, `configuration_template_id`, `player_id` for scoping) and structural identity needed to reconstruct hierarchies (`stage_id`, `parent_stage_id`). <!-- 2026-07-13 -->
 
 This standard is applied by migration `0013_normalize_read_model_views.sql`. (2026-07-12)
 
@@ -642,7 +644,7 @@ chk_<table>_<rule>
 Examples:
 
 ```text
-chk_darts_score_positive
+chk_dart_score_positive
 
 chk_sessions_completed_after_start
 ```
