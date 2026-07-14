@@ -26,6 +26,7 @@ pip install "graphifyy[sql]" # REQUIRED — without it all SQL migrations vanish
 graphify hook install         # AST-only rebuild on commit
 ```
 
+- Rebuilds go through `scripts/refresh-graph.sh` (canonical flags; warns instead of failing when the CLI is absent). Record graph-not-refreshed in the completion report when it warns.
 - `graphify-out/graph.json` is committed; `graphify-out/graph.html` and the regenerable report are git-ignored.
 - Extraction is AST-only — never configure an LLM API key for graphify (keeps it free/deterministic). Use `--code-only` so doc files do not trigger semantic extraction.
 - Query the graph to orient before searching: `graphify query/path/explain` (see root `CLAUDE.md`).
@@ -60,7 +61,7 @@ Run this sequence for `app/` changes before claiming completion:
 3. `drizzle-kit introspect`
 4. `npx fallow`
 5. `astro check`
-6. `graphify extract . --update --code-only` — refresh the knowledge graph; stage `graphify-out/graph.json` (AST-only, no cost)
+6. `bash scripts/refresh-graph.sh` — refresh the knowledge graph; stage `graphify-out/graph.json` (AST-only, no cost)
 
 ## Forbidden
 
