@@ -37,9 +37,10 @@ Structural patterns (folders, Alpine, modules) live in the handbook chapters bel
 | `02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes |
 | `03-Alpine-Patterns.md` | `app.factory`, stores, forms, `$persist` |
 | `04-Modules-And-OOP.md` | Modules, portable UI kit, validation boundary |
+| `05-Astro-Components.md` | `.astro` authoring: frontmatter, props, class composition, slots |
 | `10-Frontend-Agent-Guide.md` | Condensed agent rules |
 
-**Authority:** API integration and data flows — this file. Rendering, folders, Alpine, modules — `01`–`04`.
+**Authority:** API integration and data flows — this file. Rendering, folders, Alpine, modules, components — `01`–`05`.
 
 ---
 
@@ -282,6 +283,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | `02-Folder-Structure.md` | Tree, aliases, suffixes |
 | `03-Alpine-Patterns.md` | Alpine factory, stores, forms |
 | `04-Modules-And-OOP.md` | Modules, portable UI kit |
+| `05-Astro-Components.md` | `.astro` authoring conventions |
 | `10-Frontend-Agent-Guide.md` | Condensed agent rules |
 | `../06-API/00-Overview.md` | Frozen API contract (v1.3.0) |
 | `../06-API/01-Implementation-Strategy.md` | Why REST endpoints over Actions |
