@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-13
+updated: 2026-07-14
 -->
 
 # Context Map
 
-> **Version:** 1.1.0 (2026-07-13)
+> **Version:** 1.2.0 (2026-07-14)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -25,7 +25,11 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~2k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~6k |
 | API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~5k |
-| Frontend / page work | `07-Frontend/00-Overview.md`, `app/CLAUDE.md` | ~3k |
+| Frontend page / component work | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `app/CLAUDE.md` | ~3.5k |
+| Frontend gameplay / session features | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `app/CLAUDE.md` | ~6k |
+| Frontend new route / rendering | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `app/CLAUDE.md` | ~6k |
+| Frontend architecture / new pattern | `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `04-Architecture-patterns.md`, `01-Principles.md` | ~8k |
+| New portable UI primitive | `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md` | ~4k |
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~7k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5k |
 | Workflow / process question | `03-Engineering-Workflow.md`, `099-engineering-workflow-and-decision-framework.md` | ~3.5k |
@@ -103,7 +107,12 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering | canonical | ~2.2k |
 | `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry | canonical | ~1.4k |
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts | canonical | ~2.9k |
-| `07-Frontend/00-Overview.md` | Client pattern, state ownership, hydration | canonical | ~1.7k |
+| `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index | canonical | ~1.8k |
+| `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, route classes | canonical | ~2k |
+| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes | canonical | ~2k |
+| `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` | canonical | ~2.5k |
+| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit | canonical | ~2k |
+| `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules | canonical | ~2k |
 
 ## SQL (`architecture/docs/database/`)
 
@@ -135,7 +144,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Frontend docs | `07-Frontend/00-Overview.md` 0.2.0 — local-first recovery model (2026-07-13) |
+| Frontend docs | Handbook 0.1.0 (`01`–`04`, `10`) + overview 0.3.0 — prerender-default, Alpine factory, auto-cleanup recovery (2026-07-14) |
 | Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
 
 ---

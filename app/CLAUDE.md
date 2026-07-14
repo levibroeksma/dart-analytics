@@ -55,3 +55,9 @@ Run this sequence for `app/` changes before claiming completion:
 - JWT parsing outside middleware
 - Editing applied architecture migrations
 - Committing `.env` or connection strings
+
+## Frontend Rules
+
+For page/component/session work, load `architecture/docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
+
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms. Full rules: `07-Frontend/01`–`04`.

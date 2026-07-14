@@ -7,7 +7,7 @@ updated: 2026-07-11
 
 # Architecture Documentation
 
-> **Version:** 1.4.0
+> **Version:** 1.5.0 (2026-07-14)
 >
 > This repository follows a strict architecture-first development philosophy. Every change to the application must be designed before it is implemented. The goal is to create a maintainable, scalable and extensible platform that can evolve for many years without accumulating technical debt.
 
@@ -65,7 +65,7 @@ architecture/docs/
 │   ├── 099-engineering-workflow-and-decision-framework.md
 │   ├── 05-Database/     # Database handbook (00–11)
 │   ├── 06-API/          # API contract and implementation (00–04)
-│   └── 07-Frontend/     # Frontend integration (00)
+│   └── 07-Frontend/     # Frontend handbook (00–04, 10)
 └── database/
     ├── migrations/      # 0001–0016
     └── seeds/           # 0001–0002
@@ -125,7 +125,12 @@ README.md (this file)
 ↓
 
 07-Frontend/
-  00-Overview.md                 ← API client pattern, state ownership (2026-07-09)
+  00-Overview.md                 ← API integration entry (2026-07-14)
+  01-Rendering-Strategy.md       ← prerender-default, middleware (2026-07-14)
+  02-Folder-Structure.md         ← tree, aliases, suffixes (2026-07-14)
+  03-Alpine-Patterns.md          ← app.factory, stores, forms (2026-07-14)
+  04-Modules-And-OOP.md          ← modules, portable UI kit (2026-07-14)
+  10-Frontend-Agent-Guide.md     ← condensed agent rules (2026-07-14)
 
 ↓
 
@@ -193,6 +198,11 @@ Architecture documents use semantic versioning. Major changes require a version 
 | `06-API/02-Middleware-And-Layering.md`     | Middleware responsibilities, `locals` contract, `app/` folder structure (2026-07-09) |
 | `06-API/03-Shared-Conventions.md`          | Response envelope, header contract, pagination, type/validation rules, error-code registry (2026-07-10) |
 | `06-API/04-Endpoint-Contracts.md`          | Per-domain endpoint contracts, discriminated config input, ruleset extensibility pattern (2026-07-10) |
-| `07-Frontend/00-Overview.md`               | Frontend state ownership, API client pattern, skeleton hydration (2026-07-09) |
+| `07-Frontend/00-Overview.md`               | Frontend API integration, state ownership, handbook index (2026-07-14) |
+| `07-Frontend/01-Rendering-Strategy.md`       | Prerender-default, middleware, route classes (2026-07-14) |
+| `07-Frontend/02-Folder-Structure.md`         | `app/src/` tree, aliases, suffixes (2026-07-14) |
+| `07-Frontend/03-Alpine-Patterns.md`          | Alpine factory, stores, forms, `$persist` (2026-07-14) |
+| `07-Frontend/04-Modules-And-OOP.md`          | OOP boundary, portable UI kit (2026-07-14) |
+| `07-Frontend/10-Frontend-Agent-Guide.md`     | Condensed frontend agent rules (2026-07-14) |
 
 Every migration, view, API endpoint, and frontend component should be explainable by referring back to these documents.

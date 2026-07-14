@@ -13,6 +13,7 @@ Identify the impacted layer first, then edit the canonical doc before cascading:
 - **API contract:** `06-API/00-Overview.md` before or with implementation changes.
 - **API implementation guidance:** `06-API/01-Implementation-Strategy.md`, `06-API/02-Middleware-And-Layering.md`.
 - **Frontend integration:** `07-Frontend/00-Overview.md`.
+- **Frontend handbook:** `07-Frontend/01`–`04` + `10-Frontend-Agent-Guide.md`; amend `00-Overview.md` for integration changes.
 
 Apply minimal diffs; propagate only necessary consistency edits.
 

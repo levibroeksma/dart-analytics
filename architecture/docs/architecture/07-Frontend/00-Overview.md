@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-13
+updated: 2026-07-14
 -->
 
 # Frontend Overview
 
-> **Version:** 0.2.0
+> **Version:** 0.3.0
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -24,6 +24,22 @@ The frontend exists to provide user interaction, rendering, and temporary gamepl
 It must not become the primary source of business logic or the owner of persistent domain data.
 
 This document defines how the presentation layer communicates with the API boundary defined in `06-API/`.
+
+Structural patterns (folders, Alpine, modules) live in the handbook chapters below.
+
+---
+
+# Handbook Index
+
+| Doc | Answers |
+| --- | ------- |
+| `01-Rendering-Strategy.md` | Prerender-default, middleware, route classes |
+| `02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes |
+| `03-Alpine-Patterns.md` | `app.factory`, stores, forms, `$persist` |
+| `04-Modules-And-OOP.md` | Modules, portable UI kit, validation boundary |
+| `10-Frontend-Agent-Guide.md` | Condensed agent rules |
+
+**Authority:** API integration and data flows — this file. Rendering, folders, Alpine, modules — `01`–`04`.
 
 ---
 
@@ -54,7 +70,7 @@ During an active session, the frontend owns:
 - in-progress dart entry before batch upload
 - Alpine.js component state
 
-Temporary state is held in Alpine stores using the `$persist` plugin (localStorage), so it survives page refreshes and browser restarts on the same device. Recovery is client-local: on load, the client checks `GET /api/sessions/active` for an orphaned active session and offers **resume** (rehydrating from the persisted store) or **abandon** (`PATCH` → `ABANDONED`). The server holds no mid-session gameplay; losing the device (or clearing storage) loses the in-progress session. <!-- 2026-07-13 -->
+Temporary state is held in Alpine stores using the `$persist` plugin (localStorage), keyed by `gameTypeKey`, so it survives page refreshes on the same device. Recovery is client-local: when local persisted state and `GET /api/sessions/active` agree on `sessionId`, the client resumes from the store. When local state is missing or `sessionId` mismatches, the client **automatically** `PATCH`es the server session to `ABANDONED` — no user prompt. Client-side orphans are the client's responsibility; server-side DB orphan sweeps are deferred server responsibility. The server holds no mid-session gameplay; losing the device (or clearing storage) loses the in-progress session. <!-- 2026-07-14 -->
 
 ## Persistent state (API-owned)
 
@@ -171,28 +187,18 @@ This pattern keeps first paint fast while respecting the API as the only data ga
 
 ---
 
-# Recommended Client Structure
+# Client Structure
 
-```
-app/src/lib/
-├── api/
-│   ├── client.ts          # fetch wrapper: auth header, envelope parsing, error handling
-│   ├── sessions.ts        # typed calls for session endpoints
-│   ├── routines.ts
-│   ├── configuration-templates.ts
-│   └── statistics.ts
-└── auth/
-    └── token.ts           # Neon Auth token access for API calls
-```
+Browser code uses `@client/` (API client, auth, Alpine factory), top-level `stores/`, `forms/`, `modules/`, and `types/`. Full tree, aliases, and suffix rules: `02-Folder-Structure.md`.
 
-> **v1 note:** statistics API endpoints are deferred post-v1 (see `../06-API/00-Overview.md`), so `lib/api/statistics.ts` and any statistics page are post-v1 additions. v1 focuses on capturing gameplay facts and the session/routine reads. <!-- 2026-07-12 -->
+> **v1 note:** statistics API endpoints are deferred post-v1 (see `../06-API/00-Overview.md`). The `/statistics` route is a placeholder shell only — no stats API calls until view-backed endpoints ship. <!-- 2026-07-14 -->
 
-Server-side response helpers live in `lib/server/` — `lib/api/` is browser code only (see `../06-API/02-Middleware-And-Layering.md`). <!-- 2026-07-13 -->
+Server-side response helpers live in `lib/server/` — `@client/api/` is browser code only (see `../06-API/02-Middleware-And-Layering.md`). <!-- 2026-07-13 -->
 
 ## Client wrapper responsibilities
 
-| Concern | `lib/api/client.ts` | Page / component |
-| ------- | ------------------- | ---------------- |
+| Concern | `@client/api/client.ts` | Page / form |
+| ------- | ----------------------- | ----------- |
 | Attach Bearer token | Yes | Never |
 | Parse ok/error envelope | Yes | — |
 | Map domain codes to UI messages | Optional helper | Yes |
@@ -229,7 +235,7 @@ Astro Actions are not the primary API integration mechanism for this application
 
 For v1:
 
-- use `fetch` (via `lib/api/client.ts`) for all domain API calls
+- use `fetch` (via `@client/api/client.ts`) for all domain API calls
 - do not replace REST endpoints with Actions for sessions, routines, or statistics
 - Actions may be introduced post-v1 for internal UI-only forms that delegate to the same service layer
 
@@ -248,6 +254,8 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | Parse or verify JWT in page scripts | middleware owns identity verification |
 | Per-dart API calls during active play | batch write at session boundary |
 | Rely on the server for mid-session recovery | in-progress state is client-local (persisted Alpine store) |
+| Manual abandon dialog on session mismatch | client auto-cleans per D88 |
+| Use `x-init` | deprecated — use factory `init()` via `x-data="factory()"` |
 
 ---
 
@@ -268,6 +276,11 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 
 | Document | Purpose |
 | -------- | ------- |
+| `01-Rendering-Strategy.md` | Prerender-default, middleware |
+| `02-Folder-Structure.md` | Tree, aliases, suffixes |
+| `03-Alpine-Patterns.md` | Alpine factory, stores, forms |
+| `04-Modules-And-OOP.md` | Modules, portable UI kit |
+| `10-Frontend-Agent-Guide.md` | Condensed agent rules |
 | `../06-API/00-Overview.md` | Frozen API contract (v1.3.0) |
 | `../06-API/01-Implementation-Strategy.md` | Why REST endpoints over Actions |
 | `../06-API/02-Middleware-And-Layering.md` | Middleware and service layer structure |
