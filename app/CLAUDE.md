@@ -16,6 +16,20 @@ Manage the background server with `astro dev stop`, `astro dev status`, and `ast
 
 Default git worktree location: `.worktrees/<branch-name>/` at repo root; keep `.worktrees/` git-ignored.
 
+## Knowledge Graph (graphify)
+
+One-time per clone (hooks are local, not committed):
+
+```
+uv tool install graphifyy    # or: pipx install graphifyy
+pip install "graphifyy[sql]" # SQL migration parsing (optional but recommended)
+graphify hook install         # AST-only rebuild on commit
+```
+
+- `graphify-out/graph.json` is committed; `graphify-out/graph.html` and the regenerable report are git-ignored.
+- Extraction is AST-only — never configure an LLM API key for graphify (keeps it free/deterministic). Use `--code-only` so doc files do not trigger semantic extraction.
+- Query the graph to orient before searching: `graphify query/path/explain` (see root `CLAUDE.md`).
+
 ## Astro Documentation
 
 Full documentation: https://docs.astro.build
@@ -46,6 +60,7 @@ Run this sequence for `app/` changes before claiming completion:
 3. `drizzle-kit introspect`
 4. `npx fallow`
 5. `astro check`
+6. `graphify extract . --update --code-only` — refresh the knowledge graph; stage `graphify-out/graph.json` (AST-only, no cost)
 
 ## Forbidden
 
