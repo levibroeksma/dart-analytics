@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 architecture/docs/database/
-├── migrations/   # ordered schema migrations (0001–0014)
+├── migrations/   # ordered schema migrations (0001–0016)
 └── seeds/        # controlled reference/system data
 ```
 

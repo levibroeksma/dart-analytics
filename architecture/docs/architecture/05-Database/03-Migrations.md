@@ -401,7 +401,7 @@ Contains:
 
 - session_write_idempotency
 
-Stores persisted outcomes for `POST /api/sessions/:sessionId/events:batch`.
+Stores persisted outcomes for `POST /api/sessions/:sessionId/events/batch`.
 
 Uniqueness:
 
