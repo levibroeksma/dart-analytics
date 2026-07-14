@@ -10,6 +10,10 @@ dist/
 # graphify's own output (never graph the graph)
 graphify-out/
 
+# historical + agent tooling — map the codebase, not its journal
+docs/superpowers/
+.claude/skills/
+
 # lockfiles & snapshots add noise, not structure
 *.lock
 package-lock.json
