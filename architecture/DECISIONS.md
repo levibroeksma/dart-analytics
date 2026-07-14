@@ -85,6 +85,8 @@ updated: 2026-07-13
 | D40 | 2026-07-09 | Game engine runs client-side; frontend owns temporary state, uploads completed gameplay batches; never touches DB | Offline-tolerant play, DB owns truth |
 | D41 | 2026-07-09 | Single API client (`lib/api/client.ts`), skeleton-first hydration | One integration seam |
 | D77 | 2026-07-13 | `player_settings` deferred post-v1: no endpoints; client persists last-used modes and sends them per D60 | Table was unreachable; local persistence covers the need |
+| D79 | 2026-07-14 | Two-store client state (`session` draft + `outbox`) with per-store `_v` versioning; outbox is the single durability seam (only frozen-shape, ruleset-valid batches); idempotency key minted once at session start and reused on retry; client state is never a source of truth | Robust local-first recovery with explicit consistency/performance boundaries |
+| D80 | 2026-07-14 | Frontend client conventions codified in `07-Frontend/01-Client-Patterns.md`: DI Alpine store factories `xStore(persist)` registered centrally in `lib/app.init.ts`; canonical `.astro` frontmatter order; form and data-file patterns; client folder taxonomy | Consistency and clear boundaries for multi-year frontend growth |
 
 ## Context & documentation system
 
