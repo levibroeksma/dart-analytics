@@ -4,6 +4,8 @@ dist/
 .astro/
 .wrangler/
 .worktrees/
+.superpowers/
+**/.fallow/
 
 # graphify's own output (never graph the graph)
 graphify-out/
