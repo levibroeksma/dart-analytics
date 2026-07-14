@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Context Map
 
-> **Version:** 1.5.1 (2026-07-14 — deregistered the deleted 05-Database CHECKLIST file)
+> **Version:** 1.6.0 (2026-07-14 — repository restructure: docs/ + database/ + root ledger)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -33,10 +33,10 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~7k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5k |
 | Workflow / process question | `03-Engineering-Workflow.md`, `099-engineering-workflow-and-decision-framework.md` | ~3.5k |
-| "Why was X decided?" | `architecture/DECISIONS.md`; only if insufficient: `architecture/000_master_context.md` | ~2k |
+| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~2k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~6k |
 
-Paths are relative to `architecture/docs/architecture/` unless they start with `architecture/`, `database/`, or `app/`.
+Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
 
 ---
 
@@ -54,7 +54,7 @@ When documents conflict, higher wins; correct the lower one:
 8. SQL migrations `0001`–`0016` and seeds
 9. Application code in `app/`
 
-If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. `architecture/000_master_context.md` and `architecture/DECISIONS.md` are context, never authority.
+If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and `DECISIONS.md` are context, never authority.
 
 ---
 
@@ -62,7 +62,7 @@ If code contradicts architecture docs, the docs win unless the user explicitly d
 
 Status: **canonical** = current truth · **historical** = preserved record, never read by default · **generated** = tool output, do not hand-edit.
 
-## Foundation (`architecture/docs/architecture/`)
+## Foundation (`docs/architecture/`)
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
@@ -114,7 +114,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots | canonical | ~2k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules | canonical | ~2k |
 
-## SQL (`architecture/docs/database/`)
+## SQL (`database/`)
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
@@ -122,13 +122,13 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `migrations/0001`–`0016` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`–`0002` | Reference data + default templates | canonical |
 
-## Context & history (`architecture/`, repo root)
+## Context & history (repo root, `docs/`)
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `architecture/DECISIONS.md` | One-line ledger of every architectural decision | canonical |
+| `DECISIONS.md` | One-line ledger of every architectural decision | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
-| `architecture/000_master_context.md` | Full design-journey handoff (prompts 1–85) | historical |
+| `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |

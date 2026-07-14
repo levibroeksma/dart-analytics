@@ -75,7 +75,7 @@ See root `CLAUDE.md` and `app/CLAUDE.md` for query commands and the completion-g
 
 ## Architecture References
 
-- `../architecture/docs/architecture/README.md`
-- `../architecture/docs/architecture/06-API/00-Overview.md`
-- `../architecture/docs/architecture/05-Database/11-Neon-Integration.md`
+- `../docs/architecture/README.md`
+- `../docs/architecture/06-API/00-Overview.md`
+- `../docs/architecture/05-Database/11-Neon-Integration.md`
 - `./CLAUDE.md`

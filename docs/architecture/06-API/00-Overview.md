@@ -129,7 +129,7 @@ Rules:
 
 - Require `Idempotency-Key` on batch write requests.
 - Server stores (`session_id`, `idempotency_key`, normalized payload hash, result).
-- Backing schema artifact: `architecture/docs/database/migrations/0012_session_write_idempotency.sql`.
+- Backing schema artifact: `database/migrations/0012_session_write_idempotency.sql`.
 - Same key + same hash -> return stored result.
 - Same key + different hash -> `409 IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD`.
 
