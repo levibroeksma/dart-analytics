@@ -179,18 +179,6 @@ export const durationTypesRelations = relations(durationTypes, ({many}) => ({
 	routineSteps: many(routineSteps),
 }));
 
-export const turnsRelations = relations(turns, ({one, many}) => ({
-	exerciseStage: one(exerciseStages, {
-		fields: [turns.exerciseStageId],
-		references: [exerciseStages.id]
-	}),
-	participant: one(participants, {
-		fields: [turns.participantId],
-		references: [participants.id]
-	}),
-	darts: many(darts),
-}));
-
 export const dartsRelations = relations(darts, ({one}) => ({
 	turn: one(turns, {
 		fields: [darts.turnId],
@@ -205,6 +193,18 @@ export const dartsRelations = relations(darts, ({one}) => ({
 		fields: [darts.hitZoneId],
 		references: [dartZones.id],
 		relationName: "darts_hitZoneId_dartZones_id"
+	}),
+}));
+
+export const turnsRelations = relations(turns, ({one, many}) => ({
+	darts: many(darts),
+	exerciseStage: one(exerciseStages, {
+		fields: [turns.exerciseStageId],
+		references: [exerciseStages.id]
+	}),
+	participant: one(participants, {
+		fields: [turns.participantId],
+		references: [participants.id]
 	}),
 }));
 
