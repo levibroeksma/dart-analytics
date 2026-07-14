@@ -12,4 +12,8 @@ dist/
 # graphify — commit graph.json only (Task 3); ignore regenerable/local artifacts
 graphify-out/graph.html
 graphify-out/GRAPH_REPORT.md
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/.graphify_*
+graphify-out/.graphify_root
 .graphify_python
