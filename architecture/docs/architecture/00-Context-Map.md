@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Context Map
 
-> **Version:** 1.5.0 (2026-07-14)
+> **Version:** 1.5.1 (2026-07-14 — deregistered the deleted 05-Database CHECKLIST file)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -96,7 +96,6 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `09-Pre-Implementation-Review.md` | Design-gate record | historical | ~1.4k |
 | `10-Database-Agent-Guide.md` | Condensed DB rules for agents; ID strategy owner | canonical | ~2.0k |
 | `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow | canonical | ~1.0k |
-| `CHECKLIST.md` | Pre-completion DB checklist | canonical | ~0.2k |
 
 ## API (`06-API/`) and Frontend (`07-Frontend/`)
 
