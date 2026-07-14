@@ -1,8 +1,8 @@
 # Mainline Reconciliation & Release Governance Design
 
 > **Date:** 2026-07-14
-> **Status:** proposed design (autonomous architecture review — awaiting user approval)
-> **Scope:** land the ~50-commit divergence on `main`, define a branch-integration rule so it cannot recur, and close the ADR-mechanism ambiguity.
+> **Status:** partially resolved — Decision 1 completed 2026-07-14 (user fast-forwarded `main` to `dc1ef37`, the full line); Decisions 2–3 remain proposed.
+> **Scope:** land the ~50-commit divergence on `main` (done), define a branch-integration rule so it cannot recur, and close the ADR-mechanism ambiguity.
 > **Branch:** `claude/darts-analytics-arch-review-nvyboi`
 
 ---
@@ -27,7 +27,9 @@ This is the primary red-light finding of the 2026-07-14 review — the context s
 
 ## Decision 1 — Land the branch on `main` via a single reconciliation PR
 
-**Decision:** open one PR from the current development line to `main` (after the review-fix specs in this batch are addressed or explicitly deferred), review it against the PR-template checklist, and merge it. No cherry-picking, no history rewrite: the line is linear ahead of `main` (`git merge-base --is-ancestor main HEAD` holds), so a plain merge fast-forwards conceptually and preserves the audit trail.
+> **Resolved 2026-07-14:** the user fast-forwarded `main` to the full development line (`dc1ef37`) directly, ahead of this spec's PR flow. Outcome achieved; the process point it skipped (PR + checklist) is exactly what Decision 2 exists to codify going forward.
+
+**Decision (as proposed):** open one PR from the current development line to `main` (after the review-fix specs in this batch are addressed or explicitly deferred), review it against the PR-template checklist, and merge it. No cherry-picking, no history rewrite: the line is linear ahead of `main` (`git merge-base --is-ancestor main HEAD` holds), so a plain merge fast-forwards conceptually and preserves the audit trail.
 
 Alternatives considered:
 
