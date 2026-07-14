@@ -166,7 +166,7 @@ Never rewrite history.
 
 ---
 
-# Pattern 4 — Configuration Snapshot
+# Pattern 4 — Template → Snapshot Lifecycle
 
 ## Principle
 
