@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Context Map
 
-> **Version:** 1.2.0 (2026-07-14)
+> **Version:** 1.3.0 (2026-07-14)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -144,7 +144,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Frontend docs | Handbook 0.1.0 (`01`–`04`, `10`) + overview 0.3.0 — prerender-default, Alpine factory, auto-cleanup recovery (2026-07-14) |
+| Frontend docs | Handbook 0.1.0 (`01`–`04`, `10`) + overview 0.3.0 — prerender-default, Alpine factory, auto-cleanup recovery, completed-batch outbox + `_v` store guard (2026-07-14) |
 | Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
 
 ---

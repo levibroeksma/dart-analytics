@@ -68,11 +68,11 @@ modules/*                  →  never @client/api, never Alpine
 
 ## 6. `$persist`
 
-Only in `*.store.ts` and `*.form.ts`.
+Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91).
 
 ## 7. Recovery
 
-Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred).
+Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred). A completed session whose upload fails is held in the `outbox` store and retried with the same `Idempotency-Key` until confirmed (D90) — never dropped. See `03-Alpine-Patterns.md`.
 
 ## 8. Types
 

@@ -96,6 +96,8 @@ updated: 2026-07-14
 | D87 | 2026-07-14 | Shared API types via Zod `z.infer<>` in `src/types/api/` with barrel raising | No DTO drift from frozen contract |
 | D88 | 2026-07-14 | Client recovery: auto-abandon on mismatch/missing local; no manual abandon UI; server owns DB orphan sweeps | Amends D67 UX wording |
 | D89 | 2026-07-14 | Persisted schemas additive-only in 0.1.0; no runtime schema versioning | Extend never break |
+| D90 | 2026-07-14 | Completed-but-unsent batches held in a persisted `outbox` store; retried on load/`online` with the session-complete `Idempotency-Key`; removed only on confirmed success | Finished gameplay never lost between completion and server ACK |
+| D91 | 2026-07-14 | Augments D89: single `_v` integer per persisted store discards on incompatible bump; additive changes never bump it | Safety valve for the rare unavoidable breaking shape change |
 
 ## Context & documentation system
 

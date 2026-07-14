@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.1.0
+> **Version:** 0.2.0
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -88,14 +88,16 @@ Stores hold shared and persisted session state. Register in `register-stores.ts`
 import type { Alpine } from "alpinejs";
 import type { Persist } from "@alpinejs/persist";
 import { gameStore } from "@stores/game.store";
+import { outboxStore } from "@stores/outbox.store";
 
 export function registerStores(Alpine: Alpine) {
   const persist = Alpine.persist as Persist;
   Alpine.store("game", gameStore(persist));
+  Alpine.store("outbox", outboxStore(persist));
 }
 ```
 
-**`game.store.ts`** exports a factory returning the store object. Gameplay blobs are keyed by `gameTypeKey` (D09 — one active session per game type).
+**`game.store.ts`** exports a factory returning the store object. Gameplay blobs are keyed by `gameTypeKey` (D09 — one active session per game type). **`outbox.store.ts`** holds completed-but-unsent batches until the server confirms them (see Completed-Batch Outbox below).
 
 Timer **state** (`timerRemainingMs`, `timerStartedAt`) lives in `game.store.ts` for recovery. The `Timer` module (`modules/ui/timer.module.ts`) drives display only.
 
@@ -151,10 +153,11 @@ export function registerRouteData(Alpine: Alpine) {
 | Draft UI prefs (`forms/`) | Toast queue |
 | Timer fields in `game.store.ts` | Chart hover/selection |
 | `idempotencyKey` until batch ACK | Ephemeral `.data.ts` fields |
+| Completed-but-unsent batches (`outbox`) | — |
 
 `lib/client/alpine/` configures the persist plugin (namespace prefix) — not individual store keys.
 
-**Schema evolution (0.1.0):** no runtime `schemaVersion` machinery. Persisted shapes follow the **additive-only** rule — extend fields, never remove or rename incompatibly (D89).
+**Schema evolution:** **additive-only is the discipline** — extend persisted shapes, never remove or rename incompatibly (D89). No heavyweight `schemaVersion` machinery. As a safety valve for the rare unavoidable *incompatible* change, each persisted store carries a single `_v` integer and discards its own state on mismatch in `init()` (D91). Additive changes never bump `_v`; only a genuinely breaking shape change does. This keeps the additive-only rule as the norm while preventing a stale store from rehydrating into incompatible code. <!-- 2026-07-14 -->
 
 ---
 
@@ -171,6 +174,23 @@ The client owns session-progress persistence (D67, D88).
 | Server DB orphans | Server responsibility (future sweep) — not client UX |
 
 No sign-out step in this flow. See `00-Overview.md` state model.
+
+---
+
+# Completed-Batch Outbox
+
+Recovery above governs the **active** session. A **completed** session whose batch upload fails (offline, `503`) must not be lost between "game finished" and "server confirmed" — the one client-side data loss we actively prevent.
+
+On session completion the assembled `EventsBatchRequest` moves from `game.store.ts` into a persisted `outbox` store, carrying the `Idempotency-Key` minted at session-complete (`04-Modules-And-OOP.md` key ownership). Upload is attempted immediately with a few backoff retries; on persistent failure the entry stays queued.
+
+| Condition | Action |
+| --------- | ------ |
+| Upload succeeds (or same-key/same-hash stored result) | Remove entry from `outbox` |
+| Upload fails after retries | Keep entry; show passive **"unsaved — will retry"** indicator |
+| Next app load / `online` event | Auto-retry all queued entries with their stored keys |
+| Retryable error only (`503`) | Retry with the **same** `Idempotency-Key`; never re-mint |
+
+The stable key makes retries safe: a batch the server already persisted but never acknowledged returns its stored result on retry, and the client dequeues (D90). Removal happens **only** on confirmed success — never blind discard. localStorage backs the `outbox` in v1; if queue depth ever grows, only the `outbox` store migrates to IndexedDB (unchanged elsewhere). <!-- 2026-07-14 -->
 
 ---
 
