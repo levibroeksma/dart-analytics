@@ -37,6 +37,17 @@ Full documentation: https://docs.astro.build
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes.
 
+## Frontend
+
+Full detail: `architecture/docs/architecture/07-Frontend/00-Overview.md` (state/integration) and `07-Frontend/01-Client-Patterns.md` (conventions).
+
+- Client state is never a source of truth — persisted stores hold draft/intent pending server confirmation only.
+- The outbox is the single durability seam; only frozen-shape, ruleset-valid `EventsBatchRequest` batches may enter it.
+- Batch at the session boundary — never per-dart server writes.
+- Reads are view-backed, player-scoped, and skeleton-first.
+- Never parse or verify a JWT in page or island scripts (middleware owns identity).
+- Every persisted Alpine store carries a `_v` version field with the documented discard policy; store files are DI factories `xStore(persist)` registered centrally in `src/lib/app.init.ts`.
+
 ## Validation Standard Procedure (sole definition)
 
 Run this sequence for `app/` changes before claiming completion:
