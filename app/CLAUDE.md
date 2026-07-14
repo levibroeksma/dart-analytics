@@ -22,7 +22,7 @@ One-time per clone (hooks are local, not committed):
 
 ```
 uv tool install graphifyy    # or: pipx install graphifyy
-pip install "graphifyy[sql]" # SQL migration parsing (optional but recommended)
+pip install "graphifyy[sql]" # REQUIRED — without it all SQL migrations vanish from the graph
 graphify hook install         # AST-only rebuild on commit
 ```
 
