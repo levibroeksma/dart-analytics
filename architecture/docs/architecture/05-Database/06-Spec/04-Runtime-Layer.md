@@ -477,7 +477,6 @@ Referenced by:
 ## Constraints
 
 - sequence_number must be positive
-- completed_at must be after created_at when present
 
 ## Rules
 
