@@ -183,28 +183,6 @@ Architecture documents use semantic versioning. Major changes require a version 
 
 # Document Index
 
-| Document                                   | Answers                                                           |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| `01-Principles.md`                         | What we believe                                                   |
-| `02-System-Architecture.md`                | How the system is structured                                      |
-| `03-Engineering-Workflow.md`               | How changes are introduced                                        |
-| `04-Architecture-patterns.md`              | How recurring problems are solved                                 |
-| `05-Database/00-OVERVIEW.md`               | Database philosophy and operating model                           |
-| `00-Context-Map.md`                        | Context packs, file inventory, authority order (2026-07-11)       |
-| `05-Database/06-Database-Specification.md` | Cross-layer invariants + per-layer chapter index (2026-07-11)     |
-| `05-Database/06-Spec/01`–`06`              | Per-layer entity detail: reference, template, player, runtime, read model, relationships (2026-07-11) |
-| `05-Database/03-Migrations.md`             | Migration strategy and chain `0001`–`0016` (2026-07-13)           |
-| `05-Database/11-Neon-Integration.md`       | Neon project topology, env, dbmate/drizzle workflow (2026-07-09)  |
-| `06-API/00-Overview.md`                    | API runtime, route, auth, read/write, and error contract baseline |
-| `06-API/01-Implementation-Strategy.md`     | REST endpoints vs Actions, proxy terminology, Cloudflare + Neon constraints (2026-07-09) |
-| `06-API/02-Middleware-And-Layering.md`     | Middleware responsibilities, `locals` contract, `app/` folder structure (2026-07-09) |
-| `06-API/03-Shared-Conventions.md`          | Response envelope, header contract, pagination, type/validation rules, error-code registry (2026-07-10) |
-| `06-API/04-Endpoint-Contracts.md`          | Per-domain endpoint contracts, discriminated config input, ruleset extensibility pattern (2026-07-10) |
-| `07-Frontend/00-Overview.md`               | Frontend API integration, state ownership, handbook index (2026-07-14) |
-| `07-Frontend/01-Rendering-Strategy.md`       | Prerender-default, middleware, route classes (2026-07-14) |
-| `07-Frontend/02-Folder-Structure.md`         | `app/src/` tree, aliases, suffixes (2026-07-14) |
-| `07-Frontend/03-Alpine-Patterns.md`          | Alpine factory, stores, forms, `$persist` (2026-07-14) |
-| `07-Frontend/04-Modules-And-OOP.md`          | OOP boundary, portable UI kit (2026-07-14) |
-| `07-Frontend/10-Frontend-Agent-Guide.md`     | Condensed frontend agent rules (2026-07-14) |
+The per-file inventory (what each document answers, status, token budget) lives in **`00-Context-Map.md`** and is maintained under the Context Maintenance protocol. This README deliberately does not duplicate it — one registry, one place to go stale.
 
 Every migration, view, API endpoint, and frontend component should be explainable by referring back to these documents.
