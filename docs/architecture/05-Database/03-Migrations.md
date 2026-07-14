@@ -555,7 +555,7 @@ Existing:
 New change:
 
 ```
-0013_add_dart_coordinates.sql
+0017_add_dart_coordinates.sql
 ```
 
 ---
@@ -577,9 +577,9 @@ inside one migration unless tightly coupled.
 Prefer:
 
 ```
-0013_add_nickname_column.sql
+0017_add_nickname_column.sql
 
-0014_migrate_existing_nicknames.sql
+0018_migrate_existing_nicknames.sql
 ```
 
 ---
@@ -793,7 +793,7 @@ Modify 0005_runtime_core.sql after deployment
 Good:
 
 ```
-Create 0013_runtime_update.sql
+Create 0017_runtime_update.sql
 ```
 
 ---
