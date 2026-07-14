@@ -99,6 +99,7 @@ updated: 2026-07-14
 | D90 | 2026-07-14 | Completed-but-unsent batches held in a persisted `outbox` store; retried on load/`online` with the session-complete `Idempotency-Key`; removed only on confirmed success | Finished gameplay never lost between completion and server ACK |
 | D91 | 2026-07-14 | Augments D89: single `_v` integer per persisted store discards on incompatible bump; additive changes never bump it | Safety valve for the rare unavoidable breaking shape change |
 | D92 | 2026-07-14 | `.astro` component conventions (`05-Astro-Components.md`): fixed frontmatter order; class placement decided by change-trigger (static→`class`, build-time→frontmatter, runtime→`:class`, recurring→`@layer components`); `cn()` = `twMerge(clsx())` is the sole class-composition helper | One canonical component shape; minimal variation |
+| D93 | 2026-07-14 | Adopt graphify for a committed AST-only codebase knowledge graph (`graphify-out/graph.json`); consumed via `graphify` CLI documented in `CLAUDE.md`; auto-rebuilt by local git hooks (`graphify extract . --code-only`); no LLM backend (no API cost); semantic/docs extraction and MCP deferred | Early, low-cost shared code map before the codebase grows |
 
 ## Context & documentation system
 

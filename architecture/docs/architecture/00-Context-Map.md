@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Context Map
 
-> **Version:** 1.4.0 (2026-07-14)
+> **Version:** 1.5.0 (2026-07-14)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -132,6 +132,8 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `architecture/000_master_context.md` | Full design-journey handoff (prompts 1–85) | historical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure | canonical |
+| `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
+| `graphify-out/graph.json` | Committed AST-only knowledge graph (generated; queried, not hand-edited) | generated |
 
 ---
 
@@ -146,6 +148,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
 | Frontend docs | Handbook 0.1.0 (`01`–`05`, `10`) + overview 0.3.1 — prerender-default, Alpine factory, auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions (2026-07-14) |
+| Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; CLI + hooks documented in root/app `CLAUDE.md` (2026-07-14) |
 | Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
 
 ---

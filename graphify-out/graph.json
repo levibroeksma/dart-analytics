@@ -4,6 +4,204 @@
   "graph": {},
   "nodes": [
     {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "Agent Operating Manual \u2014 Dart Analytics",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_agent_operating_manual_dart_analytics",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "agent operating manual \u2014 dart analytics"
+    },
+    {
+      "label": "Project",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "claude_project",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "project"
+    },
+    {
+      "label": "Context Loading Protocol",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "claude_context_loading_protocol",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "context loading protocol"
+    },
+    {
+      "label": "Knowledge Graph (graphify)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "claude_knowledge_graph_graphify",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "knowledge graph (graphify)"
+    },
+    {
+      "label": "Hard Invariants",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "claude_hard_invariants",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "hard invariants"
+    },
+    {
+      "label": "Context Maintenance (mandatory, every task)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "claude_context_maintenance_mandatory_every_task",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "context maintenance (mandatory, every task)"
+    },
+    {
+      "label": "Forbidden Actions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "claude_forbidden_actions",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "forbidden actions"
+    },
+    {
+      "label": "Where Everything Lives",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "claude_where_everything_lives",
+      "community": 41,
+      "community_name": "CLAUDE.md",
+      "norm_label": "where everything lives"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_claude",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "Agent Rules \u2014 `app/`",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_claude_agent_rules_app",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "agent rules \u2014 `app/`"
+    },
+    {
+      "label": "Development",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "app_claude_development",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "development"
+    },
+    {
+      "label": "Knowledge Graph (graphify)",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_claude_knowledge_graph_graphify",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "knowledge graph (graphify)"
+    },
+    {
+      "label": "Astro Documentation",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "app_claude_astro_documentation",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "astro documentation"
+    },
+    {
+      "label": "Non-Negotiable Rules",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "app_claude_non_negotiable_rules",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "non-negotiable rules"
+    },
+    {
+      "label": "Validation Standard Procedure (sole definition)",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "app_claude_validation_standard_procedure_sole_definition",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "validation standard procedure (sole definition)"
+    },
+    {
+      "label": "Forbidden",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "app_claude_forbidden",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "forbidden"
+    },
+    {
+      "label": "Frontend Rules",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "app_claude_frontend_rules",
+      "community": 40,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "frontend rules"
+    },
+    {
       "label": "settings.json",
       "file_type": "code",
       "source_file": ".claude/settings.json",
@@ -2312,17 +2510,6 @@
       "id": "users_levi_development_dart_analytics_app_src_styles_global_css"
     },
     {
-      "label": "@components/ui/ConfirmationModal.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/ConfirmationModal.astro",
-      "confidence": "EXTRACTED",
-      "_origin": "ast",
-      "community": 7,
-      "norm_label": "@components/ui/confirmationmodal.astro",
-      "community_name": "Community 7",
-      "id": "users_levi_development_dart_analytics_app_src_components_ui_confirmationmodal_astro"
-    },
-    {
       "label": "verify-jwt.ts",
       "file_type": "code",
       "source_file": "app/src/lib/auth/verify-jwt.ts",
@@ -3810,6 +3997,166 @@
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_agent_operating_manual_dart_analytics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_context_loading_protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_context_maintenance_mandatory_every_task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_forbidden_actions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_hard_invariants",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_knowledge_graph_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_project",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_where_everything_lives",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_claude",
+      "target": "app_claude_agent_rules_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_astro_documentation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_development",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_forbidden",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_frontend_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_knowledge_graph_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_non_negotiable_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_validation_standard_procedure_sole_definition",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -6337,14 +6684,6 @@
       "source_file": "app/src/layouts/BaseLayout.astro",
       "confidence_score": 1.0,
       "source": "app_src_layouts_baselayout",
-      "target": "users_levi_development_dart_analytics_app_src_components_ui_confirmationmodal_astro"
-    },
-    {
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/layouts/BaseLayout.astro",
-      "confidence_score": 1.0,
-      "source": "app_src_layouts_baselayout",
       "target": "users_levi_development_dart_analytics_app_src_styles_global_css"
     },
     {
@@ -7707,5 +8046,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "aa185c66ac1f7e0af1a4d4245dc927b411f46e6b"
+  "built_at_commit": "e2096d3251288d2ab59da9f2e7688427b017c705"
 }
