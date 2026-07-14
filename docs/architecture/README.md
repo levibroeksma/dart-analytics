@@ -65,7 +65,7 @@ docs/
 │   ├── 099-engineering-workflow-and-decision-framework.md
 │   ├── 05-Database/     # Database handbook (00–11)
 │   ├── 06-API/          # API contract and implementation (00–04)
-│   └── 07-Frontend/     # Frontend handbook (00–04, 10)
+│   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
 ├── migrations/      # 0001–0016
@@ -131,6 +131,7 @@ README.md (this file)
   02-Folder-Structure.md         ← tree, aliases, suffixes (2026-07-14)
   03-Alpine-Patterns.md          ← app.factory, stores, forms (2026-07-14)
   04-Modules-And-OOP.md          ← modules, portable UI kit (2026-07-14)
+  05-Astro-Components.md         ← .astro authoring conventions (2026-07-14)
   10-Frontend-Agent-Guide.md     ← condensed agent rules (2026-07-14)
 
 ↓

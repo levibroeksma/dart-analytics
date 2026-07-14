@@ -68,10 +68,10 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.8k |
 | `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~1.5k |
-| `01-Principles.md` | What we believe (core values, 15 key rules) | canonical | ~2.1k |
+| `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.1k |
-| `04-Architecture-patterns.md` | 15 recurring design patterns + anti-patterns | canonical | ~2.8k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns | canonical | ~2.8k |
 | `099-engineering-workflow-and-decision-framework.md` | Workflow quick reference | canonical | ~1.3k |
 
 ## Database handbook (`05-Database/`)
