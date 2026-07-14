@@ -1,6 +1,6 @@
 # Agent Rules — `app/src/pages/api/`
 
-Scope: API route handlers in Astro server endpoints. Global app rules and the validation procedure live in `app/CLAUDE.md`; the frozen REST contract is `architecture/docs/architecture/06-API/00-Overview.md`. (2026-07-11)
+Scope: API route handlers in Astro server endpoints. Global app rules and the validation procedure live in `app/CLAUDE.md`; the frozen REST contract is `docs/architecture/06-API/00-Overview.md`. (2026-07-11)
 
 ## Rules
 

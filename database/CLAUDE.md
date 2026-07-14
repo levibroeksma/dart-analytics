@@ -1,6 +1,6 @@
-# Agent Rules — `architecture/docs/database/`
+# Agent Rules — `database/`
 
-Scope: SQL migrations and seeds. Load the "New table / column / constraint" or "New seed data" context pack from `architecture/docs/architecture/00-Context-Map.md` before changing anything here. ID strategy detail is owned by `05-Database/10-Database-Agent-Guide.md`. (2026-07-11)
+Scope: SQL migrations and seeds. Load the "New table / column / constraint" or "New seed data" context pack from `docs/architecture/00-Context-Map.md` before changing anything here. ID strategy detail is owned by `05-Database/10-Database-Agent-Guide.md`. (2026-07-11)
 
 ## Hard Constraints
 
@@ -8,6 +8,9 @@ Scope: SQL migrations and seeds. Load the "New table / column / constraint" or "
 - Migrations are schema-only; seeds contain controlled data only.
 - No database-generated UUIDs or SERIAL identifiers for domain entities.
 - No statistics tables for derivable analytics; use views (`v_*`).
+- One responsibility per migration file; schema in migrations, controlled data in seeds.
+- Explicit deterministic IDs in seeds where required.
+- No indexes without a concrete query/access-path reason.
 
 ## Validation Checklist
 

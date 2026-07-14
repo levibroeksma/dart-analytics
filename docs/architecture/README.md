@@ -56,7 +56,7 @@ Store facts. Compute statistics in views — never persist derivable values.
 # Repository Structure
 
 ```
-architecture/docs/
+docs/
 ├── architecture/          # Foundation + database handbook
 │   ├── 01-Principles.md
 │   ├── 02-System-Architecture.md
@@ -66,12 +66,13 @@ architecture/docs/
 │   ├── 05-Database/     # Database handbook (00–11)
 │   ├── 06-API/          # API contract and implementation (00–04)
 │   └── 07-Frontend/     # Frontend handbook (00–04, 10)
-└── database/
-    ├── migrations/      # 0001–0016
-    └── seeds/           # 0001–0002
+└── ...
+database/
+├── migrations/      # 0001–0016
+└── seeds/           # 0001–0002
 ```
 
-Application code lives outside `architecture/docs/`.
+Application code lives in `app/`; executable schema in `database/`.
 
 ---
 

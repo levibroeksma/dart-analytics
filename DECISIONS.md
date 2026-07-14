@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Architectural Decision Ledger
 
-> One line per decision. This ledger is the distillation of the full design history (prompts 1–85 + dated sessions, previously stored as raw conversation logs, removed 2026-07-11). For deeper lineage consult `architecture/000_master_context.md` (historical, non-authoritative). Canonical docs always win over this ledger.
+> One line per decision. This ledger is the distillation of the full design history (prompts 1–85 + dated sessions, previously stored as raw conversation logs, removed 2026-07-11). The raw design journey (master context) was retired 2026-07-14; deeper lineage lives in git history only. Canonical docs always win over this ledger.
 >
 > **Source key:** P*n* = original design conversation prompt range · dates = later work sessions.
 
@@ -108,6 +108,7 @@ updated: 2026-07-14
 | D50 | P31–35 | Architecture-first: docs are source of truth; implementation conflicting with docs is incorrect; targeted fixes only, never regeneration | Longevity without debt |
 | D51 | Cont. session | Design-gate docs `05-Database/07`–`09` are immutable historical records with superseded-decision tables | Immutable history applies to docs too |
 | D52 | 2026-07-11 | Context routing system: root `CLAUDE.md` router + `00-Context-Map.md` packs; spec split into `06-Spec/` chapters; raw conversation logs removed after distillation into this ledger; mandatory Context Maintenance protocol for every agent | Token efficiency + guaranteed context completeness |
+| D94 | 2026-07-14 | Repository restructure: single `docs/` tree (`docs/architecture/`, `docs/superpowers/`), executable SQL promoted to top-level `database/`, ledger at repo root, master context retired (git history only), root `README.md` added | Kill the `architecture/docs/architecture` stutter and the duplicate doc roots |
 
 ## Deferred (open, not rejected)
 

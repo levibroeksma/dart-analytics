@@ -16,7 +16,7 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 # Context Loading Protocol
 
-1. Open `architecture/docs/architecture/00-Context-Map.md`.
+1. Open `docs/architecture/00-Context-Map.md`.
 2. Find your task type in its Context Packs table and load exactly those files.
 3. Do not preload anything else. Escalate to additional files only when the pack demonstrably lacks the answer.
 
@@ -54,7 +54,7 @@ The context system is part of every deliverable. Before claiming any task done:
 
 1. Update the `CLAUDE.md` nearest to what you changed if your change adds, alters, or invalidates a rule in it.
 2. Register new, moved, renamed, or deleted docs in `00-Context-Map.md` in the same change.
-3. Record new architectural decisions as one-line entries in `architecture/DECISIONS.md`.
+3. Record new architectural decisions as one-line entries in `DECISIONS.md`.
 4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
 5. Run `scripts/check-context-map.sh` — it must pass.
 6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
@@ -81,8 +81,7 @@ A change that leaves the context map, CLAUDE.md files, decision ledger, **or kno
 
 | Need | File |
 | ---- | ---- |
-| Context packs, file inventory, authority order | `architecture/docs/architecture/00-Context-Map.md` |
-| Why a decision was made | `architecture/DECISIONS.md` |
+| Context packs, file inventory, authority order | `docs/architecture/00-Context-Map.md` |
+| Why a decision was made | `DECISIONS.md` |
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
-| Condensed database rules | `architecture/docs/architecture/05-Database/10-Database-Agent-Guide.md` |
-| Historical handoff (context only, never authority) | `architecture/000_master_context.md` |
+| Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |

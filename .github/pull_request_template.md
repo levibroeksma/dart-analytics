@@ -2,7 +2,7 @@
 Default pull request description for dart-analytics.
 Fill each section; delete a section only when it is genuinely N/A.
 Authority for the architecture checklist below:
-architecture/docs/architecture/099-engineering-workflow-and-decision-framework.md
+docs/architecture/099-engineering-workflow-and-decision-framework.md
 -->
 
 ## Summary
@@ -18,7 +18,7 @@ architecture/docs/architecture/099-engineering-workflow-and-decision-framework.m
 ## Architectural decisions
 
 <!-- New or changed decisions this PR introduces. Add a one-line row to
-     architecture/DECISIONS.md for each. Delete this section if there are none. -->
+     DECISIONS.md for each. Delete this section if there are none. -->
 
 -
 

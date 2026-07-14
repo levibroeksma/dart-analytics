@@ -113,7 +113,7 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `architecture/docs/database/migrations/` (`0001`–`0016`).
+Migrations remain in `database/migrations/` (`0001`–`0016`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
@@ -130,7 +130,7 @@ npx fallow
 astro check
 ```
 
-See also [`../../database/README.md`](../../database/README.md).
+See also [`../../../database/README.md`](../../../database/README.md).
 
 ---
 
@@ -177,5 +177,5 @@ Apply migrations per branch during promotion.
 - `03-Migrations.md`
 - `10-Database-Agent-Guide.md`
 - `../06-API/00-Overview.md`
-- [`../../database/README.md`](../../database/README.md)
-- [`../../../../app/CLAUDE.md`](../../../../app/CLAUDE.md)
+- [`../../../database/README.md`](../../../database/README.md)
+- [`../../../app/CLAUDE.md`](../../../app/CLAUDE.md)

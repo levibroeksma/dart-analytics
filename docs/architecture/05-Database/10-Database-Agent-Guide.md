@@ -222,11 +222,12 @@ No existing table changes required.
 # File Locations
 
 ```
-architecture/docs/
+docs/
 ├── architecture/05-Database/     # Handbook + specification
-└── database/
-    ├── migrations/0001–0016.sql
-    └── seeds/0001–0002.sql
+└── ...
+database/
+├── migrations/0001–0016.sql
+└── seeds/0001–0002.sql
 ```
 
 ---

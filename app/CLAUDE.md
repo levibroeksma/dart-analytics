@@ -1,6 +1,6 @@
 # Agent Rules — `app/`
 
-Scope: everything under `app/`. Authority order and per-task context packs live in `architecture/docs/architecture/00-Context-Map.md`; schema authority is `architecture/docs/database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`. (2026-07-11)
+Scope: everything under `app/`. Authority order and per-task context packs live in `docs/architecture/00-Context-Map.md`; schema authority is `database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`. (2026-07-11)
 
 ## Development
 
@@ -74,6 +74,6 @@ Run this sequence for `app/` changes before claiming completion:
 
 ## Frontend Rules
 
-For page/component/session work, load `architecture/docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
+For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
 Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms. Full rules: `07-Frontend/01`–`04`.

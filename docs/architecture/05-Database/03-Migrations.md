@@ -88,7 +88,7 @@ Migrations are not the source of truth for:
 The migration directory follows:
 
 ```
-architecture/docs/database/
+database/
 
 ├── migrations/
 │
@@ -597,7 +597,7 @@ Examples:
 Location:
 
 ```
-architecture/docs/database/seeds/
+database/seeds/
 ```
 
 Reference seeds must be:
@@ -710,14 +710,14 @@ START APPLICATION
 
 # Migration Execution (Application Workflow)
 
-Migrations are executed from `app/` using `dbmate` with SQL stored under `architecture/docs/database/migrations/`.
+Migrations are executed from `app/` using `dbmate` with SQL stored under `database/migrations/`.
 
 Required environment settings:
 
 ```
 DATABASE_URL=<pooled connection string>
-DBMATE_MIGRATIONS_DIR=../architecture/docs/database/migrations
-DBMATE_SCHEMA_FILE=../architecture/docs/database/schema.sql
+DBMATE_MIGRATIONS_DIR=../database/migrations
+DBMATE_SCHEMA_FILE=../database/schema.sql
 ```
 
 Standard validation sequence:
