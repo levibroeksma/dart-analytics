@@ -7,7 +7,7 @@ updated: 2026-07-14
 
 # Frontend Overview
 
-> **Version:** 0.3.0
+> **Version:** 0.3.1
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -81,6 +81,8 @@ After session completion, persistent state is written via the API:
 - session status transitions
 
 The frontend sends gameplay-derived payloads. It does not send persistence UUIDs. The Worker generates UUIDv7 for runtime entities.
+
+A completed session whose batch upload fails is held in a persisted `outbox` store and retried (same `Idempotency-Key`) until the server confirms it — the finished batch is never dropped between completion and acknowledgement. Mechanism: `03-Alpine-Patterns.md` (Completed-Batch Outbox). <!-- 2026-07-14 -->
 
 ---
 
