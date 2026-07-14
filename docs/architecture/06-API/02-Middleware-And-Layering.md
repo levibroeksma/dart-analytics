@@ -37,7 +37,7 @@ Per `00-Overview.md`, middleware verifies identity once per request and sets `lo
 | Required claims (`sub`, `exp`)              | Yes                    | Never                   |
 | `requestId` generation                      | Yes                    | Use from `locals`       |
 | Player lookup (`auth_user_id` → `playerId`) | Yes (per request)      | Never re-verify JWT     |
-| Route classification (public / protected / provision-exempt) | Yes    | —                       |
+| Route classification (public / protected / authenticated-unprovisioned) | Yes    | —                       |
 | Session ownership                           | No                     | Service layer           |
 | Business validation                         | No                     | Service layer           |
 | Idempotency logic                           | No                     | Write handler + service |
@@ -61,7 +61,7 @@ Middleware classifies every request into exactly one class:
 | ----- | ------------ | --------------- | ------- |
 | Public | No | No | unauthenticated routes (if any) |
 | Protected | Yes | Yes — missing player → `403 PLAYER_NOT_PROVISIONED` | all domain routes (sessions, routines) |
-| Authenticated-unprovisioned | Yes | Skipped | `POST /api/players/provision` only |
+| Authenticated-unprovisioned | Yes | Skipped | `POST /api/players/provision` only (historically "provision-exempt", D62) |
 
 The **authenticated-unprovisioned** class exists because `POST /api/players/provision` must be reachable by a JWT-valid user who has no `players` row yet — precisely the state it resolves. For this class, middleware verifies the JWT and sets `locals.auth.authUserId` from `sub`, but does **not** run player resolution and never returns `PLAYER_NOT_PROVISIONED`. The handler creates or returns the player row. <!-- 2026-07-12 -->
 
@@ -238,7 +238,7 @@ Standardizes success and error response shape per `00-Overview.md`:
 
 Maps domain error codes to HTTP status codes. Controllers use this; services throw or return typed domain errors.
 
-## `lib/db/client.ts`
+## `db/client.ts`
 
 Factory for `@neondatabase/serverless`:
 
@@ -274,7 +274,7 @@ Request arrives
     ├─ verify JWT (sub, exp)
     │   └─ failed → 401 UNAUTHORIZED
     │
-    ├─ provision-exempt route? → set locals.auth (authUserId only) → next()
+    ├─ authenticated-unprovisioned route? → set locals.auth (authUserId only) → next()
     │
     ├─ resolve player from auth_user_id
     │   └─ not found → 403 PLAYER_NOT_PROVISIONED

@@ -114,7 +114,7 @@ Client (fetch / Alpine)
         ▼
 src/middleware.ts
   • assign requestId → locals.requestId
-  • classify route (public / protected / provision-exempt)
+  • classify route (public / protected / authenticated-unprovisioned)
   • verify JWT (sub, exp); resolve playerId per class → locals.auth
         ▼
 src/pages/api/**  (thin controllers)
