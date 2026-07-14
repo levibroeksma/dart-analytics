@@ -219,7 +219,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 - **Consult before broad grep/exploration:** `graphify query "<question>"`, `graphify path "<A>" "<B>"`, `graphify explain "<entity>"`. Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
-- **Freshness:** the graph auto-rebuilds (AST-only, no API cost) via git hooks. If `graphify hook status` shows hooks absent, run `graphify extract . --update` after structural changes. Setup for a fresh clone: see `app/CLAUDE.md`.
+- **Freshness is a completion-gate item** (see Context Maintenance below): git hooks auto-rebuild the graph at commit; the gate step is the backstop when hooks are absent. Setup for a fresh clone: see `app/CLAUDE.md`.
 - **Scope caveat:** `.astro` files are only partially parsed (no tree-sitter grammar); TS/JS/SQL/Markdown are fully covered.
 ```
 
@@ -239,20 +239,37 @@ graphify hook install         # AST-only rebuild on commit + graph.json merge dr
 
 - `graphify-out/graph.json` is committed; `graph.html` / `GRAPH_REPORT.md` are git-ignored.
 - Extraction is AST-only — never configure an LLM API key for graphify (keeps it free/deterministic).
-- After large structural changes without hooks installed: `graphify extract . --update`.
 - Query the graph to orient before searching: `graphify query/path/explain` (see root `CLAUDE.md`).
 ```
 
-- [ ] **Step 3: Verify context-map consistency**
+- [ ] **Step 3: Add graph refresh to the root completion gate (Context Maintenance)**
+
+In `CLAUDE.md`, in the `# Context Maintenance (mandatory, every task)` list, add a step after the existing `Run scripts/check-context-map.sh` item:
+
+```markdown
+6. Refresh the knowledge graph: `graphify extract . --update`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
+```
+
+Also update the closing line so the graph counts toward completeness — change "leaves the context map, CLAUDE.md files, or decision ledger stale" to "…decision ledger, **or knowledge graph** stale".
+
+- [ ] **Step 4: Add graph refresh to the app completion gate (Validation Standard Procedure)**
+
+In `app/CLAUDE.md`, append to the numbered `## Validation Standard Procedure (sole definition)` sequence:
+
+```markdown
+6. `graphify extract . --update` — refresh the knowledge graph; stage `graphify-out/graph.json` (AST-only, no cost)
+```
+
+- [ ] **Step 5: Verify context-map consistency**
 
 Run: `bash scripts/check-context-map.sh`
 Expected: `OK: ...`. (Confirms any backtick `.md`/`.sh` paths added to the CLAUDE.md files resolve. Do not reference the git-ignored `GRAPH_REPORT.md` by a backticked path — it is not tracked and would fail the check.)
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add CLAUDE.md app/CLAUDE.md
-git commit -m "docs(graphify): document graph consultation and setup in CLAUDE.md
+git commit -m "docs(graphify): document graph consultation, setup, and completion-gate refresh
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -315,7 +332,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ## Self-Review
 
-**Spec coverage (decisions → tasks):** AST-only → Global Constraints + Task 3 Step 1; commit graph.json / ignore html+report → Task 2; CLI consumption → Task 5 Step 1. CLAUDE.md integration (both files) → Task 5. Codebase wiring (install, ignore, extract, hooks) → Tasks 1–4. Context maintenance → Task 6. ✓
+**Spec coverage (decisions → tasks):** AST-only → Global Constraints + Task 3 Step 1; commit graph.json / ignore html+report → Task 2; CLI consumption → Task 5 Step 1. CLAUDE.md integration (both files) → Task 5. **Completion-gate enforcement** → Task 5 Steps 3–4 (root Context Maintenance + app Validation Standard Procedure both gain a `graphify extract . --update` + stage-`graph.json` item; hooks auto-run it, the gate is the backstop). Codebase wiring (install, ignore, extract, hooks) → Tasks 1–4. Context maintenance → Task 6. ✓
 
 **Placeholder scan:** Commands are literal and sourced from the graphify README. The only intentionally-variable token is `D<next>`/`D<next+…>` in Task 6 Step 1 with an exact command to resolve it (decision ids depend on what merges to `main` first). No TBDs. ✓
 
