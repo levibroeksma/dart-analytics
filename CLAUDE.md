@@ -26,7 +26,7 @@ The authority order for conflicts is defined once, in the context map. Docs win 
 
 # Knowledge Graph (graphify)
 
-A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-only; built by `Graphify-Labs/graphify`).
+A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-only; built with the `graphifyy` CLI — PyPI package `graphifyy`, repo `Graphify-Labs/graphify`).
 
 - **Consult before broad grep/exploration:** `graphify query "<question>"`, `graphify path "<A>" "<B>"`, `graphify explain "<entity>"`. Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
@@ -57,7 +57,7 @@ The context system is part of every deliverable. Before claiming any task done:
 3. Record new architectural decisions as one-line entries in `architecture/DECISIONS.md`.
 4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
 5. Run `scripts/check-context-map.sh` — it must pass.
-6. Refresh the knowledge graph: `graphify extract . --update --code-only`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
+6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
 
 A change that leaves the context map, CLAUDE.md files, decision ledger, **or knowledge graph** stale is incomplete, even if the code works.
 
