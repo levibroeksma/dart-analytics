@@ -10,6 +10,23 @@ vi.mock('@client/auth/client', () => ({
 import { authClient } from '@client/auth/client';
 import { authStore } from './auth.store';
 
+describe('authStore.init', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.stubGlobal('location', { pathname: '/login', replace: vi.fn() });
+  });
+
+  it('treats getSession failure as anonymous on a public page', async () => {
+    vi.mocked(authClient.getSession).mockRejectedValue(
+      new Error('HTTP 401 Unauthorized'),
+    );
+    const store = authStore();
+    await store.init();
+    expect(store.status).toBe('anonymous');
+    expect(store.ready).toBe(true);
+  });
+});
+
 describe('authStore.signIn', () => {
   beforeEach(() => vi.resetAllMocks());
 
