@@ -16,10 +16,14 @@ const {
 
 // Lib
 import { cn } from '@client/cn';
-import { buttonVariantClass } from './button-variants';
 
 // Styles
-const className = cn('btn', buttonVariantClass(variant), classNameProp);
+const VARIANT_CLASS: Record<'primary' | 'secondary' | 'ghost', string> = {
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  ghost: 'btn-ghost',
+};
+const className = cn('btn', VARIANT_CLASS[variant], classNameProp);
 ---
 
 <button type={type} class={className} {...rest}>
