@@ -1,25 +1,15 @@
 {
   "folders": [
     {
-      "name": "app",
-      "path": "./app",
-      "settings": {
-        "prettier.configPath": ".prettierrc.json",
-        "prettier.prettierPath": "./node_modules/prettier/index.cjs"
-      }
-    },
-    {
-      "name": "root",
+      "name": "dart-analytics",
       "path": "./",
       "settings": {
-        "prettier.configPath": ".prettierrc.json"
-      }
-    }
+        "prettier.configPath": ".prettierrc.json",
+      },
+    },
   ],
   "settings": {
-    "files.exclude": {
-      "app": true
-    },
+    "files.exclude": {},
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -37,51 +27,51 @@
     "astro.format.enable": false,
     "eslint.enable": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll.eslint": "explicit",
     },
     "[javascript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[typescript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[javascriptreact]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[typescriptreact]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[json]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[jsonc]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[astro]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[css]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[markdown]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[html]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[shellscript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "workbench.editorAssociations": {
-      "*.svg": "default"
-    }
+      "*.svg": "default",
+    },
   },
   "extensions": {
     "recommendations": [
       "esbenp.prettier-vscode",
       "astro-build.astro-vscode",
       "bradlc.vscode-tailwindcss",
-      "dbaeumer.vscode-eslint"
-    ]
-  }
+      "dbaeumer.vscode-eslint",
+    ],
+  },
 }
