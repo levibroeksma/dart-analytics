@@ -1,7 +1,7 @@
 import { isPublicPage, normalizePath } from '@utils/auth-routes';
 import { authClient } from '@client/auth/client';
 
-export type AuthStatus = 'checking' | 'anonymous' | 'authenticated';
+type AuthStatus = 'checking' | 'anonymous' | 'authenticated';
 
 export function authStore() {
   return {
