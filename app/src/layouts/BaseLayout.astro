@@ -28,7 +28,12 @@ const title =
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class="flex flex-col" x-data>
+  <body
+    class="flex flex-col"
+    x-data
+    x-cloak
+    :class="{ invisible: !$store.auth.ready }"
+  >
     <slot />
     <!-- <ConfirmationModal /> -->
   </body>
