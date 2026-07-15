@@ -3,23 +3,31 @@ import { authClient } from '@client/auth/client';
 
 type AuthStatus = 'checking' | 'anonymous' | 'authenticated';
 
+async function hasActiveSession(): Promise<boolean> {
+  try {
+    const result = await authClient.getSession();
+    return Boolean(result.data?.session);
+  } catch {
+    return false;
+  }
+}
+
 export function authStore() {
   return {
     status: 'checking' as AuthStatus,
     ready: false,
 
     async init() {
-      const result = await authClient.getSession();
-      const hasSession = Boolean(result.data?.session);
-      const path = normalizePath(window.location.pathname);
+      const hasSession = await hasActiveSession();
+      const path = normalizePath(globalThis.location.pathname);
 
       if (isPublicPage(path) && hasSession) {
-        window.location.replace('/');
+        globalThis.location.replace('/');
         return;
       }
 
       if (!isPublicPage(path) && !hasSession) {
-        window.location.replace('/login');
+        globalThis.location.replace('/login');
         return;
       }
 
