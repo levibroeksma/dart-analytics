@@ -51,11 +51,9 @@ The design prioritizes:
 The default approach is:
 
 ```
-
 Normalize first.
 
 Denormalize only with evidence.
-
 ```
 
 ---
@@ -121,17 +119,13 @@ Analytics (averages, checkout %, progression) are derived views — never a sepa
 The database platform is:
 
 ```
-
 PostgreSQL
-
 ```
 
 The database is hosted using:
 
 ```
-
 Neon PostgreSQL
-
 ```
 
 Neon integration topology, branch policy, and tooling workflow are documented in `11-Neon-Integration.md`.
@@ -237,39 +231,13 @@ Analytics are derived views within the Read Model Layer — not a separate stora
 Gameplay is represented as an event hierarchy.
 
 ```
-
 Exercise Session
-
-```
-
-```
-↓
-```
-
-```
-
+    ↓
 Exercise Stage
-
-```
-
-```
-↓
-```
-
-```
-
+    ↓
 Turn
-
-```
-
-```
-↓
-```
-
-```
-
+    ↓
 Dart
-
 ```
 
 The dart is the smallest recorded gameplay event.
@@ -298,9 +266,7 @@ Analytics should be derived from these stored events.
 The database currently uses:
 
 ```
-
 public
-
 ```
 
 The public schema contains:
