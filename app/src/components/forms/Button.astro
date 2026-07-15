@@ -6,10 +6,6 @@ interface Props {
   [key: string]: unknown;
 }
 
-// Lib
-import { cn } from '@client/cn';
-import { buttonVariantClass } from './button-variants';
-
 // Props
 const {
   variant = 'primary',
@@ -17,6 +13,10 @@ const {
   class: classNameProp,
   ...rest
 }: Props = Astro.props;
+
+// Lib
+import { cn } from '@client/cn';
+import { buttonVariantClass } from './button-variants';
 
 // Styles
 const className = cn('btn', buttonVariantClass(variant), classNameProp);
