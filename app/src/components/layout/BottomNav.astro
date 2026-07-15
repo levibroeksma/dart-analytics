@@ -33,12 +33,12 @@ const pages = [
 ];
 ---
 
-<nav class="bg-background/80 shrink-0 grid grid-cols-4 items-center justify-between border-t border-border p-4 backdrop-blur-sm">
+<nav class="app-nav grid grid-cols-4 items-center">
   {
     pages.map((page) => (
-        <NavBtn href={page.href}>
-          <page.icon class="size-6 text-foreground" aria-label={page.label} />
-        </NavBtn>
+      <NavBtn href={page.href} label={page.label}>
+        <page.icon aria-hidden="true" />
+      </NavBtn>
     ))
   }
 </nav>
