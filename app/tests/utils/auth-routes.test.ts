@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isPublicPage, normalizePath, PUBLIC_PAGES } from './auth-routes';
+import { isPublicPage, normalizePath, PUBLIC_PAGES } from '@utils/auth-routes';
 
 describe('normalizePath', () => {
   it('strips trailing slash', () => {
