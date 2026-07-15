@@ -2,7 +2,7 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-07-11
+updated: 2026-07-15
 -->
 
 # Neon Integration Guide
@@ -82,12 +82,14 @@ neon checkout dev
 
 ## Connection String Rules
 
+**Verified 2026-07-15** against a real `neonctl link` on the linked Neon project: `DATABASE_URL`'s hostname contains `-pooler`, confirming it is the pooled connection string. This reverses an earlier unverified assumption.
+
 | Use case | Variable | Notes |
 | --- | --- | --- |
-| Worker runtime (`getDb()`) | `DATABASE_URL` | Direct connection — hostname WITHOUT `-pooler` |
-| Migrations / seeds / introspection | `DATABASE_URL_POOLED` | Pooled — hostname WITH `-pooler`; consumed by the dbmate npm scripts and `drizzle.config.ts` |
+| Migrations / seeds / introspection | `DATABASE_URL` | Pooled connection — hostname WITH `-pooler`; consumed directly by the dbmate npm scripts and `drizzle.config.ts` |
+| Worker runtime (`getDb()`) | `DATABASE_URL_UNPOOLED` | Direct connection — hostname WITHOUT `-pooler` |
 
-`DATABASE_URL_UNPOOLED` is **not part of the contract** — no code or script may read it. This table is the sole owner of connection-variable semantics; `app/.env.example` mirrors it. <!-- verify against neon env pull; 2026-07-14 -->
+There is no separate `DATABASE_URL_POOLED` alias — `neonctl link` never produces one, and requiring a manually-maintained duplicate of `DATABASE_URL` was the root cause of the earlier contradiction. This table is the sole owner of connection-variable semantics; `app/.env.example` mirrors it.
 
 ---
 
@@ -95,16 +97,15 @@ neon checkout dev
 
 Source template: `app/.env.example`
 
-Neon-pulled keys:
+Neon-pulled keys (all 5, via `neonctl link` / `neon dev`):
 
-- `DATABASE_URL`
-- `DATABASE_URL_UNPOOLED` (ignored by this project)
+- `NEON_BRANCH`
+- `DATABASE_URL` (pooled)
+- `DATABASE_URL_UNPOOLED` (direct)
 - `NEON_AUTH_BASE_URL`
 - `NEON_AUTH_JWKS_URL`
 
-Local alias (manual):
-
-- `DATABASE_URL_POOLED` — same value as Neon’s pooled `DATABASE_URL`
+No manual aliasing required — every variable the app or tooling needs comes straight from `neonctl link`.
 
 Never commit `.env`.
 
@@ -116,7 +117,7 @@ Migrations remain in `database/migrations/` (`0001`–`0016`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
-Execution runs from `app/` via `package.json` scripts using `DATABASE_URL_POOLED`.
+Execution runs from `app/` via `package.json` scripts using `DATABASE_URL`.
 
 Provision a fresh branch: `npm run db:migrate && npm run db:seed`.
 Validate changes: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-- 2026-07-14 -->
