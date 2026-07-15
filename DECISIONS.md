@@ -101,6 +101,7 @@ updated: 2026-07-15
 | D91 | 2026-07-14 | Augments D89: single `_v` integer per persisted store discards on incompatible bump; additive changes never bump it | Safety valve for the rare unavoidable breaking shape change |
 | D92 | 2026-07-14 | `.astro` component conventions (`05-Astro-Components.md`): fixed frontmatter order; class placement decided by change-trigger (static→`class`, build-time→frontmatter, runtime→`:class`, recurring→`@layer components`); `cn()` = `twMerge(clsx())` is the sole class-composition helper | One canonical component shape; minimal variation |
 | D93 | 2026-07-14 | Adopt graphify for a committed AST-only codebase knowledge graph (`graphify-out/graph.json`); consumed via `graphify` CLI documented in `CLAUDE.md`; auto-rebuilt by local git hooks (`graphify extract . --code-only`); no LLM backend (no API cost); semantic/docs extraction and MCP deferred | Early, low-cost shared code map before the codebase grows |
+| D97 | 2026-07-15 | Prerendered protected route shells are public-by-design (Cloudflare serves static assets before the Worker/middleware runs, verified via `wrangler dev` probe); the JWT-gated API remains the sole real authorization boundary, not the navigation gate | `run_worker_first` would front every static asset through the Worker for a purely cosmetic benefit (an anonymous visitor sees an empty shell either way, since data is never server-rendered) |
 
 ## Context & documentation system
 

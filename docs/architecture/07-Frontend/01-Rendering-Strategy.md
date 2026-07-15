@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/rendering
 read-when: new routes, prerender vs SSR decisions
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Frontend Rendering Strategy
@@ -49,7 +49,7 @@ alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" })
 
 # Middleware + Prerender
 
-Prerender does **not** bypass middleware. With `output: 'server'`, middleware runs on every HTML request before the prerendered shell is served.
+Middleware runs on every **on-demand** (non-prerendered) HTML request before the response is served:
 
 ```
 Request
@@ -61,13 +61,27 @@ middleware.ts
     └─ authorized → next()
     │
     ▼
-Prerendered HTML shell (or on-demand SSR if opted in)
+On-demand SSR response (opted-in routes only)
     │
     ▼
 Client fetch (@client/api) + Alpine hydration
 ```
 
-Protected routes are prerendered **shells**. They are not useful without passing the middleware gate. Data remains client-fetched with Bearer JWT — middleware guards navigation, not API payloads.
+For **prerendered** routes — the default for app pages (see Prerender-Default Model above) — this gate does not apply as of this Cloudflare configuration: see Decided model below.
+
+Protected routes are prerendered **shells**. The shell itself carries no domain data — every protected route class in the Route-Class Rendering Table below fetches its data client-side, after paint, with a Bearer JWT. An unauthenticated visitor who reaches the shell directly therefore sees an empty page, not gameplay or profile data.
+
+## Decided model (D97, 2026-07-15): prerendered shells are public-by-design
+
+**Verified fact:** a `wrangler dev` probe against `/profile` (temporarily marked `prerender = true` under `output: 'server'`, `@astrojs/cloudflare`) confirmed that on this project's Cloudflare configuration — no `run_worker_first` in `app/wrangler.jsonc` — prerendered HTML shells are served directly by Cloudflare's `ASSETS` binding and **never reach `middleware.ts`**. `GET /profile` returned `307` → `/profile/` → `200 OK` with `CF-Cache-Status: HIT` from an unauthenticated client. A control request to a non-prerendered route (`/login`, same build) did invoke the Worker and hit `middleware.ts`, confirming the bypass is specific to asset-served (prerendered) routes, not a broken or disabled middleware. Only `/profile` was probed directly, but the underlying mechanism — Cloudflare's edge serving matching static assets before the Worker runs when `run_worker_first` is unset — is general to this adapter/config and applies to every prerendered route, not just `/profile` (see Protected prefixes below).
+
+**Decided model:** prerendered protected-route shells are **public-by-design**. The team considered setting `"run_worker_first": true` (Worker fronts every request, including static assets) but rejected it: the shell never carries server-rendered domain data regardless, so fronting every asset request through the Worker would only buy cosmetic navigation-gating (an anonymous visitor sees an empty shell either way) at the cost of putting the Worker in the hot path for every static asset. Instead:
+
+- The **JWT-gated API is the sole real authorization boundary** for this app. Any data that must not leak to an unauthenticated visitor is enforced there, never by the HTML route.
+- The `middleware.ts` redirect-to-`/login` behavior is retained for on-demand routes and is a **UX nicety** for authenticated navigation (e.g. avoiding a flash of an unauthenticated shell for routes that do go through the Worker) — it is **not** a security control for prerendered routes and must not be relied on as one.
+- `app/wrangler.jsonc` is unchanged with respect to `run_worker_first` (still unset) as a direct consequence of this decision.
+
+Full rationale: `DECISIONS.md` D97. Probe evidence: `.superpowers/sdd/p6-task-1-report.md`.
 
 ---
 
@@ -140,7 +154,7 @@ Use only when the browser must never see a value and prerender cannot supply it.
 | ------------ | ------ |
 | Server-rendering gameplay state | Violates D67 local-first recovery |
 | SSR to inject JWT-protected API data | No server session; client owns token |
-| Assuming prerender = publicly accessible app | Middleware still runs on HTML requests |
+| Treating the middleware redirect as a security boundary for prerendered protected routes | Prerendered shells are public-by-design on this Cloudflare config (D97) — the JWT-gated API is the only real boundary |
 | Adding protected routes without middleware update | HTML shell reachable without nav gate |
 | `output: 'static'` globally on Cloudflare | Misaligns with adapter + API on same Worker |
 
@@ -154,4 +168,4 @@ Use only when the browser must never see a value and prerender cannot supply it.
 | `02-Folder-Structure.md` | `app/src/` tree and aliases |
 | `03-Alpine-Patterns.md` | Alpine factory and hydration |
 | `../06-API/01-Implementation-Strategy.md` | Cloudflare Workers + Neon constraints |
-| `../../DECISIONS.md` | D79, D80, D88 |
+| `../../DECISIONS.md` | D79, D80, D88, D97 |
