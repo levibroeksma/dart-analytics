@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logoutButton, type LogoutButtonContext } from './logout.data';
+import { logoutButton, type LogoutButtonContext } from '@components/ui/logout.data';
 
 describe('logoutButton.submit', () => {
   beforeEach(() => {
