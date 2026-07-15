@@ -1,33 +1,33 @@
 import type { APIRoute } from "astro";
+import { z } from "zod";
 import { provisionPlayer } from "../../../services/player.service";
+import { ok, fail } from "../../../lib/server/envelope";
 
-const JSON_HEADERS = { "Content-Type": "application/json" };
+/** Frozen contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Player Provisioning. */
+const ProvisionPlayerRequest = z.object({
+  displayName: z.string().min(1).optional(),
+});
 
-export const POST: APIRoute = async ({ locals }) => {
-  if (!locals.auth?.authUserId) {
-    return new Response(
-      JSON.stringify({
-        ok: false,
-        error: {
-          code: "UNAUTHORIZED",
-          message: "Authentication required",
-          retryable: false,
-          details: {},
-        },
-        requestId: locals.requestId,
-      }),
-      { status: 401, headers: JSON_HEADERS },
-    );
+export const POST: APIRoute = async ({ locals, request }) => {
+  // Middleware guarantees authUserId on this route (authenticated-unprovisioned class).
+  const auth = locals.auth!;
+
+  let body: unknown = {};
+  const raw = await request.text();
+  if (raw.trim().length > 0) {
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      return fail("VALIDATION_FAILED", locals.requestId, { reason: "body is not valid JSON" });
+    }
+  }
+  const parsed = ProvisionPlayerRequest.safeParse(body);
+  if (!parsed.success) {
+    return fail("VALIDATION_FAILED", locals.requestId, { issues: parsed.error.issues });
   }
 
-  const provisioned = await provisionPlayer(locals.auth.authUserId);
-
-  return new Response(
-    JSON.stringify({
-      ok: true,
-      data: provisioned, // { playerId, authUserId, created } — matches ProvisionPlayerResponse
-      requestId: locals.requestId,
-    }),
-    { status: 200, headers: JSON_HEADERS },
-  );
+  // D76 resolution: request displayName → JWT name claim → 'Player' (service default)
+  const displayName = parsed.data.displayName ?? auth.name;
+  const provisioned = await provisionPlayer(auth.authUserId, displayName);
+  return ok(provisioned, locals.requestId);
 };

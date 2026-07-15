@@ -20,6 +20,7 @@ export async function upsertPlayerByAuthUserId(
   db: Db,
   authUserId: string,
   id: string,
+  displayName: string,
 ): Promise<ProvisionedPlayer> {
   const now = new Date().toISOString();
   const [row] = await db
@@ -27,13 +28,13 @@ export async function upsertPlayerByAuthUserId(
     .values({
       id,
       authUserId,
-      displayName: "Player",
+      displayName,
       createdAt: now,
       updatedAt: now,
     })
     .onConflictDoUpdate({
       target: players.authUserId,
-      set: { updatedAt: now },
+      set: { updatedAt: now }, // existing display_name is preserved — provision is idempotent
     })
     .returning({
       playerId: players.id,
