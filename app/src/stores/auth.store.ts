@@ -42,5 +42,10 @@ export function authStore() {
       }
       this.status = 'authenticated';
     },
+
+    async signOut() {
+      await authClient.signOut();
+      this.status = 'anonymous';
+    },
   };
 }
