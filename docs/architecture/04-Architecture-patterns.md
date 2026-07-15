@@ -760,7 +760,7 @@ A new pattern may only be introduced when:
 2. The benefits are clearly explained.
 3. Alternatives have been considered.
 4. The decision is documented.
-5. An ADR is created when appropriate.
+5. A `DECISIONS.md` entry is recorded when the pattern is adopted.
 
 ---
 

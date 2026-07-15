@@ -97,7 +97,7 @@ Examples include:
 - database model
 - API contracts
 - frontend behaviour
-- previous ADRs
+- previous DECISIONS.md entries
 
 The objective is to understand the existing system before introducing changes.
 
@@ -132,7 +132,7 @@ Evaluate whether the requested change affects:
 
 If architecture changes are required, they should be documented before implementation begins.
 
-Major architectural changes require an ADR.
+Major architectural changes require a dated `DECISIONS.md` entry (one line + rationale — the project's ADR mechanism).
 
 ---
 
@@ -257,7 +257,7 @@ Prefer extension over duplication.
 
 - Which architectural layer owns this responsibility?
 - Does ownership change?
-- Does this require an ADR?
+- Does this require a `DECISIONS.md` entry?
 - Does the ERD change?
 
 ---
@@ -295,7 +295,7 @@ Prefer extension over duplication.
 
 - Which documents must be updated?
 - Should a new architectural pattern be documented?
-- Is an ADR required?
+- Is a `DECISIONS.md` entry required?
 
 ---
 

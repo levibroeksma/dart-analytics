@@ -96,7 +96,7 @@ Architecture Review
 
 ↓
 
-Architecture Decision (ADR if required)
+Architecture Decision (DECISIONS.md entry if required)
 
 ↓
 
@@ -158,7 +158,7 @@ Does the feature already exist?
 Search:
 
 - architecture
-- ADRs
+- DECISIONS.md entries
 - database
 - API
 - frontend
@@ -258,7 +258,7 @@ Before suggesting implementation, an AI agent must determine:
 3. Which layer owns the requested functionality?
 4. Does an existing pattern already solve this problem?
 5. Can an existing component be reused?
-6. Does this require an ADR?
+6. Does this require a DECISIONS.md entry?
 7. Does the ERD require modification?
 8. Does the API contract change?
 9. Does the frontend contract change?
@@ -324,7 +324,7 @@ Every implementation should answer:
 
 ✓ Does this require new documentation?
 
-✓ Does this require an ADR?
+✓ Does this require a DECISIONS.md entry?
 
 This checklist is rendered as an actionable checkbox list in `.github/pull_request_template.md`, which prefills every pull request. (2026-07-12)
 

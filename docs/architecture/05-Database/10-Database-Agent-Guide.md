@@ -33,7 +33,7 @@ When documents conflict, follow this precedence:
 SQL files (implementation)
 ```
 
-If SQL contradicts `06-Database-Specification.md`, SQL is wrong unless an ADR says otherwise.
+If SQL contradicts `06-Database-Specification.md`, SQL is wrong unless a DECISIONS.md entry says otherwise.
 
 ---
 

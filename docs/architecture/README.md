@@ -134,9 +134,6 @@ README.md (this file)
   05-Astro-Components.md         ← .astro authoring conventions (2026-07-14)
   10-Frontend-Agent-Guide.md     ← condensed agent rules (2026-07-14)
 
-↓
-
-09-ADR/        (planned)
 ```
 
 Higher-level documents take precedence over lower-level documents.
@@ -177,7 +174,7 @@ For `app/` implementation validation, include `npx fallow` in the standard verif
 
 # Versioning
 
-Architecture documents use semantic versioning. Major changes require a version bump and, where appropriate, an Architecture Decision Record (ADR).
+Architecture documents use semantic versioning. Major changes require a version bump and, where appropriate, a dated entry in `DECISIONS.md` (the project's ADR mechanism, D52). <!-- 2026-07-14 -->
 
 ---
 
