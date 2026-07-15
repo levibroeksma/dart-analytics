@@ -11,6 +11,11 @@
       "@layouts/*": ["./src/layouts/*"],
       "@pages/*": ["./src/pages/*"],
       "@lib/*": ["./src/lib/*"],
+      "@client/*": ["./src/lib/client/*"],
+      "@stores/*": ["./src/stores/*"],
+      "@forms/*": ["./src/forms/*"],
+      "@types/*": ["./src/types/*"],
+      "@modules/*": ["./src/modules/*"],
       "@utils/*": ["./src/utils/*"],
       "@styles/*": ["./src/styles/*"]
     }
