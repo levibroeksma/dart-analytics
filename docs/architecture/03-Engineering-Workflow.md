@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/process
 read-when: process and change-lifecycle questions
-updated: 2026-07-11
+updated: 2026-07-15
 -->
 
 # Engineering Workflow
@@ -191,6 +191,7 @@ Every completed feature should be validated.
 
 Validation includes:
 
+- **test-driven development (mandatory for `app/`)** — red → green → refactor; `npm test` (Vitest) must pass before claiming completion (`app/CLAUDE.md` sole definition)
 - functional testing
 - edge case testing
 - replay verification

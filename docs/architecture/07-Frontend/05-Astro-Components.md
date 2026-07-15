@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/astro-components
 read-when: authoring or reviewing .astro components
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Frontend Astro Components
@@ -88,11 +88,18 @@ const className = cn(
 <a href={href} class={className}><slot /></a>
 ```
 
-Runtime example (Alpine): static classes in `class`, only the reactive part in `:class`:
+Runtime example (Alpine v3): static classes in `class`, reactive bind in `:class`, listeners as `@event`:
 
 ```astro
-<button class="btn-press rounded-full px-4" :class="active ? 'text-primary' : 'text-muted-foreground'">
+<button
+  type="button"
+  class="btn rounded-full px-4"
+  :class="active ? 'text-accent' : 'text-fg-muted'"
+  @click="toggle()"
+>
 ```
+
+Do **not** use `x-bind:class` or `x-on:click` on native elements. Exception: inside Astro `{}` prop/spread expressions where `@` triggers a linter error, use `x-on:click` for that attribute only (`03-Alpine-Patterns.md`).
 
 Rules:
 
@@ -139,6 +146,7 @@ Categories map to the folders in `02-Folder-Structure.md`:
 
 | Anti-pattern | Reason |
 | ------------ | ------ |
+| Long-form `x-bind:*` / `x-on:*` when `:attr` / `@event` works | Alpine v3 shorthand required — see `03-Alpine-Patterns.md` |
 | Untyped `Astro.props` access | Props contract must be explicit |
 | Manual `[...].filter(Boolean).join(" ")` class merge | No Tailwind conflict resolution — use `cn()` |
 | Same element styled in both frontmatter and `:class` | Two sources of truth for one class list |
