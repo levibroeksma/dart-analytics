@@ -116,6 +116,7 @@ updated: 2026-07-15
 | D52 | 2026-07-11 | Context routing system: root `CLAUDE.md` router + `00-Context-Map.md` packs; spec split into `06-Spec/` chapters; raw conversation logs removed after distillation into this ledger; mandatory Context Maintenance protocol for every agent | Token efficiency + guaranteed context completeness |
 | D94 | 2026-07-14 | Repository restructure: single `docs/` tree (`docs/architecture/`, `docs/superpowers/`), executable SQL promoted to top-level `database/`, ledger at repo root, master context retired (git history only), root `README.md` added | Kill the `architecture/docs/architecture` stutter and the duplicate doc roots |
 | D96 | 2026-07-14 | Branch-integration rule: task branches land on `main` via PR at task completion; divergence is a defect; completion gate item 7 verifies it | 2026-07-14 review found `main` ~50 commits stale with zero open PRs |
+| D102 | 2026-07-15 | No git worktrees: task branches are checked out directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`; `.worktrees/` removed from `.gitignore` | Worktree-per-task left multiple stale worktrees with uncommitted, unrecoverable work sitting undiscovered outside normal branch review |
 
 ## Deferred (open, not rejected)
 

@@ -40,13 +40,13 @@ if [ -n "$ACTUAL_MAX" ]; then
 fi
 
 # --- 3. Front-matter headers -----------------------------------------------
-for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' | grep -v 'CLAUDE.md'); do
+for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
   head -1 "$f" | grep -q '^<!--' && head -6 "$f" | grep -q '^status:' \
     || err "$f lacks status front-matter header"
 done
 
 # --- 4. Map registration ----------------------------------------------------
-for f in $(git ls-files 'docs/architecture/*.md' | grep -v 'CLAUDE.md'); do
+for f in $(git ls-files 'docs/architecture/*.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
   base=$(basename "$f")
   grep -q "$base" "$MAP" || err "$f is not registered in $MAP"
 done
