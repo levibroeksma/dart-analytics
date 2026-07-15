@@ -52,6 +52,25 @@ Full documentation: https://docs.astro.build
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes.
 
+## Test-Driven Development (mandatory)
+
+Every `app/` behavior change follows **red → green → refactor**:
+
+1. Write a failing test that names the expected behavior.
+2. Run `npm test` — confirm the **new** test fails for the right reason.
+3. Implement the minimal code to pass.
+4. Run `npm test` — all tests pass.
+5. Refactor only with tests green.
+
+Rules:
+
+- Colocate tests as `*.test.ts` beside the module under test (same folder).
+- Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
+- `.astro` markup: extract testable class/variant maps to a colocated `.ts` helper when the component has branching logic; do not skip TDD by marking UI tasks "manual only".
+- Do not commit production code without its failing test written first (except greenfield scaffold commits that only add test infrastructure).
+
+Framework: **Vitest** (`vitest.config.ts` at `app/` root). Commands: `npm test` (CI), `npm run test:watch` (local).
+
 ## Validation Standard Procedure (sole definition)
 
 Run for `app/` changes before claiming completion:
@@ -60,7 +79,7 @@ Run for `app/` changes before claiming completion:
 npm run validate:app
 ```
 
-This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `astro check` → `bash scripts/refresh-graph.sh` (graph refresh warns instead of failing when the graphify CLI is absent — record that warning in the completion report). Stage `graphify-out/graph.json` when it changed. Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`. (2026-07-14)
+This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `npm test` → `astro check` → `bash scripts/refresh-graph.sh` (graph refresh warns instead of failing when the graphify CLI is absent — record that warning in the completion report). Stage `graphify-out/graph.json` when it changed. Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`. (2026-07-15)
 
 ## Forbidden
 
@@ -75,4 +94,4 @@ This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `n
 
 For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
-Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms. Full rules: `07-Frontend/01`–`04`.
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms. Full rules: `07-Frontend/01`–`04`.

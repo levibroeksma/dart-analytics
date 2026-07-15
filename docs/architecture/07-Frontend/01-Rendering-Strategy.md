@@ -67,9 +67,19 @@ On-demand SSR response (opted-in routes only)
 Client fetch (@client/api) + Alpine hydration
 ```
 
-For **prerendered** routes — the default for app pages (see Prerender-Default Model above) — this gate does not apply as of this Cloudflare configuration: see Decided model below.
+For **prerendered** routes — the default for app pages (see Prerender-Default Model above) — **middleware** navigation gating does not apply on this Cloudflare configuration (D97). **Client auth gate** in `BaseLayout` is load-bearing instead (D98): see below.
 
 Protected routes are prerendered **shells**. The shell itself carries no domain data — every protected route class in the Route-Class Rendering Table below fetches its data client-side, after paint, with a Bearer JWT. An unauthenticated visitor who reaches the shell directly therefore sees an empty page, not gameplay or profile data.
+
+## Client auth gate (D98, 2026-07-15)
+
+Because prerendered HTML bypasses `middleware.ts` on this Cloudflare config (D97), protected-route **navigation UX** is enforced in the browser:
+
+- `auth.store.ts` runs `init()` on Alpine boot (no `x-init`): `getSession()` then redirect authenticated users away from `PUBLIC_PAGES` (`/login` → `/`) and anonymous users away from protected paths (`/` → `/login`).
+- `BaseLayout.astro` cloaks the body until `$store.auth.ready` (`x-cloak` + `:class="{ invisible: !$store.auth.ready }"`) so app chrome does not flash before the gate resolves.
+- `PUBLIC_PAGES` is a single source in `@utils/auth-routes.ts` (shared with `middleware.ts` / `classifyRoute`).
+
+This gate is **navigation UX only** — the JWT-gated API remains the sole real authorization boundary (D97).
 
 ## Decided model (D97, 2026-07-15): prerendered shells are public-by-design
 
@@ -112,10 +122,10 @@ The public list is **extensible** (marketing pages later). When adding a public 
 
 | Route class | Rendering | Data loading |
 | ----------- | --------- | ------------ |
-| Public (`/login`) | Prerender | Neon Auth client SDK |
-| App chrome (layouts, nav) | Prerender shell + middleware | None at build time |
-| Data lists (sessions, history) | Prerender shell + middleware | Client `fetch` via `@client/api/` after paint |
-| Active gameplay | Prerender shell + middleware + Alpine | Local-first store (`$persist`); API at session boundaries |
+| Public (`/login`) | Prerender | In-app themed form + Neon Auth client SDK (`login.data.ts`) |
+| App chrome (layouts, nav) | Prerender shell + **client auth gate** (D98) | None at build time |
+| Data lists (sessions, history) | Prerender shell + **client auth gate** | Client `fetch` via `@client/api/` after paint |
+| Active gameplay | Prerender shell + **client auth gate** + Alpine | Local-first store (`$persist`); API at session boundaries |
 | Server islands / SSR opt-in | On-demand | Server-only secrets/env (see below) |
 
 Skeleton-first hydration for data-heavy pages remains the read-path standard (`00-Overview.md`).
@@ -168,4 +178,4 @@ Use only when the browser must never see a value and prerender cannot supply it.
 | `02-Folder-Structure.md` | `app/src/` tree and aliases |
 | `03-Alpine-Patterns.md` | Alpine factory and hydration |
 | `../06-API/01-Implementation-Strategy.md` | Cloudflare Workers + Neon constraints |
-| `../../DECISIONS.md` | D79, D80, D88, D97 |
+| `../../DECISIONS.md` | D79, D80, D88, D97, D98 |

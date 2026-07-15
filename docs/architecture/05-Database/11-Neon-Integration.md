@@ -139,9 +139,25 @@ See also [`../../../database/README.md`](../../../database/README.md).
 
 - Authentication provider: Neon Auth
 - API boundary verifies JWT claims (`sub`, `exp`) via `NEON_AUTH_JWKS_URL`
-- Frontend/auth client uses `NEON_AUTH_BASE_URL`
+- Server auth base URL: `NEON_AUTH_BASE_URL` (middleware, seeds)
+- Browser auth client: `PUBLIC_NEON_AUTH_BASE_URL` (`import.meta.env` — never import `lib/env.ts` in browser code)
 - Identity mapping: JWT `sub` -> `players.auth_user_id`
 - Unprovisioned users receive `403 PLAYER_NOT_PROVISIONED`
+
+### Dev auth user (out of band)
+
+Sign-up UI is out of scope for v1. Provision the dev branch user once per environment:
+
+| Step | Action |
+| ---- | ------ |
+| 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
+| 2 | Add trusted origin `http://localhost:4321` |
+| 3 | Set `PUBLIC_NEON_AUTH_BASE_URL` in `.env` (mirror `NEON_AUTH_BASE_URL`) |
+| 4 | Run `npm run seed:dev-auth` from `app/` |
+
+Default dev credentials are documented in `app/scripts/seed-dev-auth.ts` header only (`levi@broeksma.nl` / `admin`, name `Levi`).
+
+Alpine templates use v3 shorthand (`:attr`, `@event`) per D100 — see `07-Frontend/03-Alpine-Patterns.md`.
 
 ---
 
