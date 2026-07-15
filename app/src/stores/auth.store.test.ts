@@ -4,6 +4,7 @@ vi.mock('@client/auth/client', () => ({
   authClient: {
     getSession: vi.fn(),
     signIn: { email: vi.fn() },
+    signOut: vi.fn(),
   },
 }));
 
@@ -49,5 +50,18 @@ describe('authStore.signIn', () => {
     await expect(store.signIn('a@b.nl', 'wrong')).rejects.toThrow(
       'Invalid credentials',
     );
+  });
+});
+
+describe('authStore.signOut', () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it('sets anonymous after signOut resolves', async () => {
+    vi.mocked(authClient.signOut).mockResolvedValue(undefined);
+    const store = authStore();
+    store.status = 'authenticated';
+    await store.signOut();
+    expect(authClient.signOut).toHaveBeenCalled();
+    expect(store.status).toBe('anonymous');
   });
 });
