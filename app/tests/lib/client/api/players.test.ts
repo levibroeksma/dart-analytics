@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('./client', () => ({
+vi.mock('@client/api/client', () => ({
   apiRequest: vi.fn(),
 }));
 
-import { apiRequest } from './client';
-import { provision, ProvisionError } from './players';
+import { apiRequest } from '@client/api/client';
+import { provision, ProvisionError } from '@client/api/players';
 
 describe('provision', () => {
   beforeEach(() => vi.resetAllMocks());

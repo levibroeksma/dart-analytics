@@ -5,7 +5,7 @@ vi.mock('@client/auth/client', () => ({
 }));
 
 import { getAccessToken } from '@client/auth/client';
-import { apiRequest } from './client';
+import { apiRequest } from '@client/api/client';
 
 describe('apiRequest', () => {
   beforeEach(() => {
