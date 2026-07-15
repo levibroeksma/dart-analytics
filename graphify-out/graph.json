@@ -4,15 +4,532 @@
   "graph": {},
   "nodes": [
     {
+      "label": "DECISIONS.md",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "decisions",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "decisions.md"
+    },
+    {
+      "label": "Architectural Decision Ledger",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "decisions_architectural_decision_ledger",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "architectural decision ledger"
+    },
+    {
+      "label": "Domain model",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "decisions_domain_model",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "domain model"
+    },
+    {
+      "label": "Database platform & process",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "decisions_database_platform_process",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "database platform & process"
+    },
+    {
+      "label": "API (v1 baseline frozen 2026-07-08)",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "decisions_api_v1_baseline_frozen_2026_07_08",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "api (v1 baseline frozen 2026-07-08)"
+    },
+    {
+      "label": "Frontend",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "decisions_frontend",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "frontend"
+    },
+    {
+      "label": "Context & documentation system",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "decisions_context_documentation_system",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "context & documentation system"
+    },
+    {
+      "label": "Deferred (open, not rejected)",
+      "file_type": "document",
+      "source_file": "DECISIONS.md",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "decisions_deferred_open_not_rejected",
+      "community": 58,
+      "community_name": "02-System-Architecture.md",
+      "norm_label": "deferred (open, not rejected)"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_claude",
+      "community": 136,
+      "community_name": "README.md",
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "Agent Rules \u2014 `app/`",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_claude_agent_rules_app",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "agent rules \u2014 `app/`"
+    },
+    {
+      "label": "Development",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "app_claude_development",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "development"
+    },
+    {
+      "label": "Knowledge Graph (graphify)",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_claude_knowledge_graph_graphify",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "knowledge graph (graphify)"
+    },
+    {
+      "label": "Astro Documentation",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "app_claude_astro_documentation",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "astro documentation"
+    },
+    {
+      "label": "Non-Negotiable Rules",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "app_claude_non_negotiable_rules",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "non-negotiable rules"
+    },
+    {
+      "label": "Test-Driven Development (mandatory)",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "app_claude_test_driven_development_mandatory",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "test-driven development (mandatory)"
+    },
+    {
+      "label": "Validation Standard Procedure (sole definition)",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "app_claude_validation_standard_procedure_sole_definition",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "validation standard procedure (sole definition)"
+    },
+    {
+      "label": "Forbidden",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "app_claude_forbidden",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "forbidden"
+    },
+    {
+      "label": "Frontend Rules",
+      "file_type": "document",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "app_claude_frontend_rules",
+      "community": 132,
+      "community_name": "Agent Rules \u2014 `app/`",
+      "norm_label": "frontend rules"
+    },
+    {
+      "label": "00-Context-Map.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "00-context-map.md"
+    },
+    {
+      "label": "Context Map",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_context_map",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "context map"
+    },
+    {
+      "label": "Context Packs",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_context_packs",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "context packs"
+    },
+    {
+      "label": "Authority Order (single source)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_authority_order_single_source",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "authority order (single source)"
+    },
+    {
+      "label": "File Inventory",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_file_inventory",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "file inventory"
+    },
+    {
+      "label": "Foundation (`docs/architecture/`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_foundation_docs_architecture",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "foundation (`docs/architecture/`)"
+    },
+    {
+      "label": "Database handbook (`05-Database/`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_database_handbook_05_database",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "database handbook (`05-database/`)"
+    },
+    {
+      "label": "API (`06-API/`) and Frontend (`07-Frontend/`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L100",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_api_06_api_and_frontend_07_frontend",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "api (`06-api/`) and frontend (`07-frontend/`)"
+    },
+    {
+      "label": "SQL (`database/`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L117",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_sql_database",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "sql (`database/`)"
+    },
+    {
+      "label": "Context & history (repo root, `docs/`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_context_history_repo_root_docs",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "context & history (repo root, `docs/`)"
+    },
+    {
+      "label": "Current Implementation State",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L140",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_current_implementation_state",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "current implementation state"
+    },
+    {
+      "label": "Maintenance Protocol",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L157",
+      "_origin": "ast",
+      "id": "docs_architecture_00_context_map_maintenance_protocol",
+      "community": 42,
+      "community_name": "Architectural Decision Ledger",
+      "norm_label": "maintenance protocol"
+    },
+    {
+      "label": "10-Frontend-Agent-Guide.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "10-frontend-agent-guide.md"
+    },
+    {
+      "label": "Frontend Agent Guide",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_frontend_agent_guide",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "frontend agent guide"
+    },
+    {
+      "label": "Load Packs",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_load_packs",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "load packs"
+    },
+    {
+      "label": "Non-Negotiable Rules",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "non-negotiable rules"
+    },
+    {
+      "label": "1. File suffixes",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_1_file_suffixes",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "1. file suffixes"
+    },
+    {
+      "label": "2. Alpine bindings",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_2_alpine_bindings",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "2. alpine bindings"
+    },
+    {
+      "label": "3. Alpine entry",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "3. alpine entry"
+    },
+    {
+      "label": "4. Rendering",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "4. rendering"
+    },
+    {
+      "label": "5. Import direction",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "5. import direction"
+    },
+    {
+      "label": "6. `$persist`",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "6. `$persist`"
+    },
+    {
+      "label": "7. Recovery",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "7. recovery"
+    },
+    {
+      "label": "8. Types",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "8. types"
+    },
+    {
+      "label": "9. Components (`.astro`)",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "9. components (`.astro`)"
+    },
+    {
+      "label": "10. Test-driven development",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "10. test-driven development"
+    },
+    {
+      "label": "Forbidden",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L104",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "forbidden"
+    },
+    {
+      "label": "Pre-Completion Checklist",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "pre-completion checklist"
+    },
+    {
+      "label": "Related Documents",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L135",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "related documents"
+    },
+    {
       "label": "seed-dev-auth.test.ts",
       "file_type": "code",
       "source_file": "app/tests/scripts/seed-dev-auth.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_tests_scripts_seed_dev_auth_test",
       "community": 172,
       "community_name": "seed-dev-auth.test.ts",
-      "norm_label": "seed-dev-auth.test.ts"
+      "norm_label": "seed-dev-auth.test.ts",
+      "id": "app_tests_scripts_seed_dev_auth_test"
     },
     {
       "label": "vitest.config.ts",
@@ -20,10 +537,10 @@
       "source_file": "app/vitest.config.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_vitest_config",
       "community": 168,
       "community_name": "vitest.config.ts",
-      "norm_label": "vitest.config.ts"
+      "norm_label": "vitest.config.ts",
+      "id": "app_vitest_config"
     },
     {
       "label": "players.test.ts",
@@ -4806,94 +5323,6 @@
       "id": "claude_where_everything_lives"
     },
     {
-      "label": "DECISIONS.md",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "decisions.md",
-      "id": "decisions"
-    },
-    {
-      "label": "Architectural Decision Ledger",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L8",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "architectural decision ledger",
-      "id": "decisions_architectural_decision_ledger"
-    },
-    {
-      "label": "Domain model",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L14",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "domain model",
-      "id": "decisions_domain_model"
-    },
-    {
-      "label": "Database platform & process",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L36",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "database platform & process",
-      "id": "decisions_database_platform_process"
-    },
-    {
-      "label": "API (v1 baseline frozen 2026-07-08)",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L52",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "api (v1 baseline frozen 2026-07-08)",
-      "id": "decisions_api_v1_baseline_frozen_2026_07_08"
-    },
-    {
-      "label": "Frontend",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L82",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "frontend",
-      "id": "decisions_frontend"
-    },
-    {
-      "label": "Context & documentation system",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L109",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "context & documentation system",
-      "id": "decisions_context_documentation_system"
-    },
-    {
-      "label": "Deferred (open, not rejected)",
-      "file_type": "document",
-      "source_file": "DECISIONS.md",
-      "source_location": "L119",
-      "_origin": "ast",
-      "community": 58,
-      "community_name": "02-System-Architecture.md",
-      "norm_label": "deferred (open, not rejected)",
-      "id": "decisions_deferred_open_not_rejected"
-    },
-    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "README.md",
@@ -5598,116 +6027,6 @@
       "id": "app_agents_skills_neon_skill_neon_auth_invalid_domain"
     },
     {
-      "label": "CLAUDE.md",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 136,
-      "community_name": "README.md",
-      "norm_label": "claude.md",
-      "id": "app_claude"
-    },
-    {
-      "label": "Agent Rules \u2014 `app/`",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "agent rules \u2014 `app/`",
-      "id": "app_claude_agent_rules_app"
-    },
-    {
-      "label": "Development",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L5",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "development",
-      "id": "app_claude_development"
-    },
-    {
-      "label": "Knowledge Graph (graphify)",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L19",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "knowledge graph (graphify)",
-      "id": "app_claude_knowledge_graph_graphify"
-    },
-    {
-      "label": "Astro Documentation",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "astro documentation",
-      "id": "app_claude_astro_documentation"
-    },
-    {
-      "label": "Non-Negotiable Rules",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L45",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "non-negotiable rules",
-      "id": "app_claude_non_negotiable_rules"
-    },
-    {
-      "label": "Test-Driven Development (mandatory)",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L55",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "test-driven development (mandatory)",
-      "id": "app_claude_test_driven_development_mandatory"
-    },
-    {
-      "label": "Validation Standard Procedure (sole definition)",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L74",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "validation standard procedure (sole definition)",
-      "id": "app_claude_validation_standard_procedure_sole_definition"
-    },
-    {
-      "label": "Forbidden",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L84",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "forbidden",
-      "id": "app_claude_forbidden"
-    },
-    {
-      "label": "Frontend Rules",
-      "file_type": "document",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L93",
-      "_origin": "ast",
-      "community": 132,
-      "community_name": "Agent Rules \u2014 `app/`",
-      "norm_label": "frontend rules",
-      "id": "app_claude_frontend_rules"
-    },
-    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "app/README.md",
@@ -6036,138 +6355,6 @@
       "community_name": "08-Physical-Schema-Mapping.md",
       "norm_label": "consistency checks before finish",
       "id": "docs_claude_consistency_checks_before_finish"
-    },
-    {
-      "label": "00-Context-Map.md",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "00-context-map.md",
-      "id": "docs_architecture_00_context_map"
-    },
-    {
-      "label": "Context Map",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L8",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "context map",
-      "id": "docs_architecture_00_context_map_context_map"
-    },
-    {
-      "label": "Context Packs",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L16",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "context packs",
-      "id": "docs_architecture_00_context_map_context_packs"
-    },
-    {
-      "label": "Authority Order (single source)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L43",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "authority order (single source)",
-      "id": "docs_architecture_00_context_map_authority_order_single_source"
-    },
-    {
-      "label": "File Inventory",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L61",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "file inventory",
-      "id": "docs_architecture_00_context_map_file_inventory"
-    },
-    {
-      "label": "Foundation (`docs/architecture/`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L65",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "foundation (`docs/architecture/`)",
-      "id": "docs_architecture_00_context_map_foundation_docs_architecture"
-    },
-    {
-      "label": "Database handbook (`05-Database/`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L77",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "database handbook (`05-database/`)",
-      "id": "docs_architecture_00_context_map_database_handbook_05_database"
-    },
-    {
-      "label": "API (`06-API/`) and Frontend (`07-Frontend/`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L100",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "api (`06-api/`) and frontend (`07-frontend/`)",
-      "id": "docs_architecture_00_context_map_api_06_api_and_frontend_07_frontend"
-    },
-    {
-      "label": "SQL (`database/`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L117",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "sql (`database/`)",
-      "id": "docs_architecture_00_context_map_sql_database"
-    },
-    {
-      "label": "Context & history (repo root, `docs/`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L125",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "context & history (repo root, `docs/`)",
-      "id": "docs_architecture_00_context_map_context_history_repo_root_docs"
-    },
-    {
-      "label": "Current Implementation State",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L140",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "current implementation state",
-      "id": "docs_architecture_00_context_map_current_implementation_state"
-    },
-    {
-      "label": "Maintenance Protocol",
-      "file_type": "document",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L157",
-      "_origin": "ast",
-      "community": 42,
-      "community_name": "Architectural Decision Ledger",
-      "norm_label": "maintenance protocol",
-      "id": "docs_architecture_00_context_map_maintenance_protocol"
     },
     {
       "label": "01-Principles.md",
@@ -18611,193 +18798,6 @@
       "id": "docs_architecture_07_frontend_05_astro_components_related_documents"
     },
     {
-      "label": "10-Frontend-Agent-Guide.md",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "10-frontend-agent-guide.md",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide"
-    },
-    {
-      "label": "Frontend Agent Guide",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L8",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "frontend agent guide",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_frontend_agent_guide"
-    },
-    {
-      "label": "Load Packs",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L18",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "load packs",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_load_packs"
-    },
-    {
-      "label": "Non-Negotiable Rules",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L32",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "non-negotiable rules",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules"
-    },
-    {
-      "label": "1. File suffixes",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "1. file suffixes",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_1_file_suffixes"
-    },
-    {
-      "label": "2. Alpine bindings",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L45",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "2. alpine bindings",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_2_alpine_bindings"
-    },
-    {
-      "label": "3. Alpine entry",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L53",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "3. alpine entry",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry"
-    },
-    {
-      "label": "4. Rendering",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L58",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "4. rendering",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering"
-    },
-    {
-      "label": "5. Import direction",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "5. import direction",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction"
-    },
-    {
-      "label": "6. `$persist`",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L71",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "6. `$persist`",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist"
-    },
-    {
-      "label": "7. Recovery",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L75",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "7. recovery",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery"
-    },
-    {
-      "label": "8. Types",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L79",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "8. types",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types"
-    },
-    {
-      "label": "9. Components (`.astro`)",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L83",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "9. components (`.astro`)",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro"
-    },
-    {
-      "label": "10. Test-driven development",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L87",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "10. test-driven development",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development"
-    },
-    {
-      "label": "Forbidden",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L104",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "forbidden",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden"
-    },
-    {
-      "label": "Pre-Completion Checklist",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L120",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "pre-completion checklist",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist"
-    },
-    {
-      "label": "Related Documents",
-      "file_type": "document",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L135",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "Community 33",
-      "norm_label": "related documents",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents"
-    },
-    {
       "label": "099-engineering-workflow-and-decision-framework.md",
       "file_type": "document",
       "source_file": "docs/architecture/099-engineering-workflow-and-decision-framework.md",
@@ -19217,6 +19217,456 @@
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "decisions",
+      "target": "decisions_architectural_decision_ledger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_api_v1_baseline_frozen_2026_07_08",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_context_documentation_system",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_database_platform_process",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_deferred_open_not_rejected",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_domain_model",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DECISIONS.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "decisions_architectural_decision_ledger",
+      "target": "decisions_frontend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_claude",
+      "target": "app_claude_agent_rules_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "database/README.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "database_readme",
+      "target": "app_claude"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-Database/11-Neon-Integration.md",
+      "source_location": "L189",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_architecture_05_database_11_neon_integration",
+      "target": "app_claude"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_astro_documentation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_development",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_forbidden",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_frontend_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_knowledge_graph_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_non_negotiable_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_test_driven_development_mandatory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/CLAUDE.md",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "app_claude_agent_rules_app",
+      "target": "app_claude_validation_standard_procedure_sole_definition",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_authority_order_single_source",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_context_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_context_packs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_current_implementation_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_file_inventory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map",
+      "target": "docs_architecture_00_context_map_maintenance_protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map_file_inventory",
+      "target": "docs_architecture_00_context_map_api_06_api_and_frontend_07_frontend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map_file_inventory",
+      "target": "docs_architecture_00_context_map_context_history_repo_root_docs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map_file_inventory",
+      "target": "docs_architecture_00_context_map_database_handbook_05_database",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map_file_inventory",
+      "target": "docs_architecture_00_context_map_foundation_docs_architecture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-Context-Map.md",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "docs_architecture_00_context_map_file_inventory",
+      "target": "docs_architecture_00_context_map_sql_database",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L104",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_frontend_agent_guide",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_load_packs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_1_file_suffixes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_2_alpine_bindings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -24442,76 +24892,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions",
-      "target": "decisions_architectural_decision_ledger"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L52",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_api_v1_baseline_frozen_2026_07_08"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L109",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_context_documentation_system"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L36",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_database_platform_process"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L119",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_deferred_open_not_rejected"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_domain_model"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DECISIONS.md",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "decisions_architectural_decision_ledger",
-      "target": "decisions_frontend"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -25122,116 +25502,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude",
-      "target": "app_claude_agent_rules_app"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "database/README.md",
-      "source_location": "L50",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "database_readme",
-      "target": "app_claude"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/05-Database/11-Neon-Integration.md",
-      "source_location": "L189",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_05_database_11_neon_integration",
-      "target": "app_claude"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_astro_documentation"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_development"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L84",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_forbidden"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L93",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_frontend_rules"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_knowledge_graph_graphify"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L45",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_non_negotiable_rules"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L55",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_test_driven_development_mandatory"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/CLAUDE.md",
-      "source_location": "L74",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app_claude_agent_rules_app",
-      "target": "app_claude_validation_standard_procedure_sole_definition"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "app/README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -25508,116 +25778,6 @@
       "confidence_score": 1.0,
       "source": "docs_claude_agent_rules_docs",
       "target": "docs_claude_task_routing_edit_the_canonical_doc_first_then_cascade"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L43",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_authority_order_single_source"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_context_map"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_context_packs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L140",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_current_implementation_state"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L61",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_file_inventory"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L157",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map",
-      "target": "docs_architecture_00_context_map_maintenance_protocol"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L100",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map_file_inventory",
-      "target": "docs_architecture_00_context_map_api_06_api_and_frontend_07_frontend"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L125",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map_file_inventory",
-      "target": "docs_architecture_00_context_map_context_history_repo_root_docs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L77",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map_file_inventory",
-      "target": "docs_architecture_00_context_map_database_handbook_05_database"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L65",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map_file_inventory",
-      "target": "docs_architecture_00_context_map_foundation_docs_architecture"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L117",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_00_context_map_file_inventory",
-      "target": "docs_architecture_00_context_map_sql_database"
     },
     {
       "relation": "contains",
@@ -36612,166 +36772,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L104",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_frontend_agent_guide"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_load_packs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L32",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L120",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L135",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L87",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_1_file_suffixes"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L45",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_2_alpine_bindings"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L53",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L58",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L63",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L71",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L75",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L79",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L83",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "docs/architecture/099-engineering-workflow-and-decision-framework.md",
       "source_location": "L250",
       "weight": 1.0,
@@ -37131,5 +37131,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "27242123103bde823dfa7e6ee75f4d1acb005ad4"
+  "built_at_commit": "6453ea1f4f16f6995f9bb6fe75aaae28fda0c775"
 }
