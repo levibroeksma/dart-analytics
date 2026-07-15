@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Frontend Agent Guide
@@ -44,6 +44,8 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 
 ## 2. Alpine bindings
 
+- **Alpine v3 shorthand:** `:class`, `:style`, `:value`, `:disabled`, `@click`, `@submit.prevent`, etc. — **never** `x-bind:*` or `x-on:*` when shorthand applies (`03-Alpine-Patterns.md`)
+- **Astro exception:** `x-on:click` (or `x-on:*`) only inside `{}` expressions when the linter rejects `@` — nowhere else
 - **No `x-init`** — forbidden
 - **`x-data="factory()"`** — always invoke; never `x-data="factory"`
 - **Stores:** `Alpine.store('name', storeFactory(persist))` — invoke factory
@@ -82,23 +84,43 @@ Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
 Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
 
+## 10. Test-driven development
+
+Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definition):
+
+| Step | Action |
+| ---- | ------ |
+| Red | Add `*.test.ts` beside the module; run `npm test` — new test fails |
+| Green | Minimal implementation until `npm test` passes |
+| Refactor | Clean up with tests still green |
+
+- Vitest only; colocate `*.test.ts` with the source file.
+- Mock `@client/auth` and `fetch` in client/API tests — no live Neon calls.
+- Stores, `@client/api/*`, `@utils/*`, Zod schemas: always unit-tested.
+- `.astro` components with variant/branching logic: extract a colocated `.ts` helper (e.g. `button-variants.ts`) and test that helper; wire the component to the helper.
+
 ---
 
 # Forbidden
 
 - Frontend `controllers/` folder
 - `x-init`
+- `x-bind:*` and `x-on:*` when Alpine v3 shorthand (`:attr`, `@event`) applies
 - `x-data` without `()`
 - `$persist` in components or `.data.ts`
 - HTTP in `modules/`
 - Server imports in browser code
 - Hand-authored DTO types duplicating API contract
 - Statistics API calls before post-v1 endpoints ship
+- Production behavior without a preceding failing test
+- Skipping `npm test` in validation
 
 ---
 
 # Pre-Completion Checklist
 
+- [ ] Alpine v3 shorthand on binds/listeners (`:class`, `@click` — not `x-bind` / `x-on`)
+- [ ] TDD cycle complete: failing test → pass → `npm test` green
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] No `x-init`; all `x-data` invocations use `()`
