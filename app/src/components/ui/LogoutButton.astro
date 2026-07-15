@@ -1,0 +1,15 @@
+---
+// Components
+import Button from '@components/forms/Button.astro';
+---
+
+<Button
+  type="button"
+  variant="secondary"
+  x-data="logoutButton()"
+  @click="submit"
+  :disabled="loading"
+>
+  <span x-show="!loading">Sign out</span>
+  <span x-show="loading">Signing out…</span>
+</Button>
