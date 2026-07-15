@@ -165,7 +165,7 @@ Operational considerations:
 Per `00-Overview.md`:
 
 - Worker-to-database: trusted Worker service-role only
-- `DATABASE_URL` in Worker secrets only — never exposed to client
+- `DATABASE_URL_UNPOOLED` in Worker secrets only — never exposed to client
 - player scoping enforced in application layer on every query
 - PostgreSQL RLS deferred post-v1 as defense-in-depth
 

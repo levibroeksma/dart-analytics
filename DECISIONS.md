@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Architectural Decision Ledger
