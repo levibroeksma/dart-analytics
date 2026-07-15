@@ -9,7 +9,7 @@ vi.mock('@client/auth/client', () => ({
 }));
 
 import { authClient } from '@client/auth/client';
-import { authStore } from './auth.store';
+import { authStore } from '@stores/auth.store';
 
 describe('authStore.init', () => {
   beforeEach(() => {

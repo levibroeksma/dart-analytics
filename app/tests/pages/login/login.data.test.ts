@@ -27,7 +27,7 @@ import {
   mapProvisionError,
   mapSignInError,
   type LoginFormContext,
-} from './login.data';
+} from '@pages/login/login.data';
 import { ProvisionError } from '@client/api/players';
 
 describe('mapSignInError', () => {
