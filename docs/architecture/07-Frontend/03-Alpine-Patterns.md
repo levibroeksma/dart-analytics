@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, forms, data components, persist
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Frontend Alpine Patterns
@@ -136,10 +136,42 @@ export function registerRouteData(Alpine: Alpine) {
 
 | Rule | Detail |
 | ---- | ------ |
+| **Alpine v3 shorthand** | Use `:attr` and `@event` — never `x-bind:attr` or `x-on:event` (see table below) |
 | **No `x-init`** | Forbidden everywhere — deprecated |
 | **`x-data` invocation** | Always `x-data="componentState()"` — never `x-data="componentState"` |
 | **Store registration** | `Alpine.store('name', storeFactory(persist))` — invoke factory so `init()` runs |
 | **No Alpine in modules** | `modules/` never import Alpine |
+
+## Alpine v3 directive syntax (mandatory)
+
+Use **shorthand** for binds and listeners. Keep structural/behavioral directives as `x-*`.
+
+| Use | Not |
+| --- | --- |
+| `:class="expr"` | `x-bind:class="expr"` |
+| `:style="expr"` | `x-bind:style="expr"` |
+| `:value="expr"` | `x-bind:value="expr"` |
+| `:disabled="expr"` | `x-bind:disabled="expr"` |
+| `@click="handler"` | `x-on:click="handler"` |
+| `@submit.prevent="handler"` | `x-on:submit.prevent="handler"` |
+
+**Keep long form (no shorthand):** `x-data`, `x-show`, `x-text`, `x-model`, `x-cloak`, `x-for`, `x-if`, `x-transition`, `x-effect`.
+
+### Astro exception
+
+In `.astro` markup, prefer shorthand on **native HTML elements** (`<form>`, `<button>`, `<input>`, …).
+
+When an Alpine listener must be declared inside a **`{}` Astro expression** (component prop or spread) and the linter rejects `@click`, use `x-on:click` for that attribute only. Do not use `x-on:` elsewhere when shorthand works.
+
+```astro
+<!-- preferred on native elements -->
+<form x-data="loginForm()" @submit.prevent="submit">
+  <button type="submit" :disabled="loading">Sign in</button>
+</form>
+
+<!-- Astro {} escape hatch only when linter blocks @ -->
+<Button {...{ "x-on:click": "handle()" }} />
+```
 
 ---
 
@@ -212,6 +244,7 @@ Details: `00-Overview.md`.
 | Anti-pattern | Reason |
 | ------------ | ------ |
 | `x-init` | Deprecated — use factory `init()` |
+| `x-bind:*` / `x-on:*` (when shorthand works) | Use `:attr` / `@event` (Alpine v3) |
 | `x-data="play"` without `()` | `init()` does not run |
 | `$persist` in `.data.ts` or components | Unpredictable recovery scope |
 | `import Alpine from 'alpinejs'` outside factory | Breaks single entrypoint |

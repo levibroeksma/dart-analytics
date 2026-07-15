@@ -741,6 +741,7 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 ## Application
 
 - Alpine boots only via `lib/client/alpine/app.factory.ts` (`@astrojs/alpinejs` entrypoint).
+- Alpine v3 shorthand: `:attr` and `@event` — not `x-bind:*` / `x-on:*` (D100; Astro `{}` linter escape only).
 - No `x-init`. Always `x-data="factory()"`.
 - `$persist` only in `*.store.ts` and `*.form.ts`.
 - Modules never import `@client/api` or Alpine.
