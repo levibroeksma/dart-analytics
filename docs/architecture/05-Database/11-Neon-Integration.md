@@ -84,11 +84,10 @@ neon checkout dev
 
 | Use case | Variable | Notes |
 | --- | --- | --- |
-| Worker runtime (`getDb()`) | `DATABASE_URL` | Neon-pulled; used by `@neondatabase/serverless` |
-| Migrations / seeds / introspection | `DATABASE_URL_POOLED` | Local alias — set to Neon’s pooled `DATABASE_URL` value |
-| Reference only | `DATABASE_URL_UNPOOLED` | Pulled by Neon CLI; not used by dbmate scripts |
+| Worker runtime (`getDb()`) | `DATABASE_URL` | Direct connection — hostname WITHOUT `-pooler` |
+| Migrations / seeds / introspection | `DATABASE_URL_POOLED` | Pooled — hostname WITH `-pooler`; consumed by the dbmate npm scripts and `drizzle.config.ts` |
 
-Neon CLI (`neon checkout`, `neon env pull`) writes `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, and auth vars. Copy the pooled `DATABASE_URL` into `DATABASE_URL_POOLED` for dbmate and Drizzle introspection (see `app/.env.example`).
+`DATABASE_URL_UNPOOLED` is **not part of the contract** — no code or script may read it. This table is the sole owner of connection-variable semantics; `app/.env.example` mirrors it. <!-- verify against neon env pull; 2026-07-14 -->
 
 ---
 
@@ -99,7 +98,7 @@ Source template: `app/.env.example`
 Neon-pulled keys:
 
 - `DATABASE_URL`
-- `DATABASE_URL_UNPOOLED`
+- `DATABASE_URL_UNPOOLED` (ignored by this project)
 - `NEON_AUTH_BASE_URL`
 - `NEON_AUTH_JWKS_URL`
 

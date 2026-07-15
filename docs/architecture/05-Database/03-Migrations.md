@@ -712,12 +712,12 @@ START APPLICATION
 
 Migrations are executed from `app/` using `dbmate` with SQL stored under `database/migrations/`.
 
-Required environment settings:
+Environment contract (sole owner: `11-Neon-Integration.md` §Connection String Rules):
 
 ```
-DATABASE_URL=<pooled connection string>
-DBMATE_MIGRATIONS_DIR=../database/migrations
-DBMATE_SCHEMA_FILE=../database/schema.sql
+DATABASE_URL_POOLED=<pooled connection string>   # consumed via --url in the npm scripts
+# migrations dir is passed as a script flag (--migrations-dir ../database/migrations);
+# DBMATE_* env vars are optional overrides only (see app/.env.example)
 ```
 
 Standard validation: `npm run validate:app` (sole definition: `app/CLAUDE.md`). Seeding is a provisioning step, not validation — `npm run db:seed` runs when creating or resetting an environment (see `11-Neon-Integration.md`). <!-- 2026-07-14 -->
