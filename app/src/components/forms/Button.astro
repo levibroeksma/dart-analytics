@@ -1,0 +1,27 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Lib
+import { cn } from '@client/cn';
+import { buttonVariantClass } from './button-variants';
+
+// Props
+const {
+  variant = 'primary',
+  type = 'button',
+  class: classNameProp,
+  ...rest
+}: Props = Astro.props;
+
+// Styles
+const className = cn('btn', buttonVariantClass(variant), classNameProp);
+---
+
+<button type={type} class={className} {...rest}>
+  <slot />
+</button>

@@ -1,0 +1,39 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
+  id?: string;
+  autocomplete?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Lib
+import { cn } from '@client/cn';
+
+// Props
+const {
+  label,
+  name,
+  type = 'text',
+  id,
+  autocomplete,
+  class: classNameProp,
+  ...rest
+}: Props = Astro.props;
+
+// Styles
+const inputId = id ?? name;
+const className = cn('input', classNameProp);
+---
+
+<label for={inputId} class="text-sm text-fg-muted">{label}</label>
+<input
+  id={inputId}
+  name={name}
+  type={type}
+  autocomplete={autocomplete}
+  class={className}
+  {...rest}
+/>
