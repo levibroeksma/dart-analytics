@@ -1,9 +1,9 @@
 import postgres from "postgres";
 
-const dbUrl = process.env.DATABASE_URL_POOLED;
+const dbUrl = process.env.DATABASE_URL;
 const jwksUrl = process.env.NEON_AUTH_JWKS_URL;
 
-if (!dbUrl) throw new Error("DATABASE_URL_POOLED is required");
+if (!dbUrl) throw new Error("DATABASE_URL is required");
 if (!jwksUrl) throw new Error("NEON_AUTH_JWKS_URL is required");
 
 const pooledUrl: string = dbUrl;

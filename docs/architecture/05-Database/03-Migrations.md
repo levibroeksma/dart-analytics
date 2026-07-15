@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-07-13
+updated: 2026-07-15
 -->
 
 # Database Migration Strategy
@@ -715,7 +715,7 @@ Migrations are executed from `app/` using `dbmate` with SQL stored under `databa
 Environment contract (sole owner: `11-Neon-Integration.md` §Connection String Rules):
 
 ```
-DATABASE_URL_POOLED=<pooled connection string>   # consumed via --url in the npm scripts
+DATABASE_URL=<pooled connection string>   # consumed via --url in the npm scripts
 # migrations dir is passed as a script flag (--migrations-dir ../database/migrations);
 # DBMATE_* env vars are optional overrides only (see app/.env.example)
 ```
