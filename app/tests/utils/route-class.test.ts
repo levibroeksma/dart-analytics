@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyRoute } from './route-class';
+import { classifyRoute } from '@utils/route-class';
 
 describe('classifyRoute', () => {
   it('classifies /login as public-page', () => {
