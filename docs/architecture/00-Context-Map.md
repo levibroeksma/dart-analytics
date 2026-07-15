@@ -147,10 +147,10 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Frontend docs | Handbook 0.1.0 (`01`–`05`, `10`) + overview 0.3.1 — prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15) |
+| Frontend docs | Handbook 0.1.0 (`01`–`05`, `10`) + overview 0.3.1 — prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15) |
 | Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |
 | DB connection contract | `DATABASE_URL` = pooled (tooling), `DATABASE_URL_UNPOOLED` = direct (Worker runtime); `DATABASE_URL_POOLED` retired — user-verified against real `neonctl link` output (D95, 2026-07-15) |
-| Application code | Auth middleware with route-class 401/403 handling, frozen envelope/error helpers, player provisioning (D76) complete; scaffold otherwise early |
+| Application code | Auth middleware with route-class 401/403 handling, frozen envelope/error helpers, player provisioning (D76) complete; logout flow (`signOut`, `LogoutButton`) complete; scaffold otherwise early |
 
 ---
 

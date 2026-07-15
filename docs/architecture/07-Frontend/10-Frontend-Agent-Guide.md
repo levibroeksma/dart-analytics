@@ -94,10 +94,10 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 | Green | Minimal implementation until `npm test` passes |
 | Refactor | Clean up with tests still green |
 
-- Vitest only; colocate `*.test.ts` with the source file.
+- Vitest only; place `*.test.ts` under `app/tests/`, mirroring `app/src/`'s directory structure — never colocated with the source file.
 - Mock `@client/auth` and `fetch` in client/API tests — no live Neon calls.
 - Stores, `@client/api/*`, `@utils/*`, Zod schemas: always unit-tested.
-- `.astro` components with variant/branching logic: extract a colocated `.ts` helper (e.g. `button-variants.ts`) and test that helper; wire the component to the helper.
+- `.astro` components with variant/branching logic: keep it inline in the component's own frontmatter (D101). This logic is untested — no Astro-component test runner exists in this project — accept that rather than extracting a helper solely for testability.
 
 ---
 
@@ -120,7 +120,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 # Pre-Completion Checklist
 
 - [ ] Alpine v3 shorthand on binds/listeners (`:class`, `@click` — not `x-bind` / `x-on`)
-- [ ] TDD cycle complete: failing test → pass → `npm test` green
+- [ ] TDD cycle complete: failing test → pass → `npm test` green (test lives under `app/tests/`, not colocated)
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] No `x-init`; all `x-data` invocations use `()`
