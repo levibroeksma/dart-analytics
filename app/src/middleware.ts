@@ -35,10 +35,10 @@ export const onRequest: MiddlewareHandler = async (ctx, next) => {
     return next();
   }
 
-  // protected-page: navigation gate only — HTML requests carry no Bearer header,
-  // so this redirect is the documented nav gate, not authentication (see plan
-  // Global Constraints / Task 1 outcome). Data is fetched client-side with JWT.
-  if (!verified) return ctx.redirect("/login");
-  ctx.locals.auth = { authUserId: verified.authUserId };
+  // protected-page: HTML never carries Bearer (D97/D98). Prerendered shells bypass
+  // middleware in production; in dev, redirecting here causes a / ↔ /login loop
+  // after client login. Navigation UX is enforced by auth.store init(), not here.
+  if (cls === "protected-page") return next();
+
   return next();
 };
