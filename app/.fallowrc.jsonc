@@ -4,7 +4,11 @@
     "neon.ts",
     "astro.config.mjs",
     "scripts/seed.ts",
-    "scripts/smoke.ts"
+    "scripts/smoke.ts",
+    "scripts/seed-dev-auth.ts",
+    "src/lib/client/alpine/app.factory.ts",
+    "src/types/api/index.ts",
+    "vitest.config.ts"
   ],
   "ignoreDependencies": [
     "@astrojs/alpinejs",

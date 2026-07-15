@@ -3,7 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@client/api/players', () => ({
   provision: vi.fn(),
   ProvisionError: class ProvisionError extends Error {
-    code = 'UNAUTHORIZED';
+    constructor(
+      public readonly code: string,
+      message: string,
+    ) {
+      super(message);
+      this.name = 'ProvisionError';
+    }
   },
 }));
 vi.mock('@client/auth/client', () => ({
@@ -16,7 +22,37 @@ vi.mock('@client/auth/client', () => ({
 
 import { provision } from '@client/api/players';
 import { authClient } from '@client/auth/client';
-import { loginForm, type LoginFormContext } from './login.data';
+import {
+  loginForm,
+  mapProvisionError,
+  mapSignInError,
+  type LoginFormContext,
+} from './login.data';
+import { ProvisionError } from '@client/api/players';
+
+describe('mapSignInError', () => {
+  it('maps invalid credentials', () => {
+    expect(mapSignInError(new Error('Invalid credentials'))).toBe(
+      'Email or password is incorrect.',
+    );
+  });
+
+  it('maps network errors', () => {
+    expect(mapSignInError(new Error('fetch failed'))).toBe(
+      'Could not reach the server. Try again.',
+    );
+  });
+});
+
+describe('mapProvisionError', () => {
+  it('maps provision forbidden', () => {
+    expect(
+      mapProvisionError(
+        new ProvisionError('UNAUTHORIZED', 'Authentication required'),
+      ),
+    ).toBe('Account setup failed. Contact support.');
+  });
+});
 
 describe('loginForm.submit', () => {
   beforeEach(() => {
