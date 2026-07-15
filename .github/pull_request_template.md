@@ -7,7 +7,7 @@ docs/architecture/099-engineering-workflow-and-decision-framework.md
 
 ## Summary
 
-<!-- What changed and why, in 2-4 sentences. Link the spec / plan / ADR if one exists. -->
+<!-- What changed and why, in 2-4 sentences. Link the spec / plan / DECISIONS.md entry if one exists. -->
 
 ## Changes
 
@@ -42,7 +42,7 @@ docs/architecture/099-engineering-workflow-and-decision-framework.md
 - [ ] Completed gameplay remains immutable (corrections create new records)
 - [ ] Statistics remain derived — no persisted stats
 - [ ] Documentation updated (context map, `DECISIONS.md`, affected docs)
-- [ ] An ADR was added if an architectural decision was made
+- [ ] A DECISIONS.md entry was added if an architectural decision was made
 
 ## Notes
 
