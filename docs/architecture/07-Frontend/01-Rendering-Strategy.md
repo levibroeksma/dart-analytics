@@ -81,7 +81,7 @@ Protected routes are prerendered **shells**. The shell itself carries no domain 
 - The `middleware.ts` redirect-to-`/login` behavior is retained for on-demand routes and is a **UX nicety** for authenticated navigation (e.g. avoiding a flash of an unauthenticated shell for routes that do go through the Worker) — it is **not** a security control for prerendered routes and must not be relied on as one.
 - `app/wrangler.jsonc` is unchanged with respect to `run_worker_first` (still unset) as a direct consequence of this decision.
 
-Full rationale: `DECISIONS.md` D97. Probe evidence: `.superpowers/sdd/p6-task-1-report.md`.
+Full rationale: `DECISIONS.md` D97.
 
 ---
 
