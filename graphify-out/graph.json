@@ -5147,7 +5147,7 @@
       "label": "Current Implementation State",
       "file_type": "document",
       "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L139",
+      "source_location": "L140",
       "_origin": "ast",
       "id": "docs_architecture_00_context_map_current_implementation_state",
       "community": 42,
@@ -5158,7 +5158,7 @@
       "label": "Maintenance Protocol",
       "file_type": "document",
       "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L155",
+      "source_location": "L157",
       "_origin": "ast",
       "id": "docs_architecture_00_context_map_maintenance_protocol",
       "community": 42,
@@ -23267,7 +23267,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0,
       "source": "docs_architecture_00_context_map",
       "target": "docs_architecture_00_context_map_current_implementation_state",
@@ -23287,7 +23287,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/00-Context-Map.md",
-      "source_location": "L155",
+      "source_location": "L157",
       "weight": 1.0,
       "source": "docs_architecture_00_context_map",
       "target": "docs_architecture_00_context_map_maintenance_protocol",
@@ -34805,5 +34805,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "719c805ef57eeb675a24ef9c1b24e91545d11871"
+  "built_at_commit": "4c8c1d2b31365106bcb4f791c966bf54d82e45c8"
 }

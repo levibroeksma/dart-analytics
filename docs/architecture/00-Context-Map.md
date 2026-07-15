@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-14
+updated: 2026-07-15
 -->
 
 # Context Map
 
-> **Version:** 1.6.0 (2026-07-14 — repository restructure: docs/ + database/ + root ledger)
+> **Version:** 1.6.1 (2026-07-15 — DB connection contract reversal (D95), prerender/middleware public-by-design (D97), root README registered)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -127,6 +127,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `DECISIONS.md` | One-line ledger of every architectural decision | canonical |
+| `README.md` | Repo orientation: project summary, folder layout, getting started (2026-07-14) | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
@@ -146,9 +147,10 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; `01`/`02` frozen at 1.0.0, `03`→1.2.0 (@-alias + recursive type-raising barrels) (2026-07-13); hardening amendments `00`→1.3.0, `03`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Frontend docs | Handbook 0.1.0 (`01`–`05`, `10`) + overview 0.3.1 — prerender-default, Alpine factory, auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions (2026-07-14) |
-| Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; CLI + hooks documented in root/app `CLAUDE.md` (2026-07-14) |
-| Application code | Early scaffold in `app/` (auth middleware, player provisioning) |
+| Frontend docs | Handbook 0.1.0 (`01`–`05`, `10`) + overview 0.3.1 — prerender-default, Alpine factory, auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15) |
+| Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |
+| DB connection contract | `DATABASE_URL` = pooled (tooling), `DATABASE_URL_UNPOOLED` = direct (Worker runtime); `DATABASE_URL_POOLED` retired — user-verified against real `neonctl link` output (D95, 2026-07-15) |
+| Application code | Auth middleware with route-class 401/403 handling, frozen envelope/error helpers, player provisioning (D76) complete; scaffold otherwise early |
 
 ---
 
