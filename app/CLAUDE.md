@@ -54,14 +54,13 @@ Full documentation: https://docs.astro.build
 
 ## Validation Standard Procedure (sole definition)
 
-Run this sequence for `app/` changes before claiming completion:
+Run for `app/` changes before claiming completion:
 
-1. `npm run db:status`
-2. `npm run db:migrate`
-3. `drizzle-kit introspect`
-4. `npx fallow`
-5. `astro check`
-6. `bash scripts/refresh-graph.sh` — refresh the knowledge graph; stage `graphify-out/graph.json` (AST-only, no cost)
+```
+npm run validate:app
+```
+
+This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `astro check` → `bash scripts/refresh-graph.sh` (graph refresh warns instead of failing when the graphify CLI is absent — record that warning in the completion report). Stage `graphify-out/graph.json` when it changed. Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`. (2026-07-14)
 
 ## Forbidden
 
