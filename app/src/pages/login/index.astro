@@ -1,0 +1,50 @@
+---
+export const prerender = true;
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Input from '@components/forms/Input.astro';
+import Button from '@components/forms/Button.astro';
+---
+
+<BaseLayout>
+  <div class="app-shell">
+    <main class="app-main flex flex-col justify-center p-6">
+      <div class="surface mx-auto w-full max-w-md space-y-6 p-6">
+        <div class="space-y-1">
+          <h1 class="text-2xl font-semibold text-fg">Sign in</h1>
+          <p class="text-sm text-fg-muted">
+            Sign in to track your darts progression.
+          </p>
+        </div>
+
+        <form x-data="loginForm()" @submit.prevent="submit" class="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            autocomplete="email"
+            x-model="email"
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            x-model="password"
+            required
+          />
+          <p
+            x-show="error"
+            x-text="error"
+            class="text-sm text-destructive"
+            role="alert"
+          ></p>
+          <Button type="submit" variant="primary" class="w-full" :disabled="loading">
+            <span x-show="!loading">Sign in</span>
+            <span x-show="loading">Signing in…</span>
+          </Button>
+        </form>
+      </div>
+    </main>
+  </div>
+</BaseLayout>
