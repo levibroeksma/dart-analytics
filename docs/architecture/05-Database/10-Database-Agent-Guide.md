@@ -265,10 +265,4 @@ configuration_templates → exercise_configurations → exercise_session
 
 # Application Validation Procedure
 
-For DB-related work that touches `app/` integration:
-
-1. `npm run db:status`
-2. `npm run db:migrate`
-3. `drizzle-kit introspect`
-4. `npx fallow`
-5. `astro check`
+For DB-related work that touches `app/` integration, run the Validation Standard Procedure: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-- 2026-07-14 -->
