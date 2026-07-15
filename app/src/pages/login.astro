@@ -7,16 +7,17 @@ const signInUrl = `${env.auth.baseUrl}/sign-in`;
 ---
 
 <BaseLayout title="Login">
-  <main class="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center gap-4 p-6">
-    <h1 class="text-2xl font-semibold">Sign in</h1>
-    <p class="text-sm text-neutral-600">
-      Authenticate with Neon Auth to access your profile.
-    </p>
-    <a
-      class="inline-flex items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-white"
-      href={signInUrl}
-    >
-      Continue to Neon Auth
-    </a>
-  </main>
+  <div class="app-shell">
+    <main class="app-main flex flex-col justify-center p-6">
+      <div class="mx-auto w-full max-w-md space-y-4">
+        <h1 class="text-2xl font-semibold text-fg">Sign in</h1>
+        <p class="text-sm text-fg-muted">
+          Authenticate with Neon Auth to access your profile.
+        </p>
+        <a class="btn btn-primary w-full" href={signInUrl}>
+          Continue to Neon Auth
+        </a>
+      </div>
+    </main>
+  </div>
 </BaseLayout>
