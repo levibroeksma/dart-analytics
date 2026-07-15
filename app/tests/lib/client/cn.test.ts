@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cn } from './cn';
+import { cn } from '@client/cn';
 
 describe('cn', () => {
   it('merges conflicting tailwind classes', () => {
