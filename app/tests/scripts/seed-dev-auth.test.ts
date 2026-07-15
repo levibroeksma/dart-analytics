@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isAlreadyExistsError } from './seed-dev-auth';
+import { isAlreadyExistsError } from '../../scripts/seed-dev-auth';
 
 describe('isAlreadyExistsError', () => {
   it('detects existing user messages', () => {
