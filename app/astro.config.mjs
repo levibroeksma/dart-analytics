@@ -12,7 +12,7 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
-  integrations: [alpinejs()],
+  integrations: [alpinejs({ entrypoint: '/src/lib/client/alpine/app.factory' })],
   adapter: cloudflare(),
   server: {
     port: 4321,

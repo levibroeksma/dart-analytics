@@ -1,0 +1,36 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@client/auth/client', () => ({
+  authClient: {
+    getSession: vi.fn(),
+    signIn: { email: vi.fn() },
+  },
+}));
+
+import { authClient } from '@client/auth/client';
+import { authStore } from './auth.store';
+
+describe('authStore.signIn', () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it('sets authenticated on success', async () => {
+    vi.mocked(authClient.signIn.email).mockResolvedValue({
+      data: {},
+      error: null,
+    });
+    const store = authStore();
+    await store.signIn('a@b.nl', 'secret');
+    expect(store.status).toBe('authenticated');
+  });
+
+  it('throws on SDK error', async () => {
+    vi.mocked(authClient.signIn.email).mockResolvedValue({
+      data: null,
+      error: { message: 'Invalid credentials' },
+    });
+    const store = authStore();
+    await expect(store.signIn('a@b.nl', 'wrong')).rejects.toThrow(
+      'Invalid credentials',
+    );
+  });
+});
