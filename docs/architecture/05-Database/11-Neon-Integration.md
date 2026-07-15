@@ -119,16 +119,8 @@ Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:d
 
 Execution runs from `app/` via `package.json` scripts using `DATABASE_URL_POOLED`.
 
-Standard workflow:
-
-```sh
-npm run db:status
-npm run db:migrate
-npm run db:seed
-drizzle-kit introspect
-npx fallow
-astro check
-```
+Provision a fresh branch: `npm run db:migrate && npm run db:seed`.
+Validate changes: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-- 2026-07-14 -->
 
 See also [`../../../database/README.md`](../../../database/README.md).
 

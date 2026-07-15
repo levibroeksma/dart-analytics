@@ -720,16 +720,7 @@ DBMATE_MIGRATIONS_DIR=../database/migrations
 DBMATE_SCHEMA_FILE=../database/schema.sql
 ```
 
-Standard validation sequence:
-
-```
-npm run db:status
-npm run db:migrate
-npm run db:seed
-drizzle-kit introspect
-npx fallow
-astro check
-```
+Standard validation: `npm run validate:app` (sole definition: `app/CLAUDE.md`). Seeding is a provisioning step, not validation — `npm run db:seed` runs when creating or resetting an environment (see `11-Neon-Integration.md`). <!-- 2026-07-14 -->
 
 ---
 
