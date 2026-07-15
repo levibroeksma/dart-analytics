@@ -593,8 +593,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "app_package_dependencies_astrojs_cloudflare",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 39,
+      "community_name": "0008_indexes.sql",
       "norm_label": "@astrojs/cloudflare"
     },
     {
@@ -604,8 +604,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "astrojs_cloudflare",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 39,
+      "community_name": "0008_indexes.sql",
       "norm_label": "@astrojs/cloudflare"
     },
     {
@@ -615,8 +615,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "app_package_dependencies_astrojs_ts_plugin",
-      "community": 134,
-      "community_name": "Review 12 \u2014 Statistics Reliability",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "@astrojs/ts-plugin"
     },
     {
@@ -626,8 +626,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "astrojs_ts_plugin",
-      "community": 134,
-      "community_name": "Review 12 \u2014 Statistics Reliability",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "@astrojs/ts-plugin"
     },
     {
@@ -703,8 +703,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_package_dependencies_tailwindcss_vite",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 135,
+      "community_name": "Section 1 \u2014 Neon Project Topology",
       "norm_label": "@tailwindcss/vite"
     },
     {
@@ -714,8 +714,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "tailwindcss_vite",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 135,
+      "community_name": "Section 1 \u2014 Neon Project Topology",
       "norm_label": "@tailwindcss/vite"
     },
     {
@@ -725,8 +725,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "app_package_dependencies_types_alpinejs",
-      "community": 139,
-      "community_name": "package.json",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "@types/alpinejs"
     },
     {
@@ -736,8 +736,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "types_alpinejs",
-      "community": 139,
-      "community_name": "package.json",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "@types/alpinejs"
     },
     {
@@ -791,8 +791,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_package_dependencies_drizzle_orm",
-      "community": 135,
-      "community_name": "Section 1 \u2014 Neon Project Topology",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "drizzle-orm"
     },
     {
@@ -802,8 +802,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "drizzle_orm",
-      "community": 135,
-      "community_name": "Section 1 \u2014 Neon Project Topology",
+      "community": 27,
+      "community_name": "check-context-map.sh",
       "norm_label": "drizzle-orm"
     },
     {
@@ -813,8 +813,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_package_dependencies_jose",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 134,
+      "community_name": "Review 12 \u2014 Statistics Reliability",
       "norm_label": "jose"
     },
     {
@@ -824,8 +824,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "jose",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 134,
+      "community_name": "Review 12 \u2014 Statistics Reliability",
       "norm_label": "jose"
     },
     {
@@ -879,8 +879,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "app_package_dependencies_typescript",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 139,
+      "community_name": "package.json",
       "norm_label": "typescript"
     },
     {
@@ -890,8 +890,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "typescript",
-      "community": 27,
-      "community_name": "check-context-map.sh",
+      "community": 139,
+      "community_name": "package.json",
       "norm_label": "typescript"
     },
     {
@@ -917,10 +917,32 @@
       "norm_label": "wrangler"
     },
     {
+      "label": "zod",
+      "file_type": "code",
+      "source_file": "app/package.json",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "app_package_dependencies_zod",
+      "community": 27,
+      "community_name": "check-context-map.sh",
+      "norm_label": "zod"
+    },
+    {
+      "label": "zod",
+      "file_type": "concept",
+      "source_file": "app/package.json",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "zod",
+      "community": 27,
+      "community_name": "check-context-map.sh",
+      "norm_label": "zod"
+    },
+    {
       "label": "devDependencies",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L41",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "app_package_devdependencies",
       "community": 47,
@@ -931,7 +953,7 @@
       "label": "@types/node",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "app_package_devdependencies_types_node",
       "community": 47,
@@ -942,7 +964,7 @@
       "label": "@types/node",
       "file_type": "concept",
       "source_file": "app/package.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "types_node",
       "community": 47,
@@ -953,7 +975,7 @@
       "label": "dbmate",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L43",
+      "source_location": "L44",
       "_origin": "ast",
       "id": "app_package_devdependencies_dbmate",
       "community": 47,
@@ -964,7 +986,7 @@
       "label": "dbmate",
       "file_type": "concept",
       "source_file": "app/package.json",
-      "source_location": "L43",
+      "source_location": "L44",
       "_origin": "ast",
       "id": "dbmate",
       "community": 47,
@@ -975,7 +997,7 @@
       "label": "drizzle-kit",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "app_package_devdependencies_drizzle_kit",
       "community": 47,
@@ -986,7 +1008,7 @@
       "label": "drizzle-kit",
       "file_type": "concept",
       "source_file": "app/package.json",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "drizzle_kit",
       "community": 47,
@@ -997,7 +1019,7 @@
       "label": "postgres",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "app_package_devdependencies_postgres",
       "community": 47,
@@ -1008,7 +1030,7 @@
       "label": "postgres",
       "file_type": "concept",
       "source_file": "app/package.json",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "postgres",
       "community": 47,
@@ -1019,7 +1041,7 @@
       "label": "tsx",
       "file_type": "code",
       "source_file": "app/package.json",
-      "source_location": "L46",
+      "source_location": "L47",
       "_origin": "ast",
       "id": "app_package_devdependencies_tsx",
       "community": 47,
@@ -1030,7 +1052,7 @@
       "label": "tsx",
       "file_type": "concept",
       "source_file": "app/package.json",
-      "source_location": "L46",
+      "source_location": "L47",
       "_origin": "ast",
       "id": "tsx",
       "community": 47,
@@ -1564,8 +1586,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_db_schema_gamefeatures",
-      "community": 13,
-      "community_name": "helper.js",
+      "community": 11,
+      "community_name": "Agent Rules \u2014 `app/`",
       "norm_label": "gamefeatures"
     },
     {
@@ -1608,8 +1630,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_db_schema_inputmodes",
-      "community": 13,
-      "community_name": "helper.js",
+      "community": 11,
+      "community_name": "Agent Rules \u2014 `app/`",
       "norm_label": "inputmodes"
     },
     {
@@ -1652,8 +1674,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "app_src_db_schema_players",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 13,
+      "community_name": "helper.js",
       "norm_label": "players"
     },
     {
@@ -1707,8 +1729,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "app_src_db_schema_exercisesessions",
-      "community": 11,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 13,
+      "community_name": "helper.js",
       "norm_label": "exercisesessions"
     },
     {
@@ -1806,8 +1828,8 @@
       "source_location": "L431",
       "_origin": "ast",
       "id": "app_src_db_schema_configurationtemplates",
-      "community": 11,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 13,
+      "community_name": "helper.js",
       "norm_label": "configurationtemplates"
     },
     {
@@ -1817,8 +1839,8 @@
       "source_location": "L459",
       "_origin": "ast",
       "id": "app_src_db_schema_sessionwriteidempotency",
-      "community": 13,
-      "community_name": "helper.js",
+      "community": 11,
+      "community_name": "Agent Rules \u2014 `app/`",
       "norm_label": "sessionwriteidempotency"
     },
     {
@@ -1828,8 +1850,8 @@
       "source_location": "L476",
       "_origin": "ast",
       "id": "app_src_db_schema_gametypefeatures",
-      "community": 11,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 13,
+      "community_name": "helper.js",
       "norm_label": "gametypefeatures"
     },
     {
@@ -1924,7 +1946,7 @@
       "label": "App",
       "file_type": "code",
       "source_file": "app/src/env.d.ts",
-      "source_location": "L8",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_env_d_app",
       "community": 101,
@@ -1935,7 +1957,7 @@
       "label": "Locals",
       "file_type": "code",
       "source_file": "app/src/env.d.ts",
-      "source_location": "L9",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_env_d_locals",
       "community": 101,
@@ -2025,7 +2047,7 @@
       "label": "verifyBearerToken()",
       "file_type": "code",
       "source_file": "app/src/lib/auth/verify-jwt.ts",
-      "source_location": "L13",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_verifybearertoken",
       "community": 36,
@@ -2061,8 +2083,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_id",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "id.ts"
     },
     {
@@ -2072,8 +2094,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_id_generateid",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "generateid()"
     },
     {
@@ -2083,9 +2105,86 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "docref_rfc_9562",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "rfc-9562"
+    },
+    {
+      "label": "envelope.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_server_envelope",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "envelope.ts"
+    },
+    {
+      "label": "JSON_HEADERS",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "app_src_lib_server_envelope_json_headers",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "json_headers"
+    },
+    {
+      "label": "ok()",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "app_src_lib_server_envelope_ok",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "ok()"
+    },
+    {
+      "label": "fail()",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "app_src_lib_server_envelope_fail",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "fail()"
+    },
+    {
+      "label": "errors.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/errors.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_server_errors",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "errors.ts"
+    },
+    {
+      "label": "ERROR_HTTP",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/errors.ts",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "app_src_lib_server_errors_error_http",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "error_http"
+    },
+    {
+      "label": "ErrorCode",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/errors.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "app_src_lib_server_errors_errorcode",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "errorcode"
     },
     {
       "label": "middleware.ts",
@@ -2099,21 +2198,43 @@
       "norm_label": "middleware.ts"
     },
     {
-      "label": "JSON_HEADERS",
+      "label": "PUBLIC_PAGES",
       "file_type": "code",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L7",
+      "source_location": "L9",
       "_origin": "ast",
-      "id": "app_src_middleware_json_headers",
+      "id": "app_src_middleware_public_pages",
       "community": 36,
       "community_name": "drizzle.config.ts",
-      "norm_label": "json_headers"
+      "norm_label": "public_pages"
+    },
+    {
+      "label": "RouteClass",
+      "file_type": "code",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "app_src_middleware_routeclass",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "routeclass"
+    },
+    {
+      "label": "classify()",
+      "file_type": "code",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "app_src_middleware_classify",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "classify()"
     },
     {
       "label": "onRequest()",
       "file_type": "code",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L9",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_middleware_onrequest",
       "community": 36,
@@ -2127,30 +2248,30 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "provision.ts"
     },
     {
-      "label": "JSON_HEADERS",
+      "label": "ProvisionPlayerRequest",
       "file_type": "code",
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L4",
+      "source_location": "L7",
       "_origin": "ast",
-      "id": "app_src_pages_api_players_provision_json_headers",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
-      "norm_label": "json_headers"
+      "id": "app_src_pages_api_players_provision_provisionplayerrequest",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
+      "norm_label": "provisionplayerrequest"
     },
     {
       "label": "POST()",
       "file_type": "code",
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L6",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "post()"
     },
     {
@@ -2226,8 +2347,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "player.repository.ts"
     },
     {
@@ -2237,8 +2358,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_db",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "db"
     },
     {
@@ -2248,8 +2369,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_provisionedplayer",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "provisionedplayer"
     },
     {
@@ -2259,8 +2380,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_upsertplayerbyauthuserid",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "upsertplayerbyauthuserid()"
     },
     {
@@ -2270,19 +2391,19 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_player_service",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "player.service.ts"
     },
     {
       "label": "provisionPlayer()",
       "file_type": "code",
       "source_file": "app/src/services/player.service.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_services_player_service_provisionplayer",
-      "community": 39,
-      "community_name": "0008_indexes.sql",
+      "community": 36,
+      "community_name": "drizzle.config.ts",
       "norm_label": "provisionplayer()"
     },
     {
@@ -4479,8 +4600,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_claude",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "claude.md"
     },
     {
@@ -4490,8 +4611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_claude_agent_rules_app",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "agent rules \u2014 `app/`"
     },
     {
@@ -4501,8 +4622,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_claude_development",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "development"
     },
     {
@@ -4512,8 +4633,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_claude_knowledge_graph_graphify",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "knowledge graph (graphify)"
     },
     {
@@ -4523,8 +4644,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_claude_astro_documentation",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "astro documentation"
     },
     {
@@ -4534,8 +4655,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_claude_non_negotiable_rules",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "non-negotiable rules"
     },
     {
@@ -4545,8 +4666,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "app_claude_validation_standard_procedure_sole_definition",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "validation standard procedure (sole definition)"
     },
     {
@@ -4556,8 +4677,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "app_claude_forbidden",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "forbidden"
     },
     {
@@ -4567,8 +4688,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "app_claude_frontend_rules",
-      "community": 167,
-      "community_name": "Agent Rules \u2014 `app/`",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "frontend rules"
     },
     {
@@ -4721,8 +4842,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "database_claude",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "claude.md"
     },
     {
@@ -4732,8 +4853,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "database_claude_agent_rules_database",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "agent rules \u2014 `database/`"
     },
     {
@@ -4743,8 +4864,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "database_claude_hard_constraints",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "hard constraints"
     },
     {
@@ -4754,8 +4875,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "database_claude_validation_checklist",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "validation checklist"
     },
     {
@@ -4765,8 +4886,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "database_readme",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "readme.md"
     },
     {
@@ -4776,8 +4897,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "database_readme_database_sql_artifacts",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "database sql artifacts"
     },
     {
@@ -4787,8 +4908,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "database_readme_structure",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "structure"
     },
     {
@@ -4798,8 +4919,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "database_readme_execution_model",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "execution model"
     },
     {
@@ -4809,8 +4930,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "database_readme_standard_local_flow",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "standard local flow"
     },
     {
@@ -4820,8 +4941,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "database_readme_seed_order",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "seed order"
     },
     {
@@ -4831,8 +4952,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "database_readme_references",
-      "community": 169,
-      "community_name": "Database SQL Artifacts",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "references"
     },
     {
@@ -15204,8 +15325,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_architecture_05_database_11_neon_integration",
-      "community": 168,
-      "community_name": "README.md",
+      "community": 9,
+      "community_name": "0002_reference_tables.sql",
       "norm_label": "11-neon-integration.md"
     },
     {
@@ -18322,7 +18443,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0,
       "source": "app_package",
       "target": "app_package_devdependencies",
@@ -18679,6 +18800,16 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/package.json",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "app_package_dependencies",
+      "target": "app_package_dependencies_zod",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
@@ -18866,13 +18997,14 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "contains",
+      "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L43",
+      "source_location": "L40",
       "weight": 1.0,
-      "source": "app_package_devdependencies",
-      "target": "app_package_devdependencies_dbmate",
+      "context": "import",
+      "source": "app_package_dependencies_zod",
+      "target": "zod",
       "confidence_score": 1.0
     },
     {
@@ -18882,7 +19014,7 @@
       "source_location": "L44",
       "weight": 1.0,
       "source": "app_package_devdependencies",
-      "target": "app_package_devdependencies_drizzle_kit",
+      "target": "app_package_devdependencies_dbmate",
       "confidence_score": 1.0
     },
     {
@@ -18892,7 +19024,7 @@
       "source_location": "L45",
       "weight": 1.0,
       "source": "app_package_devdependencies",
-      "target": "app_package_devdependencies_postgres",
+      "target": "app_package_devdependencies_drizzle_kit",
       "confidence_score": 1.0
     },
     {
@@ -18902,6 +19034,16 @@
       "source_location": "L46",
       "weight": 1.0,
       "source": "app_package_devdependencies",
+      "target": "app_package_devdependencies_postgres",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/package.json",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "app_package_devdependencies",
       "target": "app_package_devdependencies_tsx",
       "confidence_score": 1.0
     },
@@ -18909,7 +19051,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_package_devdependencies",
       "target": "app_package_devdependencies_types_node",
@@ -18919,7 +19061,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "context": "import",
       "source": "app_package_devdependencies_types_node",
@@ -18930,7 +19072,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0,
       "context": "import",
       "source": "app_package_devdependencies_dbmate",
@@ -18941,7 +19083,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L44",
+      "source_location": "L45",
       "weight": 1.0,
       "context": "import",
       "source": "app_package_devdependencies_drizzle_kit",
@@ -18952,7 +19094,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "context": "import",
       "source": "app_package_devdependencies_postgres",
@@ -18963,7 +19105,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "app/package.json",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0,
       "context": "import",
       "source": "app_package_devdependencies_tsx",
@@ -19228,7 +19370,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L17",
+      "source_location": "L39",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_db_client_getdb"
@@ -19261,7 +19403,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/player.service.ts",
-      "source_location": "L14",
+      "source_location": "L16",
       "weight": 1.0,
       "source": "app_src_services_player_service_provisionplayer",
       "target": "app_src_db_client_getdb"
@@ -20170,7 +20312,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/env.d.ts",
-      "source_location": "L8",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "app_src_env_d",
       "target": "app_src_env_d_app",
@@ -20190,7 +20332,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/env.d.ts",
-      "source_location": "L9",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_env_d",
       "target": "app_src_env_d_locals",
@@ -20206,32 +20348,44 @@
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/index.astro",
+      "source_location": "L3",
+      "weight": 1.0,
       "source": "app_src_pages_games_index",
       "target": "app_src_layouts_applayout",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/index.astro",
+      "source_location": "L3",
+      "weight": 1.0,
       "source": "app_src_pages_index",
       "target": "app_src_layouts_applayout",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/profile/index.astro",
+      "source_location": "L3",
+      "weight": 1.0,
       "source": "app_src_pages_profile_index",
       "target": "app_src_layouts_applayout",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/statistics/index.astro",
+      "source_location": "L3",
+      "weight": 1.0,
       "source": "app_src_pages_statistics_index",
       "target": "app_src_layouts_applayout",
       "confidence_score": 1.0
@@ -20254,8 +20408,11 @@
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/login.astro",
+      "source_location": "L3",
+      "weight": 1.0,
       "source": "app_src_pages_login",
       "target": "app_src_layouts_baselayout",
       "confidence_score": 1.0
@@ -20284,7 +20441,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/auth/verify-jwt.ts",
-      "source_location": "L13",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_src_lib_auth_verify_jwt",
       "target": "app_src_lib_auth_verify_jwt_verifybearertoken",
@@ -20340,7 +20497,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L12",
+      "source_location": "L28",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_lib_auth_verify_jwt_verifybearertoken"
@@ -20360,7 +20517,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/login.astro",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_pages_login",
       "target": "app_src_lib_env",
@@ -20371,7 +20528,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/login.astro",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_pages_login",
       "target": "app_src_lib_env_env",
@@ -20425,7 +20582,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/player.service.ts",
-      "source_location": "L15",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_src_services_player_service_provisionplayer",
       "target": "app_src_lib_id_generateid"
@@ -20433,11 +20590,192 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_envelope_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_envelope_json_headers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_envelope_ok",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_errors",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_errors_error_http",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/envelope.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_server_envelope",
+      "target": "app_src_lib_server_errors_errorcode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_middleware",
-      "target": "app_src_middleware_json_headers",
+      "target": "app_src_lib_server_envelope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision",
+      "target": "app_src_lib_server_envelope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision",
+      "target": "app_src_lib_server_envelope_ok",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision_post",
+      "target": "app_src_lib_server_envelope_ok"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_lib_server_envelope_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "app_src_middleware_onrequest",
+      "target": "app_src_lib_server_envelope_fail"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision",
+      "target": "app_src_lib_server_envelope_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision_post",
+      "target": "app_src_lib_server_envelope_fail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/errors.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_server_errors",
+      "target": "app_src_lib_server_errors_error_http",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/errors.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_src_lib_server_errors",
+      "target": "app_src_lib_server_errors_errorcode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_classify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_onrequest",
       "confidence_score": 1.0
     },
     {
@@ -20447,27 +20785,59 @@
       "source_location": "L9",
       "weight": 1.0,
       "source": "app_src_middleware",
-      "target": "app_src_middleware_onrequest",
+      "target": "app_src_middleware_public_pages",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L4",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L12",
       "weight": 1.0,
-      "source": "app_src_pages_api_players_provision",
-      "target": "app_src_pages_api_players_provision_json_headers",
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_routeclass",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_src_middleware_classify",
+      "target": "app_src_middleware_public_pages"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "app_src_middleware_onrequest",
+      "target": "app_src_middleware_classify",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L6",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_pages_api_players_provision",
       "target": "app_src_pages_api_players_provision_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision",
+      "target": "app_src_pages_api_players_provision_provisionplayerrequest",
       "confidence_score": 1.0
     },
     {
@@ -20475,7 +20845,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L2",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_pages_api_players_provision",
       "target": "app_src_services_player_service",
@@ -20486,11 +20856,22 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L2",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_pages_api_players_provision",
       "target": "app_src_services_player_service_provisionplayer",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/pages/api/players/provision.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "app_src_pages_api_players_provision_post",
+      "target": "app_src_pages_api_players_provision_provisionplayerrequest"
     },
     {
       "relation": "calls",
@@ -20498,7 +20879,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/pages/api/players/provision.ts",
-      "source_location": "L23",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_pages_api_players_provision_post",
       "target": "app_src_services_player_service_provisionplayer"
@@ -20558,7 +20939,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/player.repository.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_src_repositories_player_repository_upsertplayerbyauthuserid",
       "target": "app_src_repositories_player_repository_db"
@@ -20591,7 +20972,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/player.service.ts",
-      "source_location": "L15",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_src_services_player_service_provisionplayer",
       "target": "app_src_repositories_player_repository_upsertplayerbyauthuserid"
@@ -20600,7 +20981,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/player.service.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "app_src_services_player_service",
       "target": "app_src_services_player_service_provisionplayer",
@@ -34392,5 +34773,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4e368cf84bdaef316c203d1f8e0a88748205c4c8"
+  "built_at_commit": "28af08f3e240db2faafe5012ed38002872fecdd9"
 }
