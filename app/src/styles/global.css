@@ -89,6 +89,10 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
+  [x-cloak] {
+    display: none !important;
+  }
+
   /* Force dark regardless of OS light mode — no toggle */
   @media (prefers-color-scheme: light) {
     html {
