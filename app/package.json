@@ -15,7 +15,7 @@
     "db:status": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations status",
     "db:migrate": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations up",
     "db:seed": "tsx scripts/seed.ts",
-    "seed:dev-auth": "tsx scripts/seed-dev-auth.ts",
+    "seed:dev-auth": "tsx --env-file=.env scripts/seed-dev-auth.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
     "smoke": "tsx scripts/smoke.ts",
     "test": "vitest run",
