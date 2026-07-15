@@ -17,7 +17,9 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
     "smoke": "tsx scripts/smoke.ts",
-    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && astro check && bash ../scripts/refresh-graph.sh"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && astro check && bash ../scripts/refresh-graph.sh"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^1.0.0",
@@ -43,6 +45,7 @@
     "dbmate": "^2.33.0",
     "drizzle-kit": "^0.31.10",
     "postgres": "^3.4.9",
-    "tsx": "^4.23.0"
+    "tsx": "^4.23.0",
+    "vitest": "^4.1.10"
   }
 }
