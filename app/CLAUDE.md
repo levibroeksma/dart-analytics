@@ -64,9 +64,9 @@ Every `app/` behavior change follows **red → green → refactor**:
 
 Rules:
 
-- Colocate tests as `*.test.ts` beside the module under test (same folder).
+- Place tests under `app/tests/`, mirroring `app/src/`'s (and `app/scripts/`'s) directory structure — never colocated beside the module under test.
 - Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
-- `.astro` markup: extract testable class/variant maps to a colocated `.ts` helper when the component has branching logic; do not skip TDD by marking UI tasks "manual only".
+- `.astro` markup: keep variant/branching logic inline in the component's own frontmatter. This logic is not unit-tested — there is no Astro-component test runner in this project — so do not extract a separate helper file solely to make it testable (D101).
 - Do not commit production code without its failing test written first (except greenfield scaffold commits that only add test infrastructure).
 
 Framework: **Vitest** (`vitest.config.ts` at `app/` root). Commands: `npm test` (CI), `npm run test:watch` (local).

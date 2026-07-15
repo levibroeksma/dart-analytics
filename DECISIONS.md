@@ -105,6 +105,7 @@ updated: 2026-07-15
 | D98 | 2026-07-15 | Client auth gate in `BaseLayout` (`auth.store` `init()` + `x-cloak`) is the load-bearing navigation control for prerendered routes (D97); middleware redirect remains a UX nicety for on-demand routes only | Prerendered shells bypass middleware on this Cloudflare config — client gate prevents nav chrome flash |
 | D99 | 2026-07-15 | Mandatory TDD for all `app/` behavior: Vitest, colocated `*.test.ts`, red→green→ refactor; `npm test` in `validate:app` | Prevents untested client auth and API wiring; sole procedure in `app/CLAUDE.md` |
 | D100 | 2026-07-15 | Alpine v3 shorthand mandatory: `:attr` and `@event` instead of `x-bind:*` / `x-on:*`; `x-on:*` only inside Astro `{}` when linter rejects `@` | Consistent templates; matches Alpine 3 defaults |
+| D101 | 2026-07-15 | Reverse D99's test-colocation clause and the Frontend Agent Guide's variant-extraction guidance: tests move to a mirrored `app/tests/` tree (never colocated); `.astro` variant/branching logic stays inline in frontmatter instead of an extracted testable `.ts` helper (e.g. former `button-variants.ts`), accepting the resulting loss of Vitest coverage for that logic | Mirrored test tree matches conventional test-layout expectations; a dedicated helper file solely to make trivial variant logic testable was judged not worth the indirection |
 
 ## Context & documentation system
 
