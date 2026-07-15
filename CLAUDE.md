@@ -43,7 +43,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
 - Never modify applied migrations (`0001`–`0016`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
-- Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks.
+- Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
 
 ---
@@ -58,6 +58,7 @@ The context system is part of every deliverable. Before claiming any task done:
 4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
 5. Run `scripts/check-context-map.sh` — it must pass.
 6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
+7. Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
 
 A change that leaves the context map, CLAUDE.md files, decision ledger, **or knowledge graph** stale is incomplete, even if the code works.
 
