@@ -62,3 +62,20 @@ export const BatchWriteResponse = z.object({
   created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
 });
 export type BatchWriteResponseData = z.infer<typeof BatchWriteResponse>;
+
+export const UpdateSessionRequest = z.object({
+  status: z.string(),
+  completedAt: z.string().datetime().optional(),
+});
+export type UpdateSessionRequestInput = z.infer<typeof UpdateSessionRequest>;
+
+export const SessionActive = z.object({
+  sessionId: z.string(),
+  gameTypeKey: z.string(),
+  gameTypeName: z.string(),
+  captureModeKey: z.string(),
+  inputModeKey: z.string(),
+  rulesetVersionKey: z.string(),
+  startedAt: z.string().datetime(),
+});
+export type SessionActiveData = z.infer<typeof SessionActive>;
