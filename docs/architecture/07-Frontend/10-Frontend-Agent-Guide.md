@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-15
+updated: 2026-07-16
 -->
 
 # Frontend Agent Guide
