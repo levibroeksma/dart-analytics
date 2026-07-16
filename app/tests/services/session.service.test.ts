@@ -194,6 +194,13 @@ describe('appendBatch', () => {
     expect(result).toMatchObject({ ok: false, code: 'BATCH_INCONSISTENT_ORDERING' });
   });
 
+  it('returns VALIDATION_FAILED for an unknown stageTypeKey', async () => {
+    const batch = sampleBatch();
+    batch.stages[0].stageTypeKey = 'NOT_A_STAGE_TYPE';
+    const result = await appendBatch('player-1', 'session-1', 'idem-1', batch);
+    expect(result).toMatchObject({ ok: false, code: 'VALIDATION_FAILED' });
+  });
+
   it('rejects a batch the ruleset validator rejects (dart rows present)', async () => {
     const result = await appendBatch(
       'player-1',

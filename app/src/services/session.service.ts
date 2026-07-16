@@ -203,16 +203,17 @@ export async function appendBatch(
     return { ok: false, code: "VALIDATION_FAILED", details: { reason: `unknown dart zone key: ${unresolvedZoneKey}` } };
   }
 
-  const insertStages = batch.stages.map((stage) => {
-    const stageTypeId = stageTypeIdMap.get(stage.stageTypeKey);
-    if (!stageTypeId) throw new Error(`unknown stageTypeKey: ${stage.stageTypeKey}`);
-    return {
-      id: stageIds.get(stage.clientKey)!,
-      parentStageId: stage.parentClientKey ? stageIds.get(stage.parentClientKey)! : null,
-      stageTypeId,
-      sequenceNumber: stage.sequence,
-    };
-  });
+  const unresolvedStageTypeKey = batch.stages.find((stage) => !stageTypeIdMap.has(stage.stageTypeKey))?.stageTypeKey;
+  if (unresolvedStageTypeKey) {
+    return { ok: false, code: "VALIDATION_FAILED", details: { reason: `unknown stageTypeKey: ${unresolvedStageTypeKey}` } };
+  }
+
+  const insertStages = batch.stages.map((stage) => ({
+    id: stageIds.get(stage.clientKey)!,
+    parentStageId: stage.parentClientKey ? stageIds.get(stage.parentClientKey)! : null,
+    stageTypeId: stageTypeIdMap.get(stage.stageTypeKey)!,
+    sequenceNumber: stage.sequence,
+  }));
 
   const insertTurns = batch.stages.flatMap((stage) =>
     stage.turns.map((turn) => ({
