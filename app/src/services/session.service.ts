@@ -2,16 +2,24 @@ import { getDb } from "@db/client";
 import { generateId } from "@lib/id";
 import { getRulesetValidator } from "./rulesets/registry";
 import {
+  countTurnsForSession,
   findCaptureModeId,
   findConfigurationTemplate,
+  findDartZoneIdMap,
   findGameStatusId,
   findGameTypeAndRuleset,
+  findIdempotencyRecord,
   findInputModeId,
   findParticipantTypeId,
   findPlayerDisplayName,
+  findSessionConfiguration,
+  findSessionParticipantIds,
+  findSessionRow,
+  findStageTypeIdMap,
+  insertBatchRecords,
   insertSessionRecords,
 } from "@repositories/session.repository";
-import type { CreateSessionRequestInput } from "@routes/types";
+import type { CreateSessionRequestInput, EventsBatchRequestInput } from "@routes/types";
 import type { ErrorCode } from "@server/errors";
 
 export type ServiceResult<T> =
@@ -93,4 +101,147 @@ export async function createSession(
     ok: true,
     data: { sessionId, participants: [{ ref: participantId, participantTypeKey: "PLAYER", displayName }] },
   };
+}
+
+export type AppendBatchResult = { created: { stages: number; turns: number; darts: number } };
+
+export function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => [k, canonicalize(v)]),
+    );
+  }
+  return value;
+}
+
+export async function hashBatchPayload(batch: EventsBatchRequestInput): Promise<string> {
+  const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(batch)));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function collectDartZoneKeys(batch: EventsBatchRequestInput): string[] {
+  const keys = new Set<string>();
+  for (const stage of batch.stages) {
+    for (const turn of stage.turns) {
+      for (const dart of turn.darts) {
+        if (dart.intendedZoneKey) keys.add(dart.intendedZoneKey);
+        keys.add(dart.hitZoneKey);
+      }
+    }
+  }
+  return [...keys];
+}
+
+export async function appendBatch(
+  playerId: string,
+  sessionId: string,
+  idempotencyKey: string,
+  batch: EventsBatchRequestInput,
+): Promise<ServiceResult<AppendBatchResult>> {
+  const db = getDb();
+
+  const session = await findSessionRow(db, sessionId);
+  if (!session) return { ok: false, code: "NOT_FOUND" };
+  if (session.playerId !== playerId) return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
+
+  const activeStatusId = await findGameStatusId(db, "ACTIVE");
+  if (session.statusId !== activeStatusId) return { ok: false, code: "SESSION_ALREADY_COMPLETED" };
+
+  const hash = await hashBatchPayload(batch);
+  const existingIdempotency = await findIdempotencyRecord(db, sessionId, idempotencyKey);
+  if (existingIdempotency) {
+    if (existingIdempotency.normalizedPayloadHash !== hash) {
+      return { ok: false, code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD" };
+    }
+    return { ok: true, data: existingIdempotency.result as AppendBatchResult };
+  }
+
+  const participantIds = await findSessionParticipantIds(db, sessionId);
+  const stageIds = new Map<string, string>();
+  for (const stage of batch.stages) stageIds.set(stage.clientKey, generateId());
+
+  for (const stage of batch.stages) {
+    if (stage.parentClientKey && !stageIds.has(stage.parentClientKey)) {
+      return { ok: false, code: "BATCH_REFERENCE_MISSING", details: { clientKey: stage.parentClientKey } };
+    }
+    for (const turn of stage.turns) {
+      if (!participantIds.includes(turn.participantRef)) {
+        return { ok: false, code: "BATCH_REFERENCE_MISSING", details: { participantRef: turn.participantRef } };
+      }
+    }
+  }
+
+  for (const stage of batch.stages) {
+    const seen = new Set<number>();
+    for (const turn of stage.turns) {
+      if (turn.sequence <= 0 || seen.has(turn.sequence)) {
+        return { ok: false, code: "BATCH_INCONSISTENT_ORDERING", details: { clientKey: turn.clientKey } };
+      }
+      seen.add(turn.sequence);
+    }
+  }
+
+  const config = await findSessionConfiguration(db, sessionId);
+  const validator = getRulesetValidator(session.rulesetVersionKey);
+  if (!validator || !config) return { ok: false, code: "INTERNAL_ERROR" };
+
+  const existingTurnCount = await countTurnsForSession(db, sessionId);
+  const batchValidation = validator.validateBatch({ config, batch, existingTurnCount });
+  if (!batchValidation.valid) {
+    return { ok: false, code: batchValidation.code, details: { issues: batchValidation.issues } };
+  }
+
+  const stageTypeIdMap = await findStageTypeIdMap(db);
+  const zoneKeys = collectDartZoneKeys(batch);
+  const zoneIdMap = zoneKeys.length > 0 ? await findDartZoneIdMap(db) : new Map<string, number>();
+  const unresolvedZoneKey = zoneKeys.find((k) => !zoneIdMap.has(k));
+  if (unresolvedZoneKey) {
+    return { ok: false, code: "VALIDATION_FAILED", details: { reason: `unknown dart zone key: ${unresolvedZoneKey}` } };
+  }
+
+  const insertStages = batch.stages.map((stage) => {
+    const stageTypeId = stageTypeIdMap.get(stage.stageTypeKey);
+    if (!stageTypeId) throw new Error(`unknown stageTypeKey: ${stage.stageTypeKey}`);
+    return {
+      id: stageIds.get(stage.clientKey)!,
+      parentStageId: stage.parentClientKey ? stageIds.get(stage.parentClientKey)! : null,
+      stageTypeId,
+      sequenceNumber: stage.sequence,
+    };
+  });
+
+  const insertTurns = batch.stages.flatMap((stage) =>
+    stage.turns.map((turn) => ({
+      id: generateId(),
+      stageId: stageIds.get(stage.clientKey)!,
+      participantId: turn.participantRef,
+      sequenceNumber: turn.sequence,
+      totalScore: turn.totalScore,
+      completedAt: turn.completedAt,
+      darts: turn.darts.map((dart) => ({
+        id: generateId(),
+        dartNumber: dart.sequence,
+        intendedTargetNumber: dart.intendedTargetNumber,
+        intendedZoneId: dart.intendedZoneKey ? zoneIdMap.get(dart.intendedZoneKey)! : null,
+        hitTargetNumber: dart.hitTargetNumber,
+        hitZoneId: zoneIdMap.get(dart.hitZoneKey)!,
+        score: dart.score,
+      })),
+    })),
+  );
+
+  const result = await insertBatchRecords({
+    sessionId,
+    idempotencyRecordId: generateId(),
+    idempotencyKey,
+    normalizedPayloadHash: hash,
+    stages: insertStages,
+    turns: insertTurns,
+  });
+
+  return { ok: true, data: { created: result } };
 }
