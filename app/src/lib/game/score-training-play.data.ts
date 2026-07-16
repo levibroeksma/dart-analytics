@@ -17,6 +17,7 @@ export type ScoreTrainingPlayContext = {
   visitInput: string;
   error: string;
   finished: boolean;
+  hasActiveSession: boolean;
   $store: { game: GameStoreLike };
   engine: ScoreTrainingEngine | null;
   init(this: ScoreTrainingPlayContext): Promise<void>;
@@ -28,6 +29,7 @@ export function scoreTrainingPlay() {
     visitInput: "",
     error: "",
     finished: false,
+    hasActiveSession: false,
     engine: null as ScoreTrainingEngine | null,
 
     /**
@@ -47,15 +49,21 @@ export function scoreTrainingPlay() {
       }
 
       const config = this.$store.game.configSnapshot;
-      if (!config) return;
+      if (!config) {
+        this.hasActiveSession = false;
+        return;
+      }
       this.engine = new ScoreTrainingEngine({
         durationType: config.durationType,
         durationValue: config.durationValue,
         maxDartsPerTurn: config.maxDartsPerTurn,
       });
+      this.hasActiveSession = true;
     },
 
     async submitVisit(this: ScoreTrainingPlayContext) {
+      if (!this.engine) return;
+
       const score = Number(this.visitInput);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
         this.error = "Enter a score between 0 and 180.";

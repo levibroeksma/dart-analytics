@@ -14,7 +14,14 @@ import Input from "@components/forms/Input.astro";
       </div>
     </template>
 
-    <template x-if="!finished">
+    <template x-if="!finished && !hasActiveSession">
+      <div>
+        <p class="text-fg">No active session — start a new one.</p>
+        <a class="btn-primary mt-4 inline-block" href="/games/score-training/setup">Start a new session</a>
+      </div>
+    </template>
+
+    <template x-if="!finished && hasActiveSession">
       <form @submit.prevent="submitVisit()">
         <p class="text-sm text-fg-muted" x-text="`Visit ${$store.game.turns.length + 1}`"></p>
         <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />

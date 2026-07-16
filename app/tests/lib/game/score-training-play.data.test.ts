@@ -79,4 +79,16 @@ describe('scoreTrainingPlay', () => {
     await component.init.call(component);
     expect(completeSession).toHaveBeenCalledWith('s1', 'ABANDONED');
   });
+
+  it('sets hasActiveSession to false and does not crash on submitVisit when no session matches', async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+    const store = gameStub({ sessionId: null, configSnapshot: null });
+    const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '45' };
+    await component.init.call(component);
+    expect(component.hasActiveSession).toBe(false);
+
+    await expect(component.submitVisit.call(component)).resolves.not.toThrow();
+    expect(appendBatch).not.toHaveBeenCalled();
+    expect(completeSession).not.toHaveBeenCalled();
+  });
 });
