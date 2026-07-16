@@ -1,6 +1,6 @@
 # Agent Rules — `docs/`
 
-Scope: all documentation under `docs/` (foundation docs, database handbook, API/frontend docs; `docs/superpowers/` is historical). Global rules, authority order, and context packs live in `docs/architecture/00-Context-Map.md` — not repeated here. SQL migration/seed rules live in `database/CLAUDE.md`. (2026-07-14)
+Scope: all documentation under `docs/` (foundation docs, database handbook, API/frontend docs; `docs/superpowers/` is historical, `docs/game-rules/` is non-canonical pre-spec source material — see `docs/game-rules/README.md`). Global rules, authority order, and context packs live in `docs/architecture/00-Context-Map.md` — not repeated here. SQL migration/seed rules live in `database/CLAUDE.md`. (2026-07-14)
 
 ## Editing Workflow
 

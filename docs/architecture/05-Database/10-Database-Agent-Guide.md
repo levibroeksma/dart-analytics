@@ -188,6 +188,8 @@ Current seeds:
 
 ## Add a new game type
 
+Optional input: `docs/game-rules/rulesets/<game>.md` — a human-authored, non-canonical description of how the game is played, if one exists. Translate it into the steps below via a `brainstorming` session; it is not itself part of this procedure's output.
+
 1. Seed row in `game_types` (UUID + implementation_key)
 2. Seed feature mappings in `game_type_features`
 3. Seed `ruleset_versions` row

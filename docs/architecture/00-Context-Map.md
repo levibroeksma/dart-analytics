@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Context Map
 
-> **Version:** 1.6.4 (2026-07-16 — style guide doc D108)
+> **Version:** 1.6.5 (2026-07-16 — docs/game-rules/ wiring D109)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -38,6 +38,8 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~6k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
+
+For "New game type" tasks, also check `docs/game-rules/rulesets/<game>.md` if a raw ruleset note exists for that game — optional human-authored input, not part of the fixed budget above. See "Non-Canonical Source Material" below.
 
 ---
 
@@ -138,6 +140,12 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `graphify-out/graph.json` | Committed AST-only knowledge graph (generated; queried, not hand-edited) | generated |
+
+---
+
+# Non-Canonical Source Material
+
+`docs/game-rules/` holds raw, pre-spec, human-authored game/routine/trivia rule descriptions — entry point `docs/game-rules/README.md` (2026-07-16). This tree is deliberately **not** registered in the File Inventory above and carries no `status:` front-matter requirement: `scripts/check-context-map.sh` only enforces those rules for `docs/architecture/` and `database/`. See `docs/game-rules/README.md` for the per-subfolder translation targets.
 
 ---
 

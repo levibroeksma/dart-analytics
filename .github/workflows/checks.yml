@@ -15,6 +15,8 @@ jobs:
         run: bash scripts/check-context-map.sh
       - name: File-location gate
         run: bash scripts/check-file-locations.sh
+      - name: AGENT.md mirror gate
+        run: bash scripts/check-agent-mirrors.sh
 
   app:
     runs-on: ubuntu-latest
