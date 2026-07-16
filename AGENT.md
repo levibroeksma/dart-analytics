@@ -57,7 +57,7 @@ The context system is part of every deliverable. Before claiming any task done:
 2. Register new, moved, renamed, or deleted docs in `00-Context-Map.md` in the same change.
 3. Record new architectural decisions as one-line entries in `DECISIONS.md`.
 4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
-5. Run `scripts/check-context-map.sh` — it must pass.
+5. Run `scripts/check-context-map.sh` and `scripts/check-file-locations.sh` — both must pass.
 6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
 7. Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
 

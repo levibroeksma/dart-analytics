@@ -7,12 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  context-map:
+  structure:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Context-map consistency
         run: bash scripts/check-context-map.sh
+      - name: File-location gate
+        run: bash scripts/check-file-locations.sh
 
   app:
     runs-on: ubuntu-latest
