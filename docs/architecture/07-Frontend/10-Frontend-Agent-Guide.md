@@ -110,6 +110,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 # Forbidden
 
 - Frontend `controllers/` folder
+- `.ts` files directly under `components/` or `pages/` (except `pages/api/**`) — no exceptions, mechanically enforced by `scripts/check-file-locations.sh`
 - `x-init`
 - `x-bind:*` and `x-on:*` when Alpine v3 shorthand (`:attr`, `@event`) applies
 - `x-data` without `()`

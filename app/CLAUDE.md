@@ -98,7 +98,7 @@ For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend
 
 Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms.
 
-**TypeScript file organization:** All `.ts` files in `app/src/lib/` (except stores/forms, which live at `stores/`, `forms/`):
+**TypeScript file organization:** No `.ts` file lives directly under `components/` or `pages/` — except `pages/api/**` (Worker route handlers) — regardless of single- or multi-consumer use; mechanically enforced by `scripts/check-file-locations.sh`. All other `.ts` files live in `app/src/lib/` (except stores/forms, which live at `stores/`, `forms/`):
 - Auth-related: `lib/auth/` (e.g., `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias
 - Domain-specific: organize by domain folder (e.g., `lib/game/`, `lib/players/`) — imported via `@lib/<domain>/`
 - Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`

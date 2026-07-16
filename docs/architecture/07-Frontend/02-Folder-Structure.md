@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Frontend Folder Structure
 
-> **Version:** 0.2.0 (types/ relocated into pages/api/, two-barrel rule, 2026-07-16)
+> **Version:** 0.2.1 (zero-exception .ts file-location rule, 2026-07-16)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -54,8 +54,7 @@ app/src/
 ├── styles/                          # @styles — global.css, Tailwind layers
 ├── pages/
 │   └── <route>/
-│       ├── index.astro
-│       └── <route>.data.ts          # optional colocated Alpine.data factory
+│       └── index.astro
 ├── layouts/
 ├── middleware.ts
 ├── services/                        # Worker only — orchestration
@@ -136,11 +135,10 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 
 | Scope | Location |
 | ----- | -------- |
-| Auth-related data factories | `lib/auth/` (e.g. `login.data.ts`, `logout.data.ts`) |
-| Domain-specific data factories | `lib/<domain>/` if shared, else colocate under `pages/<route>/` |
-| Stores, forms, modules (multi-page use) | `stores/`, `forms/`, `modules/`, or `components/` |
+| Any `.ts` logic used by a page/component | `lib/<domain>/` — always, even single-route (e.g. `lib/auth/login.data.ts`) |
+| Used by 2+ routes, warrants store/form/module semantics | `stores/`, `forms/`, `modules/` |
 
-**Agent rule:** auth-related `.data.ts` files always live in `lib/auth/`. For other files, if imported from more than one page, promote it out of `pages/`.
+**Agent rule:** no `.ts` file ever lives directly under `components/` or `pages/` — except `pages/api/**` — regardless of single- or multi-consumer use. `<domain>` uses the same vocabulary as `modules/<domain>/` and `stores/<domain>.store.ts` (e.g. `auth`, future `game`, `players`) — never a route or component-folder name.
 
 ---
 
