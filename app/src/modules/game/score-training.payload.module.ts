@@ -1,4 +1,4 @@
-import type { EventsBatchRequestInput } from "@routes/types";
+import type { EventsBatchRequestInput } from "@client/api/types";
 import type { RecordedVisit } from "./score-training.engine.module";
 
 export function buildEventsBatch(participantRef: string, turns: RecordedVisit[]): EventsBatchRequestInput {
