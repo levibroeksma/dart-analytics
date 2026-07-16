@@ -8,7 +8,7 @@ export const ERROR_HTTP = {
   BATCH_INCONSISTENT_ORDERING: { status: 422, message: "Batch event ordering is inconsistent", retryable: false },
   BATCH_REFERENCE_MISSING: { status: 422, message: "Batch payload references a missing element", retryable: false },
   NOT_FOUND: { status: 404, message: "Resource not found", retryable: false },
-  VALIDATION_FAILED: { status: 400, message: "Request validation failed", retryable: false },
+  VALIDATION_FAILED: { status: 422, message: "Request validation failed", retryable: false },
   INVALID_STATUS_TRANSITION: { status: 409, message: "Invalid session status transition", retryable: false },
   SERVICE_UNAVAILABLE: { status: 503, message: "Service temporarily unavailable", retryable: true },
   INTERNAL_ERROR: { status: 500, message: "Internal error", retryable: false },
