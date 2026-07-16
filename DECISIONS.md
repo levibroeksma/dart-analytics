@@ -110,6 +110,7 @@ updated: 2026-07-15
 | D104 | 2026-07-16 | Frontend test strategy formalized: new `06-Test-Strategy.md`, shared-mock convention (`tests/mocks/` + `setupFiles`), full-suite-always-runs completion policy | `authClient` was mocked twice with inconsistent shapes; codified the promotion threshold before it recurs |
 | D105 | 2026-07-16 | Zero-exception rule: no `.ts` under `components/`/`pages/` except `pages/api/**`; `lib/<domain>/` always, named after `modules/`/`stores/` domain vocabulary; mechanically enforced via `scripts/check-file-locations.sh` (local + CI) | Prior colocation escape hatch relied on discipline alone, not enforcement |
 | D106 | 2026-07-16 | Centralized client-side error-message mapping (`lib/client/errors.ts`) keyed by the shared `ErrorCode` type; replaces ad hoc per-page mapping functions | `login.data.ts`'s local `mapSignInError`/`mapProvisionError` conflated two distinct error surfaces and weren't reusable |
+| D108 | 2026-07-16 | Canonical style guide introduced (`07-Frontend/07-Style-Guide.md`) documenting the dark-only token/primitive/typography/motion contract already implemented in `global.css`; audit fixed three `font-medium` violations (`.btn`/`.badge`/`.nav-item` → `font-semibold`), added `--color-accent-muted` (`.badge-accent` had been borrowing `success-muted`), and replaced `NavBtn.astro`'s manual class-merge with `cn()` | Token/primitive system existed only as unregistered tribal knowledge in one CSS file; writing the canonical doc surfaced concrete, fixable drift |
 
 ## Context & documentation system
 
