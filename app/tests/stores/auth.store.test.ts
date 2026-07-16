@@ -1,13 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('@client/auth/client', () => ({
-  authClient: {
-    getSession: vi.fn(),
-    signIn: { email: vi.fn() },
-    signOut: vi.fn(),
-  },
-}));
-
 import { authClient } from '@client/auth/client';
 import { authStore } from '@stores/auth.store';
 

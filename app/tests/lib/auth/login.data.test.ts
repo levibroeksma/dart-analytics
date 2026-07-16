@@ -12,13 +12,6 @@ vi.mock('@client/api/players', () => ({
     }
   },
 }));
-vi.mock('@client/auth/client', () => ({
-  authClient: {
-    getSession: vi
-      .fn()
-      .mockResolvedValue({ data: { user: { name: 'Levi' }, session: {} } }),
-  },
-}));
 
 import { provision } from '@client/api/players';
 import { authClient } from '@client/auth/client';
