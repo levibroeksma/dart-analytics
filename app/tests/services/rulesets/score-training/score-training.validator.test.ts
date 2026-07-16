@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { scoreTrainingValidator } from '@services/rulesets/score-training/score-training.validator';
+import type { DartFactInput } from '@routes/sessions/types';
 
 const validConfig = { duration_type: 'ROUNDS', duration_value: 10, max_darts_per_turn: 3 };
 
@@ -49,7 +50,7 @@ describe('scoreTrainingValidator.validateBatch', () => {
             sequence: i + 1,
             totalScore,
             completedAt: null,
-            darts: [],
+            darts: [] as DartFactInput[],
           })),
         },
       ],

@@ -30,6 +30,7 @@ vi.mock('@repositories/session.repository', async (importOriginal) => {
 
 import * as repo from '@repositories/session.repository';
 import { appendBatch, canonicalize, hashBatchPayload, createSession, updateSessionStatus, listActiveSessions, listConfigurationPresets } from '@services/session.service';
+import type { DartFactInput } from '@routes/sessions/types';
 
 const inlineRequest = {
   gameTypeKey: 'SCORE_TRAINING',
@@ -98,7 +99,7 @@ describe('createSession', () => {
   });
 });
 
-function sampleBatch(overrides: Partial<{ participantRef: string; darts: unknown[] }> = {}) {
+function sampleBatch(overrides: Partial<{ participantRef: string; darts: DartFactInput[] }> = {}) {
   return {
     stages: [
       {

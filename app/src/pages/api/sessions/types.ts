@@ -25,3 +25,40 @@ export const CreateSessionResponse = z.object({
   participants: z.array(ParticipantRef),
 });
 export type CreateSessionResponseData = z.infer<typeof CreateSessionResponse>;
+
+export const DartFact = z.object({
+  sequence: z.number().int(),
+  intendedTargetNumber: z.number().int().nullable(),
+  intendedZoneKey: z.string().nullable(),
+  hitTargetNumber: z.number().int().nullable(),
+  hitZoneKey: z.string(),
+  score: z.number().int(),
+});
+
+export const TurnFact = z.object({
+  clientKey: z.string(),
+  participantRef: z.string(),
+  sequence: z.number().int(),
+  totalScore: z.number().int(),
+  completedAt: z.string().datetime().nullable(),
+  darts: z.array(DartFact),
+});
+
+export const StageFact = z.object({
+  clientKey: z.string(),
+  stageTypeKey: z.string(),
+  parentClientKey: z.string().nullable(),
+  sequence: z.number().int(),
+  turns: z.array(TurnFact),
+});
+
+export const EventsBatchRequest = z.object({ stages: z.array(StageFact) });
+export type EventsBatchRequestInput = z.infer<typeof EventsBatchRequest>;
+export type StageFactInput = z.infer<typeof StageFact>;
+export type TurnFactInput = z.infer<typeof TurnFact>;
+export type DartFactInput = z.infer<typeof DartFact>;
+
+export const BatchWriteResponse = z.object({
+  created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
+});
+export type BatchWriteResponseData = z.infer<typeof BatchWriteResponse>;
