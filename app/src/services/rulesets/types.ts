@@ -9,3 +9,5 @@ export type BatchValidationResult =
       code: "VALIDATION_FAILED" | "BATCH_INCONSISTENT_ORDERING" | "BATCH_REFERENCE_MISSING";
       issues?: unknown;
     };
+
+export * from "./score-training/types";
