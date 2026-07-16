@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-15
+updated: 2026-07-16
 -->
 
 # Frontend Agent Guide
@@ -60,31 +60,36 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 - **Prerender-default:** `export const prerender = true` on app pages unless SSR opt-in list applies
 - Classify new routes **public** (`/login` only in v1) or **protected** in `01-Rendering-Strategy.md`
 
-## 5. Import direction
+## 5. File organization
+
+- **Auth-related `.data.ts` files:** always live in `lib/auth/` (e.g. `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias
+- **Other `.ts` files in `lib/`:** organize by domain (e.g. `lib/game/`, `lib/players/`) — no top-level loose files
+
+## 6. Import direction
 
 ```
-pages / *.data.ts / forms  →  @client/api
+pages / forms              →  @client/api
 stores                     →  @client/api (recovery bootstrap only)
 modules/*                  →  never @client/api, never Alpine
 ```
 
-## 6. `$persist`
+## 7. `$persist`
 
 Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91).
 
-## 7. Recovery
+## 8. Recovery
 
 Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred). A completed session whose upload fails is held in the `outbox` store and retried with the same `Idempotency-Key` until confirmed (D90) — never dropped. See `03-Alpine-Patterns.md`.
 
-## 8. Types
+## 9. Types
 
 Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
-## 9. Components (`.astro`)
+## 10. Components (`.astro`)
 
 Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
 
-## 10. Test-driven development
+## 11. Test-driven development
 
 Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definition):
 
@@ -98,12 +103,14 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 - Mock `@client/auth` and `fetch` in client/API tests — no live Neon calls.
 - Stores, `@client/api/*`, `@utils/*`, Zod schemas: always unit-tested.
 - `.astro` components with variant/branching logic: keep it inline in the component's own frontmatter (D101). This logic is untested — no Astro-component test runner exists in this project — accept that rather than extracting a helper solely for testability.
+- Shared-mock promotion threshold and full-suite-always-runs policy: `06-Test-Strategy.md`.
 
 ---
 
 # Forbidden
 
 - Frontend `controllers/` folder
+- `.ts` files directly under `components/` or `pages/` (except `pages/api/**`) — no exceptions, mechanically enforced by `scripts/check-file-locations.sh`
 - `x-init`
 - `x-bind:*` and `x-on:*` when Alpine v3 shorthand (`:attr`, `@event`) applies
 - `x-data` without `()`
@@ -141,3 +148,4 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 | `02-Folder-Structure.md` | Tree, aliases |
 | `03-Alpine-Patterns.md` | Alpine factory |
 | `04-Modules-And-OOP.md` | Modules, portable UI |
+| `06-Test-Strategy.md` | Shared mocks, full-suite policy |

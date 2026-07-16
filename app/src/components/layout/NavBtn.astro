@@ -8,7 +8,7 @@ interface Props {
 
 const { href, label, matchPrefix, class: classNameProp }: Props = Astro.props;
 
-import { isNavActive } from "@utils/is-nav-active";
+import { isNavActive } from "@lib/utils/is-nav-active";
 
 const active = isNavActive(Astro.url.pathname, href, matchPrefix);
 const className = [

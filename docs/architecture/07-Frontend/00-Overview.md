@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-14
+updated: 2026-07-16
 -->
 
 # Frontend Overview
 
-> **Version:** 0.3.1
+> **Version:** 0.3.2 (centralized error mapping, types/ relocation, 2026-07-16)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -192,7 +192,7 @@ This pattern keeps first paint fast while respecting the API as the only data ga
 
 # Client Structure
 
-Browser code uses `@client/` (API client, auth, Alpine factory), top-level `stores/`, `forms/`, `modules/`, and `types/`. Full tree, aliases, and suffix rules: `02-Folder-Structure.md`.
+Browser code uses `@client/` (API client, auth, Alpine factory), top-level `stores/`, `forms/`, `modules/`. Shared API contract types live at `@client/api/types` (re-raised from the Worker's `@routes/types`). Full tree, aliases, and suffix rules: `02-Folder-Structure.md`.
 
 > **v1 note:** statistics API endpoints are deferred post-v1 (see `../06-API/00-Overview.md`). The `/statistics` route is a placeholder shell only — no stats API calls until view-backed endpoints ship. <!-- 2026-07-14 -->
 
@@ -204,7 +204,7 @@ Server-side response helpers live in `lib/server/` — `@client/api/` is browser
 | ------- | ----------------------- | ----------- |
 | Attach Bearer token | Yes | Never |
 | Parse ok/error envelope | Yes | — |
-| Map domain codes to UI messages | Optional helper | Yes |
+| Map domain codes to UI messages | `lib/client/errors.ts` (`getErrorMessage`) — mandatory, single mechanism | Calls it, never re-implements |
 | Retry logic | Yes (retryable only) | — |
 | Business logic | Never | Never |
 

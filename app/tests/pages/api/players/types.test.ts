@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ProvisionPlayerRequest, ProvisionPlayerResponse } from '../../../src/types/api/players';
+import { ProvisionPlayerRequest, ProvisionPlayerResponse } from '@routes/types';
 
 describe('ProvisionPlayerRequest', () => {
   it('accepts empty object', () => {

@@ -1,12 +1,7 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
-import { provisionPlayer } from "../../../services/player.service";
-import { ok, fail } from "../../../lib/server/envelope";
-
-/** Frozen contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Player Provisioning. */
-const ProvisionPlayerRequest = z.object({
-  displayName: z.string().min(1).optional(),
-});
+import { ProvisionPlayerRequest } from "./types";
+import { provisionPlayer } from "@services/player.service";
+import { ok, fail } from "@server/envelope";
 
 /**
  * Parses a raw request body into an `unknown` JSON value.

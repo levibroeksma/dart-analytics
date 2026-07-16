@@ -2,12 +2,12 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-13
+updated: 2026-07-16
 -->
 
 # API Shared Conventions
 
-> **Version:** 1.3.0 (frozen v1; barrel-raising chain defined 2026-07-13)
+> **Version:** 1.4.0 (two-barrel + interfaces.ts raising chain, 2026-07-16)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -140,6 +140,7 @@ stable path — `@<area>/types` — regardless of how deep the type is defined.
 - A folder's `types.ts` only ever re-exports its own types plus its direct
   children's barrels — never a grandchild's path directly. Each level raises
   the level immediately below it.
+- An area-root `types.ts` may additionally re-export one genuinely cross-cutting type from a sibling area (not a child) when that type has no better-owned home — e.g. `pages/api/types.ts` re-exporting `ErrorCode` from `@server/errors`. This is the one deliberate exception to "never reaches past its direct children," used sparingly.
 
 ```
 src/services/
@@ -165,13 +166,41 @@ import type { CreateSessionInput } from '@services/sessions/create/types';
 A type never travels through a deeper import path than `@<area>/types`, and no
 barrel reaches past its direct children.
 
+### Two barrels at the Worker/browser boundary
+
+A type defined in a Worker-owned folder (`pages/api/`, `services/`, `repositories/`) that a
+browser consumer also needs is **not** imported directly from its Worker barrel by browser
+code. Instead, exactly one client-owned file re-raises it:
+
+```
+src/pages/api/players/types.ts   # Worker: defines ProvisionPlayerRequest, etc.
+src/pages/api/types.ts           # Worker: routes-area barrel (@routes/types)
+src/lib/client/api/types.ts      # Browser: re-exports what it needs (@client/api/types)
+```
+
+`lib/client/api/types.ts` is the **only** browser file with a legitimate `@routes/types`
+import. Every other browser consumer (`modules/`, `forms/`, future `.data.ts` files) imports
+from `@client/api/types` instead — the successor to the retired `@types/api` alias.
+
+### `interfaces.ts` barrels — a parallel, separate chain
+
+TS `interface` declarations are raised through their **own** `interfaces.ts` barrel file,
+following the identical mechanics as `types.ts` above (same folder-by-folder chain, same
+"raised only once consumed outside its defining file" scope), but never mixed into `types.ts`
+— a folder with both gets two barrels side by side. Reference example: `repositories/interfaces.ts`.
+
+Two standing exceptions, unaffected by this rule:
+- `.astro` component interfaces (e.g. `interface Props`) stay inline in the component's own
+  frontmatter (`../07-Frontend/05-Astro-Components.md`, D92).
+- `env.d.ts` is a TypeScript ambient global-augmentation file at an Astro/TS-required
+  well-known path, not a regular module — excluded entirely.
+
 ### Path aliases
 
 All imports go through `tsconfig.json` path aliases, `@`-prefixed by area
 (e.g. `@services/*`, `@repositories/*`, `@routes/*`, `@lib/*`, `@db/*`). Deep
 relative import chains (`../../../`) are forbidden. (Barrel type imports use
-the `@<area>/types` form above.) <!-- alias set is documented target; see
-02-Middleware-And-Layering.md for tsconfig realization status --> <!-- 2026-07-13 -->
+the `@<area>/types` form above.) <!-- alias set realized in app/tsconfig.json, 2026-07-16 -->
 
 ---
 

@@ -1,14 +1,9 @@
 import { sql } from "drizzle-orm";
-import { players } from "../db/schema";
-import type { getDb } from "../db/client";
+import { players } from "@db/schema";
+import type { getDb } from "@db/client";
+import type { ProvisionedPlayer } from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
-
-export interface ProvisionedPlayer {
-  playerId: string;
-  authUserId: string;
-  created: boolean;
-}
 
 /**
  * Creates or returns the player row for the given auth user id.

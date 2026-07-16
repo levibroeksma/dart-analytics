@@ -12,47 +12,10 @@ vi.mock('@client/api/players', () => ({
     }
   },
 }));
-vi.mock('@client/auth/client', () => ({
-  authClient: {
-    getSession: vi
-      .fn()
-      .mockResolvedValue({ data: { user: { name: 'Levi' }, session: {} } }),
-  },
-}));
 
 import { provision } from '@client/api/players';
 import { authClient } from '@client/auth/client';
-import {
-  loginForm,
-  mapProvisionError,
-  mapSignInError,
-  type LoginFormContext,
-} from '@pages/login/login.data';
-import { ProvisionError } from '@client/api/players';
-
-describe('mapSignInError', () => {
-  it('maps invalid credentials', () => {
-    expect(mapSignInError(new Error('Invalid credentials'))).toBe(
-      'Email or password is incorrect.',
-    );
-  });
-
-  it('maps network errors', () => {
-    expect(mapSignInError(new Error('fetch failed'))).toBe(
-      'Could not reach the server. Try again.',
-    );
-  });
-});
-
-describe('mapProvisionError', () => {
-  it('maps provision forbidden', () => {
-    expect(
-      mapProvisionError(
-        new ProvisionError('UNAUTHORIZED', 'Authentication required'),
-      ),
-    ).toBe('Account setup failed. Contact support.');
-  });
-});
+import { loginForm, type LoginFormContext } from '@auth/login.data';
 
 describe('loginForm.submit', () => {
   beforeEach(() => {
