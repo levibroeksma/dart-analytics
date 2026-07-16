@@ -29,7 +29,7 @@ Every `app/` behavior change follows red → green → refactor — see `app/CLA
 
 A module mocked identically by 2+ test files is promoted into `app/tests/mocks/<name>.mock.ts` as an exported factory function, wired once via `app/tests/setup.ts` (registered in `vitest.config.ts`'s `setupFiles`). Individual tests still override return values per-case with `vi.mocked(x).mockResolvedValue(...)` / `.mockRejectedValue(...)` in their own `beforeEach` — identical to today's per-test pattern, just without re-declaring the mock's *shape* in every file that needs it.
 
-**Promotion threshold:** 2+ test files mocking the same module (mirrors the `.data.ts` colocation-promotion threshold in `02-Folder-Structure.md`). A single-use mock (e.g. one test file mocking `@client/api/client`) stays local to that file — promoting it would be premature abstraction for a consumer count of one.
+**Promotion threshold:** 2+ test files mocking the same module. A single-use mock (e.g. one test file mocking `@client/api/client`) stays local to that file — promoting it would be premature abstraction for a consumer count of one.
 
 **Example:** `authClient` (`@client/auth/client`) was mocked twice with two different, inconsistent shapes across `auth.store.test.ts` and `login.data.test.ts` before this rule existed. It is the first mock promoted into `app/tests/mocks/auth-client.mock.ts`.
 

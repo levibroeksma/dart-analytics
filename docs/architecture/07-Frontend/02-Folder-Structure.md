@@ -145,7 +145,7 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 # Import Direction
 
 ```
-pages/*.astro / *.data.ts / forms  →  stores / @client/api
+pages/*.astro / forms              →  stores / @client/api
 stores                             →  modules / @client/api (recovery bootstrap only)
 modules/*                          →  @client/api/types, @utils — never @client/api, never Alpine
 @client/api                        →  never imports stores, forms, modules, pages
