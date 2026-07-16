@@ -1,14 +1,8 @@
 import { apiRequest } from './client';
 import { SessionApiError } from './sessions';
+import { type ConfigurationPresetData } from './types';
 
-export type ConfigurationPresetData = {
-  configurationTemplateId: string;
-  gameTypeKey: string;
-  name: string;
-  description: string | null;
-  configuration: Record<string, unknown>;
-  isSystemTemplate: boolean;
-};
+export type { ConfigurationPresetData };
 
 export async function fetchConfigurationPresets(gameTypeKey: string): Promise<ConfigurationPresetData[]> {
   const result = await apiRequest<ConfigurationPresetData[]>(

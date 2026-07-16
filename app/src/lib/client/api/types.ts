@@ -32,4 +32,5 @@ export {
   UpdateSessionRequest,
   type UpdateSessionRequestInput,
   type SessionActiveData,
+  type ConfigurationPresetData,
 } from '@routes/types';
