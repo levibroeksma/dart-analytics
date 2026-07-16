@@ -21,6 +21,7 @@ export default defineConfig({
       '@repositories': path.resolve(__dirname, './src/repositories'),
       '@db': path.resolve(__dirname, './src/db'),
       '@routes': path.resolve(__dirname, './src/pages/api'),
+      '@server': path.resolve(__dirname, './src/lib/server'),
     },
   },
 });

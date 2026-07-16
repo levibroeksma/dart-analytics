@@ -15,6 +15,12 @@ describe('getErrorMessage', () => {
     ).toBe('Service temporarily unavailable');
   });
 
+  it('maps a ProvisionError with code UNAUTHORIZED to account-setup copy, not sign-in copy', () => {
+    expect(
+      getErrorMessage(new ProvisionError('UNAUTHORIZED', 'Authentication required')),
+    ).toBe('Account setup failed. Contact support.');
+  });
+
   it('maps a credential-pattern SDK error message to UNAUTHORIZED copy', () => {
     expect(getErrorMessage(new Error('Invalid credentials'))).toBe(
       'Email or password is incorrect.',

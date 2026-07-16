@@ -140,6 +140,7 @@ stable path — `@<area>/types` — regardless of how deep the type is defined.
 - A folder's `types.ts` only ever re-exports its own types plus its direct
   children's barrels — never a grandchild's path directly. Each level raises
   the level immediately below it.
+- An area-root `types.ts` may additionally re-export one genuinely cross-cutting type from a sibling area (not a child) when that type has no better-owned home — e.g. `pages/api/types.ts` re-exporting `ErrorCode` from `@server/errors`. This is the one deliberate exception to "never reaches past its direct children," used sparingly.
 
 ```
 src/services/
