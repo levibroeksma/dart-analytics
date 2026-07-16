@@ -1,5 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { env } from "../env";
+import { env } from "@lib/env";
 
 const jwks = createRemoteJWKSet(new URL(env.auth.jwksUrl));
 

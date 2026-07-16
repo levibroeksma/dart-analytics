@@ -1,9 +1,7 @@
-import { getDb } from "../db/client";
-import { generateId } from "../lib/id";
-import {
-  upsertPlayerByAuthUserId,
-  type ProvisionedPlayer,
-} from "../repositories/player.repository";
+import { getDb } from "@db/client";
+import { generateId } from "@lib/id";
+import { upsertPlayerByAuthUserId } from "@repositories/player.repository";
+import type { ProvisionedPlayer } from "@repositories/interfaces";
 
 /**
  * Provisions an application player profile for the authenticated user.
