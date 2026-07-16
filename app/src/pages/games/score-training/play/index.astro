@@ -29,12 +29,14 @@ import Input from "@components/forms/Input.astro";
         <template x-if="$store.game.configSnapshot?.durationType === 'ROUNDS'">
           <p class="text-sm text-fg-muted" x-text="`Visit ${$store.game.turns.length + 1}`"></p>
         </template>
-        <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
+        <div x-show="!completionFailed">
+          <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
+        </div>
         <div class="mt-2" x-show="error">
           <p class="text-sm text-red-500" x-text="error"></p>
           <Button type="button" variant="secondary" class="mt-2" x-show="completionFailed" @click="retryCompletion()">Retry</Button>
         </div>
-        <Button type="submit" class="mt-4">Submit visit</Button>
+        <Button type="submit" class="mt-4" x-show="!completionFailed">Submit visit</Button>
       </form>
     </template>
 

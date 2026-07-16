@@ -285,5 +285,25 @@ describe('scoreTrainingPlay', () => {
       await component.retryCompletion.call(component);
       expect(store.turns).toHaveLength(turnCountBeforeRetry);
     });
+
+    it('submitVisit is inert while completionFailed is true — does not record a new turn or touch the store', async () => {
+      vi.mocked(appendBatch).mockRejectedValue(new Error('network blip'));
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1
+      component.visitInput = '30';
+      await component.submitVisit.call(component); // visit 2 — attempts completion, fails
+      expect(component.completionFailed).toBe(true);
+
+      vi.mocked(store.recordTurn).mockClear();
+      const turnCountBeforeAttempt = store.turns.length;
+      component.visitInput = '30';
+
+      await component.submitVisit.call(component); // should be a no-op
+
+      expect(store.recordTurn).not.toHaveBeenCalled();
+      expect(store.turns).toHaveLength(turnCountBeforeAttempt);
+    });
   });
 });

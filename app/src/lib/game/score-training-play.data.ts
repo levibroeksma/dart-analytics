@@ -136,6 +136,7 @@ export function scoreTrainingPlay() {
 
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine) return;
+      if (this.completionFailed) return;
 
       const score = Number(this.visitInput);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
