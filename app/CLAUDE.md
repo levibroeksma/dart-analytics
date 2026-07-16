@@ -71,6 +71,8 @@ Rules:
 
 Framework: **Vitest** (`vitest.config.ts` at `app/` root). Commands: `npm test` (CI), `npm run test:watch` (local).
 
+Ground rules beyond the command sequence above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
+
 ## Validation Standard Procedure (sole definition)
 
 Run for `app/` changes before claiming completion:

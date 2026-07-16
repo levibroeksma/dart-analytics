@@ -103,6 +103,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 - Mock `@client/auth` and `fetch` in client/API tests — no live Neon calls.
 - Stores, `@client/api/*`, `@utils/*`, Zod schemas: always unit-tested.
 - `.astro` components with variant/branching logic: keep it inline in the component's own frontmatter (D101). This logic is untested — no Astro-component test runner exists in this project — accept that rather than extracting a helper solely for testability.
+- Shared-mock promotion threshold and full-suite-always-runs policy: `06-Test-Strategy.md`.
 
 ---
 
@@ -146,3 +147,4 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 | `02-Folder-Structure.md` | Tree, aliases |
 | `03-Alpine-Patterns.md` | Alpine factory |
 | `04-Modules-And-OOP.md` | Modules, portable UI |
+| `06-Test-Strategy.md` | Shared mocks, full-suite policy |
