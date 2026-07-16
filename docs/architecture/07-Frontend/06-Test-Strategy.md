@@ -49,4 +49,4 @@ Pre-existing or out-of-scope failures are never silently dropped from a completi
 | -------- | ------- |
 | `app/CLAUDE.md` | TDD command procedure (sole definition) |
 | `10-Frontend-Agent-Guide.md` | Condensed agent rules, §11 cross-references this doc |
-| `02-Folder-Structure.md` | Colocation/promotion threshold this doc's mock rule mirrors |
+| `02-Folder-Structure.md` | Folder structure and file-location rules |
