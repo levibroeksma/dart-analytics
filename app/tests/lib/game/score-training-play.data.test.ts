@@ -6,15 +6,33 @@ vi.mock('@client/api/sessions', () => ({
   fetchActiveSessions: vi.fn(),
 }));
 
+const segmentTimerInstances: Array<{
+  options: Record<string, unknown>;
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+}> = [];
+
+vi.mock('@modules/ui/segment-timer.module', () => ({
+  SegmentTimer: vi.fn().mockImplementation(function (options: Record<string, unknown>) {
+    const instance = { options, start: vi.fn(), stop: vi.fn() };
+    segmentTimerInstances.push(instance);
+    return instance;
+  }),
+}));
+
 import { appendBatch, completeSession, fetchActiveSessions } from '@client/api/sessions';
+import { SegmentTimer } from '@modules/ui/segment-timer.module';
 import { scoreTrainingPlay } from '@lib/game/score-training-play.data';
 import type { RecordedTurn } from '@stores/game.store';
 
 type GameStub = {
   sessionId: string | null;
   participantRef: string | null;
-  configSnapshot: { durationType: 'ROUNDS'; durationValue: number; maxDartsPerTurn: number } | null;
+  configSnapshot: { durationType: 'ROUNDS' | 'MINUTES'; durationValue: number; maxDartsPerTurn: number } | null;
   turns: RecordedTurn[];
+  timerRemainingMs: number | null;
+  timerExpired: boolean;
+  idempotencyKey: string | null;
   recordTurn: (turn: RecordedTurn) => void;
   reset: () => void;
 };
@@ -25,6 +43,9 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
     participantRef: 'p1',
     configSnapshot: { durationType: 'ROUNDS' as const, durationValue: 2, maxDartsPerTurn: 3 },
     turns: [] as RecordedTurn[],
+    timerRemainingMs: null,
+    timerExpired: false,
+    idempotencyKey: null,
     recordTurn: vi.fn(function (this: { turns: RecordedTurn[] }, turn: RecordedTurn) {
       this.turns.push(turn);
     }),
@@ -36,6 +57,7 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
 describe('scoreTrainingPlay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { sessionId: 's1', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
     ]);
@@ -72,6 +94,28 @@ describe('scoreTrainingPlay', () => {
     expect(store.reset).toHaveBeenCalledTimes(1);
   });
 
+  it('D88: does not clear local state when the local session exists but is not the first SCORE_TRAINING session in the active list', async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { sessionId: 'other-session', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      { sessionId: 's1', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+    ]);
+    const store = gameStub({ sessionId: 's1' });
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    await component.init.call(component);
+    expect(store.reset).not.toHaveBeenCalled();
+    expect(component.hasActiveSession).toBe(true);
+  });
+
+  it('D88: clears local state when the local sessionId truly has no match in the active list, even if another SCORE_TRAINING session exists', async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { sessionId: 'other-session', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+    ]);
+    const store = gameStub({ sessionId: 's1' });
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    await component.init.call(component);
+    expect(store.reset).toHaveBeenCalledTimes(1);
+  });
+
   it('D88: abandons an orphaned server session with no local state', async () => {
     const store = gameStub({ sessionId: null, configSnapshot: null });
     vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'ABANDONED', completedAt: 'now' });
@@ -90,5 +134,156 @@ describe('scoreTrainingPlay', () => {
     await expect(component.submitVisit.call(component)).resolves.not.toThrow();
     expect(appendBatch).not.toHaveBeenCalled();
     expect(completeSession).not.toHaveBeenCalled();
+  });
+
+  describe('MINUTES duration mode timer wiring', () => {
+    it('instantiates and starts a SegmentTimer whose onComplete sets store.timerExpired', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(SegmentTimer).toHaveBeenCalledTimes(1);
+      const instance = segmentTimerInstances[0];
+      expect(instance.options.totalMinutes).toBe(15);
+      expect(instance.options.intervalMinutes).toBe(15);
+      expect(instance.start).toHaveBeenCalledTimes(1);
+
+      expect(store.timerExpired).toBe(false);
+      (instance.options.onComplete as () => void)();
+      expect(store.timerExpired).toBe(true);
+    });
+
+    it('updates store.timerRemainingMs from onTick (seconds -> ms)', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      const instance = segmentTimerInstances[0];
+      (instance.options.onTick as (s: number) => void)(59);
+      expect(store.timerRemainingMs).toBe(59000);
+    });
+
+    it('does not instantiate a SegmentTimer in ROUNDS mode', async () => {
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(SegmentTimer).not.toHaveBeenCalled();
+    });
+
+    it('destroy() stops the timer', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      const instance = segmentTimerInstances[0];
+      component.destroy.call(component);
+      expect(instance.stop).toHaveBeenCalledTimes(1);
+    });
+
+    it('destroy() does not throw when no timer was ever started (ROUNDS mode)', async () => {
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(() => component.destroy.call(component)).not.toThrow();
+    });
+  });
+
+  describe('resume: startingSequence continuity', () => {
+    it('passes the current persisted turn count as startingSequence so a resumed session does not collide sequences', async () => {
+      const existingTurns: RecordedTurn[] = [
+        { clientKey: 't1', sequence: 1, totalScore: 45, completedAt: 'x' },
+      ];
+      const store = gameStub({
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 3, maxDartsPerTurn: 3 },
+        turns: existingTurns,
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      const lastTurn = store.turns[store.turns.length - 1];
+      expect(lastTurn.sequence).toBe(2);
+    });
+  });
+
+  describe('completion error handling and retry', () => {
+    it('sets an error and does not reset the store when appendBatch fails, without recording extra turns', async () => {
+      vi.mocked(appendBatch).mockRejectedValue(new Error('network blip'));
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1
+      component.visitInput = '30';
+      await component.submitVisit.call(component); // visit 2 — attempts completion, fails
+
+      expect(appendBatch).toHaveBeenCalledTimes(1);
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(store.reset).not.toHaveBeenCalled();
+      expect(component.finished).toBe(false);
+      expect(component.error).not.toBe('');
+      expect(component.completionFailed).toBe(true);
+      expect(store.turns).toHaveLength(2);
+    });
+
+    it('generates the idempotency key once and reuses it on retry', async () => {
+      vi.mocked(appendBatch).mockRejectedValueOnce(new Error('network blip'));
+      vi.mocked(appendBatch).mockResolvedValueOnce({ created: { stages: 1, turns: 2, darts: 0 } });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1
+      component.visitInput = '30';
+      await component.submitVisit.call(component); // visit 2 — fails
+
+      const keyAfterFailure = store.idempotencyKey;
+      expect(keyAfterFailure).toBeTruthy();
+
+      await component.retryCompletion.call(component);
+
+      const firstCallKey = vi.mocked(appendBatch).mock.calls[0][1];
+      const secondCallKey = vi.mocked(appendBatch).mock.calls[1][1];
+      expect(firstCallKey).toBe(keyAfterFailure);
+      expect(secondCallKey).toBe(keyAfterFailure);
+      expect(completeSession).toHaveBeenCalledWith('s1', 'COMPLETED');
+      expect(store.reset).toHaveBeenCalledTimes(1);
+      expect(component.finished).toBe(true);
+    });
+
+    it('navigates to the results page with total/average/visits query params computed before the store is reset', async () => {
+      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 2, darts: 0 } });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1: 30
+      component.visitInput = '50';
+      const locationSpy = { href: '' };
+      vi.stubGlobal('location', locationSpy);
+      await component.submitVisit.call(component); // visit 2: 50 -> completes
+
+      expect(locationSpy.href).toBe('/games/score-training/results?total=80&average=40&visits=2');
+      vi.unstubAllGlobals();
+    });
+
+    it('retryCompletion does not record a new turn', async () => {
+      vi.mocked(appendBatch).mockRejectedValueOnce(new Error('network blip'));
+      vi.mocked(appendBatch).mockResolvedValueOnce({ created: { stages: 1, turns: 2, darts: 0 } });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.visitInput = '30';
+      await component.submitVisit.call(component);
+      const turnCountBeforeRetry = store.turns.length;
+
+      await component.retryCompletion.call(component);
+      expect(store.turns).toHaveLength(turnCountBeforeRetry);
+    });
   });
 });

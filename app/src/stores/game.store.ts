@@ -26,6 +26,7 @@ export function gameStore(persist: Persist) {
     timerRemainingMs: persist<number | null>(null).as("game.timerRemainingMs"),
     timerStartedAt: persist<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist<boolean>(false).as("game.timerExpired"),
+    idempotencyKey: persist<string | null>(null).as("game.idempotencyKey"),
 
     startSession(input: {
       gameTypeKey: string;
@@ -41,6 +42,7 @@ export function gameStore(persist: Persist) {
       this.timerRemainingMs = null;
       this.timerStartedAt = null;
       this.timerExpired = false;
+      this.idempotencyKey = null;
     },
 
     recordTurn(turn: RecordedTurn) {
@@ -56,6 +58,7 @@ export function gameStore(persist: Persist) {
       this.timerRemainingMs = null;
       this.timerStartedAt = null;
       this.timerExpired = false;
+      this.idempotencyKey = null;
     },
   };
 }
