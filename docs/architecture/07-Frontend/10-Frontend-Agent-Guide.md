@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.0
+> **Version:** 0.1.1 (style guide section added, 2026-07-16)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -21,7 +21,7 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 
 | Task | Load exactly |
 | ---- | ------------ |
-| Page / component work | This file + `00-Overview.md` + `app/CLAUDE.md` |
+| Page / component work | This file + `00-Overview.md` + `07-Style-Guide.md` + `app/CLAUDE.md` |
 | Gameplay / session features | above + `03-Alpine-Patterns.md` + `04-Modules-And-OOP.md` |
 | New route / rendering | above + `01-Rendering-Strategy.md` + `02-Folder-Structure.md` |
 | New portable UI primitive | `04-Modules-And-OOP.md` + `03-Alpine-Patterns.md` |
@@ -105,6 +105,10 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 - `.astro` components with variant/branching logic: keep it inline in the component's own frontmatter (D101). This logic is untested — no Astro-component test runner exists in this project — accept that rather than extracting a helper solely for testability.
 - Shared-mock promotion threshold and full-suite-always-runs policy: `06-Test-Strategy.md`.
 
+## 12. Styling
+
+Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never raw palette utilities (`bg-teal-500`, `text-zinc-*`). Primitive classes (`.btn`, `.input`, `.badge`, `.surface`, `.nav-item`, `.app-*`) are implemented once in `global.css` — reuse, never reinvent per screen. Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`.
+
 ---
 
 # Forbidden
@@ -130,6 +134,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 - [ ] TDD cycle complete: failing test → pass → `npm test` green (test lives under `app/tests/`, not colocated)
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
+- [ ] Styling uses semantic tokens/primitives only; no `font-medium`, no raw palette utilities
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`
@@ -149,3 +154,4 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 | `03-Alpine-Patterns.md` | Alpine factory |
 | `04-Modules-And-OOP.md` | Modules, portable UI |
 | `06-Test-Strategy.md` | Shared mocks, full-suite policy |
+| `07-Style-Guide.md` | Tokens, primitives, typography, motion, a11y |
