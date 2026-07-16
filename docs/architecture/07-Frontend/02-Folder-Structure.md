@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/folder-structure
 read-when: new frontend files, aliases, import direction
-updated: 2026-07-14
+updated: 2026-07-16
 -->
 
 # Frontend Folder Structure
 
-> **Version:** 0.1.0
+> **Version:** 0.2.0 (types/ relocated into pages/api/, two-barrel rule, 2026-07-16)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -41,8 +41,6 @@ app/src/
 │   │   ├── login.data.ts
 │   │   └── logout.data.ts
 │   └── utils/                       # @utils (note: alias maps here, not to top-level utils/)
-├── types/
-│   └── api/                         # shared Zod schemas + z.infer<> barrels
 ├── utils/                           # @utils — widely reused pure helpers
 ├── stores/                          # @stores — *.store.ts
 ├── forms/                           # @forms — *.form.ts
@@ -88,7 +86,6 @@ All imports use `@`-prefixed aliases. Deep relative paths (`../../../`) are forb
 | `@stores/*` | `src/stores/*` |
 | `@forms/*` | `src/forms/*` |
 | `@modules/*` | `src/modules/*` |
-| `@types/*` | `src/types/*` |
 | `@utils/*` | `src/utils/*` |
 | `@components/*` | `src/components/*` |
 | `@layouts/*` | `src/layouts/*` |
@@ -103,14 +100,14 @@ All imports use `@`-prefixed aliases. Deep relative paths (`../../../`) are forb
 
 ### Barrel type imports
 
-Types are imported via `@<area>/types` only — same raising chain as `../06-API/03-Shared-Conventions.md`. Never deep-import from a defining module when a barrel exists.
+Types are imported via `@<area>/types` only — same raising chain as `../06-API/03-Shared-Conventions.md`. Browser code imports API contract types via `@client/api/types` (re-raised from the Worker's `@routes/types` — see `../06-API/03-Shared-Conventions.md` §Two barrels), never `@routes/types` directly. Never deep-import from a defining module when a barrel exists.
 
 ```typescript
 // good
-import type { EventsBatchRequest } from "@types/api";
+import type { EventsBatchRequest } from "@client/api/types";
 
 // bad
-import type { EventsBatchRequest } from "@types/api/sessions/batch/types";
+import type { EventsBatchRequest } from "@routes/sessions/batch/types";
 ```
 
 ### Deprecation
@@ -152,7 +149,7 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 ```
 pages/*.astro / *.data.ts / forms  →  stores / @client/api
 stores                             →  modules / @client/api (recovery bootstrap only)
-modules/*                          →  @types/api, @utils — never @client/api, never Alpine
+modules/*                          →  @client/api/types, @utils — never @client/api, never Alpine
 @client/api                        →  never imports stores, forms, modules, pages
 ```
 

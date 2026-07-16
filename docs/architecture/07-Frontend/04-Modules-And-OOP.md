@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-07-14
+updated: 2026-07-16
 -->
 
 # Frontend Modules And OOP
 
-> **Version:** 0.1.0
+> **Version:** 0.1.1 (@types/api successor, 2026-07-16)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -96,7 +96,7 @@ Alpine wiring for UI components is registered in `register-ui-data.ts`. Modules 
 | `*.engine.module.ts` | In-session turn flow, scoring UX, `clientKey` assignment | `turn.engine.module.ts` |
 | `*.payload.module.ts` | Assembling `EventsBatchRequest` from store snapshots | `batch.payload.module.ts` |
 
-Payload modules import types from `@types/api` only. They never call `@client/api`.
+Payload modules import types from `@client/api/types` only. They never call `@client/api`.
 
 ---
 

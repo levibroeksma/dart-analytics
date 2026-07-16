@@ -2,12 +2,12 @@
 status: canonical
 scope: api/middleware-layering
 read-when: middleware or folder-layering changes
-updated: 2026-07-13
+updated: 2026-07-16
 -->
 
 # API Middleware And Layering
 
-> **Version:** 1.1.0 (layout reconciliation 2026-07-13)
+> **Version:** 1.2.0 (alias set realized, 2026-07-16)
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -250,12 +250,12 @@ Do not expose the raw client to controllers or repositories outside the establis
 ## Path aliases & type barrels
 
 Import conventions are owned by `03-Shared-Conventions.md`: `@`-prefixed
-aliases and `@<area>/types` type-raising barrels. The target alias set is
-`@services`, `@repositories`, `@routes`, `@lib`, `@db`. This alias set and the
-per-area `types.ts` barrels are the documented target for the frontend/API
-implementation phase; `app/tsconfig.json` currently defines only a subset
-(`@lib`, `@components`, …) and is extended when the endpoints are built.
-<!-- 2026-07-13 -->
+aliases and `@<area>/types` type-raising barrels. The alias set `@services`,
+`@repositories`, `@routes`, `@lib`, `@db` is realized in `app/tsconfig.json`
+(added 2026-07-16 alongside the player-provisioning endpoint). Per-area
+`types.ts`/`interfaces.ts` barrels are populated as each area grows;
+`pages/api/players/types.ts` and `repositories/interfaces.ts` are the first
+real examples. <!-- 2026-07-16 -->
 
 ---
 
