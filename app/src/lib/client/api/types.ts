@@ -23,4 +23,13 @@ export {
   type ProvisionPlayerRequestInput,
   type ProvisionPlayerResponseData,
   type ErrorCode,
+  CreateSessionRequest,
+  type CreateSessionRequestInput,
+  type CreateSessionResponseData,
+  EventsBatchRequest,
+  type EventsBatchRequestInput,
+  type BatchWriteResponseData,
+  UpdateSessionRequest,
+  type UpdateSessionRequestInput,
+  type SessionActiveData,
 } from '@routes/types';
