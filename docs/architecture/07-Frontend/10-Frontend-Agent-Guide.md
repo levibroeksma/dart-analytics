@@ -60,7 +60,12 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 - **Prerender-default:** `export const prerender = true` on app pages unless SSR opt-in list applies
 - Classify new routes **public** (`/login` only in v1) or **protected** in `01-Rendering-Strategy.md`
 
-## 5. Import direction
+## 5. File organization
+
+- **Auth-related `.data.ts` files:** always live in `lib/auth/` (e.g. `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias
+- **Other `.ts` files in `lib/`:** organize by domain (e.g. `lib/game/`, `lib/players/`) — no top-level loose files
+
+## 6. Import direction
 
 ```
 pages / *.data.ts / forms  →  @client/api
@@ -68,23 +73,23 @@ stores                     →  @client/api (recovery bootstrap only)
 modules/*                  →  never @client/api, never Alpine
 ```
 
-## 6. `$persist`
+## 7. `$persist`
 
 Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91).
 
-## 7. Recovery
+## 8. Recovery
 
 Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred). A completed session whose upload fails is held in the `outbox` store and retried with the same `Idempotency-Key` until confirmed (D90) — never dropped. See `03-Alpine-Patterns.md`.
 
-## 8. Types
+## 9. Types
 
 Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
-## 9. Components (`.astro`)
+## 10. Components (`.astro`)
 
 Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
 
-## 10. Test-driven development
+## 11. Test-driven development
 
 Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definition):
 

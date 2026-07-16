@@ -1463,11 +1463,11 @@
     {
       "label": "is-nav-active.ts",
       "file_type": "code",
-      "source_file": "app/src/utils/is-nav-active.ts",
+      "source_file": "app/src/lib/utils/is-nav-active.ts",
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "source_location": "L1",
-      "id": "app_src_utils_is_nav_active",
+      "id": "app_src_lib_utils_is_nav_active",
       "community": 28,
       "community_name": "Community 28",
       "norm_label": "is-nav-active.ts"
@@ -1483,50 +1483,6 @@
       "community": 28,
       "community_name": "Community 28",
       "norm_label": "@components/ui/logoutbutton.astro"
-    },
-    {
-      "label": "logout.data.ts",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_logout_data",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "logout.data.ts"
-    },
-    {
-      "label": "AuthStore",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "app_src_components_ui_logout_data_authstore",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "authstore"
-    },
-    {
-      "label": "LogoutButtonContext",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L5",
-      "_origin": "ast",
-      "id": "app_src_components_ui_logout_data_logoutbuttoncontext",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "logoutbuttoncontext"
-    },
-    {
-      "label": "logoutButton()",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "app_src_components_ui_logout_data_logoutbutton",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "logoutbutton()"
     },
     {
       "label": "0000_curved_gwen_stacy.sql",
@@ -1854,8 +1810,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_schema",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "schema.ts"
     },
     {
@@ -1865,8 +1821,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_db_schema_schemamigrations",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "schemamigrations"
     },
     {
@@ -1887,8 +1843,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_db_schema_durationtypes",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "durationtypes"
     },
     {
@@ -1898,8 +1854,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_src_db_schema_gamestatuses",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "gamestatuses"
     },
     {
@@ -1909,8 +1865,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_db_schema_capturemodes",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "capturemodes"
     },
     {
@@ -1920,8 +1876,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_db_schema_inputmodes",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "inputmodes"
     },
     {
@@ -1931,8 +1887,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_db_schema_gametypes",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "gametypes"
     },
     {
@@ -1942,8 +1898,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "app_src_db_schema_dartzones",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "dartzones"
     },
     {
@@ -1953,8 +1909,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "app_src_db_schema_rulesetversions",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "rulesetversions"
     },
     {
@@ -1975,8 +1931,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "app_src_db_schema_playersettings",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "playersettings"
     },
     {
@@ -1986,8 +1942,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "app_src_db_schema_exercisetemplates",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "exercisetemplates"
     },
     {
@@ -1997,8 +1953,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "app_src_db_schema_routinetemplates",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "routinetemplates"
     },
     {
@@ -2008,8 +1964,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "app_src_db_schema_activities",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "activities"
     },
     {
@@ -2019,8 +1975,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "app_src_db_schema_exercisesessions",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "exercisesessions"
     },
     {
@@ -2041,8 +1997,8 @@
       "source_location": "L251",
       "_origin": "ast",
       "id": "app_src_db_schema_stagetypes",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "stagetypes"
     },
     {
@@ -2052,8 +2008,8 @@
       "source_location": "L261",
       "_origin": "ast",
       "id": "app_src_db_schema_exerciseconfigurations",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "exerciseconfigurations"
     },
     {
@@ -2063,8 +2019,8 @@
       "source_location": "L277",
       "_origin": "ast",
       "id": "app_src_db_schema_participants",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "participants"
     },
     {
@@ -2074,8 +2030,8 @@
       "source_location": "L307",
       "_origin": "ast",
       "id": "app_src_db_schema_exercisestages",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "exercisestages"
     },
     {
@@ -2085,8 +2041,8 @@
       "source_location": "L338",
       "_origin": "ast",
       "id": "app_src_db_schema_routinesteps",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "routinesteps"
     },
     {
@@ -2096,8 +2052,8 @@
       "source_location": "L367",
       "_origin": "ast",
       "id": "app_src_db_schema_darts",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "darts"
     },
     {
@@ -2118,8 +2074,8 @@
       "source_location": "L431",
       "_origin": "ast",
       "id": "app_src_db_schema_configurationtemplates",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "configurationtemplates"
     },
     {
@@ -2129,8 +2085,8 @@
       "source_location": "L459",
       "_origin": "ast",
       "id": "app_src_db_schema_sessionwriteidempotency",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "sessionwriteidempotency"
     },
     {
@@ -2140,8 +2096,8 @@
       "source_location": "L476",
       "_origin": "ast",
       "id": "app_src_db_schema_gametypefeatures",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "gametypefeatures"
     },
     {
@@ -2151,8 +2107,8 @@
       "source_location": "L495",
       "_origin": "ast",
       "id": "app_src_db_schema_vsessionoverview",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vsessionoverview"
     },
     {
@@ -2162,8 +2118,8 @@
       "source_location": "L506",
       "_origin": "ast",
       "id": "app_src_db_schema_vconfigurationpresets",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vconfigurationpresets"
     },
     {
@@ -2173,8 +2129,8 @@
       "source_location": "L515",
       "_origin": "ast",
       "id": "app_src_db_schema_vactivesessions",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vactivesessions"
     },
     {
@@ -2184,8 +2140,8 @@
       "source_location": "L525",
       "_origin": "ast",
       "id": "app_src_db_schema_vroutineexecution",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vroutineexecution"
     },
     {
@@ -2195,8 +2151,8 @@
       "source_location": "L535",
       "_origin": "ast",
       "id": "app_src_db_schema_vdartanalytics",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vdartanalytics"
     },
     {
@@ -2206,8 +2162,8 @@
       "source_location": "L546",
       "_origin": "ast",
       "id": "app_src_db_schema_vgamereplay",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "vgamereplay"
     },
     {
@@ -2299,6 +2255,116 @@
       "community": 28,
       "community_name": "Community 28",
       "norm_label": "@components/ui/confirmationmodal.astro"
+    },
+    {
+      "label": "login.data.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "login.data.ts"
+    },
+    {
+      "label": "AuthStore",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data_authstore",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "authstore"
+    },
+    {
+      "label": "LoginFormContext",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data_loginformcontext",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "loginformcontext"
+    },
+    {
+      "label": "mapSignInError()",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data_mapsigninerror",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "mapsigninerror()"
+    },
+    {
+      "label": "mapProvisionError()",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data_mapprovisionerror",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "mapprovisionerror()"
+    },
+    {
+      "label": "loginForm()",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_login_data_loginform",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "loginform()"
+    },
+    {
+      "label": "logout.data.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_logout_data",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "logout.data.ts"
+    },
+    {
+      "label": "AuthStore",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_logout_data_authstore",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "authstore"
+    },
+    {
+      "label": "LogoutButtonContext",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_logout_data_logoutbuttoncontext",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "logoutbuttoncontext"
+    },
+    {
+      "label": "logoutButton()",
+      "file_type": "code",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "app_src_lib_auth_logout_data_logoutbutton",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "logoutbutton()"
     },
     {
       "label": "verify-jwt.ts",
@@ -2433,54 +2499,10 @@
       "norm_label": "client.ts"
     },
     {
-      "label": "ApiErrorBody",
-      "file_type": "code",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "app_src_lib_client_api_client_apierrorbody",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "apierrorbody"
-    },
-    {
-      "label": "ApiSuccess",
-      "file_type": "code",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "app_src_lib_client_api_client_apisuccess",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "apisuccess"
-    },
-    {
-      "label": "ApiFailure",
-      "file_type": "code",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L15",
-      "_origin": "ast",
-      "id": "app_src_lib_client_api_client_apifailure",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "apifailure"
-    },
-    {
-      "label": "ApiResult",
-      "file_type": "code",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L21",
-      "_origin": "ast",
-      "id": "app_src_lib_client_api_client_apiresult",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "apiresult"
-    },
-    {
       "label": "UNAUTHORIZED",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L23",
+      "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
       "community": 39,
@@ -2491,12 +2513,67 @@
       "label": "apiRequest()",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L33",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
       "community": 39,
       "community_name": "Community 39",
       "norm_label": "apirequest()"
+    },
+    {
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_index",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "index.ts"
+    },
+    {
+      "label": "ApiErrorBody",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_index_apierrorbody",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "apierrorbody"
+    },
+    {
+      "label": "ApiSuccess",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_index_apisuccess",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "apisuccess"
+    },
+    {
+      "label": "ApiFailure",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_index_apifailure",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "apifailure"
+    },
+    {
+      "label": "ApiResult",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_index_apiresult",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "apiresult"
     },
     {
       "label": "players.ts",
@@ -2587,6 +2664,17 @@
       "norm_label": "cn()"
     },
     {
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/index.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_client_index",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "index.ts"
+    },
+    {
       "label": "env.ts",
       "file_type": "code",
       "source_file": "app/src/lib/env.ts",
@@ -2615,8 +2703,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_id",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "id.ts"
     },
     {
@@ -2626,8 +2714,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_id_generateid",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "generateid()"
     },
     {
@@ -2637,8 +2725,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "docref_rfc_9562",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "rfc-9562"
     },
     {
@@ -2648,8 +2736,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "envelope.ts"
     },
     {
@@ -2659,8 +2747,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_json_headers",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "json_headers"
     },
     {
@@ -2670,8 +2758,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_ok",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "ok()"
     },
     {
@@ -2681,8 +2769,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_fail",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "fail()"
     },
     {
@@ -2692,8 +2780,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_errors",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -2703,8 +2791,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "app_src_lib_server_errors_error_http",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "error_http"
     },
     {
@@ -2714,9 +2802,97 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_lib_server_errors_errorcode",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errorcode"
+    },
+    {
+      "label": "auth-routes.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_auth_routes",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "auth-routes.ts"
+    },
+    {
+      "label": "PUBLIC_PAGES",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_auth_routes_public_pages",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "public_pages"
+    },
+    {
+      "label": "normalizePath()",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_auth_routes_normalizepath",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "normalizepath()"
+    },
+    {
+      "label": "isPublicPage()",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_auth_routes_ispublicpage",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "ispublicpage()"
+    },
+    {
+      "label": "isNavActive()",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/is-nav-active.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_is_nav_active_isnavactive",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "isnavactive()"
+    },
+    {
+      "label": "route-class.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_route_class",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "route-class.ts"
+    },
+    {
+      "label": "RouteClass",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_route_class_routeclass",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "routeclass"
+    },
+    {
+      "label": "classifyRoute()",
+      "file_type": "code",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "app_src_lib_utils_route_class_classifyroute",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "classifyroute()"
     },
     {
       "label": "middleware.ts",
@@ -2747,8 +2923,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provision.ts"
     },
     {
@@ -2758,8 +2934,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_provisionplayerrequest",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -2769,8 +2945,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_parsejsonbody",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "parsejsonbody()"
     },
     {
@@ -2780,8 +2956,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "post()"
     },
     {
@@ -2818,72 +2994,6 @@
       "norm_label": "index.astro"
     },
     {
-      "label": "login.data.ts",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "login.data.ts"
-    },
-    {
-      "label": "AuthStore",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L5",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data_authstore",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "authstore"
-    },
-    {
-      "label": "LoginFormContext",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L7",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data_loginformcontext",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "loginformcontext"
-    },
-    {
-      "label": "mapSignInError()",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L16",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data_mapsigninerror",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "mapsigninerror()"
-    },
-    {
-      "label": "mapProvisionError()",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L24",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data_mapprovisionerror",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "mapprovisionerror()"
-    },
-    {
-      "label": "loginForm()",
-      "file_type": "code",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L31",
-      "_origin": "ast",
-      "id": "app_src_pages_login_login_data_loginform",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "loginform()"
-    },
-    {
       "label": "index.astro",
       "file_type": "code",
       "source_file": "app/src/pages/profile/index.astro",
@@ -2912,8 +3022,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "player.repository.ts"
     },
     {
@@ -2923,8 +3033,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_db",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "db"
     },
     {
@@ -2934,8 +3044,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_provisionedplayer",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "provisionedplayer"
     },
     {
@@ -2945,8 +3055,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_upsertplayerbyauthuserid",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "upsertplayerbyauthuserid()"
     },
     {
@@ -2956,8 +3066,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_player_service",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 169,
+      "community_name": "player.service.ts",
       "norm_label": "player.service.ts"
     },
     {
@@ -2967,8 +3077,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_services_player_service_provisionplayer",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayer()"
     },
     {
@@ -3082,100 +3192,34 @@
       "norm_label": "provisionplayerresponsedata"
     },
     {
-      "label": "auth-routes.ts",
+      "label": "login.data.test.ts",
       "file_type": "code",
-      "source_file": "app/src/utils/auth-routes.ts",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_src_utils_auth_routes",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "auth-routes.ts"
+      "id": "app_tests_lib_auth_login_data_test",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "login.data.test.ts"
     },
     {
-      "label": "PUBLIC_PAGES",
+      "label": "constructor()",
       "file_type": "code",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L1",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L6",
       "_origin": "ast",
-      "id": "app_src_utils_auth_routes_public_pages",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "public_pages"
-    },
-    {
-      "label": "normalizePath()",
-      "file_type": "code",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "app_src_utils_auth_routes_normalizepath",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "normalizepath()"
-    },
-    {
-      "label": "isPublicPage()",
-      "file_type": "code",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L10",
-      "_origin": "ast",
-      "id": "app_src_utils_auth_routes_ispublicpage",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "ispublicpage()"
-    },
-    {
-      "label": "isNavActive()",
-      "file_type": "code",
-      "source_file": "app/src/utils/is-nav-active.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_utils_is_nav_active_isnavactive",
-      "community": 28,
-      "community_name": "Community 28",
-      "norm_label": "isnavactive()"
-    },
-    {
-      "label": "route-class.ts",
-      "file_type": "code",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_utils_route_class",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "route-class.ts"
-    },
-    {
-      "label": "RouteClass",
-      "file_type": "code",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "app_src_utils_route_class_routeclass",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "routeclass"
-    },
-    {
-      "label": "classifyRoute()",
-      "file_type": "code",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L12",
-      "_origin": "ast",
-      "id": "app_src_utils_route_class_classifyroute",
-      "community": 13,
-      "community_name": "Community 13",
-      "norm_label": "classifyroute()"
+      "id": "app_tests_lib_auth_login_data_test_constructor",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "constructor()"
     },
     {
       "label": "logout.data.test.ts",
       "file_type": "code",
-      "source_file": "app/tests/components/ui/logout.data.test.ts",
+      "source_file": "app/tests/lib/auth/logout.data.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_tests_components_ui_logout_data_test",
+      "id": "app_tests_lib_auth_logout_data_test",
       "community": 39,
       "community_name": "Community 39",
       "norm_label": "logout.data.test.ts"
@@ -3212,28 +3256,6 @@
       "community": 28,
       "community_name": "Community 28",
       "norm_label": "cn.test.ts"
-    },
-    {
-      "label": "login.data.test.ts",
-      "file_type": "code",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_tests_pages_login_login_data_test",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "login.data.test.ts"
-    },
-    {
-      "label": "constructor()",
-      "file_type": "code",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L6",
-      "_origin": "ast",
-      "id": "app_tests_pages_login_login_data_test_constructor",
-      "community": 39,
-      "community_name": "Community 39",
-      "norm_label": "constructor()"
     },
     {
       "label": "seed-dev-auth.test.ts",
@@ -3275,8 +3297,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_auth_routes_test",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "auth-routes.test.ts"
     },
     {
@@ -3286,8 +3308,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_route_class_test",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "route-class.test.ts"
     },
     {
@@ -3423,21 +3445,10 @@
       "norm_label": "node"
     },
     {
-      "label": "baseUrl",
-      "file_type": "code",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L7",
-      "_origin": "ast",
-      "id": "app_tsconfig_compileroptions_baseurl",
-      "community": 14,
-      "community_name": "Community 14",
-      "norm_label": "baseurl"
-    },
-    {
       "label": "paths",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L8",
+      "source_location": "L7",
       "_origin": "ast",
       "id": "app_tsconfig_compileroptions_paths",
       "community": 14,
@@ -3448,7 +3459,7 @@
       "label": "@icons/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L9",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "app_tsconfig_paths_icons",
       "community": 14,
@@ -3459,7 +3470,7 @@
       "label": "./src/icons/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L9",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "ref_src_icons",
       "community": 14,
@@ -3470,7 +3481,7 @@
       "label": "@components/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L10",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "app_tsconfig_paths_components",
       "community": 14,
@@ -3481,7 +3492,7 @@
       "label": "./src/components/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L10",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "ref_src_components",
       "community": 14,
@@ -3492,7 +3503,7 @@
       "label": "@layouts/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L11",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "app_tsconfig_paths_layouts",
       "community": 14,
@@ -3503,7 +3514,7 @@
       "label": "./src/layouts/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L11",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "ref_src_layouts",
       "community": 14,
@@ -3514,7 +3525,7 @@
       "label": "@pages/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L12",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_tsconfig_paths_pages",
       "community": 14,
@@ -3525,7 +3536,7 @@
       "label": "./src/pages/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L12",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "ref_src_pages",
       "community": 14,
@@ -3536,7 +3547,7 @@
       "label": "@lib/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L13",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "app_tsconfig_paths_lib",
       "community": 14,
@@ -3547,7 +3558,7 @@
       "label": "./src/lib/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L13",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "ref_src_lib",
       "community": 14,
@@ -3558,7 +3569,7 @@
       "label": "@client/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L14",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "app_tsconfig_paths_client",
       "community": 14,
@@ -3569,7 +3580,7 @@
       "label": "./src/lib/client/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L14",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "ref_src_lib_client",
       "community": 14,
@@ -3577,10 +3588,54 @@
       "norm_label": "./src/lib/client/*"
     },
     {
-      "label": "@stores/*",
+      "label": "@auth/*",
+      "file_type": "code",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "app_tsconfig_paths_auth",
+      "community": 14,
+      "community_name": "Community 14",
+      "norm_label": "@auth/*"
+    },
+    {
+      "label": "./src/lib/auth/*",
+      "file_type": "concept",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "ref_src_lib_auth",
+      "community": 14,
+      "community_name": "Community 14",
+      "norm_label": "./src/lib/auth/*"
+    },
+    {
+      "label": "@server/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
       "source_location": "L15",
+      "_origin": "ast",
+      "id": "app_tsconfig_paths_server",
+      "community": 14,
+      "community_name": "Community 14",
+      "norm_label": "@server/*"
+    },
+    {
+      "label": "./src/lib/server/*",
+      "file_type": "concept",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "ref_src_lib_server",
+      "community": 14,
+      "community_name": "Community 14",
+      "norm_label": "./src/lib/server/*"
+    },
+    {
+      "label": "@stores/*",
+      "file_type": "code",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "app_tsconfig_paths_stores",
       "community": 14,
@@ -3591,7 +3646,7 @@
       "label": "./src/stores/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "ref_src_stores",
       "community": 14,
@@ -3602,7 +3657,7 @@
       "label": "@forms/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "app_tsconfig_paths_forms",
       "community": 14,
@@ -3613,7 +3668,7 @@
       "label": "./src/forms/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "ref_src_forms",
       "community": 14,
@@ -3624,7 +3679,7 @@
       "label": "@types/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "app_tsconfig_paths_types",
       "community": 14,
@@ -3635,7 +3690,7 @@
       "label": "./src/types/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "ref_src_types",
       "community": 14,
@@ -3646,7 +3701,7 @@
       "label": "@modules/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "app_tsconfig_paths_modules",
       "community": 14,
@@ -3657,7 +3712,7 @@
       "label": "./src/modules/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "ref_src_modules",
       "community": 14,
@@ -3668,7 +3723,7 @@
       "label": "@utils/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "app_tsconfig_paths_utils",
       "community": 14,
@@ -3676,21 +3731,21 @@
       "norm_label": "@utils/*"
     },
     {
-      "label": "./src/utils/*",
+      "label": "./src/lib/utils/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
-      "id": "ref_src_utils",
+      "id": "ref_src_lib_utils",
       "community": 14,
       "community_name": "Community 14",
-      "norm_label": "./src/utils/*"
+      "norm_label": "./src/lib/utils/*"
     },
     {
       "label": "@styles/*",
       "file_type": "code",
       "source_file": "app/tsconfig.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "app_tsconfig_paths_styles",
       "community": 14,
@@ -3701,7 +3756,7 @@
       "label": "./src/styles/*",
       "file_type": "concept",
       "source_file": "app/tsconfig.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "ref_src_styles",
       "community": 14,
@@ -18406,7 +18461,7 @@
       "label": "Worker vs Browser Areas",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L66",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_worker_vs_browser_areas",
       "community": 45,
@@ -18417,7 +18472,7 @@
       "label": "Path Aliases",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L78",
+      "source_location": "L81",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_path_aliases",
       "community": 45,
@@ -18428,7 +18483,7 @@
       "label": "Barrel type imports",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L101",
+      "source_location": "L104",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_barrel_type_imports",
       "community": 45,
@@ -18439,7 +18494,7 @@
       "label": "Deprecation",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L113",
+      "source_location": "L116",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_deprecation",
       "community": 45,
@@ -18450,7 +18505,7 @@
       "label": "File Suffix Conventions",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L119",
+      "source_location": "L122",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_file_suffix_conventions",
       "community": 45,
@@ -18461,7 +18516,7 @@
       "label": "Colocation vs Promotion",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L135",
+      "source_location": "L138",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_colocation_vs_promotion",
       "community": 45,
@@ -18472,7 +18527,7 @@
       "label": "Import Direction",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L146",
+      "source_location": "L150",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_import_direction",
       "community": 45,
@@ -18483,7 +18538,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L159",
+      "source_location": "L163",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_02_folder_structure_related_documents",
       "community": 45,
@@ -19074,76 +19129,87 @@
       "norm_label": "4. rendering"
     },
     {
-      "label": "5. Import direction",
+      "label": "5. File organization",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
       "source_location": "L63",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_5_file_organization",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "5. import direction"
+      "norm_label": "5. file organization"
     },
     {
-      "label": "6. `$persist`",
+      "label": "6. Import direction",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L71",
+      "source_location": "L68",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_6_import_direction",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "6. `$persist`"
+      "norm_label": "6. import direction"
     },
     {
-      "label": "7. Recovery",
+      "label": "7. `$persist`",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L75",
+      "source_location": "L76",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_7_persist",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "7. recovery"
+      "norm_label": "7. `$persist`"
     },
     {
-      "label": "8. Types",
+      "label": "8. Recovery",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L79",
+      "source_location": "L80",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_8_recovery",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "8. types"
+      "norm_label": "8. recovery"
     },
     {
-      "label": "9. Components (`.astro`)",
+      "label": "9. Types",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L83",
+      "source_location": "L84",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_9_types",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "9. components (`.astro`)"
+      "norm_label": "9. types"
     },
     {
-      "label": "10. Test-driven development",
+      "label": "10. Components (`.astro`)",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L87",
+      "source_location": "L88",
       "_origin": "ast",
-      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_10_components_astro",
       "community": 33,
       "community_name": "Community 33",
-      "norm_label": "10. test-driven development"
+      "norm_label": "10. components (`.astro`)"
+    },
+    {
+      "label": "11. Test-driven development",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L92",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_10_frontend_agent_guide_11_test_driven_development",
+      "community": 33,
+      "community_name": "Community 33",
+      "norm_label": "11. test-driven development"
     },
     {
       "label": "Forbidden",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L104",
+      "source_location": "L109",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
       "community": 33,
@@ -19154,7 +19220,7 @@
       "label": "Pre-Completion Checklist",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L120",
+      "source_location": "L125",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
       "community": 33,
@@ -19165,7 +19231,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L135",
+      "source_location": "L140",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
       "community": 33,
@@ -20990,7 +21056,7 @@
       "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_components_layout_navbtn",
-      "target": "app_src_utils_is_nav_active",
+      "target": "app_src_lib_utils_is_nav_active",
       "confidence_score": 1.0
     },
     {
@@ -21001,17 +21067,17 @@
       "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_components_layout_navbtn",
-      "target": "app_src_utils_is_nav_active_isnavactive",
+      "target": "app_src_lib_utils_is_nav_active_isnavactive",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/is-nav-active.ts",
+      "source_file": "app/src/lib/utils/is-nav-active.ts",
       "source_location": "L1",
       "weight": 1.0,
-      "source": "app_src_utils_is_nav_active",
-      "target": "app_src_utils_is_nav_active_isnavactive",
+      "source": "app_src_lib_utils_is_nav_active",
+      "target": "app_src_lib_utils_is_nav_active_isnavactive",
       "confidence_score": 1.0
     },
     {
@@ -21023,124 +21089,6 @@
       "weight": 1.0,
       "source": "app_src_pages_index",
       "target": "app_src_components_ui_logoutbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_components_ui_logout_data",
-      "target": "app_src_components_ui_logout_data_authstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "app_src_components_ui_logout_data",
-      "target": "app_src_components_ui_logout_data_logoutbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_components_ui_logout_data",
-      "target": "app_src_components_ui_logout_data_logoutbuttoncontext",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_components_ui_logout_data",
-      "target": "app_src_stores_auth_store",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/logout.data.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_components_ui_logout_data",
-      "target": "app_src_stores_auth_store_authstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_ui_data",
-      "target": "app_src_components_ui_logout_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/components/ui/logout.data.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_components_ui_logout_data_test",
-      "target": "app_src_components_ui_logout_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/components/ui/logout.data.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_components_ui_logout_data_test",
-      "target": "app_src_components_ui_logout_data_logoutbuttoncontext",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_ui_data",
-      "target": "app_src_components_ui_logout_data_logoutbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "indirect_call",
-      "context": "argument",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_ui_data_registeruidata",
-      "target": "app_src_components_ui_logout_data_logoutbutton"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/components/ui/logout.data.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_components_ui_logout_data_test",
-      "target": "app_src_components_ui_logout_data_logoutbutton",
       "confidence_score": 1.0
     },
     {
@@ -21236,7 +21184,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L26",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_db_client_getdb"
@@ -22286,6 +22234,339 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_auth_login_data_authstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_auth_login_data_loginform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_auth_login_data_loginformcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_auth_login_data_mapprovisionerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_auth_login_data_mapsigninerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_client_api_players",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_client_api_players_provision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_client_api_players_provisionerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_client_auth_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_lib_client_auth_client_authclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_stores_auth_store",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/login.data.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_login_data",
+      "target": "app_src_stores_auth_store_authstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_route_data",
+      "target": "app_src_lib_auth_login_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_src_lib_auth_login_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_src_lib_auth_login_data_loginformcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_src_lib_auth_login_data_mapsigninerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_src_lib_auth_login_data_mapprovisionerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_route_data",
+      "target": "app_src_lib_auth_login_data_loginform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
+      "target": "app_src_lib_auth_login_data_loginform"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_src_lib_auth_login_data_loginform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_logout_data",
+      "target": "app_src_lib_auth_logout_data_authstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_logout_data",
+      "target": "app_src_lib_auth_logout_data_logoutbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_logout_data",
+      "target": "app_src_lib_auth_logout_data_logoutbuttoncontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_logout_data",
+      "target": "app_src_stores_auth_store",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/auth/logout.data.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_auth_logout_data",
+      "target": "app_src_stores_auth_store_authstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_ui_data",
+      "target": "app_src_lib_auth_logout_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/logout.data.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_logout_data_test",
+      "target": "app_src_lib_auth_logout_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/logout.data.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_logout_data_test",
+      "target": "app_src_lib_auth_logout_data_logoutbuttoncontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_ui_data",
+      "target": "app_src_lib_auth_logout_data_logoutbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/lib/client/alpine/register-ui-data.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_lib_client_alpine_register_ui_data_registeruidata",
+      "target": "app_src_lib_auth_logout_data_logoutbutton"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/logout.data.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_logout_data_test",
+      "target": "app_src_lib_auth_logout_data_logoutbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/src/lib/auth/verify-jwt.ts",
       "source_location": "L4",
       "weight": 1.0,
@@ -22445,39 +22726,6 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data",
-      "target": "app_src_pages_login_login_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data",
-      "target": "app_src_pages_login_login_data_loginform",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "indirect_call",
-      "context": "argument",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "target": "app_src_pages_login_login_data_loginform"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/alpine/register-stores.ts",
@@ -22534,27 +22782,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_lib_client_api_client",
-      "target": "app_src_lib_client_api_client_apierrorbody",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "app_src_lib_client_api_client",
-      "target": "app_src_lib_client_api_client_apifailure",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L33",
+      "source_location": "L14",
       "weight": 1.0,
       "source": "app_src_lib_client_api_client",
       "target": "app_src_lib_client_api_client_apirequest",
@@ -22564,30 +22792,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L21",
-      "weight": 1.0,
-      "source": "app_src_lib_client_api_client",
-      "target": "app_src_lib_client_api_client_apiresult",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "app_src_lib_client_api_client",
-      "target": "app_src_lib_client_api_client_apisuccess",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L23",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_lib_client_api_client",
       "target": "app_src_lib_client_api_client_unauthorized",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_index_apifailure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_index_apiresult",
       "confidence_score": 1.0
     },
     {
@@ -22651,7 +22892,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L37",
+      "source_location": "L18",
       "weight": 1.0,
       "source": "app_src_lib_client_api_client_apirequest",
       "target": "app_src_lib_client_auth_client_getaccesstoken"
@@ -22687,6 +22928,57 @@
       "weight": 1.0,
       "source": "app_tests_lib_client_api_players_test",
       "target": "app_src_lib_client_api_client_apirequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_index",
+      "target": "app_src_lib_client_api_index_apierrorbody",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_index",
+      "target": "app_src_lib_client_api_index_apifailure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_index",
+      "target": "app_src_lib_client_api_index_apiresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/index.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_index",
+      "target": "app_src_lib_client_api_index_apisuccess",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_client_index",
+      "target": "app_src_lib_client_api_index",
       "confidence_score": 1.0
     },
     {
@@ -22757,10 +23049,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L1",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L31",
       "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
+      "source": "app_tests_lib_auth_login_data_test",
       "target": "app_src_lib_client_api_players",
       "confidence_score": 1.0
     },
@@ -22772,17 +23064,6 @@
       "source_location": "L8",
       "weight": 1.0,
       "source": "app_tests_lib_client_api_players_test",
-      "target": "app_src_lib_client_api_players",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
       "target": "app_src_lib_client_api_players",
       "confidence_score": 1.0
     },
@@ -22800,32 +23081,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_lib_client_api_players_provisionerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/lib/client/api/players.test.ts",
-      "source_location": "L8",
-      "weight": 1.0,
-      "source": "app_tests_lib_client_api_players_test",
-      "target": "app_src_lib_client_api_players_provisionerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
       "source_location": "L31",
       "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
+      "source": "app_tests_lib_auth_login_data_test",
       "target": "app_src_lib_client_api_players_provisionerror",
       "confidence_score": 1.0
     },
@@ -22833,10 +23092,21 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L1",
+      "source_file": "app/tests/lib/client/api/players.test.ts",
+      "source_location": "L8",
       "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
+      "source": "app_tests_lib_client_api_players_test",
+      "target": "app_src_lib_client_api_players_provisionerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "app_tests_lib_auth_login_data_test",
       "target": "app_src_lib_client_api_players_provision",
       "confidence_score": 1.0
     },
@@ -22848,17 +23118,6 @@
       "source_location": "L8",
       "weight": 1.0,
       "source": "app_tests_lib_client_api_players_test",
-      "target": "app_src_lib_client_api_players_provision",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L23",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
       "target": "app_src_lib_client_api_players_provision",
       "confidence_score": 1.0
     },
@@ -22886,10 +23145,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
+      "source_file": "app/src/stores/auth.store.ts",
       "source_location": "L2",
       "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
+      "source": "app_src_stores_auth_store",
       "target": "app_src_lib_client_auth_client",
       "confidence_score": 1.0
     },
@@ -22897,10 +23156,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/stores/auth.store.ts",
-      "source_location": "L2",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
+      "source_location": "L24",
       "weight": 1.0,
-      "source": "app_src_stores_auth_store",
+      "source": "app_tests_lib_auth_login_data_test",
       "target": "app_src_lib_client_auth_client",
       "confidence_score": 1.0
     },
@@ -22919,33 +23178,11 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L24",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_lib_client_auth_client",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "app/tests/stores/auth.store.test.ts",
       "source_location": "L11",
       "weight": 1.0,
       "source": "app_tests_stores_auth_store_test",
       "target": "app_src_lib_client_auth_client",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_lib_client_auth_client_authclient",
       "confidence_score": 1.0
     },
     {
@@ -22963,10 +23200,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
       "source_location": "L24",
       "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
+      "source": "app_tests_lib_auth_login_data_test",
       "target": "app_src_lib_client_auth_client_authclient",
       "confidence_score": 1.0
     },
@@ -23190,7 +23427,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L18",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_lib_server_envelope_fail"
@@ -23240,11 +23477,205 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/middleware.ts",
-      "source_location": "L9",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L10",
       "weight": 1.0,
-      "source": "app_src_middleware",
-      "target": "app_src_middleware_onrequest",
+      "source": "app_src_lib_utils_auth_routes",
+      "target": "app_src_lib_utils_auth_routes_ispublicpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_auth_routes",
+      "target": "app_src_lib_utils_auth_routes_normalizepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_auth_routes",
+      "target": "app_src_lib_utils_auth_routes_public_pages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class",
+      "target": "app_src_lib_utils_auth_routes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/stores/auth.store.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_stores_auth_store",
+      "target": "app_src_lib_utils_auth_routes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/auth-routes.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_auth_routes_test",
+      "target": "app_src_lib_utils_auth_routes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_auth_routes_ispublicpage",
+      "target": "app_src_lib_utils_auth_routes_public_pages"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/auth-routes.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_auth_routes_test",
+      "target": "app_src_lib_utils_auth_routes_public_pages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/auth-routes.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_auth_routes_ispublicpage",
+      "target": "app_src_lib_utils_auth_routes_normalizepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class",
+      "target": "app_src_lib_utils_auth_routes_normalizepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class_classifyroute",
+      "target": "app_src_lib_utils_auth_routes_normalizepath"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/stores/auth.store.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_stores_auth_store",
+      "target": "app_src_lib_utils_auth_routes_normalizepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/auth-routes.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_auth_routes_test",
+      "target": "app_src_lib_utils_auth_routes_normalizepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class",
+      "target": "app_src_lib_utils_auth_routes_ispublicpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class_classifyroute",
+      "target": "app_src_lib_utils_auth_routes_ispublicpage"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/stores/auth.store.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_stores_auth_store",
+      "target": "app_src_lib_utils_auth_routes_ispublicpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/auth-routes.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_auth_routes_test",
+      "target": "app_src_lib_utils_auth_routes_ispublicpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class",
+      "target": "app_src_lib_utils_route_class_classifyroute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/utils/route-class.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_lib_utils_route_class",
+      "target": "app_src_lib_utils_route_class_routeclass",
       "confidence_score": 1.0
     },
     {
@@ -23255,7 +23686,18 @@
       "source_location": "L7",
       "weight": 1.0,
       "source": "app_src_middleware",
-      "target": "app_src_utils_route_class",
+      "target": "app_src_lib_utils_route_class",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/route-class.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_route_class_test",
+      "target": "app_src_lib_utils_route_class",
       "confidence_score": 1.0
     },
     {
@@ -23266,7 +23708,7 @@
       "source_location": "L7",
       "weight": 1.0,
       "source": "app_src_middleware",
-      "target": "app_src_utils_route_class_classifyroute",
+      "target": "app_src_lib_utils_route_class_classifyroute",
       "confidence_score": 1.0
     },
     {
@@ -23278,7 +23720,28 @@
       "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
-      "target": "app_src_utils_route_class_classifyroute"
+      "target": "app_src_lib_utils_route_class_classifyroute"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/utils/route-class.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_utils_route_class_test",
+      "target": "app_src_lib_utils_route_class_classifyroute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_onrequest",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -23353,133 +23816,6 @@
       "weight": 1.0,
       "source": "app_src_pages_api_players_provision_post",
       "target": "app_src_services_player_service_provisionplayer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_pages_login_login_data_authstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_pages_login_login_data_loginform",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_pages_login_login_data_loginformcontext",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L24",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_pages_login_login_data_mapprovisionerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_pages_login_login_data_mapsigninerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_stores_auth_store",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/login.data.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_pages_login_login_data",
-      "target": "app_src_stores_auth_store_authstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_pages_login_login_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_pages_login_login_data_loginformcontext",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_pages_login_login_data_mapsigninerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_pages_login_login_data_mapprovisionerror",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_src_pages_login_login_data_loginform",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -23604,39 +23940,6 @@
       "weight": 1.0,
       "source": "app_src_stores_auth_store",
       "target": "app_src_stores_auth_store_hasactivesession",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/stores/auth.store.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_stores_auth_store",
-      "target": "app_src_utils_auth_routes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/stores/auth.store.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_stores_auth_store",
-      "target": "app_src_utils_auth_routes_ispublicpage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/stores/auth.store.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_stores_auth_store",
-      "target": "app_src_utils_auth_routes_normalizepath",
       "confidence_score": 1.0
     },
     {
@@ -23792,204 +24095,11 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "app_src_utils_auth_routes",
-      "target": "app_src_utils_auth_routes_ispublicpage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_utils_auth_routes",
-      "target": "app_src_utils_auth_routes_normalizepath",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_utils_auth_routes",
-      "target": "app_src_utils_auth_routes_public_pages",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class",
-      "target": "app_src_utils_auth_routes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/auth-routes.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_auth_routes_test",
-      "target": "app_src_utils_auth_routes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "app_src_utils_auth_routes_ispublicpage",
-      "target": "app_src_utils_auth_routes_public_pages"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/auth-routes.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_auth_routes_test",
-      "target": "app_src_utils_auth_routes_public_pages",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/auth-routes.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "app_src_utils_auth_routes_ispublicpage",
-      "target": "app_src_utils_auth_routes_normalizepath",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class",
-      "target": "app_src_utils_auth_routes_normalizepath",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class_classifyroute",
-      "target": "app_src_utils_auth_routes_normalizepath"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/auth-routes.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_auth_routes_test",
-      "target": "app_src_utils_auth_routes_normalizepath",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class",
-      "target": "app_src_utils_auth_routes_ispublicpage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class_classifyroute",
-      "target": "app_src_utils_auth_routes_ispublicpage"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/auth-routes.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_auth_routes_test",
-      "target": "app_src_utils_auth_routes_ispublicpage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L12",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class",
-      "target": "app_src_utils_route_class_classifyroute",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/utils/route-class.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_utils_route_class",
-      "target": "app_src_utils_route_class_routeclass",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/route-class.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_route_class_test",
-      "target": "app_src_utils_route_class",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/utils/route-class.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_utils_route_class_test",
-      "target": "app_src_utils_route_class_classifyroute",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/pages/login/login.data.test.ts",
+      "source_file": "app/tests/lib/auth/login.data.test.ts",
       "source_location": "L6",
       "weight": 1.0,
-      "source": "app_tests_pages_login_login_data_test",
-      "target": "app_tests_pages_login_login_data_test_constructor",
+      "source": "app_tests_lib_auth_login_data_test",
+      "target": "app_tests_lib_auth_login_data_test_constructor",
       "confidence_score": 1.0
     },
     {
@@ -24094,16 +24204,6 @@
       "source_location": "L7",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions",
-      "target": "app_tsconfig_compileroptions_baseurl",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "source": "app_tsconfig_compileroptions",
       "target": "app_tsconfig_compileroptions_paths",
       "confidence_score": 1.0
     },
@@ -24135,47 +24235,7 @@
       "source_location": "L14",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
-      "target": "app_tsconfig_paths_client",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "app_tsconfig_compileroptions_paths",
-      "target": "app_tsconfig_paths_components",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_tsconfig_compileroptions_paths",
-      "target": "app_tsconfig_paths_forms",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "app_tsconfig_compileroptions_paths",
-      "target": "app_tsconfig_paths_icons",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tsconfig.json",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "app_tsconfig_compileroptions_paths",
-      "target": "app_tsconfig_paths_layouts",
+      "target": "app_tsconfig_paths_auth",
       "confidence_score": 1.0
     },
     {
@@ -24185,6 +24245,56 @@
       "source_location": "L13",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_components",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_forms",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_icons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_layouts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_lib",
       "confidence_score": 1.0
     },
@@ -24192,7 +24302,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_modules",
@@ -24202,7 +24312,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L12",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_pages",
@@ -24215,6 +24325,16 @@
       "source_location": "L15",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
+      "target": "app_tsconfig_paths_server",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_stores",
       "confidence_score": 1.0
     },
@@ -24222,7 +24342,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_styles",
@@ -24232,7 +24352,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_types",
@@ -24242,7 +24362,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "app_tsconfig_compileroptions_paths",
       "target": "app_tsconfig_paths_utils",
@@ -24252,7 +24372,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L9",
+      "source_location": "L8",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_icons",
@@ -24263,7 +24383,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L10",
+      "source_location": "L9",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_components",
@@ -24274,7 +24394,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L11",
+      "source_location": "L10",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_layouts",
@@ -24285,7 +24405,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L12",
+      "source_location": "L11",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_pages",
@@ -24296,7 +24416,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L13",
+      "source_location": "L12",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_lib",
@@ -24307,7 +24427,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L14",
+      "source_location": "L13",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_client",
@@ -24318,7 +24438,29 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "context": "import",
+      "source": "app_tsconfig_paths_auth",
+      "target": "ref_src_lib_auth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
       "source_location": "L15",
+      "weight": 1.0,
+      "context": "import",
+      "source": "app_tsconfig_paths_server",
+      "target": "ref_src_lib_server",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tsconfig.json",
+      "source_location": "L16",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_stores",
@@ -24329,7 +24471,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_forms",
@@ -24340,7 +24482,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_types",
@@ -24351,7 +24493,7 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_modules",
@@ -24362,18 +24504,18 @@
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_utils",
-      "target": "ref_src_utils",
+      "target": "ref_src_lib_utils",
       "confidence_score": 1.0
     },
     {
       "relation": "extends",
       "confidence": "EXTRACTED",
       "source_file": "app/tsconfig.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "context": "import",
       "source": "app_tsconfig_paths_styles",
@@ -37195,7 +37337,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_colocation_vs_promotion",
@@ -37205,7 +37347,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L119",
+      "source_location": "L122",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_file_suffix_conventions",
@@ -37225,7 +37367,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L146",
+      "source_location": "L150",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_import_direction",
@@ -37235,7 +37377,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L78",
+      "source_location": "L81",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_path_aliases",
@@ -37255,7 +37397,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L159",
+      "source_location": "L163",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_related_documents",
@@ -37265,7 +37407,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L66",
+      "source_location": "L69",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure",
       "target": "docs_architecture_07_frontend_02_folder_structure_worker_vs_browser_areas",
@@ -37275,7 +37417,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L101",
+      "source_location": "L104",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure_path_aliases",
       "target": "docs_architecture_07_frontend_02_folder_structure_barrel_type_imports",
@@ -37285,7 +37427,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/02-Folder-Structure.md",
-      "source_location": "L113",
+      "source_location": "L116",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_02_folder_structure_path_aliases",
       "target": "docs_architecture_07_frontend_02_folder_structure_deprecation",
@@ -37715,7 +37857,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L104",
+      "source_location": "L109",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
@@ -37755,7 +37897,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L120",
+      "source_location": "L125",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
@@ -37765,7 +37907,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L135",
+      "source_location": "L140",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
@@ -37775,10 +37917,20 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L87",
+      "source_location": "L88",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_10_test_driven_development",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_10_components_astro",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
+      "source_location": "L92",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_11_test_driven_development",
       "confidence_score": 1.0
     },
     {
@@ -37828,47 +37980,47 @@
       "source_location": "L63",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_5_import_direction",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_5_file_organization",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L71",
+      "source_location": "L68",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_6_persist",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_6_import_direction",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_7_recovery",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_7_persist",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L79",
+      "source_location": "L80",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_8_types",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_8_recovery",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L83",
+      "source_location": "L84",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
-      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_9_components_astro",
+      "target": "docs_architecture_07_frontend_10_frontend_agent_guide_9_types",
       "confidence_score": 1.0
     },
     {
@@ -38233,5 +38385,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "c0b8688acc701a3ec8967192462c802ae8bc1296"
+  "built_at_commit": "6eaab7f386dbc5c3e30c0e86b0fcdc0c902bd72a"
 }

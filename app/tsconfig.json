@@ -4,7 +4,6 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "types": ["node"],
-    "baseUrl": ".",
     "paths": {
       "@icons/*": ["./src/icons/*"],
       "@components/*": ["./src/components/*"],
@@ -12,11 +11,13 @@
       "@pages/*": ["./src/pages/*"],
       "@lib/*": ["./src/lib/*"],
       "@client/*": ["./src/lib/client/*"],
+      "@auth/*": ["./src/lib/auth/*"],
+      "@server/*": ["./src/lib/server/*"],
       "@stores/*": ["./src/stores/*"],
       "@forms/*": ["./src/forms/*"],
       "@types/*": ["./src/types/*"],
       "@modules/*": ["./src/modules/*"],
-      "@utils/*": ["./src/utils/*"],
+      "@utils/*": ["./src/lib/utils/*"],
       "@styles/*": ["./src/styles/*"]
     }
   }

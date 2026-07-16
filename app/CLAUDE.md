@@ -94,4 +94,11 @@ This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `n
 
 For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
-Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms. Full rules: `07-Frontend/01`–`04`.
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms.
+
+**TypeScript file organization:** All `.ts` files in `app/src/lib/` (except stores/forms, which live at `stores/`, `forms/`):
+- Auth-related: `lib/auth/` (e.g., `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias
+- Domain-specific: organize by domain folder (e.g., `lib/game/`, `lib/players/`) — imported via `@lib/<domain>/`
+- Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`
+
+Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.

@@ -1,24 +1,5 @@
 import { getAccessToken } from '@client/auth/client';
-
-export type ApiErrorBody = {
-  code: string;
-  message: string;
-  retryable: boolean;
-};
-
-export type ApiSuccess<T> = {
-  ok: true;
-  data: T;
-  requestId: string;
-};
-
-export type ApiFailure = {
-  ok: false;
-  error: ApiErrorBody;
-  requestId: string;
-};
-
-export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
+import type { ApiFailure, ApiResult } from '.';
 
 const UNAUTHORIZED: ApiFailure = {
   ok: false,

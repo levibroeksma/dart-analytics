@@ -37,7 +37,10 @@ app/src/
 │   │   ├── api/                     # fetch client, domain API modules
 │   │   └── auth/                    # browser token access
 │   ├── server/                      # envelope, errors — Worker only
-│   └── auth/                        # verify-jwt, resolve-player — Worker only
+│   ├── auth/                        # @auth — authentication data factories, middleware helpers
+│   │   ├── login.data.ts
+│   │   └── logout.data.ts
+│   └── utils/                       # @utils (note: alias maps here, not to top-level utils/)
 ├── types/
 │   └── api/                         # shared Zod schemas + z.infer<> barrels
 ├── utils/                           # @utils — widely reused pure helpers
@@ -136,10 +139,11 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 
 | Scope | Location |
 | ----- | -------- |
-| Used by one route only | Colocate under `pages/<route>/` (e.g. `play.data.ts`) |
-| Used by 2+ routes | `stores/`, `forms/`, `modules/`, or `components/` |
+| Auth-related data factories | `lib/auth/` (e.g. `login.data.ts`, `logout.data.ts`) |
+| Domain-specific data factories | `lib/<domain>/` if shared, else colocate under `pages/<route>/` |
+| Stores, forms, modules (multi-page use) | `stores/`, `forms/`, `modules/`, or `components/` |
 
-**Agent rule:** if a file is imported from more than one page, promote it out of `pages/`.
+**Agent rule:** auth-related `.data.ts` files always live in `lib/auth/`. For other files, if imported from more than one page, promote it out of `pages/`.
 
 ---
 
