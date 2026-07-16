@@ -2,6 +2,7 @@ export type ScoreTrainingEngineOptions = {
   durationType: "ROUNDS" | "MINUTES";
   durationValue: number;
   maxDartsPerTurn: number;
+  startingSequence?: number;
 };
 
 export type RecordedVisit = {
@@ -13,13 +14,16 @@ export type RecordedVisit = {
 
 export class ScoreTrainingEngine {
   private visits: RecordedVisit[] = [];
+  private startingSequence: number;
 
-  constructor(private opts: ScoreTrainingEngineOptions) {}
+  constructor(private opts: ScoreTrainingEngineOptions) {
+    this.startingSequence = opts.startingSequence ?? 0;
+  }
 
   recordVisit(score: number): RecordedVisit {
     const visit: RecordedVisit = {
       clientKey: crypto.randomUUID(),
-      sequence: this.visits.length + 1,
+      sequence: this.startingSequence + this.visits.length + 1,
       totalScore: score,
       completedAt: new Date().toISOString(),
     };

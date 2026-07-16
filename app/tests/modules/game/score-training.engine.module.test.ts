@@ -47,4 +47,19 @@ describe('ScoreTrainingEngine.recordVisit', () => {
     expect(second.sequence).toBe(2);
     expect(first.clientKey).not.toBe(second.clientKey);
   });
+
+  it('continues sequence numbering from startingSequence on resume, avoiding collisions with pre-existing turns', () => {
+    const engine = new ScoreTrainingEngine({
+      durationType: 'ROUNDS',
+      durationValue: 10,
+      maxDartsPerTurn: 3,
+      startingSequence: 3,
+    });
+    const first = engine.recordVisit(20);
+    const second = engine.recordVisit(30);
+    expect(first.sequence).toBe(4);
+    expect(second.sequence).toBe(5);
+    expect([1, 2, 3]).not.toContain(first.sequence);
+    expect([1, 2, 3]).not.toContain(second.sequence);
+  });
 });
