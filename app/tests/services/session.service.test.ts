@@ -22,11 +22,14 @@ vi.mock('@repositories/session.repository', async (importOriginal) => {
     findStageTypeIdMap: vi.fn(),
     findDartZoneIdMap: vi.fn(),
     insertBatchRecords: vi.fn(),
+    findActiveSessions: vi.fn(),
+    findConfigurationPresets: vi.fn(),
+    updateSessionStatusRecord: vi.fn(),
   };
 });
 
 import * as repo from '@repositories/session.repository';
-import { appendBatch, canonicalize, hashBatchPayload, createSession } from '@services/session.service';
+import { appendBatch, canonicalize, hashBatchPayload, createSession, updateSessionStatus, listActiveSessions, listConfigurationPresets } from '@services/session.service';
 
 const inlineRequest = {
   gameTypeKey: 'SCORE_TRAINING',
@@ -227,5 +230,66 @@ describe('appendBatch', () => {
     vi.mocked(repo.findIdempotencyRecord).mockResolvedValue({ normalizedPayloadHash: 'different-hash', result: {} });
     const result = await appendBatch('player-1', 'session-1', 'idem-1', sampleBatch());
     expect(result).toMatchObject({ ok: false, code: 'IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD' });
+  });
+});
+
+describe('updateSessionStatus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: 'session-1',
+      playerId: 'player-1',
+      statusId: 1,
+      rulesetVersionKey: 'SCORE_TRAINING_V1',
+    });
+    vi.mocked(repo.findGameStatusId).mockImplementation(async (_db, key) => ({ ACTIVE: 1, COMPLETED: 2, ABANDONED: 3 }[key]));
+    vi.mocked(repo.updateSessionStatusRecord).mockResolvedValue(undefined);
+  });
+
+  it('completes an active session', async () => {
+    const result = await updateSessionStatus('player-1', 'session-1', { status: 'COMPLETED' });
+    expect(result.ok).toBe(true);
+    expect(repo.updateSessionStatusRecord).toHaveBeenCalledWith(expect.anything(), 'session-1', 2, expect.any(String));
+  });
+
+  it('returns NOT_FOUND for an unknown session', async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue(undefined);
+    const result = await updateSessionStatus('player-1', 'missing', { status: 'COMPLETED' });
+    expect(result).toMatchObject({ ok: false, code: 'NOT_FOUND' });
+  });
+
+  it('returns SESSION_OWNERSHIP_MISMATCH for a different player', async () => {
+    const result = await updateSessionStatus('someone-else', 'session-1', { status: 'COMPLETED' });
+    expect(result).toMatchObject({ ok: false, code: 'SESSION_OWNERSHIP_MISMATCH' });
+  });
+
+  it('returns INVALID_STATUS_TRANSITION for an unsupported target', async () => {
+    const result = await updateSessionStatus('player-1', 'session-1', { status: 'ACTIVE' });
+    expect(result).toMatchObject({ ok: false, code: 'INVALID_STATUS_TRANSITION' });
+  });
+
+  it('returns SESSION_ALREADY_COMPLETED for a non-active session', async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: 'session-1',
+      playerId: 'player-1',
+      statusId: 2,
+      rulesetVersionKey: 'SCORE_TRAINING_V1',
+    });
+    const result = await updateSessionStatus('player-1', 'session-1', { status: 'COMPLETED' });
+    expect(result).toMatchObject({ ok: false, code: 'SESSION_ALREADY_COMPLETED' });
+  });
+});
+
+describe('listActiveSessions / listConfigurationPresets', () => {
+  it('returns rows from the repository as-is', async () => {
+    vi.mocked(repo.findActiveSessions).mockResolvedValue([{ sessionId: 's1', playerId: 'p1' } as never]);
+    const rows = await listActiveSessions('p1');
+    expect(rows).toHaveLength(1);
+  });
+
+  it('returns preset rows from the repository as-is', async () => {
+    vi.mocked(repo.findConfigurationPresets).mockResolvedValue([{ configurationTemplateId: 'c1' } as never]);
+    const rows = await listConfigurationPresets('p1', 'SCORE_TRAINING');
+    expect(rows).toHaveLength(1);
   });
 });

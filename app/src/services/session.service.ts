@@ -3,7 +3,9 @@ import { generateId } from "@lib/id";
 import { getRulesetValidator } from "./rulesets/registry";
 import {
   countTurnsForSession,
+  findActiveSessions,
   findCaptureModeId,
+  findConfigurationPresets,
   findConfigurationTemplate,
   findDartZoneIdMap,
   findGameStatusId,
@@ -18,8 +20,9 @@ import {
   findStageTypeIdMap,
   insertBatchRecords,
   insertSessionRecords,
+  updateSessionStatusRecord,
 } from "@repositories/session.repository";
-import type { CreateSessionRequestInput, EventsBatchRequestInput } from "@routes/types";
+import type { CreateSessionRequestInput, EventsBatchRequestInput, UpdateSessionRequestInput } from "@routes/types";
 import type { ErrorCode } from "@server/errors";
 
 export type ServiceResult<T> =
@@ -245,4 +248,44 @@ export async function appendBatch(
   });
 
   return { ok: true, data: { created: result } };
+}
+
+const TERMINAL_TARGETS = new Set(["COMPLETED", "ABANDONED"]);
+
+export async function updateSessionStatus(
+  playerId: string,
+  sessionId: string,
+  input: UpdateSessionRequestInput,
+): Promise<ServiceResult<{ sessionId: string; statusKey: string; completedAt: string }>> {
+  const db = getDb();
+  const session = await findSessionRow(db, sessionId);
+  if (!session) return { ok: false, code: "NOT_FOUND" };
+  if (session.playerId !== playerId) return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
+
+  if (!TERMINAL_TARGETS.has(input.status)) {
+    return { ok: false, code: "INVALID_STATUS_TRANSITION", details: { reason: `unsupported target status ${input.status}` } };
+  }
+
+  const activeStatusId = await findGameStatusId(db, "ACTIVE");
+  if (session.statusId !== activeStatusId) {
+    return { ok: false, code: "SESSION_ALREADY_COMPLETED" };
+  }
+
+  const targetStatusId = await findGameStatusId(db, input.status);
+  if (!targetStatusId) return { ok: false, code: "INTERNAL_ERROR" };
+
+  const completedAt = input.completedAt ?? new Date().toISOString();
+  await updateSessionStatusRecord(db, sessionId, targetStatusId, completedAt);
+
+  return { ok: true, data: { sessionId, statusKey: input.status, completedAt } };
+}
+
+export async function listActiveSessions(playerId: string) {
+  const db = getDb();
+  return findActiveSessions(db, playerId);
+}
+
+export async function listConfigurationPresets(playerId: string, gameTypeKey: string) {
+  const db = getDb();
+  return findConfigurationPresets(db, gameTypeKey, playerId);
 }
