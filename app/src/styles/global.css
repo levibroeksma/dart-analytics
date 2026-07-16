@@ -44,6 +44,7 @@
     var(--color-red-500) 15%,
     transparent
   );
+  --color-accent-muted: color-mix(in oklab, var(--color-teal-500) 12%, transparent);
   --color-success: var(--color-teal-400);
   --color-success-muted: color-mix(
     in oklab,
@@ -119,7 +120,7 @@
   }
 
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold;
     transition:
       transform var(--duration-fast) var(--ease-out),
       background-color var(--duration-normal) var(--ease-out),
@@ -167,11 +168,11 @@
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
 
   .badge-accent {
-    @apply bg-success-muted text-accent-300;
+    @apply bg-accent-muted text-accent-300;
   }
 
   .badge-muted {
@@ -179,7 +180,7 @@
   }
 
   .nav-item {
-    @apply flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-[10px] font-medium text-fg-subtle;
+    @apply flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-[10px] font-semibold text-fg-subtle;
     transition:
       color var(--duration-normal) var(--ease-out),
       background-color var(--duration-normal) var(--ease-out);

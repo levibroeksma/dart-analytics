@@ -6,18 +6,20 @@ interface Props {
   class?: string;
 }
 
+// Props
 const { href, label, matchPrefix, class: classNameProp }: Props = Astro.props;
 
+// Lib
+import { cn } from "@client/cn";
 import { isNavActive } from "@lib/utils/is-nav-active";
 
+// Styles
 const active = isNavActive(Astro.url.pathname, href, matchPrefix);
-const className = [
+const className = cn(
   "nav-item focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
   active ? "nav-item-active" : "",
   classNameProp,
-]
-  .filter(Boolean)
-  .join(" ");
+);
 ---
 
 <a href={href} class={className} aria-current={active ? "page" : undefined}>

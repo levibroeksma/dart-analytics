@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Frontend Overview
 
-> **Version:** 0.3.2 (centralized error mapping, types/ relocation, 2026-07-16)
+> **Version:** 0.3.3 (style guide doc reference added, 2026-07-16)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -38,6 +38,7 @@ Structural patterns (folders, Alpine, modules) live in the handbook chapters bel
 | `03-Alpine-Patterns.md` | `app.factory`, stores, forms, `$persist` |
 | `04-Modules-And-OOP.md` | Modules, portable UI kit, validation boundary |
 | `05-Astro-Components.md` | `.astro` authoring: frontmatter, props, class composition, slots |
+| `07-Style-Guide.md` | Tokens, primitives, typography, motion, accessibility |
 | `10-Frontend-Agent-Guide.md` | Condensed agent rules |
 
 **Authority:** API integration and data flows — this file. Rendering, folders, Alpine, modules, components — `01`–`05`.
@@ -284,6 +285,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | `03-Alpine-Patterns.md` | Alpine factory, stores, forms |
 | `04-Modules-And-OOP.md` | Modules, portable UI kit |
 | `05-Astro-Components.md` | `.astro` authoring conventions |
+| `07-Style-Guide.md` | Tokens, primitives, typography, motion, accessibility |
 | `10-Frontend-Agent-Guide.md` | Condensed agent rules |
 | `../06-API/00-Overview.md` | Frozen API contract (v1.3.0) |
 | `../06-API/01-Implementation-Strategy.md` | Why REST endpoints over Actions |
