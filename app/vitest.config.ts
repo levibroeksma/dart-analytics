@@ -11,6 +11,7 @@ export default defineConfig({
     alias: {
       '@auth': path.resolve(__dirname, './src/lib/auth'),
       '@client': path.resolve(__dirname, './src/lib/client'),
+      '@lib': path.resolve(__dirname, './src/lib'),
       '@components': path.resolve(__dirname, './src/components'),
       '@stores': path.resolve(__dirname, './src/stores'),
       '@forms': path.resolve(__dirname, './src/forms'),

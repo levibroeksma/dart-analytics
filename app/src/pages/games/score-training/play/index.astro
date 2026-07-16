@@ -1,0 +1,28 @@
+---
+export const prerender = true;
+import AppLayout from "@layouts/AppLayout.astro";
+import Button from "@components/forms/Button.astro";
+import Input from "@components/forms/Input.astro";
+---
+
+<AppLayout title="Score Training — Play">
+  <div class="p-4" x-data="scoreTrainingPlay()">
+    <template x-if="finished">
+      <div>
+        <p class="text-fg">Session complete.</p>
+        <a class="btn-primary mt-4 inline-block" href="/games/score-training/results">See results</a>
+      </div>
+    </template>
+
+    <template x-if="!finished">
+      <form @submit.prevent="submitVisit()">
+        <p class="text-sm text-fg-muted" x-text="`Visit ${$store.game.turns.length + 1}`"></p>
+        <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
+        <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error"></p>
+        <Button type="submit" class="mt-4">Submit visit</Button>
+      </form>
+    </template>
+
+    <p class="mt-4 text-fg" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></p>
+  </div>
+</AppLayout>

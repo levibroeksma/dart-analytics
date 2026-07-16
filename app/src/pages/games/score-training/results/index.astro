@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import AppLayout from "@layouts/AppLayout.astro";
+---
+
+<AppLayout title="Score Training — Results">
+  <div class="p-4" x-data="{}">
+    <h1 class="text-xl font-semibold text-fg">Results</h1>
+    <p class="mt-2 text-fg">Nice session. Head back to games to play again.</p>
+    <a class="btn-primary mt-4 inline-block" href="/games">Back to games</a>
+  </div>
+</AppLayout>
