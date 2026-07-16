@@ -72,3 +72,76 @@ describe('findIdempotencyRecord', () => {
     expect(result).toEqual(record);
   });
 });
+
+vi.mock('@db/client', () => ({
+  withTransaction: vi.fn(async (fn: (tx: unknown) => unknown) => {
+    // Every table's `.insert(...).values(...)` just needs to resolve — this
+    // proves insertSessionRecords runs inside withTransaction and returns the
+    // right shape, without asserting per-table row content (see note below).
+    const tx = { insert: () => ({ values: () => Promise.resolve() }) };
+    return fn(tx);
+  }),
+}));
+
+describe('insertSessionRecords', () => {
+  it('resolves with the generated sessionId and participantId', async () => {
+    const { insertSessionRecords } = await import('@repositories/session.repository');
+    const result = await insertSessionRecords({
+      activityId: 'a1',
+      sessionId: 's1',
+      configurationId: 'c1',
+      participantId: 'pt1',
+      playerId: 'p1',
+      gameTypeId: 'gt1',
+      rulesetVersionId: 'rv1',
+      captureModeId: 1,
+      inputModeId: 1,
+      activeStatusId: 1,
+      playerParticipantTypeId: 1,
+      displayName: 'Levi',
+      configuration: { duration_type: 'ROUNDS', duration_value: 10, max_darts_per_turn: 3 },
+    });
+    expect(result).toEqual({ sessionId: 's1', participantId: 'pt1' });
+  });
+});
+
+describe('insertBatchRecords', () => {
+  it('resolves with the created counts', async () => {
+    const { insertBatchRecords } = await import('@repositories/session.repository');
+    const result = await insertBatchRecords({
+      sessionId: 's1',
+      idempotencyRecordId: 'idem-row-1',
+      idempotencyKey: 'idem-1',
+      normalizedPayloadHash: 'hash-1',
+      stages: [{ id: 'stage-1', parentStageId: null, stageTypeId: 5, sequenceNumber: 1 }],
+      turns: [
+        { id: 'turn-1', stageId: 'stage-1', participantId: 'p1', sequenceNumber: 1, totalScore: 45, completedAt: null, darts: [] },
+      ],
+    });
+    expect(result).toEqual({ stages: 1, turns: 1, darts: 0 });
+  });
+
+  it('resolves with zero counts for an empty batch', async () => {
+    const { insertBatchRecords } = await import('@repositories/session.repository');
+    const result = await insertBatchRecords({
+      sessionId: 's1',
+      idempotencyRecordId: 'idem-row-2',
+      idempotencyKey: 'idem-2',
+      normalizedPayloadHash: 'hash-2',
+      stages: [],
+      turns: [],
+    });
+    expect(result).toEqual({ stages: 0, turns: 0, darts: 0 });
+  });
+});
+
+describe('updateSessionStatusRecord', () => {
+  it('issues a single update against the plain HTTP db client', async () => {
+    const whereMock = vi.fn().mockResolvedValue(undefined);
+    const setMock = vi.fn(() => ({ where: whereMock }));
+    const db = { update: vi.fn(() => ({ set: setMock })) } as any;
+    const { updateSessionStatusRecord } = await import('@repositories/session.repository');
+    await updateSessionStatusRecord(db, 's1', 2, '2026-07-16T00:00:00.000Z');
+    expect(setMock).toHaveBeenCalledWith({ statusId: 2, completedAt: '2026-07-16T00:00:00.000Z' });
+  });
+});

@@ -1,8 +1,10 @@
 import { and, eq, isNull, or, sql } from "drizzle-orm";
 import {
+  activities,
   captureModes,
   configurationTemplates,
   dartZones,
+  darts,
   exerciseConfigurations,
   exerciseSessions,
   exerciseStages,
@@ -19,8 +21,15 @@ import {
   vActiveSessions,
   vConfigurationPresets,
 } from "@db/schema";
-import type { getDb } from "@db/client";
-import type { ConfigurationTemplateRow, GameTypeRulesetRow, IdempotencyRecord, SessionRow } from "./interfaces";
+import { getDb, withTransaction } from "@db/client";
+import type {
+  BatchInsertInput,
+  ConfigurationTemplateRow,
+  CreateSessionRecordsInput,
+  GameTypeRulesetRow,
+  IdempotencyRecord,
+  SessionRow,
+} from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -170,4 +179,118 @@ export async function findConfigurationPresets(db: Db, gameTypeKey: string, play
         or(isNull(vConfigurationPresets.playerId), eq(vConfigurationPresets.playerId, playerId)),
       ),
     );
+}
+
+export async function insertSessionRecords(
+  input: CreateSessionRecordsInput,
+): Promise<{ sessionId: string; participantId: string }> {
+  return withTransaction(async (tx) => {
+    const now = new Date().toISOString();
+    await tx.insert(activities).values({
+      id: input.activityId,
+      playerId: input.playerId,
+      statusId: input.activeStatusId,
+      startedAt: now,
+      createdAt: now,
+    });
+    await tx.insert(exerciseSessions).values({
+      id: input.sessionId,
+      activityId: input.activityId,
+      playerId: input.playerId,
+      gameTypeId: input.gameTypeId,
+      captureModeId: input.captureModeId,
+      inputModeId: input.inputModeId,
+      statusId: input.activeStatusId,
+      rulesetVersionId: input.rulesetVersionId,
+      startedAt: now,
+      createdAt: now,
+    });
+    await tx.insert(exerciseConfigurations).values({
+      id: input.configurationId,
+      exerciseSessionId: input.sessionId,
+      configuration: input.configuration,
+      createdAt: now,
+    });
+    await tx.insert(participants).values({
+      id: input.participantId,
+      exerciseSessionId: input.sessionId,
+      participantTypeId: input.playerParticipantTypeId,
+      playerId: input.playerId,
+      displayName: input.displayName,
+      createdAt: now,
+    });
+    return { sessionId: input.sessionId, participantId: input.participantId };
+  });
+}
+
+export async function insertBatchRecords(
+  input: BatchInsertInput,
+): Promise<{ stages: number; turns: number; darts: number }> {
+  return withTransaction(async (tx) => {
+    const now = new Date().toISOString();
+
+    if (input.stages.length > 0) {
+      await tx.insert(exerciseStages).values(
+        input.stages.map((stage) => ({
+          id: stage.id,
+          exerciseSessionId: input.sessionId,
+          parentStageId: stage.parentStageId,
+          stageTypeId: stage.stageTypeId,
+          sequenceNumber: stage.sequenceNumber,
+          createdAt: now,
+        })),
+      );
+    }
+
+    if (input.turns.length > 0) {
+      await tx.insert(turns).values(
+        input.turns.map((turn) => ({
+          id: turn.id,
+          exerciseStageId: turn.stageId,
+          participantId: turn.participantId,
+          sequenceNumber: turn.sequenceNumber,
+          totalScore: turn.totalScore,
+          completedAt: turn.completedAt,
+          createdAt: now,
+        })),
+      );
+    }
+
+    const allDarts = input.turns.flatMap((turn) => turn.darts.map((dart) => ({ ...dart, turnId: turn.id })));
+    if (allDarts.length > 0) {
+      await tx.insert(darts).values(
+        allDarts.map((dart) => ({
+          id: dart.id,
+          turnId: dart.turnId,
+          dartNumber: dart.dartNumber,
+          intendedTargetNumber: dart.intendedTargetNumber,
+          intendedZoneId: dart.intendedZoneId,
+          hitTargetNumber: dart.hitTargetNumber,
+          hitZoneId: dart.hitZoneId,
+          score: dart.score,
+          createdAt: now,
+        })),
+      );
+    }
+
+    await tx.insert(sessionWriteIdempotency).values({
+      id: input.idempotencyRecordId,
+      sessionId: input.sessionId,
+      idempotencyKey: input.idempotencyKey,
+      normalizedPayloadHash: input.normalizedPayloadHash,
+      result: { created: { stages: input.stages.length, turns: input.turns.length, darts: allDarts.length } },
+      createdAt: now,
+    });
+
+    return { stages: input.stages.length, turns: input.turns.length, darts: allDarts.length };
+  });
+}
+
+export async function updateSessionStatusRecord(
+  db: Db,
+  sessionId: string,
+  statusId: number,
+  completedAt: string,
+): Promise<void> {
+  await db.update(exerciseSessions).set({ statusId, completedAt }).where(eq(exerciseSessions.id, sessionId));
 }
