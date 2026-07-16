@@ -1,5 +1,5 @@
 import { getAccessToken } from '@client/auth/client';
-import type { ApiFailure, ApiResult } from '.';
+import type { ApiFailure, ApiResult } from './types';
 
 const UNAUTHORIZED: ApiFailure = {
   ok: false,

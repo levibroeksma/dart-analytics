@@ -3,7 +3,7 @@ import {
   ProvisionPlayerRequest,
   type ProvisionPlayerRequestInput,
   type ProvisionPlayerResponseData,
-} from '../../../types/api/players';
+} from './types';
 
 export class ProvisionError extends Error {
   constructor(

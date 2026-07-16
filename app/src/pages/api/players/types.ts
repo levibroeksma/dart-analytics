@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+/** Frozen contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Player Provisioning. */
 export const ProvisionPlayerRequest = z.object({
   displayName: z.string().min(1).optional(),
 });

@@ -15,7 +15,6 @@
       "@server/*": ["./src/lib/server/*"],
       "@stores/*": ["./src/stores/*"],
       "@forms/*": ["./src/forms/*"],
-      "@types/*": ["./src/types/*"],
       "@modules/*": ["./src/modules/*"],
       "@utils/*": ["./src/lib/utils/*"],
       "@styles/*": ["./src/styles/*"],

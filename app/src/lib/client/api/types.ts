@@ -17,3 +17,10 @@ export type ApiFailure = {
 };
 
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
+
+export {
+  ProvisionPlayerRequest,
+  type ProvisionPlayerRequestInput,
+  type ProvisionPlayerResponseData,
+  type ErrorCode,
+} from '@routes/types';
