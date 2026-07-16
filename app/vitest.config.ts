@@ -17,6 +17,10 @@ export default defineConfig({
       '@modules': path.resolve(__dirname, './src/modules'),
       '@utils': path.resolve(__dirname, './src/lib/utils'),
       '@pages': path.resolve(__dirname, './src/pages'),
+      '@services': path.resolve(__dirname, './src/services'),
+      '@repositories': path.resolve(__dirname, './src/repositories'),
+      '@db': path.resolve(__dirname, './src/db'),
+      '@routes': path.resolve(__dirname, './src/pages/api'),
     },
   },
 });

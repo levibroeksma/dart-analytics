@@ -18,7 +18,11 @@
       "@types/*": ["./src/types/*"],
       "@modules/*": ["./src/modules/*"],
       "@utils/*": ["./src/lib/utils/*"],
-      "@styles/*": ["./src/styles/*"]
+      "@styles/*": ["./src/styles/*"],
+      "@services/*": ["./src/services/*"],
+      "@repositories/*": ["./src/repositories/*"],
+      "@db/*": ["./src/db/*"],
+      "@routes/*": ["./src/pages/api/*"]
     }
   }
 }
