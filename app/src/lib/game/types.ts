@@ -10,6 +10,8 @@ export type ScoreTrainingPlayContext = {
   completionFailed: boolean;
   finished: boolean;
   hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -28,6 +30,7 @@ export type ScoreTrainingPlayContext = {
   timer: SegmentTimer | null;
   remainingLabel(this: ScoreTrainingPlayContext): string;
   init(this: ScoreTrainingPlayContext): Promise<void>;
+  retryReconciliation(this: ScoreTrainingPlayContext): Promise<void>;
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
   retryCompletion(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;

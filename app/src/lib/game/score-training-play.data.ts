@@ -2,6 +2,7 @@ import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module"
 import { buildEventsBatch } from "@modules/game/score-training.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { appendBatch, completeSession, fetchActiveSessions } from "@client/api/sessions";
+import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { RecordedTurn } from "@stores/types";
 import type { ScoreTrainingPlayContext } from "./types";
 
@@ -46,6 +47,8 @@ export function scoreTrainingPlay() {
     completionFailed: false,
     finished: false,
     hasActiveSession: false,
+    loadingReconciliation: false,
+    reconciliationFailed: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
 
@@ -54,28 +57,33 @@ export function scoreTrainingPlay() {
     },
 
     /**
-     * D88 auto-cleanup: reconciles local persisted state against the server's
-     * view before trusting either. Local state wins only when both agree on
-     * sessionId; any mismatch is resolved without a user prompt.
+     * D88 auto-cleanup via shared reconcileActiveSession helper. On "match",
+     * resume silently (no Continue/Abandon modal — that is setup-only).
      */
     async init(this: ScoreTrainingPlayContext) {
-      const localSessionId = this.$store.game.sessionId;
-      const active = await fetchActiveSessions();
+      this.loadingReconciliation = true;
+      const activeSessions = await fetchActiveSessions();
+      const result = await reconcileActiveSession(
+        this.$store.game.sessionId,
+        activeSessions,
+        this.$store.game,
+      );
+      this.loadingReconciliation = false;
 
-      if (localSessionId) {
-        const localMatch = active.find(
-          (s) => s.gameTypeKey === "SCORE_TRAINING" && s.sessionId === localSessionId,
-        );
-        if (!localMatch) {
-          this.$store.game.reset();
-        }
-      } else {
-        const orphan = active.find((s) => s.gameTypeKey === "SCORE_TRAINING");
-        if (orphan) {
-          await completeSession(orphan.sessionId, "ABANDONED");
-        }
+      if (result.action === "abandon_failed") {
+        // Block: stay on loading/error, do not flip to "no active session" as if cleaned.
+        this.reconciliationFailed = true;
+        this.hasActiveSession = false;
+        return;
+      }
+      this.reconciliationFailed = false;
+
+      if (result.action === "no_active") {
+        this.hasActiveSession = false;
+        return;
       }
 
+      // result.action === "match": resume silently, no modal on play.
       const config = this.$store.game.configSnapshot;
       if (!config) {
         this.hasActiveSession = false;
@@ -114,6 +122,10 @@ export function scoreTrainingPlay() {
       }
 
       this.hasActiveSession = true;
+    },
+
+    async retryReconciliation(this: ScoreTrainingPlayContext) {
+      await this.init();
     },
 
     destroy(this: ScoreTrainingPlayContext) {

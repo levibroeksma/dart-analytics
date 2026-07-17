@@ -86,54 +86,111 @@ describe('scoreTrainingPlay', () => {
     expect(store.reset).toHaveBeenCalledTimes(1);
   });
 
-  it('D88: clears local state when the server has no matching active session', async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
-    const store = gameStub();
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
-    await component.init.call(component);
-    expect(store.reset).toHaveBeenCalledTimes(1);
-  });
+  describe('reconciliation on init', () => {
+    it('resumes silently on "match" — no modal, hasActiveSession = true', async () => {
+      const store = gameStub({
+        sessionId: 'match-id',
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+      });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      ]);
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
 
-  it('D88: does not clear local state when the local session exists but is not the first SCORE_TRAINING session in the active list', async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([
-      { sessionId: 'other-session', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
-      { sessionId: 's1', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
-    ]);
-    const store = gameStub({ sessionId: 's1' });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
-    await component.init.call(component);
-    expect(store.reset).not.toHaveBeenCalled();
-    expect(component.hasActiveSession).toBe(true);
-  });
+      expect(component.hasActiveSession).toBe(true);
+      expect(store.reset).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(false);
+    });
 
-  it('D88: clears local state when the local sessionId truly has no match in the active list, even if another SCORE_TRAINING session exists', async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([
-      { sessionId: 'other-session', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
-    ]);
-    const store = gameStub({ sessionId: 's1' });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
-    await component.init.call(component);
-    expect(store.reset).toHaveBeenCalledTimes(1);
-  });
+    it('shows no-active-session view on "no_active" (mismatch auto-abandoned)', async () => {
+      const store = gameStub({ sessionId: 'different-id' });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      ]);
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 'server-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
 
-  it('D88: abandons an orphaned server session with no local state', async () => {
-    const store = gameStub({ sessionId: null, configSnapshot: null });
-    vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'ABANDONED', completedAt: 'now' });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
-    await component.init.call(component);
-    expect(completeSession).toHaveBeenCalledWith('s1', 'ABANDONED');
-  });
+      expect(completeSession).toHaveBeenCalledWith('server-id', 'ABANDONED');
+      expect(store.reset).toHaveBeenCalled();
+      expect(component.hasActiveSession).toBe(false);
+    });
 
-  it('sets hasActiveSession to false and does not crash on submitVisit when no session matches', async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
-    const store = gameStub({ sessionId: null, configSnapshot: null });
-    const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '45' };
-    await component.init.call(component);
-    expect(component.hasActiveSession).toBe(false);
+    it('blocks with reconciliationFailed on "abandon_failed" — does not flip to no-active-session as if cleaned', async () => {
+      const store = gameStub({ sessionId: 'different-id' });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      ]);
+      vi.mocked(completeSession).mockRejectedValue(new Error('Network error'));
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
 
-    await expect(component.submitVisit.call(component)).resolves.not.toThrow();
-    expect(appendBatch).not.toHaveBeenCalled();
-    expect(completeSession).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(true);
+      expect(store.reset).not.toHaveBeenCalled();
+      expect(component.hasActiveSession).toBe(false);
+    });
+
+    it('preserves turns array on resume (no clear)', async () => {
+      const store = gameStub({
+        sessionId: 'match-id',
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+        turns: [{ clientKey: 't1', sequence: 1, totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }],
+      });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      ]);
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(component.hasActiveSession).toBe(true);
+      expect(store.turns.length).toBe(1);
+    });
+
+    it('D88: clears local state when the server has no matching active session', async () => {
+      vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(store.reset).toHaveBeenCalledTimes(1);
+      expect(component.hasActiveSession).toBe(false);
+    });
+
+    it('D88: mismatch against first SCORE_TRAINING session auto-abandons and resets', async () => {
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'other-session', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+      ]);
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 'other-session', statusKey: 'ABANDONED', completedAt: 'now' });
+      const store = gameStub({ sessionId: 's1' });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(completeSession).toHaveBeenCalledWith('other-session', 'ABANDONED');
+      expect(store.reset).toHaveBeenCalledTimes(1);
+      expect(component.hasActiveSession).toBe(false);
+    });
+
+    it('D88: abandons an orphaned server session with no local state', async () => {
+      const store = gameStub({ sessionId: null, configSnapshot: null });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'ABANDONED', completedAt: 'now' });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(completeSession).toHaveBeenCalledWith('s1', 'ABANDONED');
+      expect(component.hasActiveSession).toBe(false);
+    });
+
+    it('sets hasActiveSession to false and does not crash on submitVisit when no session matches', async () => {
+      vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+      const store = gameStub({ sessionId: null, configSnapshot: null });
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '45' };
+      await component.init.call(component);
+      expect(component.hasActiveSession).toBe(false);
+
+      await expect(component.submitVisit.call(component)).resolves.not.toThrow();
+      expect(appendBatch).not.toHaveBeenCalled();
+      expect(completeSession).not.toHaveBeenCalled();
+    });
   });
 
   describe('MINUTES duration mode timer wiring', () => {
