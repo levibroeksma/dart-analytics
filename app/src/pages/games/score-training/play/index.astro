@@ -81,7 +81,7 @@ import Input from "@components/forms/Input.astro";
           <Button type="button" variant="secondary" @click="back()" :disabled="completionStatus !== 'succeeded'">
             Back
           </Button>
-          <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded'">
+          <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded' || playAgainLoading">
             Play again?
           </Button>
         </div>

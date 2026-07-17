@@ -30,6 +30,7 @@ export function scoreTrainingPlay() {
     completionStatus: "pending" as "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
     playAgainError: "",
+    playAgainLoading: false,
     resultsSnapshot: null as { total: number; visits: number; average: number } | null,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
@@ -44,66 +45,72 @@ export function scoreTrainingPlay() {
      */
     async init(this: ScoreTrainingPlayContext) {
       this.loadingReconciliation = true;
-      const activeSessions = await fetchActiveSessions();
-      const result = await reconcileActiveSession(
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-      this.loadingReconciliation = false;
+      try {
+        const activeSessions = await fetchActiveSessions();
+        const result = await reconcileActiveSession(
+          this.$store.game.sessionId,
+          activeSessions,
+          this.$store.game,
+        );
 
-      if (result.action === "abandon_failed") {
-        // Block: stay on loading/error, do not flip to "no active session" as if cleaned.
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-        return;
-      }
-      this.reconciliationFailed = false;
+        if (result.action === "abandon_failed") {
+          // Block: stay on loading/error, do not flip to "no active session" as if cleaned.
+          this.reconciliationFailed = true;
+          this.hasActiveSession = false;
+          return;
+        }
+        this.reconciliationFailed = false;
 
-      if (result.action === "no_active") {
-        this.hasActiveSession = false;
-        return;
-      }
-
-      // result.action === "match": resume silently, no modal on play.
-      const config = this.$store.game.configSnapshot;
-      if (!config) {
-        this.hasActiveSession = false;
-        return;
-      }
-      this.engine = new ScoreTrainingEngine({
-        durationType: config.durationType,
-        durationValue: config.durationValue,
-        maxDartsPerTurn: config.maxDartsPerTurn,
-        startingSequence: this.$store.game.turns.length,
-      });
-
-      if (config.durationType === "MINUTES" && !this.$store.game.timerExpired) {
-        const resumedRemainingMs = this.$store.game.timerRemainingMs;
-        const durationMinutes =
-          resumedRemainingMs != null ? resumedRemainingMs / 60000 : config.durationValue;
-
-        // Set synchronously so the countdown label never renders 00:00 while
-        // waiting for the timer's first onTick (fires 1s after start()).
-        this.$store.game.timerRemainingMs = durationMinutes * 60000;
-        if (resumedRemainingMs == null) {
-          this.$store.game.timerStartedAt = new Date().toISOString();
+        if (result.action === "no_active") {
+          this.hasActiveSession = false;
+          return;
         }
 
-        this.timer = new SegmentTimer({
-          totalMinutes: durationMinutes,
-          intervalMinutes: durationMinutes,
-          onTick: (secondsRemaining) => {
-            this.$store.game.timerRemainingMs = secondsRemaining * 1000;
-          },
-          onComplete: () => {
-            this.$store.game.timerExpired = true;
-          },
+        // result.action === "match": resume silently, no modal on play.
+        const config = this.$store.game.configSnapshot;
+        if (!config) {
+          this.hasActiveSession = false;
+          return;
+        }
+        this.engine = new ScoreTrainingEngine({
+          durationType: config.durationType,
+          durationValue: config.durationValue,
+          maxDartsPerTurn: config.maxDartsPerTurn,
+          startingSequence: this.$store.game.turns.length,
         });
-        this.timer.start();
-      }
 
-      this.hasActiveSession = true;
+        if (config.durationType === "MINUTES" && !this.$store.game.timerExpired) {
+          const resumedRemainingMs = this.$store.game.timerRemainingMs;
+          const durationMinutes =
+            resumedRemainingMs != null ? resumedRemainingMs / 60000 : config.durationValue;
+
+          // Set synchronously so the countdown label never renders 00:00 while
+          // waiting for the timer's first onTick (fires 1s after start()).
+          this.$store.game.timerRemainingMs = durationMinutes * 60000;
+          if (resumedRemainingMs == null) {
+            this.$store.game.timerStartedAt = new Date().toISOString();
+          }
+
+          this.timer = new SegmentTimer({
+            totalMinutes: durationMinutes,
+            intervalMinutes: durationMinutes,
+            onTick: (secondsRemaining) => {
+              this.$store.game.timerRemainingMs = secondsRemaining * 1000;
+            },
+            onComplete: () => {
+              this.$store.game.timerExpired = true;
+            },
+          });
+          this.timer.start();
+        }
+
+        this.hasActiveSession = true;
+      } catch {
+        this.reconciliationFailed = true;
+        this.hasActiveSession = false;
+      } finally {
+        this.loadingReconciliation = false;
+      }
     },
 
     async retryReconciliation(this: ScoreTrainingPlayContext) {
@@ -115,7 +122,7 @@ export function scoreTrainingPlay() {
     },
 
     async submitVisit(this: ScoreTrainingPlayContext) {
-      if (!this.engine) return;
+      if (!this.engine || this.finished) return;
 
       const score = Number(this.visitInput);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
@@ -183,7 +190,8 @@ export function scoreTrainingPlay() {
     },
 
     async playAgain(this: ScoreTrainingPlayContext) {
-      if (!this.$store.game.configSnapshot) return;
+      if (!this.$store.game.configSnapshot || this.playAgainLoading) return;
+      this.playAgainLoading = true;
       this.playAgainError = "";
 
       const config = this.$store.game.configSnapshot;
@@ -193,61 +201,65 @@ export function scoreTrainingPlay() {
         max_darts_per_turn: config.maxDartsPerTurn,
       };
 
-      let session;
       try {
-        session = await createSession({
-          gameTypeKey: "SCORE_TRAINING",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          config: { source: "inline", config: inlineConfig },
+        let session;
+        try {
+          session = await createSession({
+            gameTypeKey: "SCORE_TRAINING",
+            rulesetVersionKey: "SCORE_TRAINING_V1",
+            captureModeKey: "RECREATIONAL",
+            inputModeKey: "QUICK_SCORE",
+            config: { source: "inline", config: inlineConfig },
+          });
+        } catch {
+          // Play-again failure: modal stays open, results visible, buttons stay
+          // enabled (prior session is already COMPLETED). Store untouched.
+          this.playAgainError = "Could not start a new session. Try again.";
+          return;
+        }
+
+        // Only mutate store/UI on success.
+        this.$store.game.sessionId = session.sessionId;
+        this.$store.game.participantRef = session.participants[0].ref;
+        this.$store.game.turns = [];
+        this.$store.game.idempotencyKey = null;
+        this.$store.game.timerRemainingMs = null;
+        this.$store.game.timerStartedAt = null;
+        this.$store.game.timerExpired = false;
+
+        this.finished = false;
+        this.completionStatus = "pending";
+        this.completionError = "";
+        this.resultsSnapshot = null;
+        this.visitInput = "";
+        this.error = "";
+        this.hasActiveSession = true;
+
+        this.engine = new ScoreTrainingEngine({
+          durationType: config.durationType,
+          durationValue: config.durationValue,
+          maxDartsPerTurn: config.maxDartsPerTurn,
+          startingSequence: 0,
         });
-      } catch {
-        // Play-again failure: modal stays open, results visible, buttons stay
-        // enabled (prior session is already COMPLETED). Store untouched.
-        this.playAgainError = "Could not start a new session. Try again.";
-        return;
-      }
 
-      // Only mutate store/UI on success.
-      this.$store.game.sessionId = session.sessionId;
-      this.$store.game.participantRef = session.participants[0].ref;
-      this.$store.game.turns = [];
-      this.$store.game.idempotencyKey = null;
-      this.$store.game.timerRemainingMs = null;
-      this.$store.game.timerStartedAt = null;
-      this.$store.game.timerExpired = false;
-
-      this.finished = false;
-      this.completionStatus = "pending";
-      this.completionError = "";
-      this.resultsSnapshot = null;
-      this.visitInput = "";
-      this.error = "";
-      this.hasActiveSession = true;
-
-      this.engine = new ScoreTrainingEngine({
-        durationType: config.durationType,
-        durationValue: config.durationValue,
-        maxDartsPerTurn: config.maxDartsPerTurn,
-        startingSequence: 0,
-      });
-
-      if (config.durationType === "MINUTES") {
-        this.timer?.stop();
-        this.$store.game.timerRemainingMs = config.durationValue * 60000;
-        this.$store.game.timerStartedAt = new Date().toISOString();
-        this.timer = new SegmentTimer({
-          totalMinutes: config.durationValue,
-          intervalMinutes: config.durationValue,
-          onTick: (secondsRemaining) => {
-            this.$store.game.timerRemainingMs = secondsRemaining * 1000;
-          },
-          onComplete: () => {
-            this.$store.game.timerExpired = true;
-          },
-        });
-        this.timer.start();
+        if (config.durationType === "MINUTES") {
+          this.timer?.stop();
+          this.$store.game.timerRemainingMs = config.durationValue * 60000;
+          this.$store.game.timerStartedAt = new Date().toISOString();
+          this.timer = new SegmentTimer({
+            totalMinutes: config.durationValue,
+            intervalMinutes: config.durationValue,
+            onTick: (secondsRemaining) => {
+              this.$store.game.timerRemainingMs = secondsRemaining * 1000;
+            },
+            onComplete: () => {
+              this.$store.game.timerExpired = true;
+            },
+          });
+          this.timer.start();
+        }
+      } finally {
+        this.playAgainLoading = false;
       }
     },
   };

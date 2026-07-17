@@ -14,6 +14,7 @@ export type ScoreTrainingPlayContext = {
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
   completionError: string;
   playAgainError: string;
+  playAgainLoading: boolean;
   resultsSnapshot: { total: number; visits: number; average: number } | null;
   $store: {
     game: {

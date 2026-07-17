@@ -105,6 +105,70 @@ describe('scoreTrainingSetup', () => {
       expect(sessionsApi.completeSession).toHaveBeenCalledWith('match-id', 'ABANDONED');
       expect(store.game.reset).toHaveBeenCalled();
       expect(setup.showActiveSessionModal).toBe(false);
+      expect(setup.loading).toBe(false);
+    });
+
+    it('sets loading while abandonSession PATCH is in flight and clears it afterward', async () => {
+      const setup = createSetup({
+        activeSession: { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any,
+      });
+
+      let resolveComplete!: (value: Awaited<ReturnType<typeof sessionsApi.completeSession>>) => void;
+      vi.mocked(sessionsApi.completeSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveComplete = resolve;
+          }),
+      );
+
+      const pending = setup.abandonSession();
+      expect(setup.loading).toBe(true);
+
+      resolveComplete({
+        sessionId: 'match-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
+      });
+      await pending;
+
+      expect(setup.loading).toBe(false);
+    });
+
+    it('ignores a second abandonSession call while the first is in flight', async () => {
+      const setup = createSetup({
+        activeSession: { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any,
+      });
+
+      let resolveComplete!: (value: Awaited<ReturnType<typeof sessionsApi.completeSession>>) => void;
+      vi.mocked(sessionsApi.completeSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveComplete = resolve;
+          }),
+      );
+
+      const first = setup.abandonSession();
+      const second = setup.abandonSession();
+      expect(sessionsApi.completeSession).toHaveBeenCalledTimes(1);
+
+      resolveComplete({
+        sessionId: 'match-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
+      });
+      await Promise.all([first, second]);
+
+      expect(sessionsApi.completeSession).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('init fetch failure', () => {
+    it('sets a visible error and clears loading when preset/active fetch throws', async () => {
+      const setup = createSetup();
+      vi.mocked(presetsApi.fetchConfigurationPresets).mockRejectedValue(new Error('Network error'));
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+
+      await setup.init();
+
+      expect(setup.loadingReconciliation).toBe(false);
+      expect(setup.error).toMatch(/connection/i);
+      expect(setup.showActiveSessionModal).toBe(false);
     });
   });
 

@@ -195,6 +195,35 @@ describe('scoreTrainingPlay', () => {
       expect(appendBatch).not.toHaveBeenCalled();
       expect(completeSession).not.toHaveBeenCalled();
     });
+
+    it('clears loading and sets reconciliationFailed when fetchActiveSessions throws', async () => {
+      vi.mocked(fetchActiveSessions).mockRejectedValue(new Error('Network error'));
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(component.loadingReconciliation).toBe(false);
+      expect(component.reconciliationFailed).toBe(true);
+      expect(component.hasActiveSession).toBe(false);
+    });
+
+    it('retryReconciliation recovers after a prior fetch failure', async () => {
+      vi.mocked(fetchActiveSessions)
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce([
+          { sessionId: 's1', gameTypeKey: 'SCORE_TRAINING', gameTypeName: 'Score Training', captureModeKey: 'RECREATIONAL', inputModeKey: 'QUICK_SCORE', rulesetVersionKey: 'SCORE_TRAINING_V1', startedAt: 'now' },
+        ]);
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      expect(component.reconciliationFailed).toBe(true);
+
+      await component.retryReconciliation.call(component);
+
+      expect(component.loadingReconciliation).toBe(false);
+      expect(component.reconciliationFailed).toBe(false);
+      expect(component.hasActiveSession).toBe(true);
+    });
   });
 
   describe('MINUTES duration mode timer wiring', () => {
@@ -469,6 +498,54 @@ describe('scoreTrainingPlay', () => {
       expect(play.playAgainError).toBe('');
       expect(play.resultsSnapshot).toBeNull();
       expect(play.hasActiveSession).toBe(true);
+    });
+
+    it('playAgain double-fire while in flight only creates one session', async () => {
+      const play = makePlay();
+      play.completionStatus = 'succeeded';
+      play.finished = true;
+
+      let resolveCreate!: (value: Awaited<ReturnType<typeof createSession>>) => void;
+      vi.mocked(createSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      );
+
+      const first = play.playAgain();
+      const second = play.playAgain();
+      expect(play.playAgainLoading).toBe(true);
+      expect(createSession).toHaveBeenCalledTimes(1);
+
+      resolveCreate({
+        sessionId: 'new-session',
+        participants: [{ ref: 'new-participant', displayName: 'Player', participantTypeKey: 'PLAYER' }],
+      } as Awaited<ReturnType<typeof createSession>>);
+      await Promise.all([first, second]);
+
+      expect(createSession).toHaveBeenCalledTimes(1);
+      expect(play.playAgainLoading).toBe(false);
+      expect(play.$store.game.sessionId).toBe('new-session');
+    });
+
+    it('submitVisit is a no-op when finished is already true', async () => {
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 2, darts: 0 } });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.visitInput = '30';
+      await component.submitVisit.call(component);
+      expect(component.finished).toBe(true);
+      const turnCount = store.turns.length;
+
+      component.visitInput = '99';
+      await component.submitVisit.call(component);
+
+      expect(store.turns).toHaveLength(turnCount);
+      expect(appendBatch).toHaveBeenCalledTimes(1);
     });
 
     it('sets finished and completionStatus pending on final visit before upload settles', async () => {

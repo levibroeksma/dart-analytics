@@ -30,10 +30,10 @@ export function scoreTrainingSetup() {
 
         await this.reconcile(activeSessions);
       } catch {
-        // Preset/active-session fetch itself failed — degrade to picker per
-        // spec's "Setup Page Errors" (fetch failures show toast + picker as
-        // fallback; this is distinct from an abandon_failed reconciliation).
+        // Preset/active-session fetch itself failed — keep user on setup with
+        // a visible error (toast-equivalent for this UI) and the picker fallback.
         this.showActiveSessionModal = false;
+        this.error = "Could not load setup. Check your connection and try again.";
       } finally {
         this.loadingReconciliation = false;
       }
@@ -72,7 +72,9 @@ export function scoreTrainingSetup() {
     },
 
     async abandonSession(this: ScoreTrainingSetupContext) {
-      if (!this.activeSession) return;
+      if (!this.activeSession || this.loading) return;
+      this.loading = true;
+      this.error = "";
       try {
         await completeSession(this.activeSession.sessionId, "ABANDONED");
         this.$store.game.reset();
@@ -80,6 +82,8 @@ export function scoreTrainingSetup() {
         this.activeSession = null;
       } catch {
         this.error = "Could not abandon session. Try again.";
+      } finally {
+        this.loading = false;
       }
     },
 
