@@ -5,43 +5,48 @@
 **Goal:** Implement automated session lifecycle, D88 reconciliation on both setup and play pages, results as a modal overlay with completion-sequence gating, and play-again flow with inline config.
 
 **Architecture:** 
-- Setup page fetches active sessions + presets on init, runs shared D88 reconciliation (auto-abandon mismatches synchronously, show modal only on match), creates session before navigating to play
-- Play page runs identical D88 reconciliation on init (no mismatch loop risk), handles gameplay, displays results as modal overlay on completion
-- Completion sequence: mint `idempotencyKey` once, POST batch with that key, PATCH to COMPLETED; retry full sequence with same key, treat 409 as success
-- Play-again creates new session with cloned inline config, stays on play page, resets turns but keeps `configSnapshot`
+- Setup page fetches active sessions + presets on init, runs shared `reconcileActiveSession()` (auto-abandon mismatches synchronously, show modal only on `"match"`; block create on `"abandon_failed"`), creates session before navigating to play
+- Play page runs identical reconciliation on init (no mismatch loop risk), handles gameplay, displays results as modal overlay on completion
+- Completion sequence: mint `idempotencyKey` once, set `completionStatus = "saving"`, POST batch with that key, PATCH to COMPLETED, set `completionStatus = "succeeded"`; retry full sequence with same key, treat 409 as success
+- Play-again creates new session with cloned inline config, stays on play page, resets turns but keeps `configSnapshot`; failures set `playAgainError` only, never touch `completionStatus`
 - CI check prevents `fetchConnectionCache` regression
 
-**Tech Stack:** Astro, Alpine.js, TypeScript, Vitest, existing session API (`POST /api/sessions`, `PATCH /api/sessions/{id}`, `POST /api/sessions/{id}/events/batch`)
+**Tech Stack:** Astro, Alpine.js, TypeScript, Vitest, existing session API client (`@client/api/sessions`: `createSession`, `appendBatch`, `completeSession`, `fetchActiveSessions`, `SessionApiError`)
 
 ## Global Constraints
 
 - All session status changes use `PATCH`, never PUT or POST-to-status
-- Completion buttons stay disabled until **both batch POST and PATCH COMPLETED succeed**
+- Completion buttons stay disabled until `completionStatus === "succeeded"` (both batch POST and PATCH COMPLETED have acked)
+- `completionStatus` is set to `"pending"` in the same synchronous step as `finished = true` — never left implicitly derivable from other fields being falsy
 - `idempotencyKey` minted once per finished game; never reminted; reuse on retry
-- Play-again uses `{ source: "inline", config: {...} }` (already supported by API + validator)
-- D88 reconciliation must be identical on setup and play (same decision table)
+- Play-again uses `{ source: "inline", config: {...} }` (already supported by API + validator); failures set `playAgainError`, a field distinct from `completionError`/`completionStatus`
+- The shared reconciliation helper (`app/src/lib/game/session-recovery.ts`) is identical on setup and play (same decision table, same return-type literals: `"match" | "no_active" | "abandon_failed"`)
+- `"abandon_failed"` blocks session creation and leaves the store untouched — never silently treated as `"no_active"`
 - Active session modal is overlay, not conditional branch (prevents loop on re-render)
 - Store persists to localStorage; Back clears via `store.reset()`
 - All errors in setup keep user on setup (no navigation on failure)
-- Results modal stays open if play-again fails; stats remain visible; buttons stay enabled (prior session `COMPLETED`)
+- Results modal stays open if play-again fails; stats remain visible; buttons stay enabled (prior session `COMPLETED`) — driven by `playAgainError`, not `completionStatus`
+- Reuse `app/src/lib/client/api/sessions.ts` as-is (`apiRequest`-based `appendBatch`/`completeSession`/`fetchActiveSessions`/`SessionApiError`); do not reintroduce raw `fetch` calls or a parallel error type
 
 ---
 
 ## File Structure
 
 **Files to create:**
-- None (reusing existing structure)
+- `app/src/lib/game/session-recovery.ts` — Shared `reconcileActiveSession()` D88 helper (single implementation, used by both setup and play)
+- `app/tests/lib/game/session-recovery.test.ts` — Shared helper unit tests (match / no_active / abandon_failed)
 
 **Files to modify:**
 - `.github/workflows/checks.yml` — Add CI check
-- `app/src/lib/game/score-training-setup.data.ts` — D88 + modal state + methods
-- `app/src/pages/games/score-training/setup/index.astro` — Add modal overlay, wire D88 init
-- `app/src/lib/game/score-training-play.data.ts` — D88 + completion sequence + play-again + results modal
+- `app/src/lib/game/score-training-setup.data.ts` — Reconciliation via shared helper + modal state + methods
+- `app/src/pages/games/score-training/setup/index.astro` — Add modal overlay, wire reconciliation init
+- `app/src/lib/game/score-training-play.data.ts` — Reconciliation via shared helper + completion sequence + play-again + results modal
 - `app/src/pages/games/score-training/play/index.astro` — Results modal overlay, remove results-page link
-- `app/src/lib/client/api/sessions.ts` — New methods for completion sequence, play-again create
-- `app/tests/lib/game/score-training-setup.data.test.ts` — D88 tests, modal tests, create tests
-- `app/tests/lib/game/score-training-play.data.test.ts` — D88 tests, completion sequence tests, play-again tests, modal tests
-- `app/tests/lib/client/api/sessions.test.ts` — Completion sequence API client tests
+- `app/tests/lib/game/score-training-setup.data.test.ts` — Reconciliation tests, modal tests, create tests
+- `app/tests/lib/game/score-training-play.data.test.ts` — Reconciliation tests, completion sequence tests, play-again tests, modal tests
+
+**Files not touched:**
+- `app/src/lib/client/api/sessions.ts` — Already has `apiRequest`-based `appendBatch`, `completeSession` (PATCH), `fetchActiveSessions`, `createSession`, `SessionApiError`. No new methods or raw-`fetch` rewrite needed.
 
 **Files to delete or disable:**
 - `app/src/pages/games/score-training/results/index.astro` — (Delete after play page fully migrated; users redirected via play page)
@@ -91,22 +96,179 @@ git commit -m "ci: add regression check for deprecated neonConfig.fetchConnectio
 
 ---
 
-### Task 2: Setup D88 Reconciliation Logic
+### Task 2: Shared Session Recovery Helper (`session-recovery.ts`)
+
+**Files:**
+- Create: `app/src/lib/game/session-recovery.ts`
+- Create: `app/tests/lib/game/session-recovery.test.ts`
+
+**Interfaces:**
+- Consumes: `completeSession()` from `@client/api/sessions` (existing, PATCH-based, exported from `app/src/lib/client/api/sessions.ts`)
+- Produces: single exported `reconcileActiveSession()`, used unmodified by both setup and play (Tasks 3 and 4) — this is the **only** place the decision table is implemented
+
+This is created first, standalone, so setup and play can never diverge on the return shape (the original draft of this plan had setup and play define two different helpers with two different return types — this task removes that risk by building the shared module before either caller).
+
+- [ ] **Step 1: Write failing tests for the helper**
+
+Create `app/tests/lib/game/session-recovery.test.ts`:
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { reconcileActiveSession } from '@lib/game/session-recovery';
+import * as api from '@client/api/sessions';
+
+vi.mock('@client/api/sessions');
+
+describe('reconcileActiveSession', () => {
+  let store: any;
+
+  beforeEach(() => {
+    store = { reset: vi.fn() };
+  });
+
+  it('returns "match" and does not touch the store when local sessionId matches server ACTIVE', async () => {
+    const server = [{ sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' }];
+
+    const result = await reconcileActiveSession('match-id', server as any, store);
+
+    expect(result).toEqual({ action: 'match', activeSession: server[0] });
+    expect(store.reset).not.toHaveBeenCalled();
+  });
+
+  it('auto-abandons the orphan and returns "no_active" on mismatch', async () => {
+    const server = [{ sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' }];
+    vi.mocked(api.completeSession).mockResolvedValue({
+      sessionId: 'server-id',
+      statusKey: 'ABANDONED',
+      completedAt: '2026-07-17T10:00:00Z',
+    });
+
+    const result = await reconcileActiveSession('different-local-id', server as any, store);
+
+    expect(api.completeSession).toHaveBeenCalledWith('server-id', 'ABANDONED');
+    expect(store.reset).toHaveBeenCalled();
+    expect(result).toEqual({ action: 'no_active', activeSession: null });
+  });
+
+  it('returns "abandon_failed" and does NOT reset the store when the auto-abandon PATCH fails', async () => {
+    const server = [{ sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' }];
+    vi.mocked(api.completeSession).mockRejectedValue(new Error('Network error'));
+
+    const result = await reconcileActiveSession('different-local-id', server as any, store);
+
+    expect(store.reset).not.toHaveBeenCalled();
+    expect(result).toEqual({ action: 'abandon_failed', activeSession: null });
+  });
+
+  it('resets and returns "no_active" when local is present but no server ACTIVE exists', async () => {
+    const result = await reconcileActiveSession('stale-id', [], store);
+
+    expect(store.reset).toHaveBeenCalled();
+    expect(result).toEqual({ action: 'no_active', activeSession: null });
+  });
+
+  it('returns "no_active" with no store change when both are empty', async () => {
+    const result = await reconcileActiveSession(null, [], store);
+
+    expect(store.reset).not.toHaveBeenCalled();
+    expect(result).toEqual({ action: 'no_active', activeSession: null });
+  });
+});
+```
+
+Run: `npm test app/tests/lib/game/session-recovery.test.ts`
+Expected: **FAIL** — module doesn't exist yet
+
+- [ ] **Step 2: Implement the helper**
+
+Create `app/src/lib/game/session-recovery.ts`:
+
+```typescript
+import { completeSession, type SessionActiveData } from "@client/api/sessions";
+
+interface StoreLike {
+  reset(): void;
+}
+
+/**
+ * Shared D88 reconciliation decision table (identical on setup and play).
+ * The only implementation — setup and play both import this directly.
+ *
+ * "match": server ACTIVE session's sessionId equals local; caller resumes
+ *   (setup: Continue/Abandon modal; play: keep store, hasActiveSession = true).
+ *   Store is left untouched.
+ * "no_active": no server ACTIVE session, or a mismatch that was successfully
+ *   auto-abandoned. Store has already been reset by this function.
+ * "abandon_failed": mismatch found but the auto-abandon PATCH failed. Store is
+ *   NOT touched. Caller must block session creation and offer retry — never
+ *   treat this the same as "no_active".
+ */
+export async function reconcileActiveSession(
+  localSessionId: string | null,
+  serverSessions: SessionActiveData[],
+  store: StoreLike,
+): Promise<{ action: "match" | "no_active" | "abandon_failed"; activeSession: SessionActiveData | null }> {
+  const scoreTrainingActive = serverSessions.find((s) => s.gameTypeKey === "SCORE_TRAINING");
+
+  // Case 1: Match — resume path, store untouched
+  if (localSessionId && scoreTrainingActive && scoreTrainingActive.sessionId === localSessionId) {
+    return { action: "match", activeSession: scoreTrainingActive };
+  }
+
+  // Case 2: Mismatch — auto-PATCH orphan to ABANDONED synchronously
+  if (scoreTrainingActive && (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)) {
+    try {
+      await completeSession(scoreTrainingActive.sessionId, "ABANDONED");
+    } catch {
+      // Abandon failed: do NOT reset the store or report "no_active" — the
+      // orphan is still ACTIVE server-side, so creating a session now would
+      // violate uq_sessions_single_active. Caller must block and retry.
+      return { action: "abandon_failed", activeSession: null };
+    }
+    store.reset();
+    return { action: "no_active", activeSession: null };
+  }
+
+  // Case 3: Local present, no server ACTIVE — local is stale, nothing to abandon
+  if (localSessionId && !scoreTrainingActive) {
+    store.reset();
+    return { action: "no_active", activeSession: null };
+  }
+
+  // Case 4: Both empty
+  return { action: "no_active", activeSession: null };
+}
+```
+
+Run: `npm test app/tests/lib/game/session-recovery.test.ts`
+Expected: **PASS**
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add app/src/lib/game/session-recovery.ts app/tests/lib/game/session-recovery.test.ts
+git commit -m "feat(game): add shared session-recovery D88 reconciliation helper"
+```
+
+---
+
+### Task 3: Wire Setup Page to Session Recovery + Modal Overlay
 
 **Files:**
 - Modify: `app/src/lib/game/score-training-setup.data.ts:1-75`
+- Modify: `app/src/pages/games/score-training/setup/index.astro`
 - Test: `app/tests/lib/game/score-training-setup.data.test.ts`
 
 **Interfaces:**
-- Consumes: `fetchActiveSessions()`, `fetchConfigurationPresets()`, `createSession()` from `@client/api/sessions`
-- Produces: 
-  - `scoreTrainingSetup()` context with new fields: `activeSession`, `showActiveSessionModal`, `loadingReconciliation`
-  - New method: `reconcileActiveSession(): Promise<void>` — runs shared D88 table logic, auto-abandons mismatches synchronously
+- Consumes: `reconcileActiveSession()` from `@lib/game/session-recovery` (Task 2), `fetchActiveSessions()`, `fetchConfigurationPresets()`, `createSession()` from `@client/api/sessions`
+- Produces:
+  - `scoreTrainingSetup()` context with new fields: `activeSession`, `showActiveSessionModal`, `loadingReconciliation`, `reconciliationFailed`
   - New method: `continueSession(): void` — closes modal, navigates to play
   - New method: `abandonSession(): Promise<void>` — PATCH session to ABANDONED, clear store, show preset picker
-  - Updated `init()`: calls `reconcileActiveSession()` in parallel with `fetchConfigurationPresets()`
+  - New method: `retryReconciliation(): Promise<void>` — re-runs reconciliation after an `"abandon_failed"` result
+  - Updated `init()`: calls `fetchConfigurationPresets()` + `fetchActiveSessions()` in parallel, then `reconcileActiveSession()`
 
-- [ ] **Step 1: Write failing tests for D88 reconciliation**
+- [ ] **Step 1: Write failing tests**
 
 Create `app/tests/lib/game/score-training-setup.data.test.ts`:
 
@@ -125,83 +287,91 @@ describe('scoreTrainingSetup', () => {
       game: {
         sessionId: null,
         reset: vi.fn(),
+        startSession: vi.fn(),
       },
     };
   });
 
-  describe('D88 reconciliation', () => {
-    it('shows modal when server ACTIVE sessionId matches local', async () => {
+  describe('reconciliation on init', () => {
+    it('shows modal on "match"', async () => {
       const setup = scoreTrainingSetup();
       setup.$store = store;
-      
+
+      vi.mocked(api.fetchConfigurationPresets).mockResolvedValue([]);
       vi.mocked(api.fetchActiveSessions).mockResolvedValue([
-        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' },
+        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any,
       ]);
-      
       store.game.sessionId = 'match-id';
-      
-      await setup.reconcileActiveSession?.();
-      
+
+      await setup.init?.();
+
       expect(setup.showActiveSessionModal).toBe(true);
       expect(setup.activeSession).toEqual({ sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' });
     });
 
-    it('auto-abandons server ACTIVE + local mismatch synchronously', async () => {
+    it('shows preset picker on "no_active" (mismatch auto-abandoned)', async () => {
       const setup = scoreTrainingSetup();
       setup.$store = store;
-      
+
+      vi.mocked(api.fetchConfigurationPresets).mockResolvedValue([]);
       vi.mocked(api.fetchActiveSessions).mockResolvedValue([
-        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' },
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' } as any,
       ]);
-      
+      vi.mocked(api.completeSession).mockResolvedValue({
+        sessionId: 'server-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
+      });
       store.game.sessionId = 'different-local-id';
-      
-      await setup.reconcileActiveSession?.();
-      
-      expect(api.completeSession).toHaveBeenCalledWith('server-id', 'ABANDONED');
-      expect(store.game.reset).toHaveBeenCalled();
+
+      await setup.init?.();
+
       expect(setup.showActiveSessionModal).toBe(false);
+      expect(setup.reconciliationFailed).toBe(false);
     });
 
-    it('clears stale local state when no server ACTIVE', async () => {
+    it('blocks the picker and sets reconciliationFailed on "abandon_failed" — does not show picker as if clear', async () => {
       const setup = scoreTrainingSetup();
       setup.$store = store;
-      
-      vi.mocked(api.fetchActiveSessions).mockResolvedValue([]);
-      
-      store.game.sessionId = 'stale-id';
-      
-      await setup.reconcileActiveSession?.();
-      
-      expect(store.game.reset).toHaveBeenCalled();
-      expect(setup.showActiveSessionModal).toBe(false);
-    });
 
+      vi.mocked(api.fetchConfigurationPresets).mockResolvedValue([]);
+      vi.mocked(api.fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' } as any,
+      ]);
+      vi.mocked(api.completeSession).mockRejectedValue(new Error('Network error'));
+      store.game.sessionId = 'different-local-id';
+
+      await setup.init?.();
+
+      expect(setup.reconciliationFailed).toBe(true);
+      expect(setup.showActiveSessionModal).toBe(false);
+      expect(store.game.reset).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('continueSession / abandonSession', () => {
     it('continues matched session', async () => {
       const setup = scoreTrainingSetup();
       setup.$store = store;
-      setup.activeSession = { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' };
-      
+      setup.activeSession = { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any;
+
       vi.spyOn(globalThis.location, 'href', 'get').mockReturnValue('/games/score-training/setup');
       const hrefSpy = vi.spyOn(globalThis.location, 'href', 'set');
-      
+
       setup.continueSession?.();
-      
+
       expect(hrefSpy).toHaveBeenCalledWith('/games/score-training/play');
     });
 
     it('abandons session when user clicks Abandon', async () => {
       const setup = scoreTrainingSetup();
       setup.$store = store;
-      setup.activeSession = { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' };
-      
+      setup.activeSession = { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any;
+
       vi.mocked(api.completeSession).mockResolvedValue({
-        sessionId: 'match-id',
-        statusKey: 'ABANDONED',
+        sessionId: 'match-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
       });
-      
+
       await setup.abandonSession?.();
-      
+
       expect(api.completeSession).toHaveBeenCalledWith('match-id', 'ABANDONED');
       expect(store.game.reset).toHaveBeenCalled();
       expect(setup.showActiveSessionModal).toBe(false);
@@ -218,20 +388,20 @@ describe('scoreTrainingSetup', () => {
           configurationTemplateId: 'template-1',
           name: 'Standard',
           configuration: { duration_type: 'ROUNDS', duration_value: 20, max_darts_per_turn: 3 },
-        },
+        } as any,
       ];
-      
+
       const mockSession = {
         sessionId: 'new-session-id',
         participants: [{ ref: 'participant-1', displayName: 'Player', participantTypeKey: 'PLAYER' }],
       };
-      
-      vi.mocked(api.createSession).mockResolvedValue(mockSession);
-      
+
+      vi.mocked(api.createSession).mockResolvedValue(mockSession as any);
+
       const hrefSpy = vi.spyOn(globalThis.location, 'href', 'set');
-      
+
       await setup.start?.();
-      
+
       expect(api.createSession).toHaveBeenCalledWith({
         gameTypeKey: 'SCORE_TRAINING',
         rulesetVersionKey: 'SCORE_TRAINING_V1',
@@ -247,58 +417,20 @@ describe('scoreTrainingSetup', () => {
 ```
 
 Run: `npm test app/tests/lib/game/score-training-setup.data.test.ts`
-Expected: **FAIL** — Methods don't exist yet
+Expected: **FAIL** — methods don't exist yet
 
-- [ ] **Step 2: Implement D88 reconciliation in setup data factory**
+- [ ] **Step 2: Implement setup data factory using the shared helper**
 
 Replace `app/src/lib/game/score-training-setup.data.ts`:
 
 ```typescript
 import { fetchConfigurationPresets, type ConfigurationPresetData } from "@client/api/configuration-templates";
-import { createSession, fetchActiveSessions, completeSession, type SessionActive } from "@client/api/sessions";
+import { createSession, fetchActiveSessions, completeSession, type SessionActiveData } from "@client/api/sessions";
+import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { ScoreTrainingSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY = "SCORE_TRAINING_V1";
-
-/**
- * Shared D88 reconciliation decision table (identical on setup and play).
- * Returns: { action, activeSession }
- * - "show_modal": matched session, show Continue/Abandon modal
- * - "show_picker": no match or auto-abandoned, show preset picker
- */
-async function reconcileActiveSessions(
-  localSessionId: string | null,
-  serverSessions: SessionActive[],
-  store: any,
-): Promise<{ action: "show_modal" | "show_picker"; activeSession: SessionActive | null }> {
-  const scoreTrainingActive = serverSessions.find((s) => s.gameTypeKey === "SCORE_TRAINING");
-
-  // Case 1: Match
-  if (localSessionId && scoreTrainingActive && scoreTrainingActive.sessionId === localSessionId) {
-    return { action: "show_modal", activeSession: scoreTrainingActive };
-  }
-
-  // Case 2: Mismatch — auto-PATCH orphan to ABANDONED synchronously
-  if (scoreTrainingActive && (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)) {
-    try {
-      await completeSession(scoreTrainingActive.sessionId, "ABANDONED");
-    } catch {
-      // Fail silently; on retry setup will re-fetch
-    }
-    store.game.reset();
-    return { action: "show_picker", activeSession: null };
-  }
-
-  // Case 3: Local present, no server ACTIVE
-  if (localSessionId && !scoreTrainingActive) {
-    store.game.reset();
-    return { action: "show_picker", activeSession: null };
-  }
-
-  // Case 4: Both empty
-  return { action: "show_picker", activeSession: null };
-}
 
 export function scoreTrainingSetup() {
   return {
@@ -306,9 +438,10 @@ export function scoreTrainingSetup() {
     selectedTemplateId: "",
     loading: false,
     error: "",
-    activeSession: null as SessionActive | null,
+    activeSession: null as SessionActiveData | null,
     showActiveSessionModal: false,
     loadingReconciliation: false,
+    reconciliationFailed: false,
 
     async init(this: ScoreTrainingSetupContext) {
       this.loadingReconciliation = true;
@@ -321,14 +454,39 @@ export function scoreTrainingSetup() {
         this.presets = presets;
         this.selectedTemplateId = presets[0]?.configurationTemplateId ?? "";
 
-        const reconciliation = await reconcileActiveSessions(this.$store.game.sessionId, activeSessions, this.$store);
-        if (reconciliation.action === "show_modal") {
-          this.activeSession = reconciliation.activeSession;
-          this.showActiveSessionModal = true;
-        }
+        await this.reconcile(activeSessions);
       } catch {
-        // On D88 reconciliation error, show preset picker as fallback
+        // Preset/active-session fetch itself failed — degrade to picker per
+        // spec's "Setup Page Errors" (fetch failures show toast + picker as
+        // fallback; this is distinct from an abandon_failed reconciliation).
         this.showActiveSessionModal = false;
+      } finally {
+        this.loadingReconciliation = false;
+      }
+    },
+
+    async reconcile(this: ScoreTrainingSetupContext, activeSessions: SessionActiveData[]) {
+      const result = await reconcileActiveSession(this.$store.game.sessionId, activeSessions, this.$store.game);
+
+      if (result.action === "match") {
+        this.activeSession = result.activeSession;
+        this.showActiveSessionModal = true;
+        this.reconciliationFailed = false;
+      } else if (result.action === "abandon_failed") {
+        // Block: do not show the picker, do not allow session creation.
+        this.showActiveSessionModal = false;
+        this.reconciliationFailed = true;
+      } else {
+        this.showActiveSessionModal = false;
+        this.reconciliationFailed = false;
+      }
+    },
+
+    async retryReconciliation(this: ScoreTrainingSetupContext) {
+      this.loadingReconciliation = true;
+      try {
+        const activeSessions = await fetchActiveSessions();
+        await this.reconcile(activeSessions);
       } finally {
         this.loadingReconciliation = false;
       }
@@ -395,25 +553,7 @@ export function scoreTrainingSetup() {
 Run: `npm test app/tests/lib/game/score-training-setup.data.test.ts`
 Expected: **PASS**
 
-- [ ] **Step 3: Commit**
-
-```bash
-git add app/src/lib/game/score-training-setup.data.ts app/tests/lib/game/score-training-setup.data.test.ts
-git commit -m "feat(setup): add D88 reconciliation and active session modal"
-```
-
----
-
-### Task 3: Update Setup Page Component with Modal Overlay
-
-**Files:**
-- Modify: `app/src/pages/games/score-training/setup/index.astro`
-
-**Interfaces:**
-- Consumes: `scoreTrainingSetup()` factory with `activeSession`, `showActiveSessionModal`, `continueSession()`, `abandonSession()`
-- Produces: Setup page UI with modal overlay for active sessions
-
-- [ ] **Step 1: Update the setup page Astro component**
+- [ ] **Step 3: Update the setup page Astro component**
 
 Replace `app/src/pages/games/score-training/setup/index.astro`:
 
@@ -426,7 +566,7 @@ import Button from "@components/forms/Button.astro";
 
 <AppLayout title="Score Training — Setup">
   <div class="p-4" x-data="scoreTrainingSetup()">
-    <!-- Active Session Modal Overlay -->
+    <!-- Active Session Modal Overlay (match case only) -->
     <template x-if="showActiveSessionModal && activeSession">
       <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
         <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm">
@@ -447,8 +587,18 @@ import Button from "@components/forms/Button.astro";
       </div>
     </template>
 
-    <!-- Preset Picker (shown when no active session or after abandon) -->
-    <template x-if="!showActiveSessionModal">
+    <!-- Reconciliation blocked: auto-abandon PATCH failed — do NOT show the picker -->
+    <template x-if="reconciliationFailed">
+      <div class="text-center py-8">
+        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
+        <Button type="button" class="mt-4" :disabled="loadingReconciliation" @click="retryReconciliation()">
+          Retry
+        </Button>
+      </div>
+    </template>
+
+    <!-- Preset Picker (shown only when reconciliation is clear and not blocked) -->
+    <template x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation">
       <div>
         <h1 class="text-xl font-semibold text-fg">Score Training</h1>
         <p class="text-sm text-fg-muted">Pick a preset, then start.</p>
@@ -475,8 +625,8 @@ import Button from "@components/forms/Button.astro";
       </div>
     </template>
 
-    <!-- Loading state during D88 reconciliation -->
-    <template x-if="loadingReconciliation && !showActiveSessionModal && presets.length === 0">
+    <!-- Loading state during reconciliation -->
+    <template x-if="loadingReconciliation">
       <div class="text-center py-8">
         <p class="text-sm text-fg-muted">Loading...</p>
       </div>
@@ -485,7 +635,7 @@ import Button from "@components/forms/Button.astro";
 </AppLayout>
 ```
 
-- [ ] **Step 2: Verify the page renders correctly**
+- [ ] **Step 4: Verify the page renders correctly**
 
 Run the dev server and navigate to `/games/score-training/setup`:
 
@@ -494,31 +644,30 @@ astro dev
 # Navigate to http://localhost:4321/games/score-training/setup
 ```
 
-Expected: Modal appears if there's an active session; preset picker appears otherwise
+Expected: Modal appears only on a matched active session; preset picker appears when clear; a simulated abandon-PATCH failure shows the blocked/retry state, never the picker.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add app/src/pages/games/score-training/setup/index.astro
-git commit -m "feat(setup): add active session modal overlay"
+git add app/src/lib/game/score-training-setup.data.ts app/src/pages/games/score-training/setup/index.astro app/tests/lib/game/score-training-setup.data.test.ts
+git commit -m "feat(setup): wire session-recovery reconciliation and active session modal"
 ```
 
 ---
 
-### Task 4: Setup Play Page D88 Reconciliation Logic
+### Task 4: Wire Play Page to Session Recovery
 
 **Files:**
-- Modify: `app/src/lib/game/score-training-play.data.ts:60-120` (init method)
+- Modify: `app/src/lib/game/score-training-play.data.ts` (`init()` method)
 - Test: `app/tests/lib/game/score-training-play.data.test.ts`
 
 **Interfaces:**
-- Consumes: Same `reconcileActiveSessions` logic as setup (extracted to shared module or inlined)
+- Consumes: `reconcileActiveSession()` from `@lib/game/session-recovery` (same import as Task 3 — no second implementation)
 - Produces:
-  - Updated `init()` to run D88 reconciliation
-  - New flag: `loadingReconciliation`
-  - `hasActiveSession` set after reconciliation completes
+  - Updated `init()`: on `"match"`, resume silently and continue existing engine/timer setup (no modal — see spec note on why the return literal is `"match"`, not `"show_modal"`); on `"no_active"`, `hasActiveSession = false`; on `"abandon_failed"`, stay in a blocked/loading state and expose `reconciliationFailed` + `retryReconciliation()`, mirroring Task 3's setup behavior
+  - New fields: `loadingReconciliation`, `reconciliationFailed`
 
-- [ ] **Step 1: Write failing test for play D88 reconciliation**
+- [ ] **Step 1: Write failing tests**
 
 Add to `app/tests/lib/game/score-training-play.data.test.ts`:
 
@@ -538,64 +687,83 @@ describe('scoreTrainingPlay', () => {
         sessionId: null,
         configSnapshot: null,
         turns: [],
+        timerRemainingMs: null,
+        timerExpired: false,
         reset: vi.fn(),
       },
     };
   });
 
-  describe('D88 reconciliation on init', () => {
-    it('resumes when local sessionId matches server ACTIVE', async () => {
+  describe('reconciliation on init', () => {
+    it('resumes silently on "match" — no modal, hasActiveSession = true', async () => {
       const play = scoreTrainingPlay();
       play.$store = store;
-      
+
       store.game.sessionId = 'match-id';
       store.game.configSnapshot = { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 };
-      
+
       vi.mocked(api.fetchActiveSessions).mockResolvedValue([
-        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' },
+        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any,
       ]);
-      
+
       await play.init?.();
-      
+
       expect(play.hasActiveSession).toBe(true);
       expect(store.game.reset).not.toHaveBeenCalled();
     });
 
-    it('shows no-active-session view on mismatch', async () => {
+    it('shows no-active-session view on "no_active" (mismatch auto-abandoned)', async () => {
       const play = scoreTrainingPlay();
       play.$store = store;
-      
+
       store.game.sessionId = 'different-id';
-      
+
       vi.mocked(api.fetchActiveSessions).mockResolvedValue([
-        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' },
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' } as any,
       ]);
-      
+      vi.mocked(api.completeSession).mockResolvedValue({
+        sessionId: 'server-id', statusKey: 'ABANDONED', completedAt: '2026-07-17T10:00:00Z',
+      });
+
       await play.init?.();
-      
+
       expect(api.completeSession).toHaveBeenCalledWith('server-id', 'ABANDONED');
       expect(store.game.reset).toHaveBeenCalled();
       expect(play.hasActiveSession).toBe(false);
     });
 
+    it('blocks with reconciliationFailed on "abandon_failed" — does not flip to no-active-session as if cleaned', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = store;
+
+      store.game.sessionId = 'different-id';
+
+      vi.mocked(api.fetchActiveSessions).mockResolvedValue([
+        { sessionId: 'server-id', gameTypeKey: 'SCORE_TRAINING' } as any,
+      ]);
+      vi.mocked(api.completeSession).mockRejectedValue(new Error('Network error'));
+
+      await play.init?.();
+
+      expect(play.reconciliationFailed).toBe(true);
+      expect(store.game.reset).not.toHaveBeenCalled();
+    });
+
     it('preserves turns array on resume (no clear)', async () => {
       const play = scoreTrainingPlay();
       play.$store = store;
-      
+
       store.game.sessionId = 'match-id';
       store.game.configSnapshot = { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 };
-      store.game.turns = [
-        { totalScore: 50, completedAt: '2026-07-17T10:00:00Z' },
-      ];
-      
+      store.game.turns = [{ totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }];
+
       vi.mocked(api.fetchActiveSessions).mockResolvedValue([
-        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' },
+        { sessionId: 'match-id', gameTypeKey: 'SCORE_TRAINING' } as any,
       ]);
-      
+
       await play.init?.();
-      
+
       expect(play.hasActiveSession).toBe(true);
-      // turns should still be in store
       expect(store.game.turns.length).toBe(1);
     });
   });
@@ -605,146 +773,67 @@ describe('scoreTrainingPlay', () => {
 Run: `npm test app/tests/lib/game/score-training-play.data.test.ts`
 Expected: **FAIL**
 
-- [ ] **Step 2: Extract shared D88 reconciliation to a utility**
+- [ ] **Step 2: Update play `init()` to use the shared helper**
 
-Create `app/src/lib/game/d88-reconciliation.ts`:
-
-```typescript
-import { completeSession, fetchActiveSessions, type SessionActive } from "@client/api/sessions";
-
-/**
- * Shared D88 reconciliation decision table (used by both setup and play).
- * Synchronously auto-abandons orphaned server sessions, reconciles local state.
- *
- * Returns action ("show_modal" = match; "show_picker" or "show_play" = no match)
- * and the matched active session (if any).
- */
-export async function reconcileActiveSessions(
-  localSessionId: string | null,
-  serverSessions: SessionActive[],
-  store: any,
-): Promise<{ action: "show_modal" | "no_active"; activeSession: SessionActive | null }> {
-  const scoreTrainingActive = serverSessions.find((s) => s.gameTypeKey === "SCORE_TRAINING");
-
-  // Case 1: Match — resume path
-  if (localSessionId && scoreTrainingActive && scoreTrainingActive.sessionId === localSessionId) {
-    return { action: "show_modal", activeSession: scoreTrainingActive };
-  }
-
-  // Case 2: Mismatch — auto-PATCH server session to ABANDONED synchronously
-  if (scoreTrainingActive && (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)) {
-    try {
-      await completeSession(scoreTrainingActive.sessionId, "ABANDONED");
-    } catch {
-      // Fail silently; on retry will re-fetch
-    }
-    store.game.reset();
-    return { action: "no_active", activeSession: null };
-  }
-
-  // Case 3: Local present, no server ACTIVE
-  if (localSessionId && !scoreTrainingActive) {
-    store.game.reset();
-    return { action: "no_active", activeSession: null };
-  }
-
-  // Case 4: Both empty
-  return { action: "no_active", activeSession: null };
-}
-```
-
-- [ ] **Step 3: Update setup to use shared utility**
-
-Update `app/src/lib/game/score-training-setup.data.ts` to import and call `reconcileActiveSessions`:
-
-Replace the `reconcileActiveSessions` function definition with an import:
+In `app/src/lib/game/score-training-play.data.ts`, add the import and replace the existing reconciliation block at the top of `init()` (the current ad hoc match/orphan check — see current file) with a call to the shared helper, keeping the rest of the engine/timer setup that already exists:
 
 ```typescript
-import { reconcileActiveSessions } from "@lib/game/d88-reconciliation";
-```
+import { fetchActiveSessions } from "@client/api/sessions";
+import { reconcileActiveSession } from "@lib/game/session-recovery";
 
-And update the `init` method to use it:
-
-```typescript
-async init(this: ScoreTrainingSetupContext) {
-  this.loadingReconciliation = true;
-  try {
-    const [presets, activeSessions] = await Promise.all([
-      fetchConfigurationPresets(GAME_TYPE_KEY),
-      fetchActiveSessions(),
-    ]);
-
-    this.presets = presets;
-    this.selectedTemplateId = presets[0]?.configurationTemplateId ?? "";
-
-    const reconciliation = await reconcileActiveSessions(
-      this.$store.game.sessionId,
-      activeSessions,
-      this.$store,
-    );
-    if (reconciliation.action === "show_modal") {
-      this.activeSession = reconciliation.activeSession;
-      this.showActiveSessionModal = true;
-    }
-  } catch {
-    // On D88 reconciliation error, show preset picker as fallback
-    this.showActiveSessionModal = false;
-  } finally {
-    this.loadingReconciliation = false;
-  }
-}
-```
-
-- [ ] **Step 4: Update play init to use shared D88 reconciliation**
-
-Update `app/src/lib/game/score-training-play.data.ts`:
-
-```typescript
-import { reconcileActiveSessions } from "@lib/game/d88-reconciliation";
-
-// Inside scoreTrainingPlay():
+// Inside scoreTrainingPlay(), add fields:
+loadingReconciliation: false,
+reconciliationFailed: false,
 
 async init(this: ScoreTrainingPlayContext) {
   this.loadingReconciliation = true;
-  try {
-    const activeSessions = await fetchActiveSessions();
+  const activeSessions = await fetchActiveSessions();
+  const result = await reconcileActiveSession(this.$store.game.sessionId, activeSessions, this.$store.game);
+  this.loadingReconciliation = false;
 
-    const reconciliation = await reconcileActiveSessions(
-      this.$store.game.sessionId,
-      activeSessions,
-      this.$store,
-    );
-
-    if (reconciliation.action === "show_modal") {
-      this.hasActiveSession = true;
-      // Continue with existing engine/timer initialization
-      const config = this.$store.game.configSnapshot;
-      if (!config) {
-        this.hasActiveSession = false;
-        return;
-      }
-      // ... rest of existing init logic
-    } else {
-      this.hasActiveSession = false;
-    }
-  } catch {
+  if (result.action === "abandon_failed") {
+    // Block: stay on loading/error, do not flip to "no active session" as if cleaned.
+    this.reconciliationFailed = true;
     this.hasActiveSession = false;
-  } finally {
-    this.loadingReconciliation = false;
+    return;
   }
-}
+  this.reconciliationFailed = false;
+
+  if (result.action === "no_active") {
+    this.hasActiveSession = false;
+    return;
+  }
+
+  // result.action === "match": resume silently, no modal on play.
+  const config = this.$store.game.configSnapshot;
+  if (!config) {
+    this.hasActiveSession = false;
+    return;
+  }
+  // ... existing engine + timer setup from current init() continues unchanged here
+  // (ScoreTrainingEngine construction with startingSequence = turns.length,
+  // MINUTES timer resume logic) — not reproduced here since it is untouched.
+
+  this.hasActiveSession = true;
+},
+
+async retryReconciliation(this: ScoreTrainingPlayContext) {
+  await this.init();
+},
 ```
 
-- [ ] **Step 5: Run tests**
+The existing `.astro` "no active session" view (`x-if="!finished && !hasActiveSession"`) needs one addition in Task 5's template pass: gate it on `!reconciliationFailed` too, and add a blocked/retry state, mirroring Task 3's setup UI.
+
+- [ ] **Step 3: Run tests**
 
 Run: `npm test app/tests/lib/game/score-training-play.data.test.ts`
 Expected: **PASS**
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add app/src/lib/game/d88-reconciliation.ts app/src/lib/game/score-training-setup.data.ts app/src/lib/game/score-training-play.data.ts app/tests/lib/game/score-training-play.data.test.ts
-git commit -m "feat(play): add D88 reconciliation to play init, extract shared utility"
+git add app/src/lib/game/score-training-play.data.ts app/tests/lib/game/score-training-play.data.test.ts
+git commit -m "feat(play): wire session-recovery reconciliation into play init"
 ```
 
 ---
@@ -752,18 +841,21 @@ git commit -m "feat(play): add D88 reconciliation to play init, extract shared u
 ### Task 5: Results Modal & Completion Sequence (Batch + PATCH)
 
 **Files:**
-- Modify: `app/src/lib/game/score-training-play.data.ts:140-200` (completion sequence)
-- Modify: `app/src/pages/games/score-training/play/index.astro:1-50` (add results modal)
-- Modify: `app/src/lib/client/api/sessions.ts` (add `uploadBatch()` + `completeSession()` helper)
+- Modify: `app/src/lib/game/score-training-play.data.ts` (`submitVisit`, completion sequence, `back`, `playAgain`)
+- Modify: `app/src/pages/games/score-training/play/index.astro` (results modal, blocked-reconciliation state)
 - Test: `app/tests/lib/game/score-training-play.data.test.ts` (completion sequence tests)
 
 **Interfaces:**
-- Consumes: `ScoreTrainingEngine.recordVisit()`, `buildEventsBatch()`, store `turns` array
-- Produces: 
-  - New context fields: `uploadingResults`, `uploadError`, `completionFailed`
-  - New method: `uploadAndCompleteSession(): Promise<void>` — runs batch POST + PATCH sequence, idempotency-key minting
-  - Updated `retryCompletion()` to use completion sequence with retry logic
-  - Results modal visible when `finished === true`
+- Consumes: `ScoreTrainingEngine.recordVisit()`, `buildEventsBatch()`, existing `appendBatch`/`completeSession`/`createSession` from `@client/api/sessions` (no changes to that file — see Global Constraints)
+- Produces:
+  - New context fields: `completionStatus: "pending" | "saving" | "succeeded" | "failed"`, `completionError`, `playAgainError`, `resultsSnapshot`
+  - `submitVisit()` sets `finished = true` **and** `completionStatus = "pending"` in the same step as completion, then immediately invokes the completion sequence — no separate `retryCompletion()` wrapper with different wiring
+  - New method: `uploadAndCompleteSession(): Promise<void>` — runs batch POST + PATCH sequence, idempotency-key minting, drives `completionStatus`
+  - `playAgain()` failures set `playAgainError` only — never touches `completionStatus`/`completionError`
+  - Results modal reads `$store.game.turns` while saving, `resultsSnapshot` once `completionStatus === "succeeded"`
+  - Removes the old query-param `/results` navigation (`buildResultsUrl` / `globalThis.location.href = resultsUrl`) — results now render in-page
+
+This replaces the **existing** `retryCompletion()` in the current `score-training-play.data.ts`, which navigates to `/games/score-training/results?...` and calls `store.reset()` immediately after upload — that whole path is superseded by this task, not layered on top of it.
 
 - [ ] **Step 1: Write failing tests for completion sequence**
 
@@ -771,149 +863,196 @@ Add to `app/tests/lib/game/score-training-play.data.test.ts`:
 
 ```typescript
 describe('Completion sequence', () => {
-  it('mints idempotencyKey once and reuses on retry', async () => {
-    const play = scoreTrainingPlay();
-    play.$store = {
+  function makeStore(overrides: Partial<Record<string, unknown>> = {}) {
+    return {
       game: {
         sessionId: 'session-1',
         participantRef: 'participant-1',
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
         turns: [{ totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }],
         idempotencyKey: null,
+        reset: vi.fn(),
+        ...overrides,
       },
     };
+  }
+
+  it('sets completionStatus = "pending" synchronously when finished flips true, before the async sequence resolves', async () => {
+    const play = scoreTrainingPlay();
+    play.$store = makeStore();
+
+    let sawPendingBeforeResolve = false;
+    vi.mocked(api.appendBatch).mockImplementation(async () => {
+      sawPendingBeforeResolve = play.completionStatus === 'saving' || play.completionStatus === 'pending';
+      return { created: { stages: 1, turns: 1, darts: 3 } };
+    });
+    vi.mocked(api.completeSession).mockResolvedValue({
+      sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
+    });
+
+    const promise = play.uploadAndCompleteSession();
+    // Immediately after invocation (before await settles), status must already be non-idle.
+    expect(play.completionStatus === 'pending' || play.completionStatus === 'saving').toBe(true);
+    await promise;
+
+    expect(sawPendingBeforeResolve).toBe(true);
+    expect(play.completionStatus).toBe('succeeded');
+  });
+
+  it('mints idempotencyKey once and reuses on retry', async () => {
+    const play = scoreTrainingPlay();
+    play.$store = makeStore();
 
     vi.mocked(api.appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
     vi.mocked(api.completeSession).mockResolvedValue({
-      sessionId: 'session-1',
-      statusKey: 'COMPLETED',
-      completedAt: '2026-07-17T10:00:00Z',
+      sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
     });
 
-    await play.uploadAndCompleteSession?.();
+    await play.uploadAndCompleteSession();
 
     const firstKey = play.$store.game.idempotencyKey;
     expect(firstKey).toBeTruthy();
-    expect(play.uploadingResults).toBe(false);
-    expect(play.uploadError).toBe("");
+    expect(play.completionStatus).toBe('succeeded');
+    expect(play.completionError).toBe('');
 
-    // Retry with same key
     vi.mocked(api.appendBatch).mockClear();
-    await play.uploadAndCompleteSession?.();
+    await play.uploadAndCompleteSession();
 
-    expect(play.$store.game.idempotencyKey).toBe(firstKey); // Same key
+    expect(play.$store.game.idempotencyKey).toBe(firstKey);
   });
 
-  it('treats SESSION_ALREADY_COMPLETED as success', async () => {
+  it('copies stats into resultsSnapshot on success and does not depend on turns surviving afterward', async () => {
     const play = scoreTrainingPlay();
-    play.$store = {
-      game: {
-        sessionId: 'session-1',
-        participantRef: 'participant-1',
-        turns: [{ totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }],
-        idempotencyKey: null,
-      },
-    };
+    play.$store = makeStore();
+
+    vi.mocked(api.appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
+    vi.mocked(api.completeSession).mockResolvedValue({
+      sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
+    });
+
+    await play.uploadAndCompleteSession();
+
+    expect(play.resultsSnapshot).toEqual({ total: 50, visits: 1, average: 50 });
+  });
+
+  it('treats SESSION_ALREADY_COMPLETED as success on the completion path', async () => {
+    const play = scoreTrainingPlay();
+    play.$store = makeStore();
 
     const error = new Error('SESSION_ALREADY_COMPLETED');
     (error as any).code = 'SESSION_ALREADY_COMPLETED';
     vi.mocked(api.completeSession).mockRejectedValue(error);
     vi.mocked(api.appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
 
-    await play.uploadAndCompleteSession?.();
+    await play.uploadAndCompleteSession();
 
-    expect(play.uploadError).toBe("");
-    expect(play.completionFailed).toBe(false);
+    expect(play.completionError).toBe('');
+    expect(play.completionStatus).toBe('succeeded');
   });
 
-  it('keeps buttons disabled if completion fails', async () => {
+  it('sets completionStatus = "failed" and keeps buttons disabled on error', async () => {
     const play = scoreTrainingPlay();
-    play.$store = {
-      game: {
-        sessionId: 'session-1',
-        participantRef: 'participant-1',
-        turns: [{ totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }],
-        idempotencyKey: null,
-      },
-    };
+    play.$store = makeStore();
 
     vi.mocked(api.appendBatch).mockRejectedValue(new Error('Network error'));
 
-    await play.uploadAndCompleteSession?.();
+    await play.uploadAndCompleteSession();
 
-    expect(play.uploadError).toContain("error");
-    expect(play.completionFailed).toBe(true);
+    expect(play.completionError).toContain('connection');
+    expect(play.completionStatus).toBe('failed');
+  });
+
+  it('playAgain failure sets playAgainError only, leaves completionStatus untouched', async () => {
+    const play = scoreTrainingPlay();
+    play.$store = makeStore();
+    play.completionStatus = 'succeeded';
+
+    vi.mocked(api.createSession).mockRejectedValue(new Error('Network error'));
+
+    await play.playAgain();
+
+    expect(play.playAgainError).toBeTruthy();
+    expect(play.completionStatus).toBe('succeeded');
+    expect(play.$store.game.turns.length).toBe(1); // store unchanged until create succeeds
   });
 });
 ```
 
 Run: `npm test app/tests/lib/game/score-training-play.data.test.ts`
-Expected: **FAIL** — `uploadAndCompleteSession` doesn't exist
+Expected: **FAIL** — methods/fields don't exist yet
 
-- [ ] **Step 2: Add completion sequence methods to play data factory**
+- [ ] **Step 2: Replace the completion sequence in the play data factory**
 
-Update `app/src/lib/game/score-training-play.data.ts`:
-
-Add these methods to the return object:
+In `app/src/lib/game/score-training-play.data.ts`, remove `buildResultsUrl()` and the existing `retryCompletion()` (the query-param-navigation version) entirely. Replace `submitVisit()`'s completion branch and add the new methods:
 
 ```typescript
+function computeStats(turns: RecordedTurn[]): { total: number; visits: number; average: number } {
+  const visits = turns.length;
+  const total = turns.reduce((sum, t) => sum + t.totalScore, 0);
+  return { total, visits, average: visits === 0 ? 0 : total / visits };
+}
+
+// Inside scoreTrainingPlay(), fields:
+completionStatus: "pending" as "pending" | "saving" | "succeeded" | "failed",
+completionError: "",
+playAgainError: "",
+resultsSnapshot: null as { total: number; visits: number; average: number } | null,
+
+// submitVisit(), completion branch (replaces the old `await this.retryCompletion()` call):
+async submitVisit(this: ScoreTrainingPlayContext) {
+  // ...existing score validation and this.engine.recordVisit(...) / this.$store.game.recordTurn(visit) unchanged...
+
+  const timerExpired = this.$store.game.timerExpired ?? false;
+  if (!this.engine!.isComplete(this.$store.game.turns.length, timerExpired)) return;
+
+  // Modal appears and completion sequence starts in the same synchronous step.
+  this.finished = true;
+  this.completionStatus = "pending";
+  await this.uploadAndCompleteSession();
+},
+
 async uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void> {
   const sessionId = this.$store.game.sessionId!;
-  
-  // Mint idempotencyKey once; never remint
+
   if (!this.$store.game.idempotencyKey) {
     this.$store.game.idempotencyKey = crypto.randomUUID();
   }
   const idempotencyKey = this.$store.game.idempotencyKey;
 
-  this.uploadingResults = true;
-  this.uploadError = "";
+  this.completionStatus = "saving";
+  this.completionError = "";
 
   try {
-    // Step 1: Mint batch payload
     const completedTurns = this.$store.game.turns.map((turn) => ({
       ...turn,
       completedAt: turn.completedAt ?? new Date().toISOString(),
     }));
     const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
 
-    // Step 2: POST batch
     await appendBatch(sessionId, idempotencyKey, batch);
-
-    // Step 3: PATCH to COMPLETED
     await completeSession(sessionId, "COMPLETED");
-
-    // Success
-    this.uploadError = "";
-    this.completionFailed = false;
   } catch (err: any) {
-    // Treat SESSION_ALREADY_COMPLETED as success (covers "PATCH OK, client didn't see response")
-    if (err.code === "SESSION_ALREADY_COMPLETED" || err.message?.includes("SESSION_ALREADY_COMPLETED")) {
-      this.uploadError = "";
-      this.completionFailed = false;
+    // On the completion path only: SESSION_ALREADY_COMPLETED counts as success
+    // (covers "PATCH OK, client never saw the response").
+    const alreadyCompleted =
+      err.code === "SESSION_ALREADY_COMPLETED" || err.message?.includes("SESSION_ALREADY_COMPLETED");
+    if (!alreadyCompleted) {
+      this.completionError = "Could not save your game. Check your connection and retry.";
+      this.completionStatus = "failed";
       return;
     }
-
-    this.uploadError = "Could not save your game. Check your connection and retry.";
-    this.completionFailed = true;
-  } finally {
-    this.uploadingResults = false;
-  }
-},
-
-async retryCompletion(this: ScoreTrainingPlayContext): Promise<void> {
-  await this.uploadAndCompleteSession?.();
-  
-  if (this.completionFailed) {
-    return; // Stay on results modal, buttons disabled
   }
 
-  // Success — proceed to play-again options or back
-  // (For now, keep results modal open; await user click on Back or Play again?)
-  // This step is called internally; UX proceeds when user clicks one of the enabled buttons
+  // Snapshot stats into a component-local field BEFORE any store mutation,
+  // so the modal never depends on $store.game.turns surviving a later reset.
+  this.resultsSnapshot = computeStats(this.$store.game.turns);
+  this.completionStatus = "succeeded";
 },
 ```
 
-- [ ] **Step 3: Update play page component with results modal**
+Retry from the modal calls `uploadAndCompleteSession()` directly (same `idempotencyKey`, same payload) — there is no separate `retryCompletion()` wrapper to keep in sync.
+
+- [ ] **Step 3: Update play page component with results modal + blocked-reconciliation state**
 
 Replace gameplay sections in `app/src/pages/games/score-training/play/index.astro`:
 
@@ -927,8 +1066,18 @@ import Input from "@components/forms/Input.astro";
 
 <AppLayout title="Score Training — Play">
   <div class="p-4" x-data="scoreTrainingPlay()">
-    <!-- No active session view (existing) -->
-    <template x-if="!finished && !hasActiveSession">
+    <!-- Reconciliation blocked: auto-abandon PATCH failed (Task 4) -->
+    <template x-if="reconciliationFailed">
+      <div class="text-center py-8">
+        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
+        <Button type="button" class="mt-4" :disabled="loadingReconciliation" @click="retryReconciliation()">
+          Retry
+        </Button>
+      </div>
+    </template>
+
+    <!-- No active session view -->
+    <template x-if="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation">
       <div>
         <p class="text-fg">No active session — start a new one.</p>
         <a class="btn-primary mt-4 inline-block" href="/games/score-training/setup">Start a new session</a>
@@ -944,14 +1093,9 @@ import Input from "@components/forms/Input.astro";
         <template x-if="$store.game.configSnapshot?.durationType === 'ROUNDS'">
           <p class="text-sm text-fg-muted" x-text="`Visit ${$store.game.turns.length + 1}`"></p>
         </template>
-        <div x-show="!completionFailed">
-          <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
-        </div>
-        <div class="mt-2" x-show="error">
-          <p class="text-sm text-red-500" x-text="error"></p>
-          <Button type="button" variant="secondary" class="mt-2" x-show="completionFailed" @click="retryCompletion()">Retry</Button>
-        </div>
-        <Button type="submit" class="mt-4" x-show="!completionFailed">Submit visit</Button>
+        <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
+        <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error"></p>
+        <Button type="submit" class="mt-4">Submit visit</Button>
       </form>
 
       <!-- Live total (always visible during play) -->
@@ -963,55 +1107,42 @@ import Input from "@components/forms/Input.astro";
       <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
         <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm">
           <h2 class="text-lg font-semibold text-fg">Game Summary</h2>
-          
-          <!-- Computed stats from store -->
-          <div class="mt-4 space-y-2 text-sm text-fg-muted">
-            <p>
-              <span class="font-semibold text-fg"
-                x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"
-              ></span>
-            </p>
-            <p>
-              <span class="font-semibold text-fg"
-                x-text="`Visits: ${$store.game.turns.length}`"
-              ></span>
-            </p>
-            <p>
-              <span class="font-semibold text-fg"
-                x-text="`Average: ${$store.game.turns.length > 0 ? ($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / $store.game.turns.length).toFixed(1) : 0}`"
-              ></span>
-            </p>
+
+          <!-- Stats: live from store while saving, snapshot once succeeded -->
+          <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus !== 'succeeded'">
+            <p><span class="font-semibold text-fg" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Visits: ${$store.game.turns.length}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Average: ${$store.game.turns.length > 0 ? ($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / $store.game.turns.length).toFixed(1) : 0}`"></span></p>
+          </div>
+          <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus === 'succeeded' && resultsSnapshot">
+            <p><span class="font-semibold text-fg" x-text="`Total: ${resultsSnapshot?.total}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Visits: ${resultsSnapshot?.visits}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"></span></p>
           </div>
 
-          <!-- Upload status -->
+          <!-- Completion status -->
           <div class="mt-4">
-            <template x-if="uploadingResults">
+            <template x-if="completionStatus === 'pending' || completionStatus === 'saving'">
               <p class="text-sm text-fg-muted">Saving...</p>
             </template>
-            <template x-if="!uploadingResults && uploadError">
-              <p class="text-sm text-red-500" x-text="uploadError"></p>
-              <Button type="button" class="mt-2" @click="uploadAndCompleteSession?.()">Retry</Button>
+            <template x-if="completionStatus === 'failed'">
+              <p class="text-sm text-red-500" x-text="completionError"></p>
+              <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
             </template>
-            <template x-if="!uploadingResults && !uploadError">
+            <template x-if="completionStatus === 'succeeded'">
               <p class="text-sm text-green-500">Saved!</p>
             </template>
           </div>
 
-          <!-- Action buttons (disabled until upload succeeds) -->
+          <!-- Play-again failure: separate from completion status, buttons stay enabled -->
+          <p class="mt-2 text-sm text-red-500" x-show="playAgainError" x-text="playAgainError"></p>
+
+          <!-- Action buttons: enabled only when completionStatus === 'succeeded' -->
           <div class="flex gap-3 mt-6">
-            <Button
-              type="button"
-              variant="secondary"
-              @click="back()"
-              :disabled="uploadingResults || completionFailed"
-            >
+            <Button type="button" variant="secondary" @click="back()" :disabled="completionStatus !== 'succeeded'">
               Back
             </Button>
-            <Button
-              type="button"
-              @click="playAgain()"
-              :disabled="uploadingResults || completionFailed"
-            >
+            <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded'">
               Play again?
             </Button>
           </div>
@@ -1034,140 +1165,82 @@ async back(this: ScoreTrainingPlayContext) {
 
 async playAgain(this: ScoreTrainingPlayContext) {
   if (!this.$store.game.configSnapshot) return;
-  
-  try {
-    const config = this.$store.game.configSnapshot;
-    const inlineConfig = {
-      duration_type: config.durationType,
-      duration_value: config.durationValue,
-      max_darts_per_turn: config.maxDartsPerTurn,
-    };
+  this.playAgainError = "";
 
-    const session = await createSession({
+  const config = this.$store.game.configSnapshot;
+  const inlineConfig = {
+    duration_type: config.durationType,
+    duration_value: config.durationValue,
+    max_darts_per_turn: config.maxDartsPerTurn,
+  };
+
+  let session;
+  try {
+    session = await createSession({
       gameTypeKey: "SCORE_TRAINING",
       rulesetVersionKey: "SCORE_TRAINING_V1",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
       config: { source: "inline", config: inlineConfig },
     });
+  } catch {
+    // Play-again failure: modal stays open, results visible, buttons stay
+    // enabled (prior session is already COMPLETED). Store untouched.
+    this.playAgainError = "Could not start a new session. Try again.";
+    return;
+  }
 
-    // Only mutate store on success
-    this.$store.game.sessionId = session.sessionId;
-    this.$store.game.participantRef = session.participants[0].ref;
-    this.$store.game.turns = [];
-    this.$store.game.idempotencyKey = null;
-    this.$store.game.timerRemainingMs = null;
-    this.$store.game.timerStartedAt = null;
-    this.$store.game.timerExpired = false;
+  // Only mutate store/UI on success.
+  this.$store.game.sessionId = session.sessionId;
+  this.$store.game.participantRef = session.participants[0].ref;
+  this.$store.game.turns = [];
+  this.$store.game.idempotencyKey = null;
+  this.$store.game.timerRemainingMs = null;
+  this.$store.game.timerStartedAt = null;
+  this.$store.game.timerExpired = false;
 
-    // Reset UI and close modal
-    this.finished = false;
-    this.uploadingResults = false;
-    this.uploadError = "";
-    this.completionFailed = false;
-    this.visitInput = "";
-    this.error = "";
+  this.finished = false;
+  this.completionStatus = "pending";
+  this.completionError = "";
+  this.resultsSnapshot = null;
+  this.visitInput = "";
+  this.error = "";
 
-    // Reinitialize engine and timer
-    this.engine = new ScoreTrainingEngine({
-      durationType: config.durationType,
-      durationValue: config.durationValue,
-      maxDartsPerTurn: config.maxDartsPerTurn,
-      startingSequence: 0,
+  this.engine = new ScoreTrainingEngine({
+    durationType: config.durationType,
+    durationValue: config.durationValue,
+    maxDartsPerTurn: config.maxDartsPerTurn,
+    startingSequence: 0,
+  });
+
+  if (config.durationType === "MINUTES") {
+    this.$store.game.timerRemainingMs = config.durationValue * 60000;
+    this.$store.game.timerStartedAt = new Date().toISOString();
+    this.timer = new SegmentTimer({
+      totalMinutes: config.durationValue,
+      intervalMinutes: config.durationValue,
+      onTick: (secondsRemaining) => {
+        this.$store.game.timerRemainingMs = secondsRemaining * 1000;
+      },
+      onComplete: () => {
+        this.$store.game.timerExpired = true;
+      },
     });
-    
-    if (config.durationType === "MINUTES") {
-      this.$store.game.timerRemainingMs = config.durationValue * 60000;
-      this.$store.game.timerStartedAt = new Date().toISOString();
-      this.timer = new SegmentTimer({
-        totalMinutes: config.durationValue,
-        intervalMinutes: config.durationValue,
-        onTick: (secondsRemaining) => {
-          this.$store.game.timerRemainingMs = secondsRemaining * 1000;
-        },
-        onComplete: () => {
-          this.$store.game.timerExpired = true;
-        },
-      });
-      this.timer.start();
-    }
-  } catch (err) {
-    // Play-again failure: modal stays open, results visible, buttons enabled
-    this.uploadError = "Could not start a new session. Try again.";
-    // buttons remain enabled because prior session is already COMPLETED
+    this.timer.start();
   }
 },
 ```
 
-- [ ] **Step 5: Add API client methods for completion sequence**
-
-Update `app/src/lib/client/api/sessions.ts`:
-
-```typescript
-// Ensure appendBatch is exported with Idempotency-Key support
-export async function appendBatch(
-  sessionId: string,
-  idempotencyKey: string,
-  batch: EventsBatchRequestInput,
-): Promise<AppendBatchResult> {
-  const response = await fetch(`/api/sessions/${sessionId}/events/batch`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Idempotency-Key": idempotencyKey,
-      authorization: `Bearer ${getToken()}`,
-    },
-    body: JSON.stringify(batch),
-  });
-
-  const envelope = (await response.json()) as ApiEnvelope<AppendBatchResult>;
-  if (!response.ok) {
-    throw new ApiError(envelope.error?.code ?? "UNKNOWN", envelope.error?.details);
-  }
-  return envelope.data!;
-}
-
-// completeSession should use PATCH, not POST
-export async function completeSession(
-  sessionId: string,
-  status: "COMPLETED" | "ABANDONED",
-): Promise<{ sessionId: string; statusKey: string; completedAt: string }> {
-  const response = await fetch(`/api/sessions/${sessionId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      authorization: `Bearer ${getToken()}`,
-    },
-    body: JSON.stringify({ status }),
-  });
-
-  const envelope = (await response.json()) as ApiEnvelope<{
-    sessionId: string;
-    statusKey: string;
-    completedAt: string;
-  }>;
-  if (!response.ok) {
-    if (envelope.error?.code === "SESSION_ALREADY_COMPLETED") {
-      const err = new Error("SESSION_ALREADY_COMPLETED");
-      (err as any).code = "SESSION_ALREADY_COMPLETED";
-      throw err;
-    }
-    throw new ApiError(envelope.error?.code ?? "UNKNOWN", envelope.error?.details);
-  }
-  return envelope.data!;
-}
-```
-
-- [ ] **Step 6: Run tests**
+- [ ] **Step 5: Run tests**
 
 Run: `npm test`
 Expected: All tests pass
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add app/src/lib/game/score-training-play.data.ts app/src/pages/games/score-training/play/index.astro app/src/lib/client/api/sessions.ts app/tests/lib/game/score-training-play.data.test.ts
-git commit -m "feat(play): add results modal with completion sequence (batch + PATCH)"
+git add app/src/lib/game/score-training-play.data.ts app/src/pages/games/score-training/play/index.astro app/tests/lib/game/score-training-play.data.test.ts
+git commit -m "feat(play): add results modal with completionStatus-gated completion sequence"
 ```
 
 ---
@@ -1175,13 +1248,13 @@ git commit -m "feat(play): add results modal with completion sequence (batch + P
 ### Task 6: Test Suite Updates & Full Validation
 
 **Files:**
-- Modify: `app/tests/lib/game/score-training-setup.data.test.ts` (complete D88 + create tests)
-- Modify: `app/tests/lib/game/score-training-play.data.test.ts` (complete D88 + completion + play-again tests)
-- Modify: `app/tests/lib/client/api/sessions.test.ts` (add completion sequence tests)
+- Modify: `app/tests/lib/game/score-training-setup.data.test.ts` (complete reconciliation + create tests)
+- Modify: `app/tests/lib/game/score-training-play.data.test.ts` (complete reconciliation + completion + play-again tests)
+- `app/tests/lib/game/session-recovery.test.ts` already covers the shared helper (Task 2); `app/src/lib/client/api/sessions.ts` is untouched (Global Constraints), so no new client tests are needed there
 
 **Interfaces:**
 - Consumes: All previous task implementations
-- Produces: Passing test suite with coverage for D88, modal, completion sequence, play-again
+- Produces: Passing test suite with coverage for shared reconciliation, modal, completion sequence, play-again
 
 - [ ] **Step 1: Ensure all test files have complete coverage**
 
@@ -1264,77 +1337,54 @@ git commit -m "chore(play): remove dedicated results page (now modal on play pag
 ### Task 8: Documentation & Context Maintenance (Mandatory Gate)
 
 **Files:**
-- Modify: `app/CLAUDE.md` (if architectural rules changed)
 - Modify: `DECISIONS.md` (new decision entries)
-- Modify: `docs/architecture/00-Context-Map.md` (register specs/docs)
+- Modify: `docs/architecture/07-Frontend/03-Alpine-Patterns.md` (Recovery + Completed-Batch Outbox sections)
+- Modify: `docs/architecture/07-Frontend/00-Overview.md` (completion/recovery paragraphs)
+- Modify: `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` (§Recovery)
+- Modify: `docs/architecture/05-Database/06-Spec/05-Read-Model-Layer.md` (`v_active_sessions` blurb, line ~56)
+- Modify: `app/CLAUDE.md` (only if a rule beyond what the docs above cover changed — see Step 1)
 - Verify: Script output from context/file-location/mirror checks
 - Stage: `graphify-out/graph.json` (auto-generated; commit after refresh)
 
 **Interfaces:**
 - Consumes: All previous task implementations, completed spec + plan docs
-- Produces: Updated context map, decision ledger, validated project metadata, graph rebuild
+- Produces: Updated frontend/database docs, decision ledger, validated project metadata, graph rebuild
 
-**Context:** Per root `CLAUDE.md` Context Maintenance protocol, every completed task must validate and update documentation. This is a non-negotiable gate—no PR merge until this passes.
+**Context:** Per root `CLAUDE.md` Context Maintenance protocol, every completed task must validate and update documentation. This is a non-negotiable gate — no PR merge until this passes. The spec's "Documentation & rule enforcement" table names five artifacts as **required**, not optional: `DECISIONS.md`, `03-Alpine-Patterns.md`, `00-Overview.md`, `10-Frontend-Agent-Guide.md`, and `05-Read-Model-Layer.md`. All five must be edited in this task — this is broader than "update app/CLAUDE.md if needed."
 
-- [ ] **Step 1: Check if D88 reconciliation or completion rules belong in `app/CLAUDE.md`**
+- [ ] **Step 1: Update the four required frontend/database docs**
 
-Review `app/CLAUDE.md` and the new D88/completion logic:
-- D88 reconciliation is a pattern that repeats (setup + play) — should be mentioned? 
-- Completion hard-gate (batch + COMPLETED sequence) amends D90 — should it go in app handbook?
+`docs/architecture/05-Database/06-Spec/05-Read-Model-Layer.md` (around line 56) currently reads: *"Used by application startup to detect an orphaned active session and offer resume (from client-local state) or abandon; the view itself does not reconstruct gameplay state."* This is stale — D88 mismatches are never offered to the user, they're auto-abandoned. Replace with: resume when local `sessionId` matches server `ACTIVE`; otherwise auto-abandon synchronously, no prompt.
 
-If yes, add or update a section in `app/CLAUDE.md`:
+`docs/architecture/07-Frontend/03-Alpine-Patterns.md`: add/update the Recovery section with the shared `session-recovery.ts` decision table (`"match"` / `"no_active"` / `"abandon_failed"`) — match shows the Continue/Abandon modal on setup only, mismatch never shows a dialog on either page. Update the Completed-Batch Outbox section to note Score Training uses a synchronous hard-gate instead of outbox enqueue for v1 play completion (see D119).
 
-```markdown
-## D88 Auto-Cleanup & Session Reconciliation
+`docs/architecture/07-Frontend/00-Overview.md`: align the completion/recovery paragraphs with the hard-gate + match-vs-mismatch distinction; remove any implication that Score Training always navigates to a `/results` page — it doesn't anymore (Task 7).
 
-Setup and play pages run identical D88 reconciliation on init (see `app/src/lib/game/d88-reconciliation.ts`):
-- **Match:** Resume existing session (modal on setup, keep state on play)
-- **Mismatch:** Auto-PATCH server session → ABANDONED (synchronous, prevents race), reset local state
-- **No server ACTIVE:** Reset stale local state
+`docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` §Recovery: state the hard-gate exception and "no manual abandon UI on mismatch" (the match-case Continue/Abandon modal is still allowed).
 
-Reconciliation is synchronous to prevent multiple concurrent sessions. UX shows brief loading state (~100-500ms).
+- [ ] **Step 2: Check if `app/CLAUDE.md` needs anything beyond the above**
 
-## Score Training Completion Sequence (D90 Amendment)
+The four docs in Step 1 are the canonical homes for this logic per `docs/CLAUDE.md`'s task routing (Frontend → `07-Frontend/*`, Database model → `05-Database/*`). Only add to `app/CLAUDE.md` if something doesn't fit those docs — e.g., a one-line pointer to `app/src/lib/game/session-recovery.ts` as the single implementation, if not already discoverable via the Alpine Patterns doc. Do not duplicate the full decision table in `app/CLAUDE.md`; that recreates the two-sources-of-truth problem this plan is fixing.
 
-Results modal gates post-game navigation until both operations succeed:
-1. `POST /api/sessions/{id}/events/batch` with `Idempotency-Key` header
-2. `PATCH /api/sessions/{id}` with `{ status: "COMPLETED" }`
+- [ ] **Step 3: Record decisions in `DECISIONS.md`**
 
-Full sequence is retried with same key; treats `409 SESSION_ALREADY_COMPLETED` as success.
-This hard-gate (vs. passive outbox pattern) ensures play-again cannot race terminal session state.
-```
-
-If no changes needed, proceed to Step 2.
-
-- [ ] **Step 2: Record decisions in `DECISIONS.md`**
-
-Add entries for any new architectural decisions (with ISO date 2026-07-17):
+Add entries (next available IDs; confirm against the current end of `DECISIONS.md` before writing — do not assume D117 is still the latest):
 
 ```markdown
-### D118: Shared D88 Reconciliation for Setup & Play (2026-07-17)
+### D118: Shared Session Recovery Helper for Setup & Play (2026-07-17)
 
-Setup and play run identical decision table (no page-specific variants) to reconcile local `sessionId` vs. server's active SCORE_TRAINING session. Auto-abandons orphans synchronously to prevent race conditions (loading state during PATCH). Eliminates UX loop risk where setup might re-render and show the modal twice.
+Setup and play run identical decision table (`app/src/lib/game/session-recovery.ts`, no page-specific variants) to reconcile local `sessionId` vs. server's active SCORE_TRAINING session. Returns "match" | "no_active" | "abandon_failed" — the latter blocks session creation instead of silently resetting, since the orphan is still ACTIVE server-side and a create would violate uq_sessions_single_active. Eliminates UX loop risk where setup might re-render and show the modal twice.
 
 ### D119: Score Training Hard-Gate Completion Sequence (2026-07-17)
 
-Results modal gates Back / Play again buttons until both batch POST and PATCH COMPLETED succeed (treats 409 as success). Amends D90's passive-outbox pattern for Score Training to ensure terminal session state is reached before new session can be created, preventing concurrent active sessions.
+Results modal gates Back / Play again buttons until both batch POST and PATCH COMPLETED succeed (completionStatus === "succeeded"; treats 409 SESSION_ALREADY_COMPLETED as success). Amends D90's passive-outbox pattern for Score Training to ensure terminal session state is reached before a new session can be created, preventing concurrent active sessions. Supersedes D112's results-via-query-params / dedicated `/results` page for this flow — results now render as a play-page modal from a component-local snapshot instead.
 ```
 
-- [ ] **Step 3: Update `docs/architecture/00-Context-Map.md` if new docs were added**
+- [ ] **Step 4: Context Map — no new row needed**
 
-Check if any new spec or plan files need registration:
-- Spec: `2026-07-17-score-training-flow-redesign.md` — registered during brainstorming
-- Plan: `2026-07-17-score-training-flow-implementation.md` — register it now
+`docs/architecture/00-Context-Map.md` already has a generic historical-folder row covering `docs/superpowers/{specs,plans,handoffs}/` — both this spec and this plan are already covered by it. Do **not** add a dedicated per-plan line; confirm the existing row is still present and move on. (If the row is missing or has been removed, that's a separate pre-existing gap — flag it rather than silently adding a one-off entry that only covers this plan.)
 
-Add to the Context Map's plan inventory (find the plans section, add this line with ISO date):
-
-```
-- [Score Training Flow Implementation](2026-07-17-score-training-flow-implementation.md) — Task-by-task plan for session lifecycle, D88 reconciliation, results modal, completion sequence.
-```
-
-Verify the map is up-to-date and all new/modified files are listed.
-
-- [ ] **Step 4: Run context validation scripts**
+- [ ] **Step 5: Run context validation scripts**
 
 Run each script in sequence and verify all pass:
 
@@ -1355,7 +1405,7 @@ Expected: No errors; `CLAUDE.md` and `AGENT.md` files in same directory are byte
 
 If any script fails, fix the issue in-place (update the map, move files, sync mirrors). Re-run until all pass.
 
-- [ ] **Step 5: Refresh knowledge graph**
+- [ ] **Step 6: Refresh knowledge graph**
 
 Run the graph rebuild script:
 
@@ -1365,16 +1415,22 @@ bash scripts/refresh-graph.sh
 
 Expected: Graph updates without warnings (if graphify CLI is not installed, note that in the completion report but do not fail)
 
-- [ ] **Step 6: Stage graph and docs; commit**
+- [ ] **Step 7: Stage docs and graph; commit**
 
 ```bash
-git add DECISIONS.md docs/architecture/00-Context-Map.md app/CLAUDE.md graphify-out/graph.json
-git commit -m "docs: update context for D88 reconciliation, completion hard-gate, and D119/D118 decisions"
+git add DECISIONS.md \
+  docs/architecture/07-Frontend/03-Alpine-Patterns.md \
+  docs/architecture/07-Frontend/00-Overview.md \
+  docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md \
+  docs/architecture/05-Database/06-Spec/05-Read-Model-Layer.md \
+  app/CLAUDE.md \
+  graphify-out/graph.json
+git commit -m "docs: update recovery/completion docs and record D118/D119 decisions"
 ```
 
-Expected: Commit succeeds; graph snapshot is fresh
+Expected: Commit succeeds; graph snapshot is fresh. (`app/CLAUDE.md` is only included if Step 2 made a change.)
 
-- [ ] **Step 7: Verify all context gates pass**
+- [ ] **Step 8: Verify all context gates pass**
 
 Run the full validation one more time:
 
@@ -1386,12 +1442,13 @@ Expected: All checks pass (db, migrate, introspect, fallow, tests, astro check, 
 
 If any step fails during validation, fix the root cause (do not skip). Context validation is non-negotiable.
 
-- [ ] **Step 8: Completion Report**
+- [ ] **Step 9: Completion Report**
 
 Summarize:
-- ✅ `app/CLAUDE.md` updated (or: no changes needed)
-- ✅ `DECISIONS.md` entries added: D118, D119
-- ✅ `00-Context-Map.md` updated with plan entry
+- ✅ `03-Alpine-Patterns.md`, `00-Overview.md`, `10-Frontend-Agent-Guide.md`, `05-Read-Model-Layer.md` updated
+- ✅ `app/CLAUDE.md` updated (or: no changes needed beyond the four docs above)
+- ✅ `DECISIONS.md` entries added: D118, D119 (D119 notes supersession of D112)
+- ✅ `00-Context-Map.md` — confirmed existing historical-folder row already covers this spec/plan; no new row added
 - ✅ All 3 context scripts pass
 - ✅ Graph refreshed and staged
 - ✅ `npm run validate:app` passes all checks
@@ -1403,28 +1460,30 @@ Summarize:
 **Spec Coverage:**
 
 ✅ Issue 1: CI check for `fetchConnectionCache` (Task 1)  
-✅ Issue 2 Phase 1: Setup D88 reconciliation + active session modal (Tasks 2-3)  
-✅ Issue 2 Phase 2: Play D88 reconciliation (Task 4)  
+✅ Shared session-recovery helper, single implementation (Task 2)  
+✅ Issue 2 Phase 1: Setup reconciliation + active session modal (Task 3)  
+✅ Issue 2 Phase 2: Play reconciliation (Task 4)  
 ✅ Issue 2 Phase 2: Results modal with completion sequence (Task 5)  
 ✅ Issue 2 Phase 2: Play-again flow (Task 5)  
 ✅ Tests for all new behavior (Task 6)  
 ✅ Manual testing coverage (Task 7)  
-✅ **Context Maintenance gate** — docs, decisions, context map, script validation (Task 8)  
+✅ **Context Maintenance gate** — required docs, decisions, context map check, script validation (Task 8)  
 
 **No Placeholders:** All steps have concrete code, exact commands, expected outputs. No "TBD" or "implement validation" without detail.
 
 **Type Consistency:**
 - `idempotencyKey: string | null` in store (minted once, reused)
-- `uploadingResults: boolean` / `uploadError: string` / `completionFailed: boolean` consistent across tasks
-- `reconcileActiveSessions()` return type identical in setup and play
-- API methods (`appendBatch`, `completeSession`) have exact signatures
+- `completionStatus: "pending" | "saving" | "succeeded" | "failed"` is the single source of truth for button-enable state; `completionError` and `playAgainError` are separate fields so a play-again failure can never trigger the completion-retry UI
+- `reconcileActiveSession()` — one implementation (`app/src/lib/game/session-recovery.ts`), imported unmodified by both setup (Task 3) and play (Task 4); return type `"match" | "no_active" | "abandon_failed"` cannot drift because there is only one definition
+- API methods (`appendBatch`, `completeSession`, `fetchActiveSessions`, `createSession`) are the existing `apiRequest`-based ones in `app/src/lib/client/api/sessions.ts` — unmodified, not redefined
 
 **Traceability:**
 - Each success criterion from spec has at least one task
-- Edge cases (partial failure, SESSION_ALREADY_COMPLETED, play-again failure) addressed in tests
-- D88 auto-abandon synchronous with clear loading state
+- Edge cases (partial failure, SESSION_ALREADY_COMPLETED, play-again failure, abandon-PATCH failure) addressed in tests
+- Auto-abandon synchronous with clear loading state; `abandon_failed` blocks create rather than silently resetting (Tasks 2-4)
 - Store never mutates until operations succeed (play-again, back)
-- **Context Maintenance mandatory** — Task 8 validates root CLAUDE.md protocol (decision ledger, context map, script checks, graph refresh)
+- `finished = true` and `completionStatus = "pending"` set synchronously together (Task 5) — no window where buttons read as enabled before the upload starts
+- **Context Maintenance mandatory** — Task 8 validates root CLAUDE.md protocol (five required doc updates, decision ledger with D112 supersession noted, context map already covered by the historical row, script checks, graph refresh)
 
 ---
 
