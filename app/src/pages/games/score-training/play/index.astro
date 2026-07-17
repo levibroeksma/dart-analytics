@@ -7,20 +7,37 @@ import Input from "@components/forms/Input.astro";
 
 <AppLayout title="Score Training — Play">
   <div class="p-4" x-data="scoreTrainingPlay()">
-    <template x-if="finished">
-      <div>
-        <p class="text-fg">Session complete.</p>
-        <a class="btn-primary mt-4 inline-block" href="/games/score-training/results">See results</a>
+    <!-- Reconciliation blocked: auto-abandon PATCH failed (Task 4).
+         Guarded on !loadingReconciliation so this doesn't render alongside the
+         loading block below during a retryReconciliation() call. -->
+    <template x-if="reconciliationFailed && !loadingReconciliation">
+      <div class="text-center py-8">
+        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
+        <Button type="button" class="mt-4" @click="retryReconciliation()">
+          Retry
+        </Button>
       </div>
     </template>
 
-    <template x-if="!finished && !hasActiveSession">
+    <!-- Loading state during reconciliation (was missing in the initial draft
+         of this task — without it, the page renders blank while
+         fetchActiveSessions()/reconcileActiveSession() are in flight, since
+         hasActiveSession/finished/reconciliationFailed all start false). -->
+    <template x-if="loadingReconciliation">
+      <div class="text-center py-8">
+        <p class="text-sm text-fg-muted">Loading...</p>
+      </div>
+    </template>
+
+    <!-- No active session view -->
+    <template x-if="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation">
       <div>
         <p class="text-fg">No active session — start a new one.</p>
         <a class="btn-primary mt-4 inline-block" href="/games/score-training/setup">Start a new session</a>
       </div>
     </template>
 
+    <!-- Gameplay view (existing, with live total) -->
     <template x-if="!finished && hasActiveSession">
       <form @submit.prevent="submitVisit()">
         <template x-if="$store.game.configSnapshot?.durationType === 'MINUTES'">
@@ -29,17 +46,61 @@ import Input from "@components/forms/Input.astro";
         <template x-if="$store.game.configSnapshot?.durationType === 'ROUNDS'">
           <p class="text-sm text-fg-muted" x-text="`Visit ${$store.game.turns.length + 1}`"></p>
         </template>
-        <div x-show="!completionFailed">
-          <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
-        </div>
-        <div class="mt-2" x-show="error">
-          <p class="text-sm text-red-500" x-text="error"></p>
-          <Button type="button" variant="secondary" class="mt-2" x-show="completionFailed" @click="retryCompletion()">Retry</Button>
-        </div>
-        <Button type="submit" class="mt-4" x-show="!completionFailed">Submit visit</Button>
+        <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
+        <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error"></p>
+        <Button type="submit" class="mt-4">Submit visit</Button>
       </form>
+
+      <!-- Live total (always visible during play) -->
+      <p class="mt-4 text-fg" x-show="$store.game.turns.length > 0" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></p>
     </template>
 
-    <p class="mt-4 text-fg" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></p>
+    <!-- Results modal (overlay) -->
+    <template x-if="finished">
+      <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+        <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm">
+          <h2 class="text-lg font-semibold text-fg">Game Summary</h2>
+
+          <!-- Stats: live from store while saving, snapshot once succeeded -->
+          <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus !== 'succeeded'">
+            <p><span class="font-semibold text-fg" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Visits: ${$store.game.turns.length}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Average: ${$store.game.turns.length > 0 ? ($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / $store.game.turns.length).toFixed(1) : 0}`"></span></p>
+          </div>
+          <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus === 'succeeded' && resultsSnapshot">
+            <p><span class="font-semibold text-fg" x-text="`Total: ${resultsSnapshot?.total}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Visits: ${resultsSnapshot?.visits}`"></span></p>
+            <p><span class="font-semibold text-fg" x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"></span></p>
+          </div>
+
+          <!-- Completion status -->
+          <div class="mt-4">
+            <template x-if="completionStatus === 'pending' || completionStatus === 'saving'">
+              <p class="text-sm text-fg-muted">Saving...</p>
+            </template>
+            <template x-if="completionStatus === 'failed'">
+              <p class="text-sm text-red-500" x-text="completionError"></p>
+              <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
+            </template>
+            <template x-if="completionStatus === 'succeeded'">
+              <p class="text-sm text-green-500">Saved!</p>
+            </template>
+          </div>
+
+          <!-- Play-again failure: separate from completion status, buttons stay enabled -->
+          <p class="mt-2 text-sm text-red-500" x-show="playAgainError" x-text="playAgainError"></p>
+
+          <!-- Action buttons: enabled only when completionStatus === 'succeeded' -->
+          <div class="flex gap-3 mt-6">
+            <Button type="button" variant="secondary" @click="back()" :disabled="completionStatus !== 'succeeded'">
+              Back
+            </Button>
+            <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded'">
+              Play again?
+            </Button>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </AppLayout>

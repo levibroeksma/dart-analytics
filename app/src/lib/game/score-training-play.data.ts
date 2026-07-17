@@ -1,12 +1,10 @@
 import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import { buildEventsBatch } from "@modules/game/score-training.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { appendBatch, completeSession, fetchActiveSessions } from "@client/api/sessions";
+import { appendBatch, completeSession, createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { RecordedTurn } from "@stores/types";
 import type { ScoreTrainingPlayContext } from "./types";
-
-type GameStoreLike = ScoreTrainingPlayContext["$store"]["game"];
 
 function formatRemaining(ms: number | null | undefined): string {
   const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
@@ -15,40 +13,24 @@ function formatRemaining(ms: number | null | undefined): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function buildResultsUrl(turns: RecordedTurn[]): string {
+function computeStats(turns: RecordedTurn[]): { total: number; visits: number; average: number } {
   const visits = turns.length;
   const total = turns.reduce((sum, t) => sum + t.totalScore, 0);
-  const average = visits === 0 ? 0 : total / visits;
-  const params = new URLSearchParams({
-    total: String(total),
-    average: String(average),
-    visits: String(visits),
-  });
-  return `/games/score-training/results?${params.toString()}`;
-}
-
-async function uploadCompletion(store: GameStoreLike, sessionId: string, idempotencyKey: string): Promise<void> {
-  // Store persists completedAt as nullable for durability, but every turn
-  // recorded here comes from ScoreTrainingEngine.recordVisit, which always
-  // sets an ISO timestamp — so this narrowing is safe at runtime.
-  const completedTurns = store.turns.map((turn) => ({
-    ...turn,
-    completedAt: turn.completedAt ?? new Date().toISOString(),
-  }));
-  const batch = buildEventsBatch(store.participantRef!, completedTurns);
-  await appendBatch(sessionId, idempotencyKey, batch);
-  await completeSession(sessionId, "COMPLETED");
+  return { total, visits, average: visits === 0 ? 0 : total / visits };
 }
 
 export function scoreTrainingPlay() {
   return {
     visitInput: "",
     error: "",
-    completionFailed: false,
     finished: false,
     hasActiveSession: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+    completionStatus: "pending" as "pending" | "saving" | "succeeded" | "failed",
+    completionError: "",
+    playAgainError: "",
+    resultsSnapshot: null as { total: number; visits: number; average: number } | null,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
 
@@ -134,16 +116,13 @@ export function scoreTrainingPlay() {
 
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine) return;
-      if (this.completionFailed) return;
 
       const score = Number(this.visitInput);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
         this.error = "Enter a score between 0 and 180.";
-        this.completionFailed = false;
         return;
       }
       this.error = "";
-      this.completionFailed = false;
       this.visitInput = "";
 
       const visit = this.engine.recordVisit(score);
@@ -152,34 +131,121 @@ export function scoreTrainingPlay() {
       const timerExpired = this.$store.game.timerExpired ?? false;
       if (!this.engine.isComplete(this.$store.game.turns.length, timerExpired)) return;
 
-      await this.retryCompletion();
+      // Modal appears and completion sequence starts in the same synchronous step.
+      this.finished = true;
+      this.completionStatus = "pending";
+      await this.uploadAndCompleteSession();
     },
 
-    async retryCompletion(this: ScoreTrainingPlayContext) {
+    async uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void> {
       const sessionId = this.$store.game.sessionId!;
+
       if (!this.$store.game.idempotencyKey) {
         this.$store.game.idempotencyKey = crypto.randomUUID();
       }
       const idempotencyKey = this.$store.game.idempotencyKey;
 
+      this.completionStatus = "saving";
+      this.completionError = "";
+
       try {
-        await uploadCompletion(this.$store.game, sessionId, idempotencyKey);
+        const completedTurns = this.$store.game.turns.map((turn) => ({
+          ...turn,
+          completedAt: turn.completedAt ?? new Date().toISOString(),
+        }));
+        const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
+
+        await appendBatch(sessionId, idempotencyKey, batch);
+        await completeSession(sessionId, "COMPLETED");
+      } catch (err: unknown) {
+        // On the completion path only: SESSION_ALREADY_COMPLETED counts as success
+        // (covers "PATCH OK, client never saw the response").
+        const error = err as { code?: string; message?: string };
+        const alreadyCompleted =
+          error.code === "SESSION_ALREADY_COMPLETED" ||
+          error.message?.includes("SESSION_ALREADY_COMPLETED");
+        if (!alreadyCompleted) {
+          this.completionError = "Could not save your game. Check your connection and retry.";
+          this.completionStatus = "failed";
+          return;
+        }
+      }
+
+      // Snapshot stats into a component-local field BEFORE any store mutation,
+      // so the modal never depends on $store.game.turns surviving a later reset.
+      this.resultsSnapshot = computeStats(this.$store.game.turns);
+      this.completionStatus = "succeeded";
+    },
+
+    async back(this: ScoreTrainingPlayContext) {
+      this.$store.game.reset();
+      globalThis.location.href = "/games";
+    },
+
+    async playAgain(this: ScoreTrainingPlayContext) {
+      if (!this.$store.game.configSnapshot) return;
+      this.playAgainError = "";
+
+      const config = this.$store.game.configSnapshot;
+      const inlineConfig = {
+        duration_type: config.durationType,
+        duration_value: config.durationValue,
+        max_darts_per_turn: config.maxDartsPerTurn,
+      };
+
+      let session;
+      try {
+        session = await createSession({
+          gameTypeKey: "SCORE_TRAINING",
+          rulesetVersionKey: "SCORE_TRAINING_V1",
+          captureModeKey: "RECREATIONAL",
+          inputModeKey: "QUICK_SCORE",
+          config: { source: "inline", config: inlineConfig },
+        });
       } catch {
-        this.error = "Could not complete the session. Check your connection and retry.";
-        this.completionFailed = true;
+        // Play-again failure: modal stays open, results visible, buttons stay
+        // enabled (prior session is already COMPLETED). Store untouched.
+        this.playAgainError = "Could not start a new session. Try again.";
         return;
       }
 
-      // Compute the results-page URL from turns still in the store — the store
-      // is reset immediately after, so results/index.astro cannot read these
-      // stats back out of Alpine state and must receive them via query params.
-      const resultsUrl = buildResultsUrl(this.$store.game.turns);
-      this.finished = true;
+      // Only mutate store/UI on success.
+      this.$store.game.sessionId = session.sessionId;
+      this.$store.game.participantRef = session.participants[0].ref;
+      this.$store.game.turns = [];
+      this.$store.game.idempotencyKey = null;
+      this.$store.game.timerRemainingMs = null;
+      this.$store.game.timerStartedAt = null;
+      this.$store.game.timerExpired = false;
+
+      this.finished = false;
+      this.completionStatus = "pending";
+      this.completionError = "";
+      this.resultsSnapshot = null;
+      this.visitInput = "";
       this.error = "";
-      this.completionFailed = false;
-      this.$store.game.reset();
-      if (globalThis.location) {
-        globalThis.location.href = resultsUrl;
+
+      this.engine = new ScoreTrainingEngine({
+        durationType: config.durationType,
+        durationValue: config.durationValue,
+        maxDartsPerTurn: config.maxDartsPerTurn,
+        startingSequence: 0,
+      });
+
+      if (config.durationType === "MINUTES") {
+        this.$store.game.timerRemainingMs = config.durationValue * 60000;
+        this.$store.game.timerStartedAt = new Date().toISOString();
+        this.timer = new SegmentTimer({
+          totalMinutes: config.durationValue,
+          intervalMinutes: config.durationValue,
+          onTick: (secondsRemaining) => {
+            this.$store.game.timerRemainingMs = secondsRemaining * 1000;
+          },
+          onComplete: () => {
+            this.$store.game.timerExpired = true;
+          },
+        });
+        this.timer.start();
       }
     },
   };

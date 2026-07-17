@@ -4,6 +4,7 @@ vi.mock('@client/api/sessions', () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),
   fetchActiveSessions: vi.fn(),
+  createSession: vi.fn(),
 }));
 
 const segmentTimerInstances: Array<{
@@ -20,7 +21,7 @@ vi.mock('@modules/ui/segment-timer.module', () => ({
   }),
 }));
 
-import { appendBatch, completeSession, fetchActiveSessions } from '@client/api/sessions';
+import { appendBatch, completeSession, createSession, fetchActiveSessions } from '@client/api/sessions';
 import { SegmentTimer } from '@modules/ui/segment-timer.module';
 import { scoreTrainingPlay } from '@lib/game/score-training-play.data';
 import type { RecordedTurn } from '@stores/types';
@@ -83,7 +84,9 @@ describe('scoreTrainingPlay', () => {
     await component.submitVisit.call(component); // visit 2 — completes
     expect(appendBatch).toHaveBeenCalledTimes(1);
     expect(completeSession).toHaveBeenCalledWith('s1', 'COMPLETED');
-    expect(store.reset).toHaveBeenCalledTimes(1);
+    expect(component.finished).toBe(true);
+    expect(component.completionStatus).toBe('succeeded');
+    expect(store.reset).not.toHaveBeenCalled();
   });
 
   describe('reconciliation on init', () => {
@@ -308,67 +311,140 @@ describe('scoreTrainingPlay', () => {
     });
   });
 
-  describe('completion error handling and retry', () => {
-    it('sets an error and does not reset the store when appendBatch fails, without recording extra turns', async () => {
-      vi.mocked(appendBatch).mockRejectedValue(new Error('network blip'));
-      const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
-      await component.init.call(component);
-      await component.submitVisit.call(component); // visit 1
-      component.visitInput = '30';
-      await component.submitVisit.call(component); // visit 2 — attempts completion, fails
+  describe('Completion sequence', () => {
+    function makeStore(overrides: Partial<Record<string, unknown>> = {}) {
+      return {
+        game: {
+          sessionId: 'session-1',
+          participantRef: 'participant-1',
+          configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+          turns: [{ totalScore: 50, completedAt: '2026-07-17T10:00:00Z' }],
+          idempotencyKey: null,
+          reset: vi.fn(),
+          ...overrides,
+        },
+      };
+    }
 
-      expect(appendBatch).toHaveBeenCalledTimes(1);
-      expect(completeSession).not.toHaveBeenCalled();
-      expect(store.reset).not.toHaveBeenCalled();
-      expect(component.finished).toBe(false);
-      expect(component.error).not.toBe('');
-      expect(component.completionFailed).toBe(true);
-      expect(store.turns).toHaveLength(2);
+    it('sets completionStatus = "pending" synchronously when finished flips true, before the async sequence resolves', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+
+      let sawPendingBeforeResolve = false;
+      vi.mocked(appendBatch).mockImplementation(async () => {
+        sawPendingBeforeResolve = play.completionStatus === 'saving' || play.completionStatus === 'pending';
+        return { created: { stages: 1, turns: 1, darts: 3 } };
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
+      });
+
+      const promise = play.uploadAndCompleteSession();
+      expect(play.completionStatus === 'pending' || play.completionStatus === 'saving').toBe(true);
+      await promise;
+
+      expect(sawPendingBeforeResolve).toBe(true);
+      expect(play.completionStatus).toBe('succeeded');
     });
 
-    it('generates the idempotency key once and reuses it on retry', async () => {
-      vi.mocked(appendBatch).mockRejectedValueOnce(new Error('network blip'));
-      vi.mocked(appendBatch).mockResolvedValueOnce({ created: { stages: 1, turns: 2, darts: 0 } });
-      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
+    it('mints idempotencyKey once and reuses on retry', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+
+      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
+      });
+
+      await play.uploadAndCompleteSession();
+
+      const firstKey = play.$store.game.idempotencyKey;
+      expect(firstKey).toBeTruthy();
+      expect(play.completionStatus).toBe('succeeded');
+      expect(play.completionError).toBe('');
+
+      vi.mocked(appendBatch).mockClear();
+      await play.uploadAndCompleteSession();
+
+      expect(play.$store.game.idempotencyKey).toBe(firstKey);
+    });
+
+    it('copies stats into resultsSnapshot on success and does not depend on turns surviving afterward', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+
+      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 'session-1', statusKey: 'COMPLETED', completedAt: '2026-07-17T10:00:00Z',
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot).toEqual({ total: 50, visits: 1, average: 50 });
+    });
+
+    it('treats SESSION_ALREADY_COMPLETED as success on the completion path', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+
+      const error = new Error('SESSION_ALREADY_COMPLETED');
+      (error as { code?: string }).code = 'SESSION_ALREADY_COMPLETED';
+      vi.mocked(completeSession).mockRejectedValue(error);
+      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 1, darts: 3 } });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.completionError).toBe('');
+      expect(play.completionStatus).toBe('succeeded');
+    });
+
+    it('sets completionStatus = "failed" and keeps buttons disabled on error', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+
+      vi.mocked(appendBatch).mockRejectedValue(new Error('Network error'));
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.completionError).toContain('connection');
+      expect(play.completionStatus).toBe('failed');
+    });
+
+    it('playAgain failure sets playAgainError only, leaves completionStatus untouched', async () => {
+      const play = scoreTrainingPlay();
+      play.$store = makeStore() as typeof play.$store;
+      play.completionStatus = 'succeeded';
+
+      vi.mocked(createSession).mockRejectedValue(new Error('Network error'));
+
+      await play.playAgain();
+
+      expect(play.playAgainError).toBeTruthy();
+      expect(play.completionStatus).toBe('succeeded');
+      expect(play.$store.game.turns.length).toBe(1);
+    });
+
+    it('sets finished and completionStatus pending on final visit before upload settles', async () => {
       const store = gameStub();
       const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
+      let statusDuringUpload: string | null = null;
+      vi.mocked(appendBatch).mockImplementation(async () => {
+        statusDuringUpload = component.completionStatus;
+        return { created: { stages: 1, turns: 2, darts: 0 } };
+      });
+      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
       await component.init.call(component);
-      await component.submitVisit.call(component); // visit 1
+      await component.submitVisit.call(component);
       component.visitInput = '30';
-      await component.submitVisit.call(component); // visit 2 — fails
+      await component.submitVisit.call(component);
 
-      const keyAfterFailure = store.idempotencyKey;
-      expect(keyAfterFailure).toBeTruthy();
-
-      await component.retryCompletion.call(component);
-
-      const firstCallKey = vi.mocked(appendBatch).mock.calls[0][1];
-      const secondCallKey = vi.mocked(appendBatch).mock.calls[1][1];
-      expect(firstCallKey).toBe(keyAfterFailure);
-      expect(secondCallKey).toBe(keyAfterFailure);
-      expect(completeSession).toHaveBeenCalledWith('s1', 'COMPLETED');
-      expect(store.reset).toHaveBeenCalledTimes(1);
       expect(component.finished).toBe(true);
+      expect(statusDuringUpload === 'pending' || statusDuringUpload === 'saving').toBe(true);
+      expect(component.completionStatus).toBe('succeeded');
+      expect(component.resultsSnapshot).toEqual({ total: 60, visits: 2, average: 30 });
     });
 
-    it('navigates to the results page with total/average/visits query params computed before the store is reset', async () => {
-      vi.mocked(appendBatch).mockResolvedValue({ created: { stages: 1, turns: 2, darts: 0 } });
-      vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
-      const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
-      await component.init.call(component);
-      await component.submitVisit.call(component); // visit 1: 30
-      component.visitInput = '50';
-      const locationSpy = { href: '' };
-      vi.stubGlobal('location', locationSpy);
-      await component.submitVisit.call(component); // visit 2: 50 -> completes
-
-      expect(locationSpy.href).toBe('/games/score-training/results?total=80&average=40&visits=2');
-      vi.unstubAllGlobals();
-    });
-
-    it('retryCompletion does not record a new turn', async () => {
+    it('retries uploadAndCompleteSession without recording a new turn', async () => {
       vi.mocked(appendBatch).mockRejectedValueOnce(new Error('network blip'));
       vi.mocked(appendBatch).mockResolvedValueOnce({ created: { stages: 1, turns: 2, darts: 0 } });
       vi.mocked(completeSession).mockResolvedValue({ sessionId: 's1', statusKey: 'COMPLETED', completedAt: 'now' });
@@ -378,30 +454,17 @@ describe('scoreTrainingPlay', () => {
       await component.submitVisit.call(component);
       component.visitInput = '30';
       await component.submitVisit.call(component);
+      expect(component.completionStatus).toBe('failed');
+      expect(component.finished).toBe(true);
       const turnCountBeforeRetry = store.turns.length;
+      const keyAfterFailure = store.idempotencyKey;
 
-      await component.retryCompletion.call(component);
+      await component.uploadAndCompleteSession.call(component);
+
       expect(store.turns).toHaveLength(turnCountBeforeRetry);
-    });
-
-    it('submitVisit is inert while completionFailed is true — does not record a new turn or touch the store', async () => {
-      vi.mocked(appendBatch).mockRejectedValue(new Error('network blip'));
-      const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '30' };
-      await component.init.call(component);
-      await component.submitVisit.call(component); // visit 1
-      component.visitInput = '30';
-      await component.submitVisit.call(component); // visit 2 — attempts completion, fails
-      expect(component.completionFailed).toBe(true);
-
-      vi.mocked(store.recordTurn).mockClear();
-      const turnCountBeforeAttempt = store.turns.length;
-      component.visitInput = '30';
-
-      await component.submitVisit.call(component); // should be a no-op
-
-      expect(store.recordTurn).not.toHaveBeenCalled();
-      expect(store.turns).toHaveLength(turnCountBeforeAttempt);
+      expect(store.idempotencyKey).toBe(keyAfterFailure);
+      expect(component.completionStatus).toBe('succeeded');
+      expect(store.reset).not.toHaveBeenCalled();
     });
   });
 });

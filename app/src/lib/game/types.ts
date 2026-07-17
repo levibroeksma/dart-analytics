@@ -7,11 +7,14 @@ import type { GameConfigSnapshot, RecordedTurn } from "@stores/types";
 export type ScoreTrainingPlayContext = {
   visitInput: string;
   error: string;
-  completionFailed: boolean;
   finished: boolean;
   hasActiveSession: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  resultsSnapshot: { total: number; visits: number; average: number } | null;
   $store: {
     game: {
       sessionId: string | null;
@@ -32,7 +35,9 @@ export type ScoreTrainingPlayContext = {
   init(this: ScoreTrainingPlayContext): Promise<void>;
   retryReconciliation(this: ScoreTrainingPlayContext): Promise<void>;
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
-  retryCompletion(this: ScoreTrainingPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
+  back(this: ScoreTrainingPlayContext): Promise<void>;
+  playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
 };
 
