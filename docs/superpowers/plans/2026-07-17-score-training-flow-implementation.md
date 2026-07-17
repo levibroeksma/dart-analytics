@@ -587,11 +587,13 @@ import Button from "@components/forms/Button.astro";
       </div>
     </template>
 
-    <!-- Reconciliation blocked: auto-abandon PATCH failed — do NOT show the picker -->
-    <template x-if="reconciliationFailed">
+    <!-- Reconciliation blocked: auto-abandon PATCH failed — do NOT show the picker.
+         Guarded on !loadingReconciliation so this doesn't render alongside the
+         loading block below during a retryReconciliation() call. -->
+    <template x-if="reconciliationFailed && !loadingReconciliation">
       <div class="text-center py-8">
         <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
-        <Button type="button" class="mt-4" :disabled="loadingReconciliation" @click="retryReconciliation()">
+        <Button type="button" class="mt-4" @click="retryReconciliation()">
           Retry
         </Button>
       </div>
@@ -1066,13 +1068,25 @@ import Input from "@components/forms/Input.astro";
 
 <AppLayout title="Score Training — Play">
   <div class="p-4" x-data="scoreTrainingPlay()">
-    <!-- Reconciliation blocked: auto-abandon PATCH failed (Task 4) -->
-    <template x-if="reconciliationFailed">
+    <!-- Reconciliation blocked: auto-abandon PATCH failed (Task 4).
+         Guarded on !loadingReconciliation so this doesn't render alongside the
+         loading block below during a retryReconciliation() call. -->
+    <template x-if="reconciliationFailed && !loadingReconciliation">
       <div class="text-center py-8">
         <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
-        <Button type="button" class="mt-4" :disabled="loadingReconciliation" @click="retryReconciliation()">
+        <Button type="button" class="mt-4" @click="retryReconciliation()">
           Retry
         </Button>
+      </div>
+    </template>
+
+    <!-- Loading state during reconciliation (was missing in the initial draft
+         of this task — without it, the page renders blank while
+         fetchActiveSessions()/reconcileActiveSession() are in flight, since
+         hasActiveSession/finished/reconciliationFailed all start false). -->
+    <template x-if="loadingReconciliation">
+      <div class="text-center py-8">
+        <p class="text-sm text-fg-muted">Loading...</p>
       </div>
     </template>
 
@@ -1308,6 +1322,8 @@ git commit -m "test: complete coverage for D88, results modal, completion sequen
 11. Close browser, reopen → verify mid-game resume
 12. Test: Active session modal on setup (create a session, don't play, return to setup)
 13. Verify: Continue / Abandon options shown
+14. Simulate an auto-abandon `PATCH` failure (e.g. block the request via devtools) on setup with a mismatched local session: verify the blocked/retry state shows, **not** the preset picker; verify no session can be created until Retry succeeds; repeat on play, verifying the blocked state shows without a loading/blocked double-render flash
+15. Complete a game, let the completion ACK land, then refresh the browser before clicking Back: verify the app does not re-`PATCH` abandon the now-`COMPLETED` session (per spec's "Browser closed after completion ACK" edge case)
 
 - [ ] **Step 2: Disable or delete results page**
 
