@@ -4,15 +4,7 @@ import AppLayout from "@layouts/AppLayout.astro";
 ---
 
 <AppLayout title="Score Training — Results">
-  <div
-    class="p-4"
-    x-data="{
-      params: new URLSearchParams(location.search),
-      get total() { return this.params.get('total') ?? '0'; },
-      get average() { return this.params.get('average') ?? '0'; },
-      get visits() { return this.params.get('visits') ?? '0'; },
-    }"
-  >
+  <div class="p-4" x-data="scoreTrainingResults()">
     <h1 class="text-xl font-semibold text-fg">Results</h1>
     <p class="mt-2 text-fg" x-text="`Total score: ${total}`"></p>
     <p class="mt-2 text-fg" x-text="`Average per visit: ${average}`"></p>
