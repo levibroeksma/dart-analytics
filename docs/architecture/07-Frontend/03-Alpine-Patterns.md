@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, forms, data components, persist
-updated: 2026-07-15
+updated: 2026-07-17
 -->
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.2.0
+> **Version:** 0.2.1
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -195,17 +195,17 @@ When an Alpine listener must be declared inside a **`{}` Astro expression** (com
 
 # Recovery & Auto-Cleanup
 
-The client owns session-progress persistence (D67, D88).
+The client owns session-progress persistence (D67, D88). Setup and play share one helper — `app/src/lib/game/session-recovery.ts` (`reconcileActiveSession`) — identical decision table, no page-specific variants (D118).
 
-| Condition | Action |
-| --------- | ------ |
-| Local store + server `sessionId` align | Resume from store |
-| Local missing or `sessionId` mismatch | Client auto-`PATCH` → `ABANDONED` — **no user prompt** |
-| Server `ACTIVE`, client empty | Client auto-abandons server session |
-| Client-side orphans | Client clears store + abandons server row if present |
-| Server DB orphans | Server responsibility (future sweep) — not client UX |
+| Condition | Returned `action` | Caller behavior |
+| --------- | ----------------- | --------------- |
+| Server `ACTIVE` + local `sessionId` **matches** | `"match"` | Resume path. Setup: Continue/Abandon modal. Play: keep store, resume silently. Store untouched. |
+| Server `ACTIVE` + local missing / `sessionId` **mismatch**, auto-abandon `PATCH` succeeds | `"no_active"` | Helper already `store.reset()`. Caller shows empty state. **No dialog on either page.** |
+| Server `ACTIVE` + mismatch, auto-abandon `PATCH` **fails** | `"abandon_failed"` | Store untouched. Block session creation; offer retry. Never treat as `"no_active"` (orphan still `ACTIVE`; create would violate `uq_sessions_single_active`). |
+| Local present, no server `ACTIVE` | `"no_active"` | Helper `store.reset()` (stale local). |
+| Both empty | `"no_active"` | No store change. |
 
-No sign-out step in this flow. See `00-Overview.md` state model.
+Match vs mismatch: Continue/Abandon on **match** is intentional user choice for an agreed in-progress session — allowed. Mismatch never shows a dialog (auto-abandon only). Server DB orphans remain server responsibility (future sweep). See `00-Overview.md` state model. <!-- 2026-07-17 -->
 
 ---
 
@@ -213,7 +213,7 @@ No sign-out step in this flow. See `00-Overview.md` state model.
 
 Recovery above governs the **active** session. A **completed** session whose batch upload fails (offline, `503`) must not be lost between "game finished" and "server confirmed" — the one client-side data loss we actively prevent.
 
-On session completion the assembled `EventsBatchRequest` moves from `game.store.ts` into a persisted `outbox` store, carrying the `Idempotency-Key` minted at session-complete (`04-Modules-And-OOP.md` key ownership). Upload is attempted immediately with a few backoff retries; on persistent failure the entry stays queued.
+**Default (D90):** On session completion the assembled `EventsBatchRequest` moves from `game.store.ts` into a persisted `outbox` store, carrying the `Idempotency-Key` minted at session-complete (`04-Modules-And-OOP.md` key ownership). Upload is attempted immediately with a few backoff retries; on persistent failure the entry stays queued.
 
 | Condition | Action |
 | --------- | ------ |
@@ -222,7 +222,9 @@ On session completion the assembled `EventsBatchRequest` moves from `game.store.
 | Next app load / `online` event | Auto-retry all queued entries with their stored keys |
 | Retryable error only (`503`) | Retry with the **same** `Idempotency-Key`; never re-mint |
 
-The stable key makes retries safe: a batch the server already persisted but never acknowledged returns its stored result on retry, and the client dequeues (D90). Removal happens **only** on confirmed success — never blind discard. localStorage backs the `outbox` in v1; if queue depth ever grows, only the `outbox` store migrates to IndexedDB (unchanged elsewhere). <!-- 2026-07-14 -->
+The stable key makes retries safe: a batch the server already persisted but never acknowledged returns its stored result on retry, and the client dequeues (D90). Removal happens **only** on confirmed success — never blind discard. localStorage backs the `outbox` in v1; if queue depth ever grows, only the `outbox` store migrates to IndexedDB (unchanged elsewhere).
+
+**Score Training exception (D119):** v1 play completion uses a synchronous hard-gate instead of outbox enqueue — Back / Play again stay disabled until batch POST and `PATCH COMPLETED` both succeed (`completionStatus === "succeeded"`; `409 SESSION_ALREADY_COMPLETED` counts as success). Results render as a play-page modal from a component-local snapshot (no dedicated `/results` navigation). Do not generalize this hard-gate to other games without a new decision. <!-- 2026-07-17 -->
 
 ---
 

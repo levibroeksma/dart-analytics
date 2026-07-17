@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-07-13
+updated: 2026-07-17
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -53,7 +53,7 @@ API Read Model
 
 Lists sessions available for resume.
 
-Used by application startup to detect an orphaned active session and offer resume (from client-local state) or abandon; the view itself does not reconstruct gameplay state. <!-- 2026-07-13 -->
+Used by application startup to reconcile local `sessionId` with server `ACTIVE` rows: resume when they match; otherwise auto-abandon the orphan synchronously (no user prompt). The view itself does not reconstruct gameplay state. <!-- 2026-07-17 -->
 
 ## Sources
 

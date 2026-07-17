@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-16
+updated: 2026-07-17
 -->
 
 # Frontend Overview
 
-> **Version:** 0.3.3 (style guide doc reference added, 2026-07-16)
+> **Version:** 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -72,7 +72,7 @@ During an active session, the frontend owns:
 - in-progress dart entry before batch upload
 - Alpine.js component state
 
-Temporary state is held in Alpine stores using the `$persist` plugin (localStorage), keyed by `gameTypeKey`, so it survives page refreshes on the same device. Recovery is client-local: when local persisted state and `GET /api/sessions/active` agree on `sessionId`, the client resumes from the store. When local state is missing or `sessionId` mismatches, the client **automatically** `PATCH`es the server session to `ABANDONED` — no user prompt. Client-side orphans are the client's responsibility; server-side DB orphan sweeps are deferred server responsibility. The server holds no mid-session gameplay; losing the device (or clearing storage) loses the in-progress session. <!-- 2026-07-14 -->
+Temporary state is held in Alpine stores using the `$persist` plugin (localStorage), keyed by `gameTypeKey`, so it survives page refreshes on the same device. Recovery is client-local via shared `session-recovery.ts` (D118): when local persisted state and `GET /api/sessions/active` agree on `sessionId` (`"match"`), the client resumes — setup may show a Continue/Abandon modal; play resumes silently. When local state is missing or `sessionId` mismatches, the client **automatically** `PATCH`es the server session to `ABANDONED` — no user prompt on either page. If that abandon fails (`"abandon_failed"`), session creation is blocked until retry succeeds. Client-side orphans are the client's responsibility; server-side DB orphan sweeps are deferred server responsibility. The server holds no mid-session gameplay; losing the device (or clearing storage) loses the in-progress session. <!-- 2026-07-17 -->
 
 ## Persistent state (API-owned)
 
@@ -84,7 +84,9 @@ After session completion, persistent state is written via the API:
 
 The frontend sends gameplay-derived payloads. It does not send persistence UUIDs. The Worker generates UUIDv7 for runtime entities.
 
-A completed session whose batch upload fails is held in a persisted `outbox` store and retried (same `Idempotency-Key`) until the server confirms it — the finished batch is never dropped between completion and acknowledgement. Mechanism: `03-Alpine-Patterns.md` (Completed-Batch Outbox). <!-- 2026-07-14 -->
+**Default (D90):** a completed session whose batch upload fails is held in a persisted `outbox` store and retried (same `Idempotency-Key`) until the server confirms it — the finished batch is never dropped between completion and acknowledgement. Mechanism: `03-Alpine-Patterns.md` (Completed-Batch Outbox).
+
+**Score Training (D119):** play completion uses a synchronous hard-gate — Back / Play again stay disabled until batch POST and `PATCH COMPLETED` both succeed. Results render as a play-page modal from a component-local snapshot; there is no dedicated `/results` page for this flow (supersedes D112 for Score Training). <!-- 2026-07-17 -->
 
 ---
 
@@ -258,7 +260,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | Parse or verify JWT in page scripts | middleware owns identity verification |
 | Per-dart API calls during active play | batch write at session boundary |
 | Rely on the server for mid-session recovery | in-progress state is client-local (persisted Alpine store) |
-| Manual abandon dialog on session mismatch | client auto-cleans per D88 |
+| Manual abandon dialog on session **mismatch** | client auto-cleans per D88; match-case Continue/Abandon modal is still allowed (D118) |
 | Use `x-init` | deprecated — use factory `init()` via `x-data="factory()"` |
 
 ---

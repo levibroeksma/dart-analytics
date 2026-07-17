@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-16
+updated: 2026-07-17
 -->
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.2 (forbidden: inline export type/interface, 2026-07-17)
+> **Version:** 0.1.3 (Score Training recovery/hard-gate, 2026-07-17)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -79,7 +79,7 @@ Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); 
 
 ## 8. Recovery
 
-Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred). A completed session whose upload fails is held in the `outbox` store and retried with the same `Idempotency-Key` until confirmed (D90) — never dropped. See `03-Alpine-Patterns.md`.
+Shared helper: `app/src/lib/game/session-recovery.ts` (D118). Auto-cleanup on **mismatch** — no manual abandon UI. Match-case Continue/Abandon modal on setup is still allowed. Client orphans → client fixes. Server DB orphans → server (deferred). Default: completed upload failures go to the `outbox` and retry with the same `Idempotency-Key` until confirmed (D90). **Score Training exception (D119):** synchronous hard-gate — gate Back / Play again until batch + `PATCH COMPLETED` succeed; results as play-page modal, not a `/results` route. See `03-Alpine-Patterns.md`.
 
 ## 9. Types
 
