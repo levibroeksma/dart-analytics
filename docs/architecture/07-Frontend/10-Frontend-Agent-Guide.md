@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.1 (style guide section added, 2026-07-16)
+> **Version:** 0.1.2 (forbidden: inline export type/interface, 2026-07-17)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -122,6 +122,7 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - HTTP in `modules/`
 - Server imports in browser code
 - Hand-authored DTO types duplicating API contract
+- Inline `export type`/`export interface` in `.store.ts`/`.module.ts`/`.data.ts`/`.form.ts` — belongs in that folder's `types.ts`/`interfaces.ts`
 - Statistics API calls before post-v1 endpoints ship
 - Production behavior without a preceding failing test
 - Skipping `npm test` in validation

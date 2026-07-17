@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # API Shared Conventions
 
-> **Version:** 1.4.0 (two-barrel + interfaces.ts raising chain, 2026-07-16)
+> **Version:** 1.5.0 (hard rule against inline type/interface declarations + browser-side worked example, 2026-07-17)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -142,6 +142,8 @@ stable path — `@<area>/types` — regardless of how deep the type is defined.
   the level immediately below it.
 - An area-root `types.ts` may additionally re-export one genuinely cross-cutting type from a sibling area (not a child) when that type has no better-owned home — e.g. `pages/api/types.ts` re-exporting `ErrorCode` from `@server/errors`. This is the one deliberate exception to "never reaches past its direct children," used sparingly.
 
+**Hard rule — no inline type/interface declarations in implementation files:** `export type` and `export interface` never appear in a `.service.ts`, `.repository.ts`, `.store.ts`, `.module.ts`, `.data.ts`, `.form.ts`, `.schema.ts`, or any other implementation file. The declaration's body lives in that file's folder-level `types.ts` (for `type`) or `interfaces.ts` (for `interface`); the implementation file imports it back via a relative import if it needs to reference it internally. This holds even for a type used only within its own module — placement is not gated on a second consumer showing up. A Zod-derived contract type follows the same rule applied to `z.infer<>`: the schema and its inferred type both live directly in `types.ts` (per the Zod section above), never in a separately named `*.schema.ts` file whose type is re-exported. Exempt: a `type` alias that is never `export`ed and used only within its own defining file (a pure internal implementation detail, not a public contract). Not exempt: any `interface`/`type` describing the public shape of an exported function, class constructor, or component — even if today only invoked with inline object literals — since it is part of that export's public contract. The two standing exceptions from the `interfaces.ts` section below are unchanged: `.astro` component `interface Props` (D92) and `env.d.ts`. <!-- 2026-07-17 -->
+
 ```
 src/services/
 ├── types.ts                    # export * from './sessions/types'; export * from './routines/types'
@@ -161,6 +163,20 @@ import type { CreateSessionInput } from '@services/types';
 
 // bad: deep path into the defining module (skips the raising chain)
 import type { CreateSessionInput } from '@services/sessions/create/types';
+```
+
+The identical shape applies to browser-owned folders (`modules/`, `stores/`, `lib/<domain>/`) — this rule is not Worker-only (D103): <!-- 2026-07-17 -->
+
+```
+src/modules/
+├── types.ts                    # export * from './game/types'
+├── interfaces.ts                # export * from './ui/interfaces'
+├── game/
+│   ├── types.ts                 # defines RecordedVisit, ScoreTrainingEngineOptions
+│   └── score-training.engine.module.ts
+└── ui/
+    ├── interfaces.ts             # defines SegmentTimerOptions
+    └── segment-timer.module.ts
 ```
 
 A type never travels through a deeper import path than `@<area>/types`, and no
