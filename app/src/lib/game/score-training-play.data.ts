@@ -10,6 +10,7 @@ type GameStoreLike = {
   configSnapshot: GameConfigSnapshot | null;
   turns: RecordedTurn[];
   timerRemainingMs?: number | null;
+  timerStartedAt?: string | null;
   timerExpired?: boolean;
   idempotencyKey?: string | null;
   recordTurn(turn: RecordedTurn): void;
@@ -113,10 +114,21 @@ export function scoreTrainingPlay() {
         startingSequence: this.$store.game.turns.length,
       });
 
-      if (config.durationType === "MINUTES") {
+      if (config.durationType === "MINUTES" && !this.$store.game.timerExpired) {
+        const resumedRemainingMs = this.$store.game.timerRemainingMs;
+        const durationMinutes =
+          resumedRemainingMs != null ? resumedRemainingMs / 60000 : config.durationValue;
+
+        // Set synchronously so the countdown label never renders 00:00 while
+        // waiting for the timer's first onTick (fires 1s after start()).
+        this.$store.game.timerRemainingMs = durationMinutes * 60000;
+        if (resumedRemainingMs == null) {
+          this.$store.game.timerStartedAt = new Date().toISOString();
+        }
+
         this.timer = new SegmentTimer({
-          totalMinutes: config.durationValue,
-          intervalMinutes: config.durationValue,
+          totalMinutes: durationMinutes,
+          intervalMinutes: durationMinutes,
           onTick: (secondsRemaining) => {
             this.$store.game.timerRemainingMs = secondsRemaining * 1000;
           },

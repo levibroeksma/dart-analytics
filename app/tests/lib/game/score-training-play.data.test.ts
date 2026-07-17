@@ -191,6 +191,47 @@ describe('scoreTrainingPlay', () => {
       await component.init.call(component);
       expect(() => component.destroy.call(component)).not.toThrow();
     });
+
+    it('sets store.timerRemainingMs to the full duration synchronously on a fresh session, before any onTick fires', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      // No onTick invocation here — timerRemainingMs must already be correct.
+      expect(store.timerRemainingMs).toBe(15 * 60 * 1000);
+    });
+
+    it('resumes from the persisted timerRemainingMs instead of the full configured duration when a prior session left one set', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+        timerRemainingMs: 5 * 60 * 1000, // 5 minutes left from a prior session
+        timerExpired: false,
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(SegmentTimer).toHaveBeenCalledTimes(1);
+      const instance = segmentTimerInstances[0];
+      expect(instance.options.totalMinutes).toBe(5);
+      expect(instance.options.intervalMinutes).toBe(5);
+      expect(instance.start).toHaveBeenCalledTimes(1);
+      // Still set synchronously, from the resumed value, not the full duration.
+      expect(store.timerRemainingMs).toBe(5 * 60 * 1000);
+    });
+
+    it('does not restart a new timer when timerExpired is already true on init', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'MINUTES', durationValue: 15, maxDartsPerTurn: 3 },
+        timerRemainingMs: 0,
+        timerExpired: true,
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(SegmentTimer).not.toHaveBeenCalled();
+    });
   });
 
   describe('resume: startingSequence continuity', () => {
