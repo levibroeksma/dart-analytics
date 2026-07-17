@@ -1579,8 +1579,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_db_client_withtransaction",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "withtransaction()"
     },
     {
@@ -1590,8 +1590,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_relations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "relations.ts"
     },
     {
@@ -1601,8 +1601,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_db_relations_rulesetversionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "rulesetversionsrelations"
     },
     {
@@ -1612,8 +1612,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "gametypesrelations"
     },
     {
@@ -1623,8 +1623,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_db_relations_playersettingsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "playersettingsrelations"
     },
     {
@@ -1634,8 +1634,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_db_relations_playersrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "playersrelations"
     },
     {
@@ -1645,8 +1645,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "exercisetemplatesrelations"
     },
     {
@@ -1656,8 +1656,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_src_db_relations_routinetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "routinetemplatesrelations"
     },
     {
@@ -1667,8 +1667,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_db_relations_activitiesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "activitiesrelations"
     },
     {
@@ -1678,8 +1678,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "app_src_db_relations_gamestatusesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "gamestatusesrelations"
     },
     {
@@ -1689,8 +1689,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisesessionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "exercisesessionsrelations"
     },
     {
@@ -1700,8 +1700,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "app_src_db_relations_capturemodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "capturemodesrelations"
     },
     {
@@ -1711,8 +1711,8 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "app_src_db_relations_inputmodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "inputmodesrelations"
     },
     {
@@ -1722,8 +1722,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "app_src_db_relations_exerciseconfigurationsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "exerciseconfigurationsrelations"
     },
     {
@@ -1733,8 +1733,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_db_relations_participantsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "participantsrelations"
     },
     {
@@ -1744,8 +1744,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "app_src_db_relations_participanttypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "participanttypesrelations"
     },
     {
@@ -1755,8 +1755,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisestagesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "exercisestagesrelations"
     },
     {
@@ -1766,8 +1766,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "app_src_db_relations_stagetypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "stagetypesrelations"
     },
     {
@@ -1777,8 +1777,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "app_src_db_relations_routinestepsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "routinestepsrelations"
     },
     {
@@ -1788,8 +1788,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "app_src_db_relations_durationtypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "durationtypesrelations"
     },
     {
@@ -1799,8 +1799,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "app_src_db_relations_dartsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "dartsrelations"
     },
     {
@@ -1810,8 +1810,8 @@
       "source_location": "L199",
       "_origin": "ast",
       "id": "app_src_db_relations_turnsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "turnsrelations"
     },
     {
@@ -1821,8 +1821,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "app_src_db_relations_dartzonesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "dartzonesrelations"
     },
     {
@@ -1832,8 +1832,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "app_src_db_relations_configurationtemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "configurationtemplatesrelations"
     },
     {
@@ -1843,8 +1843,8 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "app_src_db_relations_sessionwriteidempotencyrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "sessionwriteidempotencyrelations"
     },
     {
@@ -1854,8 +1854,8 @@
       "source_location": "L238",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "gametypefeaturesrelations"
     },
     {
@@ -1865,8 +1865,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "app_src_db_relations_gamefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 202,
+      "community_name": "index.astro",
       "norm_label": "gamefeaturesrelations"
     },
     {
@@ -2329,8 +2329,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "login.data.ts"
     },
     {
@@ -2340,8 +2340,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data_loginform",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "loginform()"
     },
     {
@@ -2351,8 +2351,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "logout.data.ts"
     },
     {
@@ -2362,8 +2362,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data_logoutbutton",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "logoutbutton()"
     },
     {
@@ -2373,8 +2373,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_types",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "types.ts"
     },
     {
@@ -2384,8 +2384,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_authstore",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "authstore"
     },
     {
@@ -2395,8 +2395,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_loginformcontext",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "loginformcontext"
     },
     {
@@ -2406,8 +2406,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_logoutbuttoncontext",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "logoutbuttoncontext"
     },
     {
@@ -2461,8 +2461,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_app_factory",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "app.factory.ts"
     },
     {
@@ -2472,19 +2472,19 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "register-route-data.ts"
     },
     {
       "label": "registerRouteData()",
       "file_type": "code",
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L7",
+      "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "registerroutedata()"
     },
     {
@@ -2494,8 +2494,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "register-stores.ts"
     },
     {
@@ -2505,8 +2505,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores_registerstores",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "registerstores()"
     },
     {
@@ -2516,8 +2516,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "register-ui-data.ts"
     },
     {
@@ -2527,8 +2527,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data_registeruidata",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "registeruidata()"
     },
     {
@@ -2538,8 +2538,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "client.ts"
     },
     {
@@ -2549,8 +2549,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "unauthorized"
     },
     {
@@ -2560,8 +2560,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "apirequest()"
     },
     {
@@ -2571,8 +2571,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "configuration-templates.ts"
     },
     {
@@ -2582,8 +2582,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates_fetchconfigurationpresets",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "fetchconfigurationpresets()"
     },
     {
@@ -2593,8 +2593,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "players.ts"
     },
     {
@@ -2604,8 +2604,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provisionerror"
     },
     {
@@ -2615,8 +2615,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror_constructor",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": ".constructor()"
     },
     {
@@ -2626,8 +2626,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provision",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provision()"
     },
     {
@@ -2714,8 +2714,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "types.ts"
     },
     {
@@ -2725,8 +2725,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apierrorbody",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "apierrorbody"
     },
     {
@@ -2736,8 +2736,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apisuccess",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "apisuccess"
     },
     {
@@ -2747,8 +2747,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apifailure",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "apifailure"
     },
     {
@@ -2758,8 +2758,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apiresult",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "apiresult"
     },
     {
@@ -2769,8 +2769,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "client.ts"
     },
     {
@@ -2780,8 +2780,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_authclient",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "authclient"
     },
     {
@@ -2791,8 +2791,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_getaccesstoken",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "getaccesstoken()"
     },
     {
@@ -2813,8 +2813,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_errors",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "errors.ts"
     },
     {
@@ -2824,8 +2824,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_provision_messages",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provision_messages"
     },
     {
@@ -2835,8 +2835,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_geterrormessage",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "geterrormessage()"
     },
     {
@@ -2868,8 +2868,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "score-training-play.data.ts"
     },
     {
@@ -2879,8 +2879,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_formatremaining",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "formatremaining()"
     },
     {
@@ -2890,8 +2890,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_computestats",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "computestats()"
     },
     {
@@ -2901,31 +2901,9 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_scoretrainingplay",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "scoretrainingplay()"
-    },
-    {
-      "label": "score-training-results.data.ts",
-      "file_type": "code",
-      "source_file": "app/src/lib/game/score-training-results.data.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_lib_game_score_training_results_data",
-      "community": 205,
-      "community_name": "sessions.ts",
-      "norm_label": "score-training-results.data.ts"
-    },
-    {
-      "label": "scoreTrainingResults()",
-      "file_type": "code",
-      "source_file": "app/src/lib/game/score-training-results.data.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_lib_game_score_training_results_data_scoretrainingresults",
-      "community": 205,
-      "community_name": "sessions.ts",
-      "norm_label": "scoretrainingresults()"
     },
     {
       "label": "score-training-setup.data.ts",
@@ -2945,8 +2923,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_setup_data_scoretrainingsetup",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "scoretrainingsetup()"
     },
     {
@@ -3000,8 +2978,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_types",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3011,8 +2989,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingplaycontext",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "scoretrainingplaycontext"
     },
     {
@@ -3022,8 +3000,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingsetupcontext",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "scoretrainingsetupcontext"
     },
     {
@@ -3066,8 +3044,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "envelope.ts"
     },
     {
@@ -3077,8 +3055,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_json_headers",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "json_headers"
     },
     {
@@ -3319,8 +3297,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "score-training.engine.module.ts"
     },
     {
@@ -3330,8 +3308,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "scoretrainingengine"
     },
     {
@@ -3341,8 +3319,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_constructor",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".constructor()"
     },
     {
@@ -3352,8 +3330,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".recordvisit()"
     },
     {
@@ -3363,8 +3341,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_iscomplete",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".iscomplete()"
     },
     {
@@ -3374,8 +3352,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currenttotal",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".currenttotal()"
     },
     {
@@ -3385,8 +3363,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currentaverage",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".currentaverage()"
     },
     {
@@ -3396,8 +3374,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "score-training.payload.module.ts"
     },
     {
@@ -3407,8 +3385,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "buildeventsbatch()"
     },
     {
@@ -3418,8 +3396,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3429,8 +3407,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoretrainingengineoptions",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "scoretrainingengineoptions"
     },
     {
@@ -3440,8 +3418,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_modules_game_types_recordedvisit",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "recordedvisit"
     },
     {
@@ -3451,8 +3429,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_interfaces",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3462,8 +3440,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_types",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3473,8 +3451,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3484,8 +3462,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces_segmenttimeroptions",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "segmenttimeroptions"
     },
     {
@@ -3495,8 +3473,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "segment-timer.module.ts"
     },
     {
@@ -3506,8 +3484,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "segmenttimer"
     },
     {
@@ -3517,8 +3495,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_constructor",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".constructor()"
     },
     {
@@ -3528,8 +3506,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getaudiocontext",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".getaudiocontext()"
     },
     {
@@ -3539,8 +3517,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_playbeep",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".playbeep()"
     },
     {
@@ -3550,8 +3528,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_start",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".start()"
     },
     {
@@ -3561,8 +3539,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_stop",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".stop()"
     },
     {
@@ -3572,8 +3550,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_reset",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".reset()"
     },
     {
@@ -3583,8 +3561,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getremaining",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": ".getremaining()"
     },
     {
@@ -3594,8 +3572,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "index.ts"
     },
     {
@@ -3605,8 +3583,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index_get",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "get()"
     },
     {
@@ -3616,8 +3594,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3627,8 +3605,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpreset",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "configurationpreset"
     },
     {
@@ -3638,8 +3616,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpresetdata",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "configurationpresetdata"
     },
     {
@@ -3649,8 +3627,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "provision.ts"
     },
     {
@@ -3660,8 +3638,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "post()"
     },
     {
@@ -3671,8 +3649,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "types.ts"
     },
     {
@@ -3682,8 +3660,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequest",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -3693,8 +3671,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponse",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provisionplayerresponse"
     },
     {
@@ -3704,8 +3682,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequestinput",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provisionplayerrequestinput"
     },
     {
@@ -3715,8 +3693,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponsedata",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "provisionplayerresponsedata"
     },
     {
@@ -3770,8 +3748,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 200,
+      "community_name": "listActiveSessions",
       "norm_label": "active.ts"
     },
     {
@@ -3781,8 +3759,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active_get",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 200,
+      "community_name": "listActiveSessions",
       "norm_label": "get()"
     },
     {
@@ -3924,8 +3902,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_eventsbatchrequest",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 195,
+      "community_name": "score-training-play.data.ts",
       "norm_label": "eventsbatchrequest"
     },
     {
@@ -4074,17 +4052,6 @@
     {
       "label": "index.astro",
       "file_type": "code",
-      "source_file": "app/src/pages/games/score-training/results/index.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_pages_games_score_training_results_index",
-      "community": 28,
-      "community_name": "Community 28",
-      "norm_label": "index.astro"
-    },
-    {
-      "label": "index.astro",
-      "file_type": "code",
       "source_file": "app/src/pages/games/score-training/setup/index.astro",
       "source_location": "L1",
       "_origin": "ast",
@@ -4144,8 +4111,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4166,8 +4133,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_gametyperulesetrow",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "gametyperulesetrow"
     },
     {
@@ -4177,8 +4144,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_configurationtemplaterow",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "configurationtemplaterow"
     },
     {
@@ -4188,8 +4155,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_sessionrow",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "sessionrow"
     },
     {
@@ -4199,8 +4166,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_idempotencyrecord",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "idempotencyrecord"
     },
     {
@@ -4210,8 +4177,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_createsessionrecordsinput",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "createsessionrecordsinput"
     },
     {
@@ -4221,8 +4188,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertstage",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertstage"
     },
     {
@@ -4232,8 +4199,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertdart",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertdart"
     },
     {
@@ -4243,8 +4210,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertturn",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertturn"
     },
     {
@@ -4254,8 +4221,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertinput",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 204,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertinput"
     },
     {
@@ -4474,8 +4441,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findactivesessions",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 200,
+      "community_name": "listActiveSessions",
       "norm_label": "findactivesessions()"
     },
     {
@@ -4485,8 +4452,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationpresets",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "findconfigurationpresets()"
     },
     {
@@ -4507,8 +4474,8 @@
       "source_location": "L226",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertbatchrecords",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "insertbatchrecords()"
     },
     {
@@ -4518,8 +4485,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_updatesessionstatusrecord",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "updatesessionstatusrecord()"
     },
     {
@@ -4749,8 +4716,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "app_src_services_session_service_canonicalize",
-      "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "canonicalize()"
     },
     {
@@ -4760,8 +4727,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "app_src_services_session_service_hashbatchpayload",
-      "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "hashbatchpayload()"
     },
     {
@@ -4848,8 +4815,8 @@
       "source_location": "L304",
       "_origin": "ast",
       "id": "app_src_services_session_service_terminal_targets",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "terminal_targets"
     },
     {
@@ -4859,8 +4826,8 @@
       "source_location": "L306",
       "_origin": "ast",
       "id": "app_src_services_session_service_updatesessionstatus",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "envelope.ts",
       "norm_label": "updatesessionstatus()"
     },
     {
@@ -4870,8 +4837,8 @@
       "source_location": "L334",
       "_origin": "ast",
       "id": "app_src_services_session_service_listactivesessions",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 200,
+      "community_name": "listActiveSessions",
       "norm_label": "listactivesessions()"
     },
     {
@@ -4881,8 +4848,8 @@
       "source_location": "L339",
       "_origin": "ast",
       "id": "app_src_services_session_service_listconfigurationpresets",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "listconfigurationpresets()"
     },
     {
@@ -4892,8 +4859,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_types",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "session.service.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4903,8 +4870,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_services_types_serviceresult",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "session.service.ts",
       "norm_label": "serviceresult"
     },
     {
@@ -4914,8 +4881,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_services_types_createsessionresult",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "session.service.ts",
       "norm_label": "createsessionresult"
     },
     {
@@ -4925,8 +4892,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_services_types_appendbatchresult",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "session.service.ts",
       "norm_label": "appendbatchresult"
     },
     {
@@ -4936,8 +4903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_auth_store",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "auth.store.ts"
     },
     {
@@ -4947,8 +4914,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstatus",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "authstatus"
     },
     {
@@ -4958,8 +4925,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_hasactivesession",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "hasactivesession()"
     },
     {
@@ -4969,8 +4936,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstore",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "authstore()"
     },
     {
@@ -4980,8 +4947,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_game_store",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "game.store.ts"
     },
     {
@@ -4991,8 +4958,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_stores_game_store_gamestore",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "gamestore()"
     },
     {
@@ -5002,8 +4969,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -5013,8 +4980,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types_gameconfigsnapshot",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "gameconfigsnapshot"
     },
     {
@@ -5024,8 +4991,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_stores_types_recordedturn",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "recordedturn"
     },
     {
@@ -5068,8 +5035,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "login.data.test.ts"
     },
     {
@@ -5079,8 +5046,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test_constructor",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "constructor()"
     },
     {
@@ -5090,8 +5057,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_logout_data_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "logout.data.test.ts"
     },
     {
@@ -5101,8 +5068,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_client_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "client.test.ts"
     },
     {
@@ -5112,8 +5079,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_configuration_templates_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 194,
+      "community_name": "client.ts",
       "norm_label": "configuration-templates.test.ts"
     },
     {
@@ -5123,8 +5090,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_players_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "players.test.ts"
     },
     {
@@ -5156,8 +5123,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_errors_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5167,8 +5134,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "score-training-play.data.test.ts"
     },
     {
@@ -5178,8 +5145,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_segmenttimerinstances",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "segmenttimerinstances"
     },
     {
@@ -5189,8 +5156,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_gamestub",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "gamestub"
     },
     {
@@ -5200,20 +5167,9 @@
       "source_location": "L316",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeplay",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "makeplay()"
-    },
-    {
-      "label": "score-training-results.data.test.ts",
-      "file_type": "code",
-      "source_file": "app/tests/lib/game/score-training-results.data.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_tests_lib_game_score_training_results_data_test",
-      "community": 205,
-      "community_name": "sessions.ts",
-      "norm_label": "score-training-results.data.test.ts"
     },
     {
       "label": "score-training-setup.data.test.ts",
@@ -5222,8 +5178,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "score-training-setup.data.test.ts"
     },
     {
@@ -5233,8 +5189,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test_createsetup",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 198,
+      "community_name": "register-route-data.ts",
       "norm_label": "createsetup()"
     },
     {
@@ -5321,8 +5277,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_engine_module_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "score-training.engine.module.test.ts"
     },
     {
@@ -5332,8 +5288,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_payload_module_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "score-training.payload.module.test.ts"
     },
     {
@@ -5343,8 +5299,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_ui_segment_timer_module_test",
-      "community": 205,
-      "community_name": "sessions.ts",
+      "community": 197,
+      "community_name": "SegmentTimer",
       "norm_label": "segment-timer.module.test.ts"
     },
     {
@@ -5354,8 +5310,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5365,8 +5321,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test_makecontext",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 206,
+      "community_name": "index.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5376,8 +5332,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_players_types_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 11,
+      "community_name": "Community 11",
       "norm_label": "types.test.ts"
     },
     {
@@ -5442,8 +5398,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_active_test",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 200,
+      "community_name": "listActiveSessions",
       "norm_label": "active.test.ts"
     },
     {
@@ -5453,8 +5409,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5464,8 +5420,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test_makecontext",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5563,8 +5519,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test",
-      "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "session.service.test.ts"
     },
     {
@@ -5574,8 +5530,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_inlinerequest",
-      "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "inlinerequest"
     },
     {
@@ -5585,8 +5541,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_samplebatch",
-      "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community": 192,
+      "community_name": "sessions.ts",
       "norm_label": "samplebatch()"
     },
     {
@@ -5607,8 +5563,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_auth_store_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 203,
+      "community_name": "score-training-play.data.test.ts",
       "norm_label": "auth.store.test.ts"
     },
     {
@@ -5618,8 +5574,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "game.store.test.ts"
     },
     {
@@ -5629,8 +5585,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_fakepersist",
-      "community": 207,
-      "community_name": "route-class.ts",
+      "community": 199,
+      "community_name": "types.ts",
       "norm_label": "fakepersist()"
     },
     {
@@ -27939,17 +27895,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/games/score-training/results/index.astro",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_pages_games_score_training_results_index",
-      "target": "app_src_layouts_applayout",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/setup/index.astro",
       "source_location": "L3",
       "weight": 1.0,
@@ -28154,7 +28099,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
       "target": "app_src_lib_auth_login_data_loginform"
@@ -28541,7 +28486,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_client_alpine_register_route_data",
       "target": "app_src_lib_client_alpine_register_route_data_registerroutedata",
@@ -28574,28 +28519,6 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data",
-      "target": "app_src_lib_game_score_training_results_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data",
-      "target": "app_src_lib_game_score_training_results_data_scoretrainingresults",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
       "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_lib_client_alpine_register_route_data",
@@ -28619,7 +28542,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L10",
+      "source_location": "L9",
       "weight": 1.0,
       "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -28630,18 +28553,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "target": "app_src_lib_game_score_training_results_data_scoretrainingresults"
-    },
-    {
-      "relation": "indirect_call",
-      "context": "argument",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/lib/client/alpine/register-route-data.ts",
-      "source_location": "L9",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_lib_client_alpine_register_route_data_registerroutedata",
       "target": "app_src_lib_game_score_training_setup_data_scoretrainingsetup"
@@ -30159,38 +30071,6 @@
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/lib/game/score-training-results.data.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "app_src_lib_game_score_training_results_data",
-      "target": "app_src_lib_game_score_training_results_data_scoretrainingresults",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/lib/game/score-training-results.data.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_lib_game_score_training_results_data_test",
-      "target": "app_src_lib_game_score_training_results_data",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/tests/lib/game/score-training-results.data.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "app_tests_lib_game_score_training_results_data_test",
-      "target": "app_src_lib_game_score_training_results_data_scoretrainingresults",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -52076,5 +51956,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "601d1a89230260e6d76accdfd454424de5b1709e"
+  "built_at_commit": "2399d18f9e65ef06108fb4fdeeaa5de41078cd0e"
 }
