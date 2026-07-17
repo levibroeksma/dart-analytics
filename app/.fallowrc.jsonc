@@ -8,6 +8,9 @@
     "scripts/seed-dev-auth.ts",
     "src/lib/client/alpine/app.factory.ts",
     "src/types/api/index.ts",
+    // services/ area-root types.ts barrel (type-raising convention, docs/architecture/06-API/03-Shared-Conventions.md);
+    // kept reachable even though nothing currently imports @services/types directly.
+    "src/services/types.ts",
     "vitest.config.ts"
   ],
   "ignoreDependencies": [

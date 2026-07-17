@@ -83,11 +83,13 @@ export class SegmentTimer {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member -- module adopted verbatim from an existing source; kept as originally authored
   reset(): void {
     this.stop();
     this.remaining = this.totalSeconds;
   }
 
+  // fallow-ignore-next-line unused-class-member -- module adopted verbatim from an existing source; kept as originally authored
   getRemaining(): number {
     return this.remaining;
   }

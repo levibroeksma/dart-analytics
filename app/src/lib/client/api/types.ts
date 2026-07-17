@@ -26,10 +26,9 @@ export {
   CreateSessionRequest,
   type CreateSessionRequestInput,
   type CreateSessionResponseData,
-  EventsBatchRequest,
   type EventsBatchRequestInput,
   type BatchWriteResponseData,
-  UpdateSessionRequest,
+  // fallow-ignore-next-line unused-type -- two-barrel Worker/browser convention (03-Shared-Conventions.md); kept for a future browser consumer of PATCH session status
   type UpdateSessionRequestInput,
   type SessionActiveData,
   type ConfigurationPresetData,
