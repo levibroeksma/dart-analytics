@@ -8,6 +8,8 @@ import {
   type SessionActiveData,
 } from './types';
 
+export type { SessionActiveData };
+
 export class SessionApiError extends Error {
   constructor(
     public readonly code: string,
