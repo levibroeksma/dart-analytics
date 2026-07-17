@@ -224,6 +224,7 @@ export function scoreTrainingPlay() {
       this.resultsSnapshot = null;
       this.visitInput = "";
       this.error = "";
+      this.hasActiveSession = true;
 
       this.engine = new ScoreTrainingEngine({
         durationType: config.durationType,
@@ -233,6 +234,7 @@ export function scoreTrainingPlay() {
       });
 
       if (config.durationType === "MINUTES") {
+        this.timer?.stop();
         this.$store.game.timerRemainingMs = config.durationValue * 60000;
         this.$store.game.timerStartedAt = new Date().toISOString();
         this.timer = new SegmentTimer({

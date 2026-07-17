@@ -79,8 +79,10 @@ import Input from "@components/forms/Input.astro";
               <p class="text-sm text-fg-muted">Saving...</p>
             </template>
             <template x-if="completionStatus === 'failed'">
-              <p class="text-sm text-red-500" x-text="completionError"></p>
-              <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
+              <div>
+                <p class="text-sm text-red-500" x-text="completionError"></p>
+                <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
+              </div>
             </template>
             <template x-if="completionStatus === 'succeeded'">
               <p class="text-sm text-green-500">Saved!</p>
