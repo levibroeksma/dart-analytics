@@ -51,6 +51,7 @@ Full documentation: https://docs.astro.build
 - Service layer generates UUIDv7 for runtime persistence records.
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes.
+- `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
 
 ## Test-Driven Development (mandatory)
 
