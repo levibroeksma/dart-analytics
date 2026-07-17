@@ -1,11 +1,5 @@
 import { isPublicPage, normalizePath } from './auth-routes';
-
-export type RouteClass =
-  | 'public-page'
-  | 'asset'
-  | 'api-provision'
-  | 'api-protected'
-  | 'protected-page';
+import type { RouteClass } from './types';
 
 const PROVISION_ROUTE = '/api/players/provision';
 

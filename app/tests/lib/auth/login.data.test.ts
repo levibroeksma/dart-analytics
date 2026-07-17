@@ -15,7 +15,8 @@ vi.mock('@client/api/players', () => ({
 
 import { provision } from '@client/api/players';
 import { authClient } from '@client/auth/client';
-import { loginForm, type LoginFormContext } from '@auth/login.data';
+import { loginForm } from '@auth/login.data';
+import type { LoginFormContext } from '@auth/types';
 
 describe('loginForm.submit', () => {
   beforeEach(() => {

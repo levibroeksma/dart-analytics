@@ -1,12 +1,4 @@
-import type { authStore } from '@stores/auth.store';
-
-type AuthStore = ReturnType<typeof authStore>;
-
-export type LogoutButtonContext = {
-  loading: boolean;
-  $store: { auth: Pick<AuthStore, 'signOut'> };
-  submit(): Promise<void>;
-};
+import type { LogoutButtonContext } from './types';
 
 export function logoutButton() {
   return {

@@ -13,5 +13,3 @@ export const ERROR_HTTP = {
   SERVICE_UNAVAILABLE: { status: 503, message: "Service temporarily unavailable", retryable: true },
   INTERNAL_ERROR: { status: 500, message: "Internal error", retryable: false },
 } as const;
-
-export type ErrorCode = keyof typeof ERROR_HTTP;

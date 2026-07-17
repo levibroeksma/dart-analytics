@@ -1,4 +1,4 @@
-import type { ErrorCode } from "@server/errors";
+import type { ErrorCode } from "@server/types";
 
 export * from './rulesets/types';
 
