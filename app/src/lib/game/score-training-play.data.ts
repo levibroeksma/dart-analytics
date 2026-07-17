@@ -2,36 +2,10 @@ import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module"
 import { buildEventsBatch } from "@modules/game/score-training.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { appendBatch, completeSession, fetchActiveSessions } from "@client/api/sessions";
-import type { GameConfigSnapshot, RecordedTurn } from "@stores/game.store";
+import type { RecordedTurn } from "@stores/types";
+import type { ScoreTrainingPlayContext } from "./types";
 
-type GameStoreLike = {
-  sessionId: string | null;
-  participantRef: string | null;
-  configSnapshot: GameConfigSnapshot | null;
-  turns: RecordedTurn[];
-  timerRemainingMs?: number | null;
-  timerStartedAt?: string | null;
-  timerExpired?: boolean;
-  idempotencyKey?: string | null;
-  recordTurn(turn: RecordedTurn): void;
-  reset(): void;
-};
-
-export type ScoreTrainingPlayContext = {
-  visitInput: string;
-  error: string;
-  completionFailed: boolean;
-  finished: boolean;
-  hasActiveSession: boolean;
-  $store: { game: GameStoreLike };
-  engine: ScoreTrainingEngine | null;
-  timer: SegmentTimer | null;
-  remainingLabel(this: ScoreTrainingPlayContext): string;
-  init(this: ScoreTrainingPlayContext): Promise<void>;
-  submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
-  retryCompletion(this: ScoreTrainingPlayContext): Promise<void>;
-  destroy(this: ScoreTrainingPlayContext): void;
-};
+type GameStoreLike = ScoreTrainingPlayContext["$store"]["game"];
 
 function formatRemaining(ms: number | null | undefined): string {
   const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));

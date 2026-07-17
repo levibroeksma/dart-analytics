@@ -1,18 +1,9 @@
 import { fetchConfigurationPresets, type ConfigurationPresetData } from "@client/api/configuration-templates";
 import { createSession } from "@client/api/sessions";
+import type { ScoreTrainingSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY = "SCORE_TRAINING_V1";
-
-export type ScoreTrainingSetupContext = {
-  presets: ConfigurationPresetData[];
-  selectedTemplateId: string;
-  loading: boolean;
-  error: string;
-  $store: { game: { startSession(input: unknown): void } };
-  init(): Promise<void>;
-  start(this: ScoreTrainingSetupContext): Promise<void>;
-};
 
 export function scoreTrainingSetup() {
   return {

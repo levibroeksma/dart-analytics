@@ -23,7 +23,7 @@ vi.mock('@modules/ui/segment-timer.module', () => ({
 import { appendBatch, completeSession, fetchActiveSessions } from '@client/api/sessions';
 import { SegmentTimer } from '@modules/ui/segment-timer.module';
 import { scoreTrainingPlay } from '@lib/game/score-training-play.data';
-import type { RecordedTurn } from '@stores/game.store';
+import type { RecordedTurn } from '@stores/types';
 
 type GameStub = {
   sessionId: string | null;

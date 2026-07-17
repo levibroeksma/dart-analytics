@@ -1,6 +1,6 @@
 import type { RulesetValidator } from "../interfaces";
 import type { BatchValidationResult, ConfigValidationResult } from "../types";
-import { ScoreTrainingConfig } from "./score-training.config.schema";
+import { ScoreTrainingConfig } from "./types";
 
 const ALLOWED_CAPTURE_MODE = "RECREATIONAL";
 const ALLOWED_INPUT_MODE = "QUICK_SCORE";

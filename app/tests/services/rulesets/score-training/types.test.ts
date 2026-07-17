@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ScoreTrainingConfig } from '@services/rulesets/score-training/score-training.config.schema';
+import { ScoreTrainingConfig } from '@services/rulesets/score-training/types';
 
 describe('ScoreTrainingConfig', () => {
   it('accepts a valid ROUNDS config', () => {

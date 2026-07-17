@@ -1,10 +1,4 @@
-interface SegmentTimerOptions {
-  totalMinutes: number;
-  intervalMinutes: number;
-  onTick?: (secondsRemaining: number) => void;
-  onSegmentChange?: (segmentIndex: number) => void;
-  onComplete?: () => void;
-}
+import type { SegmentTimerOptions } from "./interfaces";
 
 export class SegmentTimer {
   private totalSeconds: number;

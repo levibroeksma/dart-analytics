@@ -23,16 +23,7 @@ import {
   updateSessionStatusRecord,
 } from "@repositories/session.repository";
 import type { CreateSessionRequestInput, EventsBatchRequestInput, UpdateSessionRequestInput } from "@routes/types";
-import type { ErrorCode } from "@server/errors";
-
-export type ServiceResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; code: ErrorCode; details?: Record<string, unknown> };
-
-export type CreateSessionResult = {
-  sessionId: string;
-  participants: { ref: string; participantTypeKey: string; displayName: string }[];
-};
+import type { AppendBatchResult, CreateSessionResult, ServiceResult } from "./types";
 
 export async function createSession(
   playerId: string,
@@ -105,8 +96,6 @@ export async function createSession(
     data: { sessionId, participants: [{ ref: participantId, participantTypeKey: "PLAYER", displayName }] },
   };
 }
-
-export type AppendBatchResult = { created: { stages: number; turns: number; darts: number } };
 
 // fallow-ignore-next-line unused-export -- exported for direct unit testing of canonicalization (idempotency-hash correctness depends on stable key ordering)
 export function canonicalize(value: unknown): unknown {
