@@ -1261,6 +1261,143 @@ git commit -m "chore(play): remove dedicated results page (now modal on play pag
 
 ---
 
+### Task 8: Documentation & Context Maintenance (Mandatory Gate)
+
+**Files:**
+- Modify: `app/CLAUDE.md` (if architectural rules changed)
+- Modify: `DECISIONS.md` (new decision entries)
+- Modify: `docs/architecture/00-Context-Map.md` (register specs/docs)
+- Verify: Script output from context/file-location/mirror checks
+- Stage: `graphify-out/graph.json` (auto-generated; commit after refresh)
+
+**Interfaces:**
+- Consumes: All previous task implementations, completed spec + plan docs
+- Produces: Updated context map, decision ledger, validated project metadata, graph rebuild
+
+**Context:** Per root `CLAUDE.md` Context Maintenance protocol, every completed task must validate and update documentation. This is a non-negotiable gate—no PR merge until this passes.
+
+- [ ] **Step 1: Check if D88 reconciliation or completion rules belong in `app/CLAUDE.md`**
+
+Review `app/CLAUDE.md` and the new D88/completion logic:
+- D88 reconciliation is a pattern that repeats (setup + play) — should be mentioned? 
+- Completion hard-gate (batch + COMPLETED sequence) amends D90 — should it go in app handbook?
+
+If yes, add or update a section in `app/CLAUDE.md`:
+
+```markdown
+## D88 Auto-Cleanup & Session Reconciliation
+
+Setup and play pages run identical D88 reconciliation on init (see `app/src/lib/game/d88-reconciliation.ts`):
+- **Match:** Resume existing session (modal on setup, keep state on play)
+- **Mismatch:** Auto-PATCH server session → ABANDONED (synchronous, prevents race), reset local state
+- **No server ACTIVE:** Reset stale local state
+
+Reconciliation is synchronous to prevent multiple concurrent sessions. UX shows brief loading state (~100-500ms).
+
+## Score Training Completion Sequence (D90 Amendment)
+
+Results modal gates post-game navigation until both operations succeed:
+1. `POST /api/sessions/{id}/events/batch` with `Idempotency-Key` header
+2. `PATCH /api/sessions/{id}` with `{ status: "COMPLETED" }`
+
+Full sequence is retried with same key; treats `409 SESSION_ALREADY_COMPLETED` as success.
+This hard-gate (vs. passive outbox pattern) ensures play-again cannot race terminal session state.
+```
+
+If no changes needed, proceed to Step 2.
+
+- [ ] **Step 2: Record decisions in `DECISIONS.md`**
+
+Add entries for any new architectural decisions (with ISO date 2026-07-17):
+
+```markdown
+### D118: Shared D88 Reconciliation for Setup & Play (2026-07-17)
+
+Setup and play run identical decision table (no page-specific variants) to reconcile local `sessionId` vs. server's active SCORE_TRAINING session. Auto-abandons orphans synchronously to prevent race conditions (loading state during PATCH). Eliminates UX loop risk where setup might re-render and show the modal twice.
+
+### D119: Score Training Hard-Gate Completion Sequence (2026-07-17)
+
+Results modal gates Back / Play again buttons until both batch POST and PATCH COMPLETED succeed (treats 409 as success). Amends D90's passive-outbox pattern for Score Training to ensure terminal session state is reached before new session can be created, preventing concurrent active sessions.
+```
+
+- [ ] **Step 3: Update `docs/architecture/00-Context-Map.md` if new docs were added**
+
+Check if any new spec or plan files need registration:
+- Spec: `2026-07-17-score-training-flow-redesign.md` — registered during brainstorming
+- Plan: `2026-07-17-score-training-flow-implementation.md` — register it now
+
+Add to the Context Map's plan inventory (find the plans section, add this line with ISO date):
+
+```
+- [Score Training Flow Implementation](2026-07-17-score-training-flow-implementation.md) — Task-by-task plan for session lifecycle, D88 reconciliation, results modal, completion sequence.
+```
+
+Verify the map is up-to-date and all new/modified files are listed.
+
+- [ ] **Step 4: Run context validation scripts**
+
+Run each script in sequence and verify all pass:
+
+```bash
+bash scripts/check-context-map.sh
+```
+Expected: No errors; all docs in map are findable
+
+```bash
+bash scripts/check-file-locations.sh
+```
+Expected: No errors; all `.ts` files in app/ respect folder structure rules
+
+```bash
+bash scripts/check-agent-mirrors.sh
+```
+Expected: No errors; `CLAUDE.md` and `AGENT.md` files in same directory are byte-identical
+
+If any script fails, fix the issue in-place (update the map, move files, sync mirrors). Re-run until all pass.
+
+- [ ] **Step 5: Refresh knowledge graph**
+
+Run the graph rebuild script:
+
+```bash
+bash scripts/refresh-graph.sh
+```
+
+Expected: Graph updates without warnings (if graphify CLI is not installed, note that in the completion report but do not fail)
+
+- [ ] **Step 6: Stage graph and docs; commit**
+
+```bash
+git add DECISIONS.md docs/architecture/00-Context-Map.md app/CLAUDE.md graphify-out/graph.json
+git commit -m "docs: update context for D88 reconciliation, completion hard-gate, and D119/D118 decisions"
+```
+
+Expected: Commit succeeds; graph snapshot is fresh
+
+- [ ] **Step 7: Verify all context gates pass**
+
+Run the full validation one more time:
+
+```bash
+npm run validate:app
+```
+
+Expected: All checks pass (db, migrate, introspect, fallow, tests, astro check, graph refresh)
+
+If any step fails during validation, fix the root cause (do not skip). Context validation is non-negotiable.
+
+- [ ] **Step 8: Completion Report**
+
+Summarize:
+- ✅ `app/CLAUDE.md` updated (or: no changes needed)
+- ✅ `DECISIONS.md` entries added: D118, D119
+- ✅ `00-Context-Map.md` updated with plan entry
+- ✅ All 3 context scripts pass
+- ✅ Graph refreshed and staged
+- ✅ `npm run validate:app` passes all checks
+
+---
+
 ## Self-Review
 
 **Spec Coverage:**
@@ -1272,6 +1409,7 @@ git commit -m "chore(play): remove dedicated results page (now modal on play pag
 ✅ Issue 2 Phase 2: Play-again flow (Task 5)  
 ✅ Tests for all new behavior (Task 6)  
 ✅ Manual testing coverage (Task 7)  
+✅ **Context Maintenance gate** — docs, decisions, context map, script validation (Task 8)  
 
 **No Placeholders:** All steps have concrete code, exact commands, expected outputs. No "TBD" or "implement validation" without detail.
 
@@ -1286,6 +1424,7 @@ git commit -m "chore(play): remove dedicated results page (now modal on play pag
 - Edge cases (partial failure, SESSION_ALREADY_COMPLETED, play-again failure) addressed in tests
 - D88 auto-abandon synchronous with clear loading state
 - Store never mutates until operations succeed (play-again, back)
+- **Context Maintenance mandatory** — Task 8 validates root CLAUDE.md protocol (decision ledger, context map, script checks, graph refresh)
 
 ---
 
