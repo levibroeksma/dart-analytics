@@ -112,7 +112,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~1.8k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2k |
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes | canonical | ~2k |
-| `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist`, recovery/hard-gate (2026-07-17) | canonical | ~2.5k |
+| `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate (2026-07-17) | canonical | ~2.5k |
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit | canonical | ~2k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots | canonical | ~2k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~1k |

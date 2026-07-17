@@ -1,20 +1,26 @@
-import type { Persist } from "@alpinejs/persist";
+import type { PersistFactory } from "@alpinejs/persist";
 import type { GameConfigSnapshot, RecordedTurn } from "./types";
 
 const STORE_VERSION = 1;
 
-export function gameStore(persist: Persist) {
+/**
+ * @param persist - Must return a fresh Alpine `$persist` instance per call.
+ *   Reusing one `persist()` across fields collapses every `.as()` key onto the
+ *   last alias (Alpine shares `alias` in the persist closure) — e.g. `turns`
+ *   hydrates as `null` from `game.idempotencyKey`.
+ */
+export function gameStore(persist: PersistFactory) {
   return {
-    _v: persist(STORE_VERSION).as("game._v"),
-    gameTypeKey: persist<string | null>(null).as("game.gameTypeKey"),
-    sessionId: persist<string | null>(null).as("game.sessionId"),
-    participantRef: persist<string | null>(null).as("game.participantRef"),
-    configSnapshot: persist<GameConfigSnapshot | null>(null).as("game.configSnapshot"),
-    turns: persist<RecordedTurn[]>([]).as("game.turns"),
-    timerRemainingMs: persist<number | null>(null).as("game.timerRemainingMs"),
-    timerStartedAt: persist<string | null>(null).as("game.timerStartedAt"),
-    timerExpired: persist<boolean>(false).as("game.timerExpired"),
-    idempotencyKey: persist<string | null>(null).as("game.idempotencyKey"),
+    _v: persist()(STORE_VERSION).as("game._v"),
+    gameTypeKey: persist()<string | null>(null).as("game.gameTypeKey"),
+    sessionId: persist()<string | null>(null).as("game.sessionId"),
+    participantRef: persist()<string | null>(null).as("game.participantRef"),
+    configSnapshot: persist()<GameConfigSnapshot | null>(null).as("game.configSnapshot"),
+    turns: persist()<RecordedTurn[]>([]).as("game.turns"),
+    timerRemainingMs: persist()<number | null>(null).as("game.timerRemainingMs"),
+    timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
+    timerExpired: persist()<boolean>(false).as("game.timerExpired"),
+    idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),
 
     startSession(input: {
       gameTypeKey: string;

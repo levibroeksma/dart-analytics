@@ -75,7 +75,7 @@ modules/*                  →  never @client/api, never Alpine
 
 ## 7. `$persist`
 
-Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91).
+Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91). Store factories take a `PersistFactory` and call it once per field (D120) — never reuse one `persist()` across fields.
 
 ## 8. Recovery
 

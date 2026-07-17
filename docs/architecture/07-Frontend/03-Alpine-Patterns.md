@@ -91,7 +91,10 @@ import { gameStore } from "@stores/game.store";
 import { outboxStore } from "@stores/outbox.store";
 
 export function registerStores(Alpine: Alpine) {
-  const persist = Alpine.persist as Persist;
+  // Alpine.`$persist` getter returns a fresh persist() per access. Pass a
+  // factory — never reuse one persist() across fields (shared `.as()` alias
+  // collapses every key onto the last one; array fields hydrate as null).
+  const persist = () => (Alpine as unknown as { $persist: Persist }).$persist;
   Alpine.store("game", gameStore(persist));
   Alpine.store("outbox", outboxStore(persist));
 }
@@ -188,6 +191,8 @@ When an Alpine listener must be declared inside a **`{}` Astro expression** (com
 | Completed-but-unsent batches (`outbox`) | — |
 
 `lib/client/alpine/` configures the persist plugin (namespace prefix) — not individual store keys.
+
+**Per-field factory (D120):** each persisted property must call a fresh `Alpine.$persist` (via `PersistFactory`). One shared `persist()` collapses every `.as()` key onto the last alias — array fields then hydrate as `null`. <!-- 2026-07-17 -->
 
 **Schema evolution:** **additive-only is the discipline** — extend persisted shapes, never remove or rename incompatibly (D89). No heavyweight `schemaVersion` machinery. As a safety valve for the rare unavoidable *incompatible* change, each persisted store carries a single `_v` integer and discards its own state on mismatch in `init()` (D91). Additive changes never bump `_v`; only a genuinely breaking shape change does. This keeps the additive-only rule as the norm while preventing a stale store from rehydrating into incompatible code. <!-- 2026-07-14 -->
 
