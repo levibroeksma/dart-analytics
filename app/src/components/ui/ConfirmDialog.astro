@@ -9,7 +9,7 @@
  * @param {string} onCancel Alpine expression
  * @param {string} onConfirm Alpine expression
  * @param {boolean} [dismissible=true] When true, dismiss uses `onCancel`
- * @param {"primary"|"error"} [confirmVariant="primary"]
+ * @param {"primary"|"secondary"|"ghost"} [confirmVariant="primary"]
  * @param {string} [class] Extra Modal panel classes
  */
 interface Props {
@@ -21,7 +21,7 @@ interface Props {
   onCancel: string;
   onConfirm: string;
   dismissible?: boolean;
-  confirmVariant?: "primary" | "error";
+  confirmVariant?: "primary" | "secondary" | "ghost";
   class?: string;
 }
 
