@@ -17,6 +17,8 @@ jobs:
         run: bash scripts/check-file-locations.sh
       - name: AGENT.md mirror gate
         run: bash scripts/check-agent-mirrors.sh
+      - name: Astro conventions gate
+        run: bash scripts/check-astro-conventions.sh
 
   app:
     runs-on: ubuntu-latest
