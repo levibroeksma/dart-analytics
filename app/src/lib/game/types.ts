@@ -40,6 +40,8 @@ export type ScoreTrainingPlayContext = {
   init(this: ScoreTrainingPlayContext): Promise<void>;
   retryReconciliation(this: ScoreTrainingPlayContext): Promise<void>;
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
+  confirmFinish(this: ScoreTrainingPlayContext): Promise<void>;
+  cancelFinish(this: ScoreTrainingPlayContext): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   back(this: ScoreTrainingPlayContext): Promise<void>;
