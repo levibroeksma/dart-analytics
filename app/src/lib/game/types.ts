@@ -40,6 +40,9 @@ export type ScoreTrainingPlayContext = {
   back(this: ScoreTrainingPlayContext): Promise<void>;
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
+  appendDigit(this: ScoreTrainingPlayContext, digit: number): void;
+  deleteLast(this: ScoreTrainingPlayContext): void;
+  clearVisitInput(this: ScoreTrainingPlayContext): void;
 };
 
 export type ScoreTrainingSetupContext = {

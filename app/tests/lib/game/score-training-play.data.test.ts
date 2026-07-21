@@ -829,4 +829,42 @@ describe("scoreTrainingPlay", () => {
       expect(store.reset).not.toHaveBeenCalled();
     });
   });
+
+  describe('keypad helpers + visitInput validation', () => {
+    it('appendDigit appends digits and rejects length > 3', () => {
+      const component = { ...scoreTrainingPlay(), $store: { game: gameStub() } };
+      component.appendDigit(1);
+      component.appendDigit(8);
+      component.appendDigit(0);
+      expect(component.visitInput).toBe('180');
+      component.appendDigit(0);
+      expect(component.visitInput).toBe('180');
+    });
+
+    it('appendDigit replaces a lone "0" instead of prefixing', () => {
+      const component = { ...scoreTrainingPlay(), $store: { game: gameStub() } };
+      component.appendDigit(0);
+      expect(component.visitInput).toBe('0');
+      component.appendDigit(5);
+      expect(component.visitInput).toBe('5');
+    });
+
+    it('deleteLast removes the last character; clearVisitInput empties', () => {
+      const component = { ...scoreTrainingPlay(), $store: { game: gameStub() }, visitInput: '45' };
+      component.deleteLast();
+      expect(component.visitInput).toBe('4');
+      component.clearVisitInput();
+      expect(component.visitInput).toBe('');
+    });
+
+    it('submitVisit rejects non-integer / out-of-range and does not clear visitInput', async () => {
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '999' };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      expect(component.error).toBe('Enter a score between 0 and 180.');
+      expect(component.visitInput).toBe('999');
+      expect(store.recordTurn).not.toHaveBeenCalled();
+    });
+  });
 });

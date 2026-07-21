@@ -31,6 +31,21 @@ function computeStats(turns: RecordedTurn[]): {
 export function scoreTrainingPlay() {
   return {
     visitInput: "",
+
+    appendDigit(this: ScoreTrainingPlayContext, digit: number) {
+      const next = this.visitInput === "0" ? String(digit) : this.visitInput + String(digit);
+      if (next.length > 3) return;
+      this.visitInput = next;
+    },
+
+    deleteLast(this: ScoreTrainingPlayContext) {
+      this.visitInput = this.visitInput.slice(0, -1);
+    },
+
+    clearVisitInput(this: ScoreTrainingPlayContext) {
+      this.visitInput = "";
+    },
+
     error: "",
     finished: false,
     hasActiveSession: false,
