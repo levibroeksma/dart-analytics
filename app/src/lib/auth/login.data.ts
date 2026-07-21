@@ -1,18 +1,7 @@
 import { provision } from '@client/api/players';
 import { authClient } from '@client/auth/client';
 import { getErrorMessage } from '@client/errors';
-import type { authStore } from '@stores/auth.store';
-
-type AuthStore = ReturnType<typeof authStore>;
-
-export type LoginFormContext = {
-  email: string;
-  password: string;
-  error: string;
-  loading: boolean;
-  $store: { auth: Pick<AuthStore, 'signIn'> };
-  submit(): Promise<void>;
-};
+import type { LoginFormContext } from './types';
 
 export function loginForm() {
   return {

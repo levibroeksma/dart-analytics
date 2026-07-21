@@ -51,6 +51,7 @@ Full documentation: https://docs.astro.build
 - Service layer generates UUIDv7 for runtime persistence records.
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes.
+- `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
 
 ## Test-Driven Development (mandatory)
 
@@ -96,7 +97,7 @@ This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `n
 
 For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
-Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms.
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms; `PersistFactory` once per field (D120) — never reuse one `persist()` across store fields. (2026-07-17)
 
 **TypeScript file organization:** No `.ts` file lives directly under `components/` or `pages/` — except `pages/api/**` (Worker route handlers) — regardless of single- or multi-consumer use; mechanically enforced by `scripts/check-file-locations.sh`. All other `.ts` files live in `app/src/lib/` (except stores/forms, which live at `stores/`, `forms/`):
 - Auth-related: `lib/auth/` (e.g., `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias

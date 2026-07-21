@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-16
+updated: 2026-07-17
 -->
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.1 (style guide section added, 2026-07-16)
+> **Version:** 0.1.3 (Score Training recovery/hard-gate, 2026-07-17)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -75,11 +75,11 @@ modules/*                  →  never @client/api, never Alpine
 
 ## 7. `$persist`
 
-Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91).
+Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91). Store factories take a `PersistFactory` and call it once per field (D120) — never reuse one `persist()` across fields.
 
 ## 8. Recovery
 
-Auto-cleanup on mismatch — no manual abandon UI. Client orphans → client fixes. Server DB orphans → server (deferred). A completed session whose upload fails is held in the `outbox` store and retried with the same `Idempotency-Key` until confirmed (D90) — never dropped. See `03-Alpine-Patterns.md`.
+Shared helper: `app/src/lib/game/session-recovery.ts` (D118). Auto-cleanup on **mismatch** — no manual abandon UI. Match-case Continue/Abandon modal on setup is still allowed. Client orphans → client fixes. Server DB orphans → server (deferred). Default: completed upload failures go to the `outbox` and retry with the same `Idempotency-Key` until confirmed (D90). **Score Training exception (D119):** synchronous hard-gate — gate Back / Play again until batch + `PATCH COMPLETED` succeed; results as play-page modal, not a `/results` route. See `03-Alpine-Patterns.md`.
 
 ## 9. Types
 
@@ -122,6 +122,7 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - HTTP in `modules/`
 - Server imports in browser code
 - Hand-authored DTO types duplicating API contract
+- Inline `export type`/`export interface` in `.store.ts`/`.module.ts`/`.data.ts`/`.form.ts` — belongs in that folder's `types.ts`/`interfaces.ts`
 - Statistics API calls before post-v1 endpoints ship
 - Production behavior without a preceding failing test
 - Skipping `npm test` in validation

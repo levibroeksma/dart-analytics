@@ -7,7 +7,7 @@ updated: 2026-07-16
 
 # Frontend Modules And OOP
 
-> **Version:** 0.1.1 (@types/api successor, 2026-07-16)
+> **Version:** 0.1.2 (anti-pattern: inline export type/interface in .module.ts, 2026-07-17)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -134,6 +134,7 @@ This preserves D40 (client game engine) without making the frontend the authorit
 | Portable UI importing `@stores` | Breaks copy-paste contract |
 | Duplicating API validation as source of truth | Drift from frozen contract |
 | Persisting toast/modal state | Ephemeral UI |
+| `export type`/`export interface` declared inline in a `.module.ts` | Belongs in the folder's `types.ts`/`interfaces.ts` barrel (`../06-API/03-Shared-Conventions.md`) |
 
 ---
 

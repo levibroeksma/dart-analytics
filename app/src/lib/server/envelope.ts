@@ -1,4 +1,5 @@
-import { ERROR_HTTP, type ErrorCode } from "./errors";
+import { ERROR_HTTP } from "./errors";
+import type { ErrorCode } from "./types";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 

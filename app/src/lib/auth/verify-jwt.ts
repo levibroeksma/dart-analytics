@@ -1,13 +1,8 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { env } from "@lib/env";
+import type { VerifiedAuth } from "./types";
 
 const jwks = createRemoteJWKSet(new URL(env.auth.jwksUrl));
-
-export type VerifiedAuth = {
-  authUserId: string;
-  /** Optional display-name claim, used only by provisioning (D76). */
-  name?: string;
-};
 
 /**
  * Verifies a Neon Auth bearer JWT. Returns null on ANY failure —
