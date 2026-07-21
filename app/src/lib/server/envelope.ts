@@ -19,7 +19,11 @@ export function fail(
 ): Response {
   const { status, message, retryable } = ERROR_HTTP[code];
   return new Response(
-    JSON.stringify({ ok: false, error: { code, message, retryable, details }, requestId }),
+    JSON.stringify({
+      ok: false,
+      error: { code, message, retryable, details },
+      requestId,
+    }),
     { status, headers: JSON_HEADERS },
   );
 }

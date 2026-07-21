@@ -5,13 +5,13 @@
  * Requires NEON_AUTH_BASE_URL in app/.env (loaded via --env-file in npm script).
  */
 
-import { createAuthClient } from '@neondatabase/neon-js/auth';
+import { createAuthClient } from "@neondatabase/neon-js/auth";
 
-const DEV_EMAIL = 'levi@broeksma.nl';
-const DEV_PASSWORD = 'BB@@bb22';
-const DEV_NAME = 'Levi';
+const DEV_EMAIL = "levi@broeksma.nl";
+const DEV_PASSWORD = "BB@@bb22";
+const DEV_NAME = "Levi";
 /** Trusted origin on the dev Neon Auth branch (see 11-Neon-Integration.md). */
-const DEV_ORIGIN = 'http://localhost:4321';
+const DEV_ORIGIN = "http://localhost:4321";
 
 export function isAlreadyExistsError(message: string): boolean {
   return /already exists/i.test(message);
@@ -20,7 +20,7 @@ export function isAlreadyExistsError(message: string): boolean {
 async function main() {
   const baseUrl = process.env.NEON_AUTH_BASE_URL;
   if (!baseUrl) {
-    console.error('NEON_AUTH_BASE_URL is required');
+    console.error("NEON_AUTH_BASE_URL is required");
     process.exit(1);
   }
 
@@ -37,11 +37,11 @@ async function main() {
   );
 
   if (result.error) {
-    if (isAlreadyExistsError(result.error.message ?? '')) {
+    if (isAlreadyExistsError(result.error.message ?? "")) {
       console.log(`Dev user ${DEV_EMAIL} already exists — skipping.`);
       return;
     }
-    console.error('Seed failed:', result.error.message);
+    console.error("Seed failed:", result.error.message);
     process.exit(1);
   }
 

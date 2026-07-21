@@ -25,7 +25,9 @@ export async function verifyBearerToken(
     if (typeof payload.exp !== "number") return null; // jose enforced expiry; claim must exist
     return {
       authUserId: sub,
-      ...(typeof payload.name === "string" && payload.name ? { name: payload.name } : {}),
+      ...(typeof payload.name === "string" && payload.name
+        ? { name: payload.name }
+        : {}),
     };
   } catch {
     return null; // invalid signature, expired, malformed — all map to 401 upstream

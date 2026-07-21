@@ -1,6 +1,6 @@
-import type { Alpine } from 'alpinejs';
-import { logoutButton } from '@auth/logout.data';
+import type { Alpine } from "alpinejs";
+import { logoutButton } from "@auth/logout.data";
 
 export function registerUiData(Alpine: Alpine) {
-  Alpine.data('logoutButton', logoutButton);
+  Alpine.data("logoutButton", logoutButton);
 }

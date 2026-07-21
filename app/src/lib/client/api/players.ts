@@ -1,9 +1,9 @@
-import { apiRequest } from './client';
+import { apiRequest } from "./client";
 import {
   ProvisionPlayerRequest,
   type ProvisionPlayerRequestInput,
   type ProvisionPlayerResponseData,
-} from './types';
+} from "./types";
 
 export class ProvisionError extends Error {
   constructor(
@@ -11,7 +11,7 @@ export class ProvisionError extends Error {
     message: string,
   ) {
     super(message);
-    this.name = 'ProvisionError';
+    this.name = "ProvisionError";
   }
 }
 
@@ -20,9 +20,9 @@ export async function provision(
 ): Promise<ProvisionPlayerResponseData> {
   const payload = body ? ProvisionPlayerRequest.parse(body) : {};
   const result = await apiRequest<ProvisionPlayerResponseData>(
-    '/api/players/provision',
+    "/api/players/provision",
     {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(payload),
     },
   );

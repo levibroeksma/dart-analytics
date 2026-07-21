@@ -12,5 +12,10 @@ export async function provisionPlayer(
   displayName?: string,
 ): Promise<ProvisionedPlayer> {
   const db = getDb();
-  return upsertPlayerByAuthUserId(db, authUserId, generateId(), displayName ?? "Player");
+  return upsertPlayerByAuthUserId(
+    db,
+    authUserId,
+    generateId(),
+    displayName ?? "Player",
+  );
 }

@@ -1,7 +1,7 @@
-export const PUBLIC_PAGES = new Set(['/login']);
+export const PUBLIC_PAGES = new Set(["/login"]);
 
 export function normalizePath(path: string): string {
-  if (path.length > 1 && path.endsWith('/')) {
+  if (path.length > 1 && path.endsWith("/")) {
     return path.slice(0, -1);
   }
   return path;
