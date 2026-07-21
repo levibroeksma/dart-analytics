@@ -7,7 +7,7 @@ updated: 2026-07-21
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.4 (2026-07-21 — comment/format conventions)
+> **Version:** 0.1.5 (2026-07-21 — comment/format conventions + x-show/x-cloak rule)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -44,6 +44,7 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 
 ## 2. Alpine bindings
 
+- **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak`
 - **Alpine v3 shorthand:** `:class`, `:style`, `:value`, `:disabled`, `@click`, `@submit.prevent`, etc. — **never** `x-bind:*` or `x-on:*` when shorthand applies (`03-Alpine-Patterns.md`)
 - **Astro exception:** `x-on:click` (or `x-on:*`) only inside `{}` expressions when the linter rejects `@` — nowhere else
 - **No `x-init`** — forbidden
@@ -143,6 +144,8 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] Styling uses semantic tokens/primitives only; no `font-medium`, no raw palette utilities
 - [ ] No `x-init`; all `x-data` invocations use `()`
+- [ ] Every `x-show` element also has `x-cloak`
+- [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`
 - [ ] Recovery text consistent with `00-Overview.md` (auto-cleanup)

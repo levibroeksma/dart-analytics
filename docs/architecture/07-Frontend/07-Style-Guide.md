@@ -136,7 +136,7 @@ Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical
 Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.md` — this section states UI-specific rules only:
 
 - Put UI state on the smallest owner that needs it; keep interactive children inside that owner.
-- Cloak unready UI with `x-cloak` (`[x-cloak] { display: none !important; }` is already global).
+- **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak` (`[x-cloak] { display: none !important; }` is already global).
 - Dialogs (forward guidance, once a modal primitive exists): Escape closes, backdrop click dismisses.
 - Prefer declarative Alpine v3 shorthand bindings (`:class`, `:disabled`, `@click`) over imperative DOM manipulation — full rules in `03-Alpine-Patterns.md` / `05-Astro-Components.md`.
 
