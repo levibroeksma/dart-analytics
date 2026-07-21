@@ -6,7 +6,7 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 ---
 
-<GameLayout title="Score Training — Play" gameTitle="Score Training">
+<GameLayout title="Score Training — Play">
   <div
     class="flex flex-col flex-1 min-h-0"
     x-data="scoreTrainingPlay()"
@@ -47,13 +47,17 @@ import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.as
         x-text="`Time remaining: ${remainingLabel()}`"
         x-cloak
       ></p>
+      <p
+        class="text-sm text-fg-muted px-3"
+        x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'"
+        x-text="`Visit ${$store.game.turns.length + 1}`"
+        x-cloak
+      ></p>
 
-      <div class="h-2/5 min-h-0 flex flex-col px-3">
-        <SinglePlayerDisplay
-          isTarget={false}
-          score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
-        />
-      </div>
+      <SinglePlayerDisplay
+        isTarget={false}
+        score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
+      />
 
       <p
         class="px-3 mt-2 text-sm text-red-500"
@@ -62,7 +66,7 @@ import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.as
         x-cloak
       ></p>
 
-      <ScoreInput class="min-h-0" click="submitVisit()" />
+      <ScoreInput click="submitVisit()" />
     </div>
 
     {/* Finish confirm (before results) */}
