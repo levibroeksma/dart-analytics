@@ -828,7 +828,7 @@ Next free id after D120 → **D121**:
 
 Add a short section (near directive syntax / Astro exception), dated `<!-- 2026-07-21 -->`:
 
-1. **Alpine-expression-as-Astro-prop:** when an Astro prop holds an Alpine expression rendered into `x-text` / bind attributes, use `x-text={`'${prop}'`}`. Bare `x-text={prop}` evaluates at Astro build time.
+1. **Alpine-expression-as-Astro-prop:** when an Astro prop holds an Alpine expression rendered into `x-text` / bind attributes, pass it directly — `x-text={prop}` or `x-text={isTarget ? target : score}`. Do **not** wrap with `` `'${prop}'` ``; that emits a quoted string literal Alpine will not evaluate.
 2. **Parent-method props:** pass handler expressions as string props (e.g. `click="submitVisit()"`) and bind `@click={click}`. Never `;`-separated multi-statements or `$dispatch` solely to chain parent calls.
 3. `x-show` **+** `x-cloak`**:** every `x-show` element must also carry `x-cloak`.
 
@@ -849,7 +849,7 @@ Replace soft “Cloak unready UI with `x-cloak`” with: **Every element with** 
 
 - [ ] **Step 5: Note in** `05-Astro-Components.md`
 
-Brief note that game display components may accept Alpine expression strings as props (`SinglePlayerDisplay` `score`/`target` + `isTarget`), rendered via the quoting pattern in `03-Alpine-Patterns.md`. Date `2026-07-21`.
+Brief note that game display components may accept Alpine expression strings as props (`SinglePlayerDisplay` `score`/`target` + `isTarget`), rendered via direct pass per `03-Alpine-Patterns.md`. Date `2026-07-21`.
 
 - [ ] **Step 6: Folder structure**
 

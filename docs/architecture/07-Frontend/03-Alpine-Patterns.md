@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, forms, data components, persist
-updated: 2026-07-17
+updated: 2026-07-21
 -->
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.2.1
+> **Version:** 0.2.2
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -178,6 +178,21 @@ When an Alpine listener must be declared inside a **`{}` Astro expression** (com
 <Button {...{ "x-on:click": "handle()" }} />
 ```
 
+### Alpine expression props (Astro components) <!-- 2026-07-21 -->
+
+When an Astro prop holds an Alpine expression rendered into `x-text` / bind attributes, pass it **directly**:
+
+```astro
+x-text={prop}
+x-text={isTarget ? target : score}
+```
+
+Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Alpine will not evaluate.
+
+**Parent-method props:** pass handler expressions as string props (e.g. `click="submitVisit()"`) and bind `@click={click}`. Do **not** wrap click handlers with `` `'${click}'` `` either. Never use `;`-separated multi-statements or `$dispatch` solely to chain parent calls — prefer one factory method.
+
+**`x-show` + `x-cloak`:** every element with `x-show` must also carry `x-cloak` (global `[x-cloak] { display: none !important; }` prevents FOUC before hydration).
+
 ---
 
 # `$persist` Scope
@@ -259,6 +274,9 @@ Details: `00-Overview.md`.
 | `import Alpine from 'alpinejs'` outside factory | Breaks single entrypoint |
 | HTTP in `modules/` | Violates import direction |
 | Manual abandon dialog on mismatch | Contradicts D88 auto-cleanup |
+| `x-show` without `x-cloak` | FOUC before Alpine hydrates |
+| `` x-text={`'${prop}'`} `` or `` @click={`'${click}'`} `` | Emits a string literal — Alpine will not evaluate the expression |
+| `;`-separated statements on `@click` | Prefer one factory method / click prop |
 
 ---
 
