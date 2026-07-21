@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 export const ConfigInput = z.discriminatedUnion("source", [
-  z.object({ source: z.literal("template"), templateRef: z.string(), overrides: z.record(z.unknown()).optional() }),
+  z.object({
+    source: z.literal("template"),
+    templateRef: z.string(),
+    overrides: z.record(z.unknown()).optional(),
+  }),
   z.object({ source: z.literal("inline"), config: z.record(z.unknown()) }),
 ]);
 
@@ -59,7 +63,11 @@ export type TurnFactInput = z.infer<typeof TurnFact>;
 export type DartFactInput = z.infer<typeof DartFact>;
 
 export const BatchWriteResponse = z.object({
-  created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
+  created: z.object({
+    stages: z.number().int(),
+    turns: z.number().int(),
+    darts: z.number().int(),
+  }),
 });
 export type BatchWriteResponseData = z.infer<typeof BatchWriteResponse>;
 

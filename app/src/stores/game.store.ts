@@ -15,9 +15,13 @@ export function gameStore(persist: PersistFactory) {
     gameTypeKey: persist()<string | null>(null).as("game.gameTypeKey"),
     sessionId: persist()<string | null>(null).as("game.sessionId"),
     participantRef: persist()<string | null>(null).as("game.participantRef"),
-    configSnapshot: persist()<GameConfigSnapshot | null>(null).as("game.configSnapshot"),
+    configSnapshot: persist()<GameConfigSnapshot | null>(null).as(
+      "game.configSnapshot",
+    ),
     turns: persist()<RecordedTurn[]>([]).as("game.turns"),
-    timerRemainingMs: persist()<number | null>(null).as("game.timerRemainingMs"),
+    timerRemainingMs: persist()<number | null>(null).as(
+      "game.timerRemainingMs",
+    ),
     timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist()<boolean>(false).as("game.timerExpired"),
     idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),

@@ -52,22 +52,46 @@ export async function findGameTypeAndRuleset(
   return row;
 }
 
-export async function findCaptureModeId(db: Db, key: string): Promise<number | undefined> {
-  const [row] = await db.select({ id: captureModes.id }).from(captureModes).where(eq(captureModes.implementationKey, key)).limit(1);
+export async function findCaptureModeId(
+  db: Db,
+  key: string,
+): Promise<number | undefined> {
+  const [row] = await db
+    .select({ id: captureModes.id })
+    .from(captureModes)
+    .where(eq(captureModes.implementationKey, key))
+    .limit(1);
   return row?.id;
 }
 
-export async function findInputModeId(db: Db, key: string): Promise<number | undefined> {
-  const [row] = await db.select({ id: inputModes.id }).from(inputModes).where(eq(inputModes.implementationKey, key)).limit(1);
+export async function findInputModeId(
+  db: Db,
+  key: string,
+): Promise<number | undefined> {
+  const [row] = await db
+    .select({ id: inputModes.id })
+    .from(inputModes)
+    .where(eq(inputModes.implementationKey, key))
+    .limit(1);
   return row?.id;
 }
 
-export async function findGameStatusId(db: Db, key: string): Promise<number | undefined> {
-  const [row] = await db.select({ id: gameStatuses.id }).from(gameStatuses).where(eq(gameStatuses.implementationKey, key)).limit(1);
+export async function findGameStatusId(
+  db: Db,
+  key: string,
+): Promise<number | undefined> {
+  const [row] = await db
+    .select({ id: gameStatuses.id })
+    .from(gameStatuses)
+    .where(eq(gameStatuses.implementationKey, key))
+    .limit(1);
   return row?.id;
 }
 
-export async function findParticipantTypeId(db: Db, key: string): Promise<number | undefined> {
+export async function findParticipantTypeId(
+  db: Db,
+  key: string,
+): Promise<number | undefined> {
   const [row] = await db
     .select({ id: participantTypes.id })
     .from(participantTypes)
@@ -77,17 +101,28 @@ export async function findParticipantTypeId(db: Db, key: string): Promise<number
 }
 
 export async function findStageTypeIdMap(db: Db): Promise<Map<string, number>> {
-  const rows = await db.select({ id: stageTypes.id, key: stageTypes.implementationKey }).from(stageTypes);
+  const rows = await db
+    .select({ id: stageTypes.id, key: stageTypes.implementationKey })
+    .from(stageTypes);
   return new Map(rows.map((r) => [r.key, r.id]));
 }
 
 export async function findDartZoneIdMap(db: Db): Promise<Map<string, number>> {
-  const rows = await db.select({ id: dartZones.id, key: dartZones.implementationKey }).from(dartZones);
+  const rows = await db
+    .select({ id: dartZones.id, key: dartZones.implementationKey })
+    .from(dartZones);
   return new Map(rows.map((r) => [r.key, r.id]));
 }
 
-export async function findPlayerDisplayName(db: Db, playerId: string): Promise<string | undefined> {
-  const [row] = await db.select({ displayName: players.displayName }).from(players).where(eq(players.id, playerId)).limit(1);
+export async function findPlayerDisplayName(
+  db: Db,
+  playerId: string,
+): Promise<string | undefined> {
+  const [row] = await db
+    .select({ displayName: players.displayName })
+    .from(players)
+    .where(eq(players.id, playerId))
+    .limit(1);
   return row?.displayName;
 }
 
@@ -98,20 +133,29 @@ export async function findConfigurationTemplate(
   playerId: string,
 ): Promise<ConfigurationTemplateRow | undefined> {
   const [row] = await db
-    .select({ id: configurationTemplates.id, configuration: configurationTemplates.configuration })
+    .select({
+      id: configurationTemplates.id,
+      configuration: configurationTemplates.configuration,
+    })
     .from(configurationTemplates)
     .where(
       and(
         eq(configurationTemplates.id, templateId),
         eq(configurationTemplates.gameTypeId, gameTypeId),
-        or(isNull(configurationTemplates.playerId), eq(configurationTemplates.playerId, playerId)),
+        or(
+          isNull(configurationTemplates.playerId),
+          eq(configurationTemplates.playerId, playerId),
+        ),
       ),
     )
     .limit(1);
   return row;
 }
 
-export async function findSessionRow(db: Db, sessionId: string): Promise<SessionRow | undefined> {
+export async function findSessionRow(
+  db: Db,
+  sessionId: string,
+): Promise<SessionRow | undefined> {
   const [row] = await db
     .select({
       id: exerciseSessions.id,
@@ -120,13 +164,19 @@ export async function findSessionRow(db: Db, sessionId: string): Promise<Session
       rulesetVersionKey: rulesetVersions.implementationKey,
     })
     .from(exerciseSessions)
-    .innerJoin(rulesetVersions, eq(rulesetVersions.id, exerciseSessions.rulesetVersionId))
+    .innerJoin(
+      rulesetVersions,
+      eq(rulesetVersions.id, exerciseSessions.rulesetVersionId),
+    )
     .where(eq(exerciseSessions.id, sessionId))
     .limit(1);
   return row;
 }
 
-export async function findSessionConfiguration(db: Db, sessionId: string): Promise<Record<string, unknown> | undefined> {
+export async function findSessionConfiguration(
+  db: Db,
+  sessionId: string,
+): Promise<Record<string, unknown> | undefined> {
   const [row] = await db
     .select({ configuration: exerciseConfigurations.configuration })
     .from(exerciseConfigurations)
@@ -135,12 +185,21 @@ export async function findSessionConfiguration(db: Db, sessionId: string): Promi
   return row?.configuration as Record<string, unknown> | undefined;
 }
 
-export async function findSessionParticipantIds(db: Db, sessionId: string): Promise<string[]> {
-  const rows = await db.select({ id: participants.id }).from(participants).where(eq(participants.exerciseSessionId, sessionId));
+export async function findSessionParticipantIds(
+  db: Db,
+  sessionId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ id: participants.id })
+    .from(participants)
+    .where(eq(participants.exerciseSessionId, sessionId));
   return rows.map((r) => r.id);
 }
 
-export async function countTurnsForSession(db: Db, sessionId: string): Promise<number> {
+export async function countTurnsForSession(
+  db: Db,
+  sessionId: string,
+): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(turns)
@@ -160,23 +219,38 @@ export async function findIdempotencyRecord(
       result: sessionWriteIdempotency.result,
     })
     .from(sessionWriteIdempotency)
-    .where(and(eq(sessionWriteIdempotency.sessionId, sessionId), eq(sessionWriteIdempotency.idempotencyKey, idempotencyKey)))
+    .where(
+      and(
+        eq(sessionWriteIdempotency.sessionId, sessionId),
+        eq(sessionWriteIdempotency.idempotencyKey, idempotencyKey),
+      ),
+    )
     .limit(1);
   return row;
 }
 
 export async function findActiveSessions(db: Db, playerId: string) {
-  return db.select().from(vActiveSessions).where(eq(vActiveSessions.playerId, playerId));
+  return db
+    .select()
+    .from(vActiveSessions)
+    .where(eq(vActiveSessions.playerId, playerId));
 }
 
-export async function findConfigurationPresets(db: Db, gameTypeKey: string, playerId: string) {
+export async function findConfigurationPresets(
+  db: Db,
+  gameTypeKey: string,
+  playerId: string,
+) {
   return db
     .select()
     .from(vConfigurationPresets)
     .where(
       and(
         eq(vConfigurationPresets.gameTypeKey, gameTypeKey),
-        or(isNull(vConfigurationPresets.playerId), eq(vConfigurationPresets.playerId, playerId)),
+        or(
+          isNull(vConfigurationPresets.playerId),
+          eq(vConfigurationPresets.playerId, playerId),
+        ),
       ),
     );
 }
@@ -256,7 +330,9 @@ export async function insertBatchRecords(
       );
     }
 
-    const allDarts = input.turns.flatMap((turn) => turn.darts.map((dart) => ({ ...dart, turnId: turn.id })));
+    const allDarts = input.turns.flatMap((turn) =>
+      turn.darts.map((dart) => ({ ...dart, turnId: turn.id })),
+    );
     if (allDarts.length > 0) {
       await tx.insert(darts).values(
         allDarts.map((dart) => ({
@@ -278,11 +354,21 @@ export async function insertBatchRecords(
       sessionId: input.sessionId,
       idempotencyKey: input.idempotencyKey,
       normalizedPayloadHash: input.normalizedPayloadHash,
-      result: { created: { stages: input.stages.length, turns: input.turns.length, darts: allDarts.length } },
+      result: {
+        created: {
+          stages: input.stages.length,
+          turns: input.turns.length,
+          darts: allDarts.length,
+        },
+      },
       createdAt: now,
     });
 
-    return { stages: input.stages.length, turns: input.turns.length, darts: allDarts.length };
+    return {
+      stages: input.stages.length,
+      turns: input.turns.length,
+      darts: allDarts.length,
+    };
   });
 }
 
@@ -292,5 +378,8 @@ export async function updateSessionStatusRecord(
   statusId: number,
   completedAt: string,
 ): Promise<void> {
-  await db.update(exerciseSessions).set({ statusId, completedAt }).where(eq(exerciseSessions.id, sessionId));
+  await db
+    .update(exerciseSessions)
+    .set({ statusId, completedAt })
+    .where(eq(exerciseSessions.id, sessionId));
 }

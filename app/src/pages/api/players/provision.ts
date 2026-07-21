@@ -12,7 +12,11 @@ import { parseAndValidateBody } from "@server/parse-json-body";
 export const POST: APIRoute = async ({ locals, request }) => {
   const auth = locals.auth!;
 
-  const parsed = await parseAndValidateBody(ProvisionPlayerRequest, request, locals.requestId);
+  const parsed = await parseAndValidateBody(
+    ProvisionPlayerRequest,
+    request,
+    locals.requestId,
+  );
   if (!parsed.ok) return parsed.response;
 
   const displayName = parsed.data.displayName ?? auth.name;

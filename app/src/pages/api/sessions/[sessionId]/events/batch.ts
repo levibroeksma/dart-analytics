@@ -9,13 +9,24 @@ export const POST: APIRoute = async ({ locals, params, request }) => {
   const sessionId = params.sessionId!;
   const idempotencyKey = request.headers.get("idempotency-key");
   if (!idempotencyKey) {
-    return fail("VALIDATION_FAILED", locals.requestId, { reason: "Idempotency-Key header is required" });
+    return fail("VALIDATION_FAILED", locals.requestId, {
+      reason: "Idempotency-Key header is required",
+    });
   }
 
-  const parsed = await parseAndValidateBody(EventsBatchRequest, request, locals.requestId);
+  const parsed = await parseAndValidateBody(
+    EventsBatchRequest,
+    request,
+    locals.requestId,
+  );
   if (!parsed.ok) return parsed.response;
 
-  const result = await appendBatch(auth.playerId!, sessionId, idempotencyKey, parsed.data);
+  const result = await appendBatch(
+    auth.playerId!,
+    sessionId,
+    idempotencyKey,
+    parsed.data,
+  );
   if (!result.ok) return fail(result.code, locals.requestId, result.details);
   return ok(result.data, locals.requestId);
 };

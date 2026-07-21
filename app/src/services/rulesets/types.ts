@@ -6,7 +6,10 @@ export type BatchValidationResult =
   | { valid: true }
   | {
       valid: false;
-      code: "VALIDATION_FAILED" | "BATCH_INCONSISTENT_ORDERING" | "BATCH_REFERENCE_MISSING";
+      code:
+        | "VALIDATION_FAILED"
+        | "BATCH_INCONSISTENT_ORDERING"
+        | "BATCH_REFERENCE_MISSING";
       issues?: unknown;
     };
 

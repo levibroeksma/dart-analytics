@@ -59,7 +59,10 @@ export type ScoreTrainingSetupContext = {
     };
   };
   init(this: ScoreTrainingSetupContext): Promise<void>;
-  reconcile(this: ScoreTrainingSetupContext, activeSessions: SessionActiveData[]): Promise<void>;
+  reconcile(
+    this: ScoreTrainingSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
   retryReconciliation(this: ScoreTrainingSetupContext): Promise<void>;
   continueSession(this: ScoreTrainingSetupContext): void;
   abandonSession(this: ScoreTrainingSetupContext): Promise<void>;

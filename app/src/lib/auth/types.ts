@@ -1,4 +1,4 @@
-import type { authStore } from '@stores/auth.store';
+import type { authStore } from "@stores/auth.store";
 
 type AuthStore = ReturnType<typeof authStore>;
 
@@ -7,13 +7,13 @@ export type LoginFormContext = {
   password: string;
   error: string;
   loading: boolean;
-  $store: { auth: Pick<AuthStore, 'signIn'> };
+  $store: { auth: Pick<AuthStore, "signIn"> };
   submit(): Promise<void>;
 };
 
 export type LogoutButtonContext = {
   loading: boolean;
-  $store: { auth: Pick<AuthStore, 'signOut'> };
+  $store: { auth: Pick<AuthStore, "signOut"> };
   submit(): Promise<void>;
 };
 
