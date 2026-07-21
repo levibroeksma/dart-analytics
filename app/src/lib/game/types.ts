@@ -15,6 +15,7 @@ export type ScoreTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
+  abandonLoading: boolean;
   resultsSnapshot: { total: number; visits: number; average: number } | null;
   $store: {
     game: {
@@ -39,6 +40,7 @@ export type ScoreTrainingPlayContext = {
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   back(this: ScoreTrainingPlayContext): Promise<void>;
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
+  abandonAndExit(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
   appendDigit(this: ScoreTrainingPlayContext, digit: number): void;
   deleteLast(this: ScoreTrainingPlayContext): void;

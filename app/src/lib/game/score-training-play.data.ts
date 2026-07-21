@@ -56,6 +56,7 @@ export function scoreTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
+    abandonLoading: false,
     resultsSnapshot: null as {
       total: number;
       visits: number;
@@ -228,6 +229,39 @@ export function scoreTrainingPlay() {
     async back(this: ScoreTrainingPlayContext) {
       this.$store.game.reset();
       globalThis.location.href = "/games";
+    },
+
+    async abandonAndExit(this: ScoreTrainingPlayContext) {
+      if (this.abandonLoading) return;
+      const sessionId = this.$store.game.sessionId;
+      if (!sessionId) {
+        this.$store.game.reset();
+        globalThis.location.href = "/games";
+        return;
+      }
+      this.abandonLoading = true;
+      this.error = "";
+      try {
+        const turns = this.$store.game.turns;
+        if (turns.length > 0) {
+          if (!this.$store.game.idempotencyKey) {
+            this.$store.game.idempotencyKey = crypto.randomUUID();
+          }
+          const completedTurns = turns.map((turn) => ({
+            ...turn,
+            completedAt: turn.completedAt ?? new Date().toISOString(),
+          }));
+          const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
+          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
+        }
+        await completeSession(sessionId, "ABANDONED");
+        this.timer?.stop();
+        this.$store.game.reset();
+        globalThis.location.href = "/games";
+      } catch {
+        this.error = "Could not abandon session. Try again.";
+        this.abandonLoading = false;
+      }
     },
 
     async playAgain(this: ScoreTrainingPlayContext) {

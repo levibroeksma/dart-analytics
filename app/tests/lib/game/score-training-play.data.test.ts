@@ -830,6 +830,115 @@ describe("scoreTrainingPlay", () => {
     });
   });
 
+  describe('abandonAndExit', () => {
+    function makeAbandonPlay(gameOverrides: Partial<GameStub> = {}) {
+      return {
+        ...scoreTrainingPlay(),
+        $store: { game: gameStub(gameOverrides) },
+      };
+    }
+
+    it('with turns: appendBatch then completeSession ABANDONED, reset, navigate /games', async () => {
+      const locationSpy = { href: '' };
+      vi.stubGlobal('location', locationSpy);
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 1, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 's1',
+        statusKey: 'ABANDONED',
+        completedAt: 'now',
+      });
+      const play = makeAbandonPlay({
+        turns: [
+          {
+            clientKey: 't1',
+            sequence: 1,
+            totalScore: 60,
+            completedAt: '2026-07-21T10:00:00Z',
+          },
+        ],
+      });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).toHaveBeenCalledTimes(1);
+      expect(completeSession).toHaveBeenCalledWith('s1', 'ABANDONED');
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe('/games');
+    });
+
+    it('with zero turns: skips batch, PATCHes ABANDONED, reset, navigate', async () => {
+      const locationSpy = { href: '' };
+      vi.stubGlobal('location', locationSpy);
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: 's1',
+        statusKey: 'ABANDONED',
+        completedAt: 'now',
+      });
+      const play = makeAbandonPlay({ turns: [] });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).not.toHaveBeenCalled();
+      expect(completeSession).toHaveBeenCalledWith('s1', 'ABANDONED');
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe('/games');
+    });
+
+    it('ignores a second call while abandonLoading is true', async () => {
+      let resolveComplete!: (
+        v: Awaited<ReturnType<typeof completeSession>>,
+      ) => void;
+      vi.mocked(completeSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveComplete = resolve;
+          }),
+      );
+      const play = makeAbandonPlay();
+
+      const first = play.abandonAndExit.call(play);
+      const second = play.abandonAndExit.call(play);
+      expect(completeSession).toHaveBeenCalledTimes(1);
+
+      resolveComplete({
+        sessionId: 's1',
+        statusKey: 'ABANDONED',
+        completedAt: 'now',
+      });
+      await Promise.all([first, second]);
+      expect(completeSession).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets error on PATCH failure and does not navigate or reset', async () => {
+      const locationSpy = { href: '/games/score-training/play' };
+      vi.stubGlobal('location', locationSpy);
+      vi.mocked(completeSession).mockRejectedValue(new Error('Network error'));
+      const play = makeAbandonPlay();
+
+      await play.abandonAndExit.call(play);
+
+      expect(play.error).toBe('Could not abandon session. Try again.');
+      expect(play.abandonLoading).toBe(false);
+      expect(play.$store.game.reset).not.toHaveBeenCalled();
+      expect(locationSpy.href).toBe('/games/score-training/play');
+    });
+
+    it('with no sessionId: reset and navigate without API calls', async () => {
+      const locationSpy = { href: '' };
+      vi.stubGlobal('location', locationSpy);
+      const play = makeAbandonPlay({ sessionId: null });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).not.toHaveBeenCalled();
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe('/games');
+    });
+  });
+
   describe('keypad helpers + visitInput validation', () => {
     it('appendDigit appends digits and rejects length > 3', () => {
       const component = { ...scoreTrainingPlay(), $store: { game: gameStub() } };
