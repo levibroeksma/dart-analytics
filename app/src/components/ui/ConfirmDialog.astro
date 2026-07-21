@@ -54,13 +54,22 @@ const descriptionId = `${titleId}-desc`;
   onDismiss={dismissible ? onCancel : undefined}
   class={classNameProp}
 >
-  <h2 id={titleId} class="text-lg font-semibold text-foreground">
+  <h2
+    id={titleId}
+    class="text-lg font-semibold text-foreground"
+  >
     {title}
   </h2>
-  <p id={descriptionId} class="mt-2 text-sm text-muted-foreground">
+  <p
+    id={descriptionId}
+    class="mt-2 text-sm text-muted-foreground"
+  >
     {description}
   </p>
-  <div slot="footer" class="mt-6 flex justify-end gap-3">
+  <div
+    slot="footer"
+    class="mt-6 flex justify-end gap-3"
+  >
     <Button
       type="button"
       variant="ghost"

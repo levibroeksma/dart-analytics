@@ -34,7 +34,10 @@ export function scoreTrainingPlay() {
 
     appendDigit(this: ScoreTrainingPlayContext, digit: number) {
       if (this.showFinishConfirm || this.finished) return;
-      const next = this.visitInput === "0" ? String(digit) : this.visitInput + String(digit);
+      const next =
+        this.visitInput === "0"
+          ? String(digit)
+          : this.visitInput + String(digit);
       if (next.length > 3) return;
       this.visitInput = next;
     },
@@ -304,7 +307,10 @@ export function scoreTrainingPlay() {
             ...turn,
             completedAt: turn.completedAt ?? new Date().toISOString(),
           }));
-          const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
+          const batch = buildEventsBatch(
+            this.$store.game.participantRef!,
+            completedTurns,
+          );
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");

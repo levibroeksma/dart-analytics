@@ -67,7 +67,10 @@ const rootClass = cn("flex flex-1 flex-col gap-3 p-2", classNameProp);
         <UndoIcon class="size-6 text-fg-subtle" />
       </InputButton>
       <InputButton @click="appendDigit(0)">0</InputButton>
-      <InputButton aria-label="Delete last digit" @click="deleteLast()">
+      <InputButton
+        aria-label="Delete last digit"
+        @click="deleteLast()"
+      >
         <DeleteIcon class="size-6 text-fg-subtle" />
       </InputButton>
     </div>

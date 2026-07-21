@@ -32,16 +32,21 @@ const pages = [
   },
 ];
 ---
-<nav class="app-nav" aria-label="Main navigation">
+
+<nav
+  class="app-nav"
+  aria-label="Main navigation"
+>
   <div class="mx-auto flex max-w-lg justify-around py-1">
-{
-    pages.map((page) => (
-      <NavBtn
-        href={page.href}
-        label={page.label}
-      >
-        <page.icon aria-hidden="true" />
-      </NavBtn>
-    ))
-  }  </div>
+    {
+      pages.map((page) => (
+        <NavBtn
+          href={page.href}
+          label={page.label}
+        >
+          <page.icon aria-hidden="true" />
+        </NavBtn>
+      ))
+    }
+  </div>
 </nav>

@@ -11,7 +11,10 @@ const { title }: Props = Astro.props;
 ---
 
 <BaseLayout title={title}>
-  <div class="app-shell" x-data="{ showExitModal: false }">
+  <div
+    class="app-shell"
+    x-data="{ showExitModal: false }"
+  >
     <header class="flex items-center p-3">
       <button
         type="button"

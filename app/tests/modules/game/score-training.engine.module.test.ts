@@ -88,10 +88,10 @@ describe("ScoreTrainingEngine.recordVisit", () => {
   });
 });
 
-describe('ScoreTrainingEngine.undoLastVisit', () => {
-  it('pops the last visit and returns true; next recordVisit reuses that sequence', () => {
+describe("ScoreTrainingEngine.undoLastVisit", () => {
+  it("pops the last visit and returns true; next recordVisit reuses that sequence", () => {
     const engine = new ScoreTrainingEngine({
-      durationType: 'ROUNDS',
+      durationType: "ROUNDS",
       durationValue: 10,
       maxDartsPerTurn: 3,
     });
@@ -104,9 +104,9 @@ describe('ScoreTrainingEngine.undoLastVisit', () => {
     expect(engine.currentTotal()).toBe(90);
   });
 
-  it('returns false when there are no visits', () => {
+  it("returns false when there are no visits", () => {
     const engine = new ScoreTrainingEngine({
-      durationType: 'ROUNDS',
+      durationType: "ROUNDS",
       durationValue: 10,
       maxDartsPerTurn: 3,
     });
