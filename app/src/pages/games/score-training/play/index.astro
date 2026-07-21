@@ -4,6 +4,7 @@ import GameLayout from "@layouts/GameLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 ---
 
 <GameLayout title="Score Training — Play">
@@ -70,28 +71,16 @@ import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.as
     </div>
 
     {/* Finish confirm (before results) */}
-    <div
-      class="fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="finish-confirm-title"
-      x-show="showFinishConfirm"
-      x-cloak
-    >
-      <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm surface w-full">
-        <h2 id="finish-confirm-title" class="text-lg font-semibold text-fg">Finish session?</h2>
-        <p class="text-sm text-fg-muted mt-2">
-          This visit completes the session. Confirm to save, or cancel to adjust the score.
-        </p>
-        <div class="flex gap-3 mt-6 justify-end">
-          <button type="button" class="btn btn-ghost" @click="cancelFinish()">
-            Cancel
-          </button>
-          <button type="button" class="btn btn-primary" @click="confirmFinish()">
-            Confirm
-          </button>
-        </div>
-      </div>
+    <div x-show="showFinishConfirm" x-cloak>
+      <ConfirmDialog
+        titleId="finish-confirm-title"
+        title="Finish session?"
+        description="This visit completes the session. Confirm to save, or cancel to adjust the score."
+        confirmLabel="Confirm"
+        onCancel="cancelFinish()"
+        onConfirm="confirmFinish()"
+        dismissible={false}
+      />
     </div>
 
     {/* Results modal (overlay) */}
