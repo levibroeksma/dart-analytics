@@ -23,13 +23,13 @@ const numberRows = [
 ];
 
 // Styles
-const rootClass = cn("flex flex-1 flex-col gap-3 p-2", classNameProp);
+const rootClass = cn("flex flex-1 flex-col gap-3 p-3", classNameProp);
 ---
 
 <div class={rootClass}>
   <div class="flex items-center gap-3">
     <div
-      class="surface-elevated flex min-h-11 flex-1 items-center justify-center rounded-lg px-4"
+      class="surface-elevated flex min-h-11 flex-1 items-center justify-center rounded-lg px-4 w-1/2"
     >
       <span
         class="text-4xl font-mono font-bold tabular-nums"
@@ -39,30 +39,37 @@ const rootClass = cn("flex flex-1 flex-col gap-3 p-2", classNameProp);
     </div>
     <button
       type="button"
-      class="btn btn-primary shrink-0 rounded-md px-5 disabled:pointer-events-none disabled:opacity-40"
-      :disabled="!visitInput"
+      class="btn btn-primary shrink-0 rounded-md px-5 disabled:pointer-events-none disabled:opacity-40 w-1/2"
+      :disabled="!visitInput || showFinishConfirm || finished"
       @click={click}
     >
       Submit
     </button>
   </div>
 
-  <div class="surface flex flex-1 flex-col gap-1.5 p-3 w-full">
+  <div class="surface flex flex-1 flex-col gap-1.5 p-3 w-full min-h-0">
     {
       numberRows.map((row) => (
-        <div class="flex gap-1.5 w-full">
+        <div class="flex flex-1 gap-1.5 w-full min-h-0">
           {row.map((value) => (
-            <InputButton @click={`appendDigit(${value})`}>{value}</InputButton>
+            <InputButton class="flex-1 h-full" x-on:click={`appendDigit(${value})`}>
+              {value}
+            </InputButton>
           ))}
         </div>
       ))
     }
-    <div class="flex gap-2 w-full">
-      <InputButton class="p-0" aria-label="Clear score" @click="clearVisitInput()">
+    <div class="flex flex-1 gap-1.5 w-full min-h-0">
+      <InputButton
+        class="flex-1 h-full"
+        aria-label="Undo last visit"
+        :disabled="!$store.game.turns.length || showFinishConfirm || finished"
+        @click="undoVisit()"
+      >
         <UndoIcon class="size-6 text-fg-subtle" />
       </InputButton>
-      <InputButton @click="appendDigit(0)">0</InputButton>
-      <InputButton aria-label="Delete last digit" @click="deleteLast()">
+      <InputButton class="flex-1 h-full" @click="appendDigit(0)">0</InputButton>
+      <InputButton class="flex-1 h-full" aria-label="Delete last digit" @click="deleteLast()">
         <DeleteIcon class="size-6 text-fg-subtle" />
       </InputButton>
     </div>
