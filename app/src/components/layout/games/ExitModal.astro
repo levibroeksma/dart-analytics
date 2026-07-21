@@ -1,0 +1,26 @@
+---
+// Presentational — parent GameLayout owns showExitModal
+---
+
+<div
+  class="fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="exit-modal-title"
+  @click.self="showExitModal = false"
+>
+  <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm surface w-full">
+    <h2 id="exit-modal-title" class="text-lg font-semibold text-fg">Leave game?</h2>
+    <p class="text-sm text-fg-muted mt-2">
+      This session will be recorded as abandoned.
+    </p>
+    <div class="flex gap-3 mt-6 justify-end">
+      <button type="button" class="btn btn-ghost" @click="showExitModal = false">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" @click="$dispatch('confirm-exit')">
+        Leave
+      </button>
+    </div>
+  </div>
+</div>

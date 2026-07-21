@@ -1,0 +1,32 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ExitModal from "@components/layout/games/ExitModal.astro";
+import ExitIcon from "@icons/exit.svg";
+
+interface Props {
+  title?: string;
+}
+
+const { title }: Props = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <div class="app-shell" x-data="{ showExitModal: false }">
+    <header class="flex items-center p-3">
+      <button
+        type="button"
+        class="btn btn-ghost p-2"
+        aria-label="Exit game"
+        @click="showExitModal = true"
+      >
+        <ExitIcon class="size-6 text-fg-subtle" />
+      </button>
+    </header>
+    <main class="app-main">
+      <slot />
+    </main>
+    <template x-if="showExitModal">
+      <ExitModal />
+    </template>
+  </div>
+</BaseLayout>
