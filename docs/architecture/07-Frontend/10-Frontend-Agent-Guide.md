@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-17
+updated: 2026-07-21
 -->
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.3 (Score Training recovery/hard-gate, 2026-07-17)
+> **Version:** 0.1.4 (2026-07-21 — comment/format conventions)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -85,9 +85,15 @@ Shared helper: `app/src/lib/game/session-recovery.ts` (D118). Auto-cleanup on **
 
 Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
+- **`app/src/**/*.ts` comments:** no inline comments inside function bodies — JSDoc above the declaration (`app/CLAUDE.md`)
+
 ## 10. Components (`.astro`)
 
 Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
+
+- **Template comments:** `{/* ... */}` only — never `<!-- -->`
+- **Frontmatter `// Title`:** blank line before each section header (`05-Astro-Components.md`)
+- **Formatting:** Prettier (`singleAttributePerLine`); `npm run format` / `format:check`
 
 ## 11. Test-driven development
 
@@ -142,6 +148,8 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - [ ] Recovery text consistent with `00-Overview.md` (auto-cleanup)
 - [ ] Context Maintenance: `00-Context-Map.md` updated if docs added/moved
 - [ ] `scripts/check-context-map.sh` passes
+- [ ] Template comments are `{/* */}` only (no `<!-- -->`)
+- [ ] `npm run format:check` clean when touching `app/` markup/TS
 
 ---
 

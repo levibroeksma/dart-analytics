@@ -53,6 +53,19 @@ Full documentation: https://docs.astro.build
 - Re-run `drizzle-kit introspect` after architecture migration changes.
 - `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
 
+## TypeScript comments (`app/src/**/*.ts`)
+
+- Never put `//` or `/* */` comments inside function/method bodies.
+- Prefer names that read naturally; put necessary detail in JSDoc above the declaration.
+- Exempt: `// fallow-ignore-next-line ...` tool directives; `///` triple-slash references.
+- Out of scope: `app/tests/`, `app/scripts/`.
+
+## Formatting
+
+- Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
+- `npm run format` (write) · `npm run format:check` (CI).
+- Format on save via `app/.vscode/settings.json`.
+
 ## Test-Driven Development (mandatory)
 
 Every `app/` behavior change follows **red → green → refactor**:
