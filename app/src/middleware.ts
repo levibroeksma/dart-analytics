@@ -6,6 +6,13 @@ import { verifyBearerToken } from "./lib/auth/verify-jwt";
 import { fail } from "./lib/server/envelope";
 import { classifyRoute } from "./lib/utils/route-class";
 
+/**
+ * Route-class auth gate. `api-provision` (D62): JWT verified, player lookup
+ * skipped — authenticated-unprovisioned. `protected-page` (D97/D98): HTML never
+ * carries Bearer; prerendered shells bypass middleware in production; redirecting
+ * in dev causes a / ↔ /login loop after client login — navigation UX is
+ * enforced by auth.store init(), not here.
+ */
 export const onRequest: MiddlewareHandler = async (ctx, next) => {
   ctx.locals.requestId = crypto.randomUUID();
   const cls = classifyRoute(ctx.url.pathname);
@@ -20,7 +27,6 @@ export const onRequest: MiddlewareHandler = async (ctx, next) => {
     if (!verified) return fail("UNAUTHORIZED", ctx.locals.requestId);
 
     if (cls === "api-provision") {
-      // authenticated-unprovisioned: JWT verified, player resolution skipped (D62)
       ctx.locals.auth = {
         authUserId: verified.authUserId,
         ...(verified.name ? { name: verified.name } : {}),
@@ -40,9 +46,6 @@ export const onRequest: MiddlewareHandler = async (ctx, next) => {
     return next();
   }
 
-  // protected-page: HTML never carries Bearer (D97/D98). Prerendered shells bypass
-  // middleware in production; in dev, redirecting here causes a / ↔ /login loop
-  // after client login. Navigation UX is enforced by auth.store init(), not here.
   if (cls === "protected-page") return next();
 
   return next();
