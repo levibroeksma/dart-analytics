@@ -21,7 +21,7 @@ const { score, target, isTarget = true }: Props = Astro.props;
   >
     <h1
       class="text-7xl font-mono font-bold tabular-nums"
-      x-text={isTarget ? `'${target}'` : `'${score}'`}
+      x-text={isTarget ? target : score}
     ></h1>
     <span class="text-sm text-fg-subtle uppercase">
       {isTarget ? "Target" : "Score"}
