@@ -35,22 +35,5 @@ const title =
     :class="{ invisible: !$store.auth.ready }"
   >
     <slot />
-    <!-- <ConfirmationModal /> -->
   </body>
-  <!-- <script is:inline>
-    document.addEventListener(
-      "dblclick",
-      (event) => {
-        event.preventDefault();
-      },
-      { passive: false },
-    );
-    document.addEventListener(
-      "gesturestart",
-      (event) => {
-        event.preventDefault();
-      },
-      { passive: false },
-    );
-  </script> -->
 </html>

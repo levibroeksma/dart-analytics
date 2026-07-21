@@ -10,6 +10,6 @@ import Button from '@components/forms/Button.astro';
   @click="submit"
   :disabled="loading"
 >
-  <span x-show="!loading">Sign out</span>
-  <span x-show="loading">Signing out…</span>
+  <span x-show="!loading" x-cloak>Sign out</span>
+  <span x-show="loading" x-cloak>Signing out…</span>
 </Button>

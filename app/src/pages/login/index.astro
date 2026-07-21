@@ -36,12 +36,13 @@ import Button from '@components/forms/Button.astro';
           <p
             x-show="error"
             x-text="error"
+            x-cloak
             class="text-sm text-destructive"
             role="alert"
           ></p>
           <Button type="submit" variant="primary" class="w-full" :disabled="loading">
-            <span x-show="!loading">Sign in</span>
-            <span x-show="loading">Signing in…</span>
+            <span x-show="!loading" x-cloak>Sign in</span>
+            <span x-show="loading" x-cloak>Signing in…</span>
           </Button>
         </form>
       </div>
