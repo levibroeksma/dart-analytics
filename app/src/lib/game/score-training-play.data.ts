@@ -62,6 +62,8 @@ export function scoreTrainingPlay() {
       visits: number;
       average: number;
     } | null,
+    pendingFinishScore: null as number | null,
+    showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
 
@@ -178,6 +180,27 @@ export function scoreTrainingPlay() {
       this.finished = true;
       this.completionStatus = "pending";
       await this.uploadAndCompleteSession();
+    },
+
+    undoVisit(this: ScoreTrainingPlayContext) {
+      if (this.finished || this.showFinishConfirm) return;
+      if (!this.engine || this.$store.game.turns.length === 0) return;
+
+      this.$store.game.undoLastTurn();
+      const poppedLocal = this.engine.undoLastVisit();
+      if (!poppedLocal) {
+        const config = this.$store.game.configSnapshot;
+        if (!config) return;
+        this.engine = new ScoreTrainingEngine({
+          durationType: config.durationType,
+          durationValue: config.durationValue,
+          maxDartsPerTurn: config.maxDartsPerTurn,
+          startingSequence: this.$store.game.turns.length,
+        });
+      }
+
+      this.visitInput = "";
+      this.error = "";
     },
 
     async uploadAndCompleteSession(

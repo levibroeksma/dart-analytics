@@ -17,6 +17,8 @@ export type ScoreTrainingPlayContext = {
   playAgainLoading: boolean;
   abandonLoading: boolean;
   resultsSnapshot: { total: number; visits: number; average: number } | null;
+  pendingFinishScore: number | null;
+  showFinishConfirm: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -28,6 +30,7 @@ export type ScoreTrainingPlayContext = {
       timerExpired?: boolean;
       idempotencyKey?: string | null;
       recordTurn(turn: RecordedTurn): void;
+      undoLastTurn(): void;
       reset(): void;
     };
   };
@@ -37,6 +40,7 @@ export type ScoreTrainingPlayContext = {
   init(this: ScoreTrainingPlayContext): Promise<void>;
   retryReconciliation(this: ScoreTrainingPlayContext): Promise<void>;
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
+  undoVisit(this: ScoreTrainingPlayContext): void;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   back(this: ScoreTrainingPlayContext): Promise<void>;
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;

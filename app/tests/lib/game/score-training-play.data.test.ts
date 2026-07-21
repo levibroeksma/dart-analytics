@@ -47,6 +47,7 @@ type GameStub = {
   timerExpired: boolean;
   idempotencyKey: string | null;
   recordTurn: (turn: RecordedTurn) => void;
+  undoLastTurn: () => void;
   reset: () => void;
 };
 
@@ -68,6 +69,9 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
       turn: RecordedTurn,
     ) {
       this.turns.push(turn);
+    }),
+    undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
+      this.turns = this.turns.slice(0, -1);
     }),
     reset: vi.fn(),
     ...overrides,
@@ -522,6 +526,9 @@ describe("scoreTrainingPlay", () => {
             ],
             idempotencyKey: null,
             recordTurn: vi.fn(),
+            undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
+              this.turns = this.turns.slice(0, -1);
+            }),
             reset: vi.fn(),
             ...gameOverrides,
           },
@@ -974,6 +981,57 @@ describe("scoreTrainingPlay", () => {
       expect(component.error).toBe('Enter a score between 0 and 180.');
       expect(component.visitInput).toBe('999');
       expect(store.recordTurn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('undoVisit', () => {
+    it('pops store + engine and clears visitInput; discards typed digits', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '45' };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      expect(store.turns).toHaveLength(1);
+
+      component.visitInput = '99';
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(0);
+      expect(store.undoLastTurn).toHaveBeenCalled();
+      expect(component.visitInput).toBe('');
+      expect(component.error).toBe('');
+    });
+
+    it('is a no-op when there are no turns', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store }, visitInput: '12' };
+      await component.init.call(component);
+      component.undoVisit();
+      expect(store.undoLastTurn).not.toHaveBeenCalled();
+      expect(component.visitInput).toBe('12');
+    });
+
+    it('after resume undo, next visit sequence continues from remaining turns', async () => {
+      const store = gameStub({
+        configSnapshot: { durationType: 'ROUNDS', durationValue: 20, maxDartsPerTurn: 3 },
+        turns: [
+          { clientKey: 't1', sequence: 1, totalScore: 40, completedAt: 'x' },
+          { clientKey: 't2', sequence: 2, totalScore: 50, completedAt: 'x' },
+        ],
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      // Engine was created with startingSequence=2 and empty visits — undoLastVisit returns false.
+      component.undoVisit();
+      expect(store.turns).toHaveLength(1);
+
+      component.visitInput = '60';
+      await component.submitVisit.call(component);
+      const last = store.turns[store.turns.length - 1];
+      expect(last.sequence).toBe(2);
     });
   });
 });
