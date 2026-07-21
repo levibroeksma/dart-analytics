@@ -87,3 +87,29 @@ describe("ScoreTrainingEngine.recordVisit", () => {
     expect([1, 2, 3]).not.toContain(second.sequence);
   });
 });
+
+describe('ScoreTrainingEngine.undoLastVisit', () => {
+  it('pops the last visit and returns true; next recordVisit reuses that sequence', () => {
+    const engine = new ScoreTrainingEngine({
+      durationType: 'ROUNDS',
+      durationValue: 10,
+      maxDartsPerTurn: 3,
+    });
+    engine.recordVisit(40);
+    engine.recordVisit(60);
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentTotal()).toBe(40);
+    const next = engine.recordVisit(50);
+    expect(next.sequence).toBe(2);
+    expect(engine.currentTotal()).toBe(90);
+  });
+
+  it('returns false when there are no visits', () => {
+    const engine = new ScoreTrainingEngine({
+      durationType: 'ROUNDS',
+      durationValue: 10,
+      maxDartsPerTurn: 3,
+    });
+    expect(engine.undoLastVisit()).toBe(false);
+  });
+});
