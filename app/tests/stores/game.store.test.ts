@@ -80,7 +80,26 @@ describe("gameStore", () => {
     expect(store.turns).toEqual([]);
   });
 
-  it("regression: reusing one Alpine persist() collapses every .as() key to the last one", () => {
+  it('undoLastTurn pops the last turn; no-op when empty', () => {
+    const store = gameStore(stubPersistFactory());
+    store.startSession({
+      gameTypeKey: 'SCORE_TRAINING',
+      sessionId: 's1',
+      participantRef: 'p1',
+      configSnapshot: { durationType: 'ROUNDS', durationValue: 10, maxDartsPerTurn: 3 },
+    });
+    store.recordTurn({ clientKey: 't1', sequence: 1, totalScore: 45, completedAt: null });
+    store.recordTurn({ clientKey: 't2', sequence: 2, totalScore: 60, completedAt: null });
+    store.undoLastTurn();
+    expect(store.turns).toHaveLength(1);
+    expect(store.turns[0].clientKey).toBe('t1');
+    store.undoLastTurn();
+    expect(store.turns).toEqual([]);
+    store.undoLastTurn();
+    expect(store.turns).toEqual([]);
+  });
+
+  it('regression: reusing one Alpine persist() collapses every .as() key to the last one', () => {
     const { persist, resolveAliases } = createSharedAliasPersist();
     persist([]).as("game.turns");
     persist(null).as("game.idempotencyKey");
