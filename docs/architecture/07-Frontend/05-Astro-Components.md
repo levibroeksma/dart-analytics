@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/astro-components
 read-when: authoring or reviewing .astro components
-updated: 2026-07-15
+updated: 2026-07-21
 -->
 
 # Frontend Astro Components
 
-> **Version:** 0.1.0
+> **Version:** 0.1.1 (2026-07-21 — comment/format conventions)
 >
 > Authoring conventions for `.astro` components: frontmatter order, props, class composition, slots, categories.
 >
@@ -39,6 +39,15 @@ Frontmatter sections appear in this fixed order; omit any that do not apply.
 
 **Import group headers** use exactly this vocabulary (`// Layouts`, `// Components`, `// Icons`, `// Lib`) and only for groups that are present.
 
+**Section headers:** mandatory blank line before each `// Title` comment; the first section after `---` may omit it.
+
+---
+
+# Comments
+
+- **Template (markup):** comments only as `{/* ... */}` — never `<!-- -->`.
+- **Frontmatter:** TypeScript `//` / JSDoc only; section headers use the vocabulary above.
+
 ---
 
 # Props
@@ -60,6 +69,8 @@ interface Props {
 const { href, matchPrefix, class: classNameProp }: Props = Astro.props;
 ---
 ```
+
+(Blank line before `// Props` shown above; first section after `---` may omit it when `interface Props` is present.)
 
 ---
 
@@ -88,7 +99,7 @@ const className = cn(
 <a href={href} class={className}><slot /></a>
 ```
 
-Runtime example (Alpine v3): static classes in `class`, reactive bind in `:class`, listeners as `@event`:
+Runtime example (Alpine v3): static classes in `class`, reactive bind in `:class`, listeners as `@event`. Multi-attribute tags use one attribute per line (enforced by Prettier `singleAttributePerLine`):
 
 ```astro
 <button
@@ -154,6 +165,8 @@ Categories map to the folders in `02-Folder-Structure.md`:
 | Long utility strings duplicated across components | Promote to a `@layer components` class |
 | One-use pass-through wrapper component | Inline it — needless indirection |
 | Data fetching inside a component | Pages own hydration |
+| `<!-- -->` HTML comments in template markup | Use `{/* ... */}` only — HTML comments break Astro/Prettier tooling |
+| `x-show` without `x-cloak` on the same element | FOUC before Alpine hydrates — pair them (`03-Alpine-Patterns.md`) |
 
 ---
 

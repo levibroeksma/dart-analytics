@@ -21,16 +21,28 @@ export async function reconcileActiveSession(
   localSessionId: string | null,
   serverSessions: SessionActiveData[],
   store: StoreLike,
-): Promise<{ action: "match" | "no_active" | "abandon_failed"; activeSession: SessionActiveData | null }> {
-  const scoreTrainingActive = serverSessions.find((s) => s.gameTypeKey === "SCORE_TRAINING");
+): Promise<{
+  action: "match" | "no_active" | "abandon_failed";
+  activeSession: SessionActiveData | null;
+}> {
+  const scoreTrainingActive = serverSessions.find(
+    (s) => s.gameTypeKey === "SCORE_TRAINING",
+  );
 
   // Case 1: Match — resume path, store untouched
-  if (localSessionId && scoreTrainingActive && scoreTrainingActive.sessionId === localSessionId) {
+  if (
+    localSessionId &&
+    scoreTrainingActive &&
+    scoreTrainingActive.sessionId === localSessionId
+  ) {
     return { action: "match", activeSession: scoreTrainingActive };
   }
 
   // Case 2: Mismatch — auto-PATCH orphan to ABANDONED synchronously
-  if (scoreTrainingActive && (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)) {
+  if (
+    scoreTrainingActive &&
+    (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)
+  ) {
     try {
       await completeSession(scoreTrainingActive.sessionId, "ABANDONED");
     } catch {

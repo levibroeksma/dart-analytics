@@ -1,7 +1,10 @@
 import type { EventsBatchRequestInput } from "@client/api/types";
 import type { RecordedVisit } from "./types";
 
-export function buildEventsBatch(participantRef: string, turns: RecordedVisit[]): EventsBatchRequestInput {
+export function buildEventsBatch(
+  participantRef: string,
+  turns: RecordedVisit[],
+): EventsBatchRequestInput {
   return {
     stages: [
       {

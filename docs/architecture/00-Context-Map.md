@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-17
+updated: 2026-07-21
 -->
 
 # Context Map
 
-> **Version:** 1.6.6 (2026-07-17 — Score Training recovery/hard-gate D118/D119)
+> **Version:** 1.6.7 (2026-07-21 — Astro/TS comment & format conventions, D123)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -114,10 +114,10 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes | canonical | ~2k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate (2026-07-17) | canonical | ~2.5k |
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit | canonical | ~2k |
-| `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots | canonical | ~2k |
+| `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~1k |
 | `07-Frontend/07-Style-Guide.md` | Tokens, primitives, typography, motion, accessibility conventions (2026-07-16) | canonical | ~2.5k |
-| `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules (2026-07-17) | canonical | ~2k |
+| `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2k |
 
 ## SQL (`database/`)
 

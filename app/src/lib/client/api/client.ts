@@ -1,12 +1,12 @@
-import { getAccessToken } from '@client/auth/client';
-import type { ApiFailure, ApiResult } from './types';
+import { getAccessToken } from "@client/auth/client";
+import type { ApiFailure, ApiResult } from "./types";
 
 const UNAUTHORIZED: ApiFailure = {
   ok: false,
-  requestId: '',
+  requestId: "",
   error: {
-    code: 'UNAUTHORIZED',
-    message: 'Authentication required',
+    code: "UNAUTHORIZED",
+    message: "Authentication required",
     retryable: false,
   },
 };
@@ -19,9 +19,9 @@ export async function apiRequest<T>(
   if (!token) return UNAUTHORIZED;
 
   const headers = new Headers(init.headers);
-  headers.set('Authorization', `Bearer ${token}`);
-  if (init.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
+  headers.set("Authorization", `Bearer ${token}`);
+  if (init.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
 
   const response = await fetch(path, { ...init, headers });

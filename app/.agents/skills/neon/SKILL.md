@@ -212,9 +212,9 @@ export default defineConfig({
   auth: true,
   dataApi: true,
   preview: {
-    functions: { /* ... */ }, // see the neon-functions skill
-    buckets: { /* ... */ },    // see the neon-object-storage skill
-    aiGateway: true,           // see the neon-ai-gateway skill
+    functions: {/* ... */}, // see the neon-functions skill
+    buckets: {/* ... */}, // see the neon-object-storage skill
+    aiGateway: true, // see the neon-ai-gateway skill
   },
 });
 ```
@@ -320,7 +320,10 @@ export default defineConfig({ auth: true, dataApi: true });
 
 // 2. Or verify a third-party IdP instead of Neon Auth:
 export default defineConfig({
-  dataApi: { authProvider: "external", jwksUrl: "https://your-idp/.well-known/jwks.json" },
+  dataApi: {
+    authProvider: "external",
+    jwksUrl: "https://your-idp/.well-known/jwks.json",
+  },
 });
 ```
 

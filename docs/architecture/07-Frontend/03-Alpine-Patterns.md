@@ -160,6 +160,8 @@ Use **shorthand** for binds and listeners. Keep structural/behavioral directives
 
 **Keep long form (no shorthand):** `x-data`, `x-show`, `x-text`, `x-model`, `x-cloak`, `x-for`, `x-if`, `x-transition`, `x-effect`.
 
+**`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak`.
+
 ### Astro exception
 
 In `.astro` markup, prefer shorthand on **native HTML elements** (`<form>`, `<button>`, `<input>`, …).

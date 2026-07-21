@@ -9,7 +9,8 @@ type Db = ReturnType<typeof getDb>;
  * Creates or returns the player row for the given auth user id.
  * `created` is true when a new row was inserted, false when it already existed.
  * Detection uses the system column `xmax`: a freshly inserted row has xmax = 0,
- * while an ON CONFLICT DO UPDATE touch sets it non-zero.
+ * while an ON CONFLICT DO UPDATE touch sets it non-zero. On conflict, existing
+ * `display_name` is preserved — provision is idempotent.
  */
 export async function upsertPlayerByAuthUserId(
   db: Db,
@@ -29,7 +30,7 @@ export async function upsertPlayerByAuthUserId(
     })
     .onConflictDoUpdate({
       target: players.authUserId,
-      set: { updatedAt: now }, // existing display_name is preserved — provision is idempotent
+      set: { updatedAt: now },
     })
     .returning({
       playerId: players.id,

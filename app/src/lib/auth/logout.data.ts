@@ -1,4 +1,4 @@
-import type { LogoutButtonContext } from './types';
+import type { LogoutButtonContext } from "./types";
 
 export function logoutButton() {
   return {
@@ -7,7 +7,7 @@ export function logoutButton() {
     async submit(this: LogoutButtonContext) {
       this.loading = true;
       await this.$store.auth.signOut();
-      location.replace('/login');
+      location.replace("/login");
     },
   };
 }

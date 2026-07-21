@@ -53,6 +53,19 @@ Full documentation: https://docs.astro.build
 - Re-run `drizzle-kit introspect` after architecture migration changes.
 - `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
 
+## TypeScript comments (`app/src/**/*.ts`)
+
+- Never put `//` or `/* */` comments inside function/method bodies.
+- Prefer names that read naturally; put necessary detail in JSDoc above the declaration.
+- Exempt: `// fallow-ignore-next-line ...` tool directives; `///` triple-slash references.
+- Out of scope: `app/tests/`, `app/scripts/`.
+
+## Formatting
+
+- Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
+- `npm run format` (write) · `npm run format:check` (CI).
+- Format on save via `app/.vscode/settings.json`.
+
 ## Test-Driven Development (mandatory)
 
 Every `app/` behavior change follows **red → green → refactor**:
@@ -100,6 +113,7 @@ For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend
 Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores/forms; `PersistFactory` once per field (D120) — never reuse one `persist()` across store fields. (2026-07-17)
 
 **TypeScript file organization:** No `.ts` file lives directly under `components/` or `pages/` — except `pages/api/**` (Worker route handlers) — regardless of single- or multi-consumer use; mechanically enforced by `scripts/check-file-locations.sh`. All other `.ts` files live in `app/src/lib/` (except stores/forms, which live at `stores/`, `forms/`):
+
 - Auth-related: `lib/auth/` (e.g., `login.data.ts`, `logout.data.ts`) — imported via `@auth/` alias
 - Domain-specific: organize by domain folder (e.g., `lib/game/`, `lib/players/`) — imported via `@lib/<domain>/`
 - Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`

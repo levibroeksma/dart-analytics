@@ -1,18 +1,18 @@
-import { provision } from '@client/api/players';
-import { authClient } from '@client/auth/client';
-import { getErrorMessage } from '@client/errors';
-import type { LoginFormContext } from './types';
+import { provision } from "@client/api/players";
+import { authClient } from "@client/auth/client";
+import { getErrorMessage } from "@client/errors";
+import type { LoginFormContext } from "./types";
 
 export function loginForm() {
   return {
-    email: '',
-    password: '',
-    error: '',
+    email: "",
+    password: "",
+    error: "",
     loading: false,
 
     async submit(this: LoginFormContext) {
       this.loading = true;
-      this.error = '';
+      this.error = "";
 
       try {
         await this.$store.auth.signIn(this.email, this.password);
@@ -21,7 +21,7 @@ export function loginForm() {
         const displayName = session.data?.user?.name;
         await provision(displayName ? { displayName } : undefined);
 
-        location.replace('/');
+        location.replace("/");
       } catch (err) {
         this.error = getErrorMessage(err);
         this.loading = false;

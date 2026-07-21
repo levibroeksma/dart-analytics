@@ -25,7 +25,8 @@ export class SegmentTimer {
     if (!this.audioCtx) {
       const AudioContextClass =
         window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
       this.audioCtx = new AudioContextClass();
     }
     return this.audioCtx;

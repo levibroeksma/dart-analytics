@@ -69,9 +69,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_game_features_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_game_features_implementation_key"
         }
@@ -125,9 +123,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_duration_types_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_duration_types_implementation_key"
         }
@@ -176,9 +172,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_game_statuses_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_game_statuses_implementation_key"
         }
@@ -227,9 +221,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_capture_modes_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_capture_modes_implementation_key"
         }
@@ -278,9 +270,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_input_modes_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_input_modes_implementation_key"
         }
@@ -360,9 +350,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_game_types_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_game_types_implementation_key"
         }
@@ -420,9 +408,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_dart_zones_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_dart_zones_implementation_key"
         }
@@ -479,12 +465,8 @@
           "tableFrom": "ruleset_versions",
           "tableTo": "game_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -492,18 +474,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_ruleset_versions_key": {
-          "columns": [
-            "game_type_id",
-            "implementation_key"
-          ],
+          "columns": ["game_type_id", "implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_ruleset_versions_key"
         },
         "uq_ruleset_versions_number": {
-          "columns": [
-            "game_type_id",
-            "version_number"
-          ],
+          "columns": ["game_type_id", "version_number"],
           "nullsNotDistinct": false,
           "name": "uq_ruleset_versions_number"
         }
@@ -559,12 +535,8 @@
           "tableFrom": "player_settings",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -647,12 +619,8 @@
           "tableFrom": "exercise_templates",
           "tableTo": "game_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -718,12 +686,8 @@
           "tableFrom": "routine_templates",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -774,9 +738,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_players_auth_user_id": {
-          "columns": [
-            "auth_user_id"
-          ],
+          "columns": ["auth_user_id"],
           "nullsNotDistinct": false,
           "name": "uq_players_auth_user_id"
         }
@@ -862,12 +824,8 @@
           "tableFrom": "activities",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -876,12 +834,8 @@
           "tableFrom": "activities",
           "tableTo": "game_statuses",
           "schemaTo": "public",
-          "columnsFrom": [
-            "status_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["status_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1087,12 +1041,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "activities",
           "schemaTo": "public",
-          "columnsFrom": [
-            "activity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["activity_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1101,12 +1051,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1115,12 +1061,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "game_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1129,12 +1071,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "capture_modes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "capture_mode_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["capture_mode_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1143,12 +1081,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "input_modes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "input_mode_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["input_mode_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1157,12 +1091,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "game_statuses",
           "schemaTo": "public",
-          "columnsFrom": [
-            "status_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["status_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1171,12 +1101,8 @@
           "tableFrom": "exercise_sessions",
           "tableTo": "ruleset_versions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "ruleset_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ruleset_version_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1232,9 +1158,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_participant_types_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_participant_types_implementation_key"
         }
@@ -1283,9 +1207,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_stage_types_implementation_key": {
-          "columns": [
-            "implementation_key"
-          ],
+          "columns": ["implementation_key"],
           "nullsNotDistinct": false,
           "name": "uq_stage_types_implementation_key"
         }
@@ -1347,12 +1269,8 @@
           "tableFrom": "exercise_configurations",
           "tableTo": "exercise_sessions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "exercise_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exercise_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1360,9 +1278,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_exercise_configuration_session": {
-          "columns": [
-            "exercise_session_id"
-          ],
+          "columns": ["exercise_session_id"],
           "nullsNotDistinct": false,
           "name": "uq_exercise_configuration_session"
         }
@@ -1441,12 +1357,8 @@
           "tableFrom": "participants",
           "tableTo": "exercise_sessions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "exercise_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exercise_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1455,12 +1367,8 @@
           "tableFrom": "participants",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1469,12 +1377,8 @@
           "tableFrom": "participants",
           "tableTo": "participant_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "participant_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["participant_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1645,12 +1549,8 @@
           "tableFrom": "exercise_stages",
           "tableTo": "exercise_sessions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "exercise_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exercise_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1659,12 +1559,8 @@
           "tableFrom": "exercise_stages",
           "tableTo": "exercise_stages",
           "schemaTo": "public",
-          "columnsFrom": [
-            "parent_stage_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_stage_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1673,12 +1569,8 @@
           "tableFrom": "exercise_stages",
           "tableTo": "stage_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "stage_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stage_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1752,12 +1644,8 @@
           "tableFrom": "routine_steps",
           "tableTo": "routine_templates",
           "schemaTo": "public",
-          "columnsFrom": [
-            "routine_template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["routine_template_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1766,12 +1654,8 @@
           "tableFrom": "routine_steps",
           "tableTo": "exercise_templates",
           "schemaTo": "public",
-          "columnsFrom": [
-            "exercise_template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exercise_template_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1780,12 +1664,8 @@
           "tableFrom": "routine_steps",
           "tableTo": "duration_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "duration_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["duration_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1793,10 +1673,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_routine_steps_sequence": {
-          "columns": [
-            "routine_template_id",
-            "sequence_number"
-          ],
+          "columns": ["routine_template_id", "sequence_number"],
           "nullsNotDistinct": false,
           "name": "uq_routine_steps_sequence"
         }
@@ -1909,12 +1786,8 @@
           "tableFrom": "turns",
           "tableTo": "exercise_stages",
           "schemaTo": "public",
-          "columnsFrom": [
-            "exercise_stage_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exercise_stage_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1923,12 +1796,8 @@
           "tableFrom": "turns",
           "tableTo": "participants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "participant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["participant_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1936,11 +1805,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_turns_stage_participant_sequence": {
-          "columns": [
-            "exercise_stage_id",
-            "participant_id",
-            "sequence_number"
-          ],
+          "columns": ["exercise_stage_id", "participant_id", "sequence_number"],
           "nullsNotDistinct": false,
           "name": "uq_turns_stage_participant_sequence"
         }
@@ -2095,12 +1960,8 @@
           "tableFrom": "darts",
           "tableTo": "turns",
           "schemaTo": "public",
-          "columnsFrom": [
-            "turn_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["turn_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2109,12 +1970,8 @@
           "tableFrom": "darts",
           "tableTo": "dart_zones",
           "schemaTo": "public",
-          "columnsFrom": [
-            "intended_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["intended_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2123,12 +1980,8 @@
           "tableFrom": "darts",
           "tableTo": "dart_zones",
           "schemaTo": "public",
-          "columnsFrom": [
-            "hit_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hit_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2136,10 +1989,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_darts_turn_number": {
-          "columns": [
-            "turn_id",
-            "dart_number"
-          ],
+          "columns": ["turn_id", "dart_number"],
           "nullsNotDistinct": false,
           "name": "uq_darts_turn_number"
         }
@@ -2278,12 +2128,8 @@
           "tableFrom": "configuration_templates",
           "tableTo": "game_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2292,12 +2138,8 @@
           "tableFrom": "configuration_templates",
           "tableTo": "players",
           "schemaTo": "public",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2369,12 +2211,8 @@
           "tableFrom": "session_write_idempotency",
           "tableTo": "exercise_sessions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2382,10 +2220,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uq_session_write_idempotency_session_key": {
-          "columns": [
-            "session_id",
-            "idempotency_key"
-          ],
+          "columns": ["session_id", "idempotency_key"],
           "nullsNotDistinct": false,
           "name": "uq_session_write_idempotency_session_key"
         }
@@ -2446,12 +2281,8 @@
           "tableFrom": "game_type_features",
           "tableTo": "game_types",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2460,12 +2291,8 @@
           "tableFrom": "game_type_features",
           "tableTo": "game_features",
           "schemaTo": "public",
-          "columnsFrom": [
-            "game_feature_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_feature_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2473,18 +2300,12 @@
       "compositePrimaryKeys": {
         "game_type_features_pkey": {
           "name": "game_type_features_pkey",
-          "columns": [
-            "game_type_id",
-            "game_feature_id"
-          ]
+          "columns": ["game_type_id", "game_feature_id"]
         }
       },
       "uniqueConstraints": {
         "uq_game_type_feature": {
-          "columns": [
-            "game_type_id",
-            "game_feature_id"
-          ],
+          "columns": ["game_type_id", "game_feature_id"],
           "nullsNotDistinct": false,
           "name": "uq_game_type_feature"
         }

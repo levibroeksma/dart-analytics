@@ -1,19 +1,21 @@
-import { neon, Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { drizzle as drizzleServerless } from 'drizzle-orm/neon-serverless';
-import { env } from '@lib/env';
-import * as schema from './schema';
+import { neon, Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
+import { env } from "@lib/env";
+import * as schema from "./schema";
 
+/**
+ * Returns a Drizzle client over Neon serverless HTTP.
+ * Connection-string rules: docs/architecture/05-Database/11-Neon-Integration.md
+ */
 export function getDb() {
-  // Contract: DATABASE_URL_UNPOOLED = direct (runtime); DATABASE_URL is tooling-only (pooled).
-  // Sole owner: docs/architecture/05-Database/11-Neon-Integration.md
   const url = env.postgres.databaseUrlUnpooled;
   const client = neon(url);
   return drizzle(client, { schema });
 }
 
 type ServerlessDb = ReturnType<typeof drizzleServerless<typeof schema>>;
-type TransactionDb = Parameters<ServerlessDb['transaction']>[0] extends (
+type TransactionDb = Parameters<ServerlessDb["transaction"]>[0] extends (
   tx: infer TX,
 ) => unknown
   ? TX

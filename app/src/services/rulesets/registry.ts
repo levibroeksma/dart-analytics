@@ -5,6 +5,8 @@ const REGISTRY: Record<string, RulesetValidator> = {
   SCORE_TRAINING_V1: scoreTrainingValidator,
 };
 
-export function getRulesetValidator(rulesetVersionKey: string): RulesetValidator | undefined {
+export function getRulesetValidator(
+  rulesetVersionKey: string,
+): RulesetValidator | undefined {
   return REGISTRY[rulesetVersionKey];
 }

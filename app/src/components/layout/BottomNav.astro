@@ -36,7 +36,10 @@ const pages = [
 <nav class="app-nav grid grid-cols-4 items-center">
   {
     pages.map((page) => (
-      <NavBtn href={page.href} label={page.label}>
+      <NavBtn
+        href={page.href}
+        label={page.label}
+      >
         <page.icon aria-hidden="true" />
       </NavBtn>
     ))

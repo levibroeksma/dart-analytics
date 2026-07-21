@@ -6,82 +6,225 @@ import Input from "@components/forms/Input.astro";
 ---
 
 <AppLayout title="Score Training — Play">
-  <div class="p-4" x-data="scoreTrainingPlay()">
-    <!-- Loading / reconciliation-blocked -->
-    <div class="text-center py-8" x-show="loadingReconciliation || reconciliationFailed">
-      <p class="text-sm text-fg-muted" x-show="loadingReconciliation">Loading...</p>
-      <div x-show="reconciliationFailed && !loadingReconciliation">
-        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
-        <Button type="button" class="mt-4" @click="retryReconciliation()">
+  <div
+    class="p-4"
+    x-data="scoreTrainingPlay()"
+  >
+    {/* Loading / reconciliation-blocked */}
+    <div
+      class="text-center py-8"
+      x-show="loadingReconciliation || reconciliationFailed"
+      x-cloak
+    >
+      <p
+        class="text-sm text-fg-muted"
+        x-show="loadingReconciliation"
+        x-cloak
+      >
+        Loading...
+      </p>
+      <div
+        x-show="reconciliationFailed && !loadingReconciliation"
+        x-cloak
+      >
+        <p class="text-sm text-red-500">
+          Could not clean up a previous session. Retry to continue.
+        </p>
+        <Button
+          type="button"
+          class="mt-4"
+          @click="retryReconciliation()"
+        >
           Retry
         </Button>
       </div>
     </div>
 
-    <!-- No active session view -->
-    <div x-show="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation">
+    {/* No active session view */}
+    <div
+      x-show="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation"
+      x-cloak
+    >
       <p class="text-fg">No active session — start a new one.</p>
-      <a class="btn-primary mt-4 inline-block" href="/games/score-training/setup">Start a new session</a>
+      <a
+        class="btn-primary mt-4 inline-block"
+        href="/games/score-training/setup"
+        >Start a new session</a
+      >
     </div>
 
-    <!-- Gameplay view (existing, with live total) -->
-    <div x-show="!finished && hasActiveSession">
+    {/* Gameplay view (existing, with live total) */}
+    <div
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    >
       <form @submit.prevent="submitVisit()">
         <p
           class="text-sm text-fg-muted"
           x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
+          x-cloak
           x-text="`Time remaining: ${remainingLabel()}`"
-        ></p>
+        >
+        </p>
         <p
           class="text-sm text-fg-muted"
           x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'"
+          x-cloak
           x-text="`Visit ${$store.game.turns.length + 1}`"
-        ></p>
-        <Input label="Visit score (0-180)" name="visitScore" inputmode="numeric" pattern="[0-9]*" x-model="visitInput" />
-        <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error"></p>
-        <Button type="submit" class="mt-4">Submit visit</Button>
+        >
+        </p>
+        <Input
+          label="Visit score (0-180)"
+          name="visitScore"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          x-model="visitInput"
+        />
+        <p
+          class="mt-2 text-sm text-red-500"
+          x-show="error"
+          x-cloak
+          x-text="error"
+        >
+        </p>
+        <Button
+          type="submit"
+          class="mt-4"
+          >Submit visit</Button
+        >
       </form>
 
-      <!-- Live total (always visible during play) -->
-      <p class="mt-4 text-fg" x-show="$store.game.turns.length > 0" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></p>
+      {/* Live total (always visible during play) */}
+      <p
+        class="mt-4 text-fg"
+        x-show="$store.game.turns.length > 0"
+        x-cloak
+        x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"
+      >
+      </p>
     </div>
 
-    <!-- Results modal (overlay) -->
-    <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-50" x-show="finished" x-cloak>
+    {/* Results modal (overlay) */}
+    <div
+      class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+      x-show="finished"
+      x-cloak
+    >
       <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm">
         <h2 class="text-lg font-semibold text-fg">Game Summary</h2>
 
-        <!-- Stats: live from store while saving, snapshot once succeeded -->
-        <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus !== 'succeeded'">
-          <p><span class="font-semibold text-fg" x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"></span></p>
-          <p><span class="font-semibold text-fg" x-text="`Visits: ${$store.game.turns.length}`"></span></p>
-          <p><span class="font-semibold text-fg" x-text="`Average: ${(($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1))).toFixed(1)}`"></span></p>
+        {/* Stats: live from store while saving, snapshot once succeeded */}
+        <div
+          class="mt-4 space-y-2 text-sm text-fg-muted"
+          x-show="completionStatus !== 'succeeded'"
+          x-cloak
+        >
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"
+            ></span>
+          </p>
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Visits: ${$store.game.turns.length}`"
+            ></span>
+          </p>
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Average: ${(($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1))).toFixed(1)}`"
+            ></span>
+          </p>
         </div>
-        <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus === 'succeeded' && resultsSnapshot">
-          <p><span class="font-semibold text-fg" x-text="`Total: ${resultsSnapshot?.total}`"></span></p>
-          <p><span class="font-semibold text-fg" x-text="`Visits: ${resultsSnapshot?.visits}`"></span></p>
-          <p><span class="font-semibold text-fg" x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"></span></p>
+        <div
+          class="mt-4 space-y-2 text-sm text-fg-muted"
+          x-show="completionStatus === 'succeeded' && resultsSnapshot"
+          x-cloak
+        >
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Total: ${resultsSnapshot?.total}`"
+            ></span>
+          </p>
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Visits: ${resultsSnapshot?.visits}`"
+            ></span>
+          </p>
+          <p>
+            <span
+              class="font-semibold text-fg"
+              x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"
+            ></span>
+          </p>
         </div>
 
-        <!-- Completion status -->
+        {/* Completion status */}
         <div class="mt-4">
-          <p class="text-sm text-fg-muted" x-show="completionStatus === 'pending' || completionStatus === 'saving'">Saving...</p>
-          <div x-show="completionStatus === 'failed'">
-            <p class="text-sm text-red-500" x-text="completionError"></p>
-            <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
+          <p
+            class="text-sm text-fg-muted"
+            x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+            x-cloak
+          >
+            Saving...
+          </p>
+          <div
+            x-show="completionStatus === 'failed'"
+            x-cloak
+          >
+            <p
+              class="text-sm text-red-500"
+              x-text="completionError"
+            >
+            </p>
+            <Button
+              type="button"
+              class="mt-2"
+              @click="uploadAndCompleteSession()"
+              >Retry</Button
+            >
           </div>
-          <p class="text-sm text-green-500" x-show="completionStatus === 'succeeded'">Saved!</p>
+          <p
+            class="text-sm text-green-500"
+            x-show="completionStatus === 'succeeded'"
+            x-cloak
+          >
+            Saved!
+          </p>
         </div>
 
-        <!-- Play-again failure: separate from completion status, buttons stay enabled -->
-        <p class="mt-2 text-sm text-red-500" x-show="playAgainError" x-text="playAgainError"></p>
+        {
+          /* Play-again failure: separate from completion status, buttons stay enabled */
+        }
+        <p
+          class="mt-2 text-sm text-red-500"
+          x-show="playAgainError"
+          x-cloak
+          x-text="playAgainError"
+        >
+        </p>
 
-        <!-- Action buttons: enabled only when completionStatus === 'succeeded' -->
+        {
+          /* Action buttons: enabled only when completionStatus === 'succeeded' */
+        }
         <div class="flex gap-3 mt-6">
-          <Button type="button" variant="secondary" @click="back()" :disabled="completionStatus !== 'succeeded'">
+          <Button
+            type="button"
+            variant="secondary"
+            @click="back()"
+            :disabled="completionStatus !== 'succeeded'"
+          >
             Back
           </Button>
-          <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded' || playAgainLoading">
+          <Button
+            type="button"
+            @click="playAgain()"
+            :disabled="completionStatus !== 'succeeded' || playAgainLoading"
+          >
             Play again?
           </Button>
         </div>

@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-17
+updated: 2026-07-21
 -->
 
 # Architectural Decision Ledger
@@ -123,6 +123,7 @@ updated: 2026-07-17
 | D118 | 2026-07-17 | Shared session recovery helper for setup & play: identical decision table in `app/src/lib/game/session-recovery.ts` (no page-specific variants) reconciles local `sessionId` vs server ACTIVE SCORE_TRAINING session; returns `"match"` \| `"no_active"` \| `"abandon_failed"` — the latter blocks session creation instead of silently resetting (orphan still ACTIVE; create would violate `uq_sessions_single_active`); match shows Continue/Abandon modal on setup only; mismatch never shows a dialog | Single implementation prevents table drift and UX loop where setup re-renders the modal twice |
 | D119 | 2026-07-17 | Score Training hard-gate completion: results modal gates Back / Play again until batch POST and `PATCH COMPLETED` both succeed (`completionStatus === "succeeded"`; treats `409 SESSION_ALREADY_COMPLETED` as success); amends D90's passive-outbox pattern for Score Training so terminal session state is reached before a new session can be created; supersedes D112's results-via-query-params / dedicated `/results` page for this flow — results render as a play-page modal from a component-local snapshot | Prevents concurrent ACTIVE sessions; hard-gate is Score Training–scoped, not generalized |
 | D120 | 2026-07-17 | Persisted Alpine stores take a `PersistFactory` (`() => Alpine.$persist`), calling it once per field — never reuse one `persist()` across fields. Alpine's `$persist` getter returns a fresh closure each access; a shared closure collapses every `.as()` key onto the last alias (e.g. `turns` hydrated as `null` from `game.idempotencyKey`) | Root-cause fix for play-page Alpine crashes; documents the plugin's shared-`alias` hazard |
+| D123 | 2026-07-21 | Prettier is the `app/` formatter (`singleAttributePerLine`); `.astro` template comments are `{/* */}` only; CI enforces `x-show`↔`x-cloak` and bans template `<!-- -->` via `scripts/check-astro-conventions.sh`; TS inline body comments banned under `app/src/**/*.ts` (JSDoc-above; agent-enforced) | FOUC-safe Alpine markup, consistent authoring, mechanical drift prevention |
 
 ## Context & documentation system
 

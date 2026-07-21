@@ -6,7 +6,9 @@ import { fail } from "./envelope";
  * An empty (whitespace-only) body resolves to `{}`. Malformed JSON is
  * reported via `ok: false` rather than throwing.
  */
-export function parseJsonBody(raw: string): { ok: true; value: unknown } | { ok: false } {
+export function parseJsonBody(
+  raw: string,
+): { ok: true; value: unknown } | { ok: false } {
   if (raw.trim().length === 0) {
     return { ok: true, value: {} };
   }
@@ -35,12 +37,22 @@ export async function parseAndValidateBody<T extends z.ZodTypeAny>(
 ): Promise<{ ok: true; data: z.infer<T> } | { ok: false; response: Response }> {
   const parsedBody = parseJsonBody(await request.text());
   if (!parsedBody.ok) {
-    return { ok: false, response: fail("VALIDATION_FAILED", requestId, { reason: "body is not valid JSON" }) };
+    return {
+      ok: false,
+      response: fail("VALIDATION_FAILED", requestId, {
+        reason: "body is not valid JSON",
+      }),
+    };
   }
 
   const parsed = schema.safeParse(parsedBody.value);
   if (!parsed.success) {
-    return { ok: false, response: fail("VALIDATION_FAILED", requestId, { issues: parsed.error.issues }) };
+    return {
+      ok: false,
+      response: fail("VALIDATION_FAILED", requestId, {
+        issues: parsed.error.issues,
+      }),
+    };
   }
 
   return { ok: true, data: parsed.data };

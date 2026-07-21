@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logoutButton } from '@auth/logout.data';
-import type { LogoutButtonContext } from '@auth/types';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { logoutButton } from "@auth/logout.data";
+import type { LogoutButtonContext } from "@auth/types";
 
-describe('logoutButton.submit', () => {
+describe("logoutButton.submit", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
-  it('sets loading, calls signOut, then redirects to /login', async () => {
+  it("sets loading, calls signOut, then redirects to /login", async () => {
     const replace = vi.fn();
-    vi.stubGlobal('location', { replace });
+    vi.stubGlobal("location", { replace });
 
     const signOut = vi.fn().mockResolvedValue(undefined);
     const button = logoutButton();
@@ -22,7 +22,7 @@ describe('logoutButton.submit', () => {
     await submitPromise;
 
     expect(signOut).toHaveBeenCalled();
-    expect(replace).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith("/login");
 
     vi.unstubAllGlobals();
   });

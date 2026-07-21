@@ -7,7 +7,11 @@ import { parseAndValidateBody } from "@server/parse-json-body";
 export const POST: APIRoute = async ({ locals, request }) => {
   const auth = locals.auth!;
 
-  const parsed = await parseAndValidateBody(CreateSessionRequest, request, locals.requestId);
+  const parsed = await parseAndValidateBody(
+    CreateSessionRequest,
+    request,
+    locals.requestId,
+  );
   if (!parsed.ok) return parsed.response;
 
   const result = await createSession(auth.playerId!, parsed.data);

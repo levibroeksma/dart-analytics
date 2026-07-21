@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
   /* ── Teal accent range (maps to tailwind teal scale) ── */
@@ -44,7 +44,11 @@
     var(--color-red-500) 15%,
     transparent
   );
-  --color-accent-muted: color-mix(in oklab, var(--color-teal-500) 12%, transparent);
+  --color-accent-muted: color-mix(
+    in oklab,
+    var(--color-teal-500) 12%,
+    transparent
+  );
   --color-success: var(--color-teal-400);
   --color-success-muted: color-mix(
     in oklab,
@@ -59,8 +63,8 @@
   );
 
   /* ── Typography ── */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
 
   /* ── Radius (supabase: subtle, not bubbly) ── */
   --radius-sm: 0.375rem;
@@ -87,7 +91,7 @@
 
   body {
     @apply h-dvh max-h-dvh overflow-hidden bg-bg text-fg font-sans antialiased;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   [x-cloak] {

@@ -20,6 +20,8 @@
     "smoke": "tsx scripts/smoke.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && astro check && bash ../scripts/refresh-graph.sh"
   },
   "dependencies": {
@@ -51,6 +53,8 @@
     "drizzle-kit": "^0.31.10",
     "jsdom": "^29.1.1",
     "postgres": "^3.4.9",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
     "tsx": "^4.23.0",
     "vitest": "^4.1.10"
   }

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /** Frozen contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Player Provisioning. */
 export const ProvisionPlayerRequest = z.object({
@@ -11,5 +11,9 @@ export const ProvisionPlayerResponse = z.object({
   created: z.boolean(),
 });
 
-export type ProvisionPlayerRequestInput = z.infer<typeof ProvisionPlayerRequest>;
-export type ProvisionPlayerResponseData = z.infer<typeof ProvisionPlayerResponse>;
+export type ProvisionPlayerRequestInput = z.infer<
+  typeof ProvisionPlayerRequest
+>;
+export type ProvisionPlayerResponseData = z.infer<
+  typeof ProvisionPlayerResponse
+>;

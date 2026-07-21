@@ -1,6 +1,6 @@
 import type { ErrorCode } from "@server/types";
 
-export * from './rulesets/types';
+export * from "./rulesets/types";
 
 export type ServiceResult<T> =
   | { ok: true; data: T }
@@ -8,7 +8,13 @@ export type ServiceResult<T> =
 
 export type CreateSessionResult = {
   sessionId: string;
-  participants: { ref: string; participantTypeKey: string; displayName: string }[];
+  participants: {
+    ref: string;
+    participantTypeKey: string;
+    displayName: string;
+  }[];
 };
 
-export type AppendBatchResult = { created: { stages: number; turns: number; darts: number } };
+export type AppendBatchResult = {
+  created: { stages: number; turns: number; darts: number };
+};

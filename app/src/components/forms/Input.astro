@@ -2,7 +2,7 @@
 interface Props {
   label: string;
   name: string;
-  type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
+  type?: "text" | "email" | "password" | "search" | "tel" | "url";
   id?: string;
   autocomplete?: string;
   class?: string;
@@ -13,7 +13,7 @@ interface Props {
 const {
   label,
   name,
-  type = 'text',
+  type = "text",
   id,
   autocomplete,
   class: classNameProp,
@@ -21,14 +21,18 @@ const {
 }: Props = Astro.props;
 
 // Lib
-import { cn } from '@client/cn';
+import { cn } from "@client/cn";
 
 // Styles
 const inputId = id ?? name;
-const className = cn('input', classNameProp);
+const className = cn("input", classNameProp);
 ---
 
-<label for={inputId} class="text-sm text-fg-muted">{label}</label>
+<label
+  for={inputId}
+  class="text-sm text-fg-muted"
+  >{label}</label
+>
 <input
   id={inputId}
   name={name}

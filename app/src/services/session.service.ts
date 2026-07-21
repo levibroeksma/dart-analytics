@@ -22,8 +22,16 @@ import {
   insertSessionRecords,
   updateSessionStatusRecord,
 } from "@repositories/session.repository";
-import type { CreateSessionRequestInput, EventsBatchRequestInput, UpdateSessionRequestInput } from "@routes/types";
-import type { AppendBatchResult, CreateSessionResult, ServiceResult } from "./types";
+import type {
+  CreateSessionRequestInput,
+  EventsBatchRequestInput,
+  UpdateSessionRequestInput,
+} from "@routes/types";
+import type {
+  AppendBatchResult,
+  CreateSessionResult,
+  ServiceResult,
+} from "./types";
 
 export async function createSession(
   playerId: string,
@@ -31,34 +39,79 @@ export async function createSession(
 ): Promise<ServiceResult<CreateSessionResult>> {
   const db = getDb();
 
-  const gameTypeRuleset = await findGameTypeAndRuleset(db, input.gameTypeKey, input.rulesetVersionKey);
+  const gameTypeRuleset = await findGameTypeAndRuleset(
+    db,
+    input.gameTypeKey,
+    input.rulesetVersionKey,
+  );
   if (!gameTypeRuleset) {
-    return { ok: false, code: "VALIDATION_FAILED", details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" } };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" },
+    };
   }
 
   const validator = getRulesetValidator(input.rulesetVersionKey);
   if (!validator) {
-    return { ok: false, code: "VALIDATION_FAILED", details: { reason: "no validator registered for rulesetVersionKey" } };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "no validator registered for rulesetVersionKey" },
+    };
   }
 
-  const [captureModeId, inputModeId, activeStatusId, playerParticipantTypeId, displayName] = await Promise.all([
+  const [
+    captureModeId,
+    inputModeId,
+    activeStatusId,
+    playerParticipantTypeId,
+    displayName,
+  ] = await Promise.all([
     findCaptureModeId(db, input.captureModeKey),
     findInputModeId(db, input.inputModeKey),
     findGameStatusId(db, "ACTIVE"),
     findParticipantTypeId(db, "PLAYER"),
     findPlayerDisplayName(db, playerId),
   ]);
-  if (!captureModeId) return { ok: false, code: "VALIDATION_FAILED", details: { reason: "unknown captureModeKey" } };
-  if (!inputModeId) return { ok: false, code: "VALIDATION_FAILED", details: { reason: "unknown inputModeKey" } };
+  if (!captureModeId)
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown captureModeKey" },
+    };
+  if (!inputModeId)
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown inputModeKey" },
+    };
   if (!activeStatusId || !playerParticipantTypeId || !displayName) {
-    return { ok: false, code: "INTERNAL_ERROR", details: { reason: "reference data missing" } };
+    return {
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    };
   }
 
   let rawConfig: unknown;
   if (input.config.source === "template") {
-    const template = await findConfigurationTemplate(db, input.config.templateRef, gameTypeRuleset.gameTypeId, playerId);
-    if (!template) return { ok: false, code: "VALIDATION_FAILED", details: { reason: "unknown templateRef" } };
-    rawConfig = { ...(template.configuration as Record<string, unknown>), ...(input.config.overrides ?? {}) };
+    const template = await findConfigurationTemplate(
+      db,
+      input.config.templateRef,
+      gameTypeRuleset.gameTypeId,
+      playerId,
+    );
+    if (!template)
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        details: { reason: "unknown templateRef" },
+      };
+    rawConfig = {
+      ...(template.configuration as Record<string, unknown>),
+      ...(input.config.overrides ?? {}),
+    };
   } else {
     rawConfig = input.config.config;
   }
@@ -69,7 +122,11 @@ export async function createSession(
     inputModeKey: input.inputModeKey,
   });
   if (!validated.valid) {
-    return { ok: false, code: "VALIDATION_FAILED", details: { issues: validated.issues } };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { issues: validated.issues },
+    };
   }
 
   const sessionId = generateId();
@@ -93,7 +150,12 @@ export async function createSession(
 
   return {
     ok: true,
-    data: { sessionId, participants: [{ ref: participantId, participantTypeKey: "PLAYER", displayName }] },
+    data: {
+      sessionId,
+      participants: [
+        { ref: participantId, participantTypeKey: "PLAYER", displayName },
+      ],
+    },
   };
 }
 
@@ -110,10 +172,14 @@ export function canonicalize(value: unknown): unknown {
   return value;
 }
 
-export async function hashBatchPayload(batch: EventsBatchRequestInput): Promise<string> {
+export async function hashBatchPayload(
+  batch: EventsBatchRequestInput,
+): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(batch)));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function collectDartZoneKeys(batch: EventsBatchRequestInput): string[] {
@@ -140,11 +206,19 @@ function validateBatchReferences(
 ): ServiceResult<void> {
   for (const stage of batch.stages) {
     if (stage.parentClientKey && !stageIds.has(stage.parentClientKey)) {
-      return { ok: false, code: "BATCH_REFERENCE_MISSING", details: { clientKey: stage.parentClientKey } };
+      return {
+        ok: false,
+        code: "BATCH_REFERENCE_MISSING",
+        details: { clientKey: stage.parentClientKey },
+      };
     }
     for (const turn of stage.turns) {
       if (!participantIds.includes(turn.participantRef)) {
-        return { ok: false, code: "BATCH_REFERENCE_MISSING", details: { participantRef: turn.participantRef } };
+        return {
+          ok: false,
+          code: "BATCH_REFERENCE_MISSING",
+          details: { participantRef: turn.participantRef },
+        };
       }
     }
   }
@@ -152,12 +226,18 @@ function validateBatchReferences(
 }
 
 /** Validates that each stage's turn sequence numbers are positive and unique within the stage. */
-function validateBatchOrdering(batch: EventsBatchRequestInput): ServiceResult<void> {
+function validateBatchOrdering(
+  batch: EventsBatchRequestInput,
+): ServiceResult<void> {
   for (const stage of batch.stages) {
     const seen = new Set<number>();
     for (const turn of stage.turns) {
       if (turn.sequence <= 0 || seen.has(turn.sequence)) {
-        return { ok: false, code: "BATCH_INCONSISTENT_ORDERING", details: { clientKey: turn.clientKey } };
+        return {
+          ok: false,
+          code: "BATCH_INCONSISTENT_ORDERING",
+          details: { clientKey: turn.clientKey },
+        };
       }
       seen.add(turn.sequence);
     }
@@ -190,18 +270,36 @@ function resolveBatchStructure(
 async function resolveBatchIdMaps(
   db: ReturnType<typeof getDb>,
   batch: EventsBatchRequestInput,
-): Promise<ServiceResult<{ stageTypeIdMap: Map<string, number>; zoneIdMap: Map<string, number> }>> {
+): Promise<
+  ServiceResult<{
+    stageTypeIdMap: Map<string, number>;
+    zoneIdMap: Map<string, number>;
+  }>
+> {
   const stageTypeIdMap = await findStageTypeIdMap(db);
   const zoneKeys = collectDartZoneKeys(batch);
-  const zoneIdMap = zoneKeys.length > 0 ? await findDartZoneIdMap(db) : new Map<string, number>();
+  const zoneIdMap =
+    zoneKeys.length > 0
+      ? await findDartZoneIdMap(db)
+      : new Map<string, number>();
   const unresolvedZoneKey = zoneKeys.find((k) => !zoneIdMap.has(k));
   if (unresolvedZoneKey) {
-    return { ok: false, code: "VALIDATION_FAILED", details: { reason: `unknown dart zone key: ${unresolvedZoneKey}` } };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: `unknown dart zone key: ${unresolvedZoneKey}` },
+    };
   }
 
-  const unresolvedStageTypeKey = batch.stages.find((stage) => !stageTypeIdMap.has(stage.stageTypeKey))?.stageTypeKey;
+  const unresolvedStageTypeKey = batch.stages.find(
+    (stage) => !stageTypeIdMap.has(stage.stageTypeKey),
+  )?.stageTypeKey;
   if (unresolvedStageTypeKey) {
-    return { ok: false, code: "VALIDATION_FAILED", details: { reason: `unknown stageTypeKey: ${unresolvedStageTypeKey}` } };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: `unknown stageTypeKey: ${unresolvedStageTypeKey}` },
+    };
   }
 
   return { ok: true, data: { stageTypeIdMap, zoneIdMap } };
@@ -216,7 +314,9 @@ function buildBatchInsertPayload(
 ) {
   const insertStages = batch.stages.map((stage) => ({
     id: stageIds.get(stage.clientKey)!,
-    parentStageId: stage.parentClientKey ? stageIds.get(stage.parentClientKey)! : null,
+    parentStageId: stage.parentClientKey
+      ? stageIds.get(stage.parentClientKey)!
+      : null,
     stageTypeId: stageTypeIdMap.get(stage.stageTypeKey)!,
     sequenceNumber: stage.sequence,
   }));
@@ -233,7 +333,9 @@ function buildBatchInsertPayload(
         id: generateId(),
         dartNumber: dart.sequence,
         intendedTargetNumber: dart.intendedTargetNumber,
-        intendedZoneId: dart.intendedZoneKey ? zoneIdMap.get(dart.intendedZoneKey)! : null,
+        intendedZoneId: dart.intendedZoneKey
+          ? zoneIdMap.get(dart.intendedZoneKey)!
+          : null,
         hitTargetNumber: dart.hitTargetNumber,
         hitZoneId: zoneIdMap.get(dart.hitZoneKey)!,
         score: dart.score,
@@ -254,16 +356,25 @@ export async function appendBatch(
 
   const session = await findSessionRow(db, sessionId);
   if (!session) return { ok: false, code: "NOT_FOUND" };
-  if (session.playerId !== playerId) return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
+  if (session.playerId !== playerId)
+    return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
 
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
-  if (session.statusId !== activeStatusId) return { ok: false, code: "SESSION_ALREADY_COMPLETED" };
+  if (session.statusId !== activeStatusId)
+    return { ok: false, code: "SESSION_ALREADY_COMPLETED" };
 
   const hash = await hashBatchPayload(batch);
-  const existingIdempotency = await findIdempotencyRecord(db, sessionId, idempotencyKey);
+  const existingIdempotency = await findIdempotencyRecord(
+    db,
+    sessionId,
+    idempotencyKey,
+  );
   if (existingIdempotency) {
     if (existingIdempotency.normalizedPayloadHash !== hash) {
-      return { ok: false, code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD" };
+      return {
+        ok: false,
+        code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD",
+      };
     }
     return { ok: true, data: existingIdempotency.result as AppendBatchResult };
   }
@@ -278,16 +389,29 @@ export async function appendBatch(
   if (!validator || !config) return { ok: false, code: "INTERNAL_ERROR" };
 
   const existingTurnCount = await countTurnsForSession(db, sessionId);
-  const batchValidation = validator.validateBatch({ config, batch, existingTurnCount });
+  const batchValidation = validator.validateBatch({
+    config,
+    batch,
+    existingTurnCount,
+  });
   if (!batchValidation.valid) {
-    return { ok: false, code: batchValidation.code, details: { issues: batchValidation.issues } };
+    return {
+      ok: false,
+      code: batchValidation.code,
+      details: { issues: batchValidation.issues },
+    };
   }
 
   const idMaps = await resolveBatchIdMaps(db, batch);
   if (!idMaps.ok) return idMaps;
   const { stageTypeIdMap, zoneIdMap } = idMaps.data;
 
-  const { insertStages, insertTurns } = buildBatchInsertPayload(batch, stageIds, stageTypeIdMap, zoneIdMap);
+  const { insertStages, insertTurns } = buildBatchInsertPayload(
+    batch,
+    stageIds,
+    stageTypeIdMap,
+    zoneIdMap,
+  );
 
   const result = await insertBatchRecords({
     sessionId,
@@ -307,14 +431,21 @@ export async function updateSessionStatus(
   playerId: string,
   sessionId: string,
   input: UpdateSessionRequestInput,
-): Promise<ServiceResult<{ sessionId: string; statusKey: string; completedAt: string }>> {
+): Promise<
+  ServiceResult<{ sessionId: string; statusKey: string; completedAt: string }>
+> {
   const db = getDb();
   const session = await findSessionRow(db, sessionId);
   if (!session) return { ok: false, code: "NOT_FOUND" };
-  if (session.playerId !== playerId) return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
+  if (session.playerId !== playerId)
+    return { ok: false, code: "SESSION_OWNERSHIP_MISMATCH" };
 
   if (!TERMINAL_TARGETS.has(input.status)) {
-    return { ok: false, code: "INVALID_STATUS_TRANSITION", details: { reason: `unsupported target status ${input.status}` } };
+    return {
+      ok: false,
+      code: "INVALID_STATUS_TRANSITION",
+      details: { reason: `unsupported target status ${input.status}` },
+    };
   }
 
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
@@ -328,7 +459,10 @@ export async function updateSessionStatus(
   const completedAt = input.completedAt ?? new Date().toISOString();
   await updateSessionStatusRecord(db, sessionId, targetStatusId, completedAt);
 
-  return { ok: true, data: { sessionId, statusKey: input.status, completedAt } };
+  return {
+    ok: true,
+    data: { sessionId, statusKey: input.status, completedAt },
+  };
 }
 
 export async function listActiveSessions(playerId: string) {
@@ -336,7 +470,10 @@ export async function listActiveSessions(playerId: string) {
   return findActiveSessions(db, playerId);
 }
 
-export async function listConfigurationPresets(playerId: string, gameTypeKey: string) {
+export async function listConfigurationPresets(
+  playerId: string,
+  gameTypeKey: string,
+) {
   const db = getDb();
   return findConfigurationPresets(db, gameTypeKey, playerId);
 }

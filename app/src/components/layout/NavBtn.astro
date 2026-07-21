@@ -22,7 +22,11 @@ const className = cn(
 );
 ---
 
-<a href={href} class={className} aria-current={active ? "page" : undefined}>
+<a
+  href={href}
+  class={className}
+  aria-current={active ? "page" : undefined}
+>
   <slot />
   <span>{label}</span>
 </a>

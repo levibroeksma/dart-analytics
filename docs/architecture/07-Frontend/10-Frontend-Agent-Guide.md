@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-17
+updated: 2026-07-21
 -->
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.3 (Score Training recovery/hard-gate, 2026-07-17)
+> **Version:** 0.1.5 (2026-07-21 — comment/format conventions + x-show/x-cloak rule)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -44,6 +44,7 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 
 ## 2. Alpine bindings
 
+- **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak`
 - **Alpine v3 shorthand:** `:class`, `:style`, `:value`, `:disabled`, `@click`, `@submit.prevent`, etc. — **never** `x-bind:*` or `x-on:*` when shorthand applies (`03-Alpine-Patterns.md`)
 - **Astro exception:** `x-on:click` (or `x-on:*`) only inside `{}` expressions when the linter rejects `@` — nowhere else
 - **No `x-init`** — forbidden
@@ -85,9 +86,15 @@ Shared helper: `app/src/lib/game/session-recovery.ts` (D118). Auto-cleanup on **
 
 Zod `z.infer<>` only. Import via `@<area>/types` barrels — no deep paths.
 
+- **`app/src/**/*.ts` comments:** no inline comments inside function bodies — JSDoc above the declaration (`app/CLAUDE.md`)
+
 ## 10. Components (`.astro`)
 
 Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → `// Data` → `// Styles`. Typed `interface Props`. Class composition only via `cn()`; static→`class`, build-time→frontmatter `cn()`, runtime→`:class`, recurring→`@layer components`. Full rules: `05-Astro-Components.md`.
+
+- **Template comments:** `{/* ... */}` only — never `<!-- -->`
+- **Frontmatter `// Title`:** blank line before each section header (`05-Astro-Components.md`)
+- **Formatting:** Prettier (`singleAttributePerLine`); `npm run format` / `format:check`
 
 ## 11. Test-driven development
 
@@ -137,11 +144,15 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] Styling uses semantic tokens/primitives only; no `font-medium`, no raw palette utilities
 - [ ] No `x-init`; all `x-data` invocations use `()`
+- [ ] Every `x-show` element also has `x-cloak`
+- [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`
 - [ ] Recovery text consistent with `00-Overview.md` (auto-cleanup)
 - [ ] Context Maintenance: `00-Context-Map.md` updated if docs added/moved
 - [ ] `scripts/check-context-map.sh` passes
+- [ ] Template comments are `{/* */}` only (no `<!-- -->`)
+- [ ] `npm run format:check` clean when touching `app/` markup/TS
 
 ---
 

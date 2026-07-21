@@ -18,7 +18,9 @@ async function run(): Promise<void> {
   const res = await fetch(authJwksUrl);
   if (!res.ok) throw new Error(`JWKS fetch failed: ${res.status}`);
 
-  console.log(JSON.stringify({ db: { ok, gameTypes: count }, jwks: res.status }, null, 2));
+  console.log(
+    JSON.stringify({ db: { ok, gameTypes: count }, jwks: res.status }, null, 2),
+  );
 }
 
 run().catch((err) => {

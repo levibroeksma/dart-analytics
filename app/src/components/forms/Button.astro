@@ -1,31 +1,35 @@
 ---
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  type?: 'button' | 'submit' | 'reset';
+  variant?: "primary" | "secondary" | "ghost";
+  type?: "button" | "submit" | "reset";
   class?: string;
   [key: string]: unknown;
 }
 
 // Props
 const {
-  variant = 'primary',
-  type = 'button',
+  variant = "primary",
+  type = "button",
   class: classNameProp,
   ...rest
 }: Props = Astro.props;
 
 // Lib
-import { cn } from '@client/cn';
+import { cn } from "@client/cn";
 
 // Styles
-const VARIANT_CLASS: Record<'primary' | 'secondary' | 'ghost', string> = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  ghost: 'btn-ghost',
+const VARIANT_CLASS: Record<"primary" | "secondary" | "ghost", string> = {
+  primary: "btn-primary",
+  secondary: "btn-secondary",
+  ghost: "btn-ghost",
 };
-const className = cn('btn', VARIANT_CLASS[variant], classNameProp);
+const className = cn("btn", VARIANT_CLASS[variant], classNameProp);
 ---
 
-<button type={type} class={className} {...rest}>
+<button
+  type={type}
+  class={className}
+  {...rest}
+>
   <slot />
 </button>

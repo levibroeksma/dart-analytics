@@ -1,5 +1,13 @@
-import { fetchConfigurationPresets, type ConfigurationPresetData } from "@client/api/configuration-templates";
-import { createSession, fetchActiveSessions, completeSession, type SessionActiveData } from "@client/api/sessions";
+import {
+  fetchConfigurationPresets,
+  type ConfigurationPresetData,
+} from "@client/api/configuration-templates";
+import {
+  createSession,
+  fetchActiveSessions,
+  completeSession,
+  type SessionActiveData,
+} from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { ScoreTrainingSetupContext } from "./types";
 
@@ -33,14 +41,22 @@ export function scoreTrainingSetup() {
         // Preset/active-session fetch itself failed — keep user on setup with
         // a visible error (toast-equivalent for this UI) and the picker fallback.
         this.showActiveSessionModal = false;
-        this.error = "Could not load setup. Check your connection and try again.";
+        this.error =
+          "Could not load setup. Check your connection and try again.";
       } finally {
         this.loadingReconciliation = false;
       }
     },
 
-    async reconcile(this: ScoreTrainingSetupContext, activeSessions: SessionActiveData[]) {
-      const result = await reconcileActiveSession(this.$store.game.sessionId, activeSessions, this.$store.game);
+    async reconcile(
+      this: ScoreTrainingSetupContext,
+      activeSessions: SessionActiveData[],
+    ) {
+      const result = await reconcileActiveSession(
+        this.$store.game.sessionId,
+        activeSessions,
+        this.$store.game,
+      );
 
       if (result.action === "match") {
         this.activeSession = result.activeSession;
@@ -88,7 +104,9 @@ export function scoreTrainingSetup() {
     },
 
     async start(this: ScoreTrainingSetupContext) {
-      const preset = this.presets.find((p) => p.configurationTemplateId === this.selectedTemplateId);
+      const preset = this.presets.find(
+        (p) => p.configurationTemplateId === this.selectedTemplateId,
+      );
       if (!preset) {
         this.error = "Select a preset first.";
         return;
@@ -100,7 +118,10 @@ export function scoreTrainingSetup() {
           rulesetVersionKey: RULESET_VERSION_KEY,
           captureModeKey: "RECREATIONAL",
           inputModeKey: "QUICK_SCORE",
-          config: { source: "template", templateRef: preset.configurationTemplateId },
+          config: {
+            source: "template",
+            templateRef: preset.configurationTemplateId,
+          },
         });
         const config = preset.configuration as {
           duration_type: "ROUNDS" | "MINUTES";
