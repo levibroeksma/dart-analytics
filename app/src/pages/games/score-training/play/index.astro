@@ -2,8 +2,7 @@
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import Button from "@components/forms/Button.astro";
-import ScoreInput from "@components/layout/games/ScoreInput.astro";
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 ---
 
@@ -14,92 +13,33 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
     @confirm-exit.window="abandonAndExit()"
   >
     {/* Loading / reconciliation-blocked */}
-    <div
-      class="text-center py-8"
-      x-show="loadingReconciliation || reconciliationFailed"
-      x-cloak
-    >
-      <p
-        class="text-sm text-fg-muted"
-        x-show="loadingReconciliation"
-        x-cloak
-      >
-        Loading...
-      </p>
-      <div
-        x-show="reconciliationFailed && !loadingReconciliation"
-        x-cloak
-      >
-        <p class="text-sm text-red-500">
-          Could not clean up a previous session. Retry to continue.
-        </p>
-        <Button
-          type="button"
-          class="mt-4"
-          @click="retryReconciliation()"
-        >
+    <div class="text-center py-8" x-show="loadingReconciliation || reconciliationFailed" x-cloak>
+      <p class="text-sm text-fg-muted" x-show="loadingReconciliation" x-cloak>Loading...</p>
+      <div x-show="reconciliationFailed && !loadingReconciliation" x-cloak>
+        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
+        <Button type="button" class="mt-4" @click="retryReconciliation()">
           Retry
         </Button>
       </div>
     </div>
 
     {/* No active session view */}
-    <div
-      x-show="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation"
-      x-cloak
-    >
+    <div x-show="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation" x-cloak>
       <p class="text-fg">No active session — start a new one.</p>
       <a
         class="btn-primary mt-4 inline-block"
         href="/games/score-training/setup"
         x-cloak
       >
-        Start a new session
-      </a>
+      Start a new session
+    </a>
     </div>
 
     {/* Gameplay view */}
-    <div
-      class="flex flex-col flex-1 min-h-0"
-      x-show="!finished && hasActiveSession"
-      x-cloak
-    >
-      <p
-        class="text-sm text-fg-muted px-3"
-        x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
-        x-text="`Time remaining: ${remainingLabel()}`"
-        x-cloak
-      >
-      </p>
-      <p
-        class="text-sm text-fg-muted px-3"
-        x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'"
-        x-text="`Visit ${$store.game.turns.length + 1}`"
-        x-cloak
-      >
-      </p>
-
-      <SinglePlayerDisplay
-        isTarget={false}
-        score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
-      />
-
-      <p
-        class="px-3 mt-2 text-sm text-red-500"
-        x-show="error"
-        x-text="error"
-        x-cloak
-      >
-      </p>
-
-      <ScoreInput click="submitVisit()" />
-    </div>
+    <ScoreTraining />
 
     {/* Finish confirm (before results) */}
-    <div
-      x-show="showFinishConfirm"
-      x-cloak
-    >
+    <div x-show="showFinishConfirm" x-cloak>
       <ConfirmDialog
         titleId="finish-confirm-title"
         title="Finish session?"
@@ -121,11 +61,7 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
         <h2 class="text-lg font-semibold text-fg">Game Summary</h2>
 
         {/* Stats: live from store while saving, snapshot once succeeded */}
-        <div
-          class="mt-4 space-y-2 text-sm text-fg-muted"
-          x-show="completionStatus !== 'succeeded'"
-          x-cloak
-        >
+        <div class="mt-4 space-y-2 text-sm text-fg-muted" x-show="completionStatus !== 'succeeded'" x-cloak>
           <p>
             <span
               class="font-semibold text-fg"
@@ -153,85 +89,39 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
           <p>
             <span
               class="font-semibold text-fg"
-              x-text="`Total: ${resultsSnapshot?.total}`"
-            ></span>
+              x-text="`Total: ${resultsSnapshot?.total}`"></span>
           </p>
           <p>
             <span
               class="font-semibold text-fg"
-              x-text="`Visits: ${resultsSnapshot?.visits}`"
-            ></span>
+              x-text="`Visits: ${resultsSnapshot?.visits}`"></span>
           </p>
           <p>
             <span
               class="font-semibold text-fg"
-              x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"
-            ></span>
+              x-text="`Average: ${resultsSnapshot?.average.toFixed(1)}`"></span>
           </p>
         </div>
 
         {/* Completion status */}
         <div class="mt-4">
-          <p
-            class="text-sm text-fg-muted"
-            x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-            x-cloak
-          >
-            Saving...
-          </p>
-          <div
-            x-show="completionStatus === 'failed'"
-            x-cloak
-          >
-            <p
-              class="text-sm text-red-500"
-              x-text="completionError"
-            >
-            </p>
-            <Button
-              type="button"
-              class="mt-2"
-              @click="uploadAndCompleteSession()"
-              >Retry</Button
-            >
+          <p class="text-sm text-fg-muted" x-show="completionStatus === 'pending' || completionStatus === 'saving'" x-cloak>Saving...</p>
+          <div x-show="completionStatus === 'failed'" x-cloak>
+            <p class="text-sm text-red-500" x-text="completionError"></p>
+            <Button type="button" class="mt-2" @click="uploadAndCompleteSession()">Retry</Button>
           </div>
-          <p
-            class="text-sm text-green-500"
-            x-show="completionStatus === 'succeeded'"
-            x-cloak
-          >
-            Saved!
-          </p>
+          <p class="text-sm text-green-500" x-show="completionStatus === 'succeeded'" x-cloak>Saved!</p>
         </div>
 
-        {
-          /* Play-again failure: separate from completion status, buttons stay enabled */
-        }
-        <p
-          class="mt-2 text-sm text-red-500"
-          x-show="playAgainError"
-          x-text="playAgainError"
-          x-cloak
-        >
-        </p>
+        {/* Play-again failure: separate from completion status, buttons stay enabled */}
+        <p class="mt-2 text-sm text-red-500" x-show="playAgainError" x-text="playAgainError" x-cloak></p>
 
-        {
-          /* Action buttons: enabled only when completionStatus === 'succeeded' */
-        }
+        {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
         <div class="flex gap-3 mt-6">
-          <Button
-            type="button"
-            variant="secondary"
-            @click="back()"
-            :disabled="completionStatus !== 'succeeded'"
-          >
+          <Button type="button" variant="secondary" @click="back()" :disabled="completionStatus !== 'succeeded'">
             Back
           </Button>
-          <Button
-            type="button"
-            @click="playAgain()"
-            :disabled="completionStatus !== 'succeeded' || playAgainLoading"
-          >
+          <Button type="button" @click="playAgain()" :disabled="completionStatus !== 'succeeded' || playAgainLoading">
             Play again?
           </Button>
         </div>
