@@ -1,13 +1,16 @@
 ---
-import Button from "@components/forms/Button.astro";
-
 interface Props {
   title: string;
   description: string;
 }
 
-const {title, description}: Props = Astro.props;
+// Props
+const { title, description }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
 ---
+
 <div>
   <h1 class="text-xl font-semibold text-foreground">{title}</h1>
   <p class="text-sm text-muted-foreground">{description}</p>
@@ -26,7 +29,7 @@ const {title, description}: Props = Astro.props;
     </template>
   </div>
 
-  <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error"></p>
+  <p class="mt-2 text-sm text-red-500" x-show="error" x-text="error" x-cloak></p>
 
   <div class="mt-4">
     <Button
