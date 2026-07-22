@@ -19,6 +19,7 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const {
   type = "button",
   title,
@@ -26,28 +27,34 @@ const {
   icon = false,
   disabled = false,
   ariaLabel,
-  class: className = "",
+  class: classNameProp = "",
   ...props
 }: Props = Astro.props;
 
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
 const variantClasses = {
   primary: "border-transparent bg-white text-black btn-primary",
   secondary: "border-border text-foreground btn-secondary",
   ghost: "text-muted-foreground btn-ghost",
   error: "bg-error text-error-foreground btn-error",
 }[variant];
+
+const className = cn(
+  "btn inline-flex items-center justify-center gap-2 rounded-md border border-transparent text-sm font-semibold transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  variantClasses,
+  icon ? "p-2.5" : "px-4 py-2.5",
+  classNameProp,
+);
 ---
 
 <button
   type={type}
   disabled={disabled}
   aria-label={ariaLabel}
-  class:list={[
-    "btn inline-flex items-center justify-center gap-2 rounded-md border border-transparent text-sm font-medium transition-[transform,color,background-color,border-color,box-shadow] duration-150",
-    variantClasses,
-    icon ? "p-2.5" : "px-4 py-2.5",
-    className,
-  ]}
+  class={className}
   {...props}
 >
   <slot name="iconBefore" />
