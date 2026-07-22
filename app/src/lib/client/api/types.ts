@@ -2,6 +2,7 @@ export type ApiErrorBody = {
   code: string;
   message: string;
   retryable: boolean;
+  details?: Record<string, unknown>;
 };
 
 export type ApiSuccess<T> = {
