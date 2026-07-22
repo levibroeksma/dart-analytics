@@ -1423,17 +1423,6 @@
       "norm_label": "persistfactory"
     },
     {
-      "label": "CustomTabs.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/CustomTabs.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_customtabs",
-      "community": 191,
-      "community_name": "relations.ts",
-      "norm_label": "customtabs.astro"
-    },
-    {
       "label": "@components/forms/Button.astro",
       "file_type": "code",
       "source_file": "app/src/components/forms/Button.astro",
@@ -1464,8 +1453,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_client_cn",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "cn.ts"
     },
     {
@@ -1499,8 +1488,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_bottomnav",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/bottomnav.astro"
     },
     {
@@ -1510,8 +1499,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_components_layout_bottomnav_pages",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "pages"
     },
     {
@@ -1522,8 +1511,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_layout_navbtn",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "navbtn.astro"
     },
     {
@@ -1533,8 +1522,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_home_circle_svg",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/home-circle.svg"
     },
     {
@@ -1544,8 +1533,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_dartboard_svg",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/dartboard.svg"
     },
     {
@@ -1555,8 +1544,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_user_svg",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/user.svg"
     },
     {
@@ -1566,8 +1555,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_stats_svg",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/stats.svg"
     },
     {
@@ -1577,8 +1566,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_active",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "active"
     },
     {
@@ -1588,8 +1577,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_classname",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "classname"
     },
     {
@@ -1600,8 +1589,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_utils_is_nav_active",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "is-nav-active.ts"
     },
     {
@@ -1660,8 +1649,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_gamecard",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/games/gamecard.astro"
     },
     {
@@ -1672,8 +1661,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_ui_cardwrapper",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "cardwrapper.astro"
     },
     {
@@ -1683,8 +1672,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_dart_svg",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/dart.svg"
     },
     {
@@ -1695,8 +1684,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_inputbutton",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "./inputbutton.astro"
     },
     {
@@ -1706,8 +1695,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_components_layout_games_inputbutton_classname",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "classname"
     },
     {
@@ -1718,8 +1707,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_nosessionpanel",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/games/nosessionpanel.astro"
     },
     {
@@ -1730,8 +1719,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_ui_link",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "link.astro"
     },
     {
@@ -1742,8 +1731,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_scoreinput",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/games/scoreinput.astro"
     },
     {
@@ -1753,8 +1742,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "app_src_components_layout_games_scoreinput_numberrows",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "numberrows"
     },
     {
@@ -1764,8 +1753,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "app_src_components_layout_games_scoreinput_rootclass",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "rootclass"
     },
     {
@@ -1775,8 +1764,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_delete_svg",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/delete.svg"
     },
     {
@@ -1786,8 +1775,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_undo_svg",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@icons/undo.svg"
     },
     {
@@ -1810,8 +1799,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_singleplayerdisplay",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/games/singleplayerdisplay.astro"
     },
     {
@@ -1821,8 +1810,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_components_layout_games_singleplayerdisplay_classname",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "classname"
     },
     {
@@ -1845,8 +1834,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_interfaces_scoretraining",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@components/layout/games/interfaces/scoretraining.astro"
     },
     {
@@ -1874,157 +1863,14 @@
       "norm_label": "@components/ui/isloading.astro"
     },
     {
-      "label": "Alert.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_alert",
-      "community": 200,
-      "community_name": "@components/ui/Alert.astro",
-      "norm_label": "alert.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L22",
-      "_origin": "ast",
-      "id": "app_src_components_ui_alert_classname",
-      "community": 200,
-      "community_name": "@components/ui/Alert.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "titleClassName",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L30",
-      "_origin": "ast",
-      "id": "app_src_components_ui_alert_titleclassname",
-      "community": 200,
-      "community_name": "@components/ui/Alert.astro",
-      "norm_label": "titleclassname"
-    },
-    {
-      "label": "bodyClassName",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L32",
-      "_origin": "ast",
-      "id": "app_src_components_ui_alert_bodyclassname",
-      "community": 200,
-      "community_name": "@components/ui/Alert.astro",
-      "norm_label": "bodyclassname"
-    },
-    {
-      "label": "Badge.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_badge",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "badge.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L25",
-      "_origin": "ast",
-      "id": "app_src_components_ui_badge_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "BulletItem.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_bulletitem",
-      "community": 217,
-      "community_name": "BulletItem.astro",
-      "norm_label": "bulletitem.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L21",
-      "_origin": "ast",
-      "id": "app_src_components_ui_bulletitem_classname",
-      "community": 217,
-      "community_name": "BulletItem.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "@icons/check.svg",
-      "file_type": "code",
-      "source_file": "app/src/icons/check.svg",
-      "confidence": "EXTRACTED",
-      "_origin": "ast",
-      "id": "users_levi_development_dart_analytics_app_src_icons_check_svg",
-      "community": 217,
-      "community_name": "BulletItem.astro",
-      "norm_label": "@icons/check.svg"
-    },
-    {
-      "label": "BulletList.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/BulletList.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_bulletlist",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "bulletlist.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/BulletList.astro",
-      "source_location": "L17",
-      "_origin": "ast",
-      "id": "app_src_components_ui_bulletlist_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Card.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Card.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_card",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "card.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Card.astro",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "app_src_components_ui_card_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
       "label": "string",
       "file_type": "code",
       "source_file": "app/src/components/ui/CardWrapper.astro",
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_components_ui_cardwrapper_string",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "string"
     },
     {
@@ -2034,107 +1880,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "app_src_components_ui_cardwrapper_classname",
-      "community": 215,
-      "community_name": "interfaces.ts",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Checkbox.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Checkbox.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_checkbox",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "checkbox.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Checkbox.astro",
-      "source_location": "L34",
-      "_origin": "ast",
-      "id": "app_src_components_ui_checkbox_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Field.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Field.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_field",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "field.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Field.astro",
-      "source_location": "L36",
-      "_origin": "ast",
-      "id": "app_src_components_ui_field_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Fieldset.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Fieldset.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_fieldset",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "fieldset.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Fieldset.astro",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "app_src_components_ui_fieldset_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "GradientCard.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/GradientCard.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_gradientcard",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "gradientcard.astro"
-    },
-    {
-      "label": "Input.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Input.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_input",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "input.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Input.astro",
-      "source_location": "L46",
-      "_origin": "ast",
-      "id": "app_src_components_ui_input_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "classname"
     },
     {
@@ -2155,30 +1902,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "app_src_components_ui_link_classname",
-      "community": 197,
-      "community_name": "players.ts",
-      "norm_label": "classname"
-    },
-    {
-      "label": "LinkCard.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/LinkCard.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_linkcard",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "linkcard.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/LinkCard.astro",
-      "source_location": "L39",
-      "_origin": "ast",
-      "id": "app_src_components_ui_linkcard_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "classname"
     },
     {
@@ -2214,237 +1939,6 @@
       "community": 208,
       "community_name": "withTransaction",
       "norm_label": "panelclass"
-    },
-    {
-      "label": "NavPill.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/NavPill.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_navpill",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "navpill.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/NavPill.astro",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "app_src_components_ui_navpill_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Radio.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Radio.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_radio",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "radio.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Radio.astro",
-      "source_location": "L34",
-      "_origin": "ast",
-      "id": "app_src_components_ui_radio_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Range.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Range.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_range",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "range.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Range.astro",
-      "source_location": "L45",
-      "_origin": "ast",
-      "id": "app_src_components_ui_range_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Section.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Section.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_section",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "section.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Section.astro",
-      "source_location": "L23",
-      "_origin": "ast",
-      "id": "app_src_components_ui_section_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Select.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_select",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "select.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L32",
-      "_origin": "ast",
-      "id": "app_src_components_ui_select_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "buttonClassName",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L34",
-      "_origin": "ast",
-      "id": "app_src_components_ui_select_buttonclassname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "buttonclassname"
-    },
-    {
-      "label": "SelectOption.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/SelectOption.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_selectoption",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "selectoption.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/SelectOption.astro",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "app_src_components_ui_selectoption_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Tab.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Tab.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tab",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "tab.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Tab.astro",
-      "source_location": "L21",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tab_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "TabPanel.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/TabPanel.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tabpanel",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "tabpanel.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/TabPanel.astro",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tabpanel_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Tabs.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Tabs.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tabs",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "tabs.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Tabs.astro",
-      "source_location": "L25",
-      "_origin": "ast",
-      "id": "app_src_components_ui_tabs_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
-    },
-    {
-      "label": "Textarea.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Textarea.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "app_src_components_ui_textarea",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "textarea.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/ui/Textarea.astro",
-      "source_location": "L46",
-      "_origin": "ast",
-      "id": "app_src_components_ui_textarea_classname",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
-      "norm_label": "classname"
     },
     {
       "label": "0000_curved_gwen_stacy.sql",
@@ -2915,8 +2409,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "app_src_db_schema_players",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "players"
     },
     {
@@ -3213,8 +2707,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_layouts_applayout",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "@layouts/applayout.astro"
     },
     {
@@ -3281,8 +2775,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data_loginform",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "loginform()"
     },
     {
@@ -3292,8 +2786,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "logout.data.ts"
     },
     {
@@ -3303,8 +2797,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data_logoutbutton",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "logoutbutton()"
     },
     {
@@ -3314,8 +2808,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_types",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3325,8 +2819,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_authstore",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "authstore"
     },
     {
@@ -3347,8 +2841,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_logoutbuttoncontext",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "logoutbuttoncontext"
     },
     {
@@ -3402,8 +2896,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_app_factory",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "app.factory.ts"
     },
     {
@@ -3413,8 +2907,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "register-route-data.ts"
     },
     {
@@ -3424,8 +2918,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "registerroutedata()"
     },
     {
@@ -3435,8 +2929,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "register-stores.ts"
     },
     {
@@ -3446,8 +2940,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores_registerstores",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "registerstores()"
     },
     {
@@ -3457,8 +2951,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "register-ui-data.ts"
     },
     {
@@ -3468,8 +2962,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data_registeruidata",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "registeruidata()"
     },
     {
@@ -3479,8 +2973,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "client.ts"
     },
     {
@@ -3490,8 +2984,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "unauthorized"
     },
     {
@@ -3501,8 +2995,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "apirequest()"
     },
     {
@@ -3512,8 +3006,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "configuration-templates.ts"
     },
     {
@@ -3523,8 +3017,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates_fetchconfigurationpresets",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "fetchconfigurationpresets()"
     },
     {
@@ -3534,8 +3028,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "players.ts"
     },
     {
@@ -3545,8 +3039,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provisionerror"
     },
     {
@@ -3556,8 +3050,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror_constructor",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3655,8 +3149,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "types.ts"
     },
     {
@@ -3666,8 +3160,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apierrorbody",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "apierrorbody"
     },
     {
@@ -3677,8 +3171,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apisuccess",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "apisuccess"
     },
     {
@@ -3688,8 +3182,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apifailure",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "apifailure"
     },
     {
@@ -3699,8 +3193,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apiresult",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "apiresult"
     },
     {
@@ -3710,8 +3204,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "client.ts"
     },
     {
@@ -3721,8 +3215,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_authclient",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "authclient"
     },
     {
@@ -3732,8 +3226,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_getaccesstoken",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "getaccesstoken()"
     },
     {
@@ -3743,8 +3237,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_cn_cn",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "cn()"
     },
     {
@@ -3754,8 +3248,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_errors",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -3765,8 +3259,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_provision_messages",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provision_messages"
     },
     {
@@ -3776,8 +3270,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_geterrormessage",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "geterrormessage()"
     },
     {
@@ -3809,41 +3303,41 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-play.data.ts"
     },
     {
       "label": "formatRemaining()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L10",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_formatremaining",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "formatremaining()"
     },
     {
       "label": "computeStats()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L17",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_computestats",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "computestats()"
     },
     {
       "label": "scoreTrainingPlay()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L23",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_scoretrainingplay",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingplay()"
     },
     {
@@ -3864,8 +3358,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_setup_data_scoretrainingsetup",
-      "community": 206,
-      "community_name": "sessions.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "scoretrainingsetup()"
     },
     {
@@ -3919,8 +3413,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_types",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "types.ts"
     },
     {
@@ -3930,8 +3424,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingplaycontext",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingplaycontext"
     },
     {
@@ -3941,8 +3435,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingsetupcontext",
-      "community": 206,
-      "community_name": "sessions.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "scoretrainingsetupcontext"
     },
     {
@@ -3952,8 +3446,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_id",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "id.ts"
     },
     {
@@ -3963,8 +3457,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_id_generateid",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "generateid()"
     },
     {
@@ -3974,8 +3468,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "docref_rfc_9562",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "rfc-9562"
     },
     {
@@ -4106,8 +3600,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_types",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "types.ts"
     },
     {
@@ -4117,8 +3611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "auth-routes.ts"
     },
     {
@@ -4128,8 +3622,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_public_pages",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "public_pages"
     },
     {
@@ -4139,8 +3633,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_normalizepath",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "normalizepath()"
     },
     {
@@ -4150,8 +3644,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_ispublicpage",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "ispublicpage()"
     },
     {
@@ -4161,8 +3655,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_is_nav_active_isnavactive",
-      "community": 212,
-      "community_name": "index.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "isnavactive()"
     },
     {
@@ -4172,8 +3666,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "route-class.ts"
     },
     {
@@ -4183,8 +3677,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class_classifyroute",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "classifyroute()"
     },
     {
@@ -4194,8 +3688,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "types.ts"
     },
     {
@@ -4205,8 +3699,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types_routeclass",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "routeclass"
     },
     {
@@ -4238,8 +3732,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "score-input.module.ts"
     },
     {
@@ -4249,8 +3743,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "scoreinputbuffer"
     },
     {
@@ -4260,8 +3754,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_constructor",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -4271,63 +3765,63 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".appenddigit()"
     },
     {
       "label": ".deleteLast()",
       "file_type": "code",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".deletelast()"
     },
     {
       "label": ".clear()",
       "file_type": "code",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_clear",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".clear()"
     },
     {
       "label": ".setValue()",
       "file_type": "code",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L36",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_setvalue",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".setvalue()"
     },
     {
       "label": ".asNumber()",
       "file_type": "code",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L41",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_asnumber",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".asnumber()"
     },
     {
       "label": ".acceptActivation()",
       "file_type": "code",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".acceptactivation()"
     },
     {
@@ -4337,8 +3831,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.engine.module.ts"
     },
     {
@@ -4348,8 +3842,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "scoretrainingengine"
     },
     {
@@ -4359,8 +3853,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_constructor",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".constructor()"
     },
     {
@@ -4370,8 +3864,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".recordvisit()"
     },
     {
@@ -4381,8 +3875,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_iscomplete",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".iscomplete()"
     },
     {
@@ -4392,8 +3886,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currenttotal",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".currenttotal()"
     },
     {
@@ -4403,8 +3897,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currentaverage",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".currentaverage()"
     },
     {
@@ -4414,8 +3908,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_undolastvisit",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".undolastvisit()"
     },
     {
@@ -4425,8 +3919,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.payload.module.ts"
     },
     {
@@ -4436,8 +3930,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "buildeventsbatch()"
     },
     {
@@ -4447,8 +3941,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4458,8 +3952,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoretrainingengineoptions",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "scoretrainingengineoptions"
     },
     {
@@ -4469,8 +3963,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_modules_game_types_recordedvisit",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "recordedvisit"
     },
     {
@@ -4480,8 +3974,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoreinputbufferoptions",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "scoreinputbufferoptions"
     },
     {
@@ -4491,8 +3985,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoreinputactivationevent",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "scoreinputactivationevent"
     },
     {
@@ -4513,8 +4007,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_types",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4645,8 +4139,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "index.ts"
     },
     {
@@ -4656,8 +4150,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index_get",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "get()"
     },
     {
@@ -4667,8 +4161,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "types.ts"
     },
     {
@@ -4678,8 +4172,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpreset",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "configurationpreset"
     },
     {
@@ -4689,8 +4183,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpresetdata",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "configurationpresetdata"
     },
     {
@@ -4722,8 +4216,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4733,8 +4227,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequest",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -4744,8 +4238,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponse",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provisionplayerresponse"
     },
     {
@@ -4755,8 +4249,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequestinput",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provisionplayerrequestinput"
     },
     {
@@ -4766,8 +4260,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponsedata",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "provisionplayerresponsedata"
     },
     {
@@ -4821,8 +4315,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "active.ts"
     },
     {
@@ -4832,8 +4326,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active_get",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "get()"
     },
     {
@@ -5096,8 +4590,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_types",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "types.ts"
     },
     {
@@ -5107,8 +4601,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_index",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "index.astro"
     },
     {
@@ -5162,8 +4656,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_profile_index",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "index.astro"
     },
     {
@@ -5173,8 +4667,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_statistics_index",
-      "community": 215,
-      "community_name": "interfaces.ts",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "index.astro"
     },
     {
@@ -5184,8 +4678,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "interfaces.ts"
     },
     {
@@ -5195,8 +4689,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_provisionedplayer",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "provisionedplayer"
     },
     {
@@ -5206,8 +4700,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_gametyperulesetrow",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "gametyperulesetrow"
     },
     {
@@ -5217,8 +4711,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_configurationtemplaterow",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "configurationtemplaterow"
     },
     {
@@ -5228,8 +4722,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_sessionrow",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "sessionrow"
     },
     {
@@ -5239,8 +4733,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_idempotencyrecord",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "idempotencyrecord"
     },
     {
@@ -5250,8 +4744,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_createsessionrecordsinput",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "createsessionrecordsinput"
     },
     {
@@ -5261,8 +4755,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertstage",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "batchinsertstage"
     },
     {
@@ -5272,8 +4766,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertdart",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "batchinsertdart"
     },
     {
@@ -5283,8 +4777,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertturn",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "batchinsertturn"
     },
     {
@@ -5294,8 +4788,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertinput",
-      "community": 202,
-      "community_name": "@components/ui/LinkCard.astro",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "batchinsertinput"
     },
     {
@@ -5305,8 +4799,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "player.repository.ts"
     },
     {
@@ -5316,8 +4810,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_db",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "db"
     },
     {
@@ -5327,8 +4821,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_upsertplayerbyauthuserid",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "upsertplayerbyauthuserid()"
     },
     {
@@ -5514,8 +5008,8 @@
       "source_location": "L232",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findactivesessions",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "findactivesessions()"
     },
     {
@@ -5525,8 +5019,8 @@
       "source_location": "L239",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationpresets",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "findconfigurationpresets()"
     },
     {
@@ -5580,8 +5074,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_player_service",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "player.service.ts"
     },
     {
@@ -5591,8 +5085,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_services_player_service_provisionplayer",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "provisionplayer()"
     },
     {
@@ -5668,8 +5162,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_services_rulesets_registry_getrulesetvalidator",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 196,
+      "community_name": "provision.ts",
       "norm_label": "getrulesetvalidator()"
     },
     {
@@ -5789,8 +5283,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "app_src_services_session_service_canonicalize",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "canonicalize()"
     },
     {
@@ -5800,8 +5294,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "app_src_services_session_service_hashbatchpayload",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "hashbatchpayload()"
     },
     {
@@ -5910,8 +5404,8 @@
       "source_location": "L468",
       "_origin": "ast",
       "id": "app_src_services_session_service_listactivesessions",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "listactivesessions()"
     },
     {
@@ -5921,8 +5415,8 @@
       "source_location": "L473",
       "_origin": "ast",
       "id": "app_src_services_session_service_listconfigurationpresets",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "listconfigurationpresets()"
     },
     {
@@ -5976,8 +5470,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_auth_store",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "auth.store.ts"
     },
     {
@@ -5987,8 +5481,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstatus",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "authstatus"
     },
     {
@@ -5998,8 +5492,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_hasactivesession",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "hasactivesession()"
     },
     {
@@ -6009,8 +5503,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstore",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "authstore()"
     },
     {
@@ -6020,8 +5514,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_game_store",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "game.store.ts"
     },
     {
@@ -6031,8 +5525,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_stores_game_store_gamestore",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "gamestore()"
     },
     {
@@ -6042,8 +5536,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "types.ts"
     },
     {
@@ -6053,8 +5547,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types_gameconfigsnapshot",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "gameconfigsnapshot"
     },
     {
@@ -6064,8 +5558,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_stores_types_recordedturn",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "recordedturn"
     },
     {
@@ -6130,8 +5624,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_logout_data_test",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "logout.data.test.ts"
     },
     {
@@ -6141,8 +5635,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_client_test",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "client.test.ts"
     },
     {
@@ -6152,8 +5646,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_configuration_templates_test",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 194,
+      "community_name": "scripts",
       "norm_label": "configuration-templates.test.ts"
     },
     {
@@ -6163,8 +5657,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_players_test",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "players.test.ts"
     },
     {
@@ -6185,8 +5679,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_cn_test",
-      "community": 214,
-      "community_name": "@components/forms/Input.astro",
+      "community": 208,
+      "community_name": "withTransaction",
       "norm_label": "cn.test.ts"
     },
     {
@@ -6196,8 +5690,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_errors_test",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "errors.test.ts"
     },
     {
@@ -6207,8 +5701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-play.data.test.ts"
     },
     {
@@ -6218,41 +5712,41 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_segmenttimerinstances",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segmenttimerinstances"
     },
     {
       "label": "GameStub",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L30",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_gamestub",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "gamestub"
     },
     {
       "label": "makePlay()",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L358",
+      "source_location": "L498",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeplay",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "makeplay()"
     },
     {
       "label": "makeAbandonPlay()",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L703",
+      "source_location": "L917",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "makeabandonplay()"
     },
     {
@@ -6262,8 +5756,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test",
-      "community": 206,
-      "community_name": "sessions.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "score-training-setup.data.test.ts"
     },
     {
@@ -6273,8 +5767,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test_createsetup",
-      "community": 206,
-      "community_name": "sessions.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "createsetup()"
     },
     {
@@ -6361,8 +5855,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_input_module_test",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "score-input.module.test.ts"
     },
     {
@@ -6372,8 +5866,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_input_module_test_press",
-      "community": 207,
-      "community_name": "ScoreTrainingEngine",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "press()"
     },
     {
@@ -6383,8 +5877,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_engine_module_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.engine.module.test.ts"
     },
     {
@@ -6394,8 +5888,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_payload_module_test",
-      "community": 211,
-      "community_name": "ScoreInputBuffer",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.payload.module.test.ts"
     },
     {
@@ -6416,8 +5910,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -6427,8 +5921,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test_makecontext",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 191,
+      "community_name": "relations.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -6438,8 +5932,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_players_types_test",
-      "community": 209,
-      "community_name": "listActiveSessions",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "types.test.ts"
     },
     {
@@ -6504,8 +5998,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_active_test",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "active.test.ts"
     },
     {
@@ -6625,8 +6119,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "session.service.test.ts"
     },
     {
@@ -6636,8 +6130,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_inlinerequest",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "inlinerequest"
     },
     {
@@ -6647,8 +6141,8 @@
       "source_location": "L143",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_samplebatch",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "samplebatch()"
     },
     {
@@ -6669,8 +6163,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_auth_store_test",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "auth.store.test.ts"
     },
     {
@@ -6680,8 +6174,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "game.store.test.ts"
     },
     {
@@ -6691,8 +6185,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_createsharedaliaspersist",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "createsharedaliaspersist()"
     },
     {
@@ -6702,8 +6196,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_stubpersistfactory",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "stubpersistfactory()"
     },
     {
@@ -6713,8 +6207,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_as",
-      "community": 205,
-      "community_name": "middleware.ts",
+      "community": 202,
+      "community_name": "package.json",
       "norm_label": "as()"
     },
     {
@@ -6724,8 +6218,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_auth_routes_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "auth-routes.test.ts"
     },
     {
@@ -6735,8 +6229,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_route_class_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 198,
+      "community_name": "index.astro",
       "norm_label": "route-class.test.ts"
     },
     {
@@ -8643,7 +8137,7 @@
       "label": "Deferred (open, not rejected)",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L147",
+      "source_location": "L150",
       "_origin": "ast",
       "id": "decisions_deferred_open_not_rejected",
       "community": 58,
@@ -9991,28 +9485,6 @@
       "community": 178,
       "community_name": "Database SQL Artifacts",
       "norm_label": "references"
-    },
-    {
-      "label": "badges.md",
-      "file_type": "document",
-      "source_file": "database/braindump/badges.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "database_braindump_badges",
-      "community": 198,
-      "community_name": "cn.ts",
-      "norm_label": "badges.md"
-    },
-    {
-      "label": "Badges",
-      "file_type": "document",
-      "source_file": "database/braindump/badges.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "database_braindump_badges_badges",
-      "community": 198,
-      "community_name": "cn.ts",
-      "norm_label": "badges"
     },
     {
       "label": "AGENT.md",
@@ -23633,6 +23105,28 @@
       "norm_label": "document index"
     },
     {
+      "label": "badges.md",
+      "file_type": "document",
+      "source_file": "docs/braindump/badges.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_braindump_badges",
+      "community": 225,
+      "community_name": "tailwind-merge",
+      "norm_label": "badges.md"
+    },
+    {
+      "label": "Badges",
+      "file_type": "document",
+      "source_file": "docs/braindump/badges.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_braindump_badges_badges",
+      "community": 225,
+      "community_name": "tailwind-merge",
+      "norm_label": "badges"
+    },
+    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "docs/game-rules/README.md",
@@ -27600,61 +27094,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_alert",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_badge",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletitem",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletList.astro",
-      "source_location": "L14",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletlist",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Card.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_card",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/CardWrapper.astro",
       "source_location": "L31",
       "weight": 1.0,
@@ -27666,63 +27105,8 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Checkbox.astro",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_src_components_ui_checkbox",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Field.astro",
-      "source_location": "L33",
-      "weight": 1.0,
-      "source": "app_src_components_ui_field",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Fieldset.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_fieldset",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/GradientCard.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_gradientcard",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Input.astro",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "app_src_components_ui_input",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/Link.astro",
-      "source_location": "L36",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_src_components_ui_link",
       "target": "app_src_lib_client_cn",
@@ -27732,131 +27116,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/LinkCard.astro",
-      "source_location": "L36",
-      "weight": 1.0,
-      "source": "app_src_components_ui_linkcard",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L32",
+      "source_location": "L28",
       "weight": 1.0,
       "source": "app_src_components_ui_modal",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/NavPill.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_navpill",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Radio.astro",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_src_components_ui_radio",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Range.astro",
-      "source_location": "L42",
-      "weight": 1.0,
-      "source": "app_src_components_ui_range",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Section.astro",
-      "source_location": "L20",
-      "weight": 1.0,
-      "source": "app_src_components_ui_section",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L29",
-      "weight": 1.0,
-      "source": "app_src_components_ui_select",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/SelectOption.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_selectoption",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tab.astro",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tab",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/TabPanel.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabpanel",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tabs.astro",
-      "source_location": "L22",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabs",
-      "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Textarea.astro",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "app_src_components_ui_textarea",
       "target": "app_src_lib_client_cn",
       "confidence_score": 1.0
     },
@@ -28094,7 +27357,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L32",
+      "source_location": "L28",
       "weight": 1.0,
       "source": "app_src_components_ui_modal",
       "target": "app_src_lib_client_cn_cn",
@@ -28132,8 +27395,11 @@
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/GameCard.astro",
+      "source_location": "L12",
+      "weight": 1.0,
       "source": "app_src_components_layout_games_gamecard",
       "target": "app_src_components_ui_cardwrapper",
       "confidence_score": 1.0
@@ -28143,7 +27409,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/GameCard.astro",
-      "source_location": "L3",
+      "source_location": "L15",
       "weight": 1.0,
       "source": "app_src_components_layout_games_gamecard",
       "target": "users_levi_development_dart_analytics_app_src_icons_dart_svg",
@@ -28257,7 +27523,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/Link.astro",
-      "source_location": "L36",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_src_components_ui_link",
       "target": "app_src_lib_client_cn_cn",
@@ -28268,7 +27534,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/interfaces/ScoreTraining.astro",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_components_layout_games_interfaces_scoretraining",
       "target": "app_src_components_layout_games_scoreinput",
@@ -28343,7 +27609,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/interfaces/ScoreTraining.astro",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "app_src_components_layout_games_interfaces_scoretraining",
       "target": "app_src_components_layout_games_singleplayerdisplay",
@@ -28416,8 +27682,11 @@
     },
     {
       "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/ui/IsLoading.astro",
+      "source_location": "L11",
+      "weight": 1.0,
       "source": "app_src_components_ui_isloading",
       "target": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
       "confidence_score": 1.0
@@ -28431,237 +27700,6 @@
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_setup_index",
       "target": "app_src_components_ui_isloading",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "app_src_components_ui_alert",
-      "target": "app_src_components_ui_alert_bodyclassname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L22",
-      "weight": 1.0,
-      "source": "app_src_components_ui_alert",
-      "target": "app_src_components_ui_alert_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "app_src_components_ui_alert",
-      "target": "app_src_components_ui_alert_titleclassname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Alert.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_alert",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_badge",
-      "target": "app_src_components_ui_badge_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_badge",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L21",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletitem",
-      "target": "app_src_components_ui_bulletitem_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletitem",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletItem.astro",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletitem",
-      "target": "users_levi_development_dart_analytics_app_src_icons_check_svg",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletList.astro",
-      "source_location": "L17",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletlist",
-      "target": "app_src_components_ui_bulletlist_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/BulletList.astro",
-      "source_location": "L14",
-      "weight": 1.0,
-      "source": "app_src_components_ui_bulletlist",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Card.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_card",
-      "target": "app_src_components_ui_card_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Card.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_card",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Checkbox.astro",
-      "source_location": "L34",
-      "weight": 1.0,
-      "source": "app_src_components_ui_checkbox",
-      "target": "app_src_components_ui_checkbox_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Checkbox.astro",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_src_components_ui_checkbox",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Field.astro",
-      "source_location": "L36",
-      "weight": 1.0,
-      "source": "app_src_components_ui_field",
-      "target": "app_src_components_ui_field_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Field.astro",
-      "source_location": "L33",
-      "weight": 1.0,
-      "source": "app_src_components_ui_field",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Fieldset.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_fieldset",
-      "target": "app_src_components_ui_fieldset_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Fieldset.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_fieldset",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/GradientCard.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_gradientcard",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Input.astro",
-      "source_location": "L46",
-      "weight": 1.0,
-      "source": "app_src_components_ui_input",
-      "target": "app_src_components_ui_input_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Input.astro",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "app_src_components_ui_input",
-      "target": "app_src_lib_client_cn_cn",
       "confidence_score": 1.0
     },
     {
@@ -28687,27 +27725,6 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/LinkCard.astro",
-      "source_location": "L39",
-      "weight": 1.0,
-      "source": "app_src_components_ui_linkcard",
-      "target": "app_src_components_ui_linkcard_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/LinkCard.astro",
-      "source_location": "L36",
-      "weight": 1.0,
-      "source": "app_src_components_ui_linkcard",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -28727,226 +27744,6 @@
       "weight": 1.0,
       "source": "app_src_pages_index",
       "target": "app_src_components_ui_logoutbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/NavPill.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_navpill",
-      "target": "app_src_components_ui_navpill_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/NavPill.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_navpill",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Radio.astro",
-      "source_location": "L34",
-      "weight": 1.0,
-      "source": "app_src_components_ui_radio",
-      "target": "app_src_components_ui_radio_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Radio.astro",
-      "source_location": "L31",
-      "weight": 1.0,
-      "source": "app_src_components_ui_radio",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Range.astro",
-      "source_location": "L45",
-      "weight": 1.0,
-      "source": "app_src_components_ui_range",
-      "target": "app_src_components_ui_range_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Range.astro",
-      "source_location": "L42",
-      "weight": 1.0,
-      "source": "app_src_components_ui_range",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Section.astro",
-      "source_location": "L23",
-      "weight": 1.0,
-      "source": "app_src_components_ui_section",
-      "target": "app_src_components_ui_section_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Section.astro",
-      "source_location": "L20",
-      "weight": 1.0,
-      "source": "app_src_components_ui_section",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L34",
-      "weight": 1.0,
-      "source": "app_src_components_ui_select",
-      "target": "app_src_components_ui_select_buttonclassname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "app_src_components_ui_select",
-      "target": "app_src_components_ui_select_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Select.astro",
-      "source_location": "L29",
-      "weight": 1.0,
-      "source": "app_src_components_ui_select",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/SelectOption.astro",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "app_src_components_ui_selectoption",
-      "target": "app_src_components_ui_selectoption_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/SelectOption.astro",
-      "source_location": "L16",
-      "weight": 1.0,
-      "source": "app_src_components_ui_selectoption",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tab.astro",
-      "source_location": "L21",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tab",
-      "target": "app_src_components_ui_tab_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tab.astro",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tab",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/TabPanel.astro",
-      "source_location": "L28",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabpanel",
-      "target": "app_src_components_ui_tabpanel_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/TabPanel.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabpanel",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tabs.astro",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabs",
-      "target": "app_src_components_ui_tabs_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Tabs.astro",
-      "source_location": "L22",
-      "weight": 1.0,
-      "source": "app_src_components_ui_tabs",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Textarea.astro",
-      "source_location": "L46",
-      "weight": 1.0,
-      "source": "app_src_components_ui_textarea",
-      "target": "app_src_components_ui_textarea_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/ui/Textarea.astro",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "app_src_components_ui_textarea",
-      "target": "app_src_lib_client_cn_cn",
       "confidence_score": 1.0
     },
     {
@@ -31939,7 +30736,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_client_api_sessions",
@@ -32037,7 +30834,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_client_api_sessions_createsession",
@@ -32070,7 +30867,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_client_api_sessions_appendbatch",
@@ -32136,7 +30933,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_client_api_sessions_completesession",
@@ -32180,7 +30977,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_client_api_sessions_fetchactivesessions",
@@ -32456,7 +31253,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_computestats",
@@ -32466,7 +31263,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L10",
+      "source_location": "L15",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_formatremaining",
@@ -32476,7 +31273,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L23",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay",
@@ -32487,7 +31284,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L6",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_session_recovery",
@@ -32498,7 +31295,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L6",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_session_recovery_reconcileactivesession",
@@ -32509,7 +31306,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L8",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_types",
@@ -32520,7 +31317,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L8",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_types_scoretrainingplaycontext",
@@ -32619,7 +31416,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L7",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_stores_types",
@@ -32630,7 +31427,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L7",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_stores_types_recordedturn",
@@ -32641,7 +31438,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L26",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_game_score_training_play_data",
@@ -32652,7 +31449,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L26",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay",
@@ -32664,7 +31461,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L705",
+      "source_location": "L919",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -32675,7 +31472,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L360",
+      "source_location": "L502",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -33020,7 +31817,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L27",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_game_types",
@@ -33042,7 +31839,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L27",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_lib_game_types_scoretrainingplaycontext",
@@ -34279,7 +33076,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
@@ -34299,7 +33096,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_asnumber",
@@ -34309,7 +33106,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_clear",
@@ -34329,7 +33126,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
@@ -34339,7 +33136,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L36",
+      "source_location": "L37",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_setvalue",
@@ -34395,7 +33192,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/modules/game/score-input.module.test.ts",
-      "source_location": "L13",
+      "source_location": "L9",
       "weight": 1.0,
       "source": "app_tests_modules_game_score_input_module_test_press",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit"
@@ -34405,7 +33202,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
       "target": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
@@ -34416,7 +33213,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
       "target": "app_src_modules_game_types_scoreinputactivationevent",
@@ -34427,7 +33224,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-input.module.ts",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "source": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
       "target": "app_src_modules_game_types_scoreinputactivationevent",
@@ -34787,7 +33584,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L25",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_modules_ui_segment_timer_module",
@@ -34879,7 +33676,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L25",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_modules_ui_segment_timer_module_segmenttimer",
@@ -37883,7 +36680,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L28",
+      "source_location": "L35",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_stores_types",
@@ -37894,7 +36691,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L28",
+      "source_location": "L35",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_src_stores_types_recordedturn",
@@ -37934,7 +36731,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L43",
+      "source_location": "L54",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_gamestub",
@@ -37944,7 +36741,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L703",
+      "source_location": "L917",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
@@ -37954,7 +36751,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L358",
+      "source_location": "L498",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_makeplay",
@@ -39680,7 +38477,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L147",
+      "source_location": "L150",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_deferred_open_not_rejected",
@@ -40854,16 +39651,6 @@
       "weight": 1.0,
       "source": "database_readme_database_sql_artifacts",
       "target": "database_readme_structure",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "database/braindump/badges.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "database_braindump_badges",
-      "target": "database_braindump_badges_badges",
       "confidence_score": 1.0
     },
     {
@@ -52849,6 +51636,16 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "docs/braindump/badges.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_braindump_badges",
+      "target": "docs_braindump_badges_badges",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/game-rules/README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -54948,5 +53745,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1f3038ebde106c030d3dabf5c6f8fdafe7757508"
+  "built_at_commit": "b722034e8b5efa262fc5e418c675f5367e4bf972"
 }
