@@ -9,10 +9,17 @@ interface Props {
   class?: string;
 }
 
-const { title, class: className = "" } = Astro.props;
+// Props
+const { title, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("glass overflow-hidden rounded-2xl", classNameProp);
 ---
 
-<article class:list={["glass overflow-hidden rounded-2xl", className]}>
+<article class={className}>
   <slot name="media" />
   <div class="space-y-3 p-5">
     {

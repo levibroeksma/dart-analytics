@@ -9,21 +9,26 @@ interface Props {
   class?: string;
 }
 
-const { variant = "accent", class: className = "" } = Astro.props;
+// Props
+const { variant = "accent", class: classNameProp = "" }: Props = Astro.props;
 
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
 const variantClasses = {
   accent: "border border-accent/25 bg-accent-muted text-accent",
   error: "border border-error/25 bg-error-muted text-error",
   neutral: "bg-surface-overlay text-muted-foreground",
 }[variant];
+
+const className = cn(
+  "badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+  variantClasses,
+  classNameProp,
+);
 ---
 
-<span
-  class:list={[
-    "badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-    variantClasses,
-    className,
-  ]}
->
+<span class={className}>
   <slot />
 </span>

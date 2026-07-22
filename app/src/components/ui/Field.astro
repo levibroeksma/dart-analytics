@@ -17,22 +17,29 @@ interface Props {
   class?: string;
 }
 
+// Props
 const {
   label,
   for: htmlFor,
   hint,
   error,
   errorId,
-  class: className = "",
-} = Astro.props;
+  class: classNameProp = "",
+}: Props = Astro.props;
 
 const resolvedErrorId = errorId ?? (htmlFor ? `${htmlFor}-error` : undefined);
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("flex flex-col gap-1.5", classNameProp);
 ---
 
-<div class:list={["flex flex-col gap-1.5", className]}>
+<div class={className}>
   {
     label && (
-      <label for={htmlFor} class="text-sm font-medium text-foreground">
+      <label for={htmlFor} class="text-sm font-semibold text-foreground">
         {label}
       </label>
     )

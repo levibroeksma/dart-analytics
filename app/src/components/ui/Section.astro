@@ -13,13 +13,20 @@ interface Props {
   class?: string;
 }
 
-const { id, label, title, class: className = "" } = Astro.props;
+// Props
+const { id, label, title, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "glass rounded-2xl p-6 sm:p-8 space-y-6 scroll-mt-8",
+  classNameProp,
+);
 ---
 
-<section
-  id={id}
-  class:list={["glass rounded-2xl p-6 sm:p-8 space-y-6 scroll-mt-8", className]}
->
+<section id={id} class={className}>
   {
     (label || title) && (
       <div>

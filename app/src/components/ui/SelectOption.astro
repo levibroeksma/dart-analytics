@@ -9,17 +9,21 @@ interface Props {
   class?: string;
 }
 
-const { value, class: className = "" } = Astro.props;
+// Props
+const { value, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "group/option relative block cursor-default py-2 pr-4 pl-8 text-foreground select-none",
+  "focus:bg-accent focus:text-accent-foreground focus:outline-hidden",
+  classNameProp,
+);
 ---
 
-<div
-  value={value}
-  class:list={[
-    "group/option relative block cursor-default py-2 pr-4 pl-8 text-foreground select-none",
-    "focus:bg-accent focus:text-accent-foreground focus:outline-hidden",
-    className,
-  ]}
->
+<div value={value} class={className}>
   <span
     class="block truncate font-normal group-aria-selected/option:font-semibold"
   >

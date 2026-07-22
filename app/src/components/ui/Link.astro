@@ -19,6 +19,7 @@ interface Props {
   class?: string;
 }
 
+// Props
 const {
   href,
   title,
@@ -26,19 +27,31 @@ const {
   external = false,
   icon = false,
   ariaLabel,
-  class: className = "",
-} = Astro.props;
+  class: classNameProp = "",
+}: Props = Astro.props;
 
 const isText = variant === "inline" || variant === "ghost";
 
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
 const variantClasses = {
   inline: "text-sm text-accent no-underline hover:text-accent-hover",
   primary: "border-transparent bg-white text-black btn-primary no-underline",
   secondary:
     "border-border text-foreground btn-secondary no-underline hover:text-foreground",
-  ghost:
-    "text-sm text-muted-foreground no-underline hover:text-foreground",
+  ghost: "text-sm text-muted-foreground no-underline hover:text-foreground",
 }[variant];
+
+const className = cn(
+  "inline-flex items-center justify-center gap-2 transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  !isText && "btn rounded-md border border-transparent text-sm font-semibold",
+  !isText && (icon ? "p-2.5" : "px-4 py-2.5"),
+  isText && "font-semibold",
+  variantClasses,
+  classNameProp,
+);
 ---
 
 <a
@@ -46,15 +59,7 @@ const variantClasses = {
   aria-label={ariaLabel}
   target={external ? "_blank" : undefined}
   rel={external ? "noopener noreferrer" : undefined}
-  class:list={[
-    "inline-flex items-center justify-center gap-2 transition-[transform,color,background-color,border-color,box-shadow] duration-150",
-    !isText &&
-      "btn rounded-md border border-transparent text-sm font-medium",
-    !isText && (icon ? "p-2.5" : "px-4 py-2.5"),
-    isText && "font-medium",
-    variantClasses,
-    className,
-  ]}
+  class={className}
 >
   <slot name="iconBefore" />
   {title}

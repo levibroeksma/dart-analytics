@@ -1,6 +1,4 @@
 ---
-import CheckIcon from "../icons/check.svg";
-
 /**
  * Bullet list row with leading icon (defaults to check).
  * Pass a custom icon via the `icon` slot.
@@ -10,10 +8,20 @@ interface Props {
   class?: string;
 }
 
-const { class: className = "" } = Astro.props;
+// Props
+const { class: classNameProp = "" }: Props = Astro.props;
+
+// Components
+import CheckIcon from "../icons/check.svg";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("flex gap-3 text-sm text-muted-foreground", classNameProp);
 ---
 
-<li class:list={["flex gap-3 text-sm text-muted-foreground", className]}>
+<li class={className}>
   <span
     class="mt-0.5 flex size-4 shrink-0 items-center justify-center text-foreground"
   >

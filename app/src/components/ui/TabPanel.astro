@@ -13,21 +13,28 @@ interface Props {
   class?: string;
 }
 
+// Props
 const {
   id,
   labelledby,
   defaultVisible = false,
-  class: className = "",
-} = Astro.props;
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("glass rounded-xl p-5", classNameProp);
 ---
 
 <div
   id={id}
   role="tabpanel"
   aria-labelledby={labelledby}
-  class:list={["glass rounded-xl p-5", className]}
+  class={className}
   x-show={`activeTab === '${labelledby}'`}
-  x-bind:hidden={`activeTab !== '${labelledby}'`}
+  :hidden={`activeTab !== '${labelledby}'`}
   {...(defaultVisible ? {} : { "x-cloak": true })}
 >
   <slot />

@@ -9,13 +9,20 @@ interface Props {
   class?: string;
 }
 
-const { legend, class: className = "" } = Astro.props;
+// Props
+const { legend, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("glass space-y-4 rounded-xl p-4", classNameProp);
 ---
 
-<fieldset class:list={["glass space-y-4 rounded-xl p-4", className]}>
+<fieldset class={className}>
   {
     legend && (
-      <legend class="px-1 text-sm font-medium text-foreground">{legend}</legend>
+      <legend class="px-1 text-sm font-semibold text-foreground">{legend}</legend>
     )
   }
   <slot />

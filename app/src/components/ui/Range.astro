@@ -23,6 +23,7 @@ interface Props {
   class?: string;
 }
 
+// Props
 const {
   id,
   name,
@@ -32,10 +33,16 @@ const {
   value,
   list,
   steps,
-  class: className = "",
-} = Astro.props;
+  class: classNameProp = "",
+}: Props = Astro.props;
 
 const listId = list ?? (steps && id ? `${id}-steps` : undefined);
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("w-full", "accent-accent", classNameProp);
 ---
 
 <input
@@ -47,7 +54,7 @@ const listId = list ?? (steps && id ? `${id}-steps` : undefined);
   step={step}
   value={value}
   list={listId}
-  class:list={["w-full", "accent-accent", className]}
+  class={className}
 />
 {
   steps && listId && (

@@ -11,20 +11,31 @@ interface Props {
   class?: string;
 }
 
-const { variant, title, class: className = "" } = Astro.props;
+// Props
+const { variant, title, class: classNameProp = "" }: Props = Astro.props;
 const isError = variant === "error";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "alert flex items-start gap-3 rounded-md border px-4 py-3 text-sm",
+  isError
+    ? "alert-error border-error/40 text-error-foreground"
+    : "alert-success border-success/40 text-foreground",
+  classNameProp,
+);
+
+const titleClassName = cn("font-semibold", !isError && "text-foreground");
+
+const bodyClassName = cn(
+  title && "mt-0.5",
+  isError ? "text-error-foreground/80" : "text-muted-foreground",
+);
 ---
 
-<div
-  class:list={[
-    "alert flex items-start gap-3 rounded-md border px-4 py-3 text-sm",
-    isError
-      ? "alert-error border-error/40 text-error-foreground"
-      : "alert-success border-success/40 text-foreground",
-    className,
-  ]}
-  role={isError ? "alert" : "status"}
->
+<div class={className} role={isError ? "alert" : "status"}>
   {
     isError ? (
       <svg
@@ -62,17 +73,8 @@ const isError = variant === "error";
     )
   }
   <div>
-    {
-      title && (
-        <p class:list={["font-medium", !isError && "text-foreground"]}>{title}</p>
-      )
-    }
-    <p
-      class:list={[
-        title && "mt-0.5",
-        isError ? "text-error-foreground/80" : "text-muted-foreground",
-      ]}
-    >
+    {title && <p class={titleClassName}>{title}</p>}
+    <p class={bodyClassName}>
       <slot />
     </p>
   </div>

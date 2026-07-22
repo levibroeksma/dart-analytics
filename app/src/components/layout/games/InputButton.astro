@@ -1,17 +1,32 @@
 ---
+/**
+ * Full-width game keypad button.
+ * @param {"button"|"submit"|"reset"} [type]
+ * @param {string} [class] Extra classes
+ */
 interface Props {
   class?: string;
   type?: "button" | "submit" | "reset";
+  [key: string]: unknown;
 }
 
-const { class: className = "", type = "button", ...props } = Astro.props as Props &
-  Record<string, unknown>;
+// Props
+const {
+  class: classNameProp = "",
+  type = "button",
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "min-h-0 text-2xl w-full px-0 font-semibold flex items-center justify-center font-mono",
+  classNameProp,
+);
 ---
 
-<button
-  type={type}
-  class:list={["min-h-0 text-2xl w-full px-0 font-semibold flex items-center justify-center font-mono", className]}
-  {...props}
->
+<button type={type} class={className} {...props}>
   <slot />
 </button>

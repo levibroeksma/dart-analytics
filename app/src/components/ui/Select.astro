@@ -16,33 +16,37 @@ interface Props {
   class?: string;
 }
 
+// Props
 const {
   id,
   error = false,
   disabled = false,
   ariaDescribedby,
-  class: className = "",
-} = Astro.props;
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("block w-full", classNameProp);
+
+const buttonClassName = cn(
+  "grid w-full cursor-default grid-cols-1 rounded-md bg-white/5 py-2 pr-2 pl-3.5 text-left text-sm text-foreground outline-1 -outline-offset-1 outline-border transition-[outline-color,box-shadow] duration-150",
+  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+  "disabled:cursor-not-allowed disabled:opacity-40",
+  error && "outline-error focus-visible:outline-error",
+);
 ---
 
 <div
   id={id}
   aria-invalid={error ? "true" : undefined}
   aria-describedby={ariaDescribedby}
-  class:list={["block w-full", className]}
+  class={className}
 >
-  <button
-    type="button"
-    disabled={disabled}
-    class:list={[
-      "grid w-full cursor-default grid-cols-1 rounded-md bg-white/5 py-2 pr-2 pl-3.5 text-left text-sm text-foreground outline-1 -outline-offset-1 outline-border transition-[outline-color,box-shadow] duration-150",
-      "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
-      "disabled:cursor-not-allowed disabled:opacity-40",
-      error && "outline-error focus-visible:outline-error",
-    ]}
-  >
-    <div class="col-start-1 row-start-1 truncate pr-6"
-    ></div>
+  <button type="button" disabled={disabled} class={buttonClassName}>
+    <div class="col-start-1 row-start-1 truncate pr-6"></div>
     <svg
       viewBox="0 0 16 16"
       fill="currentColor"

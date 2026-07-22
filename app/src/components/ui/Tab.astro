@@ -11,17 +11,24 @@ interface Props {
   class?: string;
 }
 
-const { id, controls, class: className = "" } = Astro.props;
+// Props
+const { id, controls, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "tab rounded-sm px-4 py-2 text-sm font-semibold text-muted-foreground transition-[color,background-color,box-shadow] duration-150",
+  classNameProp,
+);
 ---
 
 <button
   role="tab"
   id={id}
   aria-controls={controls}
-  class:list={[
-    "tab rounded-sm px-4 py-2 text-sm font-medium text-muted-foreground transition-[color,background-color,box-shadow] duration-150",
-    className,
-  ]}
+  class={className}
   :aria-selected={`activeTab === '${id}'`}
   @click={`activeTab = '${id}'`}
 >

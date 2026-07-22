@@ -9,15 +9,19 @@ interface Props {
   class?: string;
 }
 
-const { href, class: className = "" } = Astro.props;
+// Props
+const { href, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "rounded-sm border border-border px-3.5 py-1.5 text-sm text-muted-foreground nav-pill duration-150 no-underline transition-[color,background-color,border-color]",
+  classNameProp,
+);
 ---
 
-<a
-  href={href}
-  class:list={[
-    "rounded-sm border border-border px-3.5 py-1.5 text-sm text-muted-foreground nav-pill duration-150 no-underline transition-[color,background-color,border-color]",
-    className,
-  ]}
->
+<a href={href} class={className}>
   <slot />
 </a>

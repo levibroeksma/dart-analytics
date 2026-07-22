@@ -20,6 +20,7 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const {
   href,
   title,
@@ -27,9 +28,18 @@ const {
   description,
   cta = "Learn more",
   external = false,
-  class: className = "",
+  class: classNameProp = "",
   ...props
-} = Astro.props;
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "link-card group flex flex-col rounded-lg p-6 no-underline text-inherit",
+  classNameProp,
+);
 ---
 
 <div {...props}>
@@ -37,11 +47,7 @@ const {
     href={href}
     target={external ? "_blank" : undefined}
     rel={external ? "noopener noreferrer" : undefined}
-    class:list={[
-      "link-card group flex flex-col rounded-lg p-6 no-underline text-inherit",
-      className,
-    ]}
-
+    class={className}
   >
     <div class="flex items-start gap-3">
       {
@@ -66,7 +72,7 @@ const {
     }
 
     <span
-      class="mt-auto pt-4 text-sm font-medium text-accent transition-colors duration-150 group-hover:text-accent-hover"
+      class="mt-auto pt-4 text-sm font-semibold text-accent transition-colors duration-150 group-hover:text-accent-hover"
     >
       {cta} →
     </span>

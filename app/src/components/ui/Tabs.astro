@@ -11,14 +11,21 @@ interface Props {
   class?: string;
 }
 
-const { ariaLabel = "Tabs", defaultTab = "tab-1", class: className = "" } =
-  Astro.props;
+// Props
+const {
+  ariaLabel = "Tabs",
+  defaultTab = "tab-1",
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("space-y-4", classNameProp);
 ---
 
-<div
-  class:list={["space-y-4", className]}
-  x-data={`{ activeTab: '${defaultTab}' }`}
->
+<div class={className} x-data={`{ activeTab: '${defaultTab}' }`}>
   <div
     role="tablist"
     aria-label={ariaLabel}
