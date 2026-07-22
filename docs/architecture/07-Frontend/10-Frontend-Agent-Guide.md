@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-21
+updated: 2026-07-22
 -->
 
 # Frontend Agent Guide
@@ -96,6 +96,8 @@ Frontmatter order: Props → imports (`// Layouts·Components·Icons·Lib`) → 
 - **Frontmatter `// Title`:** blank line before each section header (`05-Astro-Components.md`)
 - **Formatting:** Prettier (`singleAttributePerLine`); `npm run format` / `format:check`
 
+- Forward leftover attributes as `{...props}` — never `{...rest}` (`05-Astro-Components.md`)
+
 ## 11. Test-driven development
 
 Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definition):
@@ -114,7 +116,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 
 ## 12. Styling
 
-Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never raw palette utilities (`bg-teal-500`, `text-zinc-*`). Primitive classes (`.btn`, `.input`, `.badge`, `.surface`, `.nav-item`, `.app-*`) are implemented once in `global.css` — reuse, never reinvent per screen. Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`.
+Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*` / `error*` / `success*` / `glass*`) — never raw palette utilities and never legacy `bg-bg*` / `text-fg*`. Primitive classes (`.btn` + variants, `.input`, `.control`, `.tab`, `.alert`, `.nav-pill`, `.gradient-card`, `.link-card`, `.card-wrapper`, `glass`) live in `global.css` — reuse, never reinvent. Build-time classes via `cn()` only (`scripts/check-astro-class-composition.sh`). Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`.
 
 ---
 
@@ -142,7 +144,8 @@ Semantic tokens only (`bg-*`, `fg-*`, `border-*`, `accent-*`, states) — never 
 - [ ] TDD cycle complete: failing test → pass → `npm test` green (test lives under `app/tests/`, not colocated)
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
-- [ ] Styling uses semantic tokens/primitives only; no `font-medium`, no raw palette utilities
+- [ ] Forward leftover attributes as `{...props}` — never `{...rest}`
+- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] Every `x-show` element also has `x-cloak`
 - [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup
