@@ -20,6 +20,11 @@ export const ERROR_HTTP = {
     message: "Session is already completed",
     retryable: false,
   },
+  SESSION_ALREADY_ACTIVE: {
+    status: 409,
+    message: "An active session already exists for this game type",
+    retryable: false,
+  },
   IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD: {
     status: 409,
     message: "Idempotency key reused with a different payload",
