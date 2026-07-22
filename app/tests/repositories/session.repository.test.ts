@@ -177,6 +177,24 @@ describe("insertBatchRecords", () => {
   });
 });
 
+describe("findActiveSessionForGameType", () => {
+  it("returns the active session summary when one exists", async () => {
+    const row = { sessionId: "s1", startedAt: "2026-07-22T10:00:00.000Z" };
+    const db = { select: vi.fn(() => fakeSelect([row])) } as any;
+    const { findActiveSessionForGameType } =
+      await import("@repositories/session.repository");
+    const result = await findActiveSessionForGameType(db, "p1", "gt1");
+    expect(result).toEqual(row);
+  });
+
+  it("returns undefined when no active session exists", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    const { findActiveSessionForGameType } =
+      await import("@repositories/session.repository");
+    expect(await findActiveSessionForGameType(db, "p1", "gt1")).toBeUndefined();
+  });
+});
+
 describe("updateSessionStatusRecord", () => {
   it("issues a single update against the plain HTTP db client", async () => {
     const whereMock = vi.fn().mockResolvedValue(undefined);
@@ -189,5 +207,58 @@ describe("updateSessionStatusRecord", () => {
       statusId: 2,
       completedAt: "2026-07-16T00:00:00.000Z",
     });
+  });
+});
+
+describe("findActiveSessions projection", () => {
+  it("selects DTO columns and never player_id", async () => {
+    const selectMock = vi.fn(() => fakeSelect([{ sessionId: "s1" }]));
+    const db = { select: selectMock } as any;
+    const { findActiveSessions } =
+      await import("@repositories/session.repository");
+    await findActiveSessions(db, "p1");
+    const projection = (selectMock.mock.calls as unknown[][])[0]![0] as Record<
+      string,
+      unknown
+    >;
+    expect(projection).not.toHaveProperty("playerId");
+    expect(Object.keys(projection).sort()).toEqual(
+      [
+        "captureModeKey",
+        "gameTypeKey",
+        "gameTypeName",
+        "inputModeKey",
+        "rulesetVersionKey",
+        "sessionId",
+        "startedAt",
+      ].sort(),
+    );
+  });
+});
+
+describe("findConfigurationPresets projection", () => {
+  it("selects DTO columns and never player_id", async () => {
+    const selectMock = vi.fn(() =>
+      fakeSelect([{ configurationTemplateId: "c1" }]),
+    );
+    const db = { select: selectMock } as any;
+    const { findConfigurationPresets } =
+      await import("@repositories/session.repository");
+    await findConfigurationPresets(db, "SCORE_TRAINING", "p1");
+    const projection = (selectMock.mock.calls as unknown[][])[0]![0] as Record<
+      string,
+      unknown
+    >;
+    expect(projection).not.toHaveProperty("playerId");
+    expect(Object.keys(projection).sort()).toEqual(
+      [
+        "configuration",
+        "configurationTemplateId",
+        "description",
+        "gameTypeKey",
+        "isSystemTemplate",
+        "name",
+      ].sort(),
+    );
   });
 });

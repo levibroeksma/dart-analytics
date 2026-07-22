@@ -7,7 +7,7 @@ updated: 2026-07-22
 
 # Context Map
 
-> **Version:** 1.6.8 (2026-07-22 — Style Guide 0.2.0 sky/glass/surface vocabulary)
+> **Version:** 1.6.10 (2026-07-22 — mid-task fallow/`npm run check` gate in `app/CLAUDE.md`; prior 1.6.9 D131/D132)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -91,7 +91,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types) | canonical | ~1.6k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
 | `06-Spec/03-Player-Layer.md` | players, player_settings | canonical | ~0.6k |
-| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency | canonical | ~2.8k |
+| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency (2026-07-22) | canonical | ~2.8k |
 | `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`) (2026-07-17) | canonical | ~1.2k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.2k |
@@ -104,11 +104,11 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
-| `06-API/00-Overview.md` | Frozen v1 API baseline: runtime, routes, auth, envelopes | canonical | ~1.7k |
+| `06-API/00-Overview.md` | Frozen v1 API baseline: runtime, routes, auth, envelopes (2026-07-22) | canonical | ~1.7k |
 | `06-API/01-Implementation-Strategy.md` | REST endpoints, Cloudflare + Neon constraints | canonical | ~2.0k |
-| `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering | canonical | ~2.2k |
-| `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry | canonical | ~1.4k |
-| `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts | canonical | ~2.9k |
+| `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering, API error boundary (2026-07-22) | canonical | ~2.2k |
+| `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry (2026-07-22) | canonical | ~1.4k |
+| `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22) | canonical | ~2.9k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~1.8k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2k |
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes | canonical | ~2k |
@@ -131,12 +131,12 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `DECISIONS.md` | One-line ledger of every architectural decision (2026-07-17) | canonical |
+| `DECISIONS.md` | One-line ledger of every architectural decision (2026-07-22) | canonical |
 | `README.md` | Repo orientation: project summary, folder layout, getting started (2026-07-14) | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
-| `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure | canonical |
+| `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `graphify-out/graph.json` | Committed AST-only knowledge graph (generated; queried, not hand-edited) | generated |
@@ -158,11 +158,11 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | Seeds | `0001` reference data, `0002` default templates |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
-| API docs | v1 frozen; contracts `00`–`04`; `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.4.0 (two-barrel + `interfaces.ts` raising chain, realized alias set) (2026-07-16); hardening amendments `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
+| API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
+| Application code | Auth middleware with route-class 401/403 handling + API error boundary (D131); frozen envelope/error helpers; player provisioning (D76); `POST /api/sessions` server-guards single-active (D132); logout flow (`signOut`, `LogoutButton`) complete; Score Training first-deploy write/read subset live (S1) |
 | Frontend docs | `07-Style-Guide.md` →0.2.0 — sky/glass/`surface`/`foreground` visual contract; legacy `bg-bg`/`text-fg`/old surface-badge-nav API retired (2026-07-22); Handbook `02`→0.2.1, `03`→0.2.1, `04`→0.1.1, `10`→0.1.3, overview `00`→0.3.4 — shared `session-recovery.ts` decision table (D118) + Score Training hard-gate completion / play-page results modal (D119, supersedes D112 for this flow) (2026-07-17); prior: prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15); type/interface barrel-raising universal, no `.ts` outside `lib/`/`pages/api/`, centralized error mapping, self-learning gate (D103–D107, 2026-07-16); original `07-Style-Guide.md` 0.1.0 (D108, 2026-07-16) |
 | Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |
 | DB connection contract | `DATABASE_URL` = pooled (tooling), `DATABASE_URL_UNPOOLED` = direct (Worker runtime); `DATABASE_URL_POOLED` retired — user-verified against real `neonctl link` output (D95, 2026-07-15) |
-| Application code | Auth middleware with route-class 401/403 handling, frozen envelope/error helpers, player provisioning (D76) complete; logout flow (`signOut`, `LogoutButton`) complete; scaffold otherwise early |
 
 ---
 

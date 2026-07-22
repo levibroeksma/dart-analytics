@@ -2,12 +2,12 @@
 status: canonical
 scope: api/middleware-layering
 read-when: middleware or folder-layering changes
-updated: 2026-07-16
+updated: 2026-07-22
 -->
 
 # API Middleware And Layering
 
-> **Version:** 1.2.0 (alias set realized, 2026-07-16)
+> **Version:** 1.3.0 (API error boundary for `api-*` routes, 2026-07-22)
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -42,6 +42,7 @@ Per `00-Overview.md`, middleware verifies identity once per request and sets `lo
 | Business validation                         | No                     | Service layer           |
 | Idempotency logic                           | No                     | Write handler + service |
 | Response envelope formatting                | Optional shared helper | Controller applies      |
+| API error boundary (uncaught → enveloped 5xx) | Yes (api-* routes) | Never |
 | UUIDv7 generation                           | No                     | Service layer           |
 | Database transactions                       | No                     | Service layer           |
 
@@ -295,6 +296,7 @@ Request arrives
 5. All protected queries must be player-scoped using `locals.auth.playerId`.
 6. Batch writes must run inside a single service-level transaction.
 7. Idempotency is enforced in the service layer, not middleware.
+8. Uncaught errors on `api-*` routes are caught by middleware and returned as an enveloped `SERVICE_UNAVAILABLE`/`INTERNAL_ERROR` (D131); page routes are not enveloped.
 
 ---
 

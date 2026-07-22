@@ -23,6 +23,7 @@ import {
 } from "@db/schema";
 import { getDb, withTransaction } from "@db/client";
 import type {
+  ActiveSessionSummary,
   BatchInsertInput,
   ConfigurationTemplateRow,
   CreateSessionRecordsInput,
@@ -231,9 +232,39 @@ export async function findIdempotencyRecord(
 
 export async function findActiveSessions(db: Db, playerId: string) {
   return db
-    .select()
+    .select({
+      sessionId: vActiveSessions.sessionId,
+      gameTypeKey: vActiveSessions.gameTypeKey,
+      gameTypeName: vActiveSessions.gameTypeName,
+      captureModeKey: vActiveSessions.captureModeKey,
+      inputModeKey: vActiveSessions.inputModeKey,
+      rulesetVersionKey: vActiveSessions.rulesetVersionKey,
+      startedAt: vActiveSessions.startedAt,
+    })
     .from(vActiveSessions)
     .where(eq(vActiveSessions.playerId, playerId));
+}
+
+export async function findActiveSessionForGameType(
+  db: Db,
+  playerId: string,
+  gameTypeId: string,
+): Promise<ActiveSessionSummary | undefined> {
+  const [row] = await db
+    .select({
+      sessionId: exerciseSessions.id,
+      startedAt: exerciseSessions.startedAt,
+    })
+    .from(exerciseSessions)
+    .where(
+      and(
+        eq(exerciseSessions.playerId, playerId),
+        eq(exerciseSessions.gameTypeId, gameTypeId),
+        isNull(exerciseSessions.completedAt),
+      ),
+    )
+    .limit(1);
+  return row;
 }
 
 export async function findConfigurationPresets(
@@ -242,7 +273,14 @@ export async function findConfigurationPresets(
   playerId: string,
 ) {
   return db
-    .select()
+    .select({
+      configurationTemplateId: vConfigurationPresets.configurationTemplateId,
+      gameTypeKey: vConfigurationPresets.gameTypeKey,
+      name: vConfigurationPresets.name,
+      description: vConfigurationPresets.description,
+      configuration: vConfigurationPresets.configuration,
+      isSystemTemplate: vConfigurationPresets.isSystemTemplate,
+    })
     .from(vConfigurationPresets)
     .where(
       and(

@@ -77,3 +77,8 @@ export interface BatchInsertInput {
   stages: BatchInsertStage[];
   turns: BatchInsertTurn[];
 }
+
+export interface ActiveSessionSummary {
+  sessionId: string;
+  startedAt: string;
+}

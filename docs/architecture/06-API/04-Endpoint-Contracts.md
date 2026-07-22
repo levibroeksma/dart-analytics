@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-07-13
+updated: 2026-07-22
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.1.0 (frozen v1; hardening amendments 2026-07-13)
+> **Version:** 1.2.0 (`SESSION_ALREADY_ACTIVE` on `POST /api/sessions`, 2026-07-22)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -98,6 +98,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
 - Returns server-generated `sessionId` (UUIDv7) and participant ref(s), enclosed in standard `ok()` envelope.
 - Template resolution or config validation failure → error using an appropriate code from the error-code registry in `03-Shared-Conventions.md` (do not introduce ad-hoc codes here).
+- An existing ACTIVE session for the same game type → `409 SESSION_ALREADY_ACTIVE`, with `error.details = { sessionId, startedAt }` (the existing session). Service-enforced by a pre-check plus a race-safe `uq_sessions_single_active` catch (D132). <!-- 2026-07-22 -->
 
 ```typescript
 // discriminated config input — template-based OR ad-hoc inline; server snapshots + validates in every case

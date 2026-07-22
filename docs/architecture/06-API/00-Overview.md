@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-07-13
+updated: 2026-07-22
 -->
 
 # API Overview
 
-> **Version:** 1.3.0 (frozen v1 API baseline; hardening amendments 2026-07-13)
+> **Version:** 1.4.0 (frozen v1 API baseline; `SESSION_ALREADY_ACTIVE` + S1 implementation status, 2026-07-22)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -158,6 +158,8 @@ Policy:
 - `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
 - `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
 
+> **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
+
 ---
 
 ## Error Contract
@@ -188,6 +190,7 @@ Policy:
 - `UNAUTHORIZED`
 - `PLAYER_NOT_PROVISIONED`
 - `SESSION_ALREADY_COMPLETED`
+- `SESSION_ALREADY_ACTIVE`
 - `SESSION_OWNERSHIP_MISMATCH`
 - `IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD`
 - `BATCH_INCONSISTENT_ORDERING`

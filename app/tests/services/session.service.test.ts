@@ -24,6 +24,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
     findDartZoneIdMap: vi.fn(),
     insertBatchRecords: vi.fn(),
     findActiveSessions: vi.fn(),
+    findActiveSessionForGameType: vi.fn(),
     findConfigurationPresets: vi.fn(),
     updateSessionStatusRecord: vi.fn(),
   };
@@ -72,6 +73,7 @@ describe("createSession", () => {
       sessionId: "generated-id",
       participantId: "generated-id",
     });
+    vi.mocked(repo.findActiveSessionForGameType).mockResolvedValue(undefined);
   });
 
   it("creates a session from inline config", async () => {
@@ -138,6 +140,52 @@ describe("createSession", () => {
     });
     expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
   });
+
+  it("returns SESSION_ALREADY_ACTIVE with details when one is active (pre-check)", async () => {
+    vi.mocked(repo.findActiveSessionForGameType).mockResolvedValue({
+      sessionId: "active-1",
+      startedAt: "2026-07-22T10:00:00.000Z",
+    });
+    const result = await createSession("player-1", inlineRequest);
+    expect(result).toMatchObject({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: { sessionId: "active-1", startedAt: "2026-07-22T10:00:00.000Z" },
+    });
+    expect(repo.insertSessionRecords).not.toHaveBeenCalled();
+  });
+
+  it("returns SESSION_ALREADY_ACTIVE on a unique-violation race", async () => {
+    vi.mocked(repo.findActiveSessionForGameType)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        sessionId: "active-2",
+        startedAt: "2026-07-22T11:00:00.000Z",
+      });
+    vi.mocked(repo.insertSessionRecords).mockRejectedValue(
+      Object.assign(
+        new Error(
+          'duplicate key value violates unique constraint "uq_sessions_single_active"',
+        ),
+        { code: "23505", constraint: "uq_sessions_single_active" },
+      ),
+    );
+    const result = await createSession("player-1", inlineRequest);
+    expect(result).toMatchObject({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: { sessionId: "active-2" },
+    });
+  });
+
+  it("re-throws a non-conflict insert error for the middleware boundary", async () => {
+    vi.mocked(repo.insertSessionRecords).mockRejectedValue(
+      new Error("Connection terminated"),
+    );
+    await expect(createSession("player-1", inlineRequest)).rejects.toThrow(
+      "Connection terminated",
+    );
+  });
 });
 
 function sampleBatch(
@@ -178,6 +226,20 @@ describe("canonicalize / hashBatchPayload", () => {
       sampleBatch({ participantRef: "participant-2" }),
     );
     expect(a).not.toBe(b);
+  });
+});
+
+describe("canonicalize", () => {
+  it("recursively sorts object keys", () => {
+    expect(canonicalize({ b: 1, a: { d: 2, c: 3 } })).toEqual({
+      a: { c: 3, d: 2 },
+      b: 1,
+    });
+    expect(JSON.stringify(canonicalize({ b: 1, a: 2 }))).toBe('{"a":2,"b":1}');
+  });
+
+  it("preserves array order", () => {
+    expect(canonicalize([3, 1, 2])).toEqual([3, 1, 2]);
   });
 });
 

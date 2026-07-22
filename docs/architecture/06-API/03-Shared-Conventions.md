@@ -2,12 +2,12 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-16
+updated: 2026-07-22
 -->
 
 # API Shared Conventions
 
-> **Version:** 1.5.0 (hard rule against inline type/interface declarations + browser-side worked example, 2026-07-17)
+> **Version:** 1.6.0 (`SESSION_ALREADY_ACTIVE` added to error-code registry, 2026-07-22)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -244,6 +244,7 @@ A single enumerated registry is the only source of domain code → HTTP status �
 | `PLAYER_NOT_PROVISIONED` | 403 | no | 2026-07-10 |
 | `SESSION_OWNERSHIP_MISMATCH` | 403 | no | 2026-07-10 |
 | `SESSION_ALREADY_COMPLETED` | 409 | no | 2026-07-10 |
+| `SESSION_ALREADY_ACTIVE` | 409 | no | 2026-07-22 |
 | `IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD` | 409 | no | 2026-07-10 |
 | `BATCH_INCONSISTENT_ORDERING` | 422 | no | 2026-07-10 |
 | `BATCH_REFERENCE_MISSING` | 422 | no | 2026-07-10 |
@@ -253,7 +254,7 @@ A single enumerated registry is the only source of domain code → HTTP status �
 | `INVALID_STATUS_TRANSITION` | 409 | no | 2026-07-13 |
 | `SERVICE_UNAVAILABLE` | 503 | **yes** | 2026-07-13 |
 
-`VALIDATION_FAILED` covers all input-schema, config, template-resolution, and ruleset validation failures; specifics travel in `error.details`, never as new codes. `SERVICE_UNAVAILABLE` is the only retryable code — it is what activates the client retry rule. The registry is closed for v1. <!-- 2026-07-13 -->
+`VALIDATION_FAILED` covers all input-schema, config, template-resolution, and ruleset validation failures; specifics travel in `error.details`, never as new codes. `SERVICE_UNAVAILABLE` is the only retryable code — it is what activates the client retry rule. The registry was closed for v1 (D70); reopened by explicit decision for `SESSION_ALREADY_ACTIVE` (D132). <!-- 2026-07-22 -->
 
 ---
 
