@@ -9,8 +9,12 @@ import IsLoading from "@components/ui/IsLoading.astro";
   x-show="finished"
   x-cloak
 >
-  <div class="bg-surface-raised rounded-lg shadow-lg p-6 max-w-sm glass">
-    <h2 class="text-lg font-semibold text-foreground">Game Summary</h2>
+  <div
+    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+  >
+    <h2 class="font-display text-lg font-semibold text-foreground">
+      Game Summary
+    </h2>
 
     {/* Stats: live from store while saving, snapshot once succeeded */}
     <dl
@@ -53,7 +57,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     {/* Completion status */}
     <div class="mt-4">
       <IsLoading
-        text="Saving..."
+        title="Saving..."
         x-show="completionStatus === 'pending' || completionStatus === 'saving'"
         x-cloak
       />
@@ -62,7 +66,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
         x-cloak
       >
         <p
-          class="text-sm text-error"
+          class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+          role="alert"
           x-text="completionError"
         >
         </p>
@@ -85,7 +90,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
       /* Play-again failure: separate from completion status, buttons stay enabled */
     }
     <p
-      class="mt-2 text-sm text-error"
+      class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+      role="alert"
       x-text="playAgainError"
       x-show="playAgainError"
       x-cloak
@@ -93,7 +99,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     </p>
 
     {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-    <div class="flex gap-3 mt-6">
+    <div class="mt-6 flex justify-end gap-3">
       <Button
         variant="secondary"
         @click="back()"

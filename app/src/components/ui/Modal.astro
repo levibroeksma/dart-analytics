@@ -24,12 +24,12 @@ const {
   class: classNameProp,
 }: Props = Astro.props;
 
+// Lib
+import { cn } from "@client/cn";
+
 if (dismissible && !onDismiss) {
   throw new Error("Modal: onDismiss is required when dismissible is true");
 }
-
-// Lib
-import { cn } from "@client/cn";
 
 // Styles
 const panelClass = cn(

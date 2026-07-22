@@ -145,6 +145,7 @@ updated: 2026-07-22
 | D107 | 2026-07-16 | Self-learning gate added to the Context Maintenance protocol (step 8): rule sharpenings discovered mid-task require explicit user approval before being written, never applied unilaterally | Formalizes the propose-then-confirm pattern this design itself was built through |
 
 | D129 | 2026-07-22 | Fallow `ignorePatterns` for unwired design-system Astro primitives under `src/components/ui/` (and `CustomTabs.astro`) until PR2 route adoption; health `thresholdOverrides` for `CardWrapper`/`ScoreInput` templates | PR1 ships the kit + gates without deleting unused primitives fallow would flag |
+| D130 | 2026-07-22 | Retire D129: delete unwired `components/ui` primitives + `CustomTabs`; keep only route-wired Modal/ConfirmDialog/LogoutButton/IsLoading/Link/CardWrapper; CSS primitives remain in `global.css` | Fallow ignore was temporary until PR2 adoption-or-delete |
 
 ## Deferred (open, not rejected)
 

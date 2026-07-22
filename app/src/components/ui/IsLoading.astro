@@ -1,12 +1,14 @@
 ---
-import LoaderIcon from "@icons/loading.svg";
-
 interface Props {
   title?: string;
   [key: string]: unknown;
 }
 
+// Props
 const { title = "Loading...", ...props } = Astro.props;
+
+// Icons
+import LoaderIcon from "@icons/loading.svg";
 ---
 
 <div
