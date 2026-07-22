@@ -229,6 +229,20 @@ describe("canonicalize / hashBatchPayload", () => {
   });
 });
 
+describe("canonicalize", () => {
+  it("recursively sorts object keys", () => {
+    expect(canonicalize({ b: 1, a: { d: 2, c: 3 } })).toEqual({
+      a: { c: 3, d: 2 },
+      b: 1,
+    });
+    expect(JSON.stringify(canonicalize({ b: 1, a: 2 }))).toBe('{"a":2,"b":1}');
+  });
+
+  it("preserves array order", () => {
+    expect(canonicalize([3, 1, 2])).toEqual([3, 1, 2]);
+  });
+});
+
 describe("appendBatch", () => {
   beforeEach(() => {
     vi.clearAllMocks();
