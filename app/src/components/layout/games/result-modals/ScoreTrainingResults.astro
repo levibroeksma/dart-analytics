@@ -9,8 +9,12 @@ import IsLoading from "@components/ui/IsLoading.astro";
   x-show="finished"
   x-cloak
 >
-  <div class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm">
-    <h2 class="font-display text-lg font-semibold text-foreground">Game Summary</h2>
+  <div
+    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+  >
+    <h2 class="font-display text-lg font-semibold text-foreground">
+      Game Summary
+    </h2>
 
     {/* Stats: live from store while saving, snapshot once succeeded */}
     <dl
