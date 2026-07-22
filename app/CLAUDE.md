@@ -63,8 +63,9 @@ Full documentation: https://docs.astro.build
 ## Formatting
 
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
-- `npm run format` (write) · `npm run format:check` (CI).
+- `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
+- **Plan completion / pre-PR:** after the last task of a plan executed via writing-plans → subagent-driven-development or executing-plans, and before creating or updating a PR, run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Skipping this fails the CI Format gate. (2026-07-22)
 
 ## Test-Driven Development (mandatory)
 

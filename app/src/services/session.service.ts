@@ -176,7 +176,11 @@ async function insertSessionWithActiveGuard(
     configuration: Record<string, unknown>;
   },
 ): Promise<
-  ServiceResult<{ sessionId: string; participantId: string; displayName: string }>
+  ServiceResult<{
+    sessionId: string;
+    participantId: string;
+    displayName: string;
+  }>
 > {
   try {
     await insertSessionRecords({

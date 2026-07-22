@@ -136,7 +136,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
-| `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate for multi-step service work (2026-07-22) | canonical |
+| `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `graphify-out/graph.json` | Committed AST-only knowledge graph (generated; queried, not hand-edited) | generated |
