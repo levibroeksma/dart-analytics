@@ -48,34 +48,20 @@ function isActiveSessionConflict(error: unknown): boolean {
   );
 }
 
-export async function createSession(
+/** Loads lookup ids and player display metadata required to create a session. */
+async function loadCreateSessionLookups(
+  db: ReturnType<typeof getDb>,
   playerId: string,
   input: CreateSessionRequestInput,
-): Promise<ServiceResult<CreateSessionResult>> {
-  const db = getDb();
-
-  const gameTypeRuleset = await findGameTypeAndRuleset(
-    db,
-    input.gameTypeKey,
-    input.rulesetVersionKey,
-  );
-  if (!gameTypeRuleset) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" },
-    };
-  }
-
-  const validator = getRulesetValidator(input.rulesetVersionKey);
-  if (!validator) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "no validator registered for rulesetVersionKey" },
-    };
-  }
-
+): Promise<
+  ServiceResult<{
+    captureModeId: number;
+    inputModeId: number;
+    activeStatusId: number;
+    playerParticipantTypeId: number;
+    displayName: string;
+  }>
+> {
   const [
     captureModeId,
     inputModeId,
@@ -109,12 +95,35 @@ export async function createSession(
     };
   }
 
+  return {
+    ok: true,
+    data: {
+      captureModeId,
+      inputModeId,
+      activeStatusId,
+      playerParticipantTypeId,
+      displayName,
+    },
+  };
+}
+
+/**
+ * Resolves session configuration from a template ref or inline payload and
+ * validates it against the ruleset.
+ */
+async function resolveSessionConfiguration(
+  db: ReturnType<typeof getDb>,
+  input: CreateSessionRequestInput,
+  gameTypeId: number,
+  playerId: string,
+  validator: NonNullable<ReturnType<typeof getRulesetValidator>>,
+): Promise<ServiceResult<{ config: Record<string, unknown> }>> {
   let rawConfig: unknown;
   if (input.config.source === "template") {
     const template = await findConfigurationTemplate(
       db,
       input.config.templateRef,
-      gameTypeRuleset.gameTypeId,
+      gameTypeId,
       playerId,
     );
     if (!template)
@@ -144,6 +153,123 @@ export async function createSession(
     };
   }
 
+  return { ok: true, data: { config: validated.config } };
+}
+
+/**
+ * Inserts a new session row set, translating a unique-index race on
+ * uq_sessions_single_active into SESSION_ALREADY_ACTIVE when another writer wins.
+ */
+async function insertSessionWithActiveGuard(
+  db: ReturnType<typeof getDb>,
+  params: {
+    sessionId: string;
+    participantId: string;
+    playerId: string;
+    gameTypeId: number;
+    rulesetVersionId: number;
+    captureModeId: number;
+    inputModeId: number;
+    activeStatusId: number;
+    playerParticipantTypeId: number;
+    displayName: string;
+    configuration: Record<string, unknown>;
+  },
+): Promise<
+  ServiceResult<{ sessionId: string; participantId: string; displayName: string }>
+> {
+  try {
+    await insertSessionRecords({
+      activityId: generateId(),
+      sessionId: params.sessionId,
+      configurationId: generateId(),
+      participantId: params.participantId,
+      playerId: params.playerId,
+      gameTypeId: params.gameTypeId,
+      rulesetVersionId: params.rulesetVersionId,
+      captureModeId: params.captureModeId,
+      inputModeId: params.inputModeId,
+      activeStatusId: params.activeStatusId,
+      playerParticipantTypeId: params.playerParticipantTypeId,
+      displayName: params.displayName,
+      configuration: params.configuration,
+    });
+  } catch (error) {
+    if (!isActiveSessionConflict(error)) throw error;
+    const active = await findActiveSessionForGameType(
+      db,
+      params.playerId,
+      params.gameTypeId,
+    );
+    return active
+      ? {
+          ok: false,
+          code: "SESSION_ALREADY_ACTIVE",
+          details: {
+            sessionId: active.sessionId,
+            startedAt: active.startedAt,
+          },
+        }
+      : { ok: false, code: "INTERNAL_ERROR" };
+  }
+
+  return {
+    ok: true,
+    data: {
+      sessionId: params.sessionId,
+      participantId: params.participantId,
+      displayName: params.displayName,
+    },
+  };
+}
+
+export async function createSession(
+  playerId: string,
+  input: CreateSessionRequestInput,
+): Promise<ServiceResult<CreateSessionResult>> {
+  const db = getDb();
+
+  const gameTypeRuleset = await findGameTypeAndRuleset(
+    db,
+    input.gameTypeKey,
+    input.rulesetVersionKey,
+  );
+  if (!gameTypeRuleset) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" },
+    };
+  }
+
+  const validator = getRulesetValidator(input.rulesetVersionKey);
+  if (!validator) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "no validator registered for rulesetVersionKey" },
+    };
+  }
+
+  const lookups = await loadCreateSessionLookups(db, playerId, input);
+  if (!lookups.ok) return lookups;
+  const {
+    captureModeId,
+    inputModeId,
+    activeStatusId,
+    playerParticipantTypeId,
+    displayName,
+  } = lookups.data;
+
+  const configuration = await resolveSessionConfiguration(
+    db,
+    input,
+    gameTypeRuleset.gameTypeId,
+    playerId,
+    validator,
+  );
+  if (!configuration.ok) return configuration;
+
   const existingActive = await findActiveSessionForGameType(
     db,
     playerId,
@@ -163,53 +289,36 @@ export async function createSession(
   const sessionId = generateId();
   const participantId = generateId();
 
-  try {
-    await insertSessionRecords({
-      activityId: generateId(),
-      sessionId,
-      configurationId: generateId(),
-      participantId,
-      playerId,
-      gameTypeId: gameTypeRuleset.gameTypeId,
-      rulesetVersionId: gameTypeRuleset.rulesetVersionId,
-      captureModeId,
-      inputModeId,
-      activeStatusId,
-      playerParticipantTypeId,
-      displayName,
-      configuration: validated.config,
-    });
-  } catch (error) {
-    if (!isActiveSessionConflict(error)) throw error;
-    const active = await findActiveSessionForGameType(
-      db,
-      playerId,
-      gameTypeRuleset.gameTypeId,
-    );
-    return active
-      ? {
-          ok: false,
-          code: "SESSION_ALREADY_ACTIVE",
-          details: {
-            sessionId: active.sessionId,
-            startedAt: active.startedAt,
-          },
-        }
-      : { ok: false, code: "INTERNAL_ERROR" };
-  }
+  const inserted = await insertSessionWithActiveGuard(db, {
+    sessionId,
+    participantId,
+    playerId,
+    gameTypeId: gameTypeRuleset.gameTypeId,
+    rulesetVersionId: gameTypeRuleset.rulesetVersionId,
+    captureModeId,
+    inputModeId,
+    activeStatusId,
+    playerParticipantTypeId,
+    displayName,
+    configuration: configuration.data.config,
+  });
+  if (!inserted.ok) return inserted;
 
   return {
     ok: true,
     data: {
-      sessionId,
+      sessionId: inserted.data.sessionId,
       participants: [
-        { ref: participantId, participantTypeKey: "PLAYER", displayName },
+        {
+          ref: inserted.data.participantId,
+          participantTypeKey: "PLAYER",
+          displayName: inserted.data.displayName,
+        },
       ],
     },
   };
 }
 
-// fallow-ignore-next-line unused-export -- exported for direct unit testing of canonicalization (idempotency-hash correctness depends on stable key ordering)
 export function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (value !== null && typeof value === "object") {
