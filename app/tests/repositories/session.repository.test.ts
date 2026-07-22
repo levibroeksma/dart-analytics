@@ -211,3 +211,50 @@ describe("updateSessionStatusRecord", () => {
     });
   });
 });
+
+describe("findActiveSessions projection", () => {
+  it("selects DTO columns and never player_id", async () => {
+    const selectMock = vi.fn(() => fakeSelect([{ sessionId: "s1" }]));
+    const db = { select: selectMock } as any;
+    const { findActiveSessions } = await import(
+      "@repositories/session.repository"
+    );
+    await findActiveSessions(db, "p1");
+    const projection = selectMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(projection).not.toHaveProperty("playerId");
+    expect(Object.keys(projection).sort()).toEqual(
+      [
+        "captureModeKey",
+        "gameTypeKey",
+        "gameTypeName",
+        "inputModeKey",
+        "rulesetVersionKey",
+        "sessionId",
+        "startedAt",
+      ].sort(),
+    );
+  });
+});
+
+describe("findConfigurationPresets projection", () => {
+  it("selects DTO columns and never player_id", async () => {
+    const selectMock = vi.fn(() => fakeSelect([{ configurationTemplateId: "c1" }]));
+    const db = { select: selectMock } as any;
+    const { findConfigurationPresets } = await import(
+      "@repositories/session.repository"
+    );
+    await findConfigurationPresets(db, "SCORE_TRAINING", "p1");
+    const projection = selectMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(projection).not.toHaveProperty("playerId");
+    expect(Object.keys(projection).sort()).toEqual(
+      [
+        "configuration",
+        "configurationTemplateId",
+        "description",
+        "gameTypeKey",
+        "isSystemTemplate",
+        "name",
+      ].sort(),
+    );
+  });
+});
