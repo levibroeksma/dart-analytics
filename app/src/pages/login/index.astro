@@ -55,15 +55,12 @@ import LoadingIcon from "@icons/loading.svg";
             variant="primary"
             class="w-full"
             :disabled="loading"
+            title="Sign in"
           >
-            <span
-              x-show="!loading"
-              x-cloak
-              >Sign in</span
-            >
             <LoadingIcon
               x-show="loading"
               x-cloak
+              slot="iconAfter"
               class="size-6"
             />
           </Button>

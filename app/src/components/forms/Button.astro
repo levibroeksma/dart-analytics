@@ -58,6 +58,11 @@ const className = cn(
   {...props}
 >
   <slot name="iconBefore" />
-  {title}
+  <span
+    x-show="!loading"
+    x-cloak
+  >
+    {title}
+  </span>
   <slot name="iconAfter" />
 </button>
