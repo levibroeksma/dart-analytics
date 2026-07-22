@@ -101,7 +101,7 @@ const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
               ":disabled": undoDisabled,
             }}
           >
-            <UndoIcon class="size-6 text-fg-subtle" />
+            <UndoIcon class="size-6 text-muted" />
           </InputButton>
         ) : (
           <InputButton :disabled="true" aria-hidden="true" />
@@ -122,7 +122,7 @@ const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
           ...(padDisabled ? { ":disabled": padDisabled } : {}),
         }}
       >
-        <DeleteIcon class="size-6 text-fg-subtle" />
+        <DeleteIcon class="size-6 text-muted" />
       </InputButton>
     </div>
   </div>

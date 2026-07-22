@@ -20,11 +20,11 @@ const { title, gameTitle }: Props = Astro.props;
         aria-label="Exit game"
         @click="showExitModal = true"
       >
-        <ExitIcon class="size-6 text-fg-subtle" />
+        <ExitIcon class="size-6 text-muted" />
       </button>
       {
         gameTitle ? (
-          <h1 class="pointer-events-none uppercase font-mono absolute inset-0 flex items-center justify-center text-lg font-semibold text-fg">
+          <h1 class="pointer-events-none uppercase font-mono absolute inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
             {gameTitle}
           </h1>
         ) : null
