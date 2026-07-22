@@ -220,7 +220,10 @@ describe("findActiveSessions projection", () => {
       "@repositories/session.repository"
     );
     await findActiveSessions(db, "p1");
-    const projection = selectMock.mock.calls[0][0] as Record<string, unknown>;
+    const projection = (selectMock.mock.calls as unknown[][])[0]![0] as Record<
+      string,
+      unknown
+    >;
     expect(projection).not.toHaveProperty("playerId");
     expect(Object.keys(projection).sort()).toEqual(
       [
@@ -244,7 +247,10 @@ describe("findConfigurationPresets projection", () => {
       "@repositories/session.repository"
     );
     await findConfigurationPresets(db, "SCORE_TRAINING", "p1");
-    const projection = selectMock.mock.calls[0][0] as Record<string, unknown>;
+    const projection = (selectMock.mock.calls as unknown[][])[0]![0] as Record<
+      string,
+      unknown
+    >;
     expect(projection).not.toHaveProperty("playerId");
     expect(Object.keys(projection).sort()).toEqual(
       [

@@ -153,7 +153,10 @@ export async function createSession(
     return {
       ok: false,
       code: "SESSION_ALREADY_ACTIVE",
-      details: existingActive,
+      details: {
+        sessionId: existingActive.sessionId,
+        startedAt: existingActive.startedAt,
+      },
     };
   }
 
@@ -184,7 +187,14 @@ export async function createSession(
       gameTypeRuleset.gameTypeId,
     );
     return active
-      ? { ok: false, code: "SESSION_ALREADY_ACTIVE", details: active }
+      ? {
+          ok: false,
+          code: "SESSION_ALREADY_ACTIVE",
+          details: {
+            sessionId: active.sessionId,
+            startedAt: active.startedAt,
+          },
+        }
       : { ok: false, code: "INTERNAL_ERROR" };
   }
 

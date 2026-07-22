@@ -37,8 +37,9 @@ describe("middleware error boundary", () => {
       throw new Error("boom");
     });
     const res = await onRequest(ctxFor("/api/sessions/active") as never, next as never);
-    expect(res.status).toBe(500);
-    const body = await res.json();
+    expect(res).toBeInstanceOf(Response);
+    expect((res as Response).status).toBe(500);
+    const body = await (res as Response).json();
     expect(body).toMatchObject({ ok: false, error: { code: "INTERNAL_ERROR" } });
     expect(body.requestId).toBeTruthy();
   });
@@ -48,8 +49,9 @@ describe("middleware error boundary", () => {
       throw new Error("Connection terminated");
     });
     const res = await onRequest(ctxFor("/api/sessions/active") as never, next as never);
-    expect(res.status).toBe(503);
-    const body = await res.json();
+    expect(res).toBeInstanceOf(Response);
+    expect((res as Response).status).toBe(503);
+    const body = await (res as Response).json();
     expect(body.error.code).toBe("SERVICE_UNAVAILABLE");
     expect(body.error.retryable).toBe(true);
   });
