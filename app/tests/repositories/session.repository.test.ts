@@ -177,6 +177,26 @@ describe("insertBatchRecords", () => {
   });
 });
 
+describe("findActiveSessionForGameType", () => {
+  it("returns the active session summary when one exists", async () => {
+    const row = { sessionId: "s1", startedAt: "2026-07-22T10:00:00.000Z" };
+    const db = { select: vi.fn(() => fakeSelect([row])) } as any;
+    const { findActiveSessionForGameType } = await import(
+      "@repositories/session.repository"
+    );
+    const result = await findActiveSessionForGameType(db, "p1", "gt1");
+    expect(result).toEqual(row);
+  });
+
+  it("returns undefined when no active session exists", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    const { findActiveSessionForGameType } = await import(
+      "@repositories/session.repository"
+    );
+    expect(await findActiveSessionForGameType(db, "p1", "gt1")).toBeUndefined();
+  });
+});
+
 describe("updateSessionStatusRecord", () => {
   it("issues a single update against the plain HTTP db client", async () => {
     const whereMock = vi.fn().mockResolvedValue(undefined);
