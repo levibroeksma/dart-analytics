@@ -62,7 +62,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
         x-cloak
       >
         <p
-          class="text-sm text-error"
+          class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+          role="alert"
           x-text="completionError"
         >
         </p>
@@ -85,7 +86,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
       /* Play-again failure: separate from completion status, buttons stay enabled */
     }
     <p
-      class="mt-2 text-sm text-error"
+      class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+      role="alert"
       x-text="playAgainError"
       x-show="playAgainError"
       x-cloak
@@ -93,7 +95,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     </p>
 
     {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-    <div class="mt-4 flex gap-2">
+    <div class="mt-6 flex justify-end gap-3">
       <Button
         variant="secondary"
         @click="back()"
