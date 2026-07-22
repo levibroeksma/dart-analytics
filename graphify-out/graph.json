@@ -329,8 +329,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_neon",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "neon.ts"
     },
     {
@@ -1958,8 +1958,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_client",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "client.ts"
     },
     {
@@ -1969,8 +1969,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_db_client_getdb",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "getdb()"
     },
     {
@@ -1980,8 +1980,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_db_client_serverlessdb",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "serverlessdb"
     },
     {
@@ -1991,8 +1991,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_db_client_transactiondb",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "transactiondb"
     },
     {
@@ -2002,8 +2002,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_db_client_withtransaction",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "withtransaction()"
     },
     {
@@ -2013,8 +2013,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_relations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "relations.ts"
     },
     {
@@ -2024,8 +2024,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_src_db_relations_rulesetversionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "rulesetversionsrelations"
     },
     {
@@ -2035,8 +2035,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "gametypesrelations"
     },
     {
@@ -2046,8 +2046,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "app_src_db_relations_playersettingsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "playersettingsrelations"
     },
     {
@@ -2057,8 +2057,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "app_src_db_relations_playersrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "playersrelations"
     },
     {
@@ -2068,8 +2068,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "exercisetemplatesrelations"
     },
     {
@@ -2079,8 +2079,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "app_src_db_relations_routinetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "routinetemplatesrelations"
     },
     {
@@ -2090,8 +2090,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "app_src_db_relations_activitiesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "activitiesrelations"
     },
     {
@@ -2101,8 +2101,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "app_src_db_relations_gamestatusesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "gamestatusesrelations"
     },
     {
@@ -2112,8 +2112,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisesessionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "exercisesessionsrelations"
     },
     {
@@ -2123,8 +2123,8 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "app_src_db_relations_capturemodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "capturemodesrelations"
     },
     {
@@ -2134,8 +2134,8 @@
       "source_location": "L146",
       "_origin": "ast",
       "id": "app_src_db_relations_inputmodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "inputmodesrelations"
     },
     {
@@ -2145,8 +2145,8 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "app_src_db_relations_exerciseconfigurationsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "exerciseconfigurationsrelations"
     },
     {
@@ -2156,8 +2156,8 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "app_src_db_relations_participantsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "participantsrelations"
     },
     {
@@ -2167,8 +2167,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "app_src_db_relations_participanttypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "participanttypesrelations"
     },
     {
@@ -2178,8 +2178,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisestagesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "exercisestagesrelations"
     },
     {
@@ -2189,8 +2189,8 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "app_src_db_relations_stagetypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "stagetypesrelations"
     },
     {
@@ -2200,8 +2200,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "app_src_db_relations_routinestepsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "routinestepsrelations"
     },
     {
@@ -2211,8 +2211,8 @@
       "source_location": "L228",
       "_origin": "ast",
       "id": "app_src_db_relations_durationtypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "durationtypesrelations"
     },
     {
@@ -2222,8 +2222,8 @@
       "source_location": "L232",
       "_origin": "ast",
       "id": "app_src_db_relations_dartsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "dartsrelations"
     },
     {
@@ -2233,8 +2233,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "app_src_db_relations_turnsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "turnsrelations"
     },
     {
@@ -2244,8 +2244,8 @@
       "source_location": "L261",
       "_origin": "ast",
       "id": "app_src_db_relations_dartzonesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "dartzonesrelations"
     },
     {
@@ -2255,8 +2255,8 @@
       "source_location": "L270",
       "_origin": "ast",
       "id": "app_src_db_relations_configurationtemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "configurationtemplatesrelations"
     },
     {
@@ -2266,8 +2266,8 @@
       "source_location": "L284",
       "_origin": "ast",
       "id": "app_src_db_relations_sessionwriteidempotencyrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "sessionwriteidempotencyrelations"
     },
     {
@@ -2277,8 +2277,8 @@
       "source_location": "L294",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "gametypefeaturesrelations"
     },
     {
@@ -2288,8 +2288,8 @@
       "source_location": "L308",
       "_origin": "ast",
       "id": "app_src_db_relations_gamefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "gamefeaturesrelations"
     },
     {
@@ -2775,8 +2775,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data_loginform",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "loginform()"
     },
     {
@@ -2852,8 +2852,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_verifiedauth",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "verifiedauth"
     },
     {
@@ -2863,8 +2863,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "verify-jwt.ts"
     },
     {
@@ -2874,8 +2874,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_jwks",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "jwks"
     },
     {
@@ -2885,8 +2885,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_verifybearertoken",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "verifybearertoken()"
     },
     {
@@ -2907,8 +2907,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "register-route-data.ts"
     },
     {
@@ -2918,8 +2918,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "registerroutedata()"
     },
     {
@@ -2973,8 +2973,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "client.ts"
     },
     {
@@ -2984,19 +2984,63 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "unauthorized"
+    },
+    {
+      "label": "serviceUnavailable()",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_client_serviceunavailable",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "serviceunavailable()"
+    },
+    {
+      "label": "isEnvelope()",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_client_isenvelope",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "isenvelope()"
+    },
+    {
+      "label": "sleep()",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_client_sleep",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "sleep()"
+    },
+    {
+      "label": "attempt()",
+      "file_type": "code",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "app_src_lib_client_api_client_attempt",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "attempt()"
     },
     {
       "label": "apiRequest()",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L14",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "apirequest()"
     },
     {
@@ -3028,8 +3072,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "players.ts"
     },
     {
@@ -3039,8 +3083,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provisionerror"
     },
     {
@@ -3050,8 +3094,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror_constructor",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": ".constructor()"
     },
     {
@@ -3061,8 +3105,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provision",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provision()"
     },
     {
@@ -3149,8 +3193,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3160,41 +3204,41 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apierrorbody",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "apierrorbody"
     },
     {
       "label": "ApiSuccess",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apisuccess",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "apisuccess"
     },
     {
       "label": "ApiFailure",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L13",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apifailure",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "apifailure"
     },
     {
       "label": "ApiResult",
       "file_type": "code",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apiresult",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "apiresult"
     },
     {
@@ -3226,8 +3270,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_getaccesstoken",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "getaccesstoken()"
     },
     {
@@ -3248,8 +3292,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_errors",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "errors.ts"
     },
     {
@@ -3259,8 +3303,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_provision_messages",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provision_messages"
     },
     {
@@ -3270,8 +3314,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_geterrormessage",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "geterrormessage()"
     },
     {
@@ -3281,8 +3325,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_env",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "env.ts"
     },
     {
@@ -3292,8 +3336,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_env_env",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "env"
     },
     {
@@ -3303,8 +3347,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-play.data.ts"
     },
     {
@@ -3314,8 +3358,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_formatremaining",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "formatremaining()"
     },
     {
@@ -3325,8 +3369,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_computestats",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "computestats()"
     },
     {
@@ -3336,8 +3380,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_scoretrainingplay",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingplay()"
     },
     {
@@ -3413,8 +3457,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_types",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3424,8 +3468,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingplaycontext",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingplaycontext"
     },
     {
@@ -3473,14 +3517,36 @@
       "norm_label": "rfc-9562"
     },
     {
+      "label": "classify-error.ts",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/classify-error.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_lib_server_classify_error",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
+      "norm_label": "classify-error.ts"
+    },
+    {
+      "label": "classifyThrownError()",
+      "file_type": "code",
+      "source_file": "app/src/lib/server/classify-error.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "app_src_lib_server_classify_error_classifythrownerror",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
+      "norm_label": "classifythrownerror()"
+    },
+    {
       "label": "envelope.ts",
       "file_type": "code",
       "source_file": "app/src/lib/server/envelope.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "envelope.ts"
     },
     {
@@ -3490,8 +3556,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_json_headers",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "json_headers"
     },
     {
@@ -3501,8 +3567,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_ok",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "ok()"
     },
     {
@@ -3512,8 +3578,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_fail",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "fail()"
     },
     {
@@ -3523,8 +3589,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_errors",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "errors.ts"
     },
     {
@@ -3534,8 +3600,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "app_src_lib_server_errors_error_http",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "error_http"
     },
     {
@@ -3545,8 +3611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "parse-json-body.ts"
     },
     {
@@ -3556,8 +3622,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body_parsejsonbody",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "parsejsonbody()"
     },
     {
@@ -3567,8 +3633,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body_parseandvalidatebody",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "parseandvalidatebody()"
     },
     {
@@ -3578,8 +3644,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_types",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "types.ts"
     },
     {
@@ -3589,8 +3655,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_server_types_errorcode",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "errorcode"
     },
     {
@@ -3600,8 +3666,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_types",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3611,8 +3677,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "auth-routes.ts"
     },
     {
@@ -3622,8 +3688,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_public_pages",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "public_pages"
     },
     {
@@ -3633,8 +3699,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_normalizepath",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "normalizepath()"
     },
     {
@@ -3644,8 +3710,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_ispublicpage",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "ispublicpage()"
     },
     {
@@ -3666,8 +3732,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "route-class.ts"
     },
     {
@@ -3677,8 +3743,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class_classifyroute",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "classifyroute()"
     },
     {
@@ -3688,8 +3754,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -3699,8 +3765,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types_routeclass",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "routeclass"
     },
     {
@@ -3710,19 +3776,52 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_middleware",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "middleware.ts"
+    },
+    {
+      "label": "Ctx",
+      "file_type": "code",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "app_src_middleware_ctx",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "ctx"
+    },
+    {
+      "label": "Next",
+      "file_type": "code",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "app_src_middleware_next",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "next"
+    },
+    {
+      "label": "handleApiRequest()",
+      "file_type": "code",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_src_middleware_handleapirequest",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "handleapirequest()"
     },
     {
       "label": "onRequest()",
       "file_type": "code",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L16",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "app_src_middleware_onrequest",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "onrequest()"
     },
     {
@@ -3732,8 +3831,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-input.module.ts"
     },
     {
@@ -3743,8 +3842,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoreinputbuffer"
     },
     {
@@ -3754,8 +3853,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_constructor",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3765,8 +3864,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".appenddigit()"
     },
     {
@@ -3776,8 +3875,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".deletelast()"
     },
     {
@@ -3787,8 +3886,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_clear",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".clear()"
     },
     {
@@ -3798,8 +3897,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_setvalue",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".setvalue()"
     },
     {
@@ -3809,8 +3908,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_asnumber",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".asnumber()"
     },
     {
@@ -3820,8 +3919,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".acceptactivation()"
     },
     {
@@ -3831,8 +3930,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training.engine.module.ts"
     },
     {
@@ -3842,8 +3941,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingengine"
     },
     {
@@ -3853,8 +3952,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_constructor",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3864,8 +3963,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".recordvisit()"
     },
     {
@@ -3875,8 +3974,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_iscomplete",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".iscomplete()"
     },
     {
@@ -3886,8 +3985,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currenttotal",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".currenttotal()"
     },
     {
@@ -3897,8 +3996,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currentaverage",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".currentaverage()"
     },
     {
@@ -3908,8 +4007,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_undolastvisit",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".undolastvisit()"
     },
     {
@@ -3919,8 +4018,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training.payload.module.ts"
     },
     {
@@ -3930,8 +4029,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "buildeventsbatch()"
     },
     {
@@ -3941,8 +4040,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3952,8 +4051,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoretrainingengineoptions",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoretrainingengineoptions"
     },
     {
@@ -3963,8 +4062,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_modules_game_types_recordedvisit",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "recordedvisit"
     },
     {
@@ -3974,8 +4073,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoreinputbufferoptions",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoreinputbufferoptions"
     },
     {
@@ -3985,8 +4084,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoreinputactivationevent",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "scoreinputactivationevent"
     },
     {
@@ -3996,8 +4095,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_interfaces",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4007,8 +4106,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_types",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4018,8 +4117,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4029,8 +4128,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces_segmenttimeroptions",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segmenttimeroptions"
     },
     {
@@ -4040,8 +4139,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segment-timer.module.ts"
     },
     {
@@ -4051,8 +4150,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segmenttimer"
     },
     {
@@ -4062,8 +4161,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_constructor",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -4073,8 +4172,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getaudiocontext",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".getaudiocontext()"
     },
     {
@@ -4084,8 +4183,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_playbeep",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".playbeep()"
     },
     {
@@ -4095,8 +4194,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_start",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".start()"
     },
     {
@@ -4106,8 +4205,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_stop",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".stop()"
     },
     {
@@ -4117,8 +4216,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_reset",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".reset()"
     },
     {
@@ -4128,8 +4227,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getremaining",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".getremaining()"
     },
     {
@@ -4139,8 +4238,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "index.ts"
     },
     {
@@ -4150,8 +4249,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index_get",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "get()"
     },
     {
@@ -4194,8 +4293,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "provision.ts"
     },
     {
@@ -4205,8 +4304,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "post()"
     },
     {
@@ -4216,8 +4315,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.ts"
     },
     {
@@ -4227,8 +4326,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequest",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -4238,8 +4337,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponse",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provisionplayerresponse"
     },
     {
@@ -4249,8 +4348,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequestinput",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provisionplayerrequestinput"
     },
     {
@@ -4260,8 +4359,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponsedata",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "provisionplayerresponsedata"
     },
     {
@@ -4271,8 +4370,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "batch.ts"
     },
     {
@@ -4282,8 +4381,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch_post",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "post()"
     },
     {
@@ -4293,8 +4392,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "index.ts"
     },
     {
@@ -4304,8 +4403,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index_patch",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "patch()"
     },
     {
@@ -4315,8 +4414,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "active.ts"
     },
     {
@@ -4326,8 +4425,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active_get",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "get()"
     },
     {
@@ -4337,8 +4436,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_index",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "index.ts"
     },
     {
@@ -4348,8 +4447,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_index_post",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "post()"
     },
     {
@@ -4359,8 +4458,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4370,8 +4469,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_configinput",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "configinput"
     },
     {
@@ -4392,8 +4491,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionrequestinput",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "createsessionrequestinput"
     },
     {
@@ -4403,8 +4502,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_participantref",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "participantref"
     },
     {
@@ -4414,8 +4513,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionresponse",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "createsessionresponse"
     },
     {
@@ -4425,8 +4524,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionresponsedata",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "createsessionresponsedata"
     },
     {
@@ -4436,8 +4535,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_dartfact",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "dartfact"
     },
     {
@@ -4447,8 +4546,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_turnfact",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "turnfact"
     },
     {
@@ -4458,8 +4557,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_stagefact",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "stagefact"
     },
     {
@@ -4469,8 +4568,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_eventsbatchrequest",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "eventsbatchrequest"
     },
     {
@@ -4491,8 +4590,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_stagefactinput",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "stagefactinput"
     },
     {
@@ -4502,8 +4601,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_turnfactinput",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "turnfactinput"
     },
     {
@@ -4524,8 +4623,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_batchwriteresponse",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "batchwriteresponse"
     },
     {
@@ -4535,8 +4634,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_batchwriteresponsedata",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "batchwriteresponsedata"
     },
     {
@@ -4546,8 +4645,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_updatesessionrequest",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "updatesessionrequest"
     },
     {
@@ -4557,8 +4656,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_updatesessionrequestinput",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "updatesessionrequestinput"
     },
     {
@@ -4568,8 +4667,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_sessionactive",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "sessionactive"
     },
     {
@@ -4590,8 +4689,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_types",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "types.ts"
     },
     {
@@ -4678,8 +4777,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4700,8 +4799,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_gametyperulesetrow",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "gametyperulesetrow"
     },
     {
@@ -4711,8 +4810,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_configurationtemplaterow",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "configurationtemplaterow"
     },
     {
@@ -4722,8 +4821,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_sessionrow",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "sessionrow"
     },
     {
@@ -4733,8 +4832,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_idempotencyrecord",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "idempotencyrecord"
     },
     {
@@ -4744,8 +4843,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_createsessionrecordsinput",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "createsessionrecordsinput"
     },
     {
@@ -4755,8 +4854,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertstage",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertstage"
     },
     {
@@ -4766,8 +4865,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertdart",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertdart"
     },
     {
@@ -4777,8 +4876,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertturn",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertturn"
     },
     {
@@ -4788,9 +4887,20 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertinput",
-      "community": 197,
-      "community_name": "@components/forms/Button.astro",
+      "community": 191,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertinput"
+    },
+    {
+      "label": "ActiveSessionSummary",
+      "file_type": "code",
+      "source_file": "app/src/repositories/interfaces.ts",
+      "source_location": "L81",
+      "_origin": "ast",
+      "id": "app_src_repositories_interfaces_activesessionsummary",
+      "community": 191,
+      "community_name": "interfaces.ts",
+      "norm_label": "activesessionsummary"
     },
     {
       "label": "player.repository.ts",
@@ -4840,7 +4950,7 @@
       "label": "Db",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L34",
+      "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_db",
       "community": 13,
@@ -4851,7 +4961,7 @@
       "label": "findGameTypeAndRuleset()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L36",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findgametypeandruleset",
       "community": 192,
@@ -4862,7 +4972,7 @@
       "label": "findCaptureModeId()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findcapturemodeid",
       "community": 192,
@@ -4873,7 +4983,7 @@
       "label": "findInputModeId()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L67",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findinputmodeid",
       "community": 192,
@@ -4884,7 +4994,7 @@
       "label": "findGameStatusId()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L79",
+      "source_location": "L80",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findgamestatusid",
       "community": 192,
@@ -4895,7 +5005,7 @@
       "label": "findParticipantTypeId()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L91",
+      "source_location": "L92",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findparticipanttypeid",
       "community": 192,
@@ -4906,7 +5016,7 @@
       "label": "findStageTypeIdMap()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L103",
+      "source_location": "L104",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findstagetypeidmap",
       "community": 192,
@@ -4917,7 +5027,7 @@
       "label": "findDartZoneIdMap()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L110",
+      "source_location": "L111",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_finddartzoneidmap",
       "community": 192,
@@ -4928,7 +5038,7 @@
       "label": "findPlayerDisplayName()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L117",
+      "source_location": "L118",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findplayerdisplayname",
       "community": 192,
@@ -4939,7 +5049,7 @@
       "label": "findConfigurationTemplate()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L129",
+      "source_location": "L130",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationtemplate",
       "community": 192,
@@ -4950,7 +5060,7 @@
       "label": "findSessionRow()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L155",
+      "source_location": "L156",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionrow",
       "community": 192,
@@ -4961,7 +5071,7 @@
       "label": "findSessionConfiguration()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L176",
+      "source_location": "L177",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionconfiguration",
       "community": 192,
@@ -4972,7 +5082,7 @@
       "label": "findSessionParticipantIds()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L188",
+      "source_location": "L189",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionparticipantids",
       "community": 192,
@@ -4983,7 +5093,7 @@
       "label": "countTurnsForSession()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L199",
+      "source_location": "L200",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_countturnsforsession",
       "community": 192,
@@ -4994,7 +5104,7 @@
       "label": "findIdempotencyRecord()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L211",
+      "source_location": "L212",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findidempotencyrecord",
       "community": 192,
@@ -5005,29 +5115,40 @@
       "label": "findActiveSessions()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L232",
+      "source_location": "L233",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findactivesessions",
+      "community": 194,
+      "community_name": "ScoreInputBuffer",
+      "norm_label": "findactivesessions()"
+    },
+    {
+      "label": "findActiveSessionForGameType()",
+      "file_type": "code",
+      "source_file": "app/src/repositories/session.repository.ts",
+      "source_location": "L248",
+      "_origin": "ast",
+      "id": "app_src_repositories_session_repository_findactivesessionforgametype",
       "community": 192,
       "community_name": "id.ts",
-      "norm_label": "findactivesessions()"
+      "norm_label": "findactivesessionforgametype()"
     },
     {
       "label": "findConfigurationPresets()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L239",
+      "source_location": "L270",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationpresets",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "findconfigurationpresets()"
     },
     {
       "label": "insertSessionRecords()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L258",
+      "source_location": "L296",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertsessionrecords",
       "community": 192,
@@ -5038,18 +5159,18 @@
       "label": "insertBatchRecords()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L300",
+      "source_location": "L338",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertbatchrecords",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "insertbatchrecords()"
     },
     {
       "label": "updateSessionStatusRecord()",
       "file_type": "code",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L375",
+      "source_location": "L413",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_updatesessionstatusrecord",
       "community": 192,
@@ -5266,10 +5387,21 @@
       "norm_label": "session.service.ts"
     },
     {
+      "label": "isActiveSessionConflict()",
+      "file_type": "code",
+      "source_file": "app/src/services/session.service.ts",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "app_src_services_session_service_isactivesessionconflict",
+      "community": 192,
+      "community_name": "id.ts",
+      "norm_label": "isactivesessionconflict()"
+    },
+    {
       "label": "createSession()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L36",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "app_src_services_session_service_createsession",
       "community": 192,
@@ -5280,7 +5412,7 @@
       "label": "canonicalize()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L163",
+      "source_location": "L213",
       "_origin": "ast",
       "id": "app_src_services_session_service_canonicalize",
       "community": 192,
@@ -5291,7 +5423,7 @@
       "label": "hashBatchPayload()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L175",
+      "source_location": "L225",
       "_origin": "ast",
       "id": "app_src_services_session_service_hashbatchpayload",
       "community": 192,
@@ -5302,7 +5434,7 @@
       "label": "collectDartZoneKeys()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L185",
+      "source_location": "L235",
       "_origin": "ast",
       "id": "app_src_services_session_service_collectdartzonekeys",
       "community": 192,
@@ -5313,7 +5445,7 @@
       "label": "validateBatchReferences()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L202",
+      "source_location": "L252",
       "_origin": "ast",
       "id": "app_src_services_session_service_validatebatchreferences",
       "community": 192,
@@ -5324,7 +5456,7 @@
       "label": "validateBatchOrdering()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L229",
+      "source_location": "L279",
       "_origin": "ast",
       "id": "app_src_services_session_service_validatebatchordering",
       "community": 192,
@@ -5335,7 +5467,7 @@
       "label": "resolveBatchStructure()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L253",
+      "source_location": "L303",
       "_origin": "ast",
       "id": "app_src_services_session_service_resolvebatchstructure",
       "community": 192,
@@ -5346,7 +5478,7 @@
       "label": "resolveBatchIdMaps()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L270",
+      "source_location": "L320",
       "_origin": "ast",
       "id": "app_src_services_session_service_resolvebatchidmaps",
       "community": 192,
@@ -5357,7 +5489,7 @@
       "label": "buildBatchInsertPayload()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L309",
+      "source_location": "L359",
       "_origin": "ast",
       "id": "app_src_services_session_service_buildbatchinsertpayload",
       "community": 192,
@@ -5368,7 +5500,7 @@
       "label": "appendBatch()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L349",
+      "source_location": "L399",
       "_origin": "ast",
       "id": "app_src_services_session_service_appendbatch",
       "community": 192,
@@ -5379,7 +5511,7 @@
       "label": "TERMINAL_TARGETS",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L428",
+      "source_location": "L478",
       "_origin": "ast",
       "id": "app_src_services_session_service_terminal_targets",
       "community": 192,
@@ -5390,7 +5522,7 @@
       "label": "updateSessionStatus()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L430",
+      "source_location": "L480",
       "_origin": "ast",
       "id": "app_src_services_session_service_updatesessionstatus",
       "community": 192,
@@ -5401,22 +5533,22 @@
       "label": "listActiveSessions()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L468",
+      "source_location": "L518",
       "_origin": "ast",
       "id": "app_src_services_session_service_listactivesessions",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "listactivesessions()"
     },
     {
       "label": "listConfigurationPresets()",
       "file_type": "code",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L473",
+      "source_location": "L523",
       "_origin": "ast",
       "id": "app_src_services_session_service_listconfigurationpresets",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "listconfigurationpresets()"
     },
     {
@@ -5426,8 +5558,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_types",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "types.ts"
     },
     {
@@ -5437,8 +5569,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_services_types_serviceresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "serviceresult"
     },
     {
@@ -5448,8 +5580,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_services_types_createsessionresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "createsessionresult"
     },
     {
@@ -5459,8 +5591,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_services_types_appendbatchresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "appendbatchresult"
     },
     {
@@ -5514,8 +5646,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_game_store",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "game.store.ts"
     },
     {
@@ -5536,8 +5668,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "types.ts"
     },
     {
@@ -5547,8 +5679,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types_gameconfigsnapshot",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "gameconfigsnapshot"
     },
     {
@@ -5558,8 +5690,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_stores_types_recordedturn",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "recordedturn"
     },
     {
@@ -5569,8 +5701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_db_client_test",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "client.test.ts"
     },
     {
@@ -5580,8 +5712,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_tests_db_client_test_mockend",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "mockend"
     },
     {
@@ -5591,8 +5723,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_tests_db_client_test_mocktransaction",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "@components/forms/Button.astro",
       "norm_label": "mocktransaction"
     },
     {
@@ -5635,8 +5767,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_client_test",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "client.test.ts"
     },
     {
@@ -5646,8 +5778,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_configuration_templates_test",
-      "community": 206,
-      "community_name": "sessions.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "configuration-templates.test.ts"
     },
     {
@@ -5657,8 +5789,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_players_test",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "players.test.ts"
     },
     {
@@ -5690,8 +5822,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_errors_test",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5701,8 +5833,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-play.data.test.ts"
     },
     {
@@ -5712,8 +5844,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_segmenttimerinstances",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segmenttimerinstances"
     },
     {
@@ -5723,8 +5855,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_gamestub",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "gamestub"
     },
     {
@@ -5734,8 +5866,8 @@
       "source_location": "L498",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeplay",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "makeplay()"
     },
     {
@@ -5745,8 +5877,8 @@
       "source_location": "L917",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "makeabandonplay()"
     },
     {
@@ -5783,14 +5915,25 @@
       "norm_label": "session-recovery.test.ts"
     },
     {
+      "label": "classify-error.test.ts",
+      "file_type": "code",
+      "source_file": "app/tests/lib/server/classify-error.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_tests_lib_server_classify_error_test",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
+      "norm_label": "classify-error.test.ts"
+    },
+    {
       "label": "errors.test.ts",
       "file_type": "code",
       "source_file": "app/tests/lib/server/errors.test.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_server_errors_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 202,
+      "community_name": "@layouts/AppLayout.astro",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5800,8 +5943,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_and_validate_body_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "parse-and-validate-body.test.ts"
     },
     {
@@ -5811,8 +5954,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_and_validate_body_test_schema",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "schema"
     },
     {
@@ -5822,9 +5965,31 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_json_body_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "parse-json-body.test.ts"
+    },
+    {
+      "label": "middleware.test.ts",
+      "file_type": "code",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_tests_middleware_test",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "middleware.test.ts"
+    },
+    {
+      "label": "ctxFor()",
+      "file_type": "code",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "app_tests_middleware_test_ctxfor",
+      "community": 28,
+      "community_name": "Community 28",
+      "norm_label": "ctxfor()"
     },
     {
       "label": "auth-client.mock.ts",
@@ -5855,8 +6020,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_input_module_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-input.module.test.ts"
     },
     {
@@ -5866,8 +6031,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_input_module_test_press",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "press()"
     },
     {
@@ -5877,8 +6042,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_engine_module_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training.engine.module.test.ts"
     },
     {
@@ -5888,8 +6053,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_payload_module_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training.payload.module.test.ts"
     },
     {
@@ -5899,8 +6064,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_ui_segment_timer_module_test",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "segment-timer.module.test.ts"
     },
     {
@@ -5910,8 +6075,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5921,8 +6086,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test_makecontext",
-      "community": 191,
-      "community_name": "relations.ts",
+      "community": 193,
+      "community_name": "client.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5932,8 +6097,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_players_types_test",
-      "community": 205,
-      "community_name": "players.ts",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "types.test.ts"
     },
     {
@@ -5943,8 +6108,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "batch.test.ts"
     },
     {
@@ -5954,8 +6119,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_makecontext",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5965,8 +6130,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_validbatch",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "validbatch"
     },
     {
@@ -5976,8 +6141,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5987,8 +6152,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test_makecontext",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5998,8 +6163,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_active_test",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "active.test.ts"
     },
     {
@@ -6009,8 +6174,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -6020,8 +6185,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test_makecontext",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -6127,7 +6292,7 @@
       "label": "inlineRequest",
       "file_type": "code",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_inlinerequest",
       "community": 192,
@@ -6138,7 +6303,7 @@
       "label": "sampleBatch()",
       "file_type": "code",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L143",
+      "source_location": "L191",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_samplebatch",
       "community": 192,
@@ -6218,8 +6383,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_auth_routes_test",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "auth-routes.test.ts"
     },
     {
@@ -6229,8 +6394,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_route_class_test",
-      "community": 198,
-      "community_name": "index.astro",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "route-class.test.ts"
     },
     {
@@ -8115,7 +8280,7 @@
       "label": "Frontend",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L82",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "decisions_frontend",
       "community": 58,
@@ -8126,7 +8291,7 @@
       "label": "Context & documentation system",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L135",
+      "source_location": "L137",
       "_origin": "ast",
       "id": "decisions_context_documentation_system",
       "community": 58,
@@ -8137,7 +8302,7 @@
       "label": "Deferred (open, not rejected)",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L150",
+      "source_location": "L152",
       "_origin": "ast",
       "id": "decisions_deferred_open_not_rejected",
       "community": 58,
@@ -20237,7 +20402,7 @@
       "label": "Error Contract",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L163",
+      "source_location": "L165",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_error_contract",
       "community": 23,
@@ -20248,7 +20413,7 @@
       "label": "Success envelope",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L165",
+      "source_location": "L167",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_success_envelope",
       "community": 23,
@@ -20259,7 +20424,7 @@
       "label": "Error envelope",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L171",
+      "source_location": "L173",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_error_envelope",
       "community": 23,
@@ -20270,7 +20435,7 @@
       "label": "Initial domain codes",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_initial_domain_codes",
       "community": 23,
@@ -20281,7 +20446,7 @@
       "label": "Authorization mapping",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L201",
+      "source_location": "L204",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_authorization_mapping",
       "community": 23,
@@ -20292,7 +20457,7 @@
       "label": "Retry semantics",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L207",
+      "source_location": "L210",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_retry_semantics",
       "community": 23,
@@ -20303,7 +20468,7 @@
       "label": "Frozen Decisions",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L214",
+      "source_location": "L217",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_frozen_decisions",
       "community": 23,
@@ -20314,7 +20479,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L229",
+      "source_location": "L232",
       "_origin": "ast",
       "id": "docs_architecture_06_api_00_overview_related_documents",
       "community": 23,
@@ -20589,7 +20754,7 @@
       "label": "Auth responsibility split",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L48",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_auth_responsibility_split",
       "community": 20,
@@ -20600,7 +20765,7 @@
       "label": "Route classes",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L56",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_route_classes",
       "community": 20,
@@ -20611,7 +20776,7 @@
       "label": "`locals.auth` contract",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L68",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_locals_auth_contract",
       "community": 20,
@@ -20622,7 +20787,7 @@
       "label": "Failure mapping",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L84",
+      "source_location": "L85",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_failure_mapping",
       "community": 20,
@@ -20633,7 +20798,7 @@
       "label": "Layer Architecture",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L96",
+      "source_location": "L97",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_layer_architecture",
       "community": 20,
@@ -20644,7 +20809,7 @@
       "label": "Controller (`src/pages/api/`)",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L110",
+      "source_location": "L111",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_controller_src_pages_api",
       "community": 20,
@@ -20655,7 +20820,7 @@
       "label": "Service (`src/services/`)",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L126",
+      "source_location": "L127",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_service_src_services",
       "community": 20,
@@ -20666,7 +20831,7 @@
       "label": "Repository (`src/repositories/`)",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L142",
+      "source_location": "L143",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_repository_src_repositories",
       "community": 20,
@@ -20677,7 +20842,7 @@
       "label": "Recommended Folder Structure",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L156",
+      "source_location": "L157",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_recommended_folder_structure",
       "community": 20,
@@ -20688,7 +20853,7 @@
       "label": "Route file mapping note",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L200",
+      "source_location": "L201",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_route_file_mapping_note",
       "community": 20,
@@ -20699,7 +20864,7 @@
       "label": "Statistics (deferred)",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L204",
+      "source_location": "L205",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_statistics_deferred",
       "community": 20,
@@ -20710,7 +20875,7 @@
       "label": "Shared Library Modules",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L212",
+      "source_location": "L213",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
       "community": 20,
@@ -20721,7 +20886,7 @@
       "label": "`lib/server/envelope.ts`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L214",
+      "source_location": "L215",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_lib_server_envelope_ts",
       "community": 20,
@@ -20732,7 +20897,7 @@
       "label": "`lib/server/errors.ts`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L237",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_lib_server_errors_ts",
       "community": 20,
@@ -20743,7 +20908,7 @@
       "label": "`db/client.ts`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L241",
+      "source_location": "L242",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_db_client_ts",
       "community": 20,
@@ -20754,7 +20919,7 @@
       "label": "Path aliases & type barrels",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L250",
+      "source_location": "L251",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_path_aliases_type_barrels",
       "community": 20,
@@ -20765,7 +20930,7 @@
       "label": "Middleware Flow (Conceptual)",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L262",
+      "source_location": "L263",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_middleware_flow_conceptual",
       "community": 20,
@@ -20776,7 +20941,7 @@
       "label": "Rules",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L289",
+      "source_location": "L290",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_rules",
       "community": 20,
@@ -20787,7 +20952,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L301",
+      "source_location": "L303",
       "_origin": "ast",
       "id": "docs_architecture_06_api_02_middleware_and_layering_related_documents",
       "community": 20,
@@ -21018,7 +21183,7 @@
       "label": "Extensibility Rule",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/03-Shared-Conventions.md",
-      "source_location": "L260",
+      "source_location": "L261",
       "_origin": "ast",
       "id": "docs_architecture_06_api_03_shared_conventions_extensibility_rule",
       "community": 26,
@@ -21029,7 +21194,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/03-Shared-Conventions.md",
-      "source_location": "L266",
+      "source_location": "L267",
       "_origin": "ast",
       "id": "docs_architecture_06_api_03_shared_conventions_related_documents",
       "community": 26,
@@ -21095,7 +21260,7 @@
       "label": "Session Lifecycle \u2014 `PATCH /api/sessions/:sessionId`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L135",
+      "source_location": "L136",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_session_lifecycle_patch_api_sessions_sessionid",
       "community": 44,
@@ -21106,7 +21271,7 @@
       "label": "Player Provisioning \u2014 `POST /api/players/provision`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L156",
+      "source_location": "L157",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_player_provisioning_post_api_players_provision",
       "community": 44,
@@ -21117,7 +21282,7 @@
       "label": "Configuration Presets \u2014 `GET /api/configuration-templates?gameType=<key>`",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L190",
+      "source_location": "L191",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_configuration_presets_get_api_configuration_templates_gametype_key",
       "community": 44,
@@ -21128,7 +21293,7 @@
       "label": "Read Contracts",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L209",
+      "source_location": "L210",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_read_contracts",
       "community": 44,
@@ -21139,7 +21304,7 @@
       "label": "Response DTOs",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L237",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_response_dtos",
       "community": 44,
@@ -21150,7 +21315,7 @@
       "label": "Extensibility \u2014 Ruleset Validator Registry",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L302",
+      "source_location": "L303",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_extensibility_ruleset_validator_registry",
       "community": 44,
@@ -21161,7 +21326,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L321",
+      "source_location": "L322",
       "_origin": "ast",
       "id": "docs_architecture_06_api_04_endpoint_contracts_related_documents",
       "community": 44,
@@ -23112,7 +23277,7 @@
       "_origin": "ast",
       "id": "docs_braindump_badges",
       "community": 225,
-      "community_name": "tailwind-merge",
+      "community_name": "badges.md",
       "norm_label": "badges.md"
     },
     {
@@ -23123,7 +23288,7 @@
       "_origin": "ast",
       "id": "docs_braindump_badges_badges",
       "community": 225,
-      "community_name": "tailwind-merge",
+      "community_name": "badges.md",
       "norm_label": "badges"
     },
     {
@@ -27886,6 +28051,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_src_db_client",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -27900,12 +28076,12 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
       "source_location": "L37",
       "weight": 1.0,
-      "source": "app_src_middleware_onrequest",
-      "target": "app_src_db_client_getdb"
+      "source": "app_src_middleware_handleapirequest",
+      "target": "app_src_db_client_getdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -27968,7 +28144,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L355",
+      "source_location": "L405",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_db_client_getdb"
@@ -27979,7 +28155,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L40",
+      "source_location": "L55",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_db_client_getdb"
@@ -27990,7 +28166,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L469",
+      "source_location": "L519",
       "weight": 1.0,
       "source": "app_src_services_session_service_listactivesessions",
       "target": "app_src_db_client_getdb"
@@ -28001,7 +28177,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L477",
+      "source_location": "L527",
       "weight": 1.0,
       "source": "app_src_services_session_service_listconfigurationpresets",
       "target": "app_src_db_client_getdb"
@@ -28012,10 +28188,21 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L437",
+      "source_location": "L487",
       "weight": 1.0,
       "source": "app_src_services_session_service_updatesessionstatus",
       "target": "app_src_db_client_getdb"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_src_db_client_getdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -28034,7 +28221,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L303",
+      "source_location": "L341",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository_insertbatchrecords",
       "target": "app_src_db_client_withtransaction"
@@ -28045,7 +28232,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L261",
+      "source_location": "L299",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository_insertsessionrecords",
       "target": "app_src_db_client_withtransaction"
@@ -29767,6 +29954,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_src_lib_auth_verify_jwt",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -29781,12 +29979,23 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L22",
+      "source_location": "L24",
       "weight": 1.0,
-      "source": "app_src_middleware_onrequest",
-      "target": "app_src_lib_auth_verify_jwt_verifybearertoken"
+      "source": "app_src_middleware_handleapirequest",
+      "target": "app_src_lib_auth_verify_jwt_verifybearertoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_src_lib_auth_verify_jwt_verifybearertoken",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -30020,10 +30229,50 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L14",
+      "source_location": "L69",
       "weight": 1.0,
       "source": "app_src_lib_client_api_client",
       "target": "app_src_lib_client_api_client_apirequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_client_attempt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_client_isenvelope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_client_serviceunavailable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client",
+      "target": "app_src_lib_client_api_client_sleep",
       "confidence_score": 1.0
     },
     {
@@ -30172,9 +30421,31 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client_attempt",
+      "target": "app_src_lib_client_api_client_serviceunavailable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/client/api/client.ts",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "app_src_lib_client_api_client_apirequest",
+      "target": "app_src_lib_client_api_client_sleep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/lib/client/api/client.ts",
-      "source_location": "L18",
+      "source_location": "L73",
       "weight": 1.0,
       "source": "app_src_lib_client_api_client_apirequest",
       "target": "app_src_lib_client_auth_client_getaccesstoken"
@@ -30997,7 +31268,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0,
       "source": "app_src_lib_client_api_types",
       "target": "app_src_lib_client_api_types_apifailure",
@@ -31007,7 +31278,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "app_src_lib_client_api_types",
       "target": "app_src_lib_client_api_types_apiresult",
@@ -31017,7 +31288,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_lib_client_api_types",
       "target": "app_src_lib_client_api_types_apisuccess",
@@ -31028,7 +31299,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/client/api/types.ts",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "app_src_lib_client_api_types",
       "target": "app_src_pages_api_types",
@@ -31937,7 +32208,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L418",
+      "source_location": "L468",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_lib_id_generateid"
@@ -31947,7 +32218,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L326",
+      "source_location": "L376",
       "weight": 1.0,
       "source": "app_src_services_session_service_buildbatchinsertpayload",
       "target": "app_src_lib_id_generateid",
@@ -31959,7 +32230,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L132",
+      "source_location": "L163",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_lib_id_generateid"
@@ -31969,10 +32240,97 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L258",
+      "source_location": "L308",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchstructure",
       "target": "app_src_lib_id_generateid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/classify-error.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_src_lib_server_classify_error",
+      "target": "app_src_lib_server_classify_error_classifythrownerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/classify-error.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_server_classify_error",
+      "target": "app_src_lib_server_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/server/classify-error.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_lib_server_classify_error",
+      "target": "app_src_lib_server_types_errorcode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_lib_server_classify_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/server/classify-error.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_lib_server_classify_error_test",
+      "target": "app_src_lib_server_classify_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_lib_server_classify_error_classifythrownerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "app_src_middleware_onrequest",
+      "target": "app_src_lib_server_classify_error_classifythrownerror"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/server/classify-error.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_lib_server_classify_error_test",
+      "target": "app_src_lib_server_classify_error_classifythrownerror",
       "confidence_score": 1.0
     },
     {
@@ -32306,9 +32664,20 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
       "source_location": "L27",
+      "weight": 1.0,
+      "source": "app_src_middleware_handleapirequest",
+      "target": "app_src_lib_server_envelope_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L71",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_lib_server_envelope_fail"
@@ -32948,7 +33317,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_middleware",
       "target": "app_src_lib_utils_route_class",
@@ -32970,7 +33339,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_middleware",
       "target": "app_src_lib_utils_route_class_classifyroute",
@@ -32982,7 +33351,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/middleware.ts",
-      "source_location": "L18",
+      "source_location": "L59",
       "weight": 1.0,
       "source": "app_src_middleware_onrequest",
       "target": "app_src_lib_utils_route_class_classifyroute"
@@ -33012,9 +33381,72 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/middleware.ts",
-      "source_location": "L16",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "app_src_middleware",
+      "target": "app_src_middleware_ctx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_handleapirequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_next",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "app_src_middleware",
+      "target": "app_src_middleware_onrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_src_middleware",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/middleware.ts",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "app_src_middleware_onrequest",
+      "target": "app_src_middleware_handleapirequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
       "target": "app_src_middleware_onrequest",
       "confidence_score": 1.0
     },
@@ -34535,7 +34967,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_pages_api_sessions_types",
@@ -34546,7 +34978,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_pages_api_sessions_types_createsessionrequestinput",
@@ -34579,7 +35011,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_pages_api_sessions_types_eventsbatchrequestinput",
@@ -34601,7 +35033,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_pages_api_sessions_types_dartfactinput",
@@ -34612,7 +35044,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_pages_api_sessions_types_updatesessionrequestinput",
@@ -34634,7 +35066,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_pages_api_types",
@@ -34649,6 +35081,16 @@
       "weight": 1.0,
       "source": "app_tests_pages_api_players_types_test",
       "target": "app_src_pages_api_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/repositories/interfaces.ts",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "app_src_repositories_interfaces",
+      "target": "app_src_repositories_interfaces_activesessionsummary",
       "confidence_score": 1.0
     },
     {
@@ -34873,6 +35315,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/repositories/session.repository.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "app_src_repositories_session_repository",
+      "target": "app_src_repositories_interfaces_activesessionsummary",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/player.repository.ts",
@@ -34929,7 +35382,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L199",
+      "source_location": "L200",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_countturnsforsession",
@@ -34939,7 +35392,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L34",
+      "source_location": "L35",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_db",
@@ -34949,7 +35402,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L232",
+      "source_location": "L248",
+      "weight": 1.0,
+      "source": "app_src_repositories_session_repository",
+      "target": "app_src_repositories_session_repository_findactivesessionforgametype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/repositories/session.repository.ts",
+      "source_location": "L233",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findactivesessions",
@@ -34959,7 +35422,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findcapturemodeid",
@@ -34969,7 +35432,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L239",
+      "source_location": "L270",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findconfigurationpresets",
@@ -34979,7 +35442,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L129",
+      "source_location": "L130",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findconfigurationtemplate",
@@ -34989,7 +35452,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_finddartzoneidmap",
@@ -34999,7 +35462,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L79",
+      "source_location": "L80",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findgamestatusid",
@@ -35009,7 +35472,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L36",
+      "source_location": "L37",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findgametypeandruleset",
@@ -35019,7 +35482,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L211",
+      "source_location": "L212",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findidempotencyrecord",
@@ -35029,7 +35492,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L67",
+      "source_location": "L68",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findinputmodeid",
@@ -35039,7 +35502,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findparticipanttypeid",
@@ -35049,7 +35512,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L117",
+      "source_location": "L118",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findplayerdisplayname",
@@ -35059,7 +35522,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findsessionconfiguration",
@@ -35069,7 +35532,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L188",
+      "source_location": "L189",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findsessionparticipantids",
@@ -35079,7 +35542,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L155",
+      "source_location": "L156",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findsessionrow",
@@ -35089,7 +35552,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L103",
+      "source_location": "L104",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_findstagetypeidmap",
@@ -35099,7 +35562,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L300",
+      "source_location": "L338",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_insertbatchrecords",
@@ -35109,7 +35572,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L258",
+      "source_location": "L296",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_insertsessionrecords",
@@ -35119,7 +35582,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/repositories/session.repository.ts",
-      "source_location": "L375",
+      "source_location": "L413",
       "weight": 1.0,
       "source": "app_src_repositories_session_repository",
       "target": "app_src_repositories_session_repository_updatesessionstatusrecord",
@@ -35141,7 +35604,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_repositories_session_repository",
@@ -35164,7 +35627,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L42",
+      "source_location": "L57",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findgametypeandruleset"
@@ -35186,7 +35649,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L71",
+      "source_location": "L86",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findcapturemodeid"
@@ -35208,7 +35671,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L72",
+      "source_location": "L87",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findinputmodeid"
@@ -35230,7 +35693,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L362",
+      "source_location": "L412",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_findgamestatusid"
@@ -35241,7 +35704,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L73",
+      "source_location": "L88",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findgamestatusid"
@@ -35252,7 +35715,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L451",
+      "source_location": "L501",
       "weight": 1.0,
       "source": "app_src_services_session_service_updatesessionstatus",
       "target": "app_src_repositories_session_repository_findgamestatusid"
@@ -35274,7 +35737,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L74",
+      "source_location": "L89",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findparticipanttypeid"
@@ -35295,7 +35758,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L279",
+      "source_location": "L329",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchidmaps",
       "target": "app_src_repositories_session_repository_findstagetypeidmap",
@@ -35317,7 +35780,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L283",
+      "source_location": "L333",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchidmaps",
       "target": "app_src_repositories_session_repository_finddartzoneidmap",
@@ -35340,7 +35803,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L75",
+      "source_location": "L90",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findplayerdisplayname"
@@ -35362,7 +35825,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L99",
+      "source_location": "L114",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_findconfigurationtemplate"
@@ -35384,7 +35847,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L357",
+      "source_location": "L407",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_findsessionrow"
@@ -35395,7 +35858,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L438",
+      "source_location": "L488",
       "weight": 1.0,
       "source": "app_src_services_session_service_updatesessionstatus",
       "target": "app_src_repositories_session_repository_findsessionrow"
@@ -35417,7 +35880,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L387",
+      "source_location": "L437",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_findsessionconfiguration"
@@ -35439,7 +35902,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L382",
+      "source_location": "L432",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_findsessionparticipantids"
@@ -35461,7 +35924,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L391",
+      "source_location": "L441",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_countturnsforsession"
@@ -35483,7 +35946,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L367",
+      "source_location": "L417",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_findidempotencyrecord"
@@ -35505,10 +35968,32 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L470",
+      "source_location": "L520",
       "weight": 1.0,
       "source": "app_src_services_session_service_listactivesessions",
       "target": "app_src_repositories_session_repository_findactivesessions"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/services/session.service.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_services_session_service",
+      "target": "app_src_repositories_session_repository_findactivesessionforgametype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/src/services/session.service.ts",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "app_src_services_session_service_createsession",
+      "target": "app_src_repositories_session_repository_findactivesessionforgametype"
     },
     {
       "relation": "imports",
@@ -35527,7 +36012,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L478",
+      "source_location": "L528",
       "weight": 1.0,
       "source": "app_src_services_session_service_listconfigurationpresets",
       "target": "app_src_repositories_session_repository_findconfigurationpresets"
@@ -35549,7 +36034,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L135",
+      "source_location": "L167",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_repositories_session_repository_insertsessionrecords"
@@ -35571,7 +36056,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L416",
+      "source_location": "L466",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_repositories_session_repository_insertbatchrecords"
@@ -35593,7 +36078,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L460",
+      "source_location": "L510",
       "weight": 1.0,
       "source": "app_src_services_session_service_updatesessionstatus",
       "target": "app_src_repositories_session_repository_updatesessionstatusrecord"
@@ -35829,7 +36314,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L388",
+      "source_location": "L438",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_services_rulesets_registry_getrulesetvalidator"
@@ -35840,7 +36325,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L55",
+      "source_location": "L70",
       "weight": 1.0,
       "source": "app_src_services_session_service_createsession",
       "target": "app_src_services_rulesets_registry_getrulesetvalidator"
@@ -36031,7 +36516,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L349",
+      "source_location": "L399",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_appendbatch",
@@ -36041,7 +36526,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L309",
+      "source_location": "L359",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_buildbatchinsertpayload",
@@ -36051,7 +36536,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L163",
+      "source_location": "L213",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_canonicalize",
@@ -36061,7 +36546,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L185",
+      "source_location": "L235",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_collectdartzonekeys",
@@ -36071,7 +36556,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L36",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_createsession",
@@ -36081,7 +36566,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L175",
+      "source_location": "L225",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_hashbatchpayload",
@@ -36091,7 +36576,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L468",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "app_src_services_session_service",
+      "target": "app_src_services_session_service_isactivesessionconflict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/services/session.service.ts",
+      "source_location": "L518",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_listactivesessions",
@@ -36101,7 +36596,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L473",
+      "source_location": "L523",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_listconfigurationpresets",
@@ -36111,7 +36606,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L270",
+      "source_location": "L320",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_resolvebatchidmaps",
@@ -36121,7 +36616,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L253",
+      "source_location": "L303",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_resolvebatchstructure",
@@ -36131,7 +36626,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L428",
+      "source_location": "L478",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_terminal_targets",
@@ -36141,7 +36636,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L430",
+      "source_location": "L480",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_updatesessionstatus",
@@ -36151,7 +36646,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L229",
+      "source_location": "L279",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_validatebatchordering",
@@ -36161,7 +36656,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L202",
+      "source_location": "L252",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_session_service_validatebatchreferences",
@@ -36172,7 +36667,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_types",
@@ -36183,7 +36678,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_types_appendbatchresult",
@@ -36194,7 +36689,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_types_createsessionresult",
@@ -36205,7 +36700,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "app_src_services_session_service",
       "target": "app_src_services_types_serviceresult",
@@ -36271,10 +36766,21 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/services/session.service.ts",
+      "source_location": "L183",
+      "weight": 1.0,
+      "source": "app_src_services_session_service_createsession",
+      "target": "app_src_services_session_service_isactivesessionconflict",
       "confidence_score": 1.0
     },
     {
@@ -36293,7 +36799,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_createsession",
@@ -36304,7 +36810,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L178",
+      "source_location": "L228",
       "weight": 1.0,
       "source": "app_src_services_session_service_hashbatchpayload",
       "target": "app_src_services_session_service_canonicalize",
@@ -36315,7 +36821,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_canonicalize",
@@ -36326,7 +36832,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L366",
+      "source_location": "L416",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_services_session_service_hashbatchpayload",
@@ -36337,7 +36843,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_hashbatchpayload",
@@ -36348,7 +36854,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L280",
+      "source_location": "L330",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchidmaps",
       "target": "app_src_services_session_service_collectdartzonekeys",
@@ -36359,7 +36865,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L260",
+      "source_location": "L310",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchstructure",
       "target": "app_src_services_session_service_validatebatchreferences",
@@ -36370,7 +36876,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L263",
+      "source_location": "L313",
       "weight": 1.0,
       "source": "app_src_services_session_service_resolvebatchstructure",
       "target": "app_src_services_session_service_validatebatchordering",
@@ -36381,7 +36887,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L383",
+      "source_location": "L433",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_services_session_service_resolvebatchstructure",
@@ -36392,7 +36898,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L405",
+      "source_location": "L455",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_services_session_service_resolvebatchidmaps",
@@ -36403,7 +36909,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L409",
+      "source_location": "L459",
       "weight": 1.0,
       "source": "app_src_services_session_service_appendbatch",
       "target": "app_src_services_session_service_buildbatchinsertpayload",
@@ -36425,7 +36931,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_appendbatch",
@@ -36437,7 +36943,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/services/session.service.ts",
-      "source_location": "L443",
+      "source_location": "L493",
       "weight": 1.0,
       "source": "app_src_services_session_service_updatesessionstatus",
       "target": "app_src_services_session_service_terminal_targets"
@@ -36458,7 +36964,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_updatesessionstatus",
@@ -36480,7 +36986,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_listactivesessions",
@@ -36502,7 +37008,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_src_services_session_service_listconfigurationpresets",
@@ -36790,6 +37296,16 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/tests/middleware.test.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_tests_middleware_test",
+      "target": "app_tests_middleware_test_ctxfor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/tests/mocks/auth-client.mock.ts",
       "source_location": "L3",
       "weight": 1.0,
@@ -36913,7 +37429,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L44",
+      "source_location": "L45",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_tests_services_session_service_test_inlinerequest",
@@ -36923,7 +37439,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/services/session.service.test.ts",
-      "source_location": "L143",
+      "source_location": "L191",
       "weight": 1.0,
       "source": "app_tests_services_session_service_test",
       "target": "app_tests_services_session_service_test_samplebatch",
@@ -38457,7 +38973,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L135",
+      "source_location": "L137",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_context_documentation_system",
@@ -38477,7 +38993,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L150",
+      "source_location": "L152",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_deferred_open_not_rejected",
@@ -38497,7 +39013,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_frontend",
@@ -49067,7 +49583,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L163",
+      "source_location": "L165",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_api_overview",
       "target": "docs_architecture_06_api_00_overview_error_contract",
@@ -49077,7 +49593,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L214",
+      "source_location": "L217",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_api_overview",
       "target": "docs_architecture_06_api_00_overview_frozen_decisions",
@@ -49097,7 +49613,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L229",
+      "source_location": "L232",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_api_overview",
       "target": "docs_architecture_06_api_00_overview_related_documents",
@@ -49207,7 +49723,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L201",
+      "source_location": "L204",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_error_contract",
       "target": "docs_architecture_06_api_00_overview_authorization_mapping",
@@ -49217,7 +49733,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L171",
+      "source_location": "L173",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_error_contract",
       "target": "docs_architecture_06_api_00_overview_error_envelope",
@@ -49227,7 +49743,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_error_contract",
       "target": "docs_architecture_06_api_00_overview_initial_domain_codes",
@@ -49237,7 +49753,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L207",
+      "source_location": "L210",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_error_contract",
       "target": "docs_architecture_06_api_00_overview_retry_semantics",
@@ -49247,7 +49763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/00-Overview.md",
-      "source_location": "L165",
+      "source_location": "L167",
       "weight": 1.0,
       "source": "docs_architecture_06_api_00_overview_error_contract",
       "target": "docs_architecture_06_api_00_overview_success_envelope",
@@ -49447,7 +49963,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_layer_architecture",
@@ -49457,7 +49973,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_middleware_flow_conceptual",
@@ -49487,7 +50003,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L156",
+      "source_location": "L157",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_recommended_folder_structure",
@@ -49497,7 +50013,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L301",
+      "source_location": "L303",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_related_documents",
@@ -49507,7 +50023,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L289",
+      "source_location": "L290",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_rules",
@@ -49517,7 +50033,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L212",
+      "source_location": "L213",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering",
       "target": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
@@ -49527,7 +50043,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_middleware_responsibilities",
       "target": "docs_architecture_06_api_02_middleware_and_layering_auth_responsibility_split",
@@ -49537,7 +50053,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L84",
+      "source_location": "L85",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_middleware_responsibilities",
       "target": "docs_architecture_06_api_02_middleware_and_layering_failure_mapping",
@@ -49547,7 +50063,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L68",
+      "source_location": "L69",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_middleware_responsibilities",
       "target": "docs_architecture_06_api_02_middleware_and_layering_locals_auth_contract",
@@ -49567,7 +50083,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L56",
+      "source_location": "L57",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_middleware_responsibilities",
       "target": "docs_architecture_06_api_02_middleware_and_layering_route_classes",
@@ -49577,7 +50093,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_layer_architecture",
       "target": "docs_architecture_06_api_02_middleware_and_layering_controller_src_pages_api",
@@ -49587,7 +50103,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L142",
+      "source_location": "L143",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_layer_architecture",
       "target": "docs_architecture_06_api_02_middleware_and_layering_repository_src_repositories",
@@ -49597,7 +50113,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_layer_architecture",
       "target": "docs_architecture_06_api_02_middleware_and_layering_service_src_services",
@@ -49607,7 +50123,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L200",
+      "source_location": "L201",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_recommended_folder_structure",
       "target": "docs_architecture_06_api_02_middleware_and_layering_route_file_mapping_note",
@@ -49617,7 +50133,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L204",
+      "source_location": "L205",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_recommended_folder_structure",
       "target": "docs_architecture_06_api_02_middleware_and_layering_statistics_deferred",
@@ -49627,7 +50143,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L241",
+      "source_location": "L242",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
       "target": "docs_architecture_06_api_02_middleware_and_layering_db_client_ts",
@@ -49637,7 +50153,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L214",
+      "source_location": "L215",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
       "target": "docs_architecture_06_api_02_middleware_and_layering_lib_server_envelope_ts",
@@ -49647,7 +50163,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L237",
+      "source_location": "L238",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
       "target": "docs_architecture_06_api_02_middleware_and_layering_lib_server_errors_ts",
@@ -49657,7 +50173,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/02-Middleware-And-Layering.md",
-      "source_location": "L250",
+      "source_location": "L251",
       "weight": 1.0,
       "source": "docs_architecture_06_api_02_middleware_and_layering_shared_library_modules",
       "target": "docs_architecture_06_api_02_middleware_and_layering_path_aliases_type_barrels",
@@ -49687,7 +50203,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/03-Shared-Conventions.md",
-      "source_location": "L260",
+      "source_location": "L261",
       "weight": 1.0,
       "source": "docs_architecture_06_api_03_shared_conventions_api_shared_conventions",
       "target": "docs_architecture_06_api_03_shared_conventions_extensibility_rule",
@@ -49727,7 +50243,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/03-Shared-Conventions.md",
-      "source_location": "L266",
+      "source_location": "L267",
       "weight": 1.0,
       "source": "docs_architecture_06_api_03_shared_conventions_api_shared_conventions",
       "target": "docs_architecture_06_api_03_shared_conventions_related_documents",
@@ -49887,7 +50403,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L190",
+      "source_location": "L191",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_configuration_presets_get_api_configuration_templates_gametype_key",
@@ -49897,7 +50413,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L302",
+      "source_location": "L303",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_extensibility_ruleset_validator_registry",
@@ -49907,7 +50423,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L156",
+      "source_location": "L157",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_player_provisioning_post_api_players_provision",
@@ -49927,7 +50443,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L209",
+      "source_location": "L210",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_read_contracts",
@@ -49937,7 +50453,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L321",
+      "source_location": "L322",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_related_documents",
@@ -49947,7 +50463,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L237",
+      "source_location": "L238",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_response_dtos",
@@ -49967,7 +50483,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/06-API/04-Endpoint-Contracts.md",
-      "source_location": "L135",
+      "source_location": "L136",
       "weight": 1.0,
       "source": "docs_architecture_06_api_04_endpoint_contracts_api_endpoint_contracts",
       "target": "docs_architecture_06_api_04_endpoint_contracts_session_lifecycle_patch_api_sessions_sessionid",
@@ -53745,5 +54261,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4ad1c3ed0c389b2ceffb39feb883d8c1ad165357"
+  "built_at_commit": "4fee5bf869815253586d1eaf5c8a9307a6b1d24b"
 }

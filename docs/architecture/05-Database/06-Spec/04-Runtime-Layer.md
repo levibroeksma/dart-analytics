@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-07-13
+updated: 2026-07-22
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -183,7 +183,7 @@ Referenced by:
 
 A player can have only one active exercise session per game type.
 
-Terminal statuses (COMPLETED, ABANDONED) always set completed_at ("when the session ended"); ACTIVE ⇔ completed_at IS NULL is a service-enforced invariant that uq_sessions_single_active keys on. <!-- 2026-07-13 -->
+Terminal statuses (COMPLETED, ABANDONED) always set completed_at ("when the session ended"); ACTIVE ⇔ completed_at IS NULL is a service-enforced invariant that uq_sessions_single_active keys on. This invariant is now server-guarded (D132): `POST /api/sessions` pre-checks for an active session and catches the `uq_sessions_single_active` violation, in addition to the DB partial unique index. <!-- 2026-07-22 -->
 
 ## Design Rationale
 
