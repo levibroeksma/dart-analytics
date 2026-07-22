@@ -255,5 +255,38 @@ describe("scoreTrainingSetup", () => {
       expect(store.game.startSession).toHaveBeenCalled();
       expect(locationSpy.href).toBe("/games/score-training/play");
     });
+
+    it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {
+      const setup = createSetup({
+        selectedTemplateId: "template-1",
+        presets: [
+          {
+            configurationTemplateId: "template-1",
+            name: "Standard",
+            configuration: {
+              duration_type: "ROUNDS",
+              duration_value: 20,
+              max_darts_per_turn: 3,
+            },
+          } as any,
+        ],
+      });
+
+      vi.mocked(sessionsApi.createSession).mockRejectedValue(
+        Object.assign(new Error("already active"), {
+          code: "SESSION_ALREADY_ACTIVE",
+        }),
+      );
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+        { sessionId: "active-1", gameTypeKey: "SCORE_TRAINING" } as any,
+      ]);
+      store.game.sessionId = "active-1";
+
+      await setup.start();
+
+      expect(setup.showActiveSessionModal).toBe(true);
+      expect(setup.activeSession).toMatchObject({ sessionId: "active-1" });
+      expect(setup.loading).toBe(false);
+    });
   });
 });

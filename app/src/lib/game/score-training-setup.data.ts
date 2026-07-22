@@ -139,7 +139,12 @@ export function scoreTrainingSetup() {
           },
         });
         globalThis.location.href = "/games/score-training/play";
-      } catch {
+      } catch (err: unknown) {
+        const code = (err as { code?: string }).code;
+        if (code === "SESSION_ALREADY_ACTIVE") {
+          await this.retryReconciliation();
+          return;
+        }
         this.error = "Could not start the session. Try again.";
       } finally {
         this.loading = false;
