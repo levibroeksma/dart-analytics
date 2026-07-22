@@ -12,7 +12,10 @@ const { title, gameTitle }: Props = Astro.props;
 ---
 
 <BaseLayout title={title}>
-  <div class="mx-auto flex h-full max-w-lg flex-col" x-data="{ showExitModal: false }">
+  <div
+    class="mx-auto flex h-full max-w-lg flex-col"
+    x-data="{ showExitModal: false }"
+  >
     <header class="relative flex items-center p-3">
       <button
         type="button"
@@ -30,7 +33,9 @@ const { title, gameTitle }: Props = Astro.props;
         ) : null
       }
     </header>
-    <main class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+    <main
+      class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
+    >
       <slot />
     </main>
     <template x-if="showExitModal">

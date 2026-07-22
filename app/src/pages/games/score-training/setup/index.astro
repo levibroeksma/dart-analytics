@@ -8,20 +8,36 @@ import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
 <AppLayout title="Score Training — Setup">
-  <div class="p-4" x-data="scoreTrainingSetup()">
+  <div
+    class="p-4"
+    x-data="scoreTrainingSetup()"
+  >
     <template x-if="showActiveSessionModal && activeSession">
       <ContinueSessionModal />
     </template>
 
     <template x-if="reconciliationFailed && !loadingReconciliation">
-      <div class="text-center py-8 bg-destructive/10 rounded-lg p-4 border border-destructive/20">
-        <p class="text-sm text-error">Could not clean up a previous session. Retry to continue.</p>
-        <Button class="mt-4" @click="retryReconciliation()" title="Retry" />
+      <div
+        class="text-center py-8 bg-destructive/10 rounded-lg p-4 border border-destructive/20"
+      >
+        <p class="text-sm text-error">
+          Could not clean up a previous session. Retry to continue.
+        </p>
+        <Button
+          class="mt-4"
+          @click="retryReconciliation()"
+          title="Retry"
+        />
       </div>
     </template>
 
-    <template x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation">
-      <SetupSessionForm title="Score Training" description="Pick you're desired configuration, then, let's play." />
+    <template
+      x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
+    >
+      <SetupSessionForm
+        title="Score Training"
+        description="Pick you're desired configuration, then, let's play."
+      />
     </template>
 
     <template x-if="loadingReconciliation">

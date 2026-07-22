@@ -60,7 +60,10 @@ const className = cn("w-full", "accent-accent", classNameProp);
   steps && listId && (
     <datalist id={listId}>
       {steps.map((s) => (
-        <option value={s.value} label={s.label} />
+        <option
+          value={s.value}
+          label={s.label}
+        />
       ))}
     </datalist>
   )

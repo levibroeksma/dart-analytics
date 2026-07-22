@@ -5,11 +5,7 @@ import {
 } from "@modules/game/score-input.module";
 
 /** Press a digit and advance past the ghost window so the next press is eligible. */
-function press(
-  buf: ScoreInputBuffer,
-  digit: number,
-  detail = 1,
-): void {
+function press(buf: ScoreInputBuffer, digit: number, detail = 1): void {
   buf.appendDigit(digit, { detail });
   vi.advanceTimersByTime(SCORE_INPUT_GHOST_MS + 1);
 }

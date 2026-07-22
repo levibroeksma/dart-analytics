@@ -35,7 +35,7 @@ const className = cn("glass rounded-xl p-5", classNameProp);
   class={className}
   x-show={`activeTab === '${labelledby}'`}
   :hidden={`activeTab !== '${labelledby}'`}
-  {...(defaultVisible ? {} : { "x-cloak": true })}
+  {...defaultVisible ? {} : { "x-cloak": true }}
 >
   <slot />
 </div>

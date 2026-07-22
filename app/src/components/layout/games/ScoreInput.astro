@@ -76,18 +76,16 @@ const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
     {
       numberRows.map((row) => (
         <div class="flex w-full divide-x divide-border">
-          {
-            row.map((digit) => (
-              <InputButton
-                {...{
-                  "x-on:click": `${digitHandler}(${digit}, $event)`,
-                  ...(padDisabled ? { ":disabled": padDisabled } : {}),
-                }}
-              >
-                {digit}
-              </InputButton>
-            ))
-          }
+          {row.map((digit) => (
+            <InputButton
+              {...{
+                "x-on:click": `${digitHandler}(${digit}, $event)`,
+                ...(padDisabled ? { ":disabled": padDisabled } : {}),
+              }}
+            >
+              {digit}
+            </InputButton>
+          ))}
         </div>
       ))
     }
@@ -104,7 +102,10 @@ const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
             <UndoIcon class="size-6 text-muted" />
           </InputButton>
         ) : (
-          <InputButton :disabled="true" aria-hidden="true" />
+          <InputButton
+            aria-hidden="true"
+            {...{ ":disabled": "true" }}
+          />
         )
       }
       <InputButton

@@ -120,8 +120,8 @@ Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`
 
 Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
 
-
 **Style non-negotiables:**
+
 - Semantic tokens only — `surface` / `foreground` / `muted*` / `accent*` / states; never `bg-bg*` / `text-fg*` or raw palette utilities
 - Reuse primitives from `app/src/styles/global.css`; do not reinvent per screen
 - Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)

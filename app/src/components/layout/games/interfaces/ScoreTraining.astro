@@ -1,5 +1,4 @@
 ---
-
 interface Props {
   [key: string]: unknown;
 }
@@ -11,7 +10,7 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0  gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-3"
   {...props}
 >
   <SinglePlayerDisplay
@@ -20,21 +19,23 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
     class="max-h-2/5"
   />
   <div
-  class="flex justify-center items-center gap-2 px-3"
+    class="flex justify-center items-center gap-2 px-3"
     x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
     x-cloak
   >
     <p
       class="text-lg font-bold font-mono text-muted-foreground"
       x-text="`${remainingLabel()}`"
-    ></p>
+    >
+    </p>
   </div>
   <p
     class="px-3 mt-2 text-error text-xs"
     x-show="error"
     x-text="error"
     x-cloak
-  ></p>
+  >
+  </p>
   <ScoreInput
     value="scoreInput.value"
     digitHandler="scoreInput.appendDigit"

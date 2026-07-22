@@ -39,7 +39,10 @@ const className = cn("flex flex-col gap-1.5", classNameProp);
 <div class={className}>
   {
     label && (
-      <label for={htmlFor} class="text-sm font-semibold text-foreground">
+      <label
+        for={htmlFor}
+        class="text-sm font-semibold text-foreground"
+      >
         {label}
       </label>
     )
@@ -65,9 +68,23 @@ const className = cn("flex flex-col gap-1.5", classNameProp);
           class="mt-0.5 shrink-0"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <line
+            x1="12"
+            y1="8"
+            x2="12"
+            y2="12"
+          />
+          <line
+            x1="12"
+            y1="16"
+            x2="12.01"
+            y2="16"
+          />
         </svg>
         {error}
       </p>

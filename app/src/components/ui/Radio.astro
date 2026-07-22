@@ -44,7 +44,10 @@ const className = cn("flex items-center gap-2.5", classNameProp);
     disabled={disabled}
     class="control size-4 shrink-0 cursor-pointer appearance-none rounded-full border border-border-strong"
   />
-  <label for={id} class="text-sm text-muted-foreground">
+  <label
+    for={id}
+    class="text-sm text-muted-foreground"
+  >
     <slot />
   </label>
 </div>

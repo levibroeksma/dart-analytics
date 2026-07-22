@@ -15,11 +15,30 @@ import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
     @confirm-exit.window="abandonAndExit()"
   >
     {/* Loading / reconciliation-blocked */}
-    <div class="text-center py-8" x-show="loadingReconciliation || reconciliationFailed" x-cloak>
-      <p class="text-sm text-muted-foreground" x-show="loadingReconciliation" x-cloak>Loading...</p>
-      <div x-show="reconciliationFailed && !loadingReconciliation" x-cloak>
-        <p class="text-sm text-error">Could not clean up a previous session. Retry to continue.</p>
-        <Button type="button" class="mt-4" @click="retryReconciliation()">
+    <div
+      class="text-center py-8"
+      x-show="loadingReconciliation || reconciliationFailed"
+      x-cloak
+    >
+      <p
+        class="text-sm text-muted-foreground"
+        x-show="loadingReconciliation"
+        x-cloak
+      >
+        Loading...
+      </p>
+      <div
+        x-show="reconciliationFailed && !loadingReconciliation"
+        x-cloak
+      >
+        <p class="text-sm text-error">
+          Could not clean up a previous session. Retry to continue.
+        </p>
+        <Button
+          type="button"
+          class="mt-4"
+          @click="retryReconciliation()"
+        >
           Retry
         </Button>
       </div>
@@ -29,10 +48,16 @@ import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
     <NoSessionPanel />
 
     {/* Gameplay view */}
-    <ScoreTraining x-show="!finished && hasActiveSession" x-cloak />
+    <ScoreTraining
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
 
     {/* Finish confirm (before results) */}
-    <div x-show="showFinishConfirm" x-cloak>
+    <div
+      x-show="showFinishConfirm"
+      x-cloak
+    >
       <ConfirmDialog
         titleId="finish-confirm-title"
         title="Finish session?"

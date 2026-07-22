@@ -18,7 +18,8 @@ export class ScoreInputBuffer {
 
   appendDigit(digit: number, event?: ScoreInputActivationEvent): void {
     if (!this.acceptActivation(event)) return;
-    const next = this.value === "0" ? String(digit) : this.value + String(digit);
+    const next =
+      this.value === "0" ? String(digit) : this.value + String(digit);
     if (next.length > this.maxLength) return;
     this.value = next;
   }

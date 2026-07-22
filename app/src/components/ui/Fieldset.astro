@@ -22,7 +22,9 @@ const className = cn("glass space-y-4 rounded-xl p-4", classNameProp);
 <fieldset class={className}>
   {
     legend && (
-      <legend class="px-1 text-sm font-semibold text-foreground">{legend}</legend>
+      <legend class="px-1 text-sm font-semibold text-foreground">
+        {legend}
+      </legend>
     )
   }
   <slot />

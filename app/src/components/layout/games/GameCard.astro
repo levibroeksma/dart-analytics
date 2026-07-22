@@ -8,9 +8,13 @@ interface Props {
   caption: string;
 }
 
-const { href = '#', title, caption }: Props = Astro.props;
+const { href = "#", title, caption }: Props = Astro.props;
 ---
-<CardWrapper class="flex-row! justify-between items-center glass " href={href}>
+
+<CardWrapper
+  class="flex-row! justify-between items-center glass"
+  href={href}
+>
   <div>
     <h3 class="font-semibold text-base text-accent">
       {title}

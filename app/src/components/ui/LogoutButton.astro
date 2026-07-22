@@ -1,10 +1,10 @@
 ---
 // Components
-import Button from '@components/forms/Button.astro';
+import Button from "@components/forms/Button.astro";
 
 // Icons
-import LogoutIcon from '@icons/logout.svg';
-import LoadingIcon from '@icons/loading.svg';
+import LogoutIcon from "@icons/logout.svg";
+import LoadingIcon from "@icons/loading.svg";
 ---
 
 <Button
@@ -14,6 +14,14 @@ import LoadingIcon from '@icons/loading.svg';
   @click="submit"
   :disabled="loading"
 >
-  <LogoutIcon x-show="!loading" x-cloak class="size-6"/>
-  <LoadingIcon x-show="loading" x-cloak class="size-6"/>
+  <LogoutIcon
+    x-show="!loading"
+    x-cloak
+    class="size-6"
+  />
+  <LoadingIcon
+    x-show="loading"
+    x-cloak
+    class="size-6"
+  />
 </Button>

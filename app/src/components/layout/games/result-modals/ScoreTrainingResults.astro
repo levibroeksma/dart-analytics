@@ -5,79 +5,106 @@ import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
 <div
-      class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
-      x-show="finished"
+  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
+  x-show="finished"
+  x-cloak
+>
+  <div class="bg-surface-raised rounded-lg shadow-lg p-6 max-w-sm glass">
+    <h2 class="text-lg font-semibold text-foreground">Game Summary</h2>
+
+    {/* Stats: live from store while saving, snapshot once succeeded */}
+    <dl
+      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
+      x-show="completionStatus !== 'succeeded'"
       x-cloak
     >
-      <div class="bg-surface-raised rounded-lg shadow-lg p-6 max-w-sm glass">
-        <h2 class="text-lg font-semibold text-foreground">Game Summary</h2>
+      <StatRow
+        label="Total"
+        value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
+      />
+      <StatRow
+        label="Visits"
+        value="$store.game.turns.length"
+      />
+      <StatRow
+        label="Average"
+        value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1)"
+      />
+    </dl>
+    <dl
+      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot"
+      x-cloak
+    >
+      <StatRow
+        label="Total"
+        value="resultsSnapshot?.total"
+      />
+      <StatRow
+        label="Visits"
+        value="resultsSnapshot?.visits"
+      />
+      <StatRow
+        label="Average"
+        value="resultsSnapshot?.average.toFixed(1)"
+      />
+    </dl>
 
-        {/* Stats: live from store while saving, snapshot once succeeded */}
-        <dl
-          class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-          x-show="completionStatus !== 'succeeded'"
-          x-cloak
-        >
-          <StatRow label="Total" value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)" />
-          <StatRow label="Visits" value="$store.game.turns.length" />
-          <StatRow label="Average" value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1)" />
-        </dl>
-        <dl
-          class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-          x-show="completionStatus === 'succeeded' && resultsSnapshot"
-          x-cloak
-        >
-          <StatRow label="Total" value="resultsSnapshot?.total" />
-          <StatRow label="Visits" value="resultsSnapshot?.visits" />
-          <StatRow label="Average" value="resultsSnapshot?.average.toFixed(1)" />
-        </dl>
-
-        {/* Completion status */}
-        <div class="mt-4">
-
-            <IsLoading
-              text="Saving..."
-              x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-              x-cloak
-            />
-          <div x-show="completionStatus === 'failed'" x-cloak>
-            <p class="text-sm text-error" x-text="completionError"></p>
-            <Button
-              class="mt-2"
-              @click="uploadAndCompleteSession()"
-              title="Retry"
-            />
-          </div>
-          <p
-            class="text-sm text-success"
-            x-show="completionStatus === 'succeeded'"
-            x-cloak
-          >
-            Saved!
-          </p>
-        </div>
-
-        {/* Play-again failure: separate from completion status, buttons stay enabled */}
+    {/* Completion status */}
+    <div class="mt-4">
+      <IsLoading
+        text="Saving..."
+        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+        x-cloak
+      />
+      <div
+        x-show="completionStatus === 'failed'"
+        x-cloak
+      >
         <p
-          class="mt-2 text-sm text-error"
-          x-text="playAgainError"
-          x-show="playAgainError"
-          x-cloak
-        ></p>
-
-        {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-        <div class="flex gap-3 mt-6">
-          <Button
-            variant="secondary"
-            @click="back()"
-            :disabled="completionStatus !== 'succeeded'"
-            title="Back to games"
-          />
-          <Button
-            @click="playAgain()"
-            :disabled="completionStatus !== 'succeeded' || playAgainLoading"
-            title="Play again"
-          />
-        </div>
+          class="text-sm text-error"
+          x-text="completionError"
+        >
+        </p>
+        <Button
+          class="mt-2"
+          @click="uploadAndCompleteSession()"
+          title="Retry"
+        />
       </div>
+      <p
+        class="text-sm text-success"
+        x-show="completionStatus === 'succeeded'"
+        x-cloak
+      >
+        Saved!
+      </p>
     </div>
+
+    {
+      /* Play-again failure: separate from completion status, buttons stay enabled */
+    }
+    <p
+      class="mt-2 text-sm text-error"
+      x-text="playAgainError"
+      x-show="playAgainError"
+      x-cloak
+    >
+    </p>
+
+    {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
+    <div class="flex gap-3 mt-6">
+      <Button
+        variant="secondary"
+        @click="back()"
+        :disabled="completionStatus !== 'succeeded'"
+        title="Back to games"
+      />
+      <Button
+        @click="playAgain()"
+        :disabled="completionStatus !== 'succeeded' || playAgainLoading"
+        title="Play again"
+      />
+    </div>
+  </div>
+</div>

@@ -25,7 +25,10 @@ import { cn } from "@client/cn";
 const className = cn("space-y-4", classNameProp);
 ---
 
-<div class={className} x-data={`{ activeTab: '${defaultTab}' }`}>
+<div
+  class={className}
+  x-data={`{ activeTab: '${defaultTab}' }`}
+>
   <div
     role="tablist"
     aria-label={ariaLabel}
