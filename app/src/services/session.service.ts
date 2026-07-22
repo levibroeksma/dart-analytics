@@ -114,7 +114,7 @@ async function loadCreateSessionLookups(
 async function resolveSessionConfiguration(
   db: ReturnType<typeof getDb>,
   input: CreateSessionRequestInput,
-  gameTypeId: number,
+  gameTypeId: string,
   playerId: string,
   validator: NonNullable<ReturnType<typeof getRulesetValidator>>,
 ): Promise<ServiceResult<{ config: Record<string, unknown> }>> {
@@ -166,8 +166,8 @@ async function insertSessionWithActiveGuard(
     sessionId: string;
     participantId: string;
     playerId: string;
-    gameTypeId: number;
-    rulesetVersionId: number;
+    gameTypeId: string;
+    rulesetVersionId: string;
     captureModeId: number;
     inputModeId: number;
     activeStatusId: number;
