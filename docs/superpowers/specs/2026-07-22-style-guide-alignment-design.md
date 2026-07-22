@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-22
 > **Status:** approved (brainstorming consensus)
-> **Scope:** Rewrite the frontend style contract to match the finalized Score Training visual system; cascade into agent guides and `app/CLAUDE.md`/`AGENT.md`; mechanically purge legacy token/class usage; bring new UI/layout components into compliance with existing Astro + Alpine conventions (`cn()`, frontmatter order, Alpine expression props / shorthand / `x-cloak`); ship as PR1 after rebase onto `origin/main`, with remaining visual/UX polish as stacked PR2.
+> **Scope:** Rewrite the frontend style contract to match the finalized Score Training visual system; cascade into agent guides and `app/CLAUDE.md`/`AGENT.md`; mechanically purge legacy token/class usage; bring new UI/layout components into compliance with existing Astro + Alpine conventions (`cn()`, frontmatter order, `{...props}` not `{...rest}`, Alpine expression props / shorthand / `x-cloak`); ship as PR1 after rebase onto `origin/main`, with remaining visual/UX polish as stacked PR2.
 > **Out of scope:** Inventing new Alpine/Astro rules (reuse `03` / `05` as already agreed); portable UI kit members not already in use; light mode / theme toggle; regenerating architecture docs; git worktrees (isolation is GitHub branches only).
 
 ---
@@ -40,6 +40,7 @@ Branch `feat/score-training-play-ui` has diverged from `origin/main` (PR #31 alr
 | Legacy styling | Purge any old names (`fg` → `foreground`, `bg-bg` → `bg-surface`, etc.) wherever encountered |
 | Approach | Full rewrite + mechanical audit (Approach 1) |
 | New UI components | In PR1: validate/fix Astro + Alpine conventions (`cn()`, frontmatter, Alpine patterns) — visual polish only in PR2 |
+| Rest spread naming | Prefer `{...props}` over `{...rest}` when forwarding undeclared Astro attributes — document in `05` + agent rules; fix stragglers |
 
 ---
 
@@ -63,7 +64,7 @@ Branch `feat/score-training-play-ui` has diverged from `origin/main` (PR #31 alr
 - Does not re-litigate the visual contract or Astro/Alpine rules
 - Retarget to `main` after PR1 merges if needed
 
-**Out of scope for both PRs:** changing `03`/`05` convention text except cross-links if a one-liner is stale; unused portable kit members; regenerating docs; theme toggle / light mode.
+**Out of scope for both PRs:** inventing Alpine rules beyond what `03` already states; unused portable kit members; regenerating docs; theme toggle / light mode. Targeted `05` edits for the `cn()` gate note and `{...props}` naming are in scope.
 
 ### 2. Style Guide content (visual contract)
 
@@ -130,7 +131,7 @@ No new automated CSS unit tests — regressions caught by audit grep + visual sm
 
 | Concern | Canonical doc |
 | ------- | ------------- |
-| Frontmatter order, `interface Props`, `cn()`, class-placement table | `07-Frontend/05-Astro-Components.md` |
+| Frontmatter order, `interface Props`, `cn()`, class-placement table, rest-spread naming (`{...props}` not `{...rest}`) | `07-Frontend/05-Astro-Components.md` |
 | Alpine factory, v3 shorthand (`:attr` / `@event`), expression props, `x-show`+`x-cloak`, no `x-init` | `07-Frontend/03-Alpine-Patterns.md` |
 | Condensed checklist | `07-Frontend/10-Frontend-Agent-Guide.md` |
 
@@ -141,6 +142,7 @@ No new automated CSS unit tests — regressions caught by audit grep + visual sm
 | Check | Fail if… | Fix |
 | ----- | -------- | --- |
 | Class composition | Uses `class:list`, `.filter(Boolean).join`, or manual string concat for build-time/prop classes | `import { cn } from '@client/cn'` (or project alias); compose in `// Styles`; `class={className}` |
+| Rest spread naming | Destructures or spreads remaining attributes as `...rest` / `{...rest}` | Rename to `...props` / `{...props}` (reserved `class` still renames to `classNameProp`) |
 | Frontmatter order | Props / imports / Data / Styles out of `05` order; missing `// Props` / `// Styles` when those sections apply | Reorder to match `05` |
 | Props typing | Untyped `Astro.props` or inline access without `interface Props` | Add `interface Props` + destructure |
 | Alpine shorthand | `x-bind:` / `x-on:` where `:attr` / `@event` applies | Convert to v3 shorthand |
@@ -168,7 +170,8 @@ No new automated CSS unit tests — regressions caught by audit grep + visual sm
 - [ ] `07-Style-Guide.md` describes only the new vocabulary and live primitives
 - [ ] Agent guide §12 and `app/CLAUDE.md`/`AGENT.md` checklist agree with the guide
 - [ ] Grep finds no legacy token names / `font-medium` / obsolete primitive classes in active app UI code
-- [ ] New/updated UI + Score Training layout components use `cn()` (not `class:list` / manual joins) for build-time class composition; frontmatter follows `05`; Alpine usage follows `03`
+- [ ] New/updated UI + Score Training layout components use `cn()` (not `class:list` / manual joins) for build-time class composition; frontmatter follows `05`; Alpine usage follows `03`; rest spreads use `{...props}` not `{...rest}`
+- [ ] `05-Astro-Components.md` + agent guide / `app/CLAUDE` state the `{...props}` naming rule
 - [ ] Context Maintenance checkers + agent mirrors pass; graph refreshed or reported
 - [ ] PR1 opened from a branch rebased onto current `origin/main`
 - [ ] PR2 scoped to visual/UX polish only, stacked after PR1
