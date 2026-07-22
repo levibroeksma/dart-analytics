@@ -11,7 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
-    "check": "astro check",
+    "check": "rm -rf .astro && astro check",
     "db:status": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations status",
     "db:migrate": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations up",
     "db:seed": "tsx scripts/seed.ts",
@@ -22,7 +22,7 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && astro check && bash ../scripts/refresh-graph.sh"
+    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && npm run check && bash ../scripts/refresh-graph.sh"
   },
   "dependencies": {
     "@alpinejs/persist": "^3.15.12",
