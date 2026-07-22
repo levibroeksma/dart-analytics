@@ -1,13 +1,14 @@
 ---
 export const prerender = true;
-import BaseLayout from "@layouts/BaseLayout.astro";
-import Input from "@components/forms/Input.astro";
-import Button from "@components/forms/Button.astro";
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Input from '@components/forms/Input.astro';
+import Button from '@components/forms/Button.astro';
+import LoadingIcon from '@icons/loading.svg';
 ---
 
 <BaseLayout>
-  <div class="app-shell">
-    <main class="app-main flex flex-col justify-center p-6">
+  <div class="mx-auto flex h-full max-w-lg flex-col">
+    <main class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain  justify-center p-6">
       <div class="surface mx-auto w-full max-w-md space-y-6 p-6">
         <div class="space-y-1">
           <h1 class="text-2xl font-semibold text-fg">Sign in</h1>
@@ -16,11 +17,7 @@ import Button from "@components/forms/Button.astro";
           </p>
         </div>
 
-        <form
-          x-data="loginForm()"
-          @submit.prevent="submit"
-          class="space-y-4"
-        >
+        <form x-data="loginForm()" @submit.prevent="submit" class="space-y-4">
           <Input
             label="Email"
             type="email"
@@ -40,27 +37,12 @@ import Button from "@components/forms/Button.astro";
           <p
             x-show="error"
             x-text="error"
-            x-cloak
             class="text-sm text-destructive"
             role="alert"
-          >
-          </p>
-          <Button
-            type="submit"
-            variant="primary"
-            class="w-full"
-            :disabled="loading"
-          >
-            <span
-              x-show="!loading"
-              x-cloak
-              >Sign in</span
-            >
-            <span
-              x-show="loading"
-              x-cloak
-              >Signing in…</span
-            >
+          ></p>
+          <Button type="submit" variant="primary" class="w-full" :disabled="loading">
+            <span x-show="!loading" x-cloak>Sign in</span>
+            <LoadingIcon x-show="loading" x-cloak class="size-6" />
           </Button>
         </form>
       </div>

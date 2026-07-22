@@ -1,0 +1,31 @@
+---
+import CheckIcon from "../icons/check.svg";
+
+/**
+ * Bullet list row with leading icon (defaults to check).
+ * Pass a custom icon via the `icon` slot.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<li class:list={["flex gap-3 text-sm text-muted-foreground", className]}>
+  <span
+    class="mt-0.5 flex size-4 shrink-0 items-center justify-center text-foreground"
+  >
+    {
+      Astro.slots.has("icon") ? (
+        <slot name="icon" />
+      ) : (
+        <CheckIcon class="size-4" />
+      )
+    }
+  </span>
+  <span class="min-w-0 leading-relaxed">
+    <slot />
+  </span>
+</li>

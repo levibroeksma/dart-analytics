@@ -4,20 +4,14 @@ interface Props {
   type?: "button" | "submit" | "reset";
 }
 
-const {
-  class: className = "",
-  type = "button",
-  ...rest
-} = Astro.props as Props & Record<string, unknown>;
+const { class: className = "", type = "button", ...props } = Astro.props as Props &
+  Record<string, unknown>;
 ---
 
 <button
   type={type}
-  class:list={[
-    "btn btn-secondary min-h-10 w-full px-0 font-semibold",
-    className,
-  ]}
-  {...rest}
+  class:list={["min-h-0 text-2xl w-full px-0 font-semibold flex items-center justify-center font-mono", className]}
+  {...props}
 >
   <slot />
 </button>

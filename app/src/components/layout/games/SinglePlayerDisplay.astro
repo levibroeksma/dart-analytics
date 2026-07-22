@@ -3,10 +3,11 @@ interface Props {
   score?: string;
   target?: string;
   isTarget?: boolean;
+  class?: string;
 }
 
 // Props
-const { score, target, isTarget = true }: Props = Astro.props;
+const { score, target, isTarget = true, class: className = "" }: Props = Astro.props;
 ---
 
 {
@@ -15,16 +16,15 @@ const { score, target, isTarget = true }: Props = Astro.props;
    * Note: config not yet implemented, deferred
    */
 }
-<div class="px-3 flex-1 surface">
+<div class:list={["flex-1 min-h-0 glass rounded-lg", className]}>
   <div
-    class="container h-full p-3 mx-auto flex-1 flex flex-col items-center justify-center rounded"
+    class="rounded-lg border border-border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center"
   >
     <h1
       class="text-7xl font-mono font-bold tabular-nums"
       x-text={isTarget ? target : score}
-    >
-    </h1>
-    <span class="text-sm text-fg-subtle uppercase">
+    ></h1>
+    <span class="text-sm text-foreground-muted uppercase">
       {isTarget ? "Target" : "Score"}
     </span>
     {

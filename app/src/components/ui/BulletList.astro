@@ -1,0 +1,15 @@
+---
+/**
+ * Icon bullet list (Raycast pricing feature rows).
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<ul class:list={["space-y-3", className]}>
+  <slot />
+</ul>

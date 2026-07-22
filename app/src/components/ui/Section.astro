@@ -1,0 +1,36 @@
+---
+/**
+ * Raised section panel with optional label and title.
+ * @param {string} [id] Anchor id
+ * @param {string} [label] Mono section label (e.g. "02")
+ * @param {string} [title] Section heading
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  id?: string;
+  label?: string;
+  title?: string;
+  class?: string;
+}
+
+const { id, label, title, class: className = "" } = Astro.props;
+---
+
+<section
+  id={id}
+  class:list={["glass rounded-2xl p-6 sm:p-8 space-y-6 scroll-mt-8", className]}
+>
+  {
+    (label || title) && (
+      <div>
+        {label && (
+          <p class="mb-1 font-mono text-xs uppercase tracking-widest text-accent">
+            {label}
+          </p>
+        )}
+        {title && <h2>{title}</h2>}
+      </div>
+    )
+  }
+  <slot />
+</section>

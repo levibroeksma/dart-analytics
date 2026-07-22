@@ -1,15 +1,17 @@
 ---
 export const prerender = true;
+
 import AppLayout from "@layouts/AppLayout.astro";
+import GameCard from "@components/layout/games/GameCard.astro";
 ---
 
 <AppLayout title="Games">
-  <div class="p-4">
-    <h1 class="text-xl font-semibold text-fg">Games</h1>
-    <a
-      class="btn-primary mt-4 inline-block"
+  <div class="p-4 space-y-4">
+    <h1 class="text-xl font-semibold text-foreground">Games</h1>
+    <GameCard
       href="/games/score-training/setup"
-      >Score Training</a
-    >
+      title="Score training"
+      caption="Exercice your scoring abilities."
+    />
   </div>
 </AppLayout>

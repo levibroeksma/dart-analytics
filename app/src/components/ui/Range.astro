@@ -1,0 +1,60 @@
+---
+/**
+ * Range slider with optional datalist steps.
+ * @param {string} [id]
+ * @param {string} [name]
+ * @param {number} [min]
+ * @param {number} [max]
+ * @param {number} [step]
+ * @param {number|string} [value]
+ * @param {string} [list] datalist id
+ * @param {{ value: string|number; label?: string }[]} [steps] Builds a datalist when provided
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  id?: string;
+  name?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  value?: number | string;
+  list?: string;
+  steps?: { value: string | number; label?: string }[];
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  min = 0,
+  max = 100,
+  step = 1,
+  value,
+  list,
+  steps,
+  class: className = "",
+} = Astro.props;
+
+const listId = list ?? (steps && id ? `${id}-steps` : undefined);
+---
+
+<input
+  type="range"
+  id={id}
+  name={name}
+  min={min}
+  max={max}
+  step={step}
+  value={value}
+  list={listId}
+  class:list={["w-full", "accent-accent", className]}
+/>
+{
+  steps && listId && (
+    <datalist id={listId}>
+      {steps.map((s) => (
+        <option value={s.value} label={s.label} />
+      ))}
+    </datalist>
+  )
+}

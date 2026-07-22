@@ -1,0 +1,35 @@
+---
+/**
+ * Content card with optional media slot and body.
+ * @param {string} [title]
+ * @param {string} [class] Extra classes on the article
+ */
+interface Props {
+  title?: string;
+  class?: string;
+}
+
+const { title, class: className = "" } = Astro.props;
+---
+
+<article class:list={["glass overflow-hidden rounded-2xl", className]}>
+  <slot name="media" />
+  <div class="space-y-3 p-5">
+    {
+      (title || Astro.slots.has("badge")) && (
+        <div class="flex items-center gap-2">
+          {title && <h3>{title}</h3>}
+          <slot name="badge" />
+        </div>
+      )
+    }
+    <slot />
+    {
+      Astro.slots.has("footer") && (
+        <footer class="flex items-center gap-3 pt-2">
+          <slot name="footer" />
+        </footer>
+      )
+    }
+  </div>
+</article>

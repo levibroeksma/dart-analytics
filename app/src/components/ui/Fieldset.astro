@@ -1,0 +1,22 @@
+---
+/**
+ * Glass fieldset for grouping related controls.
+ * @param {string} [legend]
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  legend?: string;
+  class?: string;
+}
+
+const { legend, class: className = "" } = Astro.props;
+---
+
+<fieldset class:list={["glass space-y-4 rounded-xl p-4", className]}>
+  {
+    legend && (
+      <legend class="px-1 text-sm font-medium text-foreground">{legend}</legend>
+    )
+  }
+  <slot />
+</fieldset>

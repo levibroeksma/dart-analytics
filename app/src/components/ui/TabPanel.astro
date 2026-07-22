@@ -1,0 +1,34 @@
+---
+/**
+ * Tab panel content. Must sit inside Tabs (shares Alpine activeTab).
+ * @param {string} id Panel id
+ * @param {string} labelledby Matching Tab id
+ * @param {boolean} [defaultVisible] Show without x-cloak on first paint
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  id: string;
+  labelledby: string;
+  defaultVisible?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  labelledby,
+  defaultVisible = false,
+  class: className = "",
+} = Astro.props;
+---
+
+<div
+  id={id}
+  role="tabpanel"
+  aria-labelledby={labelledby}
+  class:list={["glass rounded-xl p-5", className]}
+  x-show={`activeTab === '${labelledby}'`}
+  x-bind:hidden={`activeTab !== '${labelledby}'`}
+  {...(defaultVisible ? {} : { "x-cloak": true })}
+>
+  <slot />
+</div>

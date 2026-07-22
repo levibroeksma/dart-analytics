@@ -1,0 +1,32 @@
+---
+/**
+ * Alpine-powered tab list. Pair with TabPanel children.
+ * @param {string} [ariaLabel]
+ * @param {string} [defaultTab] Initial active tab id
+ * @param {string} [class] Extra classes on the wrapper
+ */
+interface Props {
+  ariaLabel?: string;
+  defaultTab?: string;
+  class?: string;
+}
+
+const { ariaLabel = "Tabs", defaultTab = "tab-1", class: className = "" } =
+  Astro.props;
+---
+
+<div
+  class:list={["space-y-4", className]}
+  x-data={`{ activeTab: '${defaultTab}' }`}
+>
+  <div
+    role="tablist"
+    aria-label={ariaLabel}
+    class="glass inline-flex gap-1 rounded-md p-1"
+  >
+    <slot name="tabs" />
+  </div>
+  <div>
+    <slot />
+  </div>
+</div>

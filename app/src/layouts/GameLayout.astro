@@ -5,27 +5,32 @@ import ExitIcon from "@icons/exit.svg";
 
 interface Props {
   title?: string;
+  gameTitle?: string;
 }
 
-const { title }: Props = Astro.props;
+const { title, gameTitle }: Props = Astro.props;
 ---
 
 <BaseLayout title={title}>
-  <div
-    class="app-shell"
-    x-data="{ showExitModal: false }"
-  >
-    <header class="flex items-center p-3">
+  <div class="mx-auto flex h-full max-w-lg flex-col" x-data="{ showExitModal: false }">
+    <header class="relative flex items-center p-3">
       <button
         type="button"
-        class="btn btn-ghost p-2"
+        class="relative z-10 btn btn-ghost p-2"
         aria-label="Exit game"
         @click="showExitModal = true"
       >
         <ExitIcon class="size-6 text-fg-subtle" />
       </button>
+      {
+        gameTitle ? (
+          <h1 class="pointer-events-none uppercase font-mono absolute inset-0 flex items-center justify-center text-lg font-semibold text-fg">
+            {gameTitle}
+          </h1>
+        ) : null
+      }
     </header>
-    <main class="app-main">
+    <main class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
       <slot />
     </main>
     <template x-if="showExitModal">

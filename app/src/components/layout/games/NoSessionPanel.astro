@@ -1,0 +1,12 @@
+---
+import Link from "@components/ui/Link.astro";
+---
+
+<div x-show="!finished && !hasActiveSession && !reconciliationFailed && !loadingReconciliation" x-cloak class="glass rounded-lg p-3">
+  <h3 class="text-fg font-semibold">No active session</h3>
+  <p class="text-fg-muted">Start a new session to continue.</p>
+
+  <Link href="/games/score-training/setup" variant="primary" class="mt-4">
+    Configure new session
+  </Link>
+</div>

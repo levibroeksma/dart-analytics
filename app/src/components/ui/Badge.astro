@@ -1,0 +1,29 @@
+---
+/**
+ * Small status badge.
+ * @param {"accent"|"error"|"neutral"} [variant]
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  variant?: "accent" | "error" | "neutral";
+  class?: string;
+}
+
+const { variant = "accent", class: className = "" } = Astro.props;
+
+const variantClasses = {
+  accent: "border border-accent/25 bg-accent-muted text-accent",
+  error: "border border-error/25 bg-error-muted text-error",
+  neutral: "bg-surface-overlay text-muted-foreground",
+}[variant];
+---
+
+<span
+  class:list={[
+    "badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+    variantClasses,
+    className,
+  ]}
+>
+  <slot />
+</span>
