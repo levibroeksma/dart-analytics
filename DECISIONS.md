@@ -144,6 +144,8 @@ updated: 2026-07-22
 | D102 | 2026-07-15 | No git worktrees: task branches are checked out directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`; `.worktrees/` removed from `.gitignore` | Worktree-per-task left multiple stale worktrees with uncommitted, unrecoverable work sitting undiscovered outside normal branch review |
 | D107 | 2026-07-16 | Self-learning gate added to the Context Maintenance protocol (step 8): rule sharpenings discovered mid-task require explicit user approval before being written, never applied unilaterally | Formalizes the propose-then-confirm pattern this design itself was built through |
 
+| D129 | 2026-07-22 | Fallow `ignorePatterns` for unwired design-system Astro primitives under `src/components/ui/` (and `CustomTabs.astro`) until PR2 route adoption; health `thresholdOverrides` for `CardWrapper`/`ScoreInput` templates | PR1 ships the kit + gates without deleting unused primitives fallow would flag |
+
 ## Deferred (open, not rejected)
 
 ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12; raw notes: `docs/game-rules/routines/`) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · player_settings endpoints (2026-07-13) · configuration-preset CRUD (2026-07-13) · PATCH /api/players/me rename (2026-07-13) · per-dart thrown_at timestamp (2026-07-13)
