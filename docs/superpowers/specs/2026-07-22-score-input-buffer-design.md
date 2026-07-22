@@ -178,4 +178,3 @@ No Vitest for `.astro` markup (D101).
 - Exact Astro attribute form for `digitHandler` (`@click` vs `x-on:click` inside `{}`) follows existing Alpine/Astro lint escape rules  
 - Whether bottom-left without undo is an empty `InputButton` (disabled) or a blank cell — pick the option that preserves grid geometry with minimal markup  
 - Tune `GHOST_MS` only with failing/passing guard tests + manual repro evidence
-)

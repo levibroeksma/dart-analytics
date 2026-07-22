@@ -1364,8 +1364,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_forms_button",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/forms/button.astro"
     },
     {
@@ -1376,8 +1376,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_forms_input",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/forms/input.astro"
     },
     {
@@ -1387,8 +1387,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_components_forms_input_classname",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "classname"
     },
     {
@@ -1399,8 +1399,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_client_cn",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "cn.ts"
     },
     {
@@ -1411,8 +1411,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_bottomnav",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/bottomnav.astro"
     },
     {
@@ -1422,8 +1422,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_components_layout_bottomnav_pages",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "pages"
     },
     {
@@ -1434,8 +1434,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_layout_navbtn",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "navbtn.astro"
     },
     {
@@ -1445,8 +1445,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_home_circle_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/home-circle.svg"
     },
     {
@@ -1456,8 +1456,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_dartboard_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/dartboard.svg"
     },
     {
@@ -1467,8 +1467,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_user_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/user.svg"
     },
     {
@@ -1478,8 +1478,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_stats_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/stats.svg"
     },
     {
@@ -1489,8 +1489,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_active",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "active"
     },
     {
@@ -1500,8 +1500,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_classname",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "classname"
     },
     {
@@ -1512,8 +1512,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_utils_is_nav_active",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "is-nav-active.ts"
     },
     {
@@ -1524,8 +1524,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_continuesessionmodal",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/continuesessionmodal.astro"
     },
     {
@@ -1536,8 +1536,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_ui_modal",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "modal.astro"
     },
     {
@@ -1548,8 +1548,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_exitmodal",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/exitmodal.astro"
     },
     {
@@ -1560,8 +1560,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_ui_confirmdialog",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/ui/confirmdialog.astro"
     },
     {
@@ -1572,8 +1572,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_gamecard",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/gamecard.astro"
     },
     {
@@ -1584,8 +1584,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_ui_cardwrapper",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "cardwrapper.astro"
     },
     {
@@ -1595,8 +1595,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_dart_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/dart.svg"
     },
     {
@@ -1607,8 +1607,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_inputbutton",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "./inputbutton.astro"
     },
     {
@@ -1619,30 +1619,30 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_scoreinput",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/scoreinput.astro"
     },
     {
       "label": "numberRows",
       "file_type": "code",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L22",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "app_src_components_layout_games_scoreinput_numberrows",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "numberrows"
     },
     {
       "label": "rootClass",
       "file_type": "code",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L29",
+      "source_location": "L50",
       "_origin": "ast",
       "id": "app_src_components_layout_games_scoreinput_rootclass",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "rootclass"
     },
     {
@@ -1652,8 +1652,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_delete_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/delete.svg"
     },
     {
@@ -1663,8 +1663,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_undo_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/undo.svg"
     },
     {
@@ -1675,8 +1675,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_setupsessionform",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/setupsessionform.astro"
     },
     {
@@ -1687,9 +1687,21 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_games_singleplayerdisplay",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/layout/games/singleplayerdisplay.astro"
+    },
+    {
+      "label": "@components/layout/games/interfaces/ScoreTraining.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/interfaces/ScoreTraining.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_interfaces_scoretraining",
+      "community": 39,
+      "community_name": "Community 39",
+      "norm_label": "@components/layout/games/interfaces/scoretraining.astro"
     },
     {
       "label": "@components/ui/Alert.astro",
@@ -1699,8 +1711,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_ui_alert",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/ui/alert.astro"
     },
     {
@@ -1710,8 +1722,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_components_ui_cardwrapper_string",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "string"
     },
     {
@@ -1722,8 +1734,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_ui_isloading",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/ui/isloading.astro"
     },
     {
@@ -1733,8 +1745,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/loading.svg"
     },
     {
@@ -1745,8 +1757,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_ui_linkcard",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/ui/linkcard.astro"
     },
     {
@@ -1757,8 +1769,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_ui_logoutbutton",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@components/ui/logoutbutton.astro"
     },
     {
@@ -1768,8 +1780,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_logout_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/logout.svg"
     },
     {
@@ -1779,8 +1791,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_components_ui_modal_panelclass",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "panelclass"
     },
     {
@@ -1845,8 +1857,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_db_client_withtransaction",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "withtransaction()"
     },
     {
@@ -1856,8 +1868,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_relations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "relations.ts"
     },
     {
@@ -1867,8 +1879,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_db_relations_rulesetversionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "rulesetversionsrelations"
     },
     {
@@ -1878,8 +1890,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "gametypesrelations"
     },
     {
@@ -1889,8 +1901,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_db_relations_playersettingsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "playersettingsrelations"
     },
     {
@@ -1900,8 +1912,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_db_relations_playersrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "playersrelations"
     },
     {
@@ -1911,8 +1923,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "exercisetemplatesrelations"
     },
     {
@@ -1922,8 +1934,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_src_db_relations_routinetemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "routinetemplatesrelations"
     },
     {
@@ -1933,8 +1945,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_db_relations_activitiesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "activitiesrelations"
     },
     {
@@ -1944,8 +1956,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "app_src_db_relations_gamestatusesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "gamestatusesrelations"
     },
     {
@@ -1955,8 +1967,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisesessionsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "exercisesessionsrelations"
     },
     {
@@ -1966,8 +1978,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "app_src_db_relations_capturemodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "capturemodesrelations"
     },
     {
@@ -1977,8 +1989,8 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "app_src_db_relations_inputmodesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "inputmodesrelations"
     },
     {
@@ -1988,8 +2000,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "app_src_db_relations_exerciseconfigurationsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "exerciseconfigurationsrelations"
     },
     {
@@ -1999,8 +2011,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_db_relations_participantsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "participantsrelations"
     },
     {
@@ -2010,8 +2022,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "app_src_db_relations_participanttypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "participanttypesrelations"
     },
     {
@@ -2021,8 +2033,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "app_src_db_relations_exercisestagesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "exercisestagesrelations"
     },
     {
@@ -2032,8 +2044,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "app_src_db_relations_stagetypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "stagetypesrelations"
     },
     {
@@ -2043,8 +2055,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "app_src_db_relations_routinestepsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "routinestepsrelations"
     },
     {
@@ -2054,8 +2066,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "app_src_db_relations_durationtypesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "durationtypesrelations"
     },
     {
@@ -2065,8 +2077,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "app_src_db_relations_dartsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "dartsrelations"
     },
     {
@@ -2076,8 +2088,8 @@
       "source_location": "L199",
       "_origin": "ast",
       "id": "app_src_db_relations_turnsrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "turnsrelations"
     },
     {
@@ -2087,8 +2099,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "app_src_db_relations_dartzonesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "dartzonesrelations"
     },
     {
@@ -2098,8 +2110,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "app_src_db_relations_configurationtemplatesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "configurationtemplatesrelations"
     },
     {
@@ -2109,8 +2121,8 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "app_src_db_relations_sessionwriteidempotencyrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "sessionwriteidempotencyrelations"
     },
     {
@@ -2120,8 +2132,8 @@
       "source_location": "L238",
       "_origin": "ast",
       "id": "app_src_db_relations_gametypefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "gametypefeaturesrelations"
     },
     {
@@ -2131,8 +2143,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "app_src_db_relations_gamefeaturesrelations",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "gamefeaturesrelations"
     },
     {
@@ -2252,8 +2264,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "app_src_db_schema_players",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "players"
     },
     {
@@ -2550,8 +2562,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_layouts_applayout",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@layouts/applayout.astro"
     },
     {
@@ -2562,8 +2574,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_layouts_baselayout",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@layouts/baselayout.astro"
     },
     {
@@ -2573,8 +2585,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_styles_global_css",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@styles/global.css"
     },
     {
@@ -2585,8 +2597,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_layouts_gamelayout",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@layouts/gamelayout.astro"
     },
     {
@@ -2596,8 +2608,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_exit_svg",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "@icons/exit.svg"
     },
     {
@@ -2607,8 +2619,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "login.data.ts"
     },
     {
@@ -2618,8 +2630,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data_loginform",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "loginform()"
     },
     {
@@ -2629,8 +2641,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "logout.data.ts"
     },
     {
@@ -2640,8 +2652,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data_logoutbutton",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "logoutbutton()"
     },
     {
@@ -2651,8 +2663,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_types",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "types.ts"
     },
     {
@@ -2662,8 +2674,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_authstore",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "authstore"
     },
     {
@@ -2673,8 +2685,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_loginformcontext",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "loginformcontext"
     },
     {
@@ -2684,8 +2696,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_logoutbuttoncontext",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "logoutbuttoncontext"
     },
     {
@@ -2728,8 +2740,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_verifybearertoken",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "verifybearertoken()"
     },
     {
@@ -2739,8 +2751,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_app_factory",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "app.factory.ts"
     },
     {
@@ -2750,8 +2762,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "register-route-data.ts"
     },
     {
@@ -2761,8 +2773,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "registerroutedata()"
     },
     {
@@ -2772,8 +2784,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "register-stores.ts"
     },
     {
@@ -2783,8 +2795,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores_registerstores",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "registerstores()"
     },
     {
@@ -2794,8 +2806,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "register-ui-data.ts"
     },
     {
@@ -2805,8 +2817,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data_registeruidata",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "registeruidata()"
     },
     {
@@ -2816,8 +2828,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "client.ts"
     },
     {
@@ -2827,8 +2839,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "unauthorized"
     },
     {
@@ -2838,8 +2850,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "apirequest()"
     },
     {
@@ -2849,8 +2861,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "configuration-templates.ts"
     },
     {
@@ -2860,8 +2872,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates_fetchconfigurationpresets",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "fetchconfigurationpresets()"
     },
     {
@@ -2871,8 +2883,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "players.ts"
     },
     {
@@ -2882,8 +2894,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provisionerror"
     },
     {
@@ -2893,8 +2905,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror_constructor",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -2904,8 +2916,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provision",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provision()"
     },
     {
@@ -2915,8 +2927,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "sessions.ts"
     },
     {
@@ -2926,8 +2938,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_sessionapierror",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "sessionapierror"
     },
     {
@@ -2937,8 +2949,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_sessionapierror_constructor",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -2948,8 +2960,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_createsession",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "createsession()"
     },
     {
@@ -2959,8 +2971,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_appendbatch",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "appendbatch()"
     },
     {
@@ -2970,8 +2982,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_completesession",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "completesession()"
     },
     {
@@ -2981,8 +2993,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "app_src_lib_client_api_sessions_fetchactivesessions",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "fetchactivesessions()"
     },
     {
@@ -2992,8 +3004,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3003,8 +3015,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apierrorbody",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "apierrorbody"
     },
     {
@@ -3014,8 +3026,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apisuccess",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "apisuccess"
     },
     {
@@ -3025,8 +3037,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apifailure",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "apifailure"
     },
     {
@@ -3036,8 +3048,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apiresult",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "apiresult"
     },
     {
@@ -3047,8 +3059,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "client.ts"
     },
     {
@@ -3058,8 +3070,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_authclient",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "authclient"
     },
     {
@@ -3069,8 +3081,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_getaccesstoken",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "getaccesstoken()"
     },
     {
@@ -3080,8 +3092,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_cn_cn",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "cn()"
     },
     {
@@ -3091,8 +3103,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_errors",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -3102,8 +3114,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_provision_messages",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provision_messages"
     },
     {
@@ -3113,8 +3125,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_geterrormessage",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "geterrormessage()"
     },
     {
@@ -3146,41 +3158,41 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-play.data.ts"
     },
     {
       "label": "formatRemaining()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_formatremaining",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "formatremaining()"
     },
     {
       "label": "computeStats()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_computestats",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "computestats()"
     },
     {
       "label": "scoreTrainingPlay()",
       "file_type": "code",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L22",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_scoretrainingplay",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "scoretrainingplay()"
     },
     {
@@ -3190,8 +3202,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_setup_data",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "score-training-setup.data.ts"
     },
     {
@@ -3201,8 +3213,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_setup_data_scoretrainingsetup",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "scoretrainingsetup()"
     },
     {
@@ -3212,8 +3224,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_session_recovery",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "session-recovery.ts"
     },
     {
@@ -3223,8 +3235,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_game_session_recovery_storelike",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "storelike"
     },
     {
@@ -3234,8 +3246,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_game_session_recovery_storelike_reset",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": ".reset()"
     },
     {
@@ -3245,8 +3257,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_src_lib_game_session_recovery_reconcileactivesession",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "reconcileactivesession()"
     },
     {
@@ -3256,30 +3268,30 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_types",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "types.ts"
     },
     {
       "label": "ScoreTrainingPlayContext",
       "file_type": "code",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingplaycontext",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "scoretrainingplaycontext"
     },
     {
       "label": "ScoreTrainingSetupContext",
       "file_type": "code",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L56",
+      "source_location": "L54",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingsetupcontext",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "scoretrainingsetupcontext"
     },
     {
@@ -3322,8 +3334,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "envelope.ts"
     },
     {
@@ -3333,8 +3345,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_json_headers",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "json_headers"
     },
     {
@@ -3366,8 +3378,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_errors",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -3377,8 +3389,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "app_src_lib_server_errors_error_http",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "error_http"
     },
     {
@@ -3421,8 +3433,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_types",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3443,8 +3455,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_types",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3454,8 +3466,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "auth-routes.ts"
     },
     {
@@ -3465,8 +3477,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_public_pages",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "public_pages"
     },
     {
@@ -3476,8 +3488,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_normalizepath",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "normalizepath()"
     },
     {
@@ -3487,8 +3499,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_ispublicpage",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "ispublicpage()"
     },
     {
@@ -3498,8 +3510,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_is_nav_active_isnavactive",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "isnavactive()"
     },
     {
@@ -3509,8 +3521,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "route-class.ts"
     },
     {
@@ -3520,8 +3532,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class_classifyroute",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "classifyroute()"
     },
     {
@@ -3531,8 +3543,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3542,8 +3554,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types_routeclass",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "routeclass"
     },
     {
@@ -3553,8 +3565,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_middleware",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "middleware.ts"
     },
     {
@@ -3564,9 +3576,108 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_middleware_onrequest",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "onrequest()"
+    },
+    {
+      "label": "score-input.module.ts",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "score-input.module.ts"
+    },
+    {
+      "label": "ScoreInputBuffer",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "scoreinputbuffer"
+    },
+    {
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_constructor",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".constructor()"
+    },
+    {
+      "label": ".appendDigit()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".appenddigit()"
+    },
+    {
+      "label": ".deleteLast()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".deletelast()"
+    },
+    {
+      "label": ".clear()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_clear",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".clear()"
+    },
+    {
+      "label": ".setValue()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_setvalue",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".setvalue()"
+    },
+    {
+      "label": ".asNumber()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_asnumber",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".asnumber()"
+    },
+    {
+      "label": ".acceptActivation()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": ".acceptactivation()"
     },
     {
       "label": "score-training.engine.module.ts",
@@ -3575,8 +3686,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.engine.module.ts"
     },
     {
@@ -3586,8 +3697,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "scoretrainingengine"
     },
     {
@@ -3597,8 +3708,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_constructor",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".constructor()"
     },
     {
@@ -3608,8 +3719,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".recordvisit()"
     },
     {
@@ -3619,8 +3730,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_iscomplete",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".iscomplete()"
     },
     {
@@ -3630,8 +3741,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currenttotal",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".currenttotal()"
     },
     {
@@ -3641,8 +3752,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currentaverage",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".currentaverage()"
     },
     {
@@ -3652,8 +3763,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_undolastvisit",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": ".undolastvisit()"
     },
     {
@@ -3663,8 +3774,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.payload.module.ts"
     },
     {
@@ -3674,8 +3785,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "buildeventsbatch()"
     },
     {
@@ -3685,8 +3796,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "types.ts"
     },
     {
@@ -3696,8 +3807,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoretrainingengineoptions",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "scoretrainingengineoptions"
     },
     {
@@ -3707,9 +3818,31 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_modules_game_types_recordedvisit",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "recordedvisit"
+    },
+    {
+      "label": "ScoreInputBufferOptions",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/types.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "app_src_modules_game_types_scoreinputbufferoptions",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "scoreinputbufferoptions"
+    },
+    {
+      "label": "ScoreInputActivationEvent",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/types.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "app_src_modules_game_types_scoreinputactivationevent",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "scoreinputactivationevent"
     },
     {
       "label": "interfaces.ts",
@@ -3718,8 +3851,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_interfaces",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3729,8 +3862,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_types",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
       "norm_label": "types.ts"
     },
     {
@@ -3740,8 +3873,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3751,8 +3884,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces_segmenttimeroptions",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "segmenttimeroptions"
     },
     {
@@ -3762,8 +3895,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "segment-timer.module.ts"
     },
     {
@@ -3773,8 +3906,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "segmenttimer"
     },
     {
@@ -3784,8 +3917,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_constructor",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3795,8 +3928,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getaudiocontext",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".getaudiocontext()"
     },
     {
@@ -3806,8 +3939,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_playbeep",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".playbeep()"
     },
     {
@@ -3817,8 +3950,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_start",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".start()"
     },
     {
@@ -3828,8 +3961,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_stop",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".stop()"
     },
     {
@@ -3839,8 +3972,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_reset",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".reset()"
     },
     {
@@ -3850,8 +3983,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getremaining",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".getremaining()"
     },
     {
@@ -3861,8 +3994,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "index.ts"
     },
     {
@@ -3872,8 +4005,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index_get",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "get()"
     },
     {
@@ -3883,8 +4016,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3894,8 +4027,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpreset",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "configurationpreset"
     },
     {
@@ -3905,8 +4038,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpresetdata",
-      "community": 199,
-      "community_name": "sessions.ts",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "configurationpresetdata"
     },
     {
@@ -3916,8 +4049,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "provision.ts"
     },
     {
@@ -3927,8 +4060,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "post()"
     },
     {
@@ -3938,8 +4071,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3949,8 +4082,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequest",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -3960,8 +4093,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponse",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provisionplayerresponse"
     },
     {
@@ -3971,8 +4104,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequestinput",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provisionplayerrequestinput"
     },
     {
@@ -3982,8 +4115,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponsedata",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "provisionplayerresponsedata"
     },
     {
@@ -3993,8 +4126,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "batch.ts"
     },
     {
@@ -4004,8 +4137,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch_post",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "post()"
     },
     {
@@ -4015,8 +4148,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "index.ts"
     },
     {
@@ -4026,8 +4159,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index_patch",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "patch()"
     },
     {
@@ -4037,8 +4170,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "active.ts"
     },
     {
@@ -4048,8 +4181,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active_get",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "get()"
     },
     {
@@ -4103,8 +4236,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionrequest",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "createsessionrequest"
     },
     {
@@ -4191,8 +4324,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_eventsbatchrequest",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "eventsbatchrequest"
     },
     {
@@ -4235,8 +4368,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_dartfactinput",
-      "community": 196,
-      "community_name": "provision.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "dartfactinput"
     },
     {
@@ -4268,8 +4401,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_updatesessionrequest",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "updatesessionrequest"
     },
     {
@@ -4301,8 +4434,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_sessionactivedata",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "sessionactivedata"
     },
     {
@@ -4323,8 +4456,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4334,8 +4467,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_score_training_play_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4345,8 +4478,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_score_training_setup_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4356,8 +4489,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4367,8 +4500,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_login_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4378,8 +4511,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_profile_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4389,8 +4522,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_statistics_index",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "index.astro"
     },
     {
@@ -4400,8 +4533,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4422,8 +4555,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_gametyperulesetrow",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "gametyperulesetrow"
     },
     {
@@ -4433,8 +4566,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_configurationtemplaterow",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "configurationtemplaterow"
     },
     {
@@ -4444,8 +4577,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_sessionrow",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "sessionrow"
     },
     {
@@ -4455,8 +4588,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_idempotencyrecord",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "idempotencyrecord"
     },
     {
@@ -4466,8 +4599,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_createsessionrecordsinput",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "createsessionrecordsinput"
     },
     {
@@ -4477,8 +4610,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertstage",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertstage"
     },
     {
@@ -4488,8 +4621,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertdart",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertdart"
     },
     {
@@ -4499,8 +4632,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertturn",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertturn"
     },
     {
@@ -4510,8 +4643,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertinput",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 215,
+      "community_name": "interfaces.ts",
       "norm_label": "batchinsertinput"
     },
     {
@@ -4675,8 +4808,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionrow",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "findsessionrow()"
     },
     {
@@ -4730,8 +4863,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findactivesessions",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "findactivesessions()"
     },
     {
@@ -4741,8 +4874,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationpresets",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "findconfigurationpresets()"
     },
     {
@@ -4763,8 +4896,8 @@
       "source_location": "L226",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertbatchrecords",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "insertbatchrecords()"
     },
     {
@@ -4774,8 +4907,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_updatesessionstatusrecord",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "updatesessionstatusrecord()"
     },
     {
@@ -5005,8 +5138,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "app_src_services_session_service_canonicalize",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "canonicalize()"
     },
     {
@@ -5016,8 +5149,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "app_src_services_session_service_hashbatchpayload",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "hashbatchpayload()"
     },
     {
@@ -5082,8 +5215,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "app_src_services_session_service_buildbatchinsertpayload",
-      "community": 203,
-      "community_name": "client.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "buildbatchinsertpayload()"
     },
     {
@@ -5104,8 +5237,8 @@
       "source_location": "L304",
       "_origin": "ast",
       "id": "app_src_services_session_service_terminal_targets",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "terminal_targets"
     },
     {
@@ -5115,8 +5248,8 @@
       "source_location": "L306",
       "_origin": "ast",
       "id": "app_src_services_session_service_updatesessionstatus",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "updatesessionstatus()"
     },
     {
@@ -5126,8 +5259,8 @@
       "source_location": "L334",
       "_origin": "ast",
       "id": "app_src_services_session_service_listactivesessions",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "listactivesessions()"
     },
     {
@@ -5137,8 +5270,8 @@
       "source_location": "L339",
       "_origin": "ast",
       "id": "app_src_services_session_service_listconfigurationpresets",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "listconfigurationpresets()"
     },
     {
@@ -5148,8 +5281,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_types",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -5159,8 +5292,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_services_types_serviceresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "serviceresult"
     },
     {
@@ -5170,8 +5303,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_services_types_createsessionresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "createsessionresult"
     },
     {
@@ -5181,8 +5314,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_services_types_appendbatchresult",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "appendbatchresult"
     },
     {
@@ -5192,8 +5325,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_auth_store",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "auth.store.ts"
     },
     {
@@ -5203,8 +5336,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstatus",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "authstatus"
     },
     {
@@ -5214,8 +5347,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_hasactivesession",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "hasactivesession()"
     },
     {
@@ -5225,8 +5358,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstore",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "authstore()"
     },
     {
@@ -5236,8 +5369,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_game_store",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "game.store.ts"
     },
     {
@@ -5247,8 +5380,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_stores_game_store_gamestore",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "gamestore()"
     },
     {
@@ -5258,8 +5391,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "types.ts"
     },
     {
@@ -5269,8 +5402,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types_gameconfigsnapshot",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "gameconfigsnapshot"
     },
     {
@@ -5280,8 +5413,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_stores_types_recordedturn",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "recordedturn"
     },
     {
@@ -5324,8 +5457,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "login.data.test.ts"
     },
     {
@@ -5335,8 +5468,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test_constructor",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "constructor()"
     },
     {
@@ -5346,8 +5479,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_logout_data_test",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "logout.data.test.ts"
     },
     {
@@ -5357,8 +5490,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_client_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "client.test.ts"
     },
     {
@@ -5368,8 +5501,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_configuration_templates_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 210,
+      "community_name": "client.ts",
       "norm_label": "configuration-templates.test.ts"
     },
     {
@@ -5379,8 +5512,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_players_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "players.test.ts"
     },
     {
@@ -5390,8 +5523,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_sessions_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "sessions.test.ts"
     },
     {
@@ -5401,8 +5534,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_cn_test",
-      "community": 202,
-      "community_name": "Non-Negotiable Rules",
+      "community": 39,
+      "community_name": "Community 39",
       "norm_label": "cn.test.ts"
     },
     {
@@ -5412,8 +5545,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_errors_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5423,8 +5556,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "score-training-play.data.test.ts"
     },
     {
@@ -5434,8 +5567,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_segmenttimerinstances",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "segmenttimerinstances"
     },
     {
@@ -5445,30 +5578,30 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_gamestub",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "gamestub"
     },
     {
       "label": "makePlay()",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L354",
+      "source_location": "L358",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeplay",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "makeplay()"
     },
     {
       "label": "makeAbandonPlay()",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L692",
+      "source_location": "L703",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
-      "community": 194,
-      "community_name": "relations.ts",
+      "community": 211,
+      "community_name": "ScoreInputBuffer",
       "norm_label": "makeabandonplay()"
     },
     {
@@ -5478,8 +5611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "score-training-setup.data.test.ts"
     },
     {
@@ -5489,8 +5622,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test_createsetup",
-      "community": 198,
-      "community_name": "client.ts",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "createsetup()"
     },
     {
@@ -5500,8 +5633,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_session_recovery_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 206,
+      "community_name": "sessions.ts",
       "norm_label": "session-recovery.test.ts"
     },
     {
@@ -5511,8 +5644,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_server_errors_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5571,14 +5704,36 @@
       "norm_label": "createauthclientmock()"
     },
     {
+      "label": "score-input.module.test.ts",
+      "file_type": "code",
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_tests_modules_game_score_input_module_test",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "score-input.module.test.ts"
+    },
+    {
+      "label": "press()",
+      "file_type": "code",
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "app_tests_modules_game_score_input_module_test_press",
+      "community": 207,
+      "community_name": "ScoreTrainingEngine",
+      "norm_label": "press()"
+    },
+    {
       "label": "score-training.engine.module.test.ts",
       "file_type": "code",
       "source_file": "app/tests/modules/game/score-training.engine.module.test.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_engine_module_test",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.engine.module.test.ts"
     },
     {
@@ -5588,8 +5743,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_payload_module_test",
-      "community": 11,
-      "community_name": "relations.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "score-training.payload.module.test.ts"
     },
     {
@@ -5599,8 +5754,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_ui_segment_timer_module_test",
-      "community": 197,
-      "community_name": "players.ts",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "segment-timer.module.test.ts"
     },
     {
@@ -5610,8 +5765,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "index.test.ts"
     },
     {
@@ -5621,8 +5776,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test_makecontext",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 212,
+      "community_name": "ok",
       "norm_label": "makecontext()"
     },
     {
@@ -5632,8 +5787,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_players_types_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 209,
+      "community_name": "players.ts",
       "norm_label": "types.test.ts"
     },
     {
@@ -5643,8 +5798,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "batch.test.ts"
     },
     {
@@ -5654,8 +5809,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_makecontext",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5665,8 +5820,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_validbatch",
-      "community": 192,
-      "community_name": "id.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "validbatch"
     },
     {
@@ -5676,8 +5831,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5687,8 +5842,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test_makecontext",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5698,8 +5853,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_active_test",
-      "community": 193,
-      "community_name": "is-nav-active.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "active.test.ts"
     },
     {
@@ -5775,8 +5930,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test",
-      "community": 196,
-      "community_name": "provision.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "score-training.validator.test.ts"
     },
     {
@@ -5786,8 +5941,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test_validconfig",
-      "community": 196,
-      "community_name": "provision.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "validconfig"
     },
     {
@@ -5797,8 +5952,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test_batchwithturns",
-      "community": 196,
-      "community_name": "provision.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "batchwithturns()"
     },
     {
@@ -5819,8 +5974,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "session.service.test.ts"
     },
     {
@@ -5830,8 +5985,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_inlinerequest",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "inlinerequest"
     },
     {
@@ -5841,8 +5996,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_samplebatch",
-      "community": 195,
-      "community_name": "env.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "samplebatch()"
     },
     {
@@ -5863,8 +6018,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_auth_store_test",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "auth.store.test.ts"
     },
     {
@@ -5874,8 +6029,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "game.store.test.ts"
     },
     {
@@ -5885,8 +6040,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_createsharedaliaspersist",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "createsharedaliaspersist()"
     },
     {
@@ -5896,8 +6051,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_stubpersistfactory",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "stubpersistfactory()"
     },
     {
@@ -5907,8 +6062,8 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_as",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "as()"
     },
     {
@@ -5918,8 +6073,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_auth_routes_test",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "auth-routes.test.ts"
     },
     {
@@ -5929,8 +6084,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_route_class_test",
-      "community": 208,
-      "community_name": "types.ts",
+      "community": 205,
+      "community_name": "middleware.ts",
       "norm_label": "route-class.test.ts"
     },
     {
@@ -7766,7 +7921,7 @@
       "label": "Context & documentation system",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L130",
+      "source_location": "L131",
       "_origin": "ast",
       "id": "decisions_context_documentation_system",
       "community": 58,
@@ -7777,7 +7932,7 @@
       "label": "Deferred (open, not rejected)",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L142",
+      "source_location": "L143",
       "_origin": "ast",
       "id": "decisions_deferred_open_not_rejected",
       "community": 58,
@@ -9081,6 +9236,28 @@
       "community": 178,
       "community_name": "Database SQL Artifacts",
       "norm_label": "references"
+    },
+    {
+      "label": "badges.md",
+      "file_type": "document",
+      "source_file": "database/braindump/badges.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "database_braindump_badges",
+      "community": 198,
+      "community_name": "client.ts",
+      "norm_label": "badges.md"
+    },
+    {
+      "label": "Badges",
+      "file_type": "document",
+      "source_file": "database/braindump/badges.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "database_braindump_badges_badges",
+      "community": 198,
+      "community_name": "client.ts",
+      "norm_label": "badges"
     },
     {
       "label": "AGENT.md",
@@ -26438,7 +26615,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L12",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_components_forms_button",
@@ -26552,7 +26729,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L19",
+      "source_location": "L40",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_lib_client_cn",
@@ -26812,7 +26989,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L12",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_components_ui_confirmdialog",
@@ -26863,17 +27040,28 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L11",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_components_layout_games_inputbutton",
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/interfaces/ScoreTraining.astro",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_interfaces_scoretraining",
+      "target": "app_src_components_layout_games_scoreinput",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L22",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_components_layout_games_scoreinput_numberrows",
@@ -26883,7 +27071,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L29",
+      "source_location": "L50",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_components_layout_games_scoreinput_rootclass",
@@ -26894,7 +27082,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L19",
+      "source_location": "L40",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "app_src_lib_client_cn_cn",
@@ -26905,7 +27093,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L15",
+      "source_location": "L36",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "users_levi_development_dart_analytics_app_src_icons_delete_svg",
@@ -26916,21 +27104,10 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/components/layout/games/ScoreInput.astro",
-      "source_location": "L16",
+      "source_location": "L37",
       "weight": 1.0,
       "source": "app_src_components_layout_games_scoreinput",
       "target": "users_levi_development_dart_analytics_app_src_icons_undo_svg",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "app_src_pages_games_score_training_play_index",
-      "target": "app_src_components_layout_games_scoreinput",
       "confidence_score": 1.0
     },
     {
@@ -26946,12 +27123,9 @@
     },
     {
       "relation": "imports_from",
-      "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "app_src_pages_games_score_training_play_index",
+      "source_file": "app/src/components/layout/games/interfaces/ScoreTraining.astro",
+      "source": "app_src_components_layout_games_interfaces_scoretraining",
       "target": "app_src_components_layout_games_singleplayerdisplay",
       "confidence_score": 1.0
     },
@@ -26960,7 +27134,18 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L11",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_layout_games_interfaces_scoretraining",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_components_ui_alert",
@@ -26979,7 +27164,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L13",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_components_ui_isloading",
@@ -27023,7 +27208,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L14",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_components_ui_linkcard",
@@ -29997,7 +30182,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_client_api_sessions",
@@ -30106,7 +30291,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_client_api_sessions_createsession",
@@ -30150,7 +30335,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_client_api_sessions_appendbatch",
@@ -30183,7 +30368,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_client_api_sessions_completesession",
@@ -30249,7 +30434,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_client_api_sessions_fetchactivesessions",
@@ -30558,7 +30743,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_computestats",
@@ -30568,7 +30753,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_formatremaining",
@@ -30578,7 +30763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay",
@@ -30589,7 +30774,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L5",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_session_recovery",
@@ -30600,7 +30785,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L5",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_session_recovery_reconcileactivesession",
@@ -30611,7 +30796,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_types",
@@ -30622,7 +30807,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_lib_game_types_scoretrainingplaycontext",
@@ -30636,7 +30821,7 @@
       "source_location": "L1",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
-      "target": "app_src_modules_game_score_training_engine_module",
+      "target": "app_src_modules_game_score_input_module",
       "confidence_score": 1.0
     },
     {
@@ -30647,7 +30832,7 @@
       "source_location": "L1",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
-      "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "confidence_score": 1.0
     },
     {
@@ -30656,6 +30841,28 @@
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
       "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_game_score_training_play_data",
+      "target": "app_src_modules_game_score_training_engine_module",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/game/score-training-play.data.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_src_lib_game_score_training_play_data",
+      "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/game/score-training-play.data.ts",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_modules_game_score_training_payload_module",
@@ -30666,7 +30873,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L2",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
@@ -30677,7 +30884,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_modules_ui_segment_timer_module",
@@ -30688,7 +30895,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_modules_ui_segment_timer_module_segmenttimer",
@@ -30699,7 +30906,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L6",
+      "source_location": "L7",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_stores_types",
@@ -30710,7 +30917,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/score-training-play.data.ts",
-      "source_location": "L6",
+      "source_location": "L7",
       "weight": 1.0,
       "source": "app_src_lib_game_score_training_play_data",
       "target": "app_src_stores_types_recordedturn",
@@ -30744,7 +30951,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L694",
+      "source_location": "L705",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -30755,7 +30962,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L356",
+      "source_location": "L360",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -30947,7 +31154,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_lib_game_types_scoretrainingplaycontext",
@@ -30957,7 +31164,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L56",
+      "source_location": "L54",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_lib_game_types_scoretrainingsetupcontext",
@@ -30971,7 +31178,7 @@
       "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
-      "target": "app_src_modules_game_score_training_engine_module",
+      "target": "app_src_modules_game_score_input_module",
       "confidence_score": 1.0
     },
     {
@@ -30982,7 +31189,7 @@
       "source_location": "L3",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
-      "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer",
       "confidence_score": 1.0
     },
     {
@@ -30993,7 +31200,7 @@
       "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
-      "target": "app_src_modules_ui_segment_timer_module",
+      "target": "app_src_modules_game_score_training_engine_module",
       "confidence_score": 1.0
     },
     {
@@ -31002,6 +31209,28 @@
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
       "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_lib_game_types",
+      "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/game/types.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_lib_game_types",
+      "target": "app_src_modules_ui_segment_timer_module",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/lib/game/types.ts",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_modules_ui_segment_timer_module_segmenttimer",
@@ -31034,7 +31263,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L5",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_stores_types",
@@ -31045,7 +31274,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L5",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_stores_types_gameconfigsnapshot",
@@ -31056,7 +31285,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L5",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_stores_types_recordedturn",
@@ -32282,6 +32511,218 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module",
+      "target": "app_src_modules_game_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module",
+      "target": "app_src_modules_game_types_scoreinputactivationevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module",
+      "target": "app_src_modules_game_types_scoreinputbufferoptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_modules_game_score_input_module_test",
+      "target": "app_src_modules_game_score_input_module",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_asnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_setvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "app_tests_modules_game_score_input_module_test",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_constructor",
+      "target": "app_src_modules_game_types_scoreinputbufferoptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit",
+      "target": "app_src_modules_game_types_scoreinputactivationevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_tests_modules_game_score_input_module_test_press",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_appenddigit"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
+      "target": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_deletelast",
+      "target": "app_src_modules_game_types_scoreinputactivationevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-input.module.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_input_module_scoreinputbuffer_acceptactivation",
+      "target": "app_src_modules_game_types_scoreinputactivationevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/src/modules/game/score-training.engine.module.ts",
       "source_location": "L3",
       "weight": 1.0,
@@ -32521,6 +32962,26 @@
       "weight": 1.0,
       "source": "app_src_modules_game_types",
       "target": "app_src_modules_game_types_recordedvisit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/types.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "app_src_modules_game_types",
+      "target": "app_src_modules_game_types_scoreinputactivationevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/types.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_modules_game_types",
+      "target": "app_src_modules_game_types_scoreinputbufferoptions",
       "confidence_score": 1.0
     },
     {
@@ -35770,7 +36231,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L692",
+      "source_location": "L703",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
@@ -35780,7 +36241,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L354",
+      "source_location": "L358",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_makeplay",
@@ -35846,6 +36307,16 @@
       "weight": 1.0,
       "source": "app_tests_setup",
       "target": "app_tests_mocks_auth_client_mock_createauthclientmock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/modules/game/score-input.module.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_tests_modules_game_score_input_module_test",
+      "target": "app_tests_modules_game_score_input_module_test_press",
       "confidence_score": 1.0
     },
     {
@@ -37456,7 +37927,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L130",
+      "source_location": "L131",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_context_documentation_system",
@@ -37476,7 +37947,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L142",
+      "source_location": "L143",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_deferred_open_not_rejected",
@@ -38610,6 +39081,16 @@
       "weight": 1.0,
       "source": "database_readme_database_sql_artifacts",
       "target": "database_readme_structure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "database/braindump/badges.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "database_braindump_badges",
+      "target": "database_braindump_badges_badges",
       "confidence_score": 1.0
     },
     {
@@ -52694,5 +53175,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "53400ea58d2c5fd865d236f1a269b000b3bba691"
+  "built_at_commit": "f097d41a44a1689f23381fb216e1c02210186ba5"
 }
