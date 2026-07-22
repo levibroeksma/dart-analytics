@@ -1,0 +1,88 @@
+---
+/**
+ * Confirm preset on top of Modal — title, description, cancel/confirm Buttons.
+ * @param {string} title
+ * @param {string} titleId Stable unique heading id for this call site
+ * @param {string} description
+ * @param {string} [cancelLabel="Cancel"]
+ * @param {string} [confirmLabel="Confirm"]
+ * @param {string} onCancel Alpine expression
+ * @param {string} onConfirm Alpine expression
+ * @param {boolean} [dismissible=true] When true, dismiss uses `onCancel`
+ * @param {"primary"|"secondary"|"ghost"} [confirmVariant="primary"]
+ * @param {string} [class] Extra Modal panel classes
+ */
+interface Props {
+  title: string;
+  titleId: string;
+  description: string;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  onCancel: string;
+  onConfirm: string;
+  dismissible?: boolean;
+  confirmVariant?: "primary" | "secondary" | "ghost";
+  class?: string;
+}
+
+// Props
+const {
+  title,
+  titleId,
+  description,
+  cancelLabel = "Cancel",
+  confirmLabel = "Confirm",
+  onCancel,
+  onConfirm,
+  dismissible = true,
+  confirmVariant = "primary",
+  class: classNameProp,
+}: Props = Astro.props;
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Button from "@components/forms/Button.astro";
+
+// Styles
+const descriptionId = `${titleId}-desc`;
+---
+
+<Modal
+  titleId={titleId}
+  descriptionId={descriptionId}
+  dismissible={dismissible}
+  onDismiss={dismissible ? onCancel : undefined}
+  class={classNameProp}
+>
+  <h2
+    id={titleId}
+    class="text-lg font-semibold text-foreground"
+  >
+    {title}
+  </h2>
+  <p
+    id={descriptionId}
+    class="mt-2 text-sm text-muted-foreground"
+  >
+    {description}
+  </p>
+  <div
+    slot="footer"
+    class="mt-6 flex justify-end gap-3"
+  >
+    <Button
+      type="button"
+      variant="ghost"
+      class="w-1/3"
+      title={cancelLabel}
+      x-on:click={onCancel}
+    />
+    <Button
+      type="button"
+      variant={confirmVariant}
+      class="w-1/3"
+      title={confirmLabel}
+      x-on:click={onConfirm}
+    />
+  </div>
+</Modal>

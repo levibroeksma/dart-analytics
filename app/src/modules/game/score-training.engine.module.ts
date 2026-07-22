@@ -34,4 +34,14 @@ export class ScoreTrainingEngine {
     if (this.visits.length === 0) return 0;
     return this.currentTotal() / this.visits.length;
   }
+
+  /**
+   * Pops the last visit recorded by this engine instance.
+   * @returns true if a visit was removed; false if there was nothing to undo.
+   */
+  undoLastVisit(): boolean {
+    if (this.visits.length === 0) return false;
+    this.visits.pop();
+    return true;
+  }
 }

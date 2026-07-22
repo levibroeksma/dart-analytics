@@ -1,13 +1,12 @@
 ---
 import "@styles/global.css";
-// import ConfirmationModal from "@components/ui/ConfirmationModal.astro";
 
 const url = Astro.url;
 
 const title =
   url.pathname === "/"
-    ? "Dart Counter"
-    : `${url.pathname.slice(1)} - Dart Counter`;
+    ? "Dart Analytics"
+    : `${url.pathname.slice(1)} - Dart Analytics`;
 ---
 
 <html lang="en">
@@ -45,12 +44,7 @@ const title =
     />
     <title>{title}</title>
   </head>
-  <body
-    class="flex flex-col"
-    x-data
-    x-cloak
-    :class="{ invisible: !$store.auth.ready }"
-  >
+  <body>
     <slot />
   </body>
 </html>

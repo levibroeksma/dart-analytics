@@ -1,14 +1,17 @@
 ---
 export const prerender = true;
-import AppLayout from "@layouts/AppLayout.astro";
+import GameLayout from "@layouts/GameLayout.astro";
 import Button from "@components/forms/Button.astro";
-import Input from "@components/forms/Input.astro";
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 ---
 
-<AppLayout title="Score Training — Play">
+<GameLayout title="Score Training — Play">
   <div
-    class="p-4"
+    class="flex flex-col flex-1 min-h-0"
     x-data="scoreTrainingPlay()"
+    @confirm-exit.window="abandonAndExit()"
   >
     {/* Loading / reconciliation-blocked */}
     <div
@@ -49,59 +52,63 @@ import Input from "@components/forms/Input.astro";
       <a
         class="btn-primary mt-4 inline-block"
         href="/games/score-training/setup"
-        >Start a new session</a
+        x-cloak
       >
+        Start a new session
+      </a>
     </div>
 
-    {/* Gameplay view (existing, with live total) */}
+    {/* Gameplay view */}
     <div
+      class="flex flex-col flex-1 min-h-0"
       x-show="!finished && hasActiveSession"
       x-cloak
     >
-      <form @submit.prevent="submitVisit()">
-        <p
-          class="text-sm text-fg-muted"
-          x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
-          x-cloak
-          x-text="`Time remaining: ${remainingLabel()}`"
-        >
-        </p>
-        <p
-          class="text-sm text-fg-muted"
-          x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'"
-          x-cloak
-          x-text="`Visit ${$store.game.turns.length + 1}`"
-        >
-        </p>
-        <Input
-          label="Visit score (0-180)"
-          name="visitScore"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          x-model="visitInput"
-        />
-        <p
-          class="mt-2 text-sm text-red-500"
-          x-show="error"
-          x-cloak
-          x-text="error"
-        >
-        </p>
-        <Button
-          type="submit"
-          class="mt-4"
-          >Submit visit</Button
-        >
-      </form>
-
-      {/* Live total (always visible during play) */}
       <p
-        class="mt-4 text-fg"
-        x-show="$store.game.turns.length > 0"
+        class="text-sm text-fg-muted px-3"
+        x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
+        x-text="`Time remaining: ${remainingLabel()}`"
         x-cloak
-        x-text="`Total: ${$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)}`"
       >
       </p>
+      <p
+        class="text-sm text-fg-muted px-3"
+        x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'"
+        x-text="`Visit ${$store.game.turns.length + 1}`"
+        x-cloak
+      >
+      </p>
+
+      <SinglePlayerDisplay
+        isTarget={false}
+        score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
+      />
+
+      <p
+        class="px-3 mt-2 text-sm text-red-500"
+        x-show="error"
+        x-text="error"
+        x-cloak
+      >
+      </p>
+
+      <ScoreInput click="submitVisit()" />
+    </div>
+
+    {/* Finish confirm (before results) */}
+    <div
+      x-show="showFinishConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="finish-confirm-title"
+        title="Finish session?"
+        description="This visit completes the session. Confirm to save, or cancel to adjust the score."
+        confirmLabel="Confirm"
+        onCancel="cancelFinish()"
+        onConfirm="confirmFinish()"
+        dismissible={false}
+      />
     </div>
 
     {/* Results modal (overlay) */}
@@ -203,8 +210,8 @@ import Input from "@components/forms/Input.astro";
         <p
           class="mt-2 text-sm text-red-500"
           x-show="playAgainError"
-          x-cloak
           x-text="playAgainError"
+          x-cloak
         >
         </p>
 
@@ -231,4 +238,4 @@ import Input from "@components/forms/Input.astro";
       </div>
     </div>
   </div>
-</AppLayout>
+</GameLayout>

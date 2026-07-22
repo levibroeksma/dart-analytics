@@ -1,0 +1,60 @@
+---
+/**
+ * Portable dialog shell. Parent owns visibility (`x-show` / `x-if` + `x-cloak`).
+ * @param {string} titleId `aria-labelledby` target id (caller's heading)
+ * @param {string} [descriptionId] `aria-describedby` when body has a matching id
+ * @param {boolean} [dismissible=true] Escape + backdrop click invoke `onDismiss`
+ * @param {string} [onDismiss] Alpine expression; required when `dismissible`
+ * @param {string} [class] Extra panel classes
+ */
+interface Props {
+  titleId: string;
+  descriptionId?: string;
+  dismissible?: boolean;
+  onDismiss?: string;
+  class?: string;
+}
+
+// Props
+const {
+  titleId,
+  descriptionId,
+  dismissible = true,
+  onDismiss,
+  class: classNameProp,
+}: Props = Astro.props;
+
+if (dismissible && !onDismiss) {
+  throw new Error("Modal: onDismiss is required when dismissible is true");
+}
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const panelClass = cn(
+  "w-full max-w-sm rounded-lg border border-border bg-surface-raised p-6 shadow-lg",
+  classNameProp,
+);
+
+const dismissAttrs = dismissible
+  ? {
+      "x-on:keydown.escape.window": onDismiss,
+      "x-on:click.self": onDismiss,
+    }
+  : {};
+---
+
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby={titleId}
+  aria-describedby={descriptionId}
+  {...dismissAttrs}
+>
+  <div class={panelClass}>
+    <slot />
+    <slot name="footer" />
+  </div>
+</div>

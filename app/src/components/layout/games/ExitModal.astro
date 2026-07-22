@@ -1,0 +1,18 @@
+---
+/**
+ * Presentational — parent GameLayout owns showExitModal (x-if).
+ */
+
+// Components
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+---
+
+<ConfirmDialog
+  titleId="exit-modal-title"
+  title="Leave game?"
+  description="This session will be recorded as abandoned."
+  cancelLabel="Cancel"
+  confirmLabel="Leave"
+  onCancel="showExitModal = false"
+  onConfirm="$dispatch('confirm-exit')"
+/>

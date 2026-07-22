@@ -31,6 +31,27 @@ function computeStats(turns: RecordedTurn[]): {
 export function scoreTrainingPlay() {
   return {
     visitInput: "",
+
+    appendDigit(this: ScoreTrainingPlayContext, digit: number) {
+      if (this.showFinishConfirm || this.finished) return;
+      const next =
+        this.visitInput === "0"
+          ? String(digit)
+          : this.visitInput + String(digit);
+      if (next.length > 3) return;
+      this.visitInput = next;
+    },
+
+    deleteLast(this: ScoreTrainingPlayContext) {
+      if (this.showFinishConfirm || this.finished) return;
+      this.visitInput = this.visitInput.slice(0, -1);
+    },
+
+    clearVisitInput(this: ScoreTrainingPlayContext) {
+      if (this.showFinishConfirm || this.finished) return;
+      this.visitInput = "";
+    },
+
     error: "",
     finished: false,
     hasActiveSession: false,
@@ -41,11 +62,14 @@ export function scoreTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
+    abandonLoading: false,
     resultsSnapshot: null as {
       total: number;
       visits: number;
       average: number;
     } | null,
+    pendingFinishScore: null as number | null,
+    showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
 
@@ -141,7 +165,7 @@ export function scoreTrainingPlay() {
     },
 
     async submitVisit(this: ScoreTrainingPlayContext) {
-      if (!this.engine || this.finished) return;
+      if (!this.engine || this.finished || this.showFinishConfirm) return;
 
       const score = Number(this.visitInput);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
@@ -149,19 +173,67 @@ export function scoreTrainingPlay() {
         return;
       }
       this.error = "";
+
+      const timerExpired = this.$store.game.timerExpired ?? false;
+      const wouldComplete = this.engine.isComplete(
+        this.$store.game.turns.length + 1,
+        timerExpired,
+      );
+
+      if (wouldComplete) {
+        this.pendingFinishScore = score;
+        this.visitInput = "";
+        this.showFinishConfirm = true;
+        return;
+      }
+
       this.visitInput = "";
+      const visit = this.engine.recordVisit(score);
+      this.$store.game.recordTurn(visit);
+    },
+
+    async confirmFinish(this: ScoreTrainingPlayContext) {
+      if (!this.engine || this.finished || !this.showFinishConfirm) return;
+      if (this.pendingFinishScore == null) return;
+
+      const score = this.pendingFinishScore;
+      this.pendingFinishScore = null;
+      this.showFinishConfirm = false;
 
       const visit = this.engine.recordVisit(score);
       this.$store.game.recordTurn(visit);
 
-      const timerExpired = this.$store.game.timerExpired ?? false;
-      if (!this.engine.isComplete(this.$store.game.turns.length, timerExpired))
-        return;
-
-      // Modal appears and completion sequence starts in the same synchronous step.
       this.finished = true;
       this.completionStatus = "pending";
       await this.uploadAndCompleteSession();
+    },
+
+    cancelFinish(this: ScoreTrainingPlayContext) {
+      if (!this.showFinishConfirm || this.pendingFinishScore == null) return;
+      this.visitInput = String(this.pendingFinishScore);
+      this.pendingFinishScore = null;
+      this.showFinishConfirm = false;
+    },
+
+    undoVisit(this: ScoreTrainingPlayContext) {
+      if (this.finished || this.showFinishConfirm) return;
+      if (!this.engine || this.$store.game.turns.length === 0) return;
+
+      this.$store.game.undoLastTurn();
+      const poppedLocal = this.engine.undoLastVisit();
+      if (!poppedLocal) {
+        const config = this.$store.game.configSnapshot;
+        if (!config) return;
+        this.engine = new ScoreTrainingEngine({
+          durationType: config.durationType,
+          durationValue: config.durationValue,
+          maxDartsPerTurn: config.maxDartsPerTurn,
+          startingSequence: this.$store.game.turns.length,
+        });
+      }
+
+      this.visitInput = "";
+      this.error = "";
     },
 
     async uploadAndCompleteSession(
@@ -213,6 +285,42 @@ export function scoreTrainingPlay() {
     async back(this: ScoreTrainingPlayContext) {
       this.$store.game.reset();
       globalThis.location.href = "/games";
+    },
+
+    async abandonAndExit(this: ScoreTrainingPlayContext) {
+      if (this.abandonLoading) return;
+      const sessionId = this.$store.game.sessionId;
+      if (!sessionId) {
+        this.$store.game.reset();
+        globalThis.location.href = "/games";
+        return;
+      }
+      this.abandonLoading = true;
+      this.error = "";
+      try {
+        const turns = this.$store.game.turns;
+        if (turns.length > 0) {
+          if (!this.$store.game.idempotencyKey) {
+            this.$store.game.idempotencyKey = crypto.randomUUID();
+          }
+          const completedTurns = turns.map((turn) => ({
+            ...turn,
+            completedAt: turn.completedAt ?? new Date().toISOString(),
+          }));
+          const batch = buildEventsBatch(
+            this.$store.game.participantRef!,
+            completedTurns,
+          );
+          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
+        }
+        await completeSession(sessionId, "ABANDONED");
+        this.timer?.stop();
+        this.$store.game.reset();
+        globalThis.location.href = "/games";
+      } catch {
+        this.error = "Could not abandon session. Try again.";
+        this.abandonLoading = false;
+      }
     },
 
     async playAgain(this: ScoreTrainingPlayContext) {

@@ -2,6 +2,7 @@
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
+import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
 ---
 
 <AppLayout title="Score Training — Setup">
@@ -11,41 +12,7 @@ import Button from "@components/forms/Button.astro";
   >
     {/* Active Session Modal Overlay (match case only) */}
     <template x-if="showActiveSessionModal && activeSession">
-      <div
-        class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
-      >
-        <div class="bg-bg rounded-lg shadow-lg p-6 max-w-sm">
-          <h2 class="text-lg font-semibold text-fg">Active Session</h2>
-          <p class="text-sm text-fg-muted mt-2">
-            You have an active Score Training session. Continue playing or start
-            a new one?
-          </p>
-          <div class="flex gap-3 mt-6">
-            <Button
-              type="button"
-              variant="secondary"
-              @click="abandonSession()"
-              :disabled="loading"
-            >
-              Start New
-            </Button>
-            <Button
-              type="button"
-              @click="continueSession()"
-              :disabled="loading"
-            >
-              Continue
-            </Button>
-          </div>
-          <p
-            class="text-sm text-red-500 mt-3"
-            x-show="error"
-            x-cloak
-            x-text="error"
-          >
-          </p>
-        </div>
-      </div>
+      <ContinueSessionModal />
     </template>
 
     {

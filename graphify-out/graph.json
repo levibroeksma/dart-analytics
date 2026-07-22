@@ -319,7 +319,7 @@
       "_origin": "ast",
       "id": "app_neon",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "neon.ts"
     },
     {
@@ -1346,6 +1346,17 @@
       "norm_label": "persistfactory"
     },
     {
+      "label": "CustomTabs.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/CustomTabs.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_src_components_customtabs",
+      "community": 191,
+      "community_name": "relations.ts",
+      "norm_label": "customtabs.astro"
+    },
+    {
       "label": "@components/forms/Button.astro",
       "file_type": "code",
       "source_file": "app/src/components/forms/Button.astro",
@@ -1353,19 +1364,31 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_forms_button",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@components/forms/button.astro"
+    },
+    {
+      "label": "@components/forms/Input.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_forms_input",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/forms/input.astro"
     },
     {
       "label": "className",
       "file_type": "code",
-      "source_file": "app/src/components/forms/Button.astro",
-      "source_location": "L26",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L28",
       "_origin": "ast",
-      "id": "app_src_components_forms_button_classname",
-      "community": 28,
-      "community_name": "Community 28",
+      "id": "app_src_components_forms_input_classname",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "classname"
     },
     {
@@ -1376,32 +1399,9 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_client_cn",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "cn.ts"
-    },
-    {
-      "label": "@components/forms/Input.astro",
-      "file_type": "code",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L1",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "id": "app_src_components_forms_input",
-      "community": 28,
-      "community_name": "Community 28",
-      "norm_label": "@components/forms/input.astro"
-    },
-    {
-      "label": "className",
-      "file_type": "code",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "app_src_components_forms_input_classname",
-      "community": 28,
-      "community_name": "Community 28",
-      "norm_label": "classname"
     },
     {
       "label": "@components/layout/BottomNav.astro",
@@ -1411,8 +1411,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_layout_bottomnav",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@components/layout/bottomnav.astro"
     },
     {
@@ -1422,8 +1422,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_components_layout_bottomnav_pages",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "pages"
     },
     {
@@ -1434,8 +1434,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_components_layout_navbtn",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "navbtn.astro"
     },
     {
@@ -1445,8 +1445,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_home_circle_svg",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@icons/home-circle.svg"
     },
     {
@@ -1456,8 +1456,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_dartboard_svg",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@icons/dartboard.svg"
     },
     {
@@ -1467,8 +1467,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_user_svg",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@icons/user.svg"
     },
     {
@@ -1478,8 +1478,8 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_icons_stats_svg",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@icons/stats.svg"
     },
     {
@@ -1489,8 +1489,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_active",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "active"
     },
     {
@@ -1500,8 +1500,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_components_layout_navbtn_classname",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "classname"
     },
     {
@@ -1512,9 +1512,242 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_lib_utils_is_nav_active",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "is-nav-active.ts"
+    },
+    {
+      "label": "@components/layout/games/ContinueSessionModal.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/ContinueSessionModal.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_continuesessionmodal",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/continuesessionmodal.astro"
+    },
+    {
+      "label": "Modal.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "source_location": "L1",
+      "id": "app_src_components_ui_modal",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "modal.astro"
+    },
+    {
+      "label": "@components/layout/games/ExitModal.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/ExitModal.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_exitmodal",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/exitmodal.astro"
+    },
+    {
+      "label": "@components/ui/ConfirmDialog.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/ConfirmDialog.astro",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "source_location": "L1",
+      "id": "app_src_components_ui_confirmdialog",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/ui/confirmdialog.astro"
+    },
+    {
+      "label": "@components/layout/games/GameCard.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/GameCard.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_gamecard",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/gamecard.astro"
+    },
+    {
+      "label": "CardWrapper.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "source_location": "L1",
+      "id": "app_src_components_ui_cardwrapper",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "cardwrapper.astro"
+    },
+    {
+      "label": "@icons/dart.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/dart.svg",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "id": "users_levi_development_dart_analytics_app_src_icons_dart_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/dart.svg"
+    },
+    {
+      "label": "./InputButton.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/InputButton.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_inputbutton",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "./inputbutton.astro"
+    },
+    {
+      "label": "@components/layout/games/ScoreInput.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_scoreinput",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/scoreinput.astro"
+    },
+    {
+      "label": "numberRows",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "app_src_components_layout_games_scoreinput_numberrows",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "numberrows"
+    },
+    {
+      "label": "rootClass",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "app_src_components_layout_games_scoreinput_rootclass",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "rootclass"
+    },
+    {
+      "label": "@icons/delete.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/delete.svg",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "id": "users_levi_development_dart_analytics_app_src_icons_delete_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/delete.svg"
+    },
+    {
+      "label": "@icons/undo.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/undo.svg",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "id": "users_levi_development_dart_analytics_app_src_icons_undo_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/undo.svg"
+    },
+    {
+      "label": "@components/layout/games/SetupSessionForm.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/SetupSessionForm.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_setupsessionform",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/setupsessionform.astro"
+    },
+    {
+      "label": "@components/layout/games/SinglePlayerDisplay.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/layout/games/SinglePlayerDisplay.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_layout_games_singleplayerdisplay",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/layout/games/singleplayerdisplay.astro"
+    },
+    {
+      "label": "@components/ui/Alert.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/Alert.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_ui_alert",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/ui/alert.astro"
+    },
+    {
+      "label": "string",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "app_src_components_ui_cardwrapper_string",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "string"
+    },
+    {
+      "label": "@components/ui/IsLoading.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/IsLoading.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_ui_isloading",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/ui/isloading.astro"
+    },
+    {
+      "label": "@icons/loading.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/loading.svg",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "id": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/loading.svg"
+    },
+    {
+      "label": "@components/ui/LinkCard.astro",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/LinkCard.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_components_ui_linkcard",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@components/ui/linkcard.astro"
     },
     {
       "label": "@components/ui/LogoutButton.astro",
@@ -1524,9 +1757,31 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_components_ui_logoutbutton",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@components/ui/logoutbutton.astro"
+    },
+    {
+      "label": "@icons/logout.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/logout.svg",
+      "confidence": "EXTRACTED",
+      "_origin": "ast",
+      "id": "users_levi_development_dart_analytics_app_src_icons_logout_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/logout.svg"
+    },
+    {
+      "label": "panelClass",
+      "file_type": "code",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "app_src_components_ui_modal_panelclass",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "panelclass"
     },
     {
       "label": "0000_curved_gwen_stacy.sql",
@@ -1546,8 +1801,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_db_client",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "client.ts"
     },
     {
@@ -1557,8 +1812,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_db_client_getdb",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "getdb()"
     },
     {
@@ -1568,8 +1823,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_db_client_serverlessdb",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "serverlessdb"
     },
     {
@@ -1579,8 +1834,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_src_db_client_transactiondb",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "transactiondb"
     },
     {
@@ -1590,8 +1845,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_db_client_withtransaction",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "withtransaction()"
     },
     {
@@ -1997,8 +2252,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "app_src_db_schema_players",
-      "community": 13,
-      "community_name": "Community 13",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "players"
     },
     {
@@ -2295,8 +2550,8 @@
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "id": "app_src_layouts_applayout",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@layouts/applayout.astro"
     },
     {
@@ -2307,8 +2562,8 @@
       "_origin": "ast",
       "source_location": "L1",
       "id": "app_src_layouts_baselayout",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@layouts/baselayout.astro"
     },
     {
@@ -2318,20 +2573,32 @@
       "confidence": "EXTRACTED",
       "_origin": "ast",
       "id": "users_levi_development_dart_analytics_app_src_styles_global_css",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "@styles/global.css"
     },
     {
-      "label": "@components/ui/ConfirmationModal.astro",
+      "label": "@layouts/GameLayout.astro",
       "file_type": "code",
-      "source_file": "app/src/components/ui/ConfirmationModal.astro",
+      "source_file": "app/src/layouts/GameLayout.astro",
+      "source_location": "L1",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "id": "app_src_layouts_gamelayout",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@layouts/gamelayout.astro"
+    },
+    {
+      "label": "@icons/exit.svg",
+      "file_type": "code",
+      "source_file": "app/src/icons/exit.svg",
       "confidence": "EXTRACTED",
       "_origin": "ast",
-      "id": "users_levi_development_dart_analytics_app_src_components_ui_confirmationmodal_astro",
-      "community": 28,
-      "community_name": "Community 28",
-      "norm_label": "@components/ui/confirmationmodal.astro"
+      "id": "users_levi_development_dart_analytics_app_src_icons_exit_svg",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
+      "norm_label": "@icons/exit.svg"
     },
     {
       "label": "login.data.ts",
@@ -2340,8 +2607,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "login.data.ts"
     },
     {
@@ -2351,8 +2618,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_auth_login_data_loginform",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "loginform()"
     },
     {
@@ -2362,8 +2629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "logout.data.ts"
     },
     {
@@ -2373,8 +2640,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_logout_data_logoutbutton",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "logoutbutton()"
     },
     {
@@ -2384,8 +2651,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_auth_types",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -2395,8 +2662,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_authstore",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "authstore"
     },
     {
@@ -2406,8 +2673,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_loginformcontext",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "loginformcontext"
     },
     {
@@ -2417,8 +2684,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_auth_types_logoutbuttoncontext",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "logoutbuttoncontext"
     },
     {
@@ -2429,7 +2696,7 @@
       "_origin": "ast",
       "id": "app_src_lib_auth_types_verifiedauth",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "verifiedauth"
     },
     {
@@ -2440,7 +2707,7 @@
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "verify-jwt.ts"
     },
     {
@@ -2451,7 +2718,7 @@
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_jwks",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "jwks"
     },
     {
@@ -2461,8 +2728,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_lib_auth_verify_jwt_verifybearertoken",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "verifybearertoken()"
     },
     {
@@ -2472,8 +2739,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_app_factory",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "app.factory.ts"
     },
     {
@@ -2483,8 +2750,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "register-route-data.ts"
     },
     {
@@ -2494,8 +2761,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_route_data_registerroutedata",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "registerroutedata()"
     },
     {
@@ -2505,8 +2772,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "register-stores.ts"
     },
     {
@@ -2516,8 +2783,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_stores_registerstores",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "registerstores()"
     },
     {
@@ -2527,8 +2794,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "register-ui-data.ts"
     },
     {
@@ -2538,8 +2805,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_alpine_register_ui_data_registeruidata",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "registeruidata()"
     },
     {
@@ -2549,8 +2816,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "client.ts"
     },
     {
@@ -2560,8 +2827,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_unauthorized",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "unauthorized"
     },
     {
@@ -2571,8 +2838,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_lib_client_api_client_apirequest",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "apirequest()"
     },
     {
@@ -2582,8 +2849,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "configuration-templates.ts"
     },
     {
@@ -2593,8 +2860,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_configuration_templates_fetchconfigurationpresets",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "fetchconfigurationpresets()"
     },
     {
@@ -2604,8 +2871,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "players.ts"
     },
     {
@@ -2615,8 +2882,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionerror"
     },
     {
@@ -2626,8 +2893,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provisionerror_constructor",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -2637,8 +2904,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "app_src_lib_client_api_players_provision",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provision()"
     },
     {
@@ -2725,8 +2992,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "types.ts"
     },
     {
@@ -2736,8 +3003,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apierrorbody",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "apierrorbody"
     },
     {
@@ -2747,8 +3014,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apisuccess",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "apisuccess"
     },
     {
@@ -2758,8 +3025,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apifailure",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "apifailure"
     },
     {
@@ -2769,8 +3036,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_api_types_apiresult",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "apiresult"
     },
     {
@@ -2780,8 +3047,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "client.ts"
     },
     {
@@ -2791,8 +3058,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_authclient",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "authclient"
     },
     {
@@ -2802,8 +3069,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_src_lib_client_auth_client_getaccesstoken",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "getaccesstoken()"
     },
     {
@@ -2813,8 +3080,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_client_cn_cn",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "cn()"
     },
     {
@@ -2824,8 +3091,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_client_errors",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -2835,8 +3102,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_provision_messages",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provision_messages"
     },
     {
@@ -2846,8 +3113,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_lib_client_errors_geterrormessage",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "geterrormessage()"
     },
     {
@@ -2858,7 +3125,7 @@
       "_origin": "ast",
       "id": "app_src_lib_env",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "env.ts"
     },
     {
@@ -2869,7 +3136,7 @@
       "_origin": "ast",
       "id": "app_src_lib_env_env",
       "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community_name": "client.ts",
       "norm_label": "env"
     },
     {
@@ -2879,8 +3146,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "score-training-play.data.ts"
     },
     {
@@ -2890,8 +3157,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_formatremaining",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "formatremaining()"
     },
     {
@@ -2901,8 +3168,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_computestats",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "computestats()"
     },
     {
@@ -2912,8 +3179,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_play_data_scoretrainingplay",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "scoretrainingplay()"
     },
     {
@@ -2934,8 +3201,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_lib_game_score_training_setup_data_scoretrainingsetup",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "scoretrainingsetup()"
     },
     {
@@ -2989,8 +3256,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_game_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3000,19 +3267,19 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingplaycontext",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "scoretrainingplaycontext"
     },
     {
       "label": "ScoreTrainingSetupContext",
       "file_type": "code",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L45",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "app_src_lib_game_types_scoretrainingsetupcontext",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "scoretrainingsetupcontext"
     },
     {
@@ -3022,8 +3289,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_id",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "id.ts"
     },
     {
@@ -3033,8 +3300,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_id_generateid",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "generateid()"
     },
     {
@@ -3044,8 +3311,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "docref_rfc_9562",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "rfc-9562"
     },
     {
@@ -3055,8 +3322,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "envelope.ts"
     },
     {
@@ -3066,8 +3333,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_json_headers",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "json_headers"
     },
     {
@@ -3078,7 +3345,7 @@
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_ok",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "ok()"
     },
     {
@@ -3089,7 +3356,7 @@
       "_origin": "ast",
       "id": "app_src_lib_server_envelope_fail",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "fail()"
     },
     {
@@ -3099,8 +3366,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_errors",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "errors.ts"
     },
     {
@@ -3110,8 +3377,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "app_src_lib_server_errors_error_http",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "error_http"
     },
     {
@@ -3122,7 +3389,7 @@
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "parse-json-body.ts"
     },
     {
@@ -3133,7 +3400,7 @@
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body_parsejsonbody",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "parsejsonbody()"
     },
     {
@@ -3144,7 +3411,7 @@
       "_origin": "ast",
       "id": "app_src_lib_server_parse_json_body_parseandvalidatebody",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "parseandvalidatebody()"
     },
     {
@@ -3154,8 +3421,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_server_types",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3165,8 +3432,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_server_types_errorcode",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errorcode"
     },
     {
@@ -3176,8 +3443,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_types",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3187,8 +3454,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "auth-routes.ts"
     },
     {
@@ -3198,8 +3465,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_public_pages",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "public_pages"
     },
     {
@@ -3209,8 +3476,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_normalizepath",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "normalizepath()"
     },
     {
@@ -3220,8 +3487,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_lib_utils_auth_routes_ispublicpage",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "ispublicpage()"
     },
     {
@@ -3231,8 +3498,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_is_nav_active_isnavactive",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "isnavactive()"
     },
     {
@@ -3242,8 +3509,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "route-class.ts"
     },
     {
@@ -3253,8 +3520,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_lib_utils_route_class_classifyroute",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "classifyroute()"
     },
     {
@@ -3264,8 +3531,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3275,8 +3542,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_lib_utils_types_routeclass",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "routeclass"
     },
     {
@@ -3286,8 +3553,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_middleware",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "middleware.ts"
     },
     {
@@ -3297,8 +3564,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_middleware_onrequest",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "onrequest()"
     },
     {
@@ -3308,8 +3575,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "score-training.engine.module.ts"
     },
     {
@@ -3319,8 +3586,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "scoretrainingengine"
     },
     {
@@ -3330,8 +3597,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_constructor",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3341,8 +3608,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".recordvisit()"
     },
     {
@@ -3352,8 +3619,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_iscomplete",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".iscomplete()"
     },
     {
@@ -3363,8 +3630,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currenttotal",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".currenttotal()"
     },
     {
@@ -3374,9 +3641,20 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_currentaverage",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": ".currentaverage()"
+    },
+    {
+      "label": ".undoLastVisit()",
+      "file_type": "code",
+      "source_file": "app/src/modules/game/score-training.engine.module.ts",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "app_src_modules_game_score_training_engine_module_scoretrainingengine_undolastvisit",
+      "community": 11,
+      "community_name": "relations.ts",
+      "norm_label": ".undolastvisit()"
     },
     {
       "label": "score-training.payload.module.ts",
@@ -3385,8 +3663,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "score-training.payload.module.ts"
     },
     {
@@ -3396,8 +3674,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_modules_game_score_training_payload_module_buildeventsbatch",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "buildeventsbatch()"
     },
     {
@@ -3407,8 +3685,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3418,8 +3696,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_game_types_scoretrainingengineoptions",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "scoretrainingengineoptions"
     },
     {
@@ -3429,8 +3707,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_modules_game_types_recordedvisit",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "recordedvisit"
     },
     {
@@ -3440,8 +3718,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_interfaces",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3451,8 +3729,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3462,8 +3740,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -3473,8 +3751,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_interfaces_segmenttimeroptions",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "segmenttimeroptions"
     },
     {
@@ -3484,8 +3762,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "segment-timer.module.ts"
     },
     {
@@ -3495,8 +3773,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "segmenttimer"
     },
     {
@@ -3506,8 +3784,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_constructor",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3517,8 +3795,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getaudiocontext",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".getaudiocontext()"
     },
     {
@@ -3528,8 +3806,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_playbeep",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".playbeep()"
     },
     {
@@ -3539,8 +3817,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_start",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".start()"
     },
     {
@@ -3550,8 +3828,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_stop",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".stop()"
     },
     {
@@ -3561,8 +3839,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_reset",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".reset()"
     },
     {
@@ -3572,8 +3850,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "app_src_modules_ui_segment_timer_module_segmenttimer_getremaining",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": ".getremaining()"
     },
     {
@@ -3584,7 +3862,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.ts"
     },
     {
@@ -3595,7 +3873,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_index_get",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "get()"
     },
     {
@@ -3605,8 +3883,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3616,8 +3894,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpreset",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "configurationpreset"
     },
     {
@@ -3627,8 +3905,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_pages_api_configuration_templates_types_configurationpresetdata",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 199,
+      "community_name": "sessions.ts",
       "norm_label": "configurationpresetdata"
     },
     {
@@ -3638,8 +3916,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "provision.ts"
     },
     {
@@ -3649,8 +3927,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_players_provision_post",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "post()"
     },
     {
@@ -3660,8 +3938,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3671,8 +3949,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequest",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayerrequest"
     },
     {
@@ -3682,8 +3960,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponse",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayerresponse"
     },
     {
@@ -3693,8 +3971,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerrequestinput",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayerrequestinput"
     },
     {
@@ -3704,8 +3982,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_pages_api_players_types_provisionplayerresponsedata",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "provisionplayerresponsedata"
     },
     {
@@ -3715,8 +3993,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "batch.ts"
     },
     {
@@ -3726,8 +4004,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_events_batch_post",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "post()"
     },
     {
@@ -3738,7 +4016,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.ts"
     },
     {
@@ -3749,7 +4027,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_sessionid_index_patch",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "patch()"
     },
     {
@@ -3760,7 +4038,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "active.ts"
     },
     {
@@ -3771,7 +4049,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_active_get",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "get()"
     },
     {
@@ -3781,8 +4059,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_index",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.ts"
     },
     {
@@ -3792,8 +4070,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_index_post",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "post()"
     },
     {
@@ -3804,7 +4082,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "types.ts"
     },
     {
@@ -3815,7 +4093,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_configinput",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "configinput"
     },
     {
@@ -3837,7 +4115,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionrequestinput",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "createsessionrequestinput"
     },
     {
@@ -3848,7 +4126,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_participantref",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "participantref"
     },
     {
@@ -3859,7 +4137,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionresponse",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "createsessionresponse"
     },
     {
@@ -3870,7 +4148,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_createsessionresponsedata",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "createsessionresponsedata"
     },
     {
@@ -3881,7 +4159,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_dartfact",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "dartfact"
     },
     {
@@ -3892,7 +4170,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_turnfact",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "turnfact"
     },
     {
@@ -3903,7 +4181,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_stagefact",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "stagefact"
     },
     {
@@ -3913,8 +4191,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_eventsbatchrequest",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 195,
+      "community_name": "env.ts",
       "norm_label": "eventsbatchrequest"
     },
     {
@@ -3925,7 +4203,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_eventsbatchrequestinput",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "eventsbatchrequestinput"
     },
     {
@@ -3936,7 +4214,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_stagefactinput",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "stagefactinput"
     },
     {
@@ -3947,7 +4225,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_turnfactinput",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "turnfactinput"
     },
     {
@@ -3958,7 +4236,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_dartfactinput",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "dartfactinput"
     },
     {
@@ -3969,7 +4247,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_batchwriteresponse",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "batchwriteresponse"
     },
     {
@@ -3980,7 +4258,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_batchwriteresponsedata",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "batchwriteresponsedata"
     },
     {
@@ -3991,7 +4269,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_updatesessionrequest",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "updatesessionrequest"
     },
     {
@@ -4002,7 +4280,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_updatesessionrequestinput",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "updatesessionrequestinput"
     },
     {
@@ -4013,7 +4291,7 @@
       "_origin": "ast",
       "id": "app_src_pages_api_sessions_types_sessionactive",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "sessionactive"
     },
     {
@@ -4034,8 +4312,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_api_types",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4045,8 +4323,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4056,8 +4334,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_score_training_play_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4067,8 +4345,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_games_score_training_setup_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4078,8 +4356,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4089,8 +4367,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_login_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4100,8 +4378,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_profile_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4111,8 +4389,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_pages_statistics_index",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "index.astro"
     },
     {
@@ -4122,8 +4400,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4133,8 +4411,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_provisionedplayer",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "provisionedplayer"
     },
     {
@@ -4144,8 +4422,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_gametyperulesetrow",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "gametyperulesetrow"
     },
     {
@@ -4155,8 +4433,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_configurationtemplaterow",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "configurationtemplaterow"
     },
     {
@@ -4166,8 +4444,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_sessionrow",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "sessionrow"
     },
     {
@@ -4177,8 +4455,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_idempotencyrecord",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "idempotencyrecord"
     },
     {
@@ -4188,8 +4466,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_createsessionrecordsinput",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "createsessionrecordsinput"
     },
     {
@@ -4199,8 +4477,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertstage",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "batchinsertstage"
     },
     {
@@ -4210,8 +4488,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertdart",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "batchinsertdart"
     },
     {
@@ -4221,8 +4499,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertturn",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "batchinsertturn"
     },
     {
@@ -4232,8 +4510,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_src_repositories_interfaces_batchinsertinput",
-      "community": 204,
-      "community_name": "interfaces.ts",
+      "community": 13,
+      "community_name": "Community 13",
       "norm_label": "batchinsertinput"
     },
     {
@@ -4243,8 +4521,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "player.repository.ts"
     },
     {
@@ -4254,8 +4532,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_db",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "db"
     },
     {
@@ -4265,8 +4543,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_repositories_player_repository_upsertplayerbyauthuserid",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "upsertplayerbyauthuserid()"
     },
     {
@@ -4299,7 +4577,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findgametypeandruleset",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findgametypeandruleset()"
     },
     {
@@ -4310,7 +4588,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findcapturemodeid",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findcapturemodeid()"
     },
     {
@@ -4321,7 +4599,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findinputmodeid",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findinputmodeid()"
     },
     {
@@ -4332,7 +4610,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findgamestatusid",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findgamestatusid()"
     },
     {
@@ -4343,7 +4621,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findparticipanttypeid",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findparticipanttypeid()"
     },
     {
@@ -4354,7 +4632,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findstagetypeidmap",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findstagetypeidmap()"
     },
     {
@@ -4365,7 +4643,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_finddartzoneidmap",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "finddartzoneidmap()"
     },
     {
@@ -4376,7 +4654,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findplayerdisplayname",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findplayerdisplayname()"
     },
     {
@@ -4387,7 +4665,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationtemplate",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findconfigurationtemplate()"
     },
     {
@@ -4398,7 +4676,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionrow",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findsessionrow()"
     },
     {
@@ -4409,7 +4687,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionconfiguration",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findsessionconfiguration()"
     },
     {
@@ -4420,7 +4698,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findsessionparticipantids",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findsessionparticipantids()"
     },
     {
@@ -4431,7 +4709,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_countturnsforsession",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "countturnsforsession()"
     },
     {
@@ -4442,7 +4720,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findidempotencyrecord",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "findidempotencyrecord()"
     },
     {
@@ -4453,7 +4731,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findactivesessions",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "findactivesessions()"
     },
     {
@@ -4464,7 +4742,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_findconfigurationpresets",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "findconfigurationpresets()"
     },
     {
@@ -4475,7 +4753,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertsessionrecords",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "insertsessionrecords()"
     },
     {
@@ -4485,8 +4763,8 @@
       "source_location": "L226",
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_insertbatchrecords",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "insertbatchrecords()"
     },
     {
@@ -4497,7 +4775,7 @@
       "_origin": "ast",
       "id": "app_src_repositories_session_repository_updatesessionstatusrecord",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "updatesessionstatusrecord()"
     },
     {
@@ -4508,7 +4786,7 @@
       "_origin": "ast",
       "id": "app_src_services_interfaces",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4518,8 +4796,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_player_service",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "player.service.ts"
     },
     {
@@ -4529,8 +4807,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_src_services_player_service_provisionplayer",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "provisionplayer()"
     },
     {
@@ -4541,7 +4819,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_interfaces",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "interfaces.ts"
     },
     {
@@ -4552,7 +4830,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_interfaces_rulesetvalidator",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "rulesetvalidator"
     },
     {
@@ -4563,7 +4841,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_interfaces_rulesetvalidator_validateconfig",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": ".validateconfig()"
     },
     {
@@ -4574,7 +4852,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_interfaces_rulesetvalidator_validatebatch",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": ".validatebatch()"
     },
     {
@@ -4585,7 +4863,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_registry",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "registry.ts"
     },
     {
@@ -4596,7 +4874,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_registry_registry",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "registry"
     },
     {
@@ -4606,8 +4884,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_src_services_rulesets_registry_getrulesetvalidator",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 196,
+      "community_name": "provision.ts",
       "norm_label": "getrulesetvalidator()"
     },
     {
@@ -4618,7 +4896,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_score_training_score_training_validator",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "score-training.validator.ts"
     },
     {
@@ -4629,7 +4907,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_score_training_score_training_validator_scoretrainingvalidator",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "scoretrainingvalidator"
     },
     {
@@ -4640,7 +4918,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_score_training_types",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4651,7 +4929,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_score_training_types_scoretrainingconfig",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "scoretrainingconfig"
     },
     {
@@ -4662,7 +4940,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_score_training_types_scoretrainingconfigdata",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "scoretrainingconfigdata"
     },
     {
@@ -4673,7 +4951,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_types",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4684,7 +4962,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_types_configvalidationresult",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "configvalidationresult"
     },
     {
@@ -4695,7 +4973,7 @@
       "_origin": "ast",
       "id": "app_src_services_rulesets_types_batchvalidationresult",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "batchvalidationresult"
     },
     {
@@ -4706,7 +4984,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "session.service.ts"
     },
     {
@@ -4717,7 +4995,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_createsession",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "createsession()"
     },
     {
@@ -4728,7 +5006,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_canonicalize",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "canonicalize()"
     },
     {
@@ -4739,7 +5017,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_hashbatchpayload",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "hashbatchpayload()"
     },
     {
@@ -4750,7 +5028,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_collectdartzonekeys",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "collectdartzonekeys()"
     },
     {
@@ -4761,7 +5039,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_validatebatchreferences",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "validatebatchreferences()"
     },
     {
@@ -4772,7 +5050,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_validatebatchordering",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "validatebatchordering()"
     },
     {
@@ -4783,7 +5061,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_resolvebatchstructure",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "resolvebatchstructure()"
     },
     {
@@ -4794,7 +5072,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_resolvebatchidmaps",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "resolvebatchidmaps()"
     },
     {
@@ -4804,8 +5082,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "app_src_services_session_service_buildbatchinsertpayload",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "buildbatchinsertpayload()"
     },
     {
@@ -4816,7 +5094,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_appendbatch",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "appendbatch()"
     },
     {
@@ -4827,7 +5105,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_terminal_targets",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "terminal_targets"
     },
     {
@@ -4838,7 +5116,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_updatesessionstatus",
       "community": 192,
-      "community_name": "sessions.ts",
+      "community_name": "id.ts",
       "norm_label": "updatesessionstatus()"
     },
     {
@@ -4849,7 +5127,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_listactivesessions",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "listactivesessions()"
     },
     {
@@ -4860,7 +5138,7 @@
       "_origin": "ast",
       "id": "app_src_services_session_service_listconfigurationpresets",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "listconfigurationpresets()"
     },
     {
@@ -4870,8 +5148,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_services_types",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4881,8 +5159,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "app_src_services_types_serviceresult",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "serviceresult"
     },
     {
@@ -4892,8 +5170,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_src_services_types_createsessionresult",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "createsessionresult"
     },
     {
@@ -4903,8 +5181,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "app_src_services_types_appendbatchresult",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "appendbatchresult"
     },
     {
@@ -4914,8 +5192,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_auth_store",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "auth.store.ts"
     },
     {
@@ -4925,8 +5203,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstatus",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "authstatus"
     },
     {
@@ -4936,8 +5214,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_hasactivesession",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "hasactivesession()"
     },
     {
@@ -4947,8 +5225,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "app_src_stores_auth_store_authstore",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "authstore()"
     },
     {
@@ -4958,8 +5236,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_game_store",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "game.store.ts"
     },
     {
@@ -4969,8 +5247,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "app_src_stores_game_store_gamestore",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "gamestore()"
     },
     {
@@ -4980,8 +5258,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4991,8 +5269,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_src_stores_types_gameconfigsnapshot",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "gameconfigsnapshot"
     },
     {
@@ -5002,8 +5280,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_src_stores_types_recordedturn",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "recordedturn"
     },
     {
@@ -5013,8 +5291,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_db_client_test",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "client.test.ts"
     },
     {
@@ -5024,8 +5302,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "app_tests_db_client_test_mockend",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "mockend"
     },
     {
@@ -5035,8 +5313,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "app_tests_db_client_test_mocktransaction",
-      "community": 67,
-      "community_name": "schema.ts",
+      "community": 203,
+      "community_name": "client.ts",
       "norm_label": "mocktransaction"
     },
     {
@@ -5046,8 +5324,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "login.data.test.ts"
     },
     {
@@ -5057,8 +5335,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_tests_lib_auth_login_data_test_constructor",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "constructor()"
     },
     {
@@ -5068,8 +5346,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_auth_logout_data_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "logout.data.test.ts"
     },
     {
@@ -5079,8 +5357,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_client_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "client.test.ts"
     },
     {
@@ -5090,8 +5368,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_configuration_templates_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "configuration-templates.test.ts"
     },
     {
@@ -5101,8 +5379,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_api_players_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 28,
+      "community_name": "Community 28",
       "norm_label": "players.test.ts"
     },
     {
@@ -5123,8 +5401,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_cn_test",
-      "community": 28,
-      "community_name": "Community 28",
+      "community": 202,
+      "community_name": "Non-Negotiable Rules",
       "norm_label": "cn.test.ts"
     },
     {
@@ -5134,8 +5412,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_client_errors_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5145,8 +5423,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "score-training-play.data.test.ts"
     },
     {
@@ -5156,8 +5434,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_segmenttimerinstances",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "segmenttimerinstances"
     },
     {
@@ -5167,20 +5445,31 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_gamestub",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "gamestub"
     },
     {
       "label": "makePlay()",
       "file_type": "code",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L345",
+      "source_location": "L354",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_play_data_test_makeplay",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 194,
+      "community_name": "relations.ts",
       "norm_label": "makeplay()"
+    },
+    {
+      "label": "makeAbandonPlay()",
+      "file_type": "code",
+      "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
+      "source_location": "L692",
+      "_origin": "ast",
+      "id": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
+      "community": 194,
+      "community_name": "relations.ts",
+      "norm_label": "makeabandonplay()"
     },
     {
       "label": "score-training-setup.data.test.ts",
@@ -5189,8 +5478,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "score-training-setup.data.test.ts"
     },
     {
@@ -5200,8 +5489,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_tests_lib_game_score_training_setup_data_test_createsetup",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 198,
+      "community_name": "client.ts",
       "norm_label": "createsetup()"
     },
     {
@@ -5222,8 +5511,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_lib_server_errors_test",
-      "community": 191,
-      "community_name": "session.service.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "errors.test.ts"
     },
     {
@@ -5234,7 +5523,7 @@
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_and_validate_body_test",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "parse-and-validate-body.test.ts"
     },
     {
@@ -5245,7 +5534,7 @@
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_and_validate_body_test_schema",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "schema"
     },
     {
@@ -5256,7 +5545,7 @@
       "_origin": "ast",
       "id": "app_tests_lib_server_parse_json_body_test",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "parse-json-body.test.ts"
     },
     {
@@ -5288,8 +5577,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_engine_module_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "score-training.engine.module.test.ts"
     },
     {
@@ -5299,8 +5588,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_game_score_training_payload_module_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 11,
+      "community_name": "relations.ts",
       "norm_label": "score-training.payload.module.test.ts"
     },
     {
@@ -5310,8 +5599,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_modules_ui_segment_timer_module_test",
-      "community": 39,
-      "community_name": "Community 39",
+      "community": 197,
+      "community_name": "players.ts",
       "norm_label": "segment-timer.module.test.ts"
     },
     {
@@ -5322,7 +5611,7 @@
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5333,7 +5622,7 @@
       "_origin": "ast",
       "id": "app_tests_pages_api_configuration_templates_index_test_makecontext",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5343,8 +5632,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_players_types_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 67,
+      "community_name": "schema.ts",
       "norm_label": "types.test.ts"
     },
     {
@@ -5354,8 +5643,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "batch.test.ts"
     },
     {
@@ -5365,8 +5654,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_makecontext",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5376,8 +5665,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_events_batch_test_validbatch",
-      "community": 193,
-      "community_name": "envelope.ts",
+      "community": 192,
+      "community_name": "id.ts",
       "norm_label": "validbatch"
     },
     {
@@ -5388,7 +5677,7 @@
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5399,7 +5688,7 @@
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_sessionid_index_test_makecontext",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5410,7 +5699,7 @@
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_active_test",
       "community": 193,
-      "community_name": "envelope.ts",
+      "community_name": "is-nav-active.ts",
       "norm_label": "active.test.ts"
     },
     {
@@ -5420,8 +5709,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "index.test.ts"
     },
     {
@@ -5431,8 +5720,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "app_tests_pages_api_sessions_index_test_makecontext",
-      "community": 192,
-      "community_name": "sessions.ts",
+      "community": 193,
+      "community_name": "is-nav-active.ts",
       "norm_label": "makecontext()"
     },
     {
@@ -5443,7 +5732,7 @@
       "_origin": "ast",
       "id": "app_tests_repositories_session_repository_test",
       "community": 201,
-      "community_name": "session.service.test.ts",
+      "community_name": "Safe Change Patterns",
       "norm_label": "session.repository.test.ts"
     },
     {
@@ -5454,7 +5743,7 @@
       "_origin": "ast",
       "id": "app_tests_repositories_session_repository_test_fakeselect",
       "community": 201,
-      "community_name": "session.service.test.ts",
+      "community_name": "Safe Change Patterns",
       "norm_label": "fakeselect()"
     },
     {
@@ -5476,7 +5765,7 @@
       "_origin": "ast",
       "id": "app_tests_services_rulesets_registry_test",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "registry.test.ts"
     },
     {
@@ -5487,7 +5776,7 @@
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "score-training.validator.test.ts"
     },
     {
@@ -5498,7 +5787,7 @@
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test_validconfig",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "validconfig"
     },
     {
@@ -5509,7 +5798,7 @@
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_score_training_validator_test_batchwithturns",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "batchwithturns()"
     },
     {
@@ -5520,7 +5809,7 @@
       "_origin": "ast",
       "id": "app_tests_services_rulesets_score_training_types_test",
       "community": 196,
-      "community_name": "types.ts",
+      "community_name": "provision.ts",
       "norm_label": "types.test.ts"
     },
     {
@@ -5531,7 +5820,7 @@
       "_origin": "ast",
       "id": "app_tests_services_session_service_test",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "session.service.test.ts"
     },
     {
@@ -5542,7 +5831,7 @@
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_inlinerequest",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "inlinerequest"
     },
     {
@@ -5553,7 +5842,7 @@
       "_origin": "ast",
       "id": "app_tests_services_session_service_test_samplebatch",
       "community": 195,
-      "community_name": "score-training-play.data.ts",
+      "community_name": "env.ts",
       "norm_label": "samplebatch()"
     },
     {
@@ -5574,8 +5863,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_auth_store_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "auth.store.test.ts"
     },
     {
@@ -5585,8 +5874,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "game.store.test.ts"
     },
     {
@@ -5596,8 +5885,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_createsharedaliaspersist",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "createsharedaliaspersist()"
     },
     {
@@ -5607,19 +5896,19 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_stubpersistfactory",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "stubpersistfactory()"
     },
     {
       "label": "as()",
       "file_type": "code",
       "source_file": "app/tests/stores/game.store.test.ts",
-      "source_location": "L90",
+      "source_location": "L109",
       "_origin": "ast",
       "id": "app_tests_stores_game_store_test_as",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "as()"
     },
     {
@@ -5629,8 +5918,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_auth_routes_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "auth-routes.test.ts"
     },
     {
@@ -5640,8 +5929,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tests_utils_route_class_test",
-      "community": 203,
-      "community_name": "score-training-play.data.test.ts",
+      "community": 208,
+      "community_name": "types.ts",
       "norm_label": "route-class.test.ts"
     },
     {
@@ -7477,7 +7766,7 @@
       "label": "Context & documentation system",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L127",
+      "source_location": "L130",
       "_origin": "ast",
       "id": "decisions_context_documentation_system",
       "community": 58,
@@ -7488,7 +7777,7 @@
       "label": "Deferred (open, not rejected)",
       "file_type": "document",
       "source_file": "DECISIONS.md",
-      "source_location": "L139",
+      "source_location": "L142",
       "_origin": "ast",
       "id": "decisions_deferred_open_not_rejected",
       "community": 58,
@@ -21169,10 +21458,21 @@
       "norm_label": "astro exception"
     },
     {
+      "label": "Alpine expression props (Astro components) <!-- 2026-07-21 -->",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
+      "source_location": "L179",
+      "_origin": "ast",
+      "id": "docs_architecture_07_frontend_03_alpine_patterns_alpine_expression_props_astro_components_2026_07_21",
+      "community": 32,
+      "community_name": "Community 32",
+      "norm_label": "alpine expression props (astro components) <!-- 2026-07-21 -->"
+    },
+    {
       "label": "`$persist` Scope",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L181",
+      "source_location": "L196",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_persist_scope",
       "community": 32,
@@ -21183,7 +21483,7 @@
       "label": "Recovery & Auto-Cleanup",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L201",
+      "source_location": "L216",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_recovery_auto_cleanup",
       "community": 32,
@@ -21194,7 +21494,7 @@
       "label": "Completed-Batch Outbox",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L217",
+      "source_location": "L232",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_completed_batch_outbox",
       "community": 32,
@@ -21205,7 +21505,7 @@
       "label": "Skeleton-First Hydration",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L236",
+      "source_location": "L251",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_skeleton_first_hydration",
       "community": 32,
@@ -21216,7 +21516,7 @@
       "label": "Anti-Patterns",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L249",
+      "source_location": "L264",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_anti_patterns",
       "community": 32,
@@ -21227,7 +21527,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L263",
+      "source_location": "L281",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_03_alpine_patterns_related_documents",
       "community": 32,
@@ -21458,7 +21758,7 @@
       "label": "Class Composition",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L66",
+      "source_location": "L67",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_class_composition",
       "community": 46,
@@ -21469,7 +21769,7 @@
       "label": "Slots",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L112",
+      "source_location": "L113",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_slots",
       "community": 46,
@@ -21480,7 +21780,7 @@
       "label": "Component Categories & When to Extract",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L121",
+      "source_location": "L122",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_component_categories_when_to_extract",
       "community": 46,
@@ -21491,7 +21791,7 @@
       "label": "Naming & File Conventions",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L136",
+      "source_location": "L137",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_naming_file_conventions",
       "community": 46,
@@ -21502,7 +21802,7 @@
       "label": "Anti-Patterns",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L145",
+      "source_location": "L146",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_anti_patterns",
       "community": 46,
@@ -21513,7 +21813,7 @@
       "label": "Implementation-phase note (deferred)",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L160",
+      "source_location": "L161",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_implementation_phase_note_deferred",
       "community": 46,
@@ -21524,7 +21824,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L172",
+      "source_location": "L173",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_05_astro_components_related_documents",
       "community": 46,
@@ -21678,7 +21978,7 @@
       "label": "Typography",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L70",
+      "source_location": "L72",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_typography",
       "community": 190,
@@ -21689,7 +21989,7 @@
       "label": "Spacing & layout",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_spacing_layout",
       "community": 190,
@@ -21700,7 +22000,7 @@
       "label": "Buttons",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L98",
+      "source_location": "L100",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_buttons",
       "community": 190,
@@ -21711,7 +22011,7 @@
       "label": "Surfaces & nesting",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L112",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_surfaces_nesting",
       "community": 190,
@@ -21722,7 +22022,7 @@
       "label": "Motion",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L119",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_motion",
       "community": 190,
@@ -21733,7 +22033,7 @@
       "label": "Interactivity",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L134",
+      "source_location": "L136",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_interactivity",
       "community": 190,
@@ -21744,7 +22044,7 @@
       "label": "Accessibility",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L145",
+      "source_location": "L147",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_accessibility",
       "community": 190,
@@ -21755,7 +22055,7 @@
       "label": "Anti-patterns",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L154",
+      "source_location": "L156",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_anti_patterns",
       "community": 190,
@@ -21766,7 +22066,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L169",
+      "source_location": "L171",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_07_style_guide_related_documents",
       "community": 190,
@@ -21843,7 +22143,7 @@
       "label": "3. Alpine entry",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L53",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry",
       "community": 33,
@@ -21854,7 +22154,7 @@
       "label": "4. Rendering",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L58",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering",
       "community": 33,
@@ -21865,7 +22165,7 @@
       "label": "5. File organization",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L63",
+      "source_location": "L66",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_5_file_organization",
       "community": 33,
@@ -21876,7 +22176,7 @@
       "label": "6. Import direction",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L68",
+      "source_location": "L71",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_6_import_direction",
       "community": 33,
@@ -21887,7 +22187,7 @@
       "label": "7. `$persist`",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L76",
+      "source_location": "L79",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_7_persist",
       "community": 33,
@@ -21898,7 +22198,7 @@
       "label": "8. Recovery",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L80",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_8_recovery",
       "community": 33,
@@ -21909,7 +22209,7 @@
       "label": "9. Types",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L84",
+      "source_location": "L87",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_9_types",
       "community": 33,
@@ -21920,7 +22220,7 @@
       "label": "10. Components (`.astro`)",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L88",
+      "source_location": "L91",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_10_components_astro",
       "community": 33,
@@ -21931,7 +22231,7 @@
       "label": "11. Test-driven development",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L92",
+      "source_location": "L95",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_11_test_driven_development",
       "community": 33,
@@ -21942,7 +22242,7 @@
       "label": "12. Styling",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L108",
+      "source_location": "L111",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_12_styling",
       "community": 33,
@@ -21953,7 +22253,7 @@
       "label": "Forbidden",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L114",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
       "community": 33,
@@ -21964,7 +22264,7 @@
       "label": "Pre-Completion Checklist",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L132",
+      "source_location": "L135",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
       "community": 33,
@@ -21975,7 +22275,7 @@
       "label": "Related Documents",
       "file_type": "document",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L148",
+      "source_location": "L152",
       "_origin": "ast",
       "id": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
       "community": 33,
@@ -26123,35 +26423,44 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "contains",
+      "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/forms/Button.astro",
-      "source_location": "L26",
+      "source_file": "app/src/components/layout/games/ContinueSessionModal.astro",
+      "source_location": "L9",
       "weight": 1.0,
-      "source": "app_src_components_forms_button",
-      "target": "app_src_components_forms_button_classname",
+      "source": "app_src_components_layout_games_continuesessionmodal",
+      "target": "app_src_components_forms_button",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/forms/Button.astro",
-      "source_location": "L18",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L12",
       "weight": 1.0,
-      "source": "app_src_components_forms_button",
-      "target": "app_src_lib_client_cn",
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_components_forms_button",
       "confidence_score": 1.0
     },
     {
-      "relation": "imports",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/SetupSessionForm.astro",
+      "source": "app_src_components_layout_games_setupsessionform",
+      "target": "app_src_components_forms_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/components/forms/Button.astro",
-      "source_location": "L18",
+      "source_file": "app/src/components/ui/ConfirmDialog.astro",
+      "source_location": "L44",
       "weight": 1.0,
-      "source": "app_src_components_forms_button",
-      "target": "app_src_lib_client_cn_cn",
+      "source": "app_src_components_ui_confirmdialog",
+      "target": "app_src_components_forms_button",
       "confidence_score": 1.0
     },
     {
@@ -26167,7 +26476,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L4",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_components_forms_button",
@@ -26196,6 +26505,16 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "app_src_components_forms_input",
+      "target": "app_src_components_forms_input_classname",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -26207,6 +26526,39 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "app_src_components_forms_input",
+      "target": "app_src_lib_client_cn_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/login/index.astro",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_pages_login_index",
+      "target": "app_src_components_forms_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_lib_client_cn",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -26214,6 +26566,17 @@
       "source_location": "L13",
       "weight": 1.0,
       "source": "app_src_components_layout_navbtn",
+      "target": "app_src_lib_client_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "app_src_components_ui_modal",
       "target": "app_src_lib_client_cn",
       "confidence_score": 1.0
     },
@@ -26236,49 +26599,6 @@
       "weight": 1.0,
       "source": "app_tests_lib_client_cn_test",
       "target": "app_src_lib_client_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L28",
-      "weight": 1.0,
-      "source": "app_src_components_forms_input",
-      "target": "app_src_components_forms_input_classname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L24",
-      "weight": 1.0,
-      "source": "app_src_components_forms_input",
-      "target": "app_src_lib_client_cn_cn",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "app_src_pages_games_score_training_play_index",
-      "target": "app_src_components_forms_input",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/login/index.astro",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "app_src_pages_login_index",
-      "target": "app_src_components_forms_input",
       "confidence_score": 1.0
     },
     {
@@ -26415,6 +26735,309 @@
       "weight": 1.0,
       "source": "app_src_lib_utils_is_nav_active",
       "target": "app_src_lib_utils_is_nav_active_isnavactive",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ContinueSessionModal.astro",
+      "source": "app_src_components_layout_games_continuesessionmodal",
+      "target": "app_src_components_ui_modal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/setup/index.astro",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_setup_index",
+      "target": "app_src_components_layout_games_continuesessionmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/ConfirmDialog.astro",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "app_src_components_ui_confirmdialog",
+      "target": "app_src_components_ui_modal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "app_src_components_ui_modal",
+      "target": "app_src_components_ui_modal_panelclass",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "app_src_components_ui_modal",
+      "target": "app_src_lib_client_cn_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ExitModal.astro",
+      "source": "app_src_components_layout_games_exitmodal",
+      "target": "app_src_components_ui_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/layouts/GameLayout.astro",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_layouts_gamelayout",
+      "target": "app_src_components_layout_games_exitmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_ui_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/GameCard.astro",
+      "source": "app_src_components_layout_games_gamecard",
+      "target": "app_src_components_ui_cardwrapper",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/GameCard.astro",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_gamecard",
+      "target": "users_levi_development_dart_analytics_app_src_icons_dart_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/index.astro",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_pages_games_index",
+      "target": "app_src_components_layout_games_gamecard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_src_components_ui_cardwrapper",
+      "target": "app_src_components_ui_cardwrapper_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_components_layout_games_inputbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_components_layout_games_scoreinput_numberrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_components_layout_games_scoreinput_rootclass",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "app_src_lib_client_cn_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "users_levi_development_dart_analytics_app_src_icons_delete_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/layout/games/ScoreInput.astro",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_src_components_layout_games_scoreinput",
+      "target": "users_levi_development_dart_analytics_app_src_icons_undo_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_layout_games_scoreinput",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/setup/index.astro",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_setup_index",
+      "target": "app_src_components_layout_games_setupsessionform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_layout_games_singleplayerdisplay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/IsLoading.astro",
+      "source": "app_src_components_ui_isloading",
+      "target": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_ui_isloading",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/setup/index.astro",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_setup_index",
+      "target": "app_src_components_ui_isloading",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/LogoutButton.astro",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_src_components_ui_logoutbutton",
+      "target": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/login/index.astro",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_src_pages_login_index",
+      "target": "users_levi_development_dart_analytics_app_src_icons_loading_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_components_ui_linkcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/components/ui/LogoutButton.astro",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_src_components_ui_logoutbutton",
+      "target": "users_levi_development_dart_analytics_app_src_icons_logout_svg",
       "confidence_score": 1.0
     },
     {
@@ -27917,20 +28540,9 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/src/pages/games/index.astro",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "app_src_pages_games_index",
-      "target": "app_src_layouts_applayout",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/pages/games/score-training/play/index.astro",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_layouts_applayout",
       "confidence_score": 1.0
     },
@@ -27983,15 +28595,15 @@
       "confidence": "EXTRACTED",
       "source_file": "app/src/layouts/BaseLayout.astro",
       "source": "app_src_layouts_baselayout",
-      "target": "users_levi_development_dart_analytics_app_src_components_ui_confirmationmodal_astro",
+      "target": "users_levi_development_dart_analytics_app_src_styles_global_css",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
-      "source_file": "app/src/layouts/BaseLayout.astro",
-      "source": "app_src_layouts_baselayout",
-      "target": "users_levi_development_dart_analytics_app_src_styles_global_css",
+      "source_file": "app/src/layouts/GameLayout.astro",
+      "source": "app_src_layouts_gamelayout",
+      "target": "app_src_layouts_baselayout",
       "confidence_score": 1.0
     },
     {
@@ -28003,6 +28615,28 @@
       "weight": 1.0,
       "source": "app_src_pages_login_index",
       "target": "app_src_layouts_baselayout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/layouts/GameLayout.astro",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_src_layouts_gamelayout",
+      "target": "users_levi_development_dart_analytics_app_src_icons_exit_svg",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/pages/games/score-training/play/index.astro",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_src_pages_games_score_training_play_index",
+      "target": "app_src_layouts_gamelayout",
       "confidence_score": 1.0
     },
     {
@@ -30110,7 +30744,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L347",
+      "source_location": "L694",
+      "weight": 1.0,
+      "source": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
+      "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
+      "source_location": "L356",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test_makeplay",
       "target": "app_src_lib_game_score_training_play_data_scoretrainingplay"
@@ -30312,7 +30957,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L45",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "app_src_lib_game_types",
       "target": "app_src_lib_game_types_scoretrainingsetupcontext",
@@ -31736,6 +32381,16 @@
       "weight": 1.0,
       "source": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
       "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine_recordvisit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/modules/game/score-training.engine.module.ts",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "app_src_modules_game_score_training_engine_module_scoretrainingengine",
+      "target": "app_src_modules_game_score_training_engine_module_scoretrainingengine_undolastvisit",
       "confidence_score": 1.0
     },
     {
@@ -35105,7 +35760,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_gamestub",
@@ -35115,7 +35770,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
-      "source_location": "L345",
+      "source_location": "L692",
+      "weight": 1.0,
+      "source": "app_tests_lib_game_score_training_play_data_test",
+      "target": "app_tests_lib_game_score_training_play_data_test_makeabandonplay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/tests/lib/game/score-training-play.data.test.ts",
+      "source_location": "L354",
       "weight": 1.0,
       "source": "app_tests_lib_game_score_training_play_data_test",
       "target": "app_tests_lib_game_score_training_play_data_test_makeplay",
@@ -35287,7 +35952,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/tests/stores/game.store.test.ts",
-      "source_location": "L90",
+      "source_location": "L109",
       "weight": 1.0,
       "source": "app_tests_stores_game_store_test",
       "target": "app_tests_stores_game_store_test_as",
@@ -36791,7 +37456,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_context_documentation_system",
@@ -36811,7 +37476,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DECISIONS.md",
-      "source_location": "L139",
+      "source_location": "L142",
       "weight": 1.0,
       "source": "decisions_architectural_decision_ledger",
       "target": "decisions_deferred_open_not_rejected",
@@ -48771,7 +49436,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L249",
+      "source_location": "L264",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_anti_patterns",
@@ -48791,7 +49456,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L217",
+      "source_location": "L232",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_completed_batch_outbox",
@@ -48841,7 +49506,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L181",
+      "source_location": "L196",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_persist_scope",
@@ -48861,7 +49526,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L201",
+      "source_location": "L216",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_recovery_auto_cleanup",
@@ -48871,7 +49536,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L263",
+      "source_location": "L281",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_related_documents",
@@ -48881,7 +49546,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
-      "source_location": "L236",
+      "source_location": "L251",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_skeleton_first_hydration",
@@ -48915,6 +49580,16 @@
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_03_alpine_patterns_binding_rules_non_negotiable",
       "target": "docs_architecture_07_frontend_03_alpine_patterns_alpine_v3_directive_syntax_mandatory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-Frontend/03-Alpine-Patterns.md",
+      "source_location": "L179",
+      "weight": 1.0,
+      "source": "docs_architecture_07_frontend_03_alpine_patterns_alpine_v3_directive_syntax_mandatory",
+      "target": "docs_architecture_07_frontend_03_alpine_patterns_alpine_expression_props_astro_components_2026_07_21",
       "confidence_score": 1.0
     },
     {
@@ -49071,7 +49746,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L145",
+      "source_location": "L146",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_anti_patterns",
@@ -49081,7 +49756,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L66",
+      "source_location": "L67",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_class_composition",
@@ -49091,7 +49766,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L121",
+      "source_location": "L122",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_component_categories_when_to_extract",
@@ -49121,7 +49796,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_implementation_phase_note_deferred",
@@ -49131,7 +49806,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L136",
+      "source_location": "L137",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_naming_file_conventions",
@@ -49161,7 +49836,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L172",
+      "source_location": "L173",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_related_documents",
@@ -49171,7 +49846,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/05-Astro-Components.md",
-      "source_location": "L112",
+      "source_location": "L113",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_05_astro_components",
       "target": "docs_architecture_07_frontend_05_astro_components_slots",
@@ -49241,7 +49916,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L145",
+      "source_location": "L147",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_accessibility",
@@ -49251,7 +49926,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L154",
+      "source_location": "L156",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_anti_patterns",
@@ -49261,7 +49936,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L98",
+      "source_location": "L100",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_buttons",
@@ -49281,7 +49956,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L134",
+      "source_location": "L136",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_interactivity",
@@ -49291,7 +49966,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L119",
+      "source_location": "L121",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_motion",
@@ -49321,7 +49996,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L169",
+      "source_location": "L171",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_related_documents",
@@ -49331,7 +50006,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_spacing_layout",
@@ -49341,7 +50016,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L112",
+      "source_location": "L114",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_surfaces_nesting",
@@ -49371,7 +50046,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/07-Style-Guide.md",
-      "source_location": "L70",
+      "source_location": "L72",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_07_style_guide",
       "target": "docs_architecture_07_frontend_07_style_guide_typography",
@@ -49381,7 +50056,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L114",
+      "source_location": "L117",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_forbidden",
@@ -49421,7 +50096,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L132",
+      "source_location": "L135",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_pre_completion_checklist",
@@ -49431,7 +50106,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L148",
+      "source_location": "L152",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_related_documents",
@@ -49441,7 +50116,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L88",
+      "source_location": "L91",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_10_components_astro",
@@ -49451,7 +50126,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L92",
+      "source_location": "L95",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_11_test_driven_development",
@@ -49461,7 +50136,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L108",
+      "source_location": "L111",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_12_styling",
@@ -49491,7 +50166,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L53",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_3_alpine_entry",
@@ -49501,7 +50176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L58",
+      "source_location": "L61",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_4_rendering",
@@ -49511,7 +50186,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L63",
+      "source_location": "L66",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_5_file_organization",
@@ -49521,7 +50196,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L68",
+      "source_location": "L71",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_6_import_direction",
@@ -49531,7 +50206,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L76",
+      "source_location": "L79",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_7_persist",
@@ -49541,7 +50216,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L80",
+      "source_location": "L83",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_8_recovery",
@@ -49551,7 +50226,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md",
-      "source_location": "L84",
+      "source_location": "L87",
       "weight": 1.0,
       "source": "docs_architecture_07_frontend_10_frontend_agent_guide_non_negotiable_rules",
       "target": "docs_architecture_07_frontend_10_frontend_agent_guide_9_types",
@@ -52019,5 +52694,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "11e0d6ac1ce29bca8868067447e13715a1328d94"
+  "built_at_commit": "53400ea58d2c5fd865d236f1a269b000b3bba691"
 }

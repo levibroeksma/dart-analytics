@@ -47,6 +47,7 @@ type GameStub = {
   timerExpired: boolean;
   idempotencyKey: string | null;
   recordTurn: (turn: RecordedTurn) => void;
+  undoLastTurn: () => void;
   reset: () => void;
 };
 
@@ -68,6 +69,9 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
       turn: RecordedTurn,
     ) {
       this.turns.push(turn);
+    }),
+    undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
+      this.turns = this.turns.slice(0, -1);
     }),
     reset: vi.fn(),
     ...overrides,
@@ -122,7 +126,12 @@ describe("scoreTrainingPlay", () => {
     await component.init.call(component);
     await component.submitVisit.call(component); // visit 1
     component.visitInput = "30";
-    await component.submitVisit.call(component); // visit 2 — completes
+    await component.submitVisit.call(component); // visit 2 — opens confirm
+    expect(component.showFinishConfirm).toBe(true);
+    expect(appendBatch).not.toHaveBeenCalled();
+
+    await component.confirmFinish.call(component);
+
     expect(appendBatch).toHaveBeenCalledTimes(1);
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(component.finished).toBe(true);
@@ -522,6 +531,9 @@ describe("scoreTrainingPlay", () => {
             ],
             idempotencyKey: null,
             recordTurn: vi.fn(),
+            undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
+              this.turns = this.turns.slice(0, -1);
+            }),
             reset: vi.fn(),
             ...gameOverrides,
           },
@@ -752,6 +764,7 @@ describe("scoreTrainingPlay", () => {
       await component.submitVisit.call(component);
       component.visitInput = "30";
       await component.submitVisit.call(component);
+      await component.confirmFinish.call(component);
       expect(component.finished).toBe(true);
       const turnCount = store.turns.length;
 
@@ -783,6 +796,7 @@ describe("scoreTrainingPlay", () => {
       await component.submitVisit.call(component);
       component.visitInput = "30";
       await component.submitVisit.call(component);
+      await component.confirmFinish.call(component);
 
       expect(component.finished).toBe(true);
       expect(
@@ -816,6 +830,7 @@ describe("scoreTrainingPlay", () => {
       await component.submitVisit.call(component);
       component.visitInput = "30";
       await component.submitVisit.call(component);
+      await component.confirmFinish.call(component);
       expect(component.completionStatus).toBe("failed");
       expect(component.finished).toBe(true);
       const turnCountBeforeRetry = store.turns.length;
@@ -827,6 +842,339 @@ describe("scoreTrainingPlay", () => {
       expect(store.idempotencyKey).toBe(keyAfterFailure);
       expect(component.completionStatus).toBe("succeeded");
       expect(store.reset).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("finish confirm gate", () => {
+    it("completing submitVisit stashes pending score and does not commit or upload", async () => {
+      const store = gameStub(); // durationValue: 2
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "30",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1
+      component.visitInput = "55";
+      await component.submitVisit.call(component); // would complete
+
+      expect(store.turns).toHaveLength(1);
+      expect(component.showFinishConfirm).toBe(true);
+      expect(component.pendingFinishScore).toBe(55);
+      expect(component.visitInput).toBe("");
+      expect(component.finished).toBe(false);
+      expect(appendBatch).not.toHaveBeenCalled();
+    });
+
+    it("cancelFinish restores visitInput and clears pending without committing", async () => {
+      const store = gameStub();
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "30",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.visitInput = "55";
+      await component.submitVisit.call(component);
+
+      component.cancelFinish();
+
+      expect(component.showFinishConfirm).toBe(false);
+      expect(component.pendingFinishScore).toBeNull();
+      expect(component.visitInput).toBe("55");
+      expect(store.turns).toHaveLength(1);
+      expect(component.finished).toBe(false);
+    });
+
+    it("confirmFinish commits pending, sets finished, and uploads", async () => {
+      const store = gameStub();
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "30",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.visitInput = "55";
+      await component.submitVisit.call(component);
+
+      await component.confirmFinish.call(component);
+
+      expect(store.turns).toHaveLength(2);
+      expect(store.turns[1].totalScore).toBe(55);
+      expect(component.showFinishConfirm).toBe(false);
+      expect(component.pendingFinishScore).toBeNull();
+      expect(component.finished).toBe(true);
+      expect(appendBatch).toHaveBeenCalledTimes(1);
+      expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+      expect(component.completionStatus).toBe("succeeded");
+    });
+
+    it("undoVisit is a no-op while finish confirm is open", async () => {
+      const store = gameStub();
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "30",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.visitInput = "55";
+      await component.submitVisit.call(component);
+      const turnsBefore = store.turns.length;
+
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(turnsBefore);
+    });
+  });
+
+  describe("abandonAndExit", () => {
+    function makeAbandonPlay(gameOverrides: Partial<GameStub> = {}) {
+      return {
+        ...scoreTrainingPlay(),
+        $store: { game: gameStub(gameOverrides) },
+      };
+    }
+
+    it("with turns: appendBatch then completeSession ABANDONED, reset, navigate /games", async () => {
+      const locationSpy = { href: "" };
+      vi.stubGlobal("location", locationSpy);
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 1, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "ABANDONED",
+        completedAt: "now",
+      });
+      const play = makeAbandonPlay({
+        turns: [
+          {
+            clientKey: "t1",
+            sequence: 1,
+            totalScore: 60,
+            completedAt: "2026-07-21T10:00:00Z",
+          },
+        ],
+      });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).toHaveBeenCalledTimes(1);
+      expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe("/games");
+    });
+
+    it("with zero turns: skips batch, PATCHes ABANDONED, reset, navigate", async () => {
+      const locationSpy = { href: "" };
+      vi.stubGlobal("location", locationSpy);
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "ABANDONED",
+        completedAt: "now",
+      });
+      const play = makeAbandonPlay({ turns: [] });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).not.toHaveBeenCalled();
+      expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe("/games");
+    });
+
+    it("ignores a second call while abandonLoading is true", async () => {
+      let resolveComplete!: (
+        v: Awaited<ReturnType<typeof completeSession>>,
+      ) => void;
+      vi.mocked(completeSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveComplete = resolve;
+          }),
+      );
+      const play = makeAbandonPlay();
+
+      const first = play.abandonAndExit.call(play);
+      const second = play.abandonAndExit.call(play);
+      expect(completeSession).toHaveBeenCalledTimes(1);
+
+      resolveComplete({
+        sessionId: "s1",
+        statusKey: "ABANDONED",
+        completedAt: "now",
+      });
+      await Promise.all([first, second]);
+      expect(completeSession).toHaveBeenCalledTimes(1);
+    });
+
+    it("sets error on PATCH failure and does not navigate or reset", async () => {
+      const locationSpy = { href: "/games/score-training/play" };
+      vi.stubGlobal("location", locationSpy);
+      vi.mocked(completeSession).mockRejectedValue(new Error("Network error"));
+      const play = makeAbandonPlay();
+
+      await play.abandonAndExit.call(play);
+
+      expect(play.error).toBe("Could not abandon session. Try again.");
+      expect(play.abandonLoading).toBe(false);
+      expect(play.$store.game.reset).not.toHaveBeenCalled();
+      expect(locationSpy.href).toBe("/games/score-training/play");
+    });
+
+    it("with no sessionId: reset and navigate without API calls", async () => {
+      const locationSpy = { href: "" };
+      vi.stubGlobal("location", locationSpy);
+      const play = makeAbandonPlay({ sessionId: null });
+
+      await play.abandonAndExit.call(play);
+
+      expect(appendBatch).not.toHaveBeenCalled();
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(play.$store.game.reset).toHaveBeenCalled();
+      expect(locationSpy.href).toBe("/games");
+    });
+  });
+
+  describe("keypad helpers + visitInput validation", () => {
+    it("appendDigit appends digits and rejects length > 3", () => {
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: gameStub() },
+      };
+      component.appendDigit(1);
+      component.appendDigit(8);
+      component.appendDigit(0);
+      expect(component.visitInput).toBe("180");
+      component.appendDigit(0);
+      expect(component.visitInput).toBe("180");
+    });
+
+    it('appendDigit replaces a lone "0" instead of prefixing', () => {
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: gameStub() },
+      };
+      component.appendDigit(0);
+      expect(component.visitInput).toBe("0");
+      component.appendDigit(5);
+      expect(component.visitInput).toBe("5");
+    });
+
+    it("deleteLast removes the last character; clearVisitInput empties", () => {
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: gameStub() },
+        visitInput: "45",
+      };
+      component.deleteLast();
+      expect(component.visitInput).toBe("4");
+      component.clearVisitInput();
+      expect(component.visitInput).toBe("");
+    });
+
+    it("submitVisit rejects non-integer / out-of-range and does not clear visitInput", async () => {
+      const store = gameStub();
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "999",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      expect(component.error).toBe("Enter a score between 0 and 180.");
+      expect(component.visitInput).toBe("999");
+      expect(store.recordTurn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("undoVisit", () => {
+    it("pops store + engine and clears visitInput; discards typed digits", async () => {
+      const store = gameStub({
+        configSnapshot: {
+          durationType: "ROUNDS",
+          durationValue: 20,
+          maxDartsPerTurn: 3,
+        },
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "45",
+      };
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      expect(store.turns).toHaveLength(1);
+
+      component.visitInput = "99";
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(0);
+      expect(store.undoLastTurn).toHaveBeenCalled();
+      expect(component.visitInput).toBe("");
+      expect(component.error).toBe("");
+    });
+
+    it("is a no-op when there are no turns", async () => {
+      const store = gameStub({
+        configSnapshot: {
+          durationType: "ROUNDS",
+          durationValue: 20,
+          maxDartsPerTurn: 3,
+        },
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store },
+        visitInput: "12",
+      };
+      await component.init.call(component);
+      component.undoVisit();
+      expect(store.undoLastTurn).not.toHaveBeenCalled();
+      expect(component.visitInput).toBe("12");
+    });
+
+    it("after resume undo, next visit sequence continues from remaining turns", async () => {
+      const store = gameStub({
+        configSnapshot: {
+          durationType: "ROUNDS",
+          durationValue: 20,
+          maxDartsPerTurn: 3,
+        },
+        turns: [
+          { clientKey: "t1", sequence: 1, totalScore: 40, completedAt: "x" },
+          { clientKey: "t2", sequence: 2, totalScore: 50, completedAt: "x" },
+        ],
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      // Engine was created with startingSequence=2 and empty visits — undoLastVisit returns false.
+      component.undoVisit();
+      expect(store.turns).toHaveLength(1);
+
+      component.visitInput = "60";
+      await component.submitVisit.call(component);
+      const last = store.turns[store.turns.length - 1];
+      expect(last.sequence).toBe(2);
     });
   });
 });

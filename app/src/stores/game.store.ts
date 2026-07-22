@@ -47,6 +47,11 @@ export function gameStore(persist: PersistFactory) {
       this.turns = [...this.turns, turn];
     },
 
+    undoLastTurn() {
+      if (this.turns.length === 0) return;
+      this.turns = this.turns.slice(0, -1);
+    },
+
     reset() {
       this.gameTypeKey = null;
       this.sessionId = null;

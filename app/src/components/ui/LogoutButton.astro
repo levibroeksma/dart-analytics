@@ -1,23 +1,27 @@
 ---
 // Components
 import Button from "@components/forms/Button.astro";
+
+// Icons
+import LogoutIcon from "@icons/logout.svg";
+import LoadingIcon from "@icons/loading.svg";
 ---
 
 <Button
   type="button"
-  variant="secondary"
+  variant="ghost"
   x-data="logoutButton()"
   @click="submit"
   :disabled="loading"
 >
-  <span
+  <LogoutIcon
     x-show="!loading"
     x-cloak
-    >Sign out</span
-  >
-  <span
+    class="size-6"
+  />
+  <LoadingIcon
     x-show="loading"
     x-cloak
-    >Signing out…</span
-  >
+    class="size-6"
+  />
 </Button>
