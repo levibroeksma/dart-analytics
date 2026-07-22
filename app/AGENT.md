@@ -119,3 +119,12 @@ Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.form.ts`
 - Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`
 
 Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
+
+**Style non-negotiables:**
+
+- Semantic tokens only — `surface` / `foreground` / `muted*` / `accent*` / states; never `bg-bg*` / `text-fg*` or raw palette utilities
+- Reuse primitives from `app/src/styles/global.css`; do not reinvent per screen
+- Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
+- Forward leftover attributes as `{...props}` — never `{...rest}`
+- Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
+- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props)

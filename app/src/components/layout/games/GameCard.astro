@@ -1,0 +1,27 @@
+---
+import CardWrapper from "@components/ui/CardWrapper.astro";
+import DartIcon from "@icons/dart.svg";
+
+interface Props {
+  href: string;
+  title: string;
+  caption: string;
+}
+
+const { href = "#", title, caption }: Props = Astro.props;
+---
+
+<CardWrapper
+  class="flex-row! justify-between items-center glass"
+  href={href}
+>
+  <div>
+    <h3 class="font-semibold text-base text-accent">
+      {title}
+    </h3>
+    <p class="text-xs text-muted-foreground">
+      {caption}
+    </p>
+  </div>
+  <DartIcon class="-rotate-45 size-8 text-accent" />
+</CardWrapper>

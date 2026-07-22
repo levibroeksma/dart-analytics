@@ -1,0 +1,51 @@
+---
+interface Props {
+  title: string;
+  description: string;
+}
+
+// Props
+const { title, description }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+---
+
+<div>
+  <h1 class="text-xl font-semibold text-foreground">{title}</h1>
+  <p class="text-sm text-muted-foreground">{description}</p>
+
+  <div class="mt-4 flex flex-col gap-2">
+    <template
+      x-for="preset in presets"
+      :key="preset.configurationTemplateId"
+    >
+      <label class="flex items-center gap-2">
+        <input
+          type="radio"
+          name="preset"
+          :value="preset.configurationTemplateId"
+          x-model="selectedTemplateId"
+        />
+        <span x-text="preset.name"></span>
+      </label>
+    </template>
+  </div>
+
+  <p
+    class="mt-2 text-sm text-error"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+
+  <div class="mt-4">
+    <Button
+      type="button"
+      :disabled="loading"
+      @click="start()"
+      title="Let's play"
+    />
+  </div>
+</div>

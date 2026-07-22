@@ -1,35 +1,63 @@
 ---
+/**
+ * Button with design-system variants.
+ * @param {"button"|"submit"|"reset"} [type]
+ * @param {"primary"|"secondary"|"ghost"|"error"} [variant]
+ * @param {boolean} [icon] Equal padding on all sides (icon-only / square hit area)
+ * @param {boolean} [disabled]
+ * @param {string} [ariaLabel] Accessible name (required for icon-only)
+ * @param {string} [class] Extra classes
+ */
 interface Props {
-  variant?: "primary" | "secondary" | "ghost";
   type?: "button" | "submit" | "reset";
+  title?: string;
+  variant?: "primary" | "secondary" | "ghost" | "error";
+  icon?: boolean;
+  disabled?: boolean;
+  ariaLabel?: string;
   class?: string;
   [key: string]: unknown;
 }
 
 // Props
 const {
-  variant = "primary",
   type = "button",
-  class: classNameProp,
-  ...rest
+  title,
+  variant = "primary",
+  icon = false,
+  disabled = false,
+  ariaLabel,
+  class: classNameProp = "",
+  ...props
 }: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
 
 // Styles
-const VARIANT_CLASS: Record<"primary" | "secondary" | "ghost", string> = {
-  primary: "btn-primary",
-  secondary: "btn-secondary",
-  ghost: "btn-ghost",
-};
-const className = cn("btn", VARIANT_CLASS[variant], classNameProp);
+const variantClasses = {
+  primary: "border-transparent bg-white text-black btn-primary",
+  secondary: "border-border text-foreground btn-secondary",
+  ghost: "text-muted-foreground btn-ghost",
+  error: "bg-error text-error-foreground btn-error",
+}[variant];
+
+const className = cn(
+  "btn inline-flex items-center justify-center gap-2 rounded-md border border-transparent text-sm font-semibold transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  variantClasses,
+  icon ? "p-2.5" : "px-4 py-2.5",
+  classNameProp,
+);
 ---
 
 <button
   type={type}
+  disabled={disabled}
+  aria-label={ariaLabel}
   class={className}
-  {...rest}
+  {...props}
 >
-  <slot />
+  <slot name="iconBefore" />
+  {title}
+  <slot name="iconAfter" />
 </button>

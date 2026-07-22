@@ -1,0 +1,55 @@
+---
+/**
+ * Elevated card with a soft top-lit wash (override via `gradient`).
+ * @param {string} [title]
+ * @param {string} [eyebrow] Small label above the title
+ * @param {string} [gradient] Custom CSS background value for `--gradient-card-bg`
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  title?: string;
+  eyebrow?: string;
+  gradient?: string;
+  class?: string;
+}
+
+// Props
+const {
+  title,
+  eyebrow,
+  gradient,
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("gradient-card rounded-xl p-6 sm:p-8", classNameProp);
+---
+
+<article
+  class={className}
+  style={gradient ? `--gradient-card-bg: ${gradient}` : undefined}
+>
+  {
+    (eyebrow || title) && (
+      <header class="mb-5 space-y-1">
+        {eyebrow && (
+          <p class="text-xs font-semibold uppercase tracking-widest text-muted">
+            {eyebrow}
+          </p>
+        )}
+        {title && <h3>{title}</h3>}
+      </header>
+    )
+  }
+  <slot />
+  {
+    Astro.slots.has("footer") && (
+      <footer class="mt-6 flex flex-wrap items-center gap-3">
+        <slot name="footer" />
+      </footer>
+    )
+  }
+</article>

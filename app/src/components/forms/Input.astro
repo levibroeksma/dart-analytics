@@ -17,7 +17,7 @@ const {
   id,
   autocomplete,
   class: classNameProp,
-  ...rest
+  ...props
 }: Props = Astro.props;
 
 // Lib
@@ -30,7 +30,7 @@ const className = cn("input", classNameProp);
 
 <label
   for={inputId}
-  class="text-sm text-fg-muted"
+  class="text-sm text-muted-foreground"
   >{label}</label
 >
 <input
@@ -39,5 +39,5 @@ const className = cn("input", classNameProp);
   type={type}
   autocomplete={autocomplete}
   class={className}
-  {...rest}
+  {...props}
 />

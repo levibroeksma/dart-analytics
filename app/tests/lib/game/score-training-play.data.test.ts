@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -97,11 +97,8 @@ describe("scoreTrainingPlay", () => {
 
   it("records a visit and does not complete before durationValue visits", async () => {
     const store = gameStub();
-    const component = {
-      ...scoreTrainingPlay(),
-      $store: { game: store },
-      visitInput: "45",
-    };
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    component.scoreInput.setValue("45");
     await component.init.call(component);
     await component.submitVisit.call(component);
     expect(store.recordTurn).toHaveBeenCalledTimes(1);
@@ -118,14 +115,11 @@ describe("scoreTrainingPlay", () => {
       statusKey: "COMPLETED",
       completedAt: "now",
     });
-    const component = {
-      ...scoreTrainingPlay(),
-      $store: { game: store },
-      visitInput: "30",
-    };
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    component.scoreInput.setValue("30");
     await component.init.call(component);
     await component.submitVisit.call(component); // visit 1
-    component.visitInput = "30";
+    component.scoreInput.setValue("30");
     await component.submitVisit.call(component); // visit 2 — opens confirm
     expect(component.showFinishConfirm).toBe(true);
     expect(appendBatch).not.toHaveBeenCalled();
@@ -304,11 +298,8 @@ describe("scoreTrainingPlay", () => {
     it("sets hasActiveSession to false and does not crash on submitVisit when no session matches", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([]);
       const store = gameStub({ sessionId: null, configSnapshot: null });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "45",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("45");
       await component.init.call(component);
       expect(component.hasActiveSession).toBe(false);
 
@@ -494,11 +485,8 @@ describe("scoreTrainingPlay", () => {
         },
         turns: existingTurns,
       });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
       const lastTurn = store.turns[store.turns.length - 1];
@@ -747,11 +735,8 @@ describe("scoreTrainingPlay", () => {
 
     it("submitVisit is a no-op when finished is already true", async () => {
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       vi.mocked(appendBatch).mockResolvedValue({
         created: { stages: 1, turns: 2, darts: 0 },
       });
@@ -762,13 +747,13 @@ describe("scoreTrainingPlay", () => {
       });
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "30";
+      component.scoreInput.setValue("30");
       await component.submitVisit.call(component);
       await component.confirmFinish.call(component);
       expect(component.finished).toBe(true);
       const turnCount = store.turns.length;
 
-      component.visitInput = "99";
+      component.scoreInput.setValue("99");
       await component.submitVisit.call(component);
 
       expect(store.turns).toHaveLength(turnCount);
@@ -777,11 +762,8 @@ describe("scoreTrainingPlay", () => {
 
     it("sets finished and completionStatus pending on final visit before upload settles", async () => {
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       let statusDuringUpload: string | null = null;
       vi.mocked(appendBatch).mockImplementation(async () => {
         statusDuringUpload = component.completionStatus;
@@ -794,7 +776,7 @@ describe("scoreTrainingPlay", () => {
       });
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "30";
+      component.scoreInput.setValue("30");
       await component.submitVisit.call(component);
       await component.confirmFinish.call(component);
 
@@ -821,14 +803,11 @@ describe("scoreTrainingPlay", () => {
         completedAt: "now",
       });
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "30";
+      component.scoreInput.setValue("30");
       await component.submitVisit.call(component);
       await component.confirmFinish.call(component);
       expect(component.completionStatus).toBe("failed");
@@ -856,41 +835,35 @@ describe("scoreTrainingPlay", () => {
         statusKey: "COMPLETED",
         completedAt: "now",
       });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component); // visit 1
-      component.visitInput = "55";
+      component.scoreInput.setValue("55");
       await component.submitVisit.call(component); // would complete
 
       expect(store.turns).toHaveLength(1);
       expect(component.showFinishConfirm).toBe(true);
       expect(component.pendingFinishScore).toBe(55);
-      expect(component.visitInput).toBe("");
+      expect(component.scoreInput.value).toBe("");
       expect(component.finished).toBe(false);
       expect(appendBatch).not.toHaveBeenCalled();
     });
 
-    it("cancelFinish restores visitInput and clears pending without committing", async () => {
+    it("cancelFinish restores scoreInput and clears pending without committing", async () => {
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "55";
+      component.scoreInput.setValue("55");
       await component.submitVisit.call(component);
 
       component.cancelFinish();
 
       expect(component.showFinishConfirm).toBe(false);
       expect(component.pendingFinishScore).toBeNull();
-      expect(component.visitInput).toBe("55");
+      expect(component.scoreInput.value).toBe("55");
       expect(store.turns).toHaveLength(1);
       expect(component.finished).toBe(false);
     });
@@ -905,14 +878,11 @@ describe("scoreTrainingPlay", () => {
         statusKey: "COMPLETED",
         completedAt: "now",
       });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "55";
+      component.scoreInput.setValue("55");
       await component.submitVisit.call(component);
 
       await component.confirmFinish.call(component);
@@ -929,14 +899,11 @@ describe("scoreTrainingPlay", () => {
 
     it("undoVisit is a no-op while finish confirm is open", async () => {
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "30",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
-      component.visitInput = "55";
+      component.scoreInput.setValue("55");
       await component.submitVisit.call(component);
       const turnsBefore = store.turns.length;
 
@@ -1056,59 +1023,67 @@ describe("scoreTrainingPlay", () => {
   });
 
   describe("keypad helpers + visitInput validation", () => {
-    it("appendDigit appends digits and rejects length > 3", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("scoreInput appends digits and rejects length > 3", () => {
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: gameStub() },
       };
-      component.appendDigit(1);
-      component.appendDigit(8);
-      component.appendDigit(0);
-      expect(component.visitInput).toBe("180");
-      component.appendDigit(0);
-      expect(component.visitInput).toBe("180");
+      component.scoreInput.appendDigit(1);
+      vi.advanceTimersByTime(41);
+      component.scoreInput.appendDigit(8);
+      vi.advanceTimersByTime(41);
+      component.scoreInput.appendDigit(0);
+      expect(component.scoreInput.value).toBe("180");
+      component.scoreInput.appendDigit(0);
+      expect(component.scoreInput.value).toBe("180");
     });
 
-    it('appendDigit replaces a lone "0" instead of prefixing', () => {
+    it('scoreInput replaces a lone "0" instead of prefixing', () => {
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: gameStub() },
       };
-      component.appendDigit(0);
-      expect(component.visitInput).toBe("0");
-      component.appendDigit(5);
-      expect(component.visitInput).toBe("5");
+      component.scoreInput.appendDigit(0);
+      expect(component.scoreInput.value).toBe("0");
+      vi.advanceTimersByTime(41);
+      component.scoreInput.appendDigit(5);
+      expect(component.scoreInput.value).toBe("5");
     });
 
-    it("deleteLast removes the last character; clearVisitInput empties", () => {
+    it("scoreInput deleteLast / clear work for play composition", () => {
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: gameStub() },
-        visitInput: "45",
       };
-      component.deleteLast();
-      expect(component.visitInput).toBe("4");
-      component.clearVisitInput();
-      expect(component.visitInput).toBe("");
+      component.scoreInput.setValue("45");
+      component.scoreInput.deleteLast({ detail: 1 });
+      expect(component.scoreInput.value).toBe("4");
+      component.scoreInput.clear();
+      expect(component.scoreInput.value).toBe("");
     });
 
-    it("submitVisit rejects non-integer / out-of-range and does not clear visitInput", async () => {
+    it("submitVisit rejects non-integer / out-of-range and does not clear scoreInput", async () => {
+      vi.useRealTimers();
       const store = gameStub();
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "999",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("999");
       await component.init.call(component);
       await component.submitVisit.call(component);
       expect(component.error).toBe("Enter a score between 0 and 180.");
-      expect(component.visitInput).toBe("999");
+      expect(component.scoreInput.value).toBe("999");
       expect(store.recordTurn).not.toHaveBeenCalled();
     });
   });
 
   describe("undoVisit", () => {
-    it("pops store + engine and clears visitInput; discards typed digits", async () => {
+    it("pops store + engine and clears scoreInput; discards typed digits", async () => {
       const store = gameStub({
         configSnapshot: {
           durationType: "ROUNDS",
@@ -1116,21 +1091,18 @@ describe("scoreTrainingPlay", () => {
           maxDartsPerTurn: 3,
         },
       });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "45",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("45");
       await component.init.call(component);
       await component.submitVisit.call(component);
       expect(store.turns).toHaveLength(1);
 
-      component.visitInput = "99";
+      component.scoreInput.setValue("99");
       component.undoVisit();
 
       expect(store.turns).toHaveLength(0);
       expect(store.undoLastTurn).toHaveBeenCalled();
-      expect(component.visitInput).toBe("");
+      expect(component.scoreInput.value).toBe("");
       expect(component.error).toBe("");
     });
 
@@ -1142,15 +1114,12 @@ describe("scoreTrainingPlay", () => {
           maxDartsPerTurn: 3,
         },
       });
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store },
-        visitInput: "12",
-      };
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("12");
       await component.init.call(component);
       component.undoVisit();
       expect(store.undoLastTurn).not.toHaveBeenCalled();
-      expect(component.visitInput).toBe("12");
+      expect(component.scoreInput.value).toBe("12");
     });
 
     it("after resume undo, next visit sequence continues from remaining turns", async () => {
@@ -1171,7 +1140,7 @@ describe("scoreTrainingPlay", () => {
       component.undoVisit();
       expect(store.turns).toHaveLength(1);
 
-      component.visitInput = "60";
+      component.scoreInput.setValue("60");
       await component.submitVisit.call(component);
       const last = store.turns[store.turns.length - 1];
       expect(last.sequence).toBe(2);

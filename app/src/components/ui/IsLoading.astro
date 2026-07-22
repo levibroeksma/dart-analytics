@@ -1,0 +1,18 @@
+---
+import LoaderIcon from "@icons/loading.svg";
+
+interface Props {
+  title?: string;
+  [key: string]: unknown;
+}
+
+const { title = "Loading...", ...props } = Astro.props;
+---
+
+<div
+  class="min-h-32 flex flex-col items-center justify-center gap-2"
+  {...props}
+>
+  <LoaderIcon class="size-8 text-foreground animate-spin" />
+  <p class="text-lg text-foreground">{title}</p>
+</div>

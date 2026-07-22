@@ -3,6 +3,8 @@ export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
+import SetupSessionForm from "@components/layout/games/SetupSessionForm.astro";
+import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
 <AppLayout title="Score Training — Setup">
@@ -10,82 +12,36 @@ import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.
     class="p-4"
     x-data="scoreTrainingSetup()"
   >
-    {/* Active Session Modal Overlay (match case only) */}
     <template x-if="showActiveSessionModal && activeSession">
       <ContinueSessionModal />
     </template>
 
-    {
-      /* Reconciliation blocked: auto-abandon PATCH failed — do NOT show the picker.
-        Guarded on !loadingReconciliation so this doesn't render alongside the
-        loading block below during a retryReconciliation() call. */
-    }
     <template x-if="reconciliationFailed && !loadingReconciliation">
-      <div class="text-center py-8">
-        <p class="text-sm text-red-500">
+      <div
+        class="text-center py-8 bg-destructive/10 rounded-lg p-4 border border-destructive/20"
+      >
+        <p class="text-sm text-error">
           Could not clean up a previous session. Retry to continue.
         </p>
         <Button
-          type="button"
           class="mt-4"
           @click="retryReconciliation()"
-        >
-          Retry
-        </Button>
+          title="Retry"
+        />
       </div>
     </template>
 
-    {
-      /* Preset Picker (shown only when reconciliation is clear and not blocked) */
-    }
     <template
       x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
     >
-      <div>
-        <h1 class="text-xl font-semibold text-fg">Score Training</h1>
-        <p class="text-sm text-fg-muted">Pick a preset, then start.</p>
-
-        <div class="mt-4 flex flex-col gap-2">
-          <template
-            x-for="preset in presets"
-            :key="preset.configurationTemplateId"
-          >
-            <label class="flex items-center gap-2">
-              <input
-                type="radio"
-                name="preset"
-                :value="preset.configurationTemplateId"
-                x-model="selectedTemplateId"
-              />
-              <span x-text="preset.name"></span>
-            </label>
-          </template>
-        </div>
-
-        <p
-          class="mt-2 text-sm text-red-500"
-          x-show="error"
-          x-cloak
-          x-text="error"
-        >
-        </p>
-
-        <div class="mt-4">
-          <Button
-            type="button"
-            :disabled="loading"
-            @click="start()"
-            >Start</Button
-          >
-        </div>
-      </div>
+      <SetupSessionForm
+        title="Score Training"
+        description="Pick you're desired configuration, then, let's play."
+      />
     </template>
 
-    {/* Loading state during reconciliation */}
     <template x-if="loadingReconciliation">
-      <div class="text-center py-8">
-        <p class="text-sm text-fg-muted">Loading...</p>
-      </div>
+      <IsLoading title="Configuring your session..." />
     </template>
   </div>
 </AppLayout>

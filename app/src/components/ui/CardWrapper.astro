@@ -1,0 +1,89 @@
+---
+/**
+ * Colored tool/extension card wrapper (Raycast store cards).
+ * @param {string} [href] When set, renders as an anchor
+ * @param {string} [title]
+ * @param {string} [description]
+ * @param {string} [color] CSS color for the tint (named Tailwind-like or any CSS color)
+ * @param {boolean} [external]
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  href?: string;
+  title?: string;
+  description?: string;
+  color?: string;
+  external?: boolean;
+  class?: string;
+}
+
+// Props
+const {
+  href,
+  title,
+  description,
+  color = "sky",
+  external = false,
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const tintPresets: Record<string, string> = {
+  sky: "oklch(68.5% 0.169 237.323)",
+  violet: "oklch(45% 0.18 280)",
+  rose: "oklch(55% 0.2 15)",
+  emerald: "oklch(65% 0.17 155)",
+  amber: "oklch(75% 0.15 75)",
+  orange: "oklch(70% 0.18 50)",
+  fuchsia: "oklch(55% 0.22 330)",
+  blue: "oklch(55% 0.2 255)",
+};
+
+const tint = tintPresets[color] ?? color;
+const Tag = href ? "a" : "div";
+
+const className = cn(
+  "card-wrapper flex flex-col overflow-hidden rounded-2xl p-5 no-underline text-inherit",
+  href && "cursor-pointer",
+  classNameProp,
+);
+---
+
+<Tag
+  href={href}
+  target={href && external ? "_blank" : undefined}
+  rel={href && external ? "noopener noreferrer" : undefined}
+  style={`--card-tint: ${tint}`}
+  class={className}
+>
+  {
+    Astro.slots.has("media") && (
+      <div class="mb-4 overflow-hidden rounded-xl">
+        <slot name="media" />
+      </div>
+    )
+  }
+
+  {
+    Astro.slots.has("icon") && (
+      <span class="mb-3 flex size-10 items-center justify-center rounded-lg bg-black/25 text-foreground">
+        <slot name="icon" />
+      </span>
+    )
+  }
+
+  {title && <h4 class="text-lg">{title}</h4>}
+
+  {
+    description && (
+      <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    )
+  }
+
+  <slot />
+</Tag>

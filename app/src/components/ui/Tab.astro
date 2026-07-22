@@ -1,0 +1,36 @@
+---
+/**
+ * Individual tab trigger button for Tabs.
+ * @param {string} id Tab button id
+ * @param {string} controls Id of the panel this tab opens
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  id: string;
+  controls: string;
+  class?: string;
+}
+
+// Props
+const { id, controls, class: classNameProp = "" }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "tab rounded-sm px-4 py-2 text-sm font-semibold text-muted-foreground transition-[color,background-color,box-shadow] duration-150",
+  classNameProp,
+);
+---
+
+<button
+  role="tab"
+  id={id}
+  aria-controls={controls}
+  class={className}
+  :aria-selected={`activeTab === '${id}'`}
+  @click={`activeTab = '${id}'`}
+>
+  <slot />
+</button>

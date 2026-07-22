@@ -1,0 +1,68 @@
+---
+/**
+ * Styled anchor for text and button-like links.
+ * @param {string} href Destination URL
+ * @param {string} [title] Visible label text
+ * @param {"inline"|"primary"|"secondary"|"ghost"} [variant]
+ * @param {boolean} [external] Opens in a new tab with noopener
+ * @param {boolean} [icon] Icon-only square control
+ * @param {string} [ariaLabel] Accessible name (required for icon-only)
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  href: string;
+  title?: string;
+  variant?: "inline" | "primary" | "secondary" | "ghost";
+  external?: boolean;
+  icon?: boolean;
+  ariaLabel?: string;
+  class?: string;
+}
+
+// Props
+const {
+  href,
+  title,
+  variant = "inline",
+  external = false,
+  icon = false,
+  ariaLabel,
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+const isText = variant === "inline" || variant === "ghost";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const variantClasses = {
+  inline: "text-sm text-accent no-underline hover:text-accent-hover",
+  primary: "border-transparent bg-white text-black btn-primary no-underline",
+  secondary:
+    "border-border text-foreground btn-secondary no-underline hover:text-foreground",
+  ghost: "text-sm text-muted-foreground no-underline hover:text-foreground",
+}[variant];
+
+const className = cn(
+  "inline-flex items-center justify-center gap-2 transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  !isText && "btn rounded-md border border-transparent text-sm font-semibold",
+  !isText && (icon ? "p-2.5" : "px-4 py-2.5"),
+  isText && "font-semibold",
+  variantClasses,
+  classNameProp,
+);
+---
+
+<a
+  href={href}
+  aria-label={ariaLabel}
+  target={external ? "_blank" : undefined}
+  rel={external ? "noopener noreferrer" : undefined}
+  class={className}
+>
+  <slot name="iconBefore" />
+  {title}
+  <slot />
+  <slot name="iconAfter" />
+</a>

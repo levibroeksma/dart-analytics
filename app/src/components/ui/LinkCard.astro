@@ -1,0 +1,80 @@
+---
+/**
+ * Community-style link card (Raycast Slack / X cards).
+ * @param {string} href
+ * @param {string} title
+ * @param {string} [meta] e.g. "37k members"
+ * @param {string} [description]
+ * @param {string} [cta] Call-to-action label
+ * @param {boolean} [external]
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  href: string;
+  title: string;
+  meta?: string;
+  description?: string;
+  cta?: string;
+  external?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  href,
+  title,
+  meta,
+  description,
+  cta = "Learn more",
+  external = false,
+  class: classNameProp = "",
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "link-card group flex flex-col rounded-lg p-6 no-underline text-inherit",
+  classNameProp,
+);
+---
+
+<div {...props}>
+  <a
+    href={href}
+    target={external ? "_blank" : undefined}
+    rel={external ? "noopener noreferrer" : undefined}
+    class={className}
+  >
+    <div class="flex items-start gap-3">
+      {
+        Astro.slots.has("icon") && (
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-white/5 text-foreground">
+            <slot name="icon" />
+          </span>
+        )
+      }
+      <div class="min-w-0 space-y-0.5">
+        <p class="text-base font-semibold text-foreground">{title}</p>
+        {meta && <p class="text-xs text-muted">{meta}</p>}
+      </div>
+    </div>
+
+    {
+      description && (
+        <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      )
+    }
+
+    <span
+      class="mt-auto pt-4 text-sm font-semibold text-accent transition-colors duration-150 group-hover:text-accent-hover"
+    >
+      {cta} →
+    </span>
+  </a>
+</div>

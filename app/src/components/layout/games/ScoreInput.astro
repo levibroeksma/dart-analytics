@@ -1,17 +1,41 @@
 ---
+/**
+ * Reusable visit-score keypad shell. Parent supplies Alpine expressions and owns
+ * ScoreInputBuffer (or equivalent) + submit/undo game rules.
+ */
 interface Props {
-  click?: string;
+  value: string;
+  digitHandler: string;
+  onDelete: string;
+  onSubmit: string;
+  submitDisabled?: string;
+  padDisabled?: string;
+  undoClick?: string;
+  undoDisabled?: string;
   class?: string;
 }
 
 // Props
-const { click = "submitVisit()", class: classNameProp }: Props = Astro.props;
+const {
+  value,
+  digitHandler,
+  onDelete,
+  onSubmit,
+  submitDisabled = `!${value}`,
+  padDisabled,
+  undoClick,
+  undoDisabled = "true",
+  class: classNameProp,
+}: Props = Astro.props;
 
 // Components
 import InputButton from "./InputButton.astro";
+import Button from "@components/forms/Button.astro";
+
 // Icons
 import DeleteIcon from "@icons/delete.svg";
 import UndoIcon from "@icons/undo.svg";
+
 // Lib
 import { cn } from "@client/cn";
 
@@ -23,55 +47,83 @@ const numberRows = [
 ];
 
 // Styles
-const rootClass = cn("flex flex-1 flex-col gap-3 p-2", classNameProp);
+const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
 ---
 
 <div class={rootClass}>
   <div class="flex items-center gap-3">
     <div
-      class="surface-elevated flex min-h-11 flex-1 items-center justify-center rounded-lg px-4"
+      class="border border-border bg-surface-overlay flex min-h-11 flex-1 items-center justify-center rounded-lg px-4 w-1/2"
     >
       <span
-        class="text-4xl font-mono font-bold tabular-nums"
-        :class="!visitInput && 'text-fg-subtle'"
-        x-text="visitInput || '0'"
+        class="text-4xl font-mono font-bold tabular-nums py-1.5"
+        :class={`!${value} && 'text-muted-foreground'`}
+        x-text={`${value} || '0'`}
       ></span>
     </div>
-    <button
+    <Button
       type="button"
-      class="btn btn-primary shrink-0 rounded-md px-5 disabled:pointer-events-none disabled:opacity-40"
-      :disabled="!visitInput || showFinishConfirm || finished"
-      @click={click}
-    >
-      Submit
-    </button>
+      variant="primary"
+      title="Submit"
+      class="w-1/2 h-full"
+      {...{ ":disabled": submitDisabled, "x-on:click": onSubmit }}
+    />
   </div>
 
-  <div class="surface flex flex-1 flex-col gap-1.5 p-3 w-full">
+  <div
+    class="rounded-lg border border-border bg-surface-raised grid h-full w-full divide-y divide-border"
+  >
     {
       numberRows.map((row) => (
-        <div class="flex gap-1.5 w-full">
-          {row.map((value) => (
-            <InputButton @click={`appendDigit(${value})`}>{value}</InputButton>
+        <div class="flex w-full divide-x divide-border">
+          {row.map((digit) => (
+            <InputButton
+              {...{
+                "x-on:click": `${digitHandler}(${digit}, $event)`,
+                ...(padDisabled ? { ":disabled": padDisabled } : {}),
+              }}
+            >
+              {digit}
+            </InputButton>
           ))}
         </div>
       ))
     }
-    <div class="flex gap-2 w-full">
+    <div class="flex w-full divide-x divide-border">
+      {
+        undoClick ? (
+          <InputButton
+            aria-label="Undo last visit"
+            {...{
+              "x-on:click": undoClick,
+              ":disabled": undoDisabled,
+            }}
+          >
+            <UndoIcon class="size-6 text-muted" />
+          </InputButton>
+        ) : (
+          <InputButton
+            aria-hidden="true"
+            {...{ ":disabled": "true" }}
+          />
+        )
+      }
       <InputButton
-        class="p-0"
-        aria-label="Undo last visit"
-        :disabled="!$store.game.turns.length || showFinishConfirm || finished"
-        @click="undoVisit()"
+        {...{
+          "x-on:click": `${digitHandler}(0, $event)`,
+          ...(padDisabled ? { ":disabled": padDisabled } : {}),
+        }}
       >
-        <UndoIcon class="size-6 text-fg-subtle" />
+        0
       </InputButton>
-      <InputButton @click="appendDigit(0)">0</InputButton>
       <InputButton
         aria-label="Delete last digit"
-        @click="deleteLast()"
+        {...{
+          "x-on:click": onDelete,
+          ...(padDisabled ? { ":disabled": padDisabled } : {}),
+        }}
       >
-        <DeleteIcon class="size-6 text-fg-subtle" />
+        <DeleteIcon class="size-6 text-muted" />
       </InputButton>
     </div>
   </div>

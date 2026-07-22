@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/astro-components
 read-when: authoring or reviewing .astro components
-updated: 2026-07-21
+updated: 2026-07-22
 -->
 
 # Frontend Astro Components
@@ -54,6 +54,7 @@ Frontmatter sections appear in this fixed order; omit any that do not apply.
 
 - Every component with inputs declares an explicit `interface Props` — never inline `Astro.props` access untyped.
 - Destructure once under `// Props`; rename reserved words (`class` → `classNameProp`).
+- When forwarding undeclared HTML/Astro attributes to the root element, collect them as `...props` and spread `{...props}` — **never** name the rest collector `rest` / `{...rest}`.
 - Optional props get defaults at destructure: `const { size = "md" } = Astro.props`.
 - A component that forwards styling accepts an optional `class?: string` and merges it last (see Class Composition).
 
@@ -87,6 +88,8 @@ The trigger decides where a class lives — **not** author preference. This is t
 
 **`cn()` is the only class-composition helper.** It is `twMerge(clsx(...))`, so a caller-passed `class` correctly overrides a conflicting base utility (a manual `[...].join(" ")` cannot). Use it for every conditional or passed-through class; never hand-roll composition.
 
+Mechanically enforced by `scripts/check-astro-class-composition.sh` (local Context Maintenance + CI on PRs to `main`): no `class:list` and no `.filter(Boolean).join(` in `app/src/**/*.astro`.
+
 ```astro
 ---
 // Styles
@@ -105,7 +108,7 @@ Runtime example (Alpine v3): static classes in `class`, reactive bind in `:class
 <button
   type="button"
   class="btn rounded-full px-4"
-  :class="active ? 'text-accent' : 'text-fg-muted'"
+  :class="active ? 'text-accent' : 'text-muted-foreground'"
   @click="toggle()"
 >
 ```
@@ -167,18 +170,6 @@ Categories map to the folders in `02-Folder-Structure.md`:
 | Data fetching inside a component | Pages own hydration |
 | `<!-- -->` HTML comments in template markup | Use `{/* ... */}` only — HTML comments break Astro/Prettier tooling |
 | `x-show` without `x-cloak` on the same element | FOUC before Alpine hydrates — pair them (`03-Alpine-Patterns.md`) |
-
----
-
-# Implementation-phase note (deferred)
-
-`cn()` requires `clsx` + `tailwind-merge` (neither is in `app/package.json` yet). When the first component needs composition, add both and create the helper at `src/lib/client/cn.ts` (or the utils location in `02-Folder-Structure.md`):
-
-```ts
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
-```
 
 ---
 

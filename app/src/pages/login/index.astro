@@ -3,15 +3,20 @@ export const prerender = true;
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
+import LoadingIcon from "@icons/loading.svg";
 ---
 
 <BaseLayout>
-  <div class="app-shell">
-    <main class="app-main flex flex-col justify-center p-6">
-      <div class="surface mx-auto w-full max-w-md space-y-6 p-6">
+  <div class="mx-auto flex h-full max-w-lg flex-col">
+    <main
+      class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain justify-center p-6"
+    >
+      <div
+        class="glass mx-auto rounded-lg border border-border bg-surface-raised w-full max-w-md space-y-6 p-6"
+      >
         <div class="space-y-1">
-          <h1 class="text-2xl font-semibold text-fg">Sign in</h1>
-          <p class="text-sm text-fg-muted">
+          <h1 class="text-2xl font-semibold text-foreground">Sign in</h1>
+          <p class="text-sm text-muted-foreground">
             Sign in to track your darts progression.
           </p>
         </div>
@@ -41,7 +46,7 @@ import Button from "@components/forms/Button.astro";
             x-show="error"
             x-text="error"
             x-cloak
-            class="text-sm text-destructive"
+            class="text-sm text-error"
             role="alert"
           >
           </p>
@@ -56,11 +61,11 @@ import Button from "@components/forms/Button.astro";
               x-cloak
               >Sign in</span
             >
-            <span
+            <LoadingIcon
               x-show="loading"
               x-cloak
-              >Signing in…</span
-            >
+              class="size-6"
+            />
           </Button>
         </form>
       </div>

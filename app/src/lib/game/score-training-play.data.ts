@@ -1,3 +1,4 @@
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import { buildEventsBatch } from "@modules/game/score-training.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
@@ -30,27 +31,7 @@ function computeStats(turns: RecordedTurn[]): {
 
 export function scoreTrainingPlay() {
   return {
-    visitInput: "",
-
-    appendDigit(this: ScoreTrainingPlayContext, digit: number) {
-      if (this.showFinishConfirm || this.finished) return;
-      const next =
-        this.visitInput === "0"
-          ? String(digit)
-          : this.visitInput + String(digit);
-      if (next.length > 3) return;
-      this.visitInput = next;
-    },
-
-    deleteLast(this: ScoreTrainingPlayContext) {
-      if (this.showFinishConfirm || this.finished) return;
-      this.visitInput = this.visitInput.slice(0, -1);
-    },
-
-    clearVisitInput(this: ScoreTrainingPlayContext) {
-      if (this.showFinishConfirm || this.finished) return;
-      this.visitInput = "";
-    },
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
 
     error: "",
     finished: false,
@@ -167,7 +148,7 @@ export function scoreTrainingPlay() {
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
 
-      const score = Number(this.visitInput);
+      const score = Number(this.scoreInput.value);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
         this.error = "Enter a score between 0 and 180.";
         return;
@@ -182,12 +163,12 @@ export function scoreTrainingPlay() {
 
       if (wouldComplete) {
         this.pendingFinishScore = score;
-        this.visitInput = "";
+        this.scoreInput.clear();
         this.showFinishConfirm = true;
         return;
       }
 
-      this.visitInput = "";
+      this.scoreInput.clear();
       const visit = this.engine.recordVisit(score);
       this.$store.game.recordTurn(visit);
     },
@@ -210,7 +191,7 @@ export function scoreTrainingPlay() {
 
     cancelFinish(this: ScoreTrainingPlayContext) {
       if (!this.showFinishConfirm || this.pendingFinishScore == null) return;
-      this.visitInput = String(this.pendingFinishScore);
+      this.scoreInput.setValue(String(this.pendingFinishScore));
       this.pendingFinishScore = null;
       this.showFinishConfirm = false;
     },
@@ -232,7 +213,7 @@ export function scoreTrainingPlay() {
         });
       }
 
-      this.visitInput = "";
+      this.scoreInput.clear();
       this.error = "";
     },
 
@@ -365,7 +346,7 @@ export function scoreTrainingPlay() {
         this.completionStatus = "pending";
         this.completionError = "";
         this.resultsSnapshot = null;
-        this.visitInput = "";
+        this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;
 

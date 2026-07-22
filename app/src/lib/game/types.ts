@@ -1,11 +1,12 @@
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
 import type { SessionActiveData } from "@client/api/types";
+import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { GameConfigSnapshot, RecordedTurn } from "@stores/types";
 
 export type ScoreTrainingPlayContext = {
-  visitInput: string;
+  scoreInput: ScoreInputBuffer;
   error: string;
   finished: boolean;
   hasActiveSession: boolean;
@@ -48,9 +49,6 @@ export type ScoreTrainingPlayContext = {
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   abandonAndExit(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
-  appendDigit(this: ScoreTrainingPlayContext, digit: number): void;
-  deleteLast(this: ScoreTrainingPlayContext): void;
-  clearVisitInput(this: ScoreTrainingPlayContext): void;
 };
 
 export type ScoreTrainingSetupContext = {
