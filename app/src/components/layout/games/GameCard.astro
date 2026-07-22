@@ -1,14 +1,18 @@
 ---
-import CardWrapper from "@components/ui/CardWrapper.astro";
-import DartIcon from "@icons/dart.svg";
-
 interface Props {
   href: string;
   title: string;
   caption: string;
 }
 
+// Props
 const { href = "#", title, caption }: Props = Astro.props;
+
+// Components
+import CardWrapper from "@components/ui/CardWrapper.astro";
+
+// Icons
+import DartIcon from "@icons/dart.svg";
 ---
 
 <CardWrapper

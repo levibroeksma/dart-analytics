@@ -30,12 +30,12 @@ const {
   class: classNameProp = "",
 }: Props = Astro.props;
 
-const isText = variant === "inline" || variant === "ghost";
-
 // Lib
 import { cn } from "@client/cn";
 
 // Styles
+const isText = variant === "inline" || variant === "ghost";
+
 const variantClasses = {
   inline: "text-sm text-accent no-underline hover:text-accent-hover",
   primary: "border-transparent bg-white text-black btn-primary no-underline",
