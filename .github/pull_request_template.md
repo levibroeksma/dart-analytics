@@ -26,6 +26,7 @@ docs/architecture/099-engineering-workflow-and-decision-framework.md
 
 <!-- How you validated the change. Paste the relevant output. Typical checks:
      - scripts/check-context-map.sh (docs/context changes)
+     - scripts/check-astro-class-composition.sh (Astro class:list / cn() gate)
      - tests
      - npx fallow (app/ changes — stale type validation)
      - replay / API / SQL verification where applicable -->

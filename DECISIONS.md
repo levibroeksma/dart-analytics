@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-21
+updated: 2026-07-22
 -->
 
 # Architectural Decision Ledger
@@ -128,6 +128,9 @@ updated: 2026-07-21
 | D123 | 2026-07-21 | Prettier is the `app/` formatter (`singleAttributePerLine`); `.astro` template comments are `{/* */}` only; CI enforces `x-show`↔`x-cloak` and bans template `<!-- -->` via `scripts/check-astro-conventions.sh`; TS inline body comments banned under `app/src/**/*.ts` (JSDoc-above; agent-enforced) | FOUC-safe Alpine markup, consistent authoring, mechanical drift prevention |
 | D124 | 2026-07-21 | Portable `Modal.astro` shell + `ConfirmDialog.astro` preset in `components/ui/`; parent owns visibility; Alpine expression props for dismiss/cancel/confirm; all dialog actions use `Button.astro`; `dismissible` opt-out for hard gates (finish-confirm, continue-session). ExitModal and ContinueSessionModal compose these primitives. | One overlay contract; stop duplicating backdrop/panel markup |
 | D125 | 2026-07-22 | Visit-score entry uses reusable `ScoreInputBuffer` (`modules/game`) with activation guard (`detail > 2` reject + `SCORE_INPUT_GHOST_MS` coalesce); `ScoreInput.astro` is a prop-wired shell; games own range validation and optional undo. | Root-fix ghost multi-clicks; share keypad buffer across game types |
+| D126 | 2026-07-22 | Style guide rewritten to sky/glass/`surface`/`foreground` vocabulary matching finalized Score Training UI; legacy `fg`/`bg-bg`/old `.surface`/`.nav-item`/`.badge` doc contract retired; `font-medium` ban retained | Docs had drifted from `global.css` and live UI |
+| D127 | 2026-07-22 | Build-time Astro class composition must use `cn()`; `class:list` and `.filter(Boolean).join` banned in `app/src/**/*.astro`, enforced by `scripts/check-astro-class-composition.sh` in Context Maintenance + GitHub `checks` workflow | Prevents new UI primitives from regressing on `05-Astro-Components.md` |
+| D128 | 2026-07-22 | Astro components forward leftover attributes as `...props` / `{...props}` — never `...rest` / `{...rest}` | One consistent rest-spread name across UI primitives |
 
 ## Context & documentation system
 

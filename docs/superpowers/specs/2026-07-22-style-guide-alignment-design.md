@@ -173,6 +173,8 @@ No new automated CSS unit tests — regressions caught by audit grep + visual sm
 - [ ] New/updated UI + Score Training layout components use `cn()` (not `class:list` / manual joins) for build-time class composition; frontmatter follows `05`; Alpine usage follows `03`; rest spreads use `{...props}` not `{...rest}`
 - [ ] `05-Astro-Components.md` + agent guide / `app/CLAUDE` state the `{...props}` naming rule
 - [ ] Context Maintenance checkers + agent mirrors pass; graph refreshed or reported
+- [ ] `scripts/check-astro-class-composition.sh` passes locally and is wired into `.github/workflows/checks.yml` + root Context Maintenance
+- [ ] Rest spreads use `{...props}` not `{...rest}`; documented in `05` + agent rules
 - [ ] PR1 opened from a branch rebased onto current `origin/main`
 - [ ] PR2 scoped to visual/UX polish only, stacked after PR1
 
