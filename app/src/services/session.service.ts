@@ -4,6 +4,7 @@ import { getRulesetValidator } from "./rulesets/registry";
 import {
   countTurnsForSession,
   findActiveSessions,
+  findActiveSessionForGameType,
   findCaptureModeId,
   findConfigurationPresets,
   findConfigurationTemplate,
@@ -32,6 +33,20 @@ import type {
   CreateSessionResult,
   ServiceResult,
 } from "./types";
+
+/**
+ * True when the error is the uq_sessions_single_active unique violation
+ * (Postgres 23505 on that partial index), i.e. an active session for this
+ * (player, game type) already exists.
+ */
+function isActiveSessionConflict(error: unknown): boolean {
+  const e = error as { code?: string; constraint?: string; message?: string };
+  return (
+    e?.code === "23505" &&
+    (e?.constraint === "uq_sessions_single_active" ||
+      (e?.message?.includes("uq_sessions_single_active") ?? false))
+  );
+}
 
 export async function createSession(
   playerId: string,
@@ -129,24 +144,49 @@ export async function createSession(
     };
   }
 
+  const existingActive = await findActiveSessionForGameType(
+    db,
+    playerId,
+    gameTypeRuleset.gameTypeId,
+  );
+  if (existingActive) {
+    return {
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: existingActive,
+    };
+  }
+
   const sessionId = generateId();
   const participantId = generateId();
 
-  await insertSessionRecords({
-    activityId: generateId(),
-    sessionId,
-    configurationId: generateId(),
-    participantId,
-    playerId,
-    gameTypeId: gameTypeRuleset.gameTypeId,
-    rulesetVersionId: gameTypeRuleset.rulesetVersionId,
-    captureModeId,
-    inputModeId,
-    activeStatusId,
-    playerParticipantTypeId,
-    displayName,
-    configuration: validated.config,
-  });
+  try {
+    await insertSessionRecords({
+      activityId: generateId(),
+      sessionId,
+      configurationId: generateId(),
+      participantId,
+      playerId,
+      gameTypeId: gameTypeRuleset.gameTypeId,
+      rulesetVersionId: gameTypeRuleset.rulesetVersionId,
+      captureModeId,
+      inputModeId,
+      activeStatusId,
+      playerParticipantTypeId,
+      displayName,
+      configuration: validated.config,
+    });
+  } catch (error) {
+    if (!isActiveSessionConflict(error)) throw error;
+    const active = await findActiveSessionForGameType(
+      db,
+      playerId,
+      gameTypeRuleset.gameTypeId,
+    );
+    return active
+      ? { ok: false, code: "SESSION_ALREADY_ACTIVE", details: active }
+      : { ok: false, code: "INTERNAL_ERROR" };
+  }
 
   return {
     ok: true,
