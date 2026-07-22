@@ -1,0 +1,39 @@
+---
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
+---
+
+<div
+  class="flex flex-col flex-1 min-h-0 pb-3 gap-3"
+  x-show="!finished && hasActiveSession"
+  x-cloak
+>
+  <SinglePlayerDisplay
+    isTarget={false}
+    score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
+    class="max-h-2/5"
+  />
+  <p
+    class="text-sm text-foreground-muted px-3"
+    x-text="`Time remaining: ${remainingLabel()}`"
+    x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
+    x-cloak
+  ></p>
+  { /* <p class="text-sm  px-3 font-display-mono flex gap-4" x-show="$store.game.configSnapshot?.durationType === 'ROUNDS'" x-cloak > <span class="text-fg-muted">Visit:</span> <span class="text-fg font-bold" x-text="$store.game.turns.length + 1"></span> </p> */ }
+  <p
+    class="px-3 mt-2 text-error text-xs"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  ></p>
+  <ScoreInput
+    value="scoreInput.value"
+    digitHandler="scoreInput.appendDigit"
+    onDelete="scoreInput.deleteLast($event)"
+    onSubmit="submitVisit()"
+    submitDisabled="!scoreInput.value || showFinishConfirm || finished"
+    padDisabled="showFinishConfirm || finished"
+    undoClick="undoVisit()"
+    undoDisabled="!$store.game.turns.length || showFinishConfirm || finished"
+  />
+</div>

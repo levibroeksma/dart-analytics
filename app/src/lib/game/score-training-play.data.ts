@@ -1,12 +1,8 @@
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import { buildEventsBatch } from "@modules/game/score-training.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
+import { appendBatch, completeSession, createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { RecordedTurn } from "@stores/types";
 import type { ScoreTrainingPlayContext } from "./types";
@@ -18,11 +14,7 @@ function formatRemaining(ms: number | null | undefined): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function computeStats(turns: RecordedTurn[]): {
-  total: number;
-  visits: number;
-  average: number;
-} {
+function computeStats(turns: RecordedTurn[]): { total: number; visits: number; average: number } {
   const visits = turns.length;
   const total = turns.reduce((sum, t) => sum + t.totalScore, 0);
   return { total, visits, average: visits === 0 ? 0 : total / visits };
@@ -30,44 +22,19 @@ function computeStats(turns: RecordedTurn[]): {
 
 export function scoreTrainingPlay() {
   return {
-    visitInput: "",
-
-    appendDigit(this: ScoreTrainingPlayContext, digit: number) {
-      if (this.showFinishConfirm || this.finished) return;
-      const next =
-        this.visitInput === "0"
-          ? String(digit)
-          : this.visitInput + String(digit);
-      if (next.length > 3) return;
-      this.visitInput = next;
-    },
-
-    deleteLast(this: ScoreTrainingPlayContext) {
-      if (this.showFinishConfirm || this.finished) return;
-      this.visitInput = this.visitInput.slice(0, -1);
-    },
-
-    clearVisitInput(this: ScoreTrainingPlayContext) {
-      if (this.showFinishConfirm || this.finished) return;
-      this.visitInput = "";
-    },
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
 
     error: "",
     finished: false,
     hasActiveSession: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
+    completionStatus: "pending" as "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
     abandonLoading: false,
-    resultsSnapshot: null as {
-      total: number;
-      visits: number;
-      average: number;
-    } | null,
+    resultsSnapshot: null as { total: number; visits: number; average: number } | null,
     pendingFinishScore: null as number | null,
     showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
@@ -117,15 +84,10 @@ export function scoreTrainingPlay() {
           startingSequence: this.$store.game.turns.length,
         });
 
-        if (
-          config.durationType === "MINUTES" &&
-          !this.$store.game.timerExpired
-        ) {
+        if (config.durationType === "MINUTES" && !this.$store.game.timerExpired) {
           const resumedRemainingMs = this.$store.game.timerRemainingMs;
           const durationMinutes =
-            resumedRemainingMs != null
-              ? resumedRemainingMs / 60000
-              : config.durationValue;
+            resumedRemainingMs != null ? resumedRemainingMs / 60000 : config.durationValue;
 
           // Set synchronously so the countdown label never renders 00:00 while
           // waiting for the timer's first onTick (fires 1s after start()).
@@ -167,7 +129,7 @@ export function scoreTrainingPlay() {
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
 
-      const score = Number(this.visitInput);
+      const score = Number(this.scoreInput.value);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
         this.error = "Enter a score between 0 and 180.";
         return;
@@ -182,12 +144,12 @@ export function scoreTrainingPlay() {
 
       if (wouldComplete) {
         this.pendingFinishScore = score;
-        this.visitInput = "";
+        this.scoreInput.clear();
         this.showFinishConfirm = true;
         return;
       }
 
-      this.visitInput = "";
+      this.scoreInput.clear();
       const visit = this.engine.recordVisit(score);
       this.$store.game.recordTurn(visit);
     },
@@ -210,7 +172,7 @@ export function scoreTrainingPlay() {
 
     cancelFinish(this: ScoreTrainingPlayContext) {
       if (!this.showFinishConfirm || this.pendingFinishScore == null) return;
-      this.visitInput = String(this.pendingFinishScore);
+      this.scoreInput.setValue(String(this.pendingFinishScore));
       this.pendingFinishScore = null;
       this.showFinishConfirm = false;
     },
@@ -232,13 +194,11 @@ export function scoreTrainingPlay() {
         });
       }
 
-      this.visitInput = "";
+      this.scoreInput.clear();
       this.error = "";
     },
 
-    async uploadAndCompleteSession(
-      this: ScoreTrainingPlayContext,
-    ): Promise<void> {
+    async uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void> {
       const sessionId = this.$store.game.sessionId!;
 
       if (!this.$store.game.idempotencyKey) {
@@ -254,10 +214,7 @@ export function scoreTrainingPlay() {
           ...turn,
           completedAt: turn.completedAt ?? new Date().toISOString(),
         }));
-        const batch = buildEventsBatch(
-          this.$store.game.participantRef!,
-          completedTurns,
-        );
+        const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
 
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
@@ -269,8 +226,7 @@ export function scoreTrainingPlay() {
           error.code === "SESSION_ALREADY_COMPLETED" ||
           error.message?.includes("SESSION_ALREADY_COMPLETED");
         if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
+          this.completionError = "Could not save your game. Check your connection and retry.";
           this.completionStatus = "failed";
           return;
         }
@@ -307,10 +263,7 @@ export function scoreTrainingPlay() {
             ...turn,
             completedAt: turn.completedAt ?? new Date().toISOString(),
           }));
-          const batch = buildEventsBatch(
-            this.$store.game.participantRef!,
-            completedTurns,
-          );
+          const batch = buildEventsBatch(this.$store.game.participantRef!, completedTurns);
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
@@ -365,7 +318,7 @@ export function scoreTrainingPlay() {
         this.completionStatus = "pending";
         this.completionError = "";
         this.resultsSnapshot = null;
-        this.visitInput = "";
+        this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;
 
