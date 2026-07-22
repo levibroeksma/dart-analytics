@@ -3,8 +3,10 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const { ...props }: Props = Astro.props;
 
+// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 ---
@@ -30,7 +32,8 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
     </p>
   </div>
   <p
-    class="px-3 mt-2 text-error text-xs"
+    class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"
+    role="alert"
     x-show="error"
     x-text="error"
     x-cloak

@@ -18,11 +18,10 @@ import IsLoading from "@components/ui/IsLoading.astro";
 
     <template x-if="reconciliationFailed && !loadingReconciliation">
       <div
-        class="text-center py-8 bg-destructive/10 rounded-lg p-4 border border-destructive/20"
+        class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-center text-sm text-error-foreground"
+        role="alert"
       >
-        <p class="text-sm text-error">
-          Could not clean up a previous session. Retry to continue.
-        </p>
+        <p>Could not clean up a previous session. Retry to continue.</p>
         <Button
           class="mt-4"
           @click="retryReconciliation()"
@@ -36,7 +35,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     >
       <SetupSessionForm
         title="Score Training"
-        description="Pick you're desired configuration, then, let's play."
+        description="Pick your desired configuration, then let's play."
       />
     </template>
 
