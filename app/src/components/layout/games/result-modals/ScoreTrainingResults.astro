@@ -5,7 +5,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
 <div
-      class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full surface-raised"
+      class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
       x-show="finished"
       x-cloak
     >
@@ -14,7 +14,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
 
         {/* Stats: live from store while saving, snapshot once succeeded */}
         <dl
-          class="mt-4 space-y-2 text-sm text-foreground-muted flex flex-col"
+          class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
           x-show="completionStatus !== 'succeeded'"
           x-cloak
         >
@@ -23,7 +23,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
           <StatRow label="Average" value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1)" />
         </dl>
         <dl
-          class="mt-4 space-y-2 text-sm text-foreground-muted flex flex-col"
+          class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
           x-show="completionStatus === 'succeeded' && resultsSnapshot"
           x-cloak
         >
@@ -41,7 +41,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
               x-cloak
             />
           <div x-show="completionStatus === 'failed'" x-cloak>
-            <p class="text-sm text-red-500" x-text="completionError"></p>
+            <p class="text-sm text-error" x-text="completionError"></p>
             <Button
               class="mt-2"
               @click="uploadAndCompleteSession()"
@@ -49,7 +49,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
             />
           </div>
           <p
-            class="text-sm text-green-500"
+            class="text-sm text-success"
             x-show="completionStatus === 'succeeded'"
             x-cloak
           >
@@ -59,7 +59,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
 
         {/* Play-again failure: separate from completion status, buttons stay enabled */}
         <p
-          class="mt-2 text-sm text-red-500"
+          class="mt-2 text-sm text-error"
           x-text="playAgainError"
           x-show="playAgainError"
           x-cloak

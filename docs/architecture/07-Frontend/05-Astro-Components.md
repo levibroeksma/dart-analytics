@@ -108,7 +108,7 @@ Runtime example (Alpine v3): static classes in `class`, reactive bind in `:class
 <button
   type="button"
   class="btn rounded-full px-4"
-  :class="active ? 'text-accent' : 'text-fg-muted'"
+  :class="active ? 'text-accent' : 'text-muted-foreground'"
   @click="toggle()"
 >
 ```

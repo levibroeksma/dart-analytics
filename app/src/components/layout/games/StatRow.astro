@@ -7,6 +7,6 @@ const { label, value }: Props = Astro.props;
 ---
 
 <div class="flex justify-between items-center font-display-mono">
-  <dt class="text-sm text-foreground-muted" x-text={`'${label}:'`}></dt>
+  <dt class="text-sm text-muted-foreground" x-text={`'${label}:'`}></dt>
   <dd class="text-sm text-foreground font-bold" x-text={`${value}`}></dd>
 </div>

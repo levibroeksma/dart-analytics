@@ -15,7 +15,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
 
     <template x-if="reconciliationFailed && !loadingReconciliation">
       <div class="text-center py-8 bg-destructive/10 rounded-lg p-4 border border-destructive/20">
-        <p class="text-sm text-red-500">Could not clean up a previous session. Retry to continue.</p>
+        <p class="text-sm text-error">Could not clean up a previous session. Retry to continue.</p>
         <Button class="mt-4" @click="retryReconciliation()" title="Retry" />
       </div>
     </template>
