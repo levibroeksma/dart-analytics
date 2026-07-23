@@ -68,14 +68,10 @@ A change that leaves the context map, CLAUDE.md files, decision ledger, **or kno
 
 # Forbidden Actions
 
-- Modify applied migration files
+(These are the standalone prohibitions; the Hard Invariants above are equally binding.)
+
 - Expose raw database tables through the API
-- Store derivable statistics in tables
-- Add template foreign keys to runtime tables
-- Use database-generated UUIDs or SERIAL ids
 - Generic EAV / polymorphic FK patterns for gameplay
-- Skip documentation/context updates when changing schema or repo structure
-- Regenerate architecture docs instead of targeted fixes
 - Force-push to main/master; commit secrets (`.env`, credentials)
 
 ---
