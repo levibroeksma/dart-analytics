@@ -57,7 +57,7 @@ The context system is part of every deliverable. Before claiming any task done:
 2. Register new, moved, renamed, or deleted docs in `00-Context-Map.md` in the same change.
 3. Record new architectural decisions as one-line entries in `DECISIONS.md`.
 4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
-5. Run `scripts/check-context-map.sh`, `scripts/check-file-locations.sh`, `scripts/check-agent-mirrors.sh`, `scripts/check-astro-class-composition.sh`, and `scripts/check-astro-conventions.sh` — all five must pass.
+5. Run `scripts/check-context-map.sh`, `scripts/check-file-locations.sh`, `scripts/check-agent-mirrors.sh`, `scripts/check-astro-class-composition.sh`, `scripts/check-astro-conventions.sh`, `scripts/check-doc-links.sh`, and `scripts/check-context-budget.sh` — all seven must pass.
 6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
 7. Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
 8. **Self-learning gate:** if this task surfaced a rule that was ambiguous, missing, unenforced, or contradicted by the real code/config — beyond what step 1 already requires for the change itself — propose the specific `CLAUDE.md`/`AGENT.md` sharpening in chat and get the user's explicit approval before writing it. Never apply a rule change unilaterally. If the user declines, leave the rule as-is and move on; the gate exists to keep rule evolution deliberate, not to force a change.
@@ -68,14 +68,10 @@ A change that leaves the context map, CLAUDE.md files, decision ledger, **or kno
 
 # Forbidden Actions
 
-- Modify applied migration files
+(These are the standalone prohibitions; the Hard Invariants above are equally binding.)
+
 - Expose raw database tables through the API
-- Store derivable statistics in tables
-- Add template foreign keys to runtime tables
-- Use database-generated UUIDs or SERIAL ids
 - Generic EAV / polymorphic FK patterns for gameplay
-- Skip documentation/context updates when changing schema or repo structure
-- Regenerate architecture docs instead of targeted fixes
 - Force-push to main/master; commit secrets (`.env`, credentials)
 
 ---

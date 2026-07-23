@@ -200,7 +200,7 @@ app/src/
 
 ## Route file mapping note
 
-The public batch route is `POST /api/sessions/:sessionId/events/batch` (amended 2026-07-13 from the earlier `events:batch` custom-method spelling), served natively by the `events/batch.ts` route file. No rewrite machinery exists or is permitted.
+The public batch route is `POST /api/sessions/:sessionId/events/batch` (amended 2026-07-13 from the earlier `events:batch` custom-method spelling), served natively by the `pages/api/sessions/[sessionId]/events/batch.ts` route file. No rewrite machinery exists or is permitted.
 
 ## Statistics (deferred)
 

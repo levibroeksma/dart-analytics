@@ -125,8 +125,8 @@ This pattern is the only valid way to define contracts. No separate `.d.ts` file
 
 TypeScript types live as close as possible to their source. Types are then
 *raised* through a chain of `types.ts` barrels until they reach the
-**top-level area barrel** (`services/types.ts`, `repositories/types.ts`,
-`routes/types.ts`, `lib/types.ts`), so every consumer imports one shallow,
+**top-level area barrel** (`services/types.ts`, `repositories/interfaces.ts`,
+`pages/api/types.ts` (`@routes/types`), `lib/types.ts`), so every consumer imports one shallow,
 stable path — `@<area>/types` — regardless of how deep the type is defined.
 
 **The raising rule (applies at every level):**

@@ -102,7 +102,7 @@ export function registerStores(Alpine: Alpine) {
 
 **`game.store.ts`** exports a factory returning the store object. Gameplay blobs are keyed by `gameTypeKey` (D09 — one active session per game type). **`outbox.store.ts`** holds completed-but-unsent batches until the server confirms them (see Completed-Batch Outbox below).
 
-Timer **state** (`timerRemainingMs`, `timerStartedAt`) lives in `game.store.ts` for recovery. The `Timer` module (`modules/ui/timer.module.ts`) drives display only.
+Timer **state** (`timerRemainingMs`, `timerStartedAt`) lives in `game.store.ts` for recovery. The `SegmentTimer` module (`modules/ui/segment-timer.module.ts`) drives display only.
 
 ---
 
