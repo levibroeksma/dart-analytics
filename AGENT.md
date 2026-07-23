@@ -114,7 +114,7 @@ This file is a router and gatekeeper. Work following it involves context discove
 - **Read** — load context map, read docs, check subdirectory CLAUDE.md/AGENT.md files
 - **Grep** — verify conventions, cross-reference rules, check doc links
 - **Glob** — find files by pattern when validating file location rules
-- **Bash** — run validation scripts (`check-*.sh`, `refresh-graph.sh`) and git commands
+- **Bash** — run validation scripts (`scripts/check-*.sh`, `scripts/refresh-graph.sh`) and git commands
 - **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, context map entries
 
 ## Restrict
