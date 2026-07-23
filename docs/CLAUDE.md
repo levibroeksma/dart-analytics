@@ -47,6 +47,8 @@ Documentation layer: authority-first edits, consistency checks. No implementatio
 
 ### Restrict
 
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
 - Bash — no scripts to run for doc edits
 - GitHub MCP tools (mcp__github__*) — doc changes don't require PR/issue interaction
 - WebFetch, WebSearch — no external lookups needed

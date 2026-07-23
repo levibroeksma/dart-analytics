@@ -25,6 +25,8 @@ Small, focused DB client integration layer. Most work is reading generated schem
 
 ### Restrict
 
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
 - GitHub MCP tools (mcp__github__*) — DB layer changes don't require PR/issue interaction
 - WebFetch, WebSearch — no external lookups needed
 - Agent spawning — focused, contained work on the client factory

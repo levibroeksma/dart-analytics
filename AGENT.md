@@ -119,6 +119,8 @@ This file is a router and gatekeeper. Work following it involves context discove
 
 ## Restrict
 
+Bounds this file's own routing/maintenance work — **not** tasks a skill delegates through it. Repo-workflow skills use restricted tools as designed: `subagent-driven-development` / `writing-plans` / `executing-plans` spawn agents; `finishing-a-development-branch` uses GitHub MCP for push/PR.
+
 - GitHub MCP tools (mcp__github__*) — context routing doesn't involve PR/issue management; that's delegated per-task
 - WebFetch, WebSearch — no external data needed for context guidance
 - Agent spawning (Agent tool) — this file directs people to specific files, doesn't answer questions via delegation

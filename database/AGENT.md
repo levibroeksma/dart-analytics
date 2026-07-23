@@ -33,6 +33,8 @@ Database layer work is implementation-focused: migrations, schema, seeds. Work h
 
 ### Restrict
 
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
 - GitHub MCP tools (mcp__github__*) — DB changes don't require PR/issue interaction; that's handled at top level
 - WebFetch, WebSearch — no external data needed
 - Agent spawning — focused, concrete work on schema and migrations

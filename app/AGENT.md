@@ -146,6 +146,8 @@ App layer is full-stack implementation: Astro, TypeScript, tests, frontend compo
 
 ### Restrict
 
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
 - GitHub MCP tools (mcp__github__*) — app changes don't require PR/issue interaction
 - WebFetch, WebSearch — no external lookups needed for local development
 - Agent spawning — focused implementation work with clear scope

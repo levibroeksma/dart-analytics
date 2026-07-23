@@ -23,6 +23,8 @@ Thin handler layer: parse requests, validate, call services, respond. Part of ap
 
 ### Restrict
 
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
 - GitHub MCP tools (mcp__github__*) — handler changes don't require PR/issue interaction
 - WebFetch, WebSearch — no external lookups needed
 - Agent spawning — focused handler work with clear scope
