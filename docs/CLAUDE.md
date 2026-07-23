@@ -33,3 +33,23 @@ Scope: all documentation under `docs/` (foundation docs, database handbook, API/
 - ID ownership consistent: Worker/API generates UUIDv7 for runtime entities.
 - CQRS-lite intact: writes to runtime tables, reads from `v_*` views.
 - Context Maintenance protocol (root `CLAUDE.md`) completed — ISO dates, map registration, checker pass.
+
+## Tool Allowances & Restrictions (2026-07-23)
+
+Documentation layer: authority-first edits, consistency checks. No implementation work.
+
+### Allow
+
+- **Read** — load docs, understand authority order and routing
+- **Edit/Write** — update markdown docs, maintain structure and hierarchy
+- **Grep** — verify terminology consistency across docs
+- **Glob** — find docs by pattern (e.g., all Database docs)
+
+### Restrict
+
+Scoped to this layer's own work; skill-driven workflows use restricted tools as designed — see root `CLAUDE.md`.
+
+- Bash — no scripts to run for doc edits
+- GitHub MCP tools (mcp__github__*) — doc changes don't require PR/issue interaction
+- WebFetch, WebSearch — no external lookups needed
+- Agent spawning — focused doc authoring with clear scope
