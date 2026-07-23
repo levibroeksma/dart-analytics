@@ -11,7 +11,7 @@ Scope: all documentation under `docs/` (foundation docs, database handbook, API/
 ## Task Routing (edit the canonical doc first, then cascade)
 
 - **Principles/System:** `01-Principles.md` / `02-System-Architecture.md`
-- **Workflow/process:** `03-Engineering-Workflow.md` + `099-engineering-workflow-and-decision-framework.md`
+- **Workflow/process:** `03-Engineering-Workflow.md`
 - **Pattern-level:** `04-Architecture-patterns.md`, then impacted domain docs
 - **Database model:** `05-Database/06-Database-Specification.md` (+ `06-Spec/` chapter), then `database/` migrations/seeds, then related `05-Database/*` guides
 - **API contract:** `06-API/00-Overview.md` before or with implementation changes; implementation guidance in `06-API/01`–`02`

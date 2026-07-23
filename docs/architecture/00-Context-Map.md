@@ -33,7 +33,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New test / test-strategy question | `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md` | ~3k |
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~7k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5k |
-| Workflow / process question | `03-Engineering-Workflow.md`, `099-engineering-workflow-and-decision-framework.md` | ~3.5k |
+| Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~2k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~6k |
 
@@ -53,7 +53,7 @@ When documents conflict, higher wins; correct the lower one:
 4. `04-Architecture-patterns.md`
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
-7. `03-Engineering-Workflow.md` / `099-engineering-workflow-and-decision-framework.md`
+7. `03-Engineering-Workflow.md`
 8. SQL migrations `0001`–`0016` and seeds
 9. Application code in `app/`
 
@@ -75,8 +75,6 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.1k |
 | `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns | canonical | ~2.8k |
-| `099-engineering-workflow-and-decision-framework.md` | Workflow quick reference | canonical | ~1.3k |
-
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |

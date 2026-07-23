@@ -62,7 +62,6 @@ docs/
 │   ├── 02-System-Architecture.md
 │   ├── 03-Engineering-Workflow.md
 │   ├── 04-Architecture-patterns.md
-│   ├── 099-engineering-workflow-and-decision-framework.md
 │   ├── 05-Database/     # Database handbook (00–11)
 │   ├── 06-API/          # API contract and implementation (00–04)
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
@@ -94,8 +93,6 @@ README.md (this file)
 ↓
 
 03-Engineering-Workflow.md
-099-engineering-workflow-and-decision-framework.md  (quick-reference companion)
-
 ↓
 
 04-Architecture-patterns.md
@@ -156,7 +153,7 @@ Authentication provider remains Neon Auth; the Worker verifies identity claims p
 
 # Development Workflow
 
-Every feature follows the lifecycle defined in `03-Engineering-Workflow.md` (10 phases). Use `099-engineering-workflow-and-decision-framework.md` as the quick-reference companion.
+Every feature follows the lifecycle defined in `03-Engineering-Workflow.md` (10 phases).
 
 Coding never skips architectural review.
 

@@ -2,7 +2,8 @@
 Default pull request description for dart-analytics.
 Fill each section; delete a section only when it is genuinely N/A.
 Authority for the architecture checklist below:
-docs/architecture/099-engineering-workflow-and-decision-framework.md
+docs/architecture/03-Engineering-Workflow.md (Review Checklist / Definition of Done).
+The checkbox list is inlined here so every PR prefills it.
 -->
 
 ## Summary
@@ -33,8 +34,8 @@ docs/architecture/099-engineering-workflow-and-decision-framework.md
 
 ## Architecture checklist
 
-<!-- The Pull Request Checklist from 099-engineering-workflow-and-decision-framework.md,
-     as checkboxes. Confirm each or mark N/A. -->
+<!-- Architecture checklist derived from 03-Engineering-Workflow.md
+     (Review Checklist / Definition of Done). Confirm each or mark N/A. -->
 
 - [ ] Preserves architectural principles and ownership boundaries
 - [ ] Introduces no duplicated data or business logic

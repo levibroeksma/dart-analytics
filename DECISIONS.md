@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-22
+updated: 2026-07-23
 -->
 
 # Architectural Decision Ledger
@@ -145,6 +145,7 @@ updated: 2026-07-22
 | D96 | 2026-07-14 | Branch-integration rule: task branches land on `main` via PR at task completion; divergence is a defect; completion gate item 7 verifies it | 2026-07-14 review found `main` ~50 commits stale with zero open PRs |
 | D102 | 2026-07-15 | No git worktrees: task branches are checked out directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`; `.worktrees/` removed from `.gitignore` | Worktree-per-task left multiple stale worktrees with uncommitted, unrecoverable work sitting undiscovered outside normal branch review |
 | D107 | 2026-07-16 | Self-learning gate added to the Context Maintenance protocol (step 8): rule sharpenings discovered mid-task require explicit user approval before being written, never applied unilaterally | Formalizes the propose-then-confirm pattern this design itself was built through |
+| D134 | 2026-07-23 | Retired `099-engineering-workflow-and-decision-framework.md`: it was a compressed duplicate of `03-Engineering-Workflow.md`; Context Map workflow pack / Authority Order #7 / `docs/CLAUDE.md` routing / architecture README now point at `03` alone; PR template checklist authority cites `03` while the actionable checkboxes remain inlined in `.github/pull_request_template.md` | Dual load wasted tokens for no unique authority; checklist already lived in the PR template |
 
 | D129 | 2026-07-22 | Fallow `ignorePatterns` for unwired design-system Astro primitives under `src/components/ui/` (and `CustomTabs.astro`) until PR2 route adoption; health `thresholdOverrides` for `CardWrapper`/`ScoreInput` templates | PR1 ships the kit + gates without deleting unused primitives fallow would flag |
 | D130 | 2026-07-22 | Retire D129: delete unwired `components/ui` primitives + `CustomTabs`; keep only route-wired Modal/ConfirmDialog/LogoutButton/IsLoading/Link/CardWrapper; CSS primitives remain in `global.css` | Fallow ignore was temporary until PR2 adoption-or-delete |
