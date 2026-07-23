@@ -2,7 +2,7 @@
 /**
  * Text-like input with optional error styling.
  * @param {string} [id]
- * @param {string} [type]
+ * @param {"text"|"email"|"password"|"number"|"tel"|"url"|"search"|"submit"} [type]
  * @param {string} [name]
  * @param {string} [value]
  * @param {string} [placeholder]
@@ -14,7 +14,15 @@
  */
 interface Props {
   id?: string;
-  type?: string;
+  type?:
+    | "text"
+    | "email"
+    | "password"
+    | "number"
+    | "tel"
+    | "url"
+    | "search"
+    | "submit";
   name?: string;
   value?: string;
   placeholder?: string;
