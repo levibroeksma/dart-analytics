@@ -131,3 +131,21 @@ Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
 - Forward leftover attributes as `{...props}` — never `{...rest}`
 - Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
 - Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props)
+
+## Tool Allowances & Restrictions (2026-07-23)
+
+App layer is full-stack implementation: Astro, TypeScript, tests, frontend components. Work requires local validation gates and test-driven development.
+
+### Allow
+
+- **Read** — load source files, tests, docs, existing implementation
+- **Edit/Write** — modify components, services, tests, configuration
+- **Bash** — run npm commands (`test`, `validate:app`, `format`, dev server), git commands
+- **Glob** — find files by pattern (tests, components, etc.)
+- **Grep** — search code for patterns, verify naming conventions
+
+### Restrict
+
+- GitHub MCP tools (mcp__github__*) — app changes don't require PR/issue interaction
+- WebFetch, WebSearch — no external lookups needed for local development
+- Agent spawning — focused implementation work with clear scope
