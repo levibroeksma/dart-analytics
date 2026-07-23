@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-22
+updated: 2026-07-23
 -->
 
 # Context Map
 
-> **Version:** 1.6.10 (2026-07-22 — mid-task fallow/`npm run check` gate in `app/CLAUDE.md`; prior 1.6.9 D131/D132)
+> **Version:** 1.6.11 (2026-07-23 — context-integrity guards D133: `scripts/check-doc-links.sh` + `scripts/check-context-budget.sh`; prior 1.6.10 mid-task fallow/`npm run check` gate)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -70,7 +70,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~3.4k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~3.5k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -166,4 +166,4 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 
 # Maintenance Protocol
 
-This map is kept correct by the mandatory Context Maintenance rules in the root `CLAUDE.md`: every new, moved, renamed, or deleted doc must be registered here in the same change, and `scripts/check-context-map.sh` must pass before any task is claimed done. (2026-07-11)
+This map is kept correct by the mandatory Context Maintenance rules in the root `CLAUDE.md`: every new, moved, renamed, or deleted doc must be registered here in the same change; `scripts/check-context-map.sh` must pass; and the context-integrity guards `scripts/check-doc-links.sh` (canonical doc links + path-like refs) and `scripts/check-context-budget.sh` (per-file / per-pack `~tokens` drift) must pass before any task is claimed done. (2026-07-23)

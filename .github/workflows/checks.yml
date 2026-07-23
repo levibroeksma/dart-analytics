@@ -21,6 +21,10 @@ jobs:
         run: bash scripts/check-astro-class-composition.sh
       - name: Astro conventions gate
         run: bash scripts/check-astro-conventions.sh
+      - name: Doc-links gate
+        run: bash scripts/check-doc-links.sh
+      - name: Context-budget gate
+        run: bash scripts/check-context-budget.sh
 
   app:
     runs-on: ubuntu-latest
