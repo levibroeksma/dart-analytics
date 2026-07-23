@@ -1,43 +1,72 @@
 ---
+/**
+ * Text-like input with optional error styling.
+ * @param {string} [id]
+ * @param {"text"|"email"|"password"|"number"|"tel"|"url"|"search"|"submit"} [type]
+ * @param {string} [name]
+ * @param {string} [value]
+ * @param {string} [placeholder]
+ * @param {boolean} [error]
+ * @param {boolean} [required]
+ * @param {boolean} [disabled]
+ * @param {string} [ariaDescribedby]
+ * @param {string} [class] Extra classes
+ */
 interface Props {
-  label: string;
-  name: string;
-  type?: "text" | "email" | "password" | "search" | "tel" | "url";
   id?: string;
-  autocomplete?: string;
+  type?:
+    | "text"
+    | "email"
+    | "password"
+    | "number"
+    | "tel"
+    | "url"
+    | "search"
+    | "submit";
+  name?: string;
+  value?: string;
+  placeholder?: string;
+  error?: boolean;
+  required?: boolean;
+  disabled?: boolean;
   class?: string;
   [key: string]: unknown;
 }
 
 // Props
 const {
-  label,
-  name,
-  type = "text",
   id,
-  autocomplete,
-  class: classNameProp,
+  type = "text",
+  name,
+  value,
+  placeholder,
+  error = false,
+  required = false,
+  disabled = false,
+  class: classNameProp = "",
   ...props
-}: Props = Astro.props;
+} = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
 
 // Styles
 const inputId = id ?? name;
-const className = cn("input", classNameProp);
+const className = cn(
+  "input w-full rounded-md border border-border px-3.5 py-2.5 text-sm text-foreground outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-muted",
+  error && "input-error",
+  classNameProp,
+);
 ---
 
-<label
-  for={inputId}
-  class="text-sm text-muted-foreground"
-  >{label}</label
->
 <input
   id={inputId}
-  name={name}
   type={type}
-  autocomplete={autocomplete}
+  name={name}
+  value={value}
+  placeholder={placeholder}
+  disabled={disabled}
+  required={required}
   class={className}
   {...props}
 />
