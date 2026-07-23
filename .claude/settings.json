@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Repo concision rule (always on): be extremely concise in all replies, commits, and plans; sacrifice grammar and pleasantries for brevity; prefer short words; no recaps; no transitional or acknowledgment phrases. Acknowledge only with On it. or Starting search., then execute immediately.\"}}'",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Repo concision rule (always on): be extremely concise in all output AND in internal reasoning/thinking — no verbose deliberation, keep thinking terse and to the point. Applies to all replies, commits, and plans; sacrifice grammar and pleasantries for brevity; prefer short words; no recaps; no transitional or acknowledgment phrases. Acknowledge only with On it. or Starting search., then execute immediately.\"}}'",
             "statusMessage": "Applying concision rule"
           }
         ]
