@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   applyDart,
   initialSinglesTrainingState,
+  SinglesTrainingEngine,
 } from "@modules/game/singles-training.engine.module";
 import type { SinglesTrainingState } from "@modules/game/types";
 
@@ -118,5 +119,44 @@ describe("applyDart — terminal state guard", () => {
       status: "COMPLETE",
     };
     expect(() => applyDart(completeState, "SINGLE")).toThrow();
+  });
+});
+
+describe("SinglesTrainingEngine", () => {
+  it("starts at 0 points on target NUMBER 1, not complete", () => {
+    const engine = new SinglesTrainingEngine();
+    expect(engine.currentPoints()).toBe(0);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 1 });
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("delegates recordDart to the reducer and exposes the updated state via getters", () => {
+    const engine = new SinglesTrainingEngine();
+    engine.recordDart("TREBLE");
+    expect(engine.currentPoints()).toBe(3);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 1 });
+    engine.recordDart("TREBLE");
+    engine.recordDart("TREBLE");
+    expect(engine.currentPoints()).toBe(9);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 2 });
+  });
+
+  it("reports isComplete once the full path is finished", () => {
+    const engine = new SinglesTrainingEngine();
+    for (let visit = 0; visit < 20; visit++) {
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+    }
+    engine.recordDart("DOUBLE");
+    engine.recordDart("DOUBLE");
+    engine.recordDart("DOUBLE");
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.currentPoints()).toBe(186);
+  });
+
+  it("accepts a custom starting points value", () => {
+    const engine = new SinglesTrainingEngine(50);
+    expect(engine.currentPoints()).toBe(50);
   });
 });

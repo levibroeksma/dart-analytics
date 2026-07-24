@@ -1,4 +1,5 @@
 import type { DartRing, SinglesTarget, SinglesTrainingState } from "./types";
+import { SINGLES_TRAINING_START_POINTS } from "./types";
 
 function targetForIndex(targetIndex: number): SinglesTarget {
   return targetIndex < 20
@@ -52,4 +53,29 @@ export function applyDart(
     dartsThisVisit: 0,
     targetIndex: state.targetIndex + 1,
   };
+}
+
+export class SinglesTrainingEngine {
+  private state: SinglesTrainingState;
+
+  constructor(startingPoints: number = SINGLES_TRAINING_START_POINTS) {
+    this.state = initialSinglesTrainingState(startingPoints);
+  }
+
+  recordDart(ring: DartRing): SinglesTrainingState {
+    this.state = applyDart(this.state, ring);
+    return this.state;
+  }
+
+  currentTarget(): SinglesTarget {
+    return targetForIndex(this.state.targetIndex);
+  }
+
+  currentPoints(): number {
+    return this.state.totalPoints;
+  }
+
+  isComplete(): boolean {
+    return this.state.status === "COMPLETE";
+  }
 }
