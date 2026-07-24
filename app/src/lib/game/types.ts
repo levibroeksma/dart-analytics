@@ -7,6 +7,7 @@ import type { GameConfigSnapshot, RecordedTurn } from "@stores/types";
 
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
+  loading: boolean;
   error: string;
   finished: boolean;
   hasActiveSession: boolean;

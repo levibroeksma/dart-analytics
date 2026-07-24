@@ -1,7 +1,7 @@
 # Cloudflare Deployment Guide
 
-**For:** Manual v1 production deployment to Cloudflare (Neon + Workers + Pages).  
-**Status:** First-time setup; GitHub Actions automation added post-launch.  
+**For:** Manual v1 production deployment to Cloudflare (Neon + Workers + Pages).
+**Status:** First-time setup; GitHub Actions automation added post-launch.
 **Time:** ~30 minutes first-time; ~5 minutes per repeat deploy.
 
 ---

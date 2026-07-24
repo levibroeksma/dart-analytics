@@ -4,7 +4,7 @@ Scope: everything under `app/`. Authority order and per-task context packs live 
 
 ## Development
 
-Local setup: `app/.env.example`, `app/README.md`.
+Local setup: `app/.env.example`, `app/README.md`. Neon local env: `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`); production file via `npm run env:prod` — never pull `main` into `.env`. `npm run dev` runs `env:dev` first. (2026-07-24)
 
 When starting the dev server, use background mode:
 
@@ -65,7 +65,8 @@ Full documentation: https://docs.astro.build
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
-- **Plan completion / pre-PR:** after the last task of a plan executed via writing-plans → subagent-driven-development or executing-plans, and before creating or updating a PR, run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Skipping this fails the CI Format gate. (2026-07-22)
+- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`). Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
+- **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate. (2026-07-24)
 
 ## Test-Driven Development (mandatory)
 
