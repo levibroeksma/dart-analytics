@@ -7,7 +7,7 @@
 
 name = "dart-analytics-api"
 type = "service"
-account_id = "YOUR_ACCOUNT_ID"
+account_id = "32801b465eaca8c16f4fda03054916e3"
 main = "dist/worker.js"
 compatibility_date = "2024-11-28"
 
