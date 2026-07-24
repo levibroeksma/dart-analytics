@@ -117,3 +117,7 @@ TDD per `app/CLAUDE.md`. Tests under `app/tests/modules/game/singles-training.en
 - Fix the seed/ruleset inconsistency: `database/seeds/0002_default_templates.sql`'s "Singles — Normal, High to Low" and "Singles — Hard, Random Order" presets reference `HIGH_TO_LOW`/`RANDOM` order and `NORMAL`/`HARD` difficulty ahead of the ruleset doc's V1 scope (LOW_TO_HIGH + EASY only). Needs a separate decision/fix — either update the ruleset doc to declare these V1, or correct the seed data. Not resolved by this engine spec.
 - HIGH_TO_LOW / RANDOM order, HARD/EXTREME/PROFESSIONAL difficulty (V2+ per ruleset).
 - UI, persistence to `turns`/`darts`, `configuration_templates`/`ruleset_versions` wiring, multiplayer, session lifecycle.
+
+## 7. Validation Note (docs/architecture cross-check)
+
+`dart_zones` (`docs/architecture/05-Database/06-Spec/01-Reference-Layer.md`) distinguishes `OUTER_BULL` and `INNER_BULL` as separate zones, but this spec's `DartRing` enum reuses the same `SINGLE`/`DOUBLE` values for both `NUMBER` and `BULL` targets (§2). Not a conflict for this engine-only spec — persistence is out of scope — but the future persistence step must map `SINGLE` on a `BULL` target → `OUTER_BULL` zone and `DOUBLE` on a `BULL` target → `INNER_BULL` zone; don't conflate the engine's ring enum with the DB's zone enum when that mapping is designed.
