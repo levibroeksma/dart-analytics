@@ -30,6 +30,7 @@ Existing gaps:
 | Pre-deploy | Re-run the **same** quality suite before approval/deploy (no weaker gate) |
 | Neon migrate | **Out of v1** (optional later; not part of deploy) |
 | Approach | Reusable quality workflow + thin deploy workflow (avoid gate drift) |
+| Prettier before PR | **Both:** git `pre-commit` (husky + lint-staged → Prettier write on staged files) **and** stronger agent/pre-PR rules. CI stays fail-only (`format:check`) — no Actions auto-format/commit |
 
 ---
 
@@ -45,6 +46,10 @@ Existing gaps:
 - Retire `app/scripts/deploy.sh`; retire or clearly obsolete `app/wrangler.toml`.
 - Update `app/README.md` Production section for CI + Environment approval.
 - Short operator note: create GitHub Environment `production` with required reviewers; enable branch protection requiring quality checks.
+- Prettier enforcement before code leaves the machine / before PR:
+  - `husky` + `lint-staged` pre-commit hook (repo root `.husky/`, driven from `app/package.json`) runs Prettier `--write` on staged files under the Prettier project.
+  - Agent rules: `app/CLAUDE.md` + `app/AGENT.md` (byte-identical), plus `finishing-a-development-branch` skill — mandatory `npm run format` + clean `format:check` before creating/updating a PR (not only after multi-task plans).
+  - CI remains `format:check` fail-only (no auto-commit from Actions).
 
 **Out (v1):**
 
@@ -53,6 +58,7 @@ Existing gaps:
 - Re-uploading Worker secrets from CI each deploy (secrets stay in Cloudflare).
 - Full `validate:app` in CI (needs live Neon for migrate/introspect).
 - Converting `wrangler.jsonc` → only format (already canonical).
+- CI jobs that run `prettier --write` or open format-fix PRs.
 
 ---
 
@@ -140,9 +146,20 @@ Both jobs must succeed for the reusable workflow to be green. Deploy may not pro
 
 ---
 
-## 10. Success criteria
+## 10. Format gate (local + agent)
+
+| Layer | Behavior |
+| ----- | -------- |
+| pre-commit | husky → `cd app && npx lint-staged` → Prettier write on staged matches; commit includes formatted content |
+| Agent / finishing-a-branch | Before `gh pr create` / push for review: `cd app && npm run format`, commit diffs if any, `npm run format:check` must exit 0 |
+| CI (`quality` app job) | `npm run format:check` only — red if dirty; never auto-writes |
+
+Install path: `app` is the only npm package; `prepare` script installs hooks at repo-root `.husky/` so clone + `npm install` in `app/` wires hooks. Document in `app/README.md` Quick Start.
+
+## 11. Success criteria
 
 - PR with failing tests or format cannot merge (with protection enabled).
 - Merge to `main` re-runs the same gates, then waits for Environment approval, then deploys one Worker (app + assets).
 - No local deploy script is required or documented as the happy path.
 - Neon migrate is not coupled to deploy in v1.
+- Unformatted staged files are rewritten at commit time; agents cannot open a PR without a clean `format:check`.
