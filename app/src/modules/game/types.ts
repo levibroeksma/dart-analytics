@@ -33,3 +33,17 @@ export type Bobs27State = {
 
 export const BOBS27_START_SCORE = 27;
 export const BOBS27_BULL_HIT_VALUE = 50;
+
+export type SinglesTarget =
+  { kind: "NUMBER"; number: number } | { kind: "BULL" };
+
+export type DartRing = "SINGLE" | "DOUBLE" | "TREBLE" | "MISS";
+
+export type SinglesTrainingState = {
+  targetIndex: number;
+  totalPoints: number;
+  dartsThisVisit: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export const SINGLES_TRAINING_START_POINTS = 0;
