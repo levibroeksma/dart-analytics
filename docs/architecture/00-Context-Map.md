@@ -2,9 +2,8 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-23
+updated: 2026-07-24
 -->
-
 # Context Map
 
 > **Version:** 1.6.11 (2026-07-23 — context-integrity guards D133: `scripts/check-doc-links.sh` + `scripts/check-context-budget.sh`; prior 1.6.10 mid-task fallow/`npm run check` gate)
@@ -96,7 +95,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
 | `09-Pre-Implementation-Review.md` | Design-gate record | historical | ~1.5k |
 | `10-Database-Agent-Guide.md` | Condensed DB rules for agents; ID strategy owner | canonical | ~2.2k |
-| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow | canonical | ~1.3k |
+| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror (2026-07-24) | canonical | ~1.5k |
 
 ## API (`06-API/`) and Frontend (`07-Frontend/`)
 
