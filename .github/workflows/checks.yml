@@ -3,53 +3,7 @@ name: checks
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
 jobs:
-  structure:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Context-map consistency
-        run: bash scripts/check-context-map.sh
-      - name: File-location gate
-        run: bash scripts/check-file-locations.sh
-      - name: AGENT.md mirror gate
-        run: bash scripts/check-agent-mirrors.sh
-      - name: Astro class-composition gate
-        run: bash scripts/check-astro-class-composition.sh
-      - name: Astro conventions gate
-        run: bash scripts/check-astro-conventions.sh
-      - name: Doc-links gate
-        run: bash scripts/check-doc-links.sh
-      - name: Context-budget gate
-        run: bash scripts/check-context-budget.sh
-
-  app:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - name: Install
-        run: npm ci
-      - name: Format gate
-        run: npm run format:check
-      - name: Type gate
-        run: npx astro check
-      - name: Stale-usage gate
-        run: npx fallow
-      - name: Check for deprecated neonConfig.fetchConnectionCache
-        working-directory: ${{ github.workspace }}
-        run: |
-          if grep -r "fetchConnectionCache" app/src --include="*.ts" --include="*.js"; then
-            echo "❌ Error: fetchConnectionCache is deprecated and must not be used"
-            exit 1
-          fi
+  quality:
+    uses: ./.github/workflows/quality.yml
