@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   applyDart,
   initialBobs27State,
+  Bobs27Engine,
 } from "@modules/game/bobs27.engine.module";
 import type { Bobs27State } from "@modules/game/types";
 
@@ -106,5 +107,40 @@ describe("applyDart — path completion and win/loss", () => {
       status: "WON",
     };
     expect(() => applyDart(wonState, true)).toThrow();
+  });
+});
+
+describe("Bobs27Engine", () => {
+  it("starts at score 27 on target D1, in progress", () => {
+    const engine = new Bobs27Engine();
+    expect(engine.currentScore()).toBe(27);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.isGameOver()).toBe(false);
+    expect(engine.result()).toBeNull();
+  });
+
+  it("delegates recordDart to the reducer and exposes the updated state via getters", () => {
+    const engine = new Bobs27Engine();
+    engine.recordDart(true);
+    expect(engine.currentScore()).toBe(28);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    engine.recordDart(true);
+    engine.recordDart(true);
+    expect(engine.currentScore()).toBe(30);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+  });
+
+  it("reports isGameOver and result once the game ends", () => {
+    const engine = new Bobs27Engine(1);
+    engine.recordDart(false);
+    engine.recordDart(false);
+    engine.recordDart(false);
+    expect(engine.isGameOver()).toBe(true);
+    expect(engine.result()).toBe("LOST");
+  });
+
+  it("accepts a custom starting score", () => {
+    const engine = new Bobs27Engine(100);
+    expect(engine.currentScore()).toBe(100);
   });
 });

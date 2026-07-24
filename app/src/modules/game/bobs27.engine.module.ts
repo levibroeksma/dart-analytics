@@ -1,5 +1,5 @@
 import type { Bobs27State, Bobs27Target } from "./types";
-import { BULL_HIT_VALUE } from "./types";
+import { BOBS27_START_SCORE, BULL_HIT_VALUE } from "./types";
 
 function targetForIndex(targetIndex: number): Bobs27Target {
   return targetIndex < 20
@@ -60,4 +60,33 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
     dartsThisVisit: [],
     targetIndex: state.targetIndex + 1,
   };
+}
+
+export class Bobs27Engine {
+  private state: Bobs27State;
+
+  constructor(startingScore: number = BOBS27_START_SCORE) {
+    this.state = initialBobs27State(startingScore);
+  }
+
+  recordDart(hit: boolean): Bobs27State {
+    this.state = applyDart(this.state, hit);
+    return this.state;
+  }
+
+  currentTarget(): Bobs27Target {
+    return targetForIndex(this.state.targetIndex);
+  }
+
+  currentScore(): number {
+    return this.state.score;
+  }
+
+  isGameOver(): boolean {
+    return this.state.status !== "IN_PROGRESS";
+  }
+
+  result(): "WON" | "LOST" | null {
+    return this.state.status === "IN_PROGRESS" ? null : this.state.status;
+  }
 }
