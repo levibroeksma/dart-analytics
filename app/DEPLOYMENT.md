@@ -25,9 +25,11 @@
 Open https://dash.cloudflare.com/profile/api-tokens and copy your **Account ID** (left sidebar, under "API").
 
 Edit `wrangler.toml`:
+
 - Replace `account_id = "YOUR_ACCOUNT_ID"` with your real ID
 
 Save and verify:
+
 ```bash
 grep "account_id" wrangler.toml
 # Expected: account_id = "YOUR_ACCOUNT_ID" (with real 32-char hex string)
@@ -42,6 +44,7 @@ neon auth
 ```
 
 Verify authentication:
+
 ```bash
 neon projects list
 # Expected: Shows your Neon project(s)
@@ -56,6 +59,7 @@ neon link
 ```
 
 Verify link:
+
 ```bash
 neon projects current
 # Expected: Prints project name and ID
@@ -84,6 +88,7 @@ cp .env.production.example .env.production
 ```
 
 Verify:
+
 ```bash
 grep -E "^[A-Z_]+=.*" .env.production | wc -l
 # Expected: 5 (or more if you added PUBLIC_ vars)
@@ -102,6 +107,7 @@ npm run db:migrate
 ```
 
 Verify:
+
 ```bash
 npm run db:status
 # Expected: Shows all migrations applied (✓ checks)
@@ -112,8 +118,9 @@ npm run db:status
 Open https://console.neon.tech → your project → main branch → SQL Editor.
 
 Query:
+
 ```sql
-SELECT table_name FROM information_schema.tables 
+SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public' ORDER BY table_name;
 ```
 
@@ -132,6 +139,7 @@ wrangler login
 ```
 
 Verify:
+
 ```bash
 wrangler whoami
 # Expected: Prints your account email
@@ -160,6 +168,7 @@ wrangler secret put NEON_AUTH_BASE_URL --env production
 ```
 
 Verify secrets were set:
+
 ```bash
 wrangler secret list --env production
 # Expected: Lists 4 secrets (no values shown; just names)
@@ -173,6 +182,7 @@ npm run build
 ```
 
 Verify build output:
+
 ```bash
 ls -la dist/ | head -10
 # Expected: dist/ contains files (index.html, _astro/, api/)
@@ -244,20 +254,24 @@ curl https://dart-analytics-api.pages.dev/
 ### 4.1 Check monitoring dashboards
 
 **Neon dashboard:**
+
 - Open https://console.neon.tech → main branch → Monitoring
 - Expected: Query count from migrations visible
 
 **Cloudflare Analytics Engine:**
+
 - Open https://dash.cloudflare.com/analytics/workers
 - Expected: Deploy request visible (status 200 or similar)
 
 **Pages Analytics:**
+
 - Open https://dash.cloudflare.com/pages → dart-analytics-api → Analytics
 - Expected: Deploy event + build success shown
 
 ### 4.2 Record URLs
 
 Save these for future reference:
+
 - **Pages (frontend):** https://dart-analytics-api.pages.dev
 - **Workers (API):** https://dart-analytics-api.workers.dev/api
 - **Neon dashboard:** https://console.neon.tech/app/projects/YOUR_PROJECT_ID
@@ -285,21 +299,26 @@ If deployment breaks:
 ## Troubleshooting
 
 **"wrangler: command not found"**
+
 - Run `npm install -g wrangler` or `npm install` to get local version
 
 **"Account ID mismatch"**
+
 - Verify `wrangler.toml` account_id matches https://dash.cloudflare.com/profile/api-tokens
 - Run `wrangler whoami` to confirm logged-in account
 
 **"DATABASE_URL not found"**
+
 - Verify `.env.production` exists and is loaded: `export $(cat .env.production | xargs)`
 - Run `printenv DATABASE_URL` to confirm var is set
 
 **"Pages build fails"**
+
 - Check Pages project → Deployments → build logs
 - Common: missing `PUBLIC_NEON_AUTH_BASE_URL` env var in Pages settings
 
 **"401 UNAUTHORIZED on API call"**
+
 - Expected without JWT; test with real Neon Auth JWT from browser login
 - Check `NEON_AUTH_JWKS_URL` secret is set correctly
 
