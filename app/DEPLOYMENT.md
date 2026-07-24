@@ -1,7 +1,7 @@
 # Cloudflare Deployment Guide
 
-**For:** Manual v1 production deployment to Cloudflare (Neon + Workers + Pages).  
-**Status:** First-time setup; GitHub Actions automation added post-launch.  
+**For:** Manual v1 production deployment to Cloudflare (Neon + Workers + Pages).
+**Status:** First-time setup; GitHub Actions automation added post-launch.
 **Time:** ~30 minutes first-time; ~5 minutes per repeat deploy.
 
 ---
@@ -113,7 +113,7 @@ Open https://console.neon.tech → your project → main branch → SQL Editor.
 
 Query:
 ```sql
-SELECT table_name FROM information_schema.tables 
+SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public' ORDER BY table_name;
 ```
 
