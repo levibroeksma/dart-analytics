@@ -2,12 +2,12 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-07-15
+updated: 2026-07-24
 -->
 
 # Neon Integration Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 >
 > Canonical implementation guide for Neon project topology, environment setup, and migration/query tooling in this repository.
 
@@ -75,8 +75,18 @@ Branch workflow:
 
 ```sh
 neon link
-neon checkout dev
+npm run env:dev    # neon checkout dev + mirror PUBLIC_NEON_AUTH_BASE_URL into .env
 ```
+
+Production secrets for deploy scripts go in a separate file — never overwrite `.env`:
+
+```sh
+npm run env:prod   # neon env pull --branch main --file .env.production + PUBLIC_ mirror
+```
+
+`astro dev` loads `.env` / `.env.development`, not `.env.production`. Keep `.neon` on `dev` for local work.
+
+Neon CLI env pull writes only Neon keys (`NEON_AUTH_BASE_URL`, …). Astro browser code needs `PUBLIC_NEON_AUTH_BASE_URL` — `npm run env:mirror` (and `env:dev` / `env:prod`) copies it. Manual copy is not required after those scripts.
 
 ---
 
@@ -152,7 +162,7 @@ Sign-up UI is out of scope for v1. Provision the dev branch user once per enviro
 | ---- | ------ |
 | 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
 | 2 | Add trusted origin `http://localhost:4321` |
-| 3 | Set `PUBLIC_NEON_AUTH_BASE_URL` in `.env` (mirror `NEON_AUTH_BASE_URL`) |
+| 3 | Run `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
 | 4 | Run `npm run seed:dev-auth` from `app/` |
 
 Default dev credentials are documented in `app/scripts/seed-dev-auth.ts` header only (`levi@broeksma.nl` / `admin`, name `Levi`).
