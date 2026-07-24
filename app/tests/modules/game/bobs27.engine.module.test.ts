@@ -144,3 +144,66 @@ describe("Bobs27Engine", () => {
     expect(engine.currentScore()).toBe(100);
   });
 });
+
+describe("Bobs27Engine.undoLastDart", () => {
+  it("returns false when there is no history", () => {
+    const engine = new Bobs27Engine();
+    expect(engine.undoLastDart()).toBe(false);
+  });
+
+  it("reverts a single hit", () => {
+    const engine = new Bobs27Engine();
+    engine.recordDart(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentScore()).toBe(27);
+  });
+
+  it("reverts the 3rd dart of a full-miss visit, restoring the penalty and the target", () => {
+    const engine = new Bobs27Engine();
+    engine.recordDart(false);
+    engine.recordDart(false);
+    engine.recordDart(false);
+    expect(engine.currentScore()).toBe(26);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentScore()).toBe(27);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.isGameOver()).toBe(false);
+  });
+
+  it("reverts a game-ending dart, allowing play to continue afterward", () => {
+    const engine = new Bobs27Engine(1);
+    engine.recordDart(false);
+    engine.recordDart(false);
+    engine.recordDart(false);
+    expect(engine.isGameOver()).toBe(true);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isGameOver()).toBe(false);
+    expect(engine.currentScore()).toBe(1);
+
+    engine.recordDart(true);
+    expect(engine.isGameOver()).toBe(false);
+    expect(engine.currentScore()).toBe(2);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+  });
+
+  it("walks back across multiple visits with repeated undos", () => {
+    const engine = new Bobs27Engine();
+    engine.recordDart(true);
+    engine.recordDart(true);
+    engine.recordDart(true);
+    engine.recordDart(true);
+    expect(engine.currentScore()).toBe(32);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentScore()).toBe(27);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.undoLastDart()).toBe(false);
+  });
+});

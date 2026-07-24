@@ -64,14 +64,23 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
 
 export class Bobs27Engine {
   private state: Bobs27State;
+  private history: Bobs27State[] = [];
 
   constructor(startingScore: number = BOBS27_START_SCORE) {
     this.state = initialBobs27State(startingScore);
   }
 
   recordDart(hit: boolean): Bobs27State {
+    this.history.push(this.state);
     this.state = applyDart(this.state, hit);
     return this.state;
+  }
+
+  /** Reverts exactly the last recorded dart, one at a time, even across visit/game-over boundaries. */
+  undoLastDart(): boolean {
+    if (this.history.length === 0) return false;
+    this.state = this.history.pop()!;
+    return true;
   }
 
   currentTarget(): Bobs27Target {
