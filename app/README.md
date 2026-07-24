@@ -26,8 +26,10 @@ cp .env.example .env
 
 ```sh
 neon auth
-neon env dev
+npm run env:dev
 ```
+
+(`env:dev` checks out Neon `dev`, pulls vars into `.env`, and mirrors `PUBLIC_NEON_AUTH_BASE_URL`. Use `npm run env:prod` for `.env.production` — never pull `main` into `.env`.)
 
 3. Install dependencies:
 
@@ -54,7 +56,7 @@ astro dev stop
 For manual Cloudflare deployment (Neon + Workers + Pages), see **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
 
 **First-time setup:** ~30 minutes (includes Neon auth, Wrangler secrets, Pages setup)  
-**Repeat deploys:** ~5 minutes (or one command: `bash scripts/deploy.sh`)
+**Repeat deploys:** merge to `main` — GitHub Actions deploys after Environment approval.
 
 **Phases:**
 
