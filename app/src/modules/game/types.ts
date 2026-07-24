@@ -20,3 +20,16 @@ export type ScoreInputBufferOptions = {
 export type ScoreInputActivationEvent = {
   detail?: number;
 };
+
+export type Bobs27Target =
+  { kind: "DOUBLE"; number: number } | { kind: "BULL" };
+
+export type Bobs27State = {
+  targetIndex: number;
+  score: number;
+  dartsThisVisit: boolean[];
+  status: "IN_PROGRESS" | "WON" | "LOST";
+};
+
+export const BOBS27_START_SCORE = 27;
+export const BULL_HIT_VALUE = 50;

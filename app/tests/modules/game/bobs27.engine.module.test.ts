@@ -1,0 +1,110 @@
+import { describe, it, expect } from "vitest";
+import {
+  applyDart,
+  initialBobs27State,
+} from "@modules/game/bobs27.engine.module";
+import type { Bobs27State } from "@modules/game/types";
+
+describe("applyDart — hit scoring", () => {
+  it("adds the target's value immediately on a single hit and keeps the same target", () => {
+    const state = initialBobs27State(27);
+    const next = applyDart(state, true);
+    expect(next.score).toBe(28);
+    expect(next.targetIndex).toBe(0);
+    expect(next.status).toBe("IN_PROGRESS");
+  });
+
+  it("adds each hit as it happens across a 3-hit visit, then advances the target", () => {
+    let state = initialBobs27State(27);
+    state = applyDart(state, true);
+    expect(state.score).toBe(28);
+    state = applyDart(state, true);
+    expect(state.score).toBe(29);
+    state = applyDart(state, true);
+    expect(state.score).toBe(30);
+    expect(state.targetIndex).toBe(1);
+    expect(state.status).toBe("IN_PROGRESS");
+  });
+
+  it("does not penalize a visit with at least one hit", () => {
+    let state = initialBobs27State(27);
+    state = applyDart(state, true);
+    state = applyDart(state, false);
+    state = applyDart(state, true);
+    expect(state.score).toBe(29);
+    expect(state.targetIndex).toBe(1);
+  });
+});
+
+describe("applyDart — full-miss penalty", () => {
+  it("does not change the score until the 3rd dart resolves a full-miss visit", () => {
+    let state = initialBobs27State(27);
+    state = applyDart(state, false);
+    expect(state.score).toBe(27);
+    state = applyDart(state, false);
+    expect(state.score).toBe(27);
+    state = applyDart(state, false);
+    expect(state.score).toBe(26);
+    expect(state.targetIndex).toBe(1);
+  });
+
+  it("drives the score to exactly 0 and ends the game as LOST", () => {
+    let state = initialBobs27State(1);
+    state = applyDart(state, false);
+    state = applyDart(state, false);
+    state = applyDart(state, false);
+    expect(state.score).toBe(0);
+    expect(state.status).toBe("LOST");
+  });
+});
+
+describe("applyDart — path completion and win/loss", () => {
+  it("wins after a full-hit run through the entire path", () => {
+    let state = initialBobs27State(27);
+    for (let visit = 0; visit < 21; visit++) {
+      state = applyDart(state, true);
+      state = applyDart(state, true);
+      state = applyDart(state, true);
+    }
+    expect(state.status).toBe("WON");
+    expect(state.score).toBe(807);
+  });
+
+  it("loses when a full-miss on the bull visit drops the score to 0 or below, even though it is the final visit", () => {
+    const bullState: Bobs27State = {
+      targetIndex: 20,
+      score: 50,
+      dartsThisVisit: [],
+      status: "IN_PROGRESS",
+    };
+    let state = applyDart(bullState, false);
+    state = applyDart(state, false);
+    state = applyDart(state, false);
+    expect(state.score).toBe(0);
+    expect(state.status).toBe("LOST");
+  });
+
+  it("wins when a full-miss on the bull visit leaves the score positive", () => {
+    const bullState: Bobs27State = {
+      targetIndex: 20,
+      score: 100,
+      dartsThisVisit: [],
+      status: "IN_PROGRESS",
+    };
+    let state = applyDart(bullState, false);
+    state = applyDart(state, false);
+    state = applyDart(state, false);
+    expect(state.score).toBe(50);
+    expect(state.status).toBe("WON");
+  });
+
+  it("throws when called on a state that already has a WON or LOST status", () => {
+    const wonState: Bobs27State = {
+      targetIndex: 20,
+      score: 10,
+      dartsThisVisit: [],
+      status: "WON",
+    };
+    expect(() => applyDart(wonState, true)).toThrow();
+  });
+});
