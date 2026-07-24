@@ -1,5 +1,5 @@
 import type { Bobs27State, Bobs27Target } from "./types";
-import { BOBS27_START_SCORE, BULL_HIT_VALUE } from "./types";
+import { BOBS27_START_SCORE, BOBS27_BULL_HIT_VALUE } from "./types";
 
 function targetForIndex(targetIndex: number): Bobs27Target {
   return targetIndex < 20
@@ -8,7 +8,7 @@ function targetForIndex(targetIndex: number): Bobs27Target {
 }
 
 function targetValue(target: Bobs27Target): number {
-  return target.kind === "DOUBLE" ? target.number : BULL_HIT_VALUE;
+  return target.kind === "DOUBLE" ? target.number : BOBS27_BULL_HIT_VALUE;
 }
 
 export function initialBobs27State(startingScore: number): Bobs27State {
@@ -28,7 +28,9 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
   }
 
   const target = targetForIndex(state.targetIndex);
-  const dartsThisVisit = [...state.dartsThisVisit, hit];
+  const priorDarts =
+    state.dartsThisVisit.length === 3 ? [] : state.dartsThisVisit;
+  const dartsThisVisit = [...priorDarts, hit];
   const score = hit ? state.score + targetValue(target) : state.score;
 
   if (dartsThisVisit.length < 3) {
@@ -42,7 +44,7 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
     return {
       ...state,
       score: resolvedScore,
-      dartsThisVisit: [],
+      dartsThisVisit,
       status: "LOST",
     };
   }
@@ -50,14 +52,14 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
     return {
       ...state,
       score: resolvedScore,
-      dartsThisVisit: [],
+      dartsThisVisit,
       status: "WON",
     };
   }
   return {
     ...state,
     score: resolvedScore,
-    dartsThisVisit: [],
+    dartsThisVisit,
     targetIndex: state.targetIndex + 1,
   };
 }
@@ -70,6 +72,7 @@ export class Bobs27Engine {
     this.state = initialBobs27State(startingScore);
   }
 
+  /** Returns the engine's live internal state; callers must not mutate the returned object or its `dartsThisVisit` array. */
   recordDart(hit: boolean): Bobs27State {
     this.history.push(this.state);
     this.state = applyDart(this.state, hit);

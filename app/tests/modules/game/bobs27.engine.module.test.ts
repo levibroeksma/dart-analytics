@@ -139,6 +139,18 @@ describe("Bobs27Engine", () => {
     expect(engine.result()).toBe("LOST");
   });
 
+  it("wins after a full-hit run through the entire path", () => {
+    const engine = new Bobs27Engine();
+    for (let visit = 0; visit < 21; visit++) {
+      engine.recordDart(true);
+      engine.recordDart(true);
+      engine.recordDart(true);
+    }
+    expect(engine.isGameOver()).toBe(true);
+    expect(engine.result()).toBe("WON");
+    expect(engine.currentScore()).toBe(807);
+  });
+
   it("accepts a custom starting score", () => {
     const engine = new Bobs27Engine(100);
     expect(engine.currentScore()).toBe(100);
@@ -170,6 +182,10 @@ describe("Bobs27Engine.undoLastDart", () => {
     expect(engine.currentScore()).toBe(27);
     expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
     expect(engine.isGameOver()).toBe(false);
+
+    const afterRestoredDart = engine.recordDart(false);
+    expect(afterRestoredDart.dartsThisVisit).toEqual([false, false, false]);
+    expect(engine.currentScore()).toBe(26);
   });
 
   it("reverts a game-ending dart, allowing play to continue afterward", () => {

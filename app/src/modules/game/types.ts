@@ -32,4 +32,4 @@ export type Bobs27State = {
 };
 
 export const BOBS27_START_SCORE = 27;
-export const BULL_HIT_VALUE = 50;
+export const BOBS27_BULL_HIT_VALUE = 50;
