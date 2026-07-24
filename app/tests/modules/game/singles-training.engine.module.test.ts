@@ -85,6 +85,17 @@ describe("applyDart — BULL target scoring", () => {
     expect(next.totalPoints).toBe(2);
   });
 
+  it("scores 0 points for a TREBLE hit on BULL (not a physically valid ring, defensive)", () => {
+    const bullState: SinglesTrainingState = {
+      targetIndex: 20,
+      totalPoints: 0,
+      dartsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applyDart(bullState, "TREBLE");
+    expect(next.totalPoints).toBe(0);
+  });
+
   it("sets status COMPLETE on the bull visit's 3rd dart, not just advancing", () => {
     const bullState: SinglesTrainingState = {
       targetIndex: 20,
