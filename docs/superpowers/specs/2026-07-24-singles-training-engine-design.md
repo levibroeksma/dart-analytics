@@ -65,8 +65,9 @@ class SinglesTrainingEngine {
   }
 
   recordDart(ring: DartRing): SinglesTrainingState {
+    const next = applyDart(this.state, ring);
     this.history.push(this.state);
-    this.state = applyDart(this.state, ring);
+    this.state = next;
     return this.state;
   }
 

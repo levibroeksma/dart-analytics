@@ -108,6 +108,17 @@ describe("applyDart — BULL target scoring", () => {
     expect(next.status).toBe("COMPLETE");
     expect(next.dartsThisVisit).toBe(0);
   });
+
+  it("scores 0 points for a MISS on BULL", () => {
+    const bullState: SinglesTrainingState = {
+      targetIndex: 20,
+      totalPoints: 5,
+      dartsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applyDart(bullState, "MISS");
+    expect(next.totalPoints).toBe(5);
+  });
 });
 
 describe("applyDart — terminal state guard", () => {
@@ -165,6 +176,27 @@ describe("SinglesTrainingEngine.undoLastDart", () => {
   it("returns false when there is no history", () => {
     const engine = new SinglesTrainingEngine();
     expect(engine.undoLastDart()).toBe(false);
+  });
+
+  it("does not push a phantom history entry when recordDart is rejected on a completed engine", () => {
+    const engine = new SinglesTrainingEngine();
+    for (let visit = 0; visit < 20; visit++) {
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+    }
+    engine.recordDart("DOUBLE");
+    engine.recordDart("DOUBLE");
+    engine.recordDart("DOUBLE");
+    expect(engine.isComplete()).toBe(true);
+
+    expect(() => engine.recordDart("SINGLE")).toThrow();
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.currentPoints()).toBe(184);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentPoints()).toBe(182);
   });
 
   it("reverts a single dart", () => {
