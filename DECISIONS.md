@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-23
+updated: 2026-07-24
 -->
 
 # Architectural Decision Ledger
@@ -48,6 +48,7 @@ updated: 2026-07-23
 | D28 | 2026-07-12 | `session_id` added to `v_dart_analytics` (migration `0014`) so `GET /sessions/:id/darts` filters by session through the view | Endpoint is per-session but the view was player-global |
 | D74 | 2026-07-13 | Migration `0016` rebuilds `v_game_replay` (LEFT JOIN darts, `turn_total_score`, `stage_id`/`parent_stage_id`) and floors `v_session_overview.duration_seconds` | Recreational + nested-stage replay; integer DTO contract |
 | D95 | 2026-07-15 | Reversed connection-string contract per user-verified `neonctl link` output: `DATABASE_URL` = pooled (tooling: dbmate, drizzle-kit), `DATABASE_URL_UNPOOLED` = direct (Worker runtime `getDb()`); `DATABASE_URL_POOLED` eliminated entirely, no manually-maintained alias | Matches Neon's real 5-variable output exactly; supersedes commit `a2be0eb`'s unverified reverse assumption |
+| D134 | 2026-07-24 | Local Neon env: `npm run env:dev` / `env:prod` pull branch vars into `.env` / `.env.production` and mirror `PUBLIC_NEON_AUTH_BASE_URL`; `npm run dev` runs `env:dev` first; never pull `main` into `.env` | Neon CLI omits Astro `PUBLIC_` keys; deploy must not leave local `astro dev` on production |
 
 ## API (v1 baseline frozen 2026-07-08)
 
