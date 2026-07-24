@@ -32,7 +32,7 @@ function computeStats(turns: RecordedTurn[]): {
 export function scoreTrainingPlay() {
   return {
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-
+    loading: false,
     error: "",
     finished: false,
     hasActiveSession: false,
@@ -146,11 +146,13 @@ export function scoreTrainingPlay() {
     },
 
     async submitVisit(this: ScoreTrainingPlayContext) {
+      this.loading = true;
       if (!this.engine || this.finished || this.showFinishConfirm) return;
 
       const score = Number(this.scoreInput.value);
       if (!Number.isInteger(score) || score < 0 || score > 180) {
         this.error = "Enter a score between 0 and 180.";
+        this.loading = false;
         return;
       }
       this.error = "";
@@ -165,12 +167,14 @@ export function scoreTrainingPlay() {
         this.pendingFinishScore = score;
         this.scoreInput.clear();
         this.showFinishConfirm = true;
+        this.loading = false;
         return;
       }
 
       this.scoreInput.clear();
       const visit = this.engine.recordVisit(score);
       this.$store.game.recordTurn(visit);
+      this.loading = false;
     },
 
     async confirmFinish(this: ScoreTrainingPlayContext) {

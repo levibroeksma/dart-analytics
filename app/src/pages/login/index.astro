@@ -15,33 +15,49 @@ import LoadingIcon from "@icons/loading.svg";
         class="glass mx-auto rounded-lg border border-border bg-surface-raised w-full max-w-md space-y-6 p-6"
       >
         <div class="space-y-1">
-          <h1 class="text-2xl font-semibold text-foreground">Sign in</h1>
-          <p class="text-sm text-muted-foreground">
-            Sign in to track your darts progression.
-          </p>
+          <h1 class="text-2xl font-semibold font-display text-accent">
+            Darts Analytics
+          </h1>
+          <p class="text-sm text-foreground">Welcome back!</p>
         </div>
 
         <form
           x-data="loginForm()"
           @submit.prevent="submit"
-          class="space-y-4"
+          class="flex flex-col gap-4"
         >
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            autocomplete="email"
-            x-model="email"
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            autocomplete="current-password"
-            x-model="password"
-            required
-          />
+          <label
+            for="e-mail"
+            class="text-xs text-foreground tracking-widest"
+          >
+            <span class="font-semibold"> Email </span>
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="example@email.com"
+              x-model="email"
+              required
+              class="mt-2"
+            />
+          </label>
+
+          <label
+            for="password"
+            class="text-xs text-foreground tracking-widest"
+          >
+            <span class="font-semibold">Password</span>
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              autocomplete="current-password"
+              x-model="password"
+              required
+              class="mt-2"
+            />
+          </label>
           <p
             x-show="error"
             x-text="error"
@@ -53,7 +69,7 @@ import LoadingIcon from "@icons/loading.svg";
           <Button
             type="submit"
             variant="primary"
-            class="w-full"
+            class="w-full mt-4"
             :disabled="loading"
             title="Sign in"
           >
