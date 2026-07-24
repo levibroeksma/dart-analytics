@@ -49,6 +49,21 @@ astro dev logs
 astro dev stop
 ```
 
+## Production Deployment
+
+For manual Cloudflare deployment (Neon + Workers + Pages), see **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
+
+**First-time setup:** ~30 minutes (includes Neon auth, Wrangler secrets, Pages setup)  
+**Repeat deploys:** ~5 minutes (or one command: `bash scripts/deploy.sh`)
+
+**Phases:**
+1. Neon production database (schema migration, credentials)
+2. Cloudflare Workers API (build, secrets, deploy)
+3. Cloudflare Pages frontend (GitHub auto-deploy)
+4. End-to-end validation (monitoring dashboards)
+
+GitHub Actions automation (post-launch) will streamline steps 2–3 into one-click merges.
+
 ## Validation Standard Procedure
 
 Run this before closing an `app/` task:
