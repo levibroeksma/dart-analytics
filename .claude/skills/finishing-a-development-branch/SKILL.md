@@ -118,6 +118,15 @@ Then: Cleanup worktree (Step 6), then delete branch:
 git branch -d <feature-branch>
 ```
 
+**Format gate (mandatory before Push and Create PR):**
+
+Run from `app/`:
+
+1. `npm run format`
+2. `npm run format:check`
+
+If `format` produced diffs, commit them before pushing. Do not open or update a PR while `format:check` is red.
+
 #### Option 2: Push and Create PR
 
 ```bash

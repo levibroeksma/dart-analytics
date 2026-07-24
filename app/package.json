@@ -6,12 +6,15 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "npm run env:dev && astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
     "check": "rm -rf .astro && astro check",
+    "env:mirror": "tsx scripts/mirror-public-auth.ts",
+    "env:dev": "neon checkout dev && npm run env:mirror -- --file .env",
+    "env:prod": "neon env pull --branch main --file .env.production && npm run env:mirror -- --file .env.production",
     "db:status": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations status",
     "db:migrate": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations up",
     "db:seed": "tsx scripts/seed.ts",
@@ -22,7 +25,11 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && npm run check && bash ../scripts/refresh-graph.sh"
+    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && npm run check && bash ../scripts/refresh-graph.sh",
+    "prepare": "cd .. && husky"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
     "@alpinejs/persist": "^3.15.12",
@@ -50,7 +57,9 @@
     "@types/node": "^26.1.1",
     "dbmate": "^2.33.0",
     "drizzle-kit": "^0.31.10",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^17.2.0",
     "postgres": "^3.4.9",
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
