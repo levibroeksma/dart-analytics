@@ -37,6 +37,8 @@ npm run env:dev
 npm install
 ```
 
+Hooks: `npm install` runs `prepare`, which installs repo-root husky hooks (Prettier on commit).
+
 4. Start local development:
 
 ```sh
@@ -53,19 +55,34 @@ astro dev stop
 
 ## Production Deployment
 
-For manual Cloudflare deployment (Neon + Workers + Pages), see **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
+Production deploys are **CI-only** (GitHub Actions). There is no local `npm run deploy`.
 
-**First-time setup:** ~30 minutes (includes Neon auth, Wrangler secrets, Pages setup)  
-**Repeat deploys:** merge to `main` — GitHub Actions deploys after Environment approval.
+**Happy path**
 
-**Phases:**
+1. Open a PR to `main` — workflow `checks` runs the shared `quality` suite (structure scripts, format, `astro check`, fallow, `npm test`).
+2. Merge when green.
+3. Push to `main` runs workflow `deploy`: the same `quality` suite again, then job `deploy` waits on GitHub Environment **`production`** approval.
+4. After Approve: `npm run build` + `npx wrangler deploy` (Worker + assets via `wrangler.jsonc`).
 
-1. Neon production database (schema migration, credentials)
-2. Cloudflare Workers API (build, secrets, deploy)
-3. Cloudflare Pages frontend (GitHub auto-deploy)
-4. End-to-end validation (monitoring dashboards)
+**Formatting**
 
-GitHub Actions automation (post-launch) will streamline steps 2–3 into one-click merges.
+- Local: husky pre-commit runs Prettier on staged files after `npm install` in `app/`.
+- Before PR: `npm run format` then `npm run format:check` (agents: mandatory).
+- CI: `format:check` only — does not auto-write.
+
+**One-time operator setup**
+
+| Item                                  | Where                                                           |
+| ------------------------------------- | --------------------------------------------------------------- |
+| Cloudflare API token (Workers deploy) | Create in Cloudflare dashboard                                  |
+| `CLOUDFLARE_API_TOKEN`                | GitHub secret (repo or Environment `production`)                |
+| `CLOUDFLARE_ACCOUNT_ID`               | GitHub secret (same)                                            |
+| Environment `production`              | GitHub → Settings → Environments → required reviewers           |
+| Branch protection on `main`           | Require status checks `quality / structure` and `quality / app` |
+
+Worker runtime secrets (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`, auth JWKS, etc.) stay in Cloudflare (`wrangler secret` / dashboard). Neon schema migrate is **not** part of deploy — run locally against prod when needed.
+
+First-time Neon + Worker secret bootstrap notes (historical): `docs/superpowers/specs/2026-07-24-cloudflare-deployment-specs.md`.
 
 ## Validation Standard Procedure
 
