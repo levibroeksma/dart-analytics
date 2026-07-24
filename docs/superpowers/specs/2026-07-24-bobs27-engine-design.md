@@ -29,6 +29,8 @@ const BULL_HIT_VALUE = 50; // inner bull only counts as a hit; outer 25 = miss
 
 Target value for scoring: `DOUBLE n` → `n`; `BULL` → `50`.
 
+`BULL` is conceptually "double bull" (inner bull, 50) — the path's final double, consistent with D1-D20 all being doubles. Outer bull (25) is not a distinct target in V1; it counts as a miss.
+
 ## 3. Pure Reducer — `applyDart(state: Bobs27State, hit: boolean): Bobs27State`
 
 1. If `state.status !== "IN_PROGRESS"`, throw (caller error — must `undoLastDart()` first to correct a game-ending dart).
@@ -122,3 +124,4 @@ TDD per `app/CLAUDE.md`. Tests under `app/tests/modules/game/bobs27.engine.modul
 
 - Bull scoring: inner bull (50) only counts as a hit; outer 25 counts as a miss for this game (resolved during brainstorming, supersedes the "open question" note in `docs/game-rules/rulesets/bobs-27.md`).
 - Multi-hit math: confirmed — each hit adds the target's face value, applied per-dart as it happens (not batched at visit end).
+- Bull identity: inner bull (50) is "double bull" — the path's final double, same category as D1-D20. Forward-compat note for the later persistence step: `darts.hit_target_number` is constrained to 1-25 and bull's *target number* is 25 regardless of inner/outer; `BULL_HIT_VALUE = 50` is a *score* value (double bull), not a target number — don't conflate the two when mapping engine state to `darts` rows.
