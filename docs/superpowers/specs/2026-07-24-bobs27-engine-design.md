@@ -64,8 +64,9 @@ class Bobs27Engine {
   }
 
   recordDart(hit: boolean): Bobs27State {
+    const next = applyDart(this.state, hit);
     this.history.push(this.state);
-    this.state = applyDart(this.state, hit);
+    this.state = next;
     return this.state;
   }
 

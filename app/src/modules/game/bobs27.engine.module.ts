@@ -74,8 +74,9 @@ export class Bobs27Engine {
 
   /** Returns the engine's live internal state; callers must not mutate the returned object or its `dartsThisVisit` array. */
   recordDart(hit: boolean): Bobs27State {
+    const next = applyDart(this.state, hit);
     this.history.push(this.state);
-    this.state = applyDart(this.state, hit);
+    this.state = next;
     return this.state;
   }
 

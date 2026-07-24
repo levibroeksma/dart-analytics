@@ -163,6 +163,25 @@ describe("Bobs27Engine.undoLastDart", () => {
     expect(engine.undoLastDart()).toBe(false);
   });
 
+  it("does not push a phantom history entry when recordDart is rejected on a finished game", () => {
+    const engine = new Bobs27Engine();
+    for (let visit = 0; visit < 21; visit++) {
+      engine.recordDart(true);
+      engine.recordDart(true);
+      engine.recordDart(true);
+    }
+    expect(engine.result()).toBe("WON");
+    expect(engine.currentScore()).toBe(807);
+
+    expect(() => engine.recordDart(true)).toThrow();
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isGameOver()).toBe(false);
+    expect(engine.currentScore()).toBe(757);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentScore()).toBe(707);
+  });
+
   it("reverts a single hit", () => {
     const engine = new Bobs27Engine();
     engine.recordDart(true);
