@@ -57,6 +57,7 @@ For manual Cloudflare deployment (Neon + Workers + Pages), see **[DEPLOYMENT.md]
 **Repeat deploys:** ~5 minutes (or one command: `bash scripts/deploy.sh`)
 
 **Phases:**
+
 1. Neon production database (schema migration, credentials)
 2. Cloudflare Workers API (build, secrets, deploy)
 3. Cloudflare Pages frontend (GitHub auto-deploy)
