@@ -1,0 +1,43 @@
+# Cloudflare Workers configuration for Dart Analytics API
+#
+# Before first deploy:
+# 1. Replace YOUR_ACCOUNT_ID with value from https://dash.cloudflare.com/profile/api-tokens
+# 2. Run: wrangler login
+# 3. Run: wrangler secret put <SECRET_NAME> (see secrets section below)
+
+name = "dart-analytics-api"
+type = "service"
+account_id = "YOUR_ACCOUNT_ID"
+main = "dist/worker.js"
+compatibility_date = "2024-11-28"
+
+# Routes configuration — deployed service responds to /api/* paths
+# Free tier uses *.workers.dev subdomain; custom domain added later
+[env.production]
+name = "dart-analytics-production"
+routes = [
+  { pattern = "dart-analytics-api.workers.dev/api/*", zone_name = "workers.dev" }
+]
+
+# Public environment variables (visible in logs/dashboards — use for non-sensitive config)
+[env.production.vars]
+ENVIRONMENT = "production"
+NEON_AUTH_BASE_URL = "https://auth.neon.tech"
+
+# Secrets (encrypted, private) — must be set via: wrangler secret put SECRET_NAME --env production
+# After setting wrangler.toml, populate these:
+#
+# DATABASE_URL=postgresql://...connectionpool...  (pooled, from neon env main)
+# DATABASE_URL_UNPOOLED=postgresql://...        (direct, from neon env main)
+# NEON_AUTH_JWKS_URL=https://auth.neon.tech/.../jwks
+# NEON_AUTH_BASE_URL=https://auth.neon.tech    (already public above, but also stored as secret)
+#
+# Set with: wrangler secret put DATABASE_URL --env production (paste value when prompted)
+
+# Triggers (optional — deferred for now)
+# Add cron jobs or scheduled cleanup post-launch
+
+# KV namespace bindings (optional — for error logging, deferred)
+# [[env.production.kv_namespaces]]
+# binding = "ERRORS"
+# id = "YOUR_KV_NAMESPACE_ID"
