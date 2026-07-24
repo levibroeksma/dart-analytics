@@ -57,14 +57,23 @@ export function applyDart(
 
 export class SinglesTrainingEngine {
   private state: SinglesTrainingState;
+  private history: SinglesTrainingState[] = [];
 
   constructor(startingPoints: number = SINGLES_TRAINING_START_POINTS) {
     this.state = initialSinglesTrainingState(startingPoints);
   }
 
   recordDart(ring: DartRing): SinglesTrainingState {
+    this.history.push(this.state);
     this.state = applyDart(this.state, ring);
     return this.state;
+  }
+
+  /** Reverts exactly the last recorded dart, one at a time, even across visit/completion boundaries. */
+  undoLastDart(): boolean {
+    if (this.history.length === 0) return false;
+    this.state = this.history.pop()!;
+    return true;
   }
 
   currentTarget(): SinglesTarget {

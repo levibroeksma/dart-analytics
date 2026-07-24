@@ -160,3 +160,76 @@ describe("SinglesTrainingEngine", () => {
     expect(engine.currentPoints()).toBe(50);
   });
 });
+
+describe("SinglesTrainingEngine.undoLastDart", () => {
+  it("returns false when there is no history", () => {
+    const engine = new SinglesTrainingEngine();
+    expect(engine.undoLastDart()).toBe(false);
+  });
+
+  it("reverts a single dart", () => {
+    const engine = new SinglesTrainingEngine();
+    engine.recordDart("SINGLE");
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentPoints()).toBe(0);
+  });
+
+  it("reverts the 3rd dart of a visit, restoring the mid-visit total, then can still resolve the visit", () => {
+    const engine = new SinglesTrainingEngine();
+    engine.recordDart("SINGLE");
+    engine.recordDart("SINGLE");
+    const afterThird = engine.recordDart("SINGLE");
+    expect(afterThird.totalPoints).toBe(3);
+    expect(afterThird.targetIndex).toBe(1);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentPoints()).toBe(2);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 1 });
+
+    const resumed = engine.recordDart("MISS");
+    expect(resumed.totalPoints).toBe(2);
+    expect(resumed.targetIndex).toBe(1);
+    expect(resumed.dartsThisVisit).toBe(0);
+  });
+
+  it("reverts the completing dart, allowing the engine to be marked complete again on redo", () => {
+    const engine = new SinglesTrainingEngine();
+    for (let visit = 0; visit < 20; visit++) {
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+      engine.recordDart("TREBLE");
+    }
+    engine.recordDart("DOUBLE");
+    engine.recordDart("DOUBLE");
+    expect(engine.isComplete()).toBe(false);
+    engine.recordDart("DOUBLE");
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.currentPoints()).toBe(186);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.currentPoints()).toBe(184);
+
+    const resumed = engine.recordDart("DOUBLE");
+    expect(engine.isComplete()).toBe(true);
+    expect(resumed.totalPoints).toBe(186);
+  });
+
+  it("walks back across multiple visits with repeated undos", () => {
+    const engine = new SinglesTrainingEngine();
+    engine.recordDart("SINGLE");
+    engine.recordDart("SINGLE");
+    engine.recordDart("SINGLE");
+    engine.recordDart("SINGLE");
+    expect(engine.currentPoints()).toBe(4);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 2 });
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentPoints()).toBe(0);
+    expect(engine.currentTarget()).toEqual({ kind: "NUMBER", number: 1 });
+    expect(engine.undoLastDart()).toBe(false);
+  });
+});
