@@ -3,6 +3,7 @@ import type {
   FiveOhOneState,
   FiveOhOneVisitOutcome,
 } from "./types";
+import { FIVE_OH_ONE_START_SCORE } from "./types";
 
 function isWinningCheckout(checkout: FiveOhOneCheckout | undefined): boolean {
   return checkout !== undefined && checkout.dartsOnDouble >= 1;
@@ -47,4 +48,32 @@ export function applyVisit(
     visitHistory: [...state.visitHistory, outcome],
     status: !isBust && reachedZero ? "WON" : "IN_PROGRESS",
   };
+}
+
+export class FiveOhOneEngine {
+  private state: FiveOhOneState;
+
+  constructor(startingScore: number = FIVE_OH_ONE_START_SCORE) {
+    this.state = initialFiveOhOneState(startingScore);
+  }
+
+  recordVisit(
+    scoreAttempted: number,
+    checkout?: FiveOhOneCheckout,
+  ): FiveOhOneState {
+    this.state = applyVisit(this.state, scoreAttempted, checkout);
+    return this.state;
+  }
+
+  currentScore(): number {
+    return this.state.remainingScore;
+  }
+
+  visitHistory(): FiveOhOneVisitOutcome[] {
+    return this.state.visitHistory;
+  }
+
+  isComplete(): boolean {
+    return this.state.status === "WON";
+  }
 }

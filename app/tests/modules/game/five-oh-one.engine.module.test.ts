@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   applyVisit,
   initialFiveOhOneState,
+  FiveOhOneEngine,
 } from "@modules/game/five-oh-one.engine.module";
 import type { FiveOhOneState } from "@modules/game/types";
 
@@ -92,5 +93,36 @@ describe("applyVisit — terminal state guard", () => {
       status: "WON",
     };
     expect(() => applyVisit(wonState, 20)).toThrow();
+  });
+});
+
+describe("FiveOhOneEngine", () => {
+  it("starts at 501 with an empty history and is not complete", () => {
+    const engine = new FiveOhOneEngine();
+    expect(engine.currentScore()).toBe(501);
+    expect(engine.visitHistory()).toEqual([]);
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("delegates recordVisit to the reducer and exposes the updated state via getters", () => {
+    const engine = new FiveOhOneEngine();
+    engine.recordVisit(60);
+    expect(engine.currentScore()).toBe(441);
+    engine.recordVisit(100);
+    expect(engine.currentScore()).toBe(341);
+    expect(engine.visitHistory()).toHaveLength(2);
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("reports isComplete once the leg is checked out on a double", () => {
+    const engine = new FiveOhOneEngine(40);
+    engine.recordVisit(40, { dartsUsed: 2, dartsOnDouble: 1 });
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.currentScore()).toBe(0);
+  });
+
+  it("accepts a custom starting score", () => {
+    const engine = new FiveOhOneEngine(301);
+    expect(engine.currentScore()).toBe(301);
   });
 });
