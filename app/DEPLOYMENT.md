@@ -68,37 +68,25 @@ neon projects current
 ### 1.4 Pull production connection strings
 
 ```bash
-neon env main
-# Outputs: NEON_BRANCH=main, DATABASE_URL=..., DATABASE_URL_UNPOOLED=..., etc.
-```
-
-Copy the output and create `.env.production`:
-
-```bash
-# Create file from template
-cp .env.production.example .env.production
-
-# Edit and paste values from 'neon env main' output
-# Verify all 5 vars are populated:
-# - NEON_BRANCH
-# - DATABASE_URL (pooled)
-# - DATABASE_URL_UNPOOLED (direct)
-# - NEON_AUTH_BASE_URL
-# - NEON_AUTH_JWKS_URL
+npm run env:prod
+# Runs: neon env pull --branch main --file .env.production
+# Then mirrors PUBLIC_NEON_AUTH_BASE_URL into the same file automatically
 ```
 
 Verify:
 
 ```bash
 grep -E "^[A-Z_]+=.*" .env.production | wc -l
-# Expected: 5 (or more if you added PUBLIC_ vars)
+# Expected: 6 (5 Neon vars + PUBLIC_NEON_AUTH_BASE_URL mirror)
 ```
 
 ### 1.5 Migrate schema to Neon main branch
 
 ```bash
-# Load production env vars
-export $(cat .env.production | xargs)
+# Load production env vars (portable across bash/zsh, handles comments correctly)
+set -a
+source .env.production
+set +a
 
 # Run migrations
 npm run db:migrate
@@ -151,7 +139,9 @@ Secrets are encrypted and not visible in Cloudflare dashboard or logs.
 
 ```bash
 # From app/ directory, with .env.production loaded:
-export $(cat .env.production | xargs)
+set -a
+source .env.production
+set +a
 
 # Set each secret (prompted for value)
 wrangler secret put DATABASE_URL --env production
@@ -166,6 +156,8 @@ wrangler secret put NEON_AUTH_JWKS_URL --env production
 wrangler secret put NEON_AUTH_BASE_URL --env production
 # Paste the value from $NEON_AUTH_BASE_URL, press Enter
 ```
+
+**If a secret was skipped or set incorrectly** (e.g. app throws `TypeError: Invalid header value` at runtime), the Worker likely never received it — `wrangler secret list --env production` shows names only, not whether the app deploy step in CI set them (it doesn't; secrets are one-time manual and persist across deploys independent of `wrangler deploy`).
 
 Verify secrets were set:
 
