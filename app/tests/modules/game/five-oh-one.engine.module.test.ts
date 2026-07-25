@@ -44,6 +44,30 @@ describe("applyVisit — bust rules", () => {
     expect(next.visitHistory[0].isBust).toBe(true);
   });
 
+  it("treats a visit that would leave exactly 2 as a legal reduction, since 2 is finishable as D1", () => {
+    const state = initialFiveOhOneState(42);
+    const next = applyVisit(state, 40);
+    expect(next.remainingScore).toBe(2);
+    expect(next.status).toBe("IN_PROGRESS");
+    expect(next.visitHistory[0].isBust).toBe(false);
+  });
+
+  it("ignores a checkout passed on an overshoot bust, and does not record it", () => {
+    const state = initialFiveOhOneState(40);
+    const next = applyVisit(state, 50, { dartsUsed: 3, dartsOnDouble: 1 });
+    expect(next.remainingScore).toBe(40);
+    expect(next.visitHistory[0].isBust).toBe(true);
+    expect(next.visitHistory[0].checkout).toBeUndefined();
+  });
+
+  it("ignores a checkout passed on a leaves-exactly-1 bust, and does not record it", () => {
+    const state = initialFiveOhOneState(41);
+    const next = applyVisit(state, 40, { dartsUsed: 3, dartsOnDouble: 1 });
+    expect(next.remainingScore).toBe(41);
+    expect(next.visitHistory[0].isBust).toBe(true);
+    expect(next.visitHistory[0].checkout).toBeUndefined();
+  });
+
   it("busts when the visit reaches zero but no checkout was supplied", () => {
     const state = initialFiveOhOneState(40);
     const next = applyVisit(state, 40);

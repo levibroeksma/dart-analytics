@@ -68,6 +68,7 @@ export class FiveOhOneEngine {
     return this.state;
   }
 
+  /** Reverts exactly the last recorded visit, one at a time, even across the leg-won boundary. */
   undoLastVisit(): boolean {
     if (this.history.length === 0) return false;
     this.state = this.history.pop()!;
@@ -78,6 +79,7 @@ export class FiveOhOneEngine {
     return this.state.remainingScore;
   }
 
+  /** Returns the engine's live internal visit history; callers must not mutate the returned array. */
   visitHistory(): FiveOhOneVisitOutcome[] {
     return this.state.visitHistory;
   }
