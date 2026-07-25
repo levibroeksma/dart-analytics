@@ -30,6 +30,12 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import {
+  registerEngineFactory,
+  resetEngineRegistry,
+} from "@modules/game/engine.registry";
+import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
+import type { GameEngine, GameEngineFactory } from "@modules/game/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import type { ScoreTrainingPlayContext } from "@lib/game/types";
 import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
@@ -376,6 +382,39 @@ describe("scoreTrainingPlay", () => {
       expect(component.loadingReconciliation).toBe(false);
       expect(component.reconciliationFailed).toBe(false);
       expect(component.hasActiveSession).toBe(true);
+    });
+  });
+
+  describe("cross-game engine guard", () => {
+    afterEach(() => {
+      resetEngineRegistry();
+      registerEngineFactory(scoreTrainingEngineFactory);
+    });
+
+    it("refuses to build an engine for a ruleset this page does not own", async () => {
+      const foreignEngine: GameEngine<unknown, unknown> = {
+        rulesetVersionKey: "BOBS27_V1",
+        record: () => ({}),
+        undo: () => false,
+        wouldComplete: () => false,
+        isComplete: () => false,
+        state: () => ({}),
+        facts: () => ({ stages: [], turns: [] }),
+      };
+      const foreignCreate = vi.fn(() => foreignEngine);
+      const foreignFactory: GameEngineFactory<unknown, unknown, unknown> = {
+        rulesetVersionKey: "BOBS27_V1",
+        create: foreignCreate,
+      };
+      registerEngineFactory(foreignFactory);
+
+      const store = gameStub({ rulesetVersionKey: "BOBS27_V1" });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(foreignCreate).not.toHaveBeenCalled();
+      expect(component.engine).toBeNull();
+      expect(component.hasActiveSession).toBe(false);
     });
   });
 
@@ -889,6 +928,37 @@ describe("scoreTrainingPlay", () => {
       expect(component.scoreInput.value).toBe("");
       expect(component.finished).toBe(false);
       expect(appendBatch).not.toHaveBeenCalled();
+    });
+
+    it("never records the finishing visit before it is confirmed, so no rollback is needed", async () => {
+      const store = gameStub(); // durationValue: 2
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
+      await component.init.call(component);
+      await component.submitVisit.call(component); // visit 1
+      const factsWrites = vi.mocked(store.recordFacts).mock.calls.length;
+      const logBefore = structuredClone(store.turns);
+
+      component.scoreInput.setValue("55");
+      await component.submitVisit.call(component); // would complete
+
+      expect(component.showFinishConfirm).toBe(true);
+      expect(vi.mocked(store.recordFacts).mock.calls.length).toBe(factsWrites);
+      expect(store.turns).toEqual(logBefore);
+    });
+
+    it("surfaces the range error instead of opening the finish confirm on an invalid finishing visit", async () => {
+      const store = gameStub({ configSnapshot: rounds(1) });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      component.scoreInput.setValue("999");
+      await component.submitVisit.call(component);
+
+      expect(component.showFinishConfirm).toBe(false);
+      expect(component.pendingFinishScore).toBeNull();
+      expect(component.error).toBe("Enter a score between 0 and 180.");
+      expect(store.turns).toHaveLength(0);
     });
 
     it("cancelFinish restores scoreInput and clears pending without committing", async () => {

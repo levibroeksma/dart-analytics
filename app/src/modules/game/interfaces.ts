@@ -10,6 +10,13 @@ export interface GameEngine<TInput, TState> {
   readonly rulesetVersionKey: RulesetVersionKey;
   record(input: TInput): TState;
   undo(): boolean;
+  /**
+   * Answers whether recording `input` would complete the session, without
+   * mutating any state — no turn, stage or leg is created, so the caller can
+   * gate a finish-confirm prompt and still leave the fact log untouched when
+   * the player cancels. Returns false for an `input` `record()` would reject.
+   */
+  wouldComplete(input: TInput): boolean;
   isComplete(): boolean;
   state(): TState;
   facts(): EngineFacts;

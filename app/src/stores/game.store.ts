@@ -12,13 +12,19 @@ const STORE_VERSION = 2;
  * store only mirrors it, so `recordFacts` replaces it wholesale rather than
  * appending — the two can never drift.
  *
+ * D91: `_v` is compared against `STORE_VERSION` as soon as the fields have
+ * rehydrated. State left by an incompatible version is discarded through
+ * `reset()` before any caller can read it — a v1 fact log survives into a v2
+ * session otherwise, and its turns carry no `stageClientKey`, which makes the
+ * session permanently un-uploadable.
+ *
  * @param persist - Must return a fresh Alpine `$persist` instance per call
  *   (D120). Reusing one `persist()` across fields collapses every `.as()` key
  *   onto the last alias (Alpine shares `alias` in the persist closure) — e.g.
  *   `turns` hydrates as `null` from `game.idempotencyKey`.
  */
 export function gameStore(persist: PersistFactory) {
-  return {
+  const store = {
     _v: persist()(STORE_VERSION).as("game._v"),
     gameTypeKey: persist()<string | null>(null).as("game.gameTypeKey"),
     rulesetVersionKey: persist()<RulesetVersionKey | null>(null).as(
@@ -82,4 +88,11 @@ export function gameStore(persist: PersistFactory) {
       this.idempotencyKey = null;
     },
   };
+
+  if (store._v !== STORE_VERSION) {
+    store.reset();
+    store._v = STORE_VERSION;
+  }
+
+  return store;
 }
