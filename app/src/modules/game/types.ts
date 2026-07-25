@@ -25,19 +25,12 @@ export type Bobs27State = {
   status: "IN_PROGRESS" | "WON" | "LOST";
 };
 
-export type SinglesTarget =
-  { kind: "NUMBER"; number: number } | { kind: "BULL" };
-
-export type DartRing = "SINGLE" | "DOUBLE" | "TREBLE" | "MISS";
-
 export type SinglesTrainingState = {
   targetIndex: number;
   totalPoints: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
-
-export const SINGLES_TRAINING_START_POINTS = 0;
 
 export type DoublesTarget =
   { kind: "DOUBLE"; number: number } | { kind: "BULL" };
