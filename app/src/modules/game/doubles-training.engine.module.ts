@@ -1,27 +1,40 @@
+import type { DoublesTrainingSnapshot } from "@lib/game/rulesets/types";
+import {
+  BULL_TARGET_NUMBER,
+  boardScore,
+  doublesPath,
+  isHitOn,
+  targetAt,
+} from "./board-progression.module";
+import { registerEngineFactory } from "./engine.registry";
+import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
-  DoublesTarget,
+  DartFact,
+  DartObservation,
+  DartZoneKey,
   DoublesTrainingState,
   DoublesVisitOutcome,
+  EngineFacts,
+  StageFact,
+  TurnFact,
 } from "./types";
 
-function targetForIndex(targetIndex: number): DoublesTarget {
-  return targetIndex < 20
-    ? { kind: "DOUBLE", number: targetIndex + 1 }
-    : { kind: "BULL" };
-}
+const STAGE: StageFact = {
+  clientKey: "block-1",
+  stageTypeKey: "EXERCISE_BLOCK",
+  parentClientKey: null,
+  sequence: 1,
+};
 
-function resolveVisit(
-  state: DoublesTrainingState,
-  visitHistory: DoublesVisitOutcome[],
-): DoublesTrainingState {
-  if (state.targetIndex === 20) {
-    return { ...state, dartsThisVisit: 0, visitHistory, status: "COMPLETE" };
-  }
+/**
+ * Doubles Training starting state: aimed at DOUBLE 1, no darts thrown yet.
+ */
+export function initialDoublesTrainingState(): DoublesTrainingState {
   return {
-    ...state,
+    targetIndex: 0,
     dartsThisVisit: 0,
-    visitHistory,
-    targetIndex: state.targetIndex + 1,
+    outcomes: [],
+    status: "IN_PROGRESS",
   };
 }
 
@@ -34,18 +47,38 @@ function toHitDartNumber(dartsThisVisit: number): 1 | 2 | 3 {
   );
 }
 
-export function initialDoublesTrainingState(): DoublesTrainingState {
+function resolveVisit(
+  state: DoublesTrainingState,
+  outcomes: DoublesVisitOutcome[],
+): DoublesTrainingState {
+  if (state.targetIndex === 20) {
+    return { ...state, dartsThisVisit: 0, outcomes, status: "COMPLETE" };
+  }
   return {
-    targetIndex: 0,
+    ...state,
     dartsThisVisit: 0,
-    visitHistory: [],
-    status: "IN_PROGRESS",
+    outcomes,
+    targetIndex: state.targetIndex + 1,
   };
 }
 
-export function applyDart(
+/**
+ * Pure reducer: folds one dart observation onto a `DoublesTrainingState`.
+ * Unlike Bob's 27 or Singles Training, a visit here resolves the instant any
+ * dart hits its double (or `INNER_BULL` on the final target) — the 2nd and
+ * 3rd darts are never thrown in that case. A full miss still resolves on the
+ * 3rd dart. Either way the visit's outcome is folded into `outcomes` and the
+ * path advances; the final (BULL) target's resolution completes the session.
+ * Doubles Training's `mode`/`orderMode` snapshot has no effect on this
+ * reducer today — both fields carry exactly one valid value in
+ * `DOUBLES_TRAINING_V1` — so it is threaded through the engine's constructor
+ * for factory-contract parity and future config-driven variations, not into
+ * this pure function.
+ * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
+ */
+export function applyDoublesTrainingDart(
   state: DoublesTrainingState,
-  hit: boolean,
+  observation: DartObservation,
 ): DoublesTrainingState {
   if (state.status !== "IN_PROGRESS") {
     throw new Error(
@@ -53,6 +86,8 @@ export function applyDart(
     );
   }
 
+  const target = targetAt(doublesPath(), state.targetIndex);
+  const hit = isHitOn(target, observation);
   const dartsThisVisit = state.dartsThisVisit + 1;
 
   if (hit) {
@@ -61,7 +96,7 @@ export function applyDart(
       hit: true,
       hitDartNumber: toHitDartNumber(dartsThisVisit),
     };
-    return resolveVisit(state, [...state.visitHistory, outcome]);
+    return resolveVisit(state, [...state.outcomes, outcome]);
   }
 
   if (dartsThisVisit < 3) {
@@ -73,41 +108,190 @@ export function applyDart(
     hit: false,
     hitDartNumber: null,
   };
-  return resolveVisit(state, [...state.visitHistory, outcome]);
+  return resolveVisit(state, [...state.outcomes, outcome]);
 }
 
-export class DoublesTrainingEngine {
-  private state: DoublesTrainingState;
-  private history: DoublesTrainingState[] = [];
+function sumDartScores(darts: readonly DartFact[]): number {
+  return darts.reduce((total, dart) => total + dart.score, 0);
+}
 
-  constructor() {
-    this.state = initialDoublesTrainingState();
+function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
+  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
+}
+
+/**
+ * True when `dart`'s actual throw matches the target it was aimed at —
+ * exactly the condition `isHitOn` would report for the dart that produced
+ * this fact, recovered from the fact's own fields with no path lookup.
+ */
+function dartHitIntendedTarget(dart: DartFact): boolean {
+  return (
+    dart.hitTargetNumber === dart.intendedTargetNumber &&
+    dart.hitZoneKey === dart.intendedZoneKey
+  );
+}
+
+/**
+ * A visit is still open only while it holds fewer than 3 darts and none of
+ * them has hit yet — a hit closes the visit on the spot, so a 1- or 2-dart
+ * turn whose last dart hit is just as closed as a full 3-dart turn.
+ */
+function isVisitOpen(turn: TurnFact): boolean {
+  const lastDart = turn.darts.at(-1);
+  if (!lastDart) return true;
+  return turn.darts.length < 3 && !dartHitIntendedTarget(lastDart);
+}
+
+/**
+ * Doubles Training: a fixed path of 21 targets (D1..D20, then BULL), each
+ * visit ending the instant a dart hits its double — the 2nd and 3rd darts of
+ * that visit are never thrown — or after 3 misses. The engine owns the fact
+ * log — `state()` derives the current target, in-visit dart count and
+ * completion by folding `facts()` through `applyDoublesTrainingDart`; the
+ * per-visit `outcomes` (which dart hit, or none) are likewise derived, never
+ * stored.
+ */
+export class DoublesTrainingEngine implements GameEngine<
+  DartObservation,
+  DoublesTrainingState
+> {
+  readonly rulesetVersionKey = "DOUBLES_TRAINING_V1";
+  private readonly turns: TurnFact[];
+
+  /**
+   * `config` is accepted (not hardcoded) for `GameEngineFactory` parity and
+   * so a future `DOUBLES_TRAINING_V1` mode/order variant can change engine
+   * behavior without a signature change; V1 locks `mode`/`orderMode` to a
+   * single value each (see `docs/game-rules/rulesets/doubles-training.md`),
+   * so neither is read yet.
+   */
+  constructor(
+    private readonly config: DoublesTrainingSnapshot,
+    prior?: EngineFacts,
+  ) {
+    this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
-  recordDart(hit: boolean): DoublesTrainingState {
-    const next = applyDart(this.state, hit);
-    this.history.push(this.state);
-    this.state = next;
-    return this.state;
+  private deriveState(): DoublesTrainingState {
+    let state = initialDoublesTrainingState();
+    for (const turn of this.turns) {
+      for (const dart of turn.darts) {
+        state = applyDoublesTrainingDart(state, {
+          hitTargetNumber: dart.hitTargetNumber,
+          hitZoneKey: dart.hitZoneKey,
+        });
+      }
+    }
+    return state;
   }
 
-  /** Reverts exactly the last recorded dart, one at a time, even across visit/completion boundaries. */
-  undoLastDart(): boolean {
-    if (this.history.length === 0) return false;
-    this.state = this.history.pop()!;
+  private openOrCreateTurn(): TurnFact {
+    const last = this.turns.at(-1);
+    if (last && isVisitOpen(last)) return last;
+
+    const turn: TurnFact = {
+      clientKey: crypto.randomUUID(),
+      stageClientKey: STAGE.clientKey,
+      sequence: this.turns.length + 1,
+      completedAt: new Date().toISOString(),
+      totalScore: 0,
+      darts: [],
+    };
+    this.turns.push(turn);
+    return turn;
+  }
+
+  /**
+   * Appends one dart to the open visit, opening a new one when the last is
+   * already resolved — either 3 darts deep or already ended by a hit.
+   * `intendedTargetNumber`/`intendedZoneKey` capture the double (or
+   * `INNER_BULL` on BULL) this dart was thrown at, ahead of what it actually
+   * hit; the fact's `score` is the dart's board score, never a game-specific
+   * value.
+   * @throws when the session has already ended; the fact log is left untouched.
+   */
+  record(observation: DartObservation): DoublesTrainingState {
+    const before = this.deriveState();
+    const target = targetAt(doublesPath(), before.targetIndex);
+    const after = applyDoublesTrainingDart(before, observation);
+
+    const openTurn = this.openOrCreateTurn();
+    const intendedZoneKey: DartZoneKey =
+      target.kind === "BULL" ? "INNER_BULL" : "DOUBLE";
+    const dart: DartFact = {
+      sequence: openTurn.darts.length + 1,
+      intendedTargetNumber:
+        target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
+      intendedZoneKey,
+      hitTargetNumber: observation.hitTargetNumber,
+      hitZoneKey: observation.hitZoneKey,
+      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+    };
+
+    openTurn.darts.push(dart);
+    openTurn.totalScore = sumDartScores(openTurn.darts);
+
+    return after;
+  }
+
+  /**
+   * Pops the last recorded dart, including one replayed from persisted
+   * facts, and removes the visit entirely once it holds no darts — the
+   * exact inverse of the `record()` call that created it. When that dart was
+   * a hit that ended its visit early, popping it leaves the visit's darts
+   * below 3 with no hit among them, so `isVisitOpen` reports it open again
+   * and the next `record()` resumes it rather than starting a new visit.
+   * @returns true if a dart was removed; false if there was nothing to undo.
+   */
+  undo(): boolean {
+    const openTurn = this.turns.at(-1);
+    if (!openTurn || openTurn.darts.length === 0) return false;
+
+    openTurn.darts.pop();
+    if (openTurn.darts.length === 0) {
+      this.turns.pop();
+    } else {
+      openTurn.totalScore = sumDartScores(openTurn.darts);
+    }
     return true;
   }
 
-  currentTarget(): DoublesTarget {
-    return targetForIndex(this.state.targetIndex);
-  }
+  /**
+   * Answers whether recording `observation` would complete the session,
+   * without mutating the fact log or the derived state. Unlike Bob's 27 or
+   * Singles Training, a hit can complete the session on any of a visit's 3
+   * darts, so this simply replays the reducer once and checks the result.
+   */
+  wouldComplete(observation: DartObservation): boolean {
+    const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") return false;
 
-  /** Returns the engine's live internal visit history; callers must not mutate the returned array. */
-  visitHistory(): DoublesVisitOutcome[] {
-    return this.state.visitHistory;
+    const after = applyDoublesTrainingDart(before, observation);
+    return after.status !== "IN_PROGRESS";
   }
 
   isComplete(): boolean {
-    return this.state.status === "COMPLETE";
+    return this.deriveState().status !== "IN_PROGRESS";
+  }
+
+  state(): DoublesTrainingState {
+    return this.deriveState();
+  }
+
+  facts(): EngineFacts {
+    return { stages: [STAGE], turns: cloneTurns(this.turns) };
   }
 }
+
+export const doublesTrainingEngineFactory: GameEngineFactory<
+  DoublesTrainingSnapshot,
+  DartObservation,
+  DoublesTrainingState
+> = {
+  rulesetVersionKey: "DOUBLES_TRAINING_V1",
+  create(config: DoublesTrainingSnapshot, prior?: EngineFacts) {
+    return new DoublesTrainingEngine(config, prior);
+  },
+};
+
+registerEngineFactory(doublesTrainingEngineFactory);
