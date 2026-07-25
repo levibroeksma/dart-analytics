@@ -275,7 +275,7 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.score).toBe(3);
     expect(dart.intendedTargetNumber).toBe(1);
-    expect(dart.intendedZoneKey).toBe("SINGLE");
+    expect(dart.intendedZoneKey).toBeNull();
     expect(engine.state().totalPoints).toBe(3);
   });
 
@@ -323,13 +323,13 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     expect(engine.isComplete()).toBe(true);
   });
 
-  it("records the intended target and zone on every dart", () => {
+  it("records the intended target number but no intended zone on every dart", () => {
     const engine = singlesTrainingEngineFactory.create(config);
     engine.record({ hitTargetNumber: 20, hitZoneKey: "TREBLE" });
 
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.intendedTargetNumber).toBe(1);
-    expect(dart.intendedZoneKey).toBe("SINGLE");
+    expect(dart.intendedZoneKey).toBeNull();
   });
 
   it("rehydrates the derived total points and target from persisted facts", () => {
