@@ -107,7 +107,7 @@ wrangler secret list
 
 ---
 
-## Phase 3: GitHub Actions Deploy Secrets (one-time, manual)
+## Phase 3: GitHub Actions Deploy Secrets and Variables (one-time, manual)
 
 `.github/workflows/deploy.yml` needs its own credentials to authenticate `wrangler deploy` from CI — separate from the Worker secrets above.
 
@@ -118,6 +118,15 @@ wrangler secret list
    - `CLOUDFLARE_ACCOUNT_ID`
 
 **Must be under the `production` Environment**, not repo-level secrets or a different environment — `deploy.yml`'s `deploy` job runs with `environment: production`, so only secrets scoped there are visible to it.
+
+### `PUBLIC_NEON_AUTH_BASE_URL` build variable (not a secret)
+
+Astro inlines `import.meta.env.PUBLIC_*` vars into the **client-side browser bundle at build time** — this is different from the Worker secrets in Phase 2, which only exist at request-time on Cloudflare's side and are never available during `npm run build`. `app/src/lib/client/auth/client.ts` reads `PUBLIC_NEON_AUTH_BASE_URL` at module scope and throws if it's missing — and since this module is imported by the global Alpine store bootstrap (`app.factory.ts` → `registerStores` → `auth.store.ts`), a missing value breaks **every** `x-data` component on **every** page (symptom: buttons/forms silently not rendering, `x-cloak` elements stuck hidden).
+
+Add it as a GitHub **Variable** (not a secret — this value is already public in the shipped browser bundle) under the same `production` Environment:
+
+- GitHub repo → Settings → Environments → `production` → Variables → `PUBLIC_NEON_AUTH_BASE_URL`
+- Value: same as `NEON_AUTH_BASE_URL` in `.env.production` (typically `https://auth.neon.tech`)
 
 ---
 
