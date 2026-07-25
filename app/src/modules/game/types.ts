@@ -32,9 +32,6 @@ export type SinglesTrainingState = {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
-export type DoublesTarget =
-  { kind: "DOUBLE"; number: number } | { kind: "BULL" };
-
 export type DoublesVisitOutcome = {
   targetIndex: number;
   hit: boolean;
@@ -44,7 +41,7 @@ export type DoublesVisitOutcome = {
 export type DoublesTrainingState = {
   targetIndex: number;
   dartsThisVisit: number;
-  visitHistory: DoublesVisitOutcome[];
+  outcomes: DoublesVisitOutcome[];
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
