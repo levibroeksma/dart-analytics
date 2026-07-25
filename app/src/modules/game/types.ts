@@ -63,3 +63,23 @@ export type DoublesTrainingState = {
   visitHistory: VisitOutcome[];
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+export type FiveOhOneCheckout = {
+  dartsUsed: 1 | 2 | 3;
+  dartsOnDouble: 0 | 1 | 2 | 3;
+};
+
+export type FiveOhOneVisitOutcome = {
+  scoreAttempted: number;
+  isBust: boolean;
+  remainingAfter: number;
+  checkout?: FiveOhOneCheckout;
+};
+
+export type FiveOhOneState = {
+  remainingScore: number;
+  visitHistory: FiveOhOneVisitOutcome[];
+  status: "IN_PROGRESS" | "WON";
+};
+
+export const FIVE_OH_ONE_START_SCORE = 501;
