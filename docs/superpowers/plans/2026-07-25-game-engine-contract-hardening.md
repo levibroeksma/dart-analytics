@@ -555,8 +555,8 @@ export interface GameEngineFactory<TConfig, TInput, TState> {
   create(config: TConfig, prior?: EngineFacts): GameEngine<TInput, TState>;
 }
 
-export function registerEngineFactory(factory: GameEngineFactory<never, never, never>): void;
-export function getEngineFactory(key: RulesetVersionKey): GameEngineFactory<never, never, never> | undefined;
+export function registerEngineFactory(factory: GameEngineFactory<unknown, unknown, unknown>): void;
+export function getEngineFactory(key: RulesetVersionKey): GameEngineFactory<unknown, unknown, unknown> | undefined;
 ```
 
 `create(config, prior)` is the rehydrate path (closes I2): passing persisted `EngineFacts` back rebuilds the engine's state by replaying them, so a page refresh restores the game exactly.
