@@ -2,7 +2,18 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { env } from "@lib/env";
 import type { VerifiedAuth } from "./types";
 
-const jwks = createRemoteJWKSet(new URL(env.auth.jwksUrl));
+let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+
+/**
+ * Astro's static build executes this module during prerendering, where no
+ * Neon runtime vars are present (those are Worker-only secrets). Deferring
+ * JWKS construction to first real verification keeps prerendering from
+ * throwing on `env.auth.jwksUrl`.
+ */
+function getJwks(): ReturnType<typeof createRemoteJWKSet> {
+  jwks ??= createRemoteJWKSet(new URL(env.auth.jwksUrl));
+  return jwks;
+}
 
 /**
  * Verifies a Neon Auth bearer JWT. Requires a string `sub` and numeric `exp`
@@ -18,7 +29,7 @@ export async function verifyBearerToken(
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, jwks, {
+    const { payload } = await jwtVerify(token, getJwks(), {
       algorithms: ["EdDSA", "RS256", "ES256"],
     });
     const sub = payload.sub;
