@@ -32,67 +32,88 @@ import {
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import type { ScoreTrainingPlayContext } from "@lib/game/types";
-import type { RecordedTurn } from "@stores/types";
+import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
+import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
 
-type GameStub = {
-  sessionId: string | null;
-  participantRef: string | null;
-  configSnapshot: {
-    durationType: "ROUNDS" | "MINUTES";
-    durationValue: number;
-    maxDartsPerTurn: number;
-  } | null;
-  turns: RecordedTurn[];
-  timerRemainingMs: number | null;
-  timerExpired: boolean;
-  idempotencyKey: string | null;
-  recordTurn: (turn: RecordedTurn) => void;
-  undoLastTurn: () => void;
-  reset: () => void;
+const BLOCK: StageFact = {
+  clientKey: "block-1",
+  stageTypeKey: "EXERCISE_BLOCK",
+  parentClientKey: null,
+  sequence: 1,
 };
+
+function turnFact(
+  clientKey: string,
+  sequence: number,
+  totalScore: number,
+): TurnFact {
+  return {
+    clientKey,
+    stageClientKey: BLOCK.clientKey,
+    sequence,
+    completedAt: "2026-07-17T10:00:00.000Z",
+    totalScore,
+    darts: [],
+  };
+}
+
+function rounds(durationValue: number): ScoreTrainingSnapshot {
+  return {
+    durationType: "ROUNDS",
+    durationValue,
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+  };
+}
+
+function minutes(durationValue: number): ScoreTrainingSnapshot {
+  return {
+    durationType: "MINUTES",
+    durationValue,
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+  };
+}
+
+type GameStub = ScoreTrainingPlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    rulesetVersionKey: "SCORE_TRAINING_V1",
     sessionId: "s1",
     participantRef: "p1",
-    configSnapshot: {
-      durationType: "ROUNDS" as const,
-      durationValue: 2,
-      maxDartsPerTurn: 3,
-    },
-    turns: [] as RecordedTurn[],
+    templateRef: "tpl-1",
+    configSnapshot: rounds(2),
+    stages: [BLOCK],
+    turns: [],
     timerRemainingMs: null,
+    timerStartedAt: null,
     timerExpired: false,
     idempotencyKey: null,
-    recordTurn: vi.fn(function (
-      this: { turns: RecordedTurn[] },
-      turn: RecordedTurn,
-    ) {
-      this.turns.push(turn);
-    }),
-    undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
-      this.turns = this.turns.slice(0, -1);
+    recordFacts: vi.fn(function (this: GameStub, facts: EngineFacts) {
+      this.stages = [...facts.stages];
+      this.turns = [...facts.turns];
     }),
     reset: vi.fn(),
     ...overrides,
   };
 }
 
+const ACTIVE_SESSION = {
+  sessionId: "s1",
+  gameTypeKey: "SCORE_TRAINING",
+  gameTypeName: "Score Training",
+  captureModeKey: "RECREATIONAL",
+  inputModeKey: "QUICK_SCORE",
+  rulesetVersionKey: "SCORE_TRAINING_V1",
+  startedAt: "now",
+} as const;
+
 describe("scoreTrainingPlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     segmentTimerInstances.length = 0;
-    vi.mocked(fetchActiveSessions).mockResolvedValue([
-      {
-        sessionId: "s1",
-        gameTypeKey: "SCORE_TRAINING",
-        gameTypeName: "Score Training",
-        captureModeKey: "RECREATIONAL",
-        inputModeKey: "QUICK_SCORE",
-        rulesetVersionKey: "SCORE_TRAINING_V1",
-        startedAt: "now",
-      },
-    ]);
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
   });
 
   it("records a visit and does not complete before durationValue visits", async () => {
@@ -101,8 +122,16 @@ describe("scoreTrainingPlay", () => {
     component.scoreInput.setValue("45");
     await component.init.call(component);
     await component.submitVisit.call(component);
-    expect(store.recordTurn).toHaveBeenCalledTimes(1);
+    expect(store.turns).toHaveLength(1);
+    expect(store.turns[0].totalScore).toBe(45);
     expect(appendBatch).not.toHaveBeenCalled();
+  });
+
+  it("syncs the store's stage list from the engine on init so uploads have a stage", async () => {
+    const store = gameStub({ stages: [] });
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    await component.init.call(component);
+    expect(store.stages).toEqual([BLOCK]);
   });
 
   it("uploads the batch and completes the session on the final visit", async () => {
@@ -133,26 +162,40 @@ describe("scoreTrainingPlay", () => {
     expect(store.reset).not.toHaveBeenCalled();
   });
 
+  it("nests every uploaded turn under the engine's exercise block", async () => {
+    const store = gameStub();
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    component.scoreInput.setValue("30");
+    await component.init.call(component);
+    await component.submitVisit.call(component);
+    component.scoreInput.setValue("55");
+    await component.submitVisit.call(component);
+    await component.confirmFinish.call(component);
+
+    const batch = vi.mocked(appendBatch).mock.calls[0][2];
+    expect(batch.stages).toHaveLength(1);
+    expect(batch.stages[0].stageTypeKey).toBe("EXERCISE_BLOCK");
+    expect(batch.stages[0].turns.map((t) => t.totalScore)).toEqual([30, 55]);
+    expect(batch.stages[0].turns[0].participantRef).toBe("p1");
+    expect(batch.stages[0].turns[0].darts).toEqual([]);
+  });
+
   describe("reconciliation on init", () => {
     it('resumes silently on "match" — no modal, hasActiveSession = true', async () => {
       const store = gameStub({
         sessionId: "match-id",
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 20,
-          maxDartsPerTurn: 3,
-        },
+        configSnapshot: rounds(20),
       });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
-        {
-          sessionId: "match-id",
-          gameTypeKey: "SCORE_TRAINING",
-          gameTypeName: "Score Training",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          startedAt: "now",
-        },
+        { ...ACTIVE_SESSION, sessionId: "match-id" },
       ]);
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
@@ -165,15 +208,7 @@ describe("scoreTrainingPlay", () => {
     it('shows no-active-session view on "no_active" (mismatch auto-abandoned)', async () => {
       const store = gameStub({ sessionId: "different-id" });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
-        {
-          sessionId: "server-id",
-          gameTypeKey: "SCORE_TRAINING",
-          gameTypeName: "Score Training",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          startedAt: "now",
-        },
+        { ...ACTIVE_SESSION, sessionId: "server-id" },
       ]);
       vi.mocked(completeSession).mockResolvedValue({
         sessionId: "server-id",
@@ -191,15 +226,7 @@ describe("scoreTrainingPlay", () => {
     it('blocks with reconciliationFailed on "abandon_failed" — does not flip to no-active-session as if cleaned', async () => {
       const store = gameStub({ sessionId: "different-id" });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
-        {
-          sessionId: "server-id",
-          gameTypeKey: "SCORE_TRAINING",
-          gameTypeName: "Score Training",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          startedAt: "now",
-        },
+        { ...ACTIVE_SESSION, sessionId: "server-id" },
       ]);
       vi.mocked(completeSession).mockRejectedValue(new Error("Network error"));
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
@@ -213,36 +240,27 @@ describe("scoreTrainingPlay", () => {
     it("preserves turns array on resume (no clear)", async () => {
       const store = gameStub({
         sessionId: "match-id",
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 20,
-          maxDartsPerTurn: 3,
-        },
-        turns: [
-          {
-            clientKey: "t1",
-            sequence: 1,
-            totalScore: 50,
-            completedAt: "2026-07-17T10:00:00Z",
-          },
-        ],
+        configSnapshot: rounds(20),
+        turns: [turnFact("t1", 1, 50)],
       });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
-        {
-          sessionId: "match-id",
-          gameTypeKey: "SCORE_TRAINING",
-          gameTypeName: "Score Training",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          startedAt: "now",
-        },
+        { ...ACTIVE_SESSION, sessionId: "match-id" },
       ]);
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
 
       expect(component.hasActiveSession).toBe(true);
-      expect(store.turns.length).toBe(1);
+      expect(store.turns).toHaveLength(1);
+      expect(store.turns[0].clientKey).toBe("t1");
+    });
+
+    it("leaves the session unplayable when no engine is registered for the persisted ruleset", async () => {
+      const store = gameStub({ rulesetVersionKey: "BOBS27_V1" });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      expect(component.engine).toBeNull();
+      expect(component.hasActiveSession).toBe(false);
     });
 
     it("D88: clears local state when the server has no matching active session", async () => {
@@ -256,15 +274,7 @@ describe("scoreTrainingPlay", () => {
 
     it("D88: mismatch against first SCORE_TRAINING session auto-abandons and resets", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([
-        {
-          sessionId: "other-session",
-          gameTypeKey: "SCORE_TRAINING",
-          gameTypeName: "Score Training",
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
-          rulesetVersionKey: "SCORE_TRAINING_V1",
-          startedAt: "now",
-        },
+        { ...ACTIVE_SESSION, sessionId: "other-session" },
       ]);
       vi.mocked(completeSession).mockResolvedValue({
         sessionId: "other-session",
@@ -310,6 +320,35 @@ describe("scoreTrainingPlay", () => {
       expect(completeSession).not.toHaveBeenCalled();
     });
 
+    it("ST5: submitVisit leaves loading false when it bails out with no engine", async () => {
+      vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+      const store = gameStub({ sessionId: null, configSnapshot: null });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("45");
+      await component.init.call(component);
+
+      await component.submitVisit.call(component);
+
+      expect(component.engine).toBeNull();
+      expect(component.loading).toBe(false);
+    });
+
+    it("ST5: submitVisit leaves loading false when the finish confirm is open", async () => {
+      const store = gameStub();
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      component.scoreInput.setValue("30");
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.scoreInput.setValue("55");
+      await component.submitVisit.call(component);
+      expect(component.showFinishConfirm).toBe(true);
+
+      component.scoreInput.setValue("20");
+      await component.submitVisit.call(component);
+
+      expect(component.loading).toBe(false);
+    });
+
     it("clears loading and sets reconciliationFailed when fetchActiveSessions throws", async () => {
       vi.mocked(fetchActiveSessions).mockRejectedValue(
         new Error("Network error"),
@@ -326,17 +365,7 @@ describe("scoreTrainingPlay", () => {
     it("retryReconciliation recovers after a prior fetch failure", async () => {
       vi.mocked(fetchActiveSessions)
         .mockRejectedValueOnce(new Error("Network error"))
-        .mockResolvedValueOnce([
-          {
-            sessionId: "s1",
-            gameTypeKey: "SCORE_TRAINING",
-            gameTypeName: "Score Training",
-            captureModeKey: "RECREATIONAL",
-            inputModeKey: "QUICK_SCORE",
-            rulesetVersionKey: "SCORE_TRAINING_V1",
-            startedAt: "now",
-          },
-        ]);
+        .mockResolvedValueOnce([{ ...ACTIVE_SESSION }]);
       const store = gameStub();
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
@@ -352,13 +381,7 @@ describe("scoreTrainingPlay", () => {
 
   describe("MINUTES duration mode timer wiring", () => {
     it("instantiates and starts a SegmentTimer whose onComplete sets store.timerExpired", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
-      });
+      const store = gameStub({ configSnapshot: minutes(15) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
 
@@ -373,14 +396,42 @@ describe("scoreTrainingPlay", () => {
       expect(store.timerExpired).toBe(true);
     });
 
-    it("updates store.timerRemainingMs from onTick (seconds -> ms)", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
+    it("drives a MINUTES session to completion once the timer expires", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 0 },
       });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+
+      component.scoreInput.setValue("40");
+      await component.submitVisit.call(component);
+      expect(component.showFinishConfirm).toBe(false);
+      expect(store.turns).toHaveLength(1);
+
+      (segmentTimerInstances[0].options.onComplete as () => void)();
+
+      component.scoreInput.setValue("60");
+      await component.submitVisit.call(component);
+
+      expect(component.showFinishConfirm).toBe(true);
+      expect(component.pendingFinishScore).toBe(60);
+      expect(store.turns).toHaveLength(1);
+
+      await component.confirmFinish.call(component);
+
+      expect(store.turns).toHaveLength(2);
+      expect(component.finished).toBe(true);
+      expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+    });
+
+    it("updates store.timerRemainingMs from onTick (seconds -> ms)", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
 
@@ -397,13 +448,7 @@ describe("scoreTrainingPlay", () => {
     });
 
     it("destroy() stops the timer", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
-      });
+      const store = gameStub({ configSnapshot: minutes(15) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
       const instance = segmentTimerInstances[0];
@@ -419,13 +464,7 @@ describe("scoreTrainingPlay", () => {
     });
 
     it("sets store.timerRemainingMs to the full duration synchronously on a fresh session, before any onTick fires", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
-      });
+      const store = gameStub({ configSnapshot: minutes(15) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
 
@@ -435,11 +474,7 @@ describe("scoreTrainingPlay", () => {
 
     it("resumes from the persisted timerRemainingMs instead of the full configured duration when a prior session left one set", async () => {
       const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
+        configSnapshot: minutes(15),
         timerRemainingMs: 5 * 60 * 1000, // 5 minutes left from a prior session
         timerExpired: false,
       });
@@ -457,11 +492,7 @@ describe("scoreTrainingPlay", () => {
 
     it("does not restart a new timer when timerExpired is already true on init", async () => {
       const store = gameStub({
-        configSnapshot: {
-          durationType: "MINUTES",
-          durationValue: 15,
-          maxDartsPerTurn: 3,
-        },
+        configSnapshot: minutes(15),
         timerRemainingMs: 0,
         timerExpired: true,
       });
@@ -472,18 +503,11 @@ describe("scoreTrainingPlay", () => {
     });
   });
 
-  describe("resume: startingSequence continuity", () => {
-    it("passes the current persisted turn count as startingSequence so a resumed session does not collide sequences", async () => {
-      const existingTurns: RecordedTurn[] = [
-        { clientKey: "t1", sequence: 1, totalScore: 45, completedAt: "x" },
-      ];
+  describe("resume: sequence continuity", () => {
+    it("continues the sequence from the persisted fact log so a resumed session does not collide sequences", async () => {
       const store = gameStub({
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 3,
-          maxDartsPerTurn: 3,
-        },
-        turns: existingTurns,
+        configSnapshot: rounds(3),
+        turns: [turnFact("t1", 1, 45)],
       });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       component.scoreInput.setValue("30");
@@ -496,35 +520,18 @@ describe("scoreTrainingPlay", () => {
 
   describe("Completion sequence", () => {
     function makePlay(
-      gameOverrides: Partial<ScoreTrainingPlayContext["$store"]["game"]> = {},
+      gameOverrides: Partial<GameStub> = {},
     ): ScoreTrainingPlayContext {
       return {
         ...scoreTrainingPlay(),
         $store: {
-          game: {
+          game: gameStub({
             sessionId: "session-1",
             participantRef: "participant-1",
-            configSnapshot: {
-              durationType: "ROUNDS",
-              durationValue: 20,
-              maxDartsPerTurn: 3,
-            },
-            turns: [
-              {
-                clientKey: "t1",
-                sequence: 1,
-                totalScore: 50,
-                completedAt: "2026-07-17T10:00:00Z",
-              },
-            ],
-            idempotencyKey: null,
-            recordTurn: vi.fn(),
-            undoLastTurn: vi.fn(function (this: { turns: RecordedTurn[] }) {
-              this.turns = this.turns.slice(0, -1);
-            }),
-            reset: vi.fn(),
+            configSnapshot: rounds(20),
+            turns: [turnFact("t1", 1, 50)],
             ...gameOverrides,
-          },
+          }),
         },
       };
     }
@@ -579,6 +586,25 @@ describe("scoreTrainingPlay", () => {
       await play.uploadAndCompleteSession();
 
       expect(play.$store.game.idempotencyKey).toBe(firstKey);
+    });
+
+    it("uploads from the persisted fact log when no engine is live", async () => {
+      const play = makePlay();
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 1, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      const batch = vi.mocked(appendBatch).mock.calls[0][2];
+      expect(batch.stages[0].clientKey).toBe("block-1");
+      expect(batch.stages[0].turns.map((t) => t.clientKey)).toEqual(["t1"]);
     });
 
     it("copies stats into resultsSnapshot on success and does not depend on turns surviving afterward", async () => {
@@ -642,7 +668,7 @@ describe("scoreTrainingPlay", () => {
       expect(play.$store.game.turns.length).toBe(1);
     });
 
-    it("playAgain success resets play state, keeps configSnapshot, and starts a new session", async () => {
+    it("ST4: playAgain reuses the original template so provenance matches the first play", async () => {
       const play = makePlay({
         idempotencyKey: "old-key",
         timerRemainingMs: 1000,
@@ -672,18 +698,12 @@ describe("scoreTrainingPlay", () => {
         rulesetVersionKey: "SCORE_TRAINING_V1",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "QUICK_SCORE",
-        config: {
-          source: "inline",
-          config: {
-            duration_type: "ROUNDS",
-            duration_value: 20,
-            max_darts_per_turn: 3,
-          },
-        },
+        config: { source: "template", templateRef: "tpl-1" },
       });
       expect(play.$store.game.sessionId).toBe("new-session");
       expect(play.$store.game.participantRef).toBe("new-participant");
       expect(play.$store.game.turns).toEqual([]);
+      expect(play.$store.game.stages).toEqual([BLOCK]);
       expect(play.$store.game.idempotencyKey).toBeNull();
       expect(play.$store.game.timerRemainingMs).toBeNull();
       expect(play.$store.game.timerExpired).toBe(false);
@@ -694,6 +714,27 @@ describe("scoreTrainingPlay", () => {
       expect(play.playAgainError).toBe("");
       expect(play.resultsSnapshot).toBeNull();
       expect(play.hasActiveSession).toBe(true);
+    });
+
+    it("playAgain starts a fresh engine whose first visit is sequence 1", async () => {
+      const play = makePlay();
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+      play.scoreInput.setValue("40");
+      await play.submitVisit();
+
+      expect(play.$store.game.turns).toHaveLength(1);
+      expect(play.$store.game.turns[0].sequence).toBe(1);
     });
 
     it("playAgain double-fire while in flight only creates one session", async () => {
@@ -868,6 +909,26 @@ describe("scoreTrainingPlay", () => {
       expect(component.finished).toBe(false);
     });
 
+    it("a cancelled finish leaves the engine log unchanged so the next visit is not double-counted", async () => {
+      const store = gameStub({ configSnapshot: rounds(3) });
+      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      await component.init.call(component);
+      component.scoreInput.setValue("30");
+      await component.submitVisit.call(component);
+      component.scoreInput.setValue("40");
+      await component.submitVisit.call(component);
+      component.scoreInput.setValue("55");
+      await component.submitVisit.call(component);
+      expect(component.showFinishConfirm).toBe(true);
+
+      component.cancelFinish();
+      await component.submitVisit.call(component);
+
+      expect(store.turns.map((t) => t.totalScore)).toEqual([30, 40]);
+      expect(component.showFinishConfirm).toBe(true);
+      expect(component.pendingFinishScore).toBe(55);
+    });
+
     it("confirmFinish commits pending, sets finished, and uploads", async () => {
       const store = gameStub();
       vi.mocked(appendBatch).mockResolvedValue({
@@ -889,6 +950,7 @@ describe("scoreTrainingPlay", () => {
 
       expect(store.turns).toHaveLength(2);
       expect(store.turns[1].totalScore).toBe(55);
+      expect(store.turns[1].sequence).toBe(2);
       expect(component.showFinishConfirm).toBe(false);
       expect(component.pendingFinishScore).toBeNull();
       expect(component.finished).toBe(true);
@@ -932,16 +994,7 @@ describe("scoreTrainingPlay", () => {
         statusKey: "ABANDONED",
         completedAt: "now",
       });
-      const play = makeAbandonPlay({
-        turns: [
-          {
-            clientKey: "t1",
-            sequence: 1,
-            totalScore: 60,
-            completedAt: "2026-07-21T10:00:00Z",
-          },
-        ],
-      });
+      const play = makeAbandonPlay({ turns: [turnFact("t1", 1, 60)] });
 
       await play.abandonAndExit.call(play);
 
@@ -1069,7 +1122,7 @@ describe("scoreTrainingPlay", () => {
       expect(component.scoreInput.value).toBe("");
     });
 
-    it("submitVisit rejects non-integer / out-of-range and does not clear scoreInput", async () => {
+    it("surfaces the engine's range rejection and does not clear scoreInput", async () => {
       vi.useRealTimers();
       const store = gameStub();
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
@@ -1078,19 +1131,14 @@ describe("scoreTrainingPlay", () => {
       await component.submitVisit.call(component);
       expect(component.error).toBe("Enter a score between 0 and 180.");
       expect(component.scoreInput.value).toBe("999");
-      expect(store.recordTurn).not.toHaveBeenCalled();
+      expect(component.loading).toBe(false);
+      expect(store.turns).toHaveLength(0);
     });
   });
 
   describe("undoVisit", () => {
-    it("pops store + engine and clears scoreInput; discards typed digits", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 20,
-          maxDartsPerTurn: 3,
-        },
-      });
+    it("pops the engine log, mirrors it into the store and clears scoreInput", async () => {
+      const store = gameStub({ configSnapshot: rounds(20) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       component.scoreInput.setValue("45");
       await component.init.call(component);
@@ -1101,42 +1149,34 @@ describe("scoreTrainingPlay", () => {
       component.undoVisit();
 
       expect(store.turns).toHaveLength(0);
-      expect(store.undoLastTurn).toHaveBeenCalled();
       expect(component.scoreInput.value).toBe("");
       expect(component.error).toBe("");
     });
 
     it("is a no-op when there are no turns", async () => {
-      const store = gameStub({
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 20,
-          maxDartsPerTurn: 3,
-        },
-      });
+      const store = gameStub({ configSnapshot: rounds(20) });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       component.scoreInput.setValue("12");
       await component.init.call(component);
+      const recordCallsAfterInit = vi.mocked(store.recordFacts).mock.calls
+        .length;
+
       component.undoVisit();
-      expect(store.undoLastTurn).not.toHaveBeenCalled();
+
+      expect(vi.mocked(store.recordFacts).mock.calls.length).toBe(
+        recordCallsAfterInit,
+      );
       expect(component.scoreInput.value).toBe("12");
     });
 
-    it("after resume undo, next visit sequence continues from remaining turns", async () => {
+    it("undoes a turn replayed from persisted facts without rebuilding the engine", async () => {
       const store = gameStub({
-        configSnapshot: {
-          durationType: "ROUNDS",
-          durationValue: 20,
-          maxDartsPerTurn: 3,
-        },
-        turns: [
-          { clientKey: "t1", sequence: 1, totalScore: 40, completedAt: "x" },
-          { clientKey: "t2", sequence: 2, totalScore: 50, completedAt: "x" },
-        ],
+        configSnapshot: rounds(20),
+        turns: [turnFact("t1", 1, 40), turnFact("t2", 2, 50)],
       });
       const component = { ...scoreTrainingPlay(), $store: { game: store } };
       await component.init.call(component);
-      // Engine was created with startingSequence=2 and empty visits — undoLastVisit returns false.
+
       component.undoVisit();
       expect(store.turns).toHaveLength(1);
 
@@ -1144,6 +1184,7 @@ describe("scoreTrainingPlay", () => {
       await component.submitVisit.call(component);
       const last = store.turns[store.turns.length - 1];
       expect(last.sequence).toBe(2);
+      expect(last.totalScore).toBe(60);
     });
   });
 });

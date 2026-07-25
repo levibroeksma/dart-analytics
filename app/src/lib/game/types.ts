@@ -1,9 +1,11 @@
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
 import type { SessionActiveData } from "@client/api/types";
+import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
+import type { RulesetVersionKey } from "@lib/game/rulesets/types";
+import type { GameEngine } from "@modules/game/interfaces";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
-import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
+import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
-import type { GameConfigSnapshot, RecordedTurn } from "@stores/types";
 
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
@@ -23,20 +25,22 @@ export type ScoreTrainingPlayContext = {
   showFinishConfirm: boolean;
   $store: {
     game: {
+      rulesetVersionKey: RulesetVersionKey | null;
       sessionId: string | null;
       participantRef: string | null;
-      configSnapshot: GameConfigSnapshot | null;
-      turns: RecordedTurn[];
+      templateRef: string | null;
+      configSnapshot: ScoreTrainingSnapshot | null;
+      stages: StageFact[];
+      turns: TurnFact[];
       timerRemainingMs?: number | null;
       timerStartedAt?: string | null;
       timerExpired?: boolean;
       idempotencyKey?: string | null;
-      recordTurn(turn: RecordedTurn): void;
-      undoLastTurn(): void;
+      recordFacts(facts: EngineFacts): void;
       reset(): void;
     };
   };
-  engine: ScoreTrainingEngine | null;
+  engine: GameEngine<unknown, unknown> | null;
   timer: SegmentTimer | null;
   remainingLabel(this: ScoreTrainingPlayContext): string;
   init(this: ScoreTrainingPlayContext): Promise<void>;

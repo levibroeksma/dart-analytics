@@ -252,8 +252,40 @@ describe("scoreTrainingSetup", () => {
         inputModeKey: "QUICK_SCORE",
         config: { source: "template", templateRef: "template-1" },
       });
-      expect(store.game.startSession).toHaveBeenCalled();
+      expect(store.game.startSession).toHaveBeenCalledWith({
+        gameTypeKey: "SCORE_TRAINING",
+        rulesetVersionKey: "SCORE_TRAINING_V1",
+        sessionId: "new-session-id",
+        participantRef: "participant-1",
+        templateRef: "template-1",
+        configSnapshot: {
+          durationType: "ROUNDS",
+          durationValue: 20,
+          maxDartsPerTurn: 3,
+          maxVisitScore: 180,
+        },
+      });
       expect(locationSpy.href).toBe("/games/score-training/play");
+    });
+
+    it("rejects a preset whose configuration fails the ruleset schema, before creating a session", async () => {
+      const setup = createSetup({
+        selectedTemplateId: "template-1",
+        presets: [
+          {
+            configurationTemplateId: "template-1",
+            name: "Broken",
+            configuration: { duration_type: "ROUNDS", duration_value: 0 },
+          } as any,
+        ],
+      });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).not.toHaveBeenCalled();
+      expect(store.game.startSession).not.toHaveBeenCalled();
+      expect(setup.error).toMatch(/Could not start the session/);
+      expect(setup.loading).toBe(false);
     });
 
     it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {

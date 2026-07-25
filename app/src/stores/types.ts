@@ -1,12 +1,15 @@
-export type GameConfigSnapshot = {
-  durationType: "ROUNDS" | "MINUTES";
-  durationValue: number;
-  maxDartsPerTurn: number;
-};
+import type {
+  Bobs27Snapshot,
+  DoublesTrainingSnapshot,
+  FiveOhOneSnapshot,
+  ScoreTrainingSnapshot,
+  SinglesSnapshot,
+} from "@lib/game/rulesets/types";
 
-export type RecordedTurn = {
-  clientKey: string;
-  sequence: number;
-  totalScore: number;
-  completedAt: string | null;
-};
+/** Any ruleset's camelCase client snapshot, as persisted by `game.store.ts`. */
+export type ConfigSnapshot =
+  | ScoreTrainingSnapshot
+  | Bobs27Snapshot
+  | SinglesSnapshot
+  | DoublesTrainingSnapshot
+  | FiveOhOneSnapshot;
