@@ -544,6 +544,8 @@ git commit -m "feat: add shared ruleset config schemas and codec"
 export interface GameEngine<TInput, TState> {
   readonly rulesetVersionKey: RulesetVersionKey;
   record(input: TInput): TState;
+  /** Answers whether recording this input would complete the session. Must not mutate. */
+  wouldComplete(input: TInput): boolean;
   undo(): boolean;
   isComplete(): boolean;
   state(): TState;
@@ -773,7 +775,14 @@ git commit -m "feat: add generic events batch builder"
 
 ## Phase 2 — Retrofit the engines
 
-Each engine task: accept a validated config snapshot, consume observations, own an `EngineFacts` log with minted `clientKey`/`sequence`/`completedAt`, rehydrate from `prior`, register a `GameEngineFactory`. **Run the full TDD cycle per task — do not copy another engine's tests wholesale.**
+Each engine task: accept a validated config snapshot, consume observations, own an `EngineFacts` log with minted `clientKey`/`sequence`/`completedAt`, rehydrate from `prior`, implement `wouldComplete()` as a pure predicate, and register a `GameEngineFactory`. **Run the full TDD cycle per task — do not copy another engine's tests wholesale.**
+
+**Two rules established by Task 5's review, binding on every engine below:**
+
+1. **`undo()` must be an exact inverse of `record()` over `facts()`** — including any stage the record opened. 501 is the live hazard: `record()` can append a `LEG` stage as well as a turn, and popping only the turn leaves an orphan empty stage that `buildEventsBatch` will upload silently (it throws on orphan *turns*, not empty *stages*). Every engine task must include a test asserting `record(x)` then `undo()` returns `facts()` deep-equal to its prior value.
+2. **Never decide completion by recording and rolling back.** Use `wouldComplete(input)`; it must not mutate. Include a test that calls it and asserts `facts()` is unchanged.
+
+Page-level engine construction must refuse a `rulesetVersionKey` the page does not own — once all five factories are registered, a stale store would otherwise build the wrong game's engine. `session-recovery.ts` takes the game-type filter as an argument; pass your own game's key.
 
 ### Task 5: Score Training on the contract, with the game-agnostic store
 
