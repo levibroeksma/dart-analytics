@@ -126,3 +126,13 @@ TDD per `app/CLAUDE.md`. Tests under `app/tests/modules/game/five-oh-one.engine.
 - Multi-leg match orchestration (first-to-N legs) — a later version of this same `FiveOhOneEngine`, not a separate class.
 - Analytics/per-dart capture mode, double in/master in/master out/straight out, alternate start scores as a config surface, multiplayer.
 - UI, persistence to `turns`/`darts`, `configuration_templates`/`ruleset_versions` wiring (existing seed data — `game_types` "501", `ruleset_versions` "501_V1", `configuration_templates` "501 — Quick Play" / "501 — Best of 5 Legs" — is already consistent with this V1 scope, unlike the Singles Training seed/doc mismatch), session lifecycle.
+
+## 7. Validation Note (docs/architecture cross-check)
+
+Checked against the architecture docs; no conflicts:
+
+- Bust rules belong here. `05-Database/10-Database-Agent-Guide.md` §8: "Max darts per turn, score caps, bust rules — enforced by the application from the ruleset version. Not DB CHECK constraints." The engine owning bust detection (§3) is the documented placement.
+- Visit-level input matches the capture-mode matrix. `06-Spec/04-Runtime-Layer.md`: `RECREATIONAL` + `QUICK_SCORE` stores turn totals with no dart rows — exactly what this engine consumes and emits.
+- Seeded reference data already covers this scope: `game_types` "501", `ruleset_versions` "501_V1", `stage_types` `LEG`, and the two 501 configuration presets.
+
+Forward-compat note for the later persistence step: a bust visit records `scoreAttempted` in `visitHistory` but leaves `remainingScore` unchanged. When mapping to `turns`, `turns.total_score` is the *counted* score (0 for a bust), not `scoreAttempted` — do not persist the attempted value as the turn total. `checkout.dartsUsed` likewise has no `turns` column in the current schema; it is engine/analytics-layer state until a schema revision adds one.
