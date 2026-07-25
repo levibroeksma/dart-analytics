@@ -199,11 +199,11 @@ export type DartObservation = {
 
 /** One row of `darts`. `score` is the actual board score, never a game-specific point value. */
 export type DartFact = {
-  dartNumber: 1 | 2 | 3;
+  sequence: number;
   intendedTargetNumber: number | null;
   intendedZoneKey: DartZoneKey | null;
   hitTargetNumber: number | null;
-  hitZoneKey: DartZoneKey | null;
+  hitZoneKey: DartZoneKey;
   score: number;
 };
 
@@ -697,7 +697,7 @@ describe("buildEventsBatch", () => {
 
   it("carries dart facts through unchanged when present", () => {
     const dart = {
-      dartNumber: 1 as const,
+      sequence: 1,
       intendedTargetNumber: 1,
       intendedZoneKey: "DOUBLE" as const,
       hitTargetNumber: 1,
