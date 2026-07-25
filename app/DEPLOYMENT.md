@@ -1,8 +1,20 @@
 # Cloudflare Deployment Guide
 
-**For:** Manual v1 production deployment to Cloudflare (Neon + Workers + Pages).
-**Status:** First-time setup; GitHub Actions automation added post-launch.
-**Time:** ~30 minutes first-time; ~5 minutes per repeat deploy.
+**For:** Production deployment to Cloudflare (single Worker with Assets — frontend + API combined).
+**Status:** Automated via GitHub Actions (`.github/workflows/deploy.yml`) on push to `main`. Worker secrets are one-time manual setup.
+**Time:** ~15 minutes first-time secret setup; deploys after that are automatic on merge to `main`.
+
+---
+
+## Architecture
+
+This app deploys as a **single Cloudflare Worker** (`wrangler.jsonc`, `name: "app"`) using the Workers Assets model:
+
+- `assets.directory: ./dist` — the built Astro static output, served directly by the Worker
+- `main: @astrojs/cloudflare/entrypoints/server` — the SSR/API entrypoint
+- No separate Cloudflare Pages project. No named environments (`env.production`) in `wrangler.jsonc` — everything targets the single top-level Worker.
+
+This means: **never pass `--env production` to `wrangler` commands** in this repo — there is no such environment defined, and doing so silently targets a nonexistent environment instead of erroring, which leaves the real Worker without its secrets.
 
 ---
 
@@ -10,317 +22,179 @@
 
 - Node.js `>=22.12.0`
 - Cloudflare account (free tier)
-- Neon account with linked project (setup in ../docs/architecture/05-Database/11-Neon-Integration.md)
-- GitHub repository push access (for Pages auto-deploy)
-- Wrangler installed (`npm install -g wrangler` or via `package.json`)
+- Neon account with linked project (setup in `../docs/architecture/05-Database/11-Neon-Integration.md`)
+- GitHub repository push access
 
-**Verify:** Run `neon auth`, `wrangler login`, and `git status` before starting.
+**Verify:** Run `neon auth` and `wrangler login` before starting.
 
 ---
 
 ## Phase 1: Neon Production Database Setup
 
-### 1.1 Link Cloudflare account ID
-
-Open https://dash.cloudflare.com/profile/api-tokens and copy your **Account ID** (left sidebar, under "API").
-
-Edit `wrangler.toml`:
-
-- Replace `account_id = "YOUR_ACCOUNT_ID"` with your real ID
-
-Save and verify:
-
-```bash
-grep "account_id" wrangler.toml
-# Expected: account_id = "YOUR_ACCOUNT_ID" (with real 32-char hex string)
-```
-
-### 1.2 Authenticate to Neon
+### 1.1 Authenticate to Neon
 
 ```bash
 neon auth
-# Opens browser; sign in to Neon account
-# Returns: "Authenticated as <email>"
-```
-
-Verify authentication:
-
-```bash
-neon projects list
-# Expected: Shows your Neon project(s)
-```
-
-### 1.3 Link existing Neon project
-
-```bash
 neon link
-# Prompts: "Select a project"
-# Select the project with branches: main, preview, dev
 ```
 
-Verify link:
+### 1.2 Pull production connection strings
 
 ```bash
-neon projects current
-# Expected: Prints project name and ID
-```
-
-### 1.4 Pull production connection strings
-
-```bash
-neon env main
-# Outputs: NEON_BRANCH=main, DATABASE_URL=..., DATABASE_URL_UNPOOLED=..., etc.
-```
-
-Copy the output and create `.env.production`:
-
-```bash
-# Create file from template
-cp .env.production.example .env.production
-
-# Edit and paste values from 'neon env main' output
-# Verify all 5 vars are populated:
-# - NEON_BRANCH
-# - DATABASE_URL (pooled)
-# - DATABASE_URL_UNPOOLED (direct)
-# - NEON_AUTH_BASE_URL
-# - NEON_AUTH_JWKS_URL
+npm run env:prod
+# Runs: neon env pull --branch main --file .env.production
+# Then mirrors PUBLIC_NEON_AUTH_BASE_URL into the same file automatically
 ```
 
 Verify:
 
 ```bash
 grep -E "^[A-Z_]+=.*" .env.production | wc -l
-# Expected: 5 (or more if you added PUBLIC_ vars)
+# Expected: 6 (5 Neon vars + PUBLIC_NEON_AUTH_BASE_URL mirror)
 ```
 
-### 1.5 Migrate schema to Neon main branch
+### 1.3 Migrate schema to Neon main branch
 
 ```bash
-# Load production env vars
-export $(cat .env.production | xargs)
+set -a
+source .env.production
+set +a
 
-# Run migrations
 npm run db:migrate
-# Expected output: "Applying migration 0001...", "Applying migration 0002...", etc.
-# Final line: "No more migrations"
 ```
 
 Verify:
 
 ```bash
 npm run db:status
-# Expected: Shows all migrations applied (✓ checks)
+# Expected: all migrations applied
 ```
-
-### 1.6 Verify schema in Neon dashboard
-
-Open https://console.neon.tech → your project → main branch → SQL Editor.
-
-Query:
-
-```sql
-SELECT table_name FROM information_schema.tables
-WHERE table_schema = 'public' ORDER BY table_name;
-```
-
-Expected: Lists tables (activities, sessions, turns, darts, players, etc.). Reference data seeded (game_types, capture_modes, etc.).
 
 ---
 
-## Phase 2: Cloudflare Workers API Deployment
+## Phase 2: Cloudflare Worker Secrets (one-time, manual)
+
+Secrets are bound to the Worker on Cloudflare's side and **persist across every future `wrangler deploy`** — including automated CI deploys. You only need to do this once (or when a credential rotates).
 
 ### 2.1 Authenticate to Cloudflare
 
 ```bash
 wrangler login
-# Opens browser; authorize Cloudflare
-# Returns: "Logged in as <email>"
-```
-
-Verify:
-
-```bash
 wrangler whoami
-# Expected: Prints your account email
 ```
 
 ### 2.2 Set Worker secrets
 
-Secrets are encrypted and not visible in Cloudflare dashboard or logs.
-
 ```bash
-# From app/ directory, with .env.production loaded:
-export $(cat .env.production | xargs)
+set -a
+source .env.production
+set +a
 
-# Set each secret (prompted for value)
-wrangler secret put DATABASE_URL --env production
-# Paste the value from $DATABASE_URL, press Enter
-
-wrangler secret put DATABASE_URL_UNPOOLED --env production
-# Paste the value from $DATABASE_URL_UNPOOLED, press Enter
-
-wrangler secret put NEON_AUTH_JWKS_URL --env production
-# Paste the value from $NEON_AUTH_JWKS_URL, press Enter
-
-wrangler secret put NEON_AUTH_BASE_URL --env production
-# Paste the value from $NEON_AUTH_BASE_URL, press Enter
+wrangler secret put DATABASE_URL
+wrangler secret put DATABASE_URL_UNPOOLED
+wrangler secret put NEON_AUTH_JWKS_URL
+wrangler secret put NEON_AUTH_BASE_URL
 ```
 
-Verify secrets were set:
+Each command prompts — paste the value, press Enter. **Do not add `--env production`.**
+
+Verify:
 
 ```bash
-wrangler secret list --env production
-# Expected: Lists 4 secrets (no values shown; just names)
+wrangler secret list
+# Expected: lists all 4 secret names (no values shown)
 ```
 
-### 2.3 Build Astro project
+---
+
+## Phase 3: GitHub Actions Deploy Secrets (one-time, manual)
+
+`.github/workflows/deploy.yml` needs its own credentials to authenticate `wrangler deploy` from CI — separate from the Worker secrets above.
+
+1. Cloudflare Account ID: https://dash.cloudflare.com → right sidebar → "Account ID"
+2. Cloudflare API Token: https://dash.cloudflare.com/profile/api-tokens → "Create Token" → "Edit Cloudflare Workers" template
+3. GitHub repo → Settings → Environments → `production` → add secrets:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
+
+**Must be under the `production` Environment**, not repo-level secrets or a different environment — `deploy.yml`'s `deploy` job runs with `environment: production`, so only secrets scoped there are visible to it.
+
+---
+
+## Phase 4: Deploy
+
+Deploys are automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which runs quality checks, builds, and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker).
+
+**Manual deploy (optional, e.g. for local testing):**
 
 ```bash
 npm run build
-# Expected output: "✓ done", "dist/ contains built site"
+wrangler deploy
 ```
 
-Verify build output:
+### Verify deployment
 
 ```bash
-ls -la dist/ | head -10
-# Expected: dist/ contains files (index.html, _astro/, api/)
+wrangler deployments list
+# Shows recent deployments and the live Worker URL
 ```
 
-### 2.4 Deploy to Cloudflare Workers
+Test the live URL (get the exact URL from `wrangler deployments list` or the Cloudflare dashboard — it's `<worker-name>.<your-subdomain>.workers.dev` unless a custom domain is configured):
 
 ```bash
-wrangler deploy --env production
-# Uploads to Cloudflare; watch for progress
-# Expected output: "Deployed to https://dart-analytics-api.workers.dev"
-```
-
-### 2.5 Test Worker API endpoint
-
-```bash
-# Test unauthenticated request (should get 401 UNAUTHORIZED)
-curl -X GET https://dart-analytics-api.workers.dev/api/sessions/active \
-  -H "Content-Type: application/json"
-
+curl -X GET https://<your-worker-url>/api/sessions/active
 # Expected: {"ok":false,"error":{"code":"UNAUTHORIZED",...}}
 ```
 
+If this returns a 500 or a raw stack trace instead of the JSON envelope above, the Worker secrets from Phase 2 are missing or malformed — re-run Phase 2.
+
 ---
 
-## Phase 3: Cloudflare Pages Frontend Deployment
+## Phase 5: Monitoring
 
-### 3.1 Connect GitHub repo to Cloudflare Pages
+**Neon dashboard:** https://console.neon.tech → main branch → Monitoring (query count, compute)
 
-1. Go to https://dash.cloudflare.com/pages
-2. Click "Create a project" → "Connect to Git"
-3. Authorize GitHub
-4. Select repository: `levibroeksma/dart-analytics`
-5. Build settings auto-detect:
-   - Build command: `npm run build` (or auto-detected `npm run build`)
-   - Output directory: `dist/`
-   - Root directory: `app/`
-6. Click "Save and Deploy"
+**Cloudflare dashboard:** https://dash.cloudflare.com → Workers & Pages → `app` → Logs / Analytics (request count, errors, CPU time)
 
-Pages triggers first build from main branch.
-
-### 3.2 Set environment variables in Pages project
-
-1. Go to Pages project settings → "Environment variables"
-2. Add `PUBLIC_NEON_AUTH_BASE_URL`:
-   - Value: (same as `NEON_AUTH_BASE_URL` from `.env.production`)
-   - Environments: Production (and Preview if using staging later)
-3. Save
-
-### 3.3 Verify Pages deployment
-
-Wait for build to complete (usually 2–3 minutes).
-
-Check https://dash.cloudflare.com/pages → dart-analytics-api → Deployments tab.
-
-Expected: Latest deployment shows "✓ Published".
-
-### 3.4 Test frontend
+**Live tail (real-time debugging):**
 
 ```bash
-curl https://dart-analytics-api.pages.dev/
-# Expected: HTML response (Astro prerendered home page)
+wrangler tail
 ```
 
----
-
-## Phase 4: End-to-End Validation
-
-### 4.1 Check monitoring dashboards
-
-**Neon dashboard:**
-
-- Open https://console.neon.tech → main branch → Monitoring
-- Expected: Query count from migrations visible
-
-**Cloudflare Analytics Engine:**
-
-- Open https://dash.cloudflare.com/analytics/workers
-- Expected: Deploy request visible (status 200 or similar)
-
-**Pages Analytics:**
-
-- Open https://dash.cloudflare.com/pages → dart-analytics-api → Analytics
-- Expected: Deploy event + build success shown
-
-### 4.2 Record URLs
-
-Save these for future reference:
-
-- **Pages (frontend):** https://dart-analytics-api.pages.dev
-- **Workers (API):** https://dart-analytics-api.workers.dev/api
-- **Neon dashboard:** https://console.neon.tech/app/projects/YOUR_PROJECT_ID
-
----
-
-## Phase 5: Next Steps
-
-- **Play first game:** Log in via Neon Auth, start a session, submit gameplay
-- **Monitor:** Check Neon query count and Worker logs for errors
-- **GitHub Actions (post-launch):** Enable automated deploys on merge to main (separate spec)
+Run this while reproducing an issue in the browser — it streams the Worker's real runtime logs and errors, which is the fastest way to diagnose a live failure.
 
 ---
 
 ## Rollback
 
-If deployment breaks:
-
-1. **Pages:** Revert to previous successful deployment in Pages dashboard (Deployments tab)
-2. **Workers:** Rollback with `wrangler rollback --env production`
-3. **Neon:** Rollback schema with `npm run db:migrate down` (consult migrations for safety)
+```bash
+wrangler deployments list
+wrangler rollback [deployment-id]
+```
 
 ---
 
 ## Troubleshooting
 
-**"wrangler: command not found"**
+**`TypeError: Invalid header value` at runtime**
 
-- Run `npm install -g wrangler` or `npm install` to get local version
+- Almost always means `DATABASE_URL_UNPOOLED` (or another secret) is unset/undefined on the live Worker, so `neon(undefined)` fails constructing its request headers.
+- Fix: re-run Phase 2 **without** `--env production`. Confirm with `wrangler secret list` (no `--env` flag) that all 4 secrets exist.
+- Confirm with `wrangler tail` while reproducing — the log will show which module/line throws.
 
-**"Account ID mismatch"**
+**Deploy succeeds in CI but the secret fix doesn't take effect**
 
-- Verify `wrangler.toml` account_id matches https://dash.cloudflare.com/profile/api-tokens
-- Run `wrangler whoami` to confirm logged-in account
+- CI's `wrangler deploy` only pushes code; it does not touch secrets. Worker secrets are bound independently via `wrangler secret put` and are not part of the deployed bundle.
 
-**"DATABASE_URL not found"**
+**`wrangler: command not found`**
 
-- Verify `.env.production` exists and is loaded: `export $(cat .env.production | xargs)`
-- Run `printenv DATABASE_URL` to confirm var is set
+- Run from `app/` — it resolves via the local `node_modules/.bin` when run through `npm run` scripts, or `npx wrangler`.
 
-**"Pages build fails"**
+**"Account ID mismatch" / auth errors**
 
-- Check Pages project → Deployments → build logs
-- Common: missing `PUBLIC_NEON_AUTH_BASE_URL` env var in Pages settings
-
-**"401 UNAUTHORIZED on API call"**
-
-- Expected without JWT; test with real Neon Auth JWT from browser login
-- Check `NEON_AUTH_JWKS_URL` secret is set correctly
+- Run `wrangler whoami` to confirm which account is authenticated locally.
+- For CI failures, confirm `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set under the `production` GitHub Environment (Phase 3).
 
 ---
 
@@ -330,3 +204,4 @@ If deployment breaks:
 - Neon setup: `../../docs/architecture/05-Database/11-Neon-Integration.md`
 - API contract: `../../docs/architecture/06-API/00-Overview.md`
 - Local dev: `./README.md`
+- Deploy workflow: `../.github/workflows/deploy.yml`
