@@ -115,3 +115,33 @@ describe("applyDart — terminal state guard", () => {
     expect(() => applyDart(completeState, true)).toThrow();
   });
 });
+
+import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
+
+describe("DoublesTrainingEngine", () => {
+  it("starts on target DOUBLE 1, empty history, not complete", () => {
+    const engine = new DoublesTrainingEngine();
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.visitHistory()).toEqual([]);
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("delegates recordDart to the reducer and exposes the updated state via getters", () => {
+    const engine = new DoublesTrainingEngine();
+    engine.recordDart(false);
+    engine.recordDart(true);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+    expect(engine.visitHistory()).toEqual([
+      { targetIndex: 0, hit: true, hitDartNumber: 2 },
+    ]);
+  });
+
+  it("reports isComplete once the full 21-visit path is finished", () => {
+    const engine = new DoublesTrainingEngine();
+    for (let visit = 0; visit < 21; visit++) {
+      engine.recordDart(true);
+    }
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.visitHistory()).toHaveLength(21);
+  });
+});

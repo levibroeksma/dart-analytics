@@ -66,3 +66,28 @@ export function applyDart(
   };
   return resolveVisit(state, [...state.visitHistory, outcome]);
 }
+
+export class DoublesTrainingEngine {
+  private state: DoublesTrainingState;
+
+  constructor() {
+    this.state = initialDoublesTrainingState();
+  }
+
+  recordDart(hit: boolean): DoublesTrainingState {
+    this.state = applyDart(this.state, hit);
+    return this.state;
+  }
+
+  currentTarget(): DoublesTarget {
+    return targetForIndex(this.state.targetIndex);
+  }
+
+  visitHistory(): VisitOutcome[] {
+    return this.state.visitHistory;
+  }
+
+  isComplete(): boolean {
+    return this.state.status === "COMPLETE";
+  }
+}
