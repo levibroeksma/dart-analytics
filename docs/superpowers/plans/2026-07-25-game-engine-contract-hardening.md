@@ -1326,6 +1326,8 @@ Without this, `POST /api/sessions` rejects every game but Score Training (`sessi
 
 Capture/input matrix per game: Score Training and 501 are `RECREATIONAL` + `QUICK_SCORE` (turn totals, zero dart rows). Bob's 27, Singles Training and Doubles Training are `RECREATIONAL` + `DETAILED_DARTS` (hit-only dart rows, intention pair permitted) — their engines emit dart facts.
 
+**Decide `.strict()` vs `.strip()` first.** Task 2's schemas use default `z.object()`, which **silently strips** unrecognized keys (verified against Zod 3.25.76: `z.object({a}).parse({a:1,b:2})` → `{a:1}`). Two seeded presets already carry keys no schema models — 501's `sets_to_win` and Singles Training's `duration_type`/`duration_value`/`max_darts_per_turn` — and every `toSnapshot` call destroys them without a word. Switch `RULESET_CONFIGS` to `.strict()` so a seed/schema divergence fails a test instead of quietly losing data, and add a test proving an unknown key is rejected. Task 11 then makes the seeds match. If you keep `.strip()`, say why in the report.
+
 - [ ] **Step 1: Write the failing tests** (one file per validator; 501 shown)
 
 ```typescript
@@ -1393,7 +1395,15 @@ git commit -m "feat: register ruleset validators for all five games"
 **Interfaces:**
 - Produces: `game_types` `BOBS27` + `DOUBLES_TRAINING`; matching `game_type_features` rows; `ruleset_versions` `BOBS27_V1` + `DOUBLES_TRAINING_V1`; `configuration_templates` presets for both, keyed exactly as the Task 2 schemas expect.
 
-Also corrects the two documented seed/ruleset mismatches (I4): the Singles presets shipping V2+ `HIGH_TO_LOW`/`RANDOM`/`NORMAL`/`HARD`, and the 501 presets, which need `max_visit_score` added. With Task 9 the `legs_to_win: 3` preset becomes playable, so 501 needs no scope change.
+Also corrects every known seed/schema divergence (I4). The full list, verified against `database/seeds/0002_default_templates.sql`:
+
+| Preset | Problem | Fix |
+| ------ | ------- | --- |
+| Singles Training (`…05`, `…06`, lines 172-189) | Ship V2+ `order_mode: HIGH_TO_LOW`/`RANDOM` and `difficulty: NORMAL`/`HARD`, which `SINGLES_V1` rejects | Bring to V1 scope (`LOW_TO_HIGH` + `EASY`) or drop the second preset |
+| Singles Training (same rows) | Carry `duration_type`, `duration_value`, `max_darts_per_turn` — modeled by no schema and absent from the V1 ruleset doc | Remove; Singles Training has no duration concept |
+| 501 (`…01`, `…02`, lines 102, 120) | Carry `sets_to_win`, modeled by no schema | Remove (sets are V2+ per the ruleset) and add `max_visit_score: 180` |
+
+With Task 9 the `legs_to_win: 3` preset becomes playable, so 501 needs no scope change beyond those keys.
 
 - [ ] **Step 1: Write the new seed with fixed ids**
 
