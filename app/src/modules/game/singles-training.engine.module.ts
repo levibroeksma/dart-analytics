@@ -11,7 +11,6 @@ import type {
   BoardTarget,
   DartFact,
   DartObservation,
-  DartZoneKey,
   EngineFacts,
   SinglesTrainingState,
   StageFact,
@@ -157,11 +156,14 @@ export class SinglesTrainingEngine implements GameEngine<
 
   /**
    * Appends one dart to the open visit, opening a new one when the last is
-   * already 3 darts deep. `intendedTargetNumber`/`intendedZoneKey` capture
-   * the target this dart was thrown at — the minimum ring that counts as a
-   * hit on it (`SINGLE` for a NUMBER target, `OUTER_BULL` for BULL) — ahead
-   * of what it actually hit; the fact's `score` is the dart's board score,
-   * never the training points the derived total adds.
+   * already 3 darts deep. `intendedTargetNumber` captures the segment this
+   * dart was thrown at (the target's number, 25 for BULL); `intendedZoneKey`
+   * is always `null` — unlike Bob's 27, Singles Training treats single,
+   * double and treble on that segment as equally valid intentional outcomes
+   * (differing only in point value), so no single ring is "the" intended
+   * one, and recording one would fabricate an intent the player never held.
+   * The fact's `score` is the dart's board score, never the training points
+   * the derived total adds.
    * @throws when the session has already ended; the fact log is left untouched.
    */
   record(observation: DartObservation): SinglesTrainingState {
@@ -170,13 +172,11 @@ export class SinglesTrainingEngine implements GameEngine<
     const after = applySinglesTrainingDart(this.config, before, observation);
 
     const openTurn = this.openOrCreateTurn();
-    const intendedZoneKey: DartZoneKey =
-      target.kind === "BULL" ? "OUTER_BULL" : "SINGLE";
     const dart: DartFact = {
       sequence: openTurn.darts.length + 1,
       intendedTargetNumber:
         target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
-      intendedZoneKey,
+      intendedZoneKey: null,
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
