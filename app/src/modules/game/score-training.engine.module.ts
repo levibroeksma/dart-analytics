@@ -36,17 +36,34 @@ export class ScoreTrainingEngine implements GameEngine<
     this.liveState = { turnCount: this.turns.length, timerExpired: false };
   }
 
+  /** A visit score is playable only as a whole number in `0..maxVisitScore`. */
+  private isPlayable(visitScore: number): boolean {
+    return (
+      Number.isInteger(visitScore) &&
+      visitScore >= 0 &&
+      visitScore <= this.config.maxVisitScore
+    );
+  }
+
+  /**
+   * The single completion rule, evaluated against an arbitrary turn count so
+   * both `isComplete()` (the count now) and `wouldComplete()` (the count one
+   * visit ahead) read it rather than restating it.
+   */
+  private completesAt(turnCount: number): boolean {
+    if (this.config.durationType === "ROUNDS") {
+      return turnCount >= this.config.durationValue;
+    }
+    return this.liveState.timerExpired && turnCount >= 1;
+  }
+
   /**
    * Appends one visit to the fact log.
    * @throws when the visit score is not a whole number within the ruleset's
    *   `0..maxVisitScore` range; the log is left untouched.
    */
   record(visitScore: number): ScoreTrainingState {
-    if (
-      !Number.isInteger(visitScore) ||
-      visitScore < 0 ||
-      visitScore > this.config.maxVisitScore
-    ) {
+    if (!this.isPlayable(visitScore)) {
       throw new Error(
         `Enter a score between 0 and ${this.config.maxVisitScore}.`,
       );
@@ -75,11 +92,19 @@ export class ScoreTrainingEngine implements GameEngine<
     return true;
   }
 
+  /**
+   * Answers the finish-confirm gate without touching the fact log: the visit
+   * is only ever recorded once, by `record()`, after the player confirms.
+   * A score `record()` would reject never completes the session — the caller
+   * falls through to `record()` and surfaces its range error instead.
+   */
+  wouldComplete(visitScore: number): boolean {
+    if (!this.isPlayable(visitScore)) return false;
+    return this.completesAt(this.turns.length + 1);
+  }
+
   isComplete(): boolean {
-    if (this.config.durationType === "ROUNDS") {
-      return this.turns.length >= this.config.durationValue;
-    }
-    return this.liveState.timerExpired && this.turns.length >= 1;
+    return this.completesAt(this.turns.length);
   }
 
   /** Returns the engine's live state object; assigning `timerExpired` on it drives MINUTES completion. */

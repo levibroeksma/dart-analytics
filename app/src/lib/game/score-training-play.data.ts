@@ -9,6 +9,7 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import type { RulesetVersionKey } from "@lib/game/rulesets/types";
 import type { GameEngine } from "@modules/game/interfaces";
 import type {
   EngineFacts,
@@ -18,8 +19,11 @@ import type {
 import type { ScoreTrainingPlayContext } from "./types";
 
 // Side-effect import: registers scoreTrainingEngineFactory so the registry
-// lookup below can resolve the store's persisted rulesetVersionKey.
+// lookup below can resolve this page's own RULESET_VERSION_KEY.
 import "@modules/game/score-training.engine.module";
+
+const GAME_TYPE_KEY = "SCORE_TRAINING";
+const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
 
 function formatRemaining(ms: number | null | undefined): string {
   const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
@@ -41,15 +45,20 @@ function computeStats(turns: TurnFact[]): {
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
  * log so a reload restores the game exactly.
- * @returns null when the store holds no ruleset/config to resume from, or no
- *   engine is registered for that ruleset version.
+ *
+ * Only this page's own ruleset is ever resolved: a store still holding another
+ * game's `rulesetVersionKey` must not build that game's engine here, however
+ * the shared registry would happily hand one over once every game registers.
+ *
+ * @returns null when the store holds no config to resume from, when its
+ *   ruleset belongs to a different game, or when no engine is registered.
  */
 function resumeEngine(
   game: ScoreTrainingPlayContext["$store"]["game"],
 ): GameEngine<unknown, unknown> | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || !rulesetVersionKey) return null;
-  const factory = getEngineFactory(rulesetVersionKey);
+  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
+  const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
   return factory.create(configSnapshot, {
     stages: game.stages,
@@ -147,6 +156,7 @@ export function scoreTrainingPlay() {
       try {
         const activeSessions = await fetchActiveSessions();
         const result = await reconcileActiveSession(
+          GAME_TYPE_KEY,
           this.$store.game.sessionId,
           activeSessions,
           this.$store.game,
@@ -198,9 +208,11 @@ export function scoreTrainingPlay() {
     },
 
     /**
-     * The engine is the sole authority on both the score range and completion,
-     * so the visit is recorded first and rolled back when it turns out to be
-     * the finishing one — `confirmFinish` re-records it once the player agrees.
+     * The engine is the sole authority on both the score range and completion.
+     * `wouldComplete` gates the finish confirm without mutating the fact log,
+     * so a finishing visit is recorded exactly once — by `confirmFinish`,
+     * after the player agrees. A score the engine would reject never reports
+     * as completing, so it falls through to `record` and surfaces its error.
      */
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
@@ -210,18 +222,8 @@ export function scoreTrainingPlay() {
       const state = this.engine.state() as ScoreTrainingState;
       state.timerExpired = this.$store.game.timerExpired ?? false;
 
-      try {
-        this.engine.record(score);
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        this.loading = false;
-        return;
-      }
-      this.error = "";
-
-      if (this.engine.isComplete()) {
-        this.engine.undo();
-        this.$store.game.recordFacts(this.engine.facts());
+      if (this.engine.wouldComplete(score)) {
+        this.error = "";
         this.pendingFinishScore = score;
         this.scoreInput.clear();
         this.showFinishConfirm = true;
@@ -229,6 +231,15 @@ export function scoreTrainingPlay() {
         return;
       }
 
+      try {
+        this.engine.record(score);
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
+        this.loading = false;
+        return;
+      }
+
+      this.error = "";
       this.scoreInput.clear();
       this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
@@ -359,9 +370,7 @@ export function scoreTrainingPlay() {
       const config = this.$store.game.configSnapshot;
       const templateRef = this.$store.game.templateRef;
       if (!config || !templateRef || this.playAgainLoading) return;
-      const rulesetVersionKey =
-        this.$store.game.rulesetVersionKey ?? "SCORE_TRAINING_V1";
-      const factory = getEngineFactory(rulesetVersionKey);
+      const factory = getEngineFactory(RULESET_VERSION_KEY);
       if (!factory) return;
 
       this.playAgainLoading = true;
@@ -371,8 +380,8 @@ export function scoreTrainingPlay() {
         let session;
         try {
           session = await createSession({
-            gameTypeKey: "SCORE_TRAINING",
-            rulesetVersionKey: "SCORE_TRAINING_V1",
+            gameTypeKey: GAME_TYPE_KEY,
+            rulesetVersionKey: RULESET_VERSION_KEY,
             captureModeKey: "RECREATIONAL",
             inputModeKey: "QUICK_SCORE",
             config: { source: "template", templateRef },

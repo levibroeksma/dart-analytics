@@ -171,6 +171,56 @@ describe("ScoreTrainingEngine.isComplete (MINUTES)", () => {
   });
 });
 
+describe("ScoreTrainingEngine.wouldComplete", () => {
+  it("is false for the visit before the last and true for the last (ROUNDS)", () => {
+    const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 3 });
+    engine.record(60);
+    expect(engine.wouldComplete(60)).toBe(false);
+    engine.record(60);
+    expect(engine.wouldComplete(60)).toBe(true);
+  });
+
+  it("is true for the very first visit when the ruleset is a single round", () => {
+    const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 1 });
+    expect(engine.wouldComplete(60)).toBe(true);
+  });
+
+  it("is false before the timer expires and true after it (MINUTES)", () => {
+    const engine = new ScoreTrainingEngine(minutes(15));
+    engine.record(30);
+    expect(engine.wouldComplete(45)).toBe(false);
+
+    (engine.state() as ScoreTrainingState).timerExpired = true;
+    expect(engine.wouldComplete(45)).toBe(true);
+  });
+
+  it("is true for the first visit once the timer has expired (MINUTES)", () => {
+    const engine = new ScoreTrainingEngine(minutes(15));
+    (engine.state() as ScoreTrainingState).timerExpired = true;
+    expect(engine.wouldComplete(45)).toBe(true);
+  });
+
+  it("is false for a score the ruleset would reject, so the caller surfaces the range error", () => {
+    const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 1 });
+    expect(engine.wouldComplete(181)).toBe(false);
+    expect(engine.wouldComplete(12.5)).toBe(false);
+  });
+
+  it("does not mutate the fact log or the live state", () => {
+    const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 2 });
+    engine.record(60);
+    const factsBefore = structuredClone(engine.facts());
+    const turnCountBefore = (engine.state() as ScoreTrainingState).turnCount;
+
+    expect(engine.wouldComplete(45)).toBe(true);
+
+    expect(engine.facts()).toEqual(factsBefore);
+    expect((engine.state() as ScoreTrainingState).turnCount).toBe(
+      turnCountBefore,
+    );
+  });
+});
+
 describe("ScoreTrainingEngine.state", () => {
   it("reports the live turn count through record and undo", () => {
     const engine = new ScoreTrainingEngine(ROUNDS_10);

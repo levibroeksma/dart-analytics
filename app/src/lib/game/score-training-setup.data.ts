@@ -54,6 +54,7 @@ export function scoreTrainingSetup() {
       activeSessions: SessionActiveData[],
     ) {
       const result = await reconcileActiveSession(
+        GAME_TYPE_KEY,
         this.$store.game.sessionId,
         activeSessions,
         this.$store.game,

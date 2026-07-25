@@ -5,19 +5,27 @@ interface StoreLike {
 }
 
 /**
- * Shared D88 reconciliation decision table (identical on setup and play).
- * The only implementation — setup and play both import this directly.
+ * Shared D88 reconciliation decision table (identical on setup and play, and
+ * across every game). The only implementation — each game's setup and play
+ * data factories import this directly and pass their own `gameTypeKey`, so a
+ * session belonging to another game is never matched or abandoned here.
  *
  * "match": server ACTIVE session's sessionId equals local; caller resumes
  *   (setup: Continue/Abandon modal; play: keep store, hasActiveSession = true).
  *   Store is left untouched.
- * "no_active": no server ACTIVE session, or a mismatch that was successfully
- *   auto-abandoned. Store has already been reset by this function.
+ * "no_active": no server ACTIVE session for this game type, or a mismatch that
+ *   was successfully auto-abandoned. Store has already been reset by this
+ *   function.
  * "abandon_failed": mismatch found but the auto-abandon PATCH failed. Store is
  *   NOT touched. Caller must block session creation and offer retry — never
- *   treat this the same as "no_active".
+ *   treat this the same as "no_active". The orphan is still ACTIVE server-side,
+ *   so creating a session now would violate uq_sessions_single_active.
+ *
+ * @param gameTypeKey - The game whose ACTIVE session this caller owns; server
+ *   sessions for any other game type are ignored entirely.
  */
 export async function reconcileActiveSession(
+  gameTypeKey: string,
   localSessionId: string | null,
   serverSessions: SessionActiveData[],
   store: StoreLike,
@@ -25,42 +33,35 @@ export async function reconcileActiveSession(
   action: "match" | "no_active" | "abandon_failed";
   activeSession: SessionActiveData | null;
 }> {
-  const scoreTrainingActive = serverSessions.find(
-    (s) => s.gameTypeKey === "SCORE_TRAINING",
+  const serverActive = serverSessions.find(
+    (s) => s.gameTypeKey === gameTypeKey,
   );
 
-  // Case 1: Match — resume path, store untouched
   if (
     localSessionId &&
-    scoreTrainingActive &&
-    scoreTrainingActive.sessionId === localSessionId
+    serverActive &&
+    serverActive.sessionId === localSessionId
   ) {
-    return { action: "match", activeSession: scoreTrainingActive };
+    return { action: "match", activeSession: serverActive };
   }
 
-  // Case 2: Mismatch — auto-PATCH orphan to ABANDONED synchronously
   if (
-    scoreTrainingActive &&
-    (!localSessionId || scoreTrainingActive.sessionId !== localSessionId)
+    serverActive &&
+    (!localSessionId || serverActive.sessionId !== localSessionId)
   ) {
     try {
-      await completeSession(scoreTrainingActive.sessionId, "ABANDONED");
+      await completeSession(serverActive.sessionId, "ABANDONED");
     } catch {
-      // Abandon failed: do NOT reset the store or report "no_active" — the
-      // orphan is still ACTIVE server-side, so creating a session now would
-      // violate uq_sessions_single_active. Caller must block and retry.
       return { action: "abandon_failed", activeSession: null };
     }
     store.reset();
     return { action: "no_active", activeSession: null };
   }
 
-  // Case 3: Local present, no server ACTIVE — local is stale, nothing to abandon
-  if (localSessionId && !scoreTrainingActive) {
+  if (localSessionId && !serverActive) {
     store.reset();
     return { action: "no_active", activeSession: null };
   }
 
-  // Case 4: Both empty
   return { action: "no_active", activeSession: null };
 }

@@ -34,6 +34,28 @@ function stubPersistFactory(): () => Persist {
   return () => ((initial: unknown) => ({ as: () => initial })) as Persist;
 }
 
+/**
+ * Mirrors Alpine's rehydration: a field whose alias is present in localStorage
+ * comes back with the stored value, everything else falls back to its default.
+ */
+function rehydratingPersistFactory(
+  stored: Record<string, unknown>,
+): () => Persist {
+  return () =>
+    ((initial: unknown) => ({
+      as: (alias: string) => (alias in stored ? stored[alias] : initial),
+    })) as Persist;
+}
+
+/** A turn as v1 persisted it: no `stageClientKey`, so uploads would throw. */
+const V1_TURN = {
+  clientKey: "t1",
+  sequence: 1,
+  completedAt: "2026-07-20T10:00:00.000Z",
+  totalScore: 60,
+  darts: [],
+};
+
 const SESSION_INPUT = {
   gameTypeKey: "SCORE_TRAINING",
   rulesetVersionKey: "SCORE_TRAINING_V1",
@@ -164,6 +186,64 @@ describe("gameStore", () => {
     expect(store.timerStartedAt).toBeNull();
     expect(store.timerExpired).toBe(false);
     expect(store.idempotencyKey).toBeNull();
+  });
+
+  describe("D91 store version", () => {
+    it("discards persisted state written by an incompatible store version", () => {
+      const store = gameStore(
+        rehydratingPersistFactory({
+          "game._v": 1,
+          "game.gameTypeKey": "SCORE_TRAINING",
+          "game.rulesetVersionKey": "SCORE_TRAINING_V1",
+          "game.sessionId": "stale-session",
+          "game.participantRef": "stale-participant",
+          "game.configSnapshot": SESSION_INPUT.configSnapshot,
+          "game.templateRef": "tpl-1",
+          "game.stages": [],
+          "game.turns": [V1_TURN],
+          "game.timerRemainingMs": 5000,
+          "game.timerStartedAt": "2026-07-20T10:00:00.000Z",
+          "game.timerExpired": true,
+          "game.idempotencyKey": "stale-key",
+        }),
+      );
+
+      expect(store.turns).toEqual([]);
+      expect(store.stages).toEqual([]);
+      expect(store.sessionId).toBeNull();
+      expect(store.gameTypeKey).toBeNull();
+      expect(store.rulesetVersionKey).toBeNull();
+      expect(store.participantRef).toBeNull();
+      expect(store.configSnapshot).toBeNull();
+      expect(store.templateRef).toBeNull();
+      expect(store.timerRemainingMs).toBeNull();
+      expect(store.timerStartedAt).toBeNull();
+      expect(store.timerExpired).toBe(false);
+      expect(store.idempotencyKey).toBeNull();
+    });
+
+    it("stamps the current version so the discard happens exactly once", () => {
+      const store = gameStore(
+        rehydratingPersistFactory({ "game._v": 1, "game.sessionId": "stale" }),
+      );
+
+      expect(store._v).toBe(2);
+    });
+
+    it("rehydrates state written by the current store version", () => {
+      const store = gameStore(
+        rehydratingPersistFactory({
+          "game._v": 2,
+          "game.sessionId": "live-session",
+          "game.stages": FACTS.stages,
+          "game.turns": FACTS.turns,
+        }),
+      );
+
+      expect(store.sessionId).toBe("live-session");
+      expect(store.turns).toEqual(FACTS.turns);
+      expect(store.stages).toEqual(FACTS.stages);
+    });
   });
 
   it("regression: reusing one Alpine persist() collapses every .as() key to the last one", () => {

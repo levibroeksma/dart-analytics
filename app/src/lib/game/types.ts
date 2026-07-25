@@ -1,7 +1,9 @@
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
 import type { SessionActiveData } from "@client/api/types";
-import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
-import type { RulesetVersionKey } from "@lib/game/rulesets/types";
+import type {
+  RulesetVersionKey,
+  ScoreTrainingSnapshot,
+} from "@lib/game/rulesets/types";
 import type { GameEngine } from "@modules/game/interfaces";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
