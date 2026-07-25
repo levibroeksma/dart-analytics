@@ -51,7 +51,7 @@ Function is pure and side-effect free; `DoublesTrainingEngine` owns all mutable 
 
 ## 4. Class API — `DoublesTrainingEngine`
 
-Mirrors `SinglesTrainingEngine`'s call-site shape (present in this branch's tree) and the established pattern also used by `Bobs27Engine` (a sibling engine on a separate branch, not present here). `recordDart` applies the reducer **before** pushing to history — pushing first and applying second was a bug fixed in both prior engines (a rejected dart, e.g. `recordDart` called after completion, otherwise left a phantom undo entry), so this spec bakes in the corrected ordering from the start.
+Mirrors the call-site shape of `Bobs27Engine`/`SinglesTrainingEngine`, both present in this branch's tree (`app/src/modules/game/bobs27.engine.module.ts`, `app/src/modules/game/singles-training.engine.module.ts`). `recordDart` applies the reducer **before** pushing to history — pushing first and applying second was a bug fixed in both prior engines (a rejected dart, e.g. `recordDart` called after completion, otherwise left a phantom undo entry), so this spec bakes in the corrected ordering from the start.
 
 ```ts
 class DoublesTrainingEngine {

@@ -4,7 +4,7 @@
 
 **Goal:** Build the pure-logic Doubles Training engine (V1 Easy mode, single player) — target progression with early visit termination on hit, per-visit fact tracking, completion detection, and one-dart-back undo — with no UI, persistence, or config/session wiring.
 
-**Architecture:** A pure reducer `applyDart(state, hit)` holds all progression/tracking rules and is unit-tested in isolation. A `DoublesTrainingEngine` class wraps it with the same call-site shape as `SinglesTrainingEngine` (present in this branch's tree, itself mirroring `Bobs27Engine` on a separate branch), adding a history stack for undo. Everything lives in `app/src/modules/game/`, following the existing module-per-game-engine convention.
+**Architecture:** A pure reducer `applyDart(state, hit)` holds all progression/tracking rules and is unit-tested in isolation. A `DoublesTrainingEngine` class wraps it with the same call-site shape as `Bobs27Engine`/`SinglesTrainingEngine`, both present in this branch's tree, adding a history stack for undo. Everything lives in `app/src/modules/game/`, following the existing module-per-game-engine convention.
 
 **Tech Stack:** TypeScript, Vitest (`app/vitest.config.ts`, `@modules` path alias → `app/src/modules`).
 
