@@ -1,5 +1,6 @@
 import type { Bobs27Snapshot } from "@lib/game/rulesets/types";
 import {
+  BULL_TARGET_NUMBER,
   boardScore,
   doublesPath,
   isHitOn,
@@ -17,8 +18,6 @@ import type {
   StageFact,
   TurnFact,
 } from "./types";
-
-const BULL_TARGET_NUMBER = 25;
 
 const STAGE: StageFact = {
   clientKey: "block-1",

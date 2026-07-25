@@ -1,6 +1,6 @@
 import type { BoardTarget, DartObservation, DartZoneKey } from "./types";
 
-const BULL_TARGET_NUMBER = 25;
+export const BULL_TARGET_NUMBER = 25;
 
 const DOUBLES_PATH: readonly BoardTarget[] = [
   ...Array.from({ length: 20 }, (_, i): BoardTarget => ({
