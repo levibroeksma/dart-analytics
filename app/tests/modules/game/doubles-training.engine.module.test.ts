@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   applyDart,
   initialDoublesTrainingState,
+  DoublesTrainingEngine,
 } from "@modules/game/doubles-training.engine.module";
 import type { DoublesTrainingState } from "@modules/game/types";
 
@@ -72,6 +73,33 @@ describe("applyDart — path completion", () => {
       state.visitHistory.every((v) => v.hit === true && v.hitDartNumber === 1),
     ).toBe(true);
   });
+
+  it("completes correctly through a mixed pattern of dart-1/2/3 hits and full misses", () => {
+    let state = initialDoublesTrainingState();
+    for (let visit = 0; visit < 21; visit++) {
+      const pattern = visit % 4;
+      if (pattern === 0) {
+        state = applyDart(state, true);
+      } else if (pattern === 1) {
+        state = applyDart(state, false);
+        state = applyDart(state, true);
+      } else if (pattern === 2) {
+        state = applyDart(state, false);
+        state = applyDart(state, false);
+        state = applyDart(state, true);
+      } else {
+        state = applyDart(state, false);
+        state = applyDart(state, false);
+        state = applyDart(state, false);
+      }
+    }
+    expect(state.status).toBe("COMPLETE");
+    expect(state.visitHistory).toHaveLength(21);
+    const hitDartNumbers = new Set(
+      state.visitHistory.map((v) => v.hitDartNumber),
+    );
+    expect(hitDartNumbers.size).toBeGreaterThan(1);
+  });
 });
 
 describe("applyDart — BULL visit completion", () => {
@@ -115,8 +143,6 @@ describe("applyDart — terminal state guard", () => {
     expect(() => applyDart(completeState, true)).toThrow();
   });
 });
-
-import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 
 describe("DoublesTrainingEngine", () => {
   it("starts on target DOUBLE 1, empty history, not complete", () => {

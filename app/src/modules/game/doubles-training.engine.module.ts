@@ -25,6 +25,15 @@ function resolveVisit(
   };
 }
 
+function toHitDartNumber(dartsThisVisit: number): 1 | 2 | 3 {
+  if (dartsThisVisit === 1 || dartsThisVisit === 2 || dartsThisVisit === 3) {
+    return dartsThisVisit;
+  }
+  throw new Error(
+    `Invalid dartsThisVisit for a hit resolution: ${dartsThisVisit}`,
+  );
+}
+
 export function initialDoublesTrainingState(): DoublesTrainingState {
   return {
     targetIndex: 0,
@@ -50,7 +59,7 @@ export function applyDart(
     const outcome: VisitOutcome = {
       targetIndex: state.targetIndex,
       hit: true,
-      hitDartNumber: dartsThisVisit as 1 | 2 | 3,
+      hitDartNumber: toHitDartNumber(dartsThisVisit),
     };
     return resolveVisit(state, [...state.visitHistory, outcome]);
   }
@@ -93,6 +102,7 @@ export class DoublesTrainingEngine {
     return targetForIndex(this.state.targetIndex);
   }
 
+  /** Returns the engine's live internal visit history; callers must not mutate the returned array. */
   visitHistory(): VisitOutcome[] {
     return this.state.visitHistory;
   }
