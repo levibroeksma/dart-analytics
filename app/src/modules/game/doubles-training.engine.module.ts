@@ -1,7 +1,7 @@
 import type {
   DoublesTarget,
   DoublesTrainingState,
-  VisitOutcome,
+  DoublesVisitOutcome,
 } from "./types";
 
 function targetForIndex(targetIndex: number): DoublesTarget {
@@ -12,7 +12,7 @@ function targetForIndex(targetIndex: number): DoublesTarget {
 
 function resolveVisit(
   state: DoublesTrainingState,
-  visitHistory: VisitOutcome[],
+  visitHistory: DoublesVisitOutcome[],
 ): DoublesTrainingState {
   if (state.targetIndex === 20) {
     return { ...state, dartsThisVisit: 0, visitHistory, status: "COMPLETE" };
@@ -56,7 +56,7 @@ export function applyDart(
   const dartsThisVisit = state.dartsThisVisit + 1;
 
   if (hit) {
-    const outcome: VisitOutcome = {
+    const outcome: DoublesVisitOutcome = {
       targetIndex: state.targetIndex,
       hit: true,
       hitDartNumber: toHitDartNumber(dartsThisVisit),
@@ -68,7 +68,7 @@ export function applyDart(
     return { ...state, dartsThisVisit };
   }
 
-  const outcome: VisitOutcome = {
+  const outcome: DoublesVisitOutcome = {
     targetIndex: state.targetIndex,
     hit: false,
     hitDartNumber: null,
@@ -103,7 +103,7 @@ export class DoublesTrainingEngine {
   }
 
   /** Returns the engine's live internal visit history; callers must not mutate the returned array. */
-  visitHistory(): VisitOutcome[] {
+  visitHistory(): DoublesVisitOutcome[] {
     return this.state.visitHistory;
   }
 
