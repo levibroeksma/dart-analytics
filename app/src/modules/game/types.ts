@@ -102,11 +102,11 @@ export type DartObservation = {
 
 /** One row of `darts`. `score` is the actual board score, never a game-specific point value. */
 export type DartFact = {
-  dartNumber: 1 | 2 | 3;
+  sequence: number;
   intendedTargetNumber: number | null;
   intendedZoneKey: DartZoneKey | null;
   hitTargetNumber: number | null;
-  hitZoneKey: DartZoneKey | null;
+  hitZoneKey: DartZoneKey;
   score: number;
 };
 

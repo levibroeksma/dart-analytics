@@ -1,9 +1,6 @@
 import type { EventsBatchRequestInput } from "@client/api/types";
 import type { EngineFacts, TurnFact } from "./types";
 
-type WireDarts =
-  EventsBatchRequestInput["stages"][number]["turns"][number]["darts"];
-
 /**
  * Builds the engine-agnostic events batch payload for
  * `POST /api/sessions/:sessionId/events/batch`. Any engine's `EngineFacts`
@@ -12,19 +9,22 @@ type WireDarts =
  * pass and ordered by `sequence` so replay order is deterministic regardless
  * of the order turns were appended to the fact log.
  *
- * `turn.darts` is passed through unchanged rather than field-mapped: the
- * engine-side `DartFact` (`./types`) and the wire `DartFactInput` (server
- * contract) currently diverge (`dartNumber` vs `sequence`; nullable vs
- * required `hitZoneKey`), so this assignment is intentionally cast. No
- * engine populates non-empty `darts` yet (Task 4); the first one that does
- * must reconcile the two shapes, not silently rely on this cast.
+ * Every turn must belong to a stage present in `facts.stages` — an orphan
+ * turn is silent gameplay-data loss on upload, so it throws rather than
+ * being dropped.
  */
 export function buildEventsBatch(
   participantRef: string,
   facts: EngineFacts,
 ): EventsBatchRequestInput {
+  const stageKeys = new Set(facts.stages.map((stage) => stage.clientKey));
   const turnsByStage = new Map<string, TurnFact[]>();
   for (const turn of facts.turns) {
+    if (!stageKeys.has(turn.stageClientKey)) {
+      throw new Error(
+        `No stage matching stageClientKey ${turn.stageClientKey} for turn ${turn.clientKey}`,
+      );
+    }
     const stageTurns = turnsByStage.get(turn.stageClientKey);
     if (stageTurns) {
       stageTurns.push(turn);
@@ -48,7 +48,7 @@ export function buildEventsBatch(
           sequence: turn.sequence,
           totalScore: turn.totalScore,
           completedAt: turn.completedAt,
-          darts: turn.darts as unknown as WireDarts,
+          darts: turn.darts,
         })),
     })),
   };

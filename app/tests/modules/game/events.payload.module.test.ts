@@ -70,7 +70,7 @@ describe("buildEventsBatch", () => {
 
   it("carries dart facts through unchanged when present", () => {
     const dart = {
-      dartNumber: 1 as const,
+      sequence: 1,
       intendedTargetNumber: 1,
       intendedZoneKey: "DOUBLE" as const,
       hitTargetNumber: 1,
@@ -98,6 +98,31 @@ describe("buildEventsBatch", () => {
       ],
     });
     expect(batch.stages[0].turns[0].darts).toEqual([dart]);
+  });
+
+  it("throws when a turn's stageClientKey matches no stage", () => {
+    expect(() =>
+      buildEventsBatch("participant-1", {
+        stages: [
+          {
+            clientKey: "leg-1",
+            stageTypeKey: "LEG",
+            parentClientKey: null,
+            sequence: 1,
+          },
+        ],
+        turns: [
+          {
+            clientKey: "t1",
+            stageClientKey: "leg-orphan",
+            sequence: 1,
+            completedAt: "2026-07-25T10:00:00.000Z",
+            totalScore: 60,
+            darts: [],
+          },
+        ],
+      }),
+    ).toThrow("No stage matching stageClientKey leg-orphan for turn t1");
   });
 
   it("emits a stage with no turns rather than dropping it", () => {
