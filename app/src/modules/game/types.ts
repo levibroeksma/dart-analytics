@@ -51,7 +51,7 @@ export const SINGLES_TRAINING_START_POINTS = 0;
 export type DoublesTarget =
   { kind: "DOUBLE"; number: number } | { kind: "BULL" };
 
-export type VisitOutcome = {
+export type DoublesVisitOutcome = {
   targetIndex: number;
   hit: boolean;
   hitDartNumber: 1 | 2 | 3 | null;
@@ -60,7 +60,7 @@ export type VisitOutcome = {
 export type DoublesTrainingState = {
   targetIndex: number;
   dartsThisVisit: number;
-  visitHistory: VisitOutcome[];
+  visitHistory: DoublesVisitOutcome[];
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
@@ -83,3 +83,52 @@ export type FiveOhOneState = {
 };
 
 export const FIVE_OH_ONE_START_SCORE = 501;
+
+export type DartZoneKey =
+  "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";
+
+export type StageTypeKey = "MATCH" | "SET" | "LEG" | "ROUND" | "EXERCISE_BLOCK";
+
+export type BoardTarget =
+  | { kind: "NUMBER"; number: number }
+  | { kind: "DOUBLE"; number: number }
+  | { kind: "BULL" };
+
+/** What the player did, as observed at input time — the engine's only input. */
+export type DartObservation = {
+  hitTargetNumber: number | null;
+  hitZoneKey: DartZoneKey;
+};
+
+/** One row of `darts`. `score` is the actual board score, never a game-specific point value. */
+export type DartFact = {
+  dartNumber: 1 | 2 | 3;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: DartZoneKey | null;
+  score: number;
+};
+
+/** One row of `turns`. `totalScore` is the counted board score — 0 for a void visit, never negative. */
+export type TurnFact = {
+  clientKey: string;
+  stageClientKey: string;
+  sequence: number;
+  completedAt: string;
+  totalScore: number;
+  darts: DartFact[];
+};
+
+/** One row of `exercise_stages`. */
+export type StageFact = {
+  clientKey: string;
+  stageTypeKey: StageTypeKey;
+  parentClientKey: string | null;
+  sequence: number;
+};
+
+export type EngineFacts = {
+  stages: StageFact[];
+  turns: TurnFact[];
+};
