@@ -1,6 +1,6 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
-import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
-import { buildEventsBatch } from "@modules/game/score-training.payload.module";
+import { getEngineFactory } from "@modules/game/engine.registry";
+import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
   appendBatch,
@@ -9,8 +9,17 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import type { RecordedTurn } from "@stores/types";
+import type { GameEngine } from "@modules/game/interfaces";
+import type {
+  EngineFacts,
+  ScoreTrainingState,
+  TurnFact,
+} from "@modules/game/types";
 import type { ScoreTrainingPlayContext } from "./types";
+
+// Side-effect import: registers scoreTrainingEngineFactory so the registry
+// lookup below can resolve the store's persisted rulesetVersionKey.
+import "@modules/game/score-training.engine.module";
 
 function formatRemaining(ms: number | null | undefined): string {
   const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
@@ -19,7 +28,7 @@ function formatRemaining(ms: number | null | undefined): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function computeStats(turns: RecordedTurn[]): {
+function computeStats(turns: TurnFact[]): {
   total: number;
   visits: number;
   average: number;
@@ -27,6 +36,72 @@ function computeStats(turns: RecordedTurn[]): {
   const visits = turns.length;
   const total = turns.reduce((sum, t) => sum + t.totalScore, 0);
   return { total, visits, average: visits === 0 ? 0 : total / visits };
+}
+
+/**
+ * Rebuilds the engine for the persisted session, replaying the store's fact
+ * log so a reload restores the game exactly.
+ * @returns null when the store holds no ruleset/config to resume from, or no
+ *   engine is registered for that ruleset version.
+ */
+function resumeEngine(
+  game: ScoreTrainingPlayContext["$store"]["game"],
+): GameEngine<unknown, unknown> | null {
+  const { configSnapshot, rulesetVersionKey } = game;
+  if (!configSnapshot || !rulesetVersionKey) return null;
+  const factory = getEngineFactory(rulesetVersionKey);
+  if (!factory) return null;
+  return factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
+}
+
+/**
+ * Starts the MINUTES countdown, resuming from the persisted remaining time
+ * when a prior session left one and starting a fresh segment otherwise.
+ * `timerRemainingMs` is set synchronously so the label never renders 00:00
+ * while waiting for the timer's first onTick (which fires 1s after start()).
+ */
+function startCountdown(
+  game: ScoreTrainingPlayContext["$store"]["game"],
+  durationValue: number,
+): SegmentTimer {
+  const resumedRemainingMs = game.timerRemainingMs;
+  const durationMinutes =
+    resumedRemainingMs != null ? resumedRemainingMs / 60000 : durationValue;
+
+  game.timerRemainingMs = durationMinutes * 60000;
+  if (resumedRemainingMs == null) {
+    game.timerStartedAt = new Date().toISOString();
+  }
+
+  const timer = new SegmentTimer({
+    totalMinutes: durationMinutes,
+    intervalMinutes: durationMinutes,
+    onTick: (secondsRemaining) => {
+      game.timerRemainingMs = secondsRemaining * 1000;
+    },
+    onComplete: () => {
+      game.timerExpired = true;
+    },
+  });
+  timer.start();
+  return timer;
+}
+
+/**
+ * The engine owns the fact log while a session is live; the store mirrors it.
+ * Upload paths that can run without a live engine (a completion retry driven
+ * straight from the results modal) fall back to the persisted mirror.
+ */
+function currentFacts(context: ScoreTrainingPlayContext): EngineFacts {
+  return (
+    context.engine?.facts() ?? {
+      stages: context.$store.game.stages,
+      turns: context.$store.game.turns,
+    }
+  );
 }
 
 export function scoreTrainingPlay() {
@@ -51,7 +126,7 @@ export function scoreTrainingPlay() {
     } | null,
     pendingFinishScore: null as number | null,
     showFinishConfirm: false,
-    engine: null as ScoreTrainingEngine | null,
+    engine: null as GameEngine<unknown, unknown> | null,
     timer: null as SegmentTimer | null,
 
     remainingLabel(this: ScoreTrainingPlayContext): string {
@@ -59,8 +134,13 @@ export function scoreTrainingPlay() {
     },
 
     /**
-     * D88 auto-cleanup via shared reconcileActiveSession helper. On "match",
-     * resume silently (no Continue/Abandon modal — that is setup-only).
+     * D88 auto-cleanup via shared reconcileActiveSession helper.
+     *
+     * On "match", resume silently (no Continue/Abandon modal — that is
+     * setup-only): the engine is rebuilt from the persisted facts and the
+     * store is written back from `engine.facts()` immediately, so the two
+     * agree before any input. On "abandon_failed", stay on the loading/error
+     * view rather than flipping to "no active session" as if it were cleaned.
      */
     async init(this: ScoreTrainingPlayContext) {
       this.loadingReconciliation = true;
@@ -73,7 +153,6 @@ export function scoreTrainingPlay() {
         );
 
         if (result.action === "abandon_failed") {
-          // Block: stay on loading/error, do not flip to "no active session" as if cleaned.
           this.reconciliationFailed = true;
           this.hasActiveSession = false;
           return;
@@ -85,47 +164,20 @@ export function scoreTrainingPlay() {
           return;
         }
 
-        // result.action === "match": resume silently, no modal on play.
         const config = this.$store.game.configSnapshot;
-        if (!config) {
+        const engine = resumeEngine(this.$store.game);
+        if (!config || !engine) {
           this.hasActiveSession = false;
           return;
         }
-        this.engine = new ScoreTrainingEngine({
-          durationType: config.durationType,
-          durationValue: config.durationValue,
-          maxDartsPerTurn: config.maxDartsPerTurn,
-          startingSequence: this.$store.game.turns.length,
-        });
+        this.engine = engine;
+        this.$store.game.recordFacts(engine.facts());
 
         if (
           config.durationType === "MINUTES" &&
           !this.$store.game.timerExpired
         ) {
-          const resumedRemainingMs = this.$store.game.timerRemainingMs;
-          const durationMinutes =
-            resumedRemainingMs != null
-              ? resumedRemainingMs / 60000
-              : config.durationValue;
-
-          // Set synchronously so the countdown label never renders 00:00 while
-          // waiting for the timer's first onTick (fires 1s after start()).
-          this.$store.game.timerRemainingMs = durationMinutes * 60000;
-          if (resumedRemainingMs == null) {
-            this.$store.game.timerStartedAt = new Date().toISOString();
-          }
-
-          this.timer = new SegmentTimer({
-            totalMinutes: durationMinutes,
-            intervalMinutes: durationMinutes,
-            onTick: (secondsRemaining) => {
-              this.$store.game.timerRemainingMs = secondsRemaining * 1000;
-            },
-            onComplete: () => {
-              this.$store.game.timerExpired = true;
-            },
-          });
-          this.timer.start();
+          this.timer = startCountdown(this.$store.game, config.durationValue);
         }
 
         this.hasActiveSession = true;
@@ -145,25 +197,31 @@ export function scoreTrainingPlay() {
       this.timer?.stop();
     },
 
+    /**
+     * The engine is the sole authority on both the score range and completion,
+     * so the visit is recorded first and rolled back when it turns out to be
+     * the finishing one — `confirmFinish` re-records it once the player agrees.
+     */
     async submitVisit(this: ScoreTrainingPlayContext) {
-      this.loading = true;
       if (!this.engine || this.finished || this.showFinishConfirm) return;
+      this.loading = true;
 
       const score = Number(this.scoreInput.value);
-      if (!Number.isInteger(score) || score < 0 || score > 180) {
-        this.error = "Enter a score between 0 and 180.";
+      const state = this.engine.state() as ScoreTrainingState;
+      state.timerExpired = this.$store.game.timerExpired ?? false;
+
+      try {
+        this.engine.record(score);
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
         this.loading = false;
         return;
       }
       this.error = "";
 
-      const timerExpired = this.$store.game.timerExpired ?? false;
-      const wouldComplete = this.engine.isComplete(
-        this.$store.game.turns.length + 1,
-        timerExpired,
-      );
-
-      if (wouldComplete) {
+      if (this.engine.isComplete()) {
+        this.engine.undo();
+        this.$store.game.recordFacts(this.engine.facts());
         this.pendingFinishScore = score;
         this.scoreInput.clear();
         this.showFinishConfirm = true;
@@ -172,8 +230,7 @@ export function scoreTrainingPlay() {
       }
 
       this.scoreInput.clear();
-      const visit = this.engine.recordVisit(score);
-      this.$store.game.recordTurn(visit);
+      this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
     },
 
@@ -185,8 +242,8 @@ export function scoreTrainingPlay() {
       this.pendingFinishScore = null;
       this.showFinishConfirm = false;
 
-      const visit = this.engine.recordVisit(score);
-      this.$store.game.recordTurn(visit);
+      this.engine.record(score);
+      this.$store.game.recordFacts(this.engine.facts());
 
       this.finished = true;
       this.completionStatus = "pending";
@@ -202,25 +259,20 @@ export function scoreTrainingPlay() {
 
     undoVisit(this: ScoreTrainingPlayContext) {
       if (this.finished || this.showFinishConfirm) return;
-      if (!this.engine || this.$store.game.turns.length === 0) return;
+      if (!this.engine || !this.engine.undo()) return;
 
-      this.$store.game.undoLastTurn();
-      const poppedLocal = this.engine.undoLastVisit();
-      if (!poppedLocal) {
-        const config = this.$store.game.configSnapshot;
-        if (!config) return;
-        this.engine = new ScoreTrainingEngine({
-          durationType: config.durationType,
-          durationValue: config.durationValue,
-          maxDartsPerTurn: config.maxDartsPerTurn,
-          startingSequence: this.$store.game.turns.length,
-        });
-      }
-
+      this.$store.game.recordFacts(this.engine.facts());
       this.scoreInput.clear();
       this.error = "";
     },
 
+    /**
+     * Uploads the fact log, then marks the session COMPLETED. On this path
+     * only, SESSION_ALREADY_COMPLETED counts as success — it covers "PATCH
+     * reached the server, the client never saw the response". Stats are copied
+     * into `resultsSnapshot` before any store mutation, so the results modal
+     * never depends on `$store.game.turns` surviving a later reset.
+     */
     async uploadAndCompleteSession(
       this: ScoreTrainingPlayContext,
     ): Promise<void> {
@@ -235,20 +287,14 @@ export function scoreTrainingPlay() {
       this.completionError = "";
 
       try {
-        const completedTurns = this.$store.game.turns.map((turn) => ({
-          ...turn,
-          completedAt: turn.completedAt ?? new Date().toISOString(),
-        }));
         const batch = buildEventsBatch(
           this.$store.game.participantRef!,
-          completedTurns,
+          currentFacts(this),
         );
 
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
       } catch (err: unknown) {
-        // On the completion path only: SESSION_ALREADY_COMPLETED counts as success
-        // (covers "PATCH OK, client never saw the response").
         const error = err as { code?: string; message?: string };
         const alreadyCompleted =
           error.code === "SESSION_ALREADY_COMPLETED" ||
@@ -261,8 +307,6 @@ export function scoreTrainingPlay() {
         }
       }
 
-      // Snapshot stats into a component-local field BEFORE any store mutation,
-      // so the modal never depends on $store.game.turns surviving a later reset.
       this.resultsSnapshot = computeStats(this.$store.game.turns);
       this.completionStatus = "succeeded";
     },
@@ -283,18 +327,14 @@ export function scoreTrainingPlay() {
       this.abandonLoading = true;
       this.error = "";
       try {
-        const turns = this.$store.game.turns;
-        if (turns.length > 0) {
+        const facts = currentFacts(this);
+        if (facts.turns.length > 0) {
           if (!this.$store.game.idempotencyKey) {
             this.$store.game.idempotencyKey = crypto.randomUUID();
           }
-          const completedTurns = turns.map((turn) => ({
-            ...turn,
-            completedAt: turn.completedAt ?? new Date().toISOString(),
-          }));
           const batch = buildEventsBatch(
             this.$store.game.participantRef!,
-            completedTurns,
+            facts,
           );
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
@@ -308,17 +348,24 @@ export function scoreTrainingPlay() {
       }
     },
 
+    /**
+     * Replays the same configuration template the first session used, so the
+     * new session's provenance on the server matches rather than drifting to
+     * an inline copy. Store and UI are mutated only once the new session
+     * exists: on failure the modal stays open with the results visible and the
+     * buttons enabled, since the prior session is already COMPLETED.
+     */
     async playAgain(this: ScoreTrainingPlayContext) {
-      if (!this.$store.game.configSnapshot || this.playAgainLoading) return;
+      const config = this.$store.game.configSnapshot;
+      const templateRef = this.$store.game.templateRef;
+      if (!config || !templateRef || this.playAgainLoading) return;
+      const rulesetVersionKey =
+        this.$store.game.rulesetVersionKey ?? "SCORE_TRAINING_V1";
+      const factory = getEngineFactory(rulesetVersionKey);
+      if (!factory) return;
+
       this.playAgainLoading = true;
       this.playAgainError = "";
-
-      const config = this.$store.game.configSnapshot;
-      const inlineConfig = {
-        duration_type: config.durationType,
-        duration_value: config.durationValue,
-        max_darts_per_turn: config.maxDartsPerTurn,
-      };
 
       try {
         let session;
@@ -328,19 +375,15 @@ export function scoreTrainingPlay() {
             rulesetVersionKey: "SCORE_TRAINING_V1",
             captureModeKey: "RECREATIONAL",
             inputModeKey: "QUICK_SCORE",
-            config: { source: "inline", config: inlineConfig },
+            config: { source: "template", templateRef },
           });
         } catch {
-          // Play-again failure: modal stays open, results visible, buttons stay
-          // enabled (prior session is already COMPLETED). Store untouched.
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
-        // Only mutate store/UI on success.
         this.$store.game.sessionId = session.sessionId;
         this.$store.game.participantRef = session.participants[0].ref;
-        this.$store.game.turns = [];
         this.$store.game.idempotencyKey = null;
         this.$store.game.timerRemainingMs = null;
         this.$store.game.timerStartedAt = null;
@@ -354,28 +397,12 @@ export function scoreTrainingPlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        this.engine = new ScoreTrainingEngine({
-          durationType: config.durationType,
-          durationValue: config.durationValue,
-          maxDartsPerTurn: config.maxDartsPerTurn,
-          startingSequence: 0,
-        });
+        this.engine = factory.create(config);
+        this.$store.game.recordFacts(this.engine.facts());
 
         if (config.durationType === "MINUTES") {
           this.timer?.stop();
-          this.$store.game.timerRemainingMs = config.durationValue * 60000;
-          this.$store.game.timerStartedAt = new Date().toISOString();
-          this.timer = new SegmentTimer({
-            totalMinutes: config.durationValue,
-            intervalMinutes: config.durationValue,
-            onTick: (secondsRemaining) => {
-              this.$store.game.timerRemainingMs = secondsRemaining * 1000;
-            },
-            onComplete: () => {
-              this.$store.game.timerExpired = true;
-            },
-          });
-          this.timer.start();
+          this.timer = startCountdown(this.$store.game, config.durationValue);
         }
       } finally {
         this.playAgainLoading = false;

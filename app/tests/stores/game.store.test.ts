@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Persist } from "@alpinejs/persist";
 import { gameStore } from "@stores/game.store";
+import type { EngineFacts } from "@modules/game/types";
 
 /**
  * Mirrors @alpinejs/persist: one persist() closure shares `alias` across .as()
@@ -33,84 +34,136 @@ function stubPersistFactory(): () => Persist {
   return () => ((initial: unknown) => ({ as: () => initial })) as Persist;
 }
 
-describe("gameStore", () => {
-  it("starts with an empty turn list and no session", () => {
-    const store = gameStore(stubPersistFactory());
-    expect(store.sessionId).toBeNull();
-    expect(store.turns).toEqual([]);
-  });
+const SESSION_INPUT = {
+  gameTypeKey: "SCORE_TRAINING",
+  rulesetVersionKey: "SCORE_TRAINING_V1",
+  sessionId: "s1",
+  participantRef: "p1",
+  templateRef: "tpl-1",
+  configSnapshot: {
+    durationType: "ROUNDS",
+    durationValue: 10,
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+  },
+} as const;
 
-  it("startSession sets the session and config snapshot", () => {
-    const store = gameStore(stubPersistFactory());
-    store.startSession({
-      gameTypeKey: "SCORE_TRAINING",
-      sessionId: "s1",
-      participantRef: "p1",
-      configSnapshot: {
-        durationType: "ROUNDS",
-        durationValue: 10,
-        maxDartsPerTurn: 3,
-      },
-    });
-    expect(store.sessionId).toBe("s1");
-    expect(store.configSnapshot?.durationValue).toBe(10);
-  });
-
-  it("recordTurn appends a turn and reset() clears the session", () => {
-    const store = gameStore(stubPersistFactory());
-    store.startSession({
-      gameTypeKey: "SCORE_TRAINING",
-      sessionId: "s1",
-      participantRef: "p1",
-      configSnapshot: {
-        durationType: "ROUNDS",
-        durationValue: 10,
-        maxDartsPerTurn: 3,
-      },
-    });
-    store.recordTurn({
-      clientKey: "t1",
+const FACTS: EngineFacts = {
+  stages: [
+    {
+      clientKey: "block-1",
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentClientKey: null,
       sequence: 1,
-      totalScore: 45,
-      completedAt: null,
-    });
-    expect(store.turns).toHaveLength(1);
-    store.reset();
-    expect(store.sessionId).toBeNull();
-    expect(store.turns).toEqual([]);
-  });
-
-  it("undoLastTurn pops the last turn; no-op when empty", () => {
-    const store = gameStore(stubPersistFactory());
-    store.startSession({
-      gameTypeKey: "SCORE_TRAINING",
-      sessionId: "s1",
-      participantRef: "p1",
-      configSnapshot: {
-        durationType: "ROUNDS",
-        durationValue: 10,
-        maxDartsPerTurn: 3,
-      },
-    });
-    store.recordTurn({
+    },
+  ],
+  turns: [
+    {
       clientKey: "t1",
+      stageClientKey: "block-1",
       sequence: 1,
-      totalScore: 45,
-      completedAt: null,
-    });
-    store.recordTurn({
-      clientKey: "t2",
-      sequence: 2,
+      completedAt: "2026-07-25T10:00:00.000Z",
       totalScore: 60,
-      completedAt: null,
-    });
-    store.undoLastTurn();
+      darts: [],
+    },
+  ],
+};
+
+describe("gameStore", () => {
+  it("starts with an empty fact log and no session", () => {
+    const store = gameStore(stubPersistFactory());
+    expect(store.sessionId).toBeNull();
+    expect(store.rulesetVersionKey).toBeNull();
+    expect(store.templateRef).toBeNull();
+    expect(store.stages).toEqual([]);
+    expect(store.turns).toEqual([]);
+  });
+
+  it("stores the ruleset version alongside the config snapshot", () => {
+    const store = gameStore(stubPersistFactory());
+    store.startSession({ ...SESSION_INPUT });
+
+    expect(store.gameTypeKey).toBe("SCORE_TRAINING");
+    expect(store.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
+    expect(store.sessionId).toBe("s1");
+    expect(store.participantRef).toBe("p1");
+    expect(store.templateRef).toBe("tpl-1");
+    expect(store.configSnapshot).toEqual(SESSION_INPUT.configSnapshot);
+    expect(store.turns).toEqual([]);
+    expect(store.stages).toEqual([]);
+  });
+
+  it("startSession clears any fact log and upload state left by a prior session", () => {
+    const store = gameStore(stubPersistFactory());
+    store.recordFacts(FACTS);
+    store.idempotencyKey = "old-key";
+    store.timerRemainingMs = 1000;
+    store.timerStartedAt = "2026-07-25T09:00:00.000Z";
+    store.timerExpired = true;
+
+    store.startSession({ ...SESSION_INPUT });
+
+    expect(store.stages).toEqual([]);
+    expect(store.turns).toEqual([]);
+    expect(store.idempotencyKey).toBeNull();
+    expect(store.timerRemainingMs).toBeNull();
+    expect(store.timerStartedAt).toBeNull();
+    expect(store.timerExpired).toBe(false);
+  });
+
+  it("recordFacts persists the engine's stages and turns", () => {
+    const store = gameStore(stubPersistFactory());
+    store.recordFacts(FACTS);
+
+    expect(store.stages).toEqual(FACTS.stages);
+    expect(store.turns).toEqual(FACTS.turns);
+  });
+
+  it("replaces the fact log wholesale so engine and store cannot diverge", () => {
+    const store = gameStore(stubPersistFactory());
+    store.recordFacts(FACTS);
+    store.recordFacts({ stages: [], turns: [] });
+
+    expect(store.turns).toEqual([]);
+    expect(store.stages).toEqual([]);
+  });
+
+  it("detaches the recorded log from the engine's arrays", () => {
+    const store = gameStore(stubPersistFactory());
+    const facts: EngineFacts = {
+      stages: [...FACTS.stages],
+      turns: [...FACTS.turns],
+    };
+    store.recordFacts(facts);
+
+    facts.turns.push(FACTS.turns[0]);
+
     expect(store.turns).toHaveLength(1);
-    expect(store.turns[0].clientKey).toBe("t1");
-    store.undoLastTurn();
+  });
+
+  it("clears every field on reset", () => {
+    const store = gameStore(stubPersistFactory());
+    store.startSession({ ...SESSION_INPUT });
+    store.recordFacts(FACTS);
+    store.idempotencyKey = "key";
+    store.timerRemainingMs = 5000;
+    store.timerStartedAt = "2026-07-25T09:00:00.000Z";
+    store.timerExpired = true;
+
+    store.reset();
+
+    expect(store.gameTypeKey).toBeNull();
+    expect(store.sessionId).toBeNull();
+    expect(store.rulesetVersionKey).toBeNull();
+    expect(store.participantRef).toBeNull();
+    expect(store.templateRef).toBeNull();
+    expect(store.configSnapshot).toBeNull();
+    expect(store.stages).toEqual([]);
     expect(store.turns).toEqual([]);
-    store.undoLastTurn();
-    expect(store.turns).toEqual([]);
+    expect(store.timerRemainingMs).toBeNull();
+    expect(store.timerStartedAt).toBeNull();
+    expect(store.timerExpired).toBe(false);
+    expect(store.idempotencyKey).toBeNull();
   });
 
   it("regression: reusing one Alpine persist() collapses every .as() key to the last one", () => {
@@ -147,13 +200,16 @@ describe("gameStore", () => {
     gameStore(factory);
     for (const init of pendingInits) init();
 
-    expect(factoryCalls).toBe(10);
+    expect(factoryCalls).toBe(13);
     expect(aliasesAtInit).toEqual([
       "game._v",
       "game.gameTypeKey",
+      "game.rulesetVersionKey",
       "game.sessionId",
       "game.participantRef",
       "game.configSnapshot",
+      "game.templateRef",
+      "game.stages",
       "game.turns",
       "game.timerRemainingMs",
       "game.timerStartedAt",

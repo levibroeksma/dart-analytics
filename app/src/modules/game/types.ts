@@ -1,15 +1,12 @@
-export type ScoreTrainingEngineOptions = {
-  durationType: "ROUNDS" | "MINUTES";
-  durationValue: number;
-  maxDartsPerTurn: number;
-  startingSequence?: number;
-};
-
-export type RecordedVisit = {
-  clientKey: string;
-  sequence: number;
-  totalScore: number;
-  completedAt: string;
+/**
+ * Score Training's engine state. `timerExpired` is caller-driven: the MINUTES
+ * countdown lives in `game.store.ts`, not the engine, so the play page assigns
+ * it on the object returned by `state()`/`record()` before asking
+ * `isComplete()` — keeping the contract's zero-argument `isComplete()` intact.
+ */
+export type ScoreTrainingState = {
+  turnCount: number;
+  timerExpired: boolean;
 };
 
 export type ScoreInputBufferOptions = {

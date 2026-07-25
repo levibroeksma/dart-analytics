@@ -8,6 +8,7 @@ import {
   completeSession,
   type SessionActiveData,
 } from "@client/api/sessions";
+import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { ScoreTrainingSetupContext } from "./types";
 
@@ -113,6 +114,10 @@ export function scoreTrainingSetup() {
       }
       this.loading = true;
       try {
+        const configSnapshot = toSnapshot(
+          RULESET_VERSION_KEY,
+          preset.configuration,
+        );
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -123,20 +128,13 @@ export function scoreTrainingSetup() {
             templateRef: preset.configurationTemplateId,
           },
         });
-        const config = preset.configuration as {
-          duration_type: "ROUNDS" | "MINUTES";
-          duration_value: number;
-          max_darts_per_turn: number;
-        };
         this.$store.game.startSession({
           gameTypeKey: GAME_TYPE_KEY,
+          rulesetVersionKey: RULESET_VERSION_KEY,
           sessionId: session.sessionId,
           participantRef: session.participants[0].ref,
-          configSnapshot: {
-            durationType: config.duration_type,
-            durationValue: config.duration_value,
-            maxDartsPerTurn: config.max_darts_per_turn,
-          },
+          templateRef: preset.configurationTemplateId,
+          configSnapshot,
         });
         globalThis.location.href = "/games/score-training/play";
       } catch (err: unknown) {
