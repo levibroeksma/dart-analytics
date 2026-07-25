@@ -52,6 +52,7 @@ export function applyVisit(
 
 export class FiveOhOneEngine {
   private state: FiveOhOneState;
+  private history: FiveOhOneState[] = [];
 
   constructor(startingScore: number = FIVE_OH_ONE_START_SCORE) {
     this.state = initialFiveOhOneState(startingScore);
@@ -61,8 +62,16 @@ export class FiveOhOneEngine {
     scoreAttempted: number,
     checkout?: FiveOhOneCheckout,
   ): FiveOhOneState {
-    this.state = applyVisit(this.state, scoreAttempted, checkout);
+    const next = applyVisit(this.state, scoreAttempted, checkout);
+    this.history.push(this.state);
+    this.state = next;
     return this.state;
+  }
+
+  undoLastVisit(): boolean {
+    if (this.history.length === 0) return false;
+    this.state = this.history.pop()!;
+    return true;
   }
 
   currentScore(): number {

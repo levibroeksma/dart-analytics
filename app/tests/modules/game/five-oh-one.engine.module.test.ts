@@ -126,3 +126,81 @@ describe("FiveOhOneEngine", () => {
     expect(engine.currentScore()).toBe(301);
   });
 });
+
+describe("FiveOhOneEngine.undoLastVisit", () => {
+  it("returns false when there is no history", () => {
+    const engine = new FiveOhOneEngine();
+    expect(engine.undoLastVisit()).toBe(false);
+  });
+
+  it("reverts a legal reduction, restoring the previous score", () => {
+    const engine = new FiveOhOneEngine();
+    engine.recordVisit(45);
+    expect(engine.currentScore()).toBe(456);
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentScore()).toBe(501);
+    expect(engine.visitHistory()).toHaveLength(0);
+  });
+
+  it("reverts a bust visit, removing its history entry", () => {
+    const engine = new FiveOhOneEngine();
+    engine.recordVisit(60);
+    engine.recordVisit(500);
+    expect(engine.currentScore()).toBe(441);
+    expect(engine.visitHistory()).toHaveLength(2);
+    expect(engine.visitHistory()[1].isBust).toBe(true);
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentScore()).toBe(441);
+    expect(engine.visitHistory()).toHaveLength(1);
+  });
+
+  it("reverts the winning visit, allowing the leg to be won again on redo", () => {
+    const engine = new FiveOhOneEngine(40);
+    engine.recordVisit(40, { dartsUsed: 1, dartsOnDouble: 1 });
+    expect(engine.isComplete()).toBe(true);
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.currentScore()).toBe(40);
+    expect(engine.visitHistory()).toHaveLength(0);
+
+    engine.recordVisit(40, { dartsUsed: 2, dartsOnDouble: 1 });
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.currentScore()).toBe(0);
+  });
+
+  it("walks back across multiple visits with repeated undos", () => {
+    const engine = new FiveOhOneEngine();
+    engine.recordVisit(60);
+    engine.recordVisit(100);
+    expect(engine.currentScore()).toBe(341);
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentScore()).toBe(441);
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentScore()).toBe(501);
+    expect(engine.visitHistory()).toHaveLength(0);
+    expect(engine.undoLastVisit()).toBe(false);
+  });
+
+  it("does not push a phantom history entry when recordVisit is rejected on a won leg", () => {
+    const engine = new FiveOhOneEngine(101);
+    engine.recordVisit(61);
+    engine.recordVisit(40, { dartsUsed: 1, dartsOnDouble: 1 });
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.visitHistory()).toHaveLength(2);
+
+    expect(() => engine.recordVisit(20)).toThrow();
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.currentScore()).toBe(40);
+    expect(engine.visitHistory()).toHaveLength(1);
+
+    expect(engine.undoLastVisit()).toBe(true);
+    expect(engine.currentScore()).toBe(101);
+    expect(engine.visitHistory()).toHaveLength(0);
+  });
+});
