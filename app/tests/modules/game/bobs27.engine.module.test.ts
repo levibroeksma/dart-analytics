@@ -155,6 +155,16 @@ describe("Bobs27Engine", () => {
     const engine = new Bobs27Engine(100);
     expect(engine.currentScore()).toBe(100);
   });
+
+  it("clears dartsThisVisit when the visit resolves", () => {
+    const engine = new Bobs27Engine();
+    engine.recordDart(true);
+    engine.recordDart(false);
+    const resolved = engine.recordDart(false);
+
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+    expect(resolved.dartsThisVisit).toEqual([]);
+  });
 });
 
 describe("Bobs27Engine.undoLastDart", () => {
@@ -203,7 +213,7 @@ describe("Bobs27Engine.undoLastDart", () => {
     expect(engine.isGameOver()).toBe(false);
 
     const afterRestoredDart = engine.recordDart(false);
-    expect(afterRestoredDart.dartsThisVisit).toEqual([false, false, false]);
+    expect(afterRestoredDart.dartsThisVisit).toEqual([]);
     expect(engine.currentScore()).toBe(26);
   });
 

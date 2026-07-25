@@ -28,9 +28,7 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
   }
 
   const target = targetForIndex(state.targetIndex);
-  const priorDarts =
-    state.dartsThisVisit.length === 3 ? [] : state.dartsThisVisit;
-  const dartsThisVisit = [...priorDarts, hit];
+  const dartsThisVisit = [...state.dartsThisVisit, hit];
   const score = hit ? state.score + targetValue(target) : state.score;
 
   if (dartsThisVisit.length < 3) {
@@ -44,7 +42,7 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
     return {
       ...state,
       score: resolvedScore,
-      dartsThisVisit,
+      dartsThisVisit: [],
       status: "LOST",
     };
   }
@@ -52,14 +50,14 @@ export function applyDart(state: Bobs27State, hit: boolean): Bobs27State {
     return {
       ...state,
       score: resolvedScore,
-      dartsThisVisit,
+      dartsThisVisit: [],
       status: "WON",
     };
   }
   return {
     ...state,
     score: resolvedScore,
-    dartsThisVisit,
+    dartsThisVisit: [],
     targetIndex: state.targetIndex + 1,
   };
 }
