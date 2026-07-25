@@ -126,7 +126,7 @@ Astro inlines `import.meta.env.PUBLIC_*` vars into the **client-side browser bun
 Add it as a GitHub **Variable** (not a secret — this value is already public in the shipped browser bundle) under the same `production` Environment:
 
 - GitHub repo → Settings → Environments → `production` → Variables → `PUBLIC_NEON_AUTH_BASE_URL`
-- Value: same as `NEON_AUTH_BASE_URL` in `.env.production` (typically `https://auth.neon.tech`)
+- Value: same as `NEON_AUTH_BASE_URL` in `.env.production` — this is project-specific, not a shared Neon domain (shape: `https://ep-<branch-id>.neonauth.<region>.aws.neon.tech/<database>/auth`); find it in the Neon console under your project's Auth section, or from a prior `neon env main` pull
 
 ---
 
