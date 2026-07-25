@@ -30,6 +30,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+        env:
+          PUBLIC_NEON_AUTH_BASE_URL: ${{ vars.PUBLIC_NEON_AUTH_BASE_URL }}
       - name: Deploy Worker
         run: npx wrangler deploy
         env:
