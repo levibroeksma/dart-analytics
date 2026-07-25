@@ -69,14 +69,24 @@ export function applyDart(
 
 export class DoublesTrainingEngine {
   private state: DoublesTrainingState;
+  private history: DoublesTrainingState[] = [];
 
   constructor() {
     this.state = initialDoublesTrainingState();
   }
 
   recordDart(hit: boolean): DoublesTrainingState {
-    this.state = applyDart(this.state, hit);
+    const next = applyDart(this.state, hit);
+    this.history.push(this.state);
+    this.state = next;
     return this.state;
+  }
+
+  /** Reverts exactly the last recorded dart, one at a time, even across visit/completion boundaries. */
+  undoLastDart(): boolean {
+    if (this.history.length === 0) return false;
+    this.state = this.history.pop()!;
+    return true;
   }
 
   currentTarget(): DoublesTarget {

@@ -145,3 +145,81 @@ describe("DoublesTrainingEngine", () => {
     expect(engine.visitHistory()).toHaveLength(21);
   });
 });
+
+describe("DoublesTrainingEngine.undoLastDart", () => {
+  it("returns false when there is no history", () => {
+    const engine = new DoublesTrainingEngine();
+    expect(engine.undoLastDart()).toBe(false);
+  });
+
+  it("reverts a hit-that-ended-visit dart, removing the visitHistory entry and restoring the target", () => {
+    const engine = new DoublesTrainingEngine();
+    engine.recordDart(true);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+    expect(engine.visitHistory()).toHaveLength(1);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.visitHistory()).toHaveLength(0);
+  });
+
+  it("reverts a miss dart mid-visit, restoring dartsThisVisit to 0", () => {
+    const engine = new DoublesTrainingEngine();
+    engine.recordDart(false);
+    expect(engine.undoLastDart()).toBe(true);
+    const state = engine.recordDart(true);
+    expect(state.visitHistory[0]).toEqual({
+      targetIndex: 0,
+      hit: true,
+      hitDartNumber: 1,
+    });
+  });
+
+  it("reverts the completing dart, allowing the engine to be marked complete again on redo", () => {
+    const engine = new DoublesTrainingEngine();
+    for (let visit = 0; visit < 21; visit++) {
+      engine.recordDart(true);
+    }
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.visitHistory()).toHaveLength(21);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.visitHistory()).toHaveLength(20);
+    expect(engine.currentTarget()).toEqual({ kind: "BULL" });
+
+    engine.recordDart(true);
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.visitHistory()).toHaveLength(21);
+  });
+
+  it("walks back across multiple visits with repeated undos", () => {
+    const engine = new DoublesTrainingEngine();
+    engine.recordDart(true);
+    engine.recordDart(false);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 2 });
+    expect(engine.visitHistory()).toHaveLength(1);
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.currentTarget()).toEqual({ kind: "DOUBLE", number: 1 });
+    expect(engine.visitHistory()).toHaveLength(0);
+    expect(engine.undoLastDart()).toBe(false);
+  });
+
+  it("does not push a phantom history entry when recordDart is rejected on a completed engine", () => {
+    const engine = new DoublesTrainingEngine();
+    for (let visit = 0; visit < 21; visit++) {
+      engine.recordDart(true);
+    }
+    expect(engine.isComplete()).toBe(true);
+
+    expect(() => engine.recordDart(true)).toThrow();
+
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.visitHistory()).toHaveLength(20);
+    expect(engine.undoLastDart()).toBe(true);
+    expect(engine.visitHistory()).toHaveLength(19);
+  });
+});
