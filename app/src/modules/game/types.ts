@@ -47,3 +47,19 @@ export type SinglesTrainingState = {
 };
 
 export const SINGLES_TRAINING_START_POINTS = 0;
+
+export type DoublesTarget =
+  { kind: "DOUBLE"; number: number } | { kind: "BULL" };
+
+export type VisitOutcome = {
+  targetIndex: number;
+  hit: boolean;
+  hitDartNumber: 1 | 2 | 3 | null;
+};
+
+export type DoublesTrainingState = {
+  targetIndex: number;
+  dartsThisVisit: number;
+  visitHistory: VisitOutcome[];
+  status: "IN_PROGRESS" | "COMPLETE";
+};
