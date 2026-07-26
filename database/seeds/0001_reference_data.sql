@@ -245,17 +245,13 @@ VALUES (
         2,
         now()
     ),
-    -- Singles
-    (
-        '0198f000-0000-7000-8000-000000000003',
-        1,
-        now()
-    ),
-    (
-        '0198f000-0000-7000-8000-000000000003',
-        2,
-        now()
-    ),
+    -- Singles: no TIMED_MODE/ROUNDS_MODE mapping. Corrected (Task 12):
+    -- SinglesConfig models no duration_type/duration_value (Task 11 stripped
+    -- them), so this game type has no timer or round-count to configure.
+    -- Removing the two rows here only prevents a *fresh* seed from
+    -- re-creating them — an already-seeded database (this INSERT uses
+    -- ON CONFLICT DO NOTHING) needs the explicit DELETE in
+    -- 0003_game_engine_reference.sql.
     -- Score training
     (
         '0198f000-0000-7000-8000-000000000004',

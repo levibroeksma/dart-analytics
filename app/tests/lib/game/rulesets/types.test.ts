@@ -40,6 +40,24 @@ describe("FiveOhOneConfig starting_score floor", () => {
 });
 
 describe("ScoreTrainingConfig duration_value bounds", () => {
+  it("rejects duration_value: 0, one below the shared ROUNDS/MINUTES floor", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "ROUNDS",
+      duration_value: 0,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts duration_value: 1, the shared ROUNDS/MINUTES floor", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "ROUNDS",
+      duration_value: 1,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("accepts duration_value: 50, the ROUNDS ceiling", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "ROUNDS",
