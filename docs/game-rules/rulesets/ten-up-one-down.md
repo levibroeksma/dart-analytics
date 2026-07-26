@@ -14,6 +14,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Double out checkout                         | v1      |
 | Success: target +10                         | v1      |
 | Failure: target −1                          | v1      |
+| Floor at 2 (minimum finishable double-out target) | v1 |
 | Floor at start score (cannot drop below 41) | TBD     |
 | Bust within the visit                       | v1      |
 | Climb cap / end target                      | TBD     |
@@ -55,7 +56,7 @@ If the checkout lands on dart 1 or 2, the visit **ends immediately**.
 ### Progress
 
 - **Success** (checkout in ≤3 darts): next target = current + **10** (e.g. 41 → 51 → 61 …).
-- **Failure** (no checkout in 3 darts): next target = current − **1** (e.g. 51 → 50).
+- **Failure** (no checkout in 3 darts): next target = current − **1**, floored at **2** — the minimum target any double can finish (e.g. 51 → 50; 3 → 2; 2 → 2).
 
 ### Finishing
 
@@ -79,15 +80,13 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 ## Known limitations
 
-**A target below 2 cannot be finished.** V1 has no ladder floor, so a long run of failures can walk the target below the minimum double-out finish (D1 = 2). The engine keeps the ladder falling — that is the no-floor rule — but refuses to record a *checkout* claimed on such a target, since no dart can produce it. A session stranded there can only record failures. Whether the ladder should instead floor at the start score is the open question below. <!-- 2026-07-26 -->
-
 **A bust cannot be told apart from a scoreless attempt**, for the same reason 501 cannot: both persist as a turn total of `0` with no dart rows. Bust rate is therefore not computable, and checkout percentage undercounts attempts. Recovering either requires DETAILED_DARTS capture or a schema revision adding an attempted-score / void-visit fact; both are on the deferred list in `DECISIONS.md`. <!-- 2026-07-26 -->
 
 ## Later versions (V2+)
 
 ### Variants
 
-- Optional **floor**: never drop below the start score (41)
+- Optional **floor**: never drop below the start score (41) — separate from, and higher than, the V1 double-out-minimum floor at 2
 - Configurable start score and step sizes
 - **End target**: win when you successfully check out a chosen high finish
 - Multiplayer: shared ladder or alternate attempts
@@ -106,5 +105,6 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 ## Open questions
 
-- Whether failing below the start score is allowed or floored at 41. **Still open.** V1 ships no floor, so the target may fall below 41 and, given enough failures, below the finishable minimum of 2 — see Known limitations. A floor is a product decision, not an engine one. <!-- 2026-07-26 -->
+- ~~Whether the ladder floors below the double-out minimum (2).~~ **Resolved (V1):** yes — the ladder floors at **2**, the minimum target any double can finish. A failure at target 2 stays at 2 rather than falling further; see Progress above. <!-- 2026-07-26 -->
+- Whether failing below the start score is floored at **41** instead. **Still open, deferred to V2+.** This is a separate, higher floor from the V1 floor at 2 above — an optional variant (see Later versions), not required for V1. <!-- 2026-07-26 -->
 - ~~Whether a bust mid-visit still consumes the whole attempt.~~ **Resolved for V1:** yes — see Bust above. <!-- 2026-07-26 -->

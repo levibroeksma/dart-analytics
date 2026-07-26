@@ -9,7 +9,12 @@ import type {
   TuodState,
 } from "./types";
 
-/** The lowest target a double-out attempt can ever finish from (D1 = 2). */
+/**
+ * The ladder floor: the lowest target a double-out attempt can ever finish
+ * from (D1 = 2). A failed attempt that would drop the target below this
+ * clamps here instead, so the ladder never strands a session on a target no
+ * double can finish.
+ */
 const MIN_FINISHABLE_TARGET = 2;
 
 /**
@@ -55,28 +60,23 @@ export function initialTuodState(config: TuodSnapshot): TuodState {
  * Pure reducer: folds one resolved attempt onto a `TuodState`. A success moves
  * the next target up by `finishBonus`; a failure — a plain miss and a bust
  * alike, since a bust voids the one visit the attempt gets — moves it down by
- * `missPenalty`. V1 models no ladder floor, so the target may fall below the
- * start score; whether it should is still open in the ruleset.
- * `timerExpired` is carried through untouched: it is not a fold over attempts.
- * @throws when `succeeded` is claimed on a target below the double-out
- *   minimum, which no dart can finish; the caller's state is left untouched.
+ * `missPenalty`, floored at the double-out minimum so the ladder never falls
+ * onto a target no double can finish. `timerExpired` is carried through
+ * untouched: it is not a fold over attempts.
  */
 export function applyTuodAttempt(
   config: TuodSnapshot,
   state: TuodState,
   succeeded: boolean,
 ): TuodState {
-  if (succeeded && state.currentTarget < MIN_FINISHABLE_TARGET) {
-    throw new Error(
-      `Target ${state.currentTarget} cannot be checked out on a double.`,
-    );
-  }
-
   return {
     ...state,
     currentTarget: succeeded
       ? state.currentTarget + config.finishBonus
-      : state.currentTarget - config.missPenalty,
+      : Math.max(
+          MIN_FINISHABLE_TARGET,
+          state.currentTarget - config.missPenalty,
+        ),
     attempts: state.attempts + 1,
     successes: succeeded ? state.successes + 1 : state.successes,
     failures: succeeded ? state.failures : state.failures + 1,
@@ -112,9 +112,9 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
   /**
    * Replays every recorded attempt as the outcome that produced it. A turn's
    * `totalScore` is the target a checkout scored, and a failed attempt stores
-   * `0`, so `totalScore > 0` reproduces the ladder exactly — a recorded
-   * success is never below the double-out minimum, because `record()` refuses
-   * to write one.
+   * `0`, so `totalScore > 0` reproduces the ladder exactly — the floor in
+   * `applyTuodAttempt` runs on every step of the replay, so a rehydrated
+   * session lands on the same target a live one folded to.
    */
   private deriveState(): TuodState {
     let state = initialTuodState(this.config);
@@ -139,12 +139,12 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
   /**
    * Why `record()` would refuse this attempt, or null when it would accept it.
    * `wouldComplete()` reads the same answer, which is what keeps the pure
-   * predicate and the mutating call in agreement about what is playable.
+   * predicate and the mutating call in agreement about what is playable. The
+   * ladder floor keeps `currentTarget` at or above the double-out minimum on
+   * every fold, so there is no below-minimum-checkout case left to reject
+   * here.
    */
-  private rejectionReason(
-    input: TuodAttemptInput,
-    currentTarget: number,
-  ): string | null {
+  private rejectionReason(input: TuodAttemptInput): string | null {
     if (this.isComplete()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
@@ -153,9 +153,6 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
       input.dartsUsed > this.config.maxDartsPerTurn
     ) {
       return `An attempt is at most ${this.config.maxDartsPerTurn} darts.`;
-    }
-    if (isTuodSuccess(input) && currentTarget < MIN_FINISHABLE_TARGET) {
-      return `Target ${currentTarget} cannot be checked out on a double; record the attempt as failed.`;
     }
     return null;
   }
@@ -176,13 +173,13 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
    * failure — a miss, a checkout that did not finish on a double, or a bust —
    * stores `0`. `completedAt` is stamped here because an attempt is a single
    * visit that resolves the moment it is reported.
-   * @throws when the session has already ended, the attempt claims more darts
-   *   than the ruleset allows, or it claims a checkout on a target no double
-   *   can finish; the fact log is left untouched in every case.
+   * @throws when the session has already ended, or the attempt claims more
+   *   darts than the ruleset allows; the fact log is left untouched in either
+   *   case.
    */
   record(input: TuodAttemptInput): TuodState {
     const before = this.deriveState();
-    const reason = this.rejectionReason(input, before.currentTarget);
+    const reason = this.rejectionReason(input);
     if (reason) {
       throw new Error(reason);
     }
@@ -219,8 +216,7 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
    * through to `record()` and surfaces its error instead.
    */
   wouldComplete(input: TuodAttemptInput): boolean {
-    const before = this.deriveState();
-    if (this.rejectionReason(input, before.currentTarget) !== null) {
+    if (this.rejectionReason(input) !== null) {
       return false;
     }
     return this.completesAt(this.turns.length + 1);
