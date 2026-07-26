@@ -338,6 +338,33 @@ describe("DoublesTrainingEngine.facts", () => {
     expect(first.completedAt).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
   });
 
+  it("stamps completedAt the moment a hit closes the visit, and clears it on undo", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record(missObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+    const before = engine.facts();
+
+    engine.record(hitObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T.*Z$/,
+    );
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("stamps completedAt on the 3rd miss that closes a full-miss visit", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+
+    engine.record(missObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T.*Z$/,
+    );
+  });
+
   it("numbers darts within a turn from 1, and opens a fresh turn per visit regardless of dart count", () => {
     const engine = new DoublesTrainingEngine(config);
     engine.record(missObservationFor(engine.state()));

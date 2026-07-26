@@ -7,7 +7,7 @@ updated: 2026-07-26
 
 # Architecture Patterns
 
-> **Version:** 1.4.0 (Pattern 18 game engine contract 2026-07-26; prior 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.4.1 (Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -783,11 +783,13 @@ EngineFacts  →  exercise_stages / turns / darts
 
 - **Construction is config-driven.** A `GameEngineFactory` builds the engine from a configuration snapshot validated against its ruleset version's schema (Pattern 5). Rules are never module constants; a new rule option is a config key, not engine surgery.
 - **The engine owns the fact log.** `facts()` returns `EngineFacts` — stage, turn and dart records that map 1:1 onto the runtime tables. There is exactly one copy: the store persists what the engine returns and never accumulates a second.
-- **The engine mints the persistence keys** — `clientKey`, `sequence`, `completedAt`.
+- **The engine mints the persistence keys** — `clientKey`, `sequence`, `completedAt`. `completedAt` is the client-observed *end* of a visit, so it is stamped when the visit resolves and stays NULL while it is still open. <!-- 2026-07-26 -->
+- **Nothing `state()` or `facts()` returns aliases engine internals.** Both hand back derived values — a freshly folded state object and detached stage/turn/dart records, never a live field or a shared module constant. A returned object is a snapshot: writing to it changes nothing, and callers that need to change engine state call a named method. <!-- 2026-07-26 -->
 - **The engine rehydrates from its own facts.** `create(config, prior)` replays persisted facts to rebuild state, so a page refresh restores the game exactly.
 - **Derived values are never stored in a fact.** Running score, training points, hit ratios and averages are folded from the fact log on read and belong in views (Pattern 9) — never in a field the engine accumulates.
 - **`wouldComplete(input)` is a pure predicate.** Deciding completion by recording and then rolling back is unsafe for an engine whose `record()` opens a stage — 501's can append a `LEG` — so completion is asked, never simulated. It must not mutate.
 - **`undo()` is an exact inverse of `record()` over `facts()`**, including any stage that `record()` opened. Popping only the turn leaves an orphan empty stage that the batch builder uploads silently.
+- **Undo depth is unbounded, one `record()` per call.** Every engine undoes back to an empty fact log, and `undo()` returns `false` once there is nothing left. Rehydrated facts are undoable too — `create(config, prior)` replays them into the same log, so the depth limit is the log, not the session. No engine caps it. <!-- 2026-07-26 -->
 
 Registration is two-sided: `modules/game/engine.registry.ts` maps `rulesetVersionKey` to the engine factory, `services/rulesets/registry.ts` maps the same key to the server-side validator. `scripts/check-game-engines.sh` fails the build when an engine is absent from either.
 

@@ -138,6 +138,21 @@ describe("Bobs27Engine.facts", () => {
     expect(first.completedAt).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
   });
 
+  it("leaves completedAt null until the visit's 3rd dart resolves it", () => {
+    const engine = new Bobs27Engine(config);
+
+    engine.record(hitObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+
+    engine.record(hitObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+
+    engine.record(hitObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T.*Z$/,
+    );
+  });
+
   it("numbers darts 1..3 within a turn and turns incrementing across visits", () => {
     const engine = new Bobs27Engine(config);
     engine.record(hitObservationFor(engine.state()));
@@ -428,6 +443,19 @@ describe("Bobs27Engine.undo", () => {
     engine.record(hitObservationFor(engine.state()));
     const before = engine.facts();
     engine.record(missObservationFor(engine.state()));
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("is an exact inverse of record over facts() when it closed the open turn", () => {
+    const engine = new Bobs27Engine(config);
+    engine.record(hitObservationFor(engine.state()));
+    engine.record(hitObservationFor(engine.state()));
+    const before = engine.facts();
+
+    engine.record(hitObservationFor(engine.state()));
+    expect(engine.facts().turns[0].completedAt).not.toBeNull();
+
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
   });

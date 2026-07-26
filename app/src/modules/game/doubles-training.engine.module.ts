@@ -193,7 +193,7 @@ export class DoublesTrainingEngine implements GameEngine<
       clientKey: crypto.randomUUID(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
-      completedAt: new Date().toISOString(),
+      completedAt: null,
       totalScore: 0,
       darts: [],
     };
@@ -207,7 +207,9 @@ export class DoublesTrainingEngine implements GameEngine<
    * `intendedTargetNumber`/`intendedZoneKey` capture the double (or
    * `INNER_BULL` on BULL) this dart was thrown at, ahead of what it actually
    * hit; the fact's `score` is the dart's board score, never a game-specific
-   * value.
+   * value. `completedAt` is stamped by the dart that resolves the visit — the
+   * client-observed end of it — which here can be a hit on any of the three
+   * darts, not only the third.
    * @throws when the session has already ended; the fact log is left untouched.
    */
   record(observation: DartObservation): DoublesTrainingState {
@@ -230,6 +232,9 @@ export class DoublesTrainingEngine implements GameEngine<
 
     openTurn.darts.push(dart);
     openTurn.totalScore = sumDartScores(openTurn.darts);
+    if (!isVisitOpen(openTurn)) {
+      openTurn.completedAt = new Date().toISOString();
+    }
 
     return after;
   }
@@ -240,7 +245,8 @@ export class DoublesTrainingEngine implements GameEngine<
    * exact inverse of the `record()` call that created it. When that dart was
    * a hit that ended its visit early, popping it leaves the visit's darts
    * below 3 with no hit among them, so `isVisitOpen` reports it open again
-   * and the next `record()` resumes it rather than starting a new visit.
+   * and the next `record()` resumes it rather than starting a new visit — so
+   * its `completedAt` is cleared with it.
    * @returns true if a dart was removed; false if there was nothing to undo.
    */
   undo(): boolean {
@@ -251,6 +257,7 @@ export class DoublesTrainingEngine implements GameEngine<
     if (openTurn.darts.length === 0) {
       this.turns.pop();
     } else {
+      openTurn.completedAt = null;
       openTurn.totalScore = sumDartScores(openTurn.darts);
     }
     return true;
@@ -279,7 +286,7 @@ export class DoublesTrainingEngine implements GameEngine<
   }
 
   facts(): EngineFacts {
-    return { stages: [STAGE], turns: cloneTurns(this.turns) };
+    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
   }
 }
 

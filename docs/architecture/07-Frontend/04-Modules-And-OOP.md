@@ -7,7 +7,7 @@ updated: 2026-07-26
 
 # Frontend Modules And OOP
 
-> **Version:** 0.2.0 (GameEngine contract replaces the engine/payload split, 2026-07-26; prior 0.1.2 inline export type/interface anti-pattern, 2026-07-17)
+> **Version:** 0.2.1 (derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -96,11 +96,11 @@ Every `*.engine.module.ts` implements the same contract (`modules/game/interface
 | Member | Owns |
 | ------ | ---- |
 | `record(input)` | Folds one observation — a dart or a whole visit — into the fact log; returns the new state |
-| `undo()` | Exact inverse of `record()` over `facts()`, including any stage that `record()` opened |
+| `undo()` | Exact inverse of `record()` over `facts()`, including any stage that `record()` opened; unbounded depth, one `record()` per call |
 | `wouldComplete(input)` | Pure predicate: would recording this input finish the session? Must not mutate |
 | `isComplete()` | Zero-argument — the engine owns its own completion state, never a caller-passed one |
-| `state()` | Derived view of the fact log: running score, training points, ratios |
-| `facts()` | `EngineFacts` = `StageFact[]` + `TurnFact[]`, the single fact log |
+| `state()` | Derived view of the fact log: running score, training points, ratios. A fresh object per call — never a live internal field |
+| `facts()` | `EngineFacts` = `StageFact[]` + `TurnFact[]`, the single fact log, returned as detached copies |
 | `create(config, prior)` | Factory member; `prior` is the rehydrate path — persisted facts replay into state |
 
 `wouldComplete()` exists because deciding completion by recording and rolling back is unsafe: 501's `record()` can open a `LEG` stage as well as a turn, so a rollback that pops only the turn leaves an orphan stage behind.
@@ -151,6 +151,7 @@ This preserves D40 (client game engine) without making the frontend the authorit
 | Per-game payload module | `events.payload.module.ts` builds every batch; stage assembly belongs to the engine |
 | Deciding completion by `record()` then `undo()` | Use `wouldComplete()`; a rollback can strand a stage the record opened |
 | Engine hardcodes its rules as module constants | Rules come from the validated config snapshot bound to its ruleset version |
+| `state()` returns a live internal object, or `facts()` returns a shared module constant | The value lands in an Alpine `$persist` proxy (D120) and a caller's write silently reaches engine internals in one game while no-opping in the rest; hand back derived copies and expose a named method for anything a caller must change |
 
 ---
 

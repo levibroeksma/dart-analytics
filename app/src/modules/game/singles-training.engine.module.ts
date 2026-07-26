@@ -146,7 +146,7 @@ export class SinglesTrainingEngine implements GameEngine<
       clientKey: crypto.randomUUID(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
-      completedAt: new Date().toISOString(),
+      completedAt: null,
       totalScore: 0,
       darts: [],
     };
@@ -169,7 +169,9 @@ export class SinglesTrainingEngine implements GameEngine<
    * so the intended target is always recoverable from the visit index
    * (`targetIndex`) without storing it per dart. Do not restore either field.
    * The fact's `score` is the dart's board score, never the training points
-   * the derived total adds.
+   * the derived total adds. `completedAt` is stamped only by the dart that
+   * resolves the visit — the client-observed end of it — so an open visit
+   * carries none.
    * @throws when the session has already ended; the fact log is left untouched.
    */
   record(observation: DartObservation): SinglesTrainingState {
@@ -188,6 +190,9 @@ export class SinglesTrainingEngine implements GameEngine<
 
     openTurn.darts.push(dart);
     openTurn.totalScore = sumDartScores(openTurn.darts);
+    if (openTurn.darts.length === 3) {
+      openTurn.completedAt = new Date().toISOString();
+    }
 
     return after;
   }
@@ -195,7 +200,8 @@ export class SinglesTrainingEngine implements GameEngine<
   /**
    * Pops the last recorded dart, including one replayed from persisted
    * facts, and removes the visit entirely once it holds no darts — the
-   * exact inverse of the `record()` call that created it.
+   * exact inverse of the `record()` call that created it. A surviving visit
+   * is open again by definition, so its `completedAt` is cleared.
    * @returns true if a dart was removed; false if there was nothing to undo.
    */
   undo(): boolean {
@@ -206,6 +212,7 @@ export class SinglesTrainingEngine implements GameEngine<
     if (openTurn.darts.length === 0) {
       this.turns.pop();
     } else {
+      openTurn.completedAt = null;
       openTurn.totalScore = sumDartScores(openTurn.darts);
     }
     return true;
@@ -234,7 +241,7 @@ export class SinglesTrainingEngine implements GameEngine<
   }
 
   facts(): EngineFacts {
-    return { stages: [STAGE], turns: cloneTurns(this.turns) };
+    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
   }
 }
 

@@ -144,14 +144,21 @@ describe("ScoreTrainingEngine.isComplete (ROUNDS)", () => {
 describe("ScoreTrainingEngine.isComplete (MINUTES)", () => {
   it("does not complete on a timer expiry before any visit is recorded", () => {
     const engine = new ScoreTrainingEngine(minutes(15));
-    (engine.state() as ScoreTrainingState).timerExpired = true;
+    engine.expireTimer();
     expect(engine.isComplete()).toBe(false);
   });
 
   it("completes once the timer has expired and at least one visit is recorded", () => {
     const engine = new ScoreTrainingEngine(minutes(15));
     engine.record(30);
-    (engine.state() as ScoreTrainingState).timerExpired = true;
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("completes when the visit is recorded after the timer expired", () => {
+    const engine = new ScoreTrainingEngine(minutes(15));
+    engine.expireTimer();
+    engine.record(30);
     expect(engine.isComplete()).toBe(true);
   });
 
@@ -166,8 +173,20 @@ describe("ScoreTrainingEngine.isComplete (MINUTES)", () => {
     const seed = new ScoreTrainingEngine(minutes(15));
     seed.record(30);
     const resumed = new ScoreTrainingEngine(minutes(15), seed.facts());
-    expect((resumed.state() as ScoreTrainingState).timerExpired).toBe(false);
+    expect(resumed.state().timerExpired).toBe(false);
     expect(resumed.isComplete()).toBe(false);
+  });
+
+  it("ignores a timerExpired written onto a previously returned state object", () => {
+    const engine = new ScoreTrainingEngine(minutes(15));
+    engine.record(30);
+
+    const leaked = engine.state();
+    leaked.timerExpired = true;
+
+    expect(engine.state().timerExpired).toBe(false);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.wouldComplete(45)).toBe(false);
   });
 });
 
@@ -190,13 +209,13 @@ describe("ScoreTrainingEngine.wouldComplete", () => {
     engine.record(30);
     expect(engine.wouldComplete(45)).toBe(false);
 
-    (engine.state() as ScoreTrainingState).timerExpired = true;
+    engine.expireTimer();
     expect(engine.wouldComplete(45)).toBe(true);
   });
 
   it("is true for the first visit once the timer has expired (MINUTES)", () => {
     const engine = new ScoreTrainingEngine(minutes(15));
-    (engine.state() as ScoreTrainingState).timerExpired = true;
+    engine.expireTimer();
     expect(engine.wouldComplete(45)).toBe(true);
   });
 

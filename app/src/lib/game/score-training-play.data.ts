@@ -10,17 +10,14 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { RulesetVersionKey } from "@lib/game/rulesets/types";
-import type { GameEngine } from "@modules/game/interfaces";
-import type {
-  EngineFacts,
-  ScoreTrainingState,
-  TurnFact,
-} from "@modules/game/types";
+import type { EngineFacts, TurnFact } from "@modules/game/types";
 import type { ScoreTrainingPlayContext } from "./types";
 
-// Side-effect import: registers scoreTrainingEngineFactory so the registry
-// lookup below can resolve this page's own RULESET_VERSION_KEY.
-import "@modules/game/score-training.engine.module";
+// Value import, not `import type`: the class is the narrowing target below,
+// and importing it also runs the module's side effect, which registers
+// scoreTrainingEngineFactory so the registry can resolve this page's own
+// RULESET_VERSION_KEY.
+import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
@@ -51,19 +48,21 @@ function computeStats(turns: TurnFact[]): {
  * the shared registry would happily hand one over once every game registers.
  *
  * @returns null when the store holds no config to resume from, when its
- *   ruleset belongs to a different game, or when no engine is registered.
+ *   ruleset belongs to a different game, when no engine is registered, or when
+ *   the registered factory builds something other than a Score Training engine.
  */
 function resumeEngine(
   game: ScoreTrainingPlayContext["$store"]["game"],
-): GameEngine<unknown, unknown> | null {
+): ScoreTrainingEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
   if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
   const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
-  return factory.create(configSnapshot, {
+  const engine = factory.create(configSnapshot, {
     stages: game.stages,
     turns: game.turns,
   });
+  return engine instanceof ScoreTrainingEngine ? engine : null;
 }
 
 /**
@@ -71,10 +70,13 @@ function resumeEngine(
  * when a prior session left one and starting a fresh segment otherwise.
  * `timerRemainingMs` is set synchronously so the label never renders 00:00
  * while waiting for the timer's first onTick (which fires 1s after start()).
+ * Expiry is written to both authorities it governs: the persisted store flag
+ * that survives a reload, and the engine, which owns session completion.
  */
 function startCountdown(
   game: ScoreTrainingPlayContext["$store"]["game"],
   durationValue: number,
+  engine: ScoreTrainingEngine,
 ): SegmentTimer {
   const resumedRemainingMs = game.timerRemainingMs;
   const durationMinutes =
@@ -93,6 +95,7 @@ function startCountdown(
     },
     onComplete: () => {
       game.timerExpired = true;
+      engine.expireTimer();
     },
   });
   timer.start();
@@ -135,7 +138,7 @@ export function scoreTrainingPlay() {
     } | null,
     pendingFinishScore: null as number | null,
     showFinishConfirm: false,
-    engine: null as GameEngine<unknown, unknown> | null,
+    engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
 
     remainingLabel(this: ScoreTrainingPlayContext): string {
@@ -183,11 +186,16 @@ export function scoreTrainingPlay() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
 
-        if (
-          config.durationType === "MINUTES" &&
-          !this.$store.game.timerExpired
-        ) {
-          this.timer = startCountdown(this.$store.game, config.durationValue);
+        if (config.durationType === "MINUTES") {
+          if (this.$store.game.timerExpired) {
+            engine.expireTimer();
+          } else {
+            this.timer = startCountdown(
+              this.$store.game,
+              config.durationValue,
+              engine,
+            );
+          }
         }
 
         this.hasActiveSession = true;
@@ -208,19 +216,20 @@ export function scoreTrainingPlay() {
     },
 
     /**
-     * The engine is the sole authority on both the score range and completion.
-     * `wouldComplete` gates the finish confirm without mutating the fact log,
-     * so a finishing visit is recorded exactly once — by `confirmFinish`,
-     * after the player agrees. A score the engine would reject never reports
-     * as completing, so it falls through to `record` and surfaces its error.
+     * The engine is the sole authority on both the score range and completion,
+     * including MINUTES-mode timer expiry, which reaches it through
+     * `expireTimer()` when the countdown fires rather than through a write to
+     * a returned state object. `wouldComplete` gates the finish confirm without
+     * mutating the fact log, so a finishing visit is recorded exactly once — by
+     * `confirmFinish`, after the player agrees. A score the engine would reject
+     * never reports as completing, so it falls through to `record` and surfaces
+     * its error.
      */
     async submitVisit(this: ScoreTrainingPlayContext) {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
       this.loading = true;
 
       const score = Number(this.scoreInput.value);
-      const state = this.engine.state() as ScoreTrainingState;
-      state.timerExpired = this.$store.game.timerExpired ?? false;
 
       if (this.engine.wouldComplete(score)) {
         this.error = "";
@@ -406,12 +415,18 @@ export function scoreTrainingPlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        this.engine = factory.create(config);
-        this.$store.game.recordFacts(this.engine.facts());
+        const engine = factory.create(config);
+        if (!(engine instanceof ScoreTrainingEngine)) return;
+        this.engine = engine;
+        this.$store.game.recordFacts(engine.facts());
 
         if (config.durationType === "MINUTES") {
           this.timer?.stop();
-          this.timer = startCountdown(this.$store.game, config.durationValue);
+          this.timer = startCountdown(
+            this.$store.game,
+            config.durationValue,
+            engine,
+          );
         }
       } finally {
         this.playAgainLoading = false;
