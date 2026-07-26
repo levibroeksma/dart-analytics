@@ -4,6 +4,7 @@ import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.eng
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
+import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import {
   doublesPath,
   numbersPath,
@@ -24,6 +25,7 @@ import type {
   FiveOhOneSnapshot,
   ScoreTrainingSnapshot,
   SinglesSnapshot,
+  TuodSnapshot,
 } from "@lib/game/rulesets/types";
 
 /**
@@ -173,6 +175,23 @@ function playScoreTraining() {
   return engine;
 }
 
+const tuodConfig: TuodSnapshot = {
+  startingTarget: 41,
+  finishBonus: 10,
+  missPenalty: 1,
+  durationType: "ROUNDS",
+  durationValue: 3,
+  maxDartsPerTurn: 3,
+};
+
+function playTuod() {
+  const engine = tuodEngineFactory.create(tuodConfig);
+  engine.record({ checkedOut: true, dartsUsed: 3, finishedOnDouble: true });
+  engine.record({ checkedOut: false, dartsUsed: 3 });
+  engine.record({ checkedOut: true, dartsUsed: 2, finishedOnDouble: true });
+  return engine;
+}
+
 describe("dart fact intention pair satisfies chk_dart_target_consistency (migration 0007)", () => {
   it("Bob's 27: every dart carries a real intended zone (DOUBLE or INNER_BULL)", () => {
     const darts = allDarts(playBobs27ThroughBull().facts());
@@ -207,6 +226,11 @@ describe("dart fact intention pair satisfies chk_dart_target_consistency (migrat
 
   it("Score Training: never emits dart rows (visit-level capture only), so the pair is vacuously satisfied", () => {
     const darts = allDarts(playScoreTraining().facts());
+    expect(darts).toHaveLength(0);
+  });
+
+  it("TUOD: never emits dart rows (attempt-level capture only), so the pair is vacuously satisfied", () => {
+    const darts = allDarts(playTuod().facts());
     expect(darts).toHaveLength(0);
   });
 });

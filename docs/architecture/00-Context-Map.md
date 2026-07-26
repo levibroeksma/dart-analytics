@@ -139,6 +139,9 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/engine.registry.ts` | `rulesetVersionKey` → engine factory lookup | canonical |
 | `app/src/modules/game/board-progression.module.ts` | Shared board paths and dartboard arithmetic | canonical |
 | `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
+| `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
+| `app/src/services/rulesets/quick-score.validator.ts` | Shared RECREATIONAL + QUICK_SCORE batch rules (no dart rows, turn-total bound, ROUNDS attempt cap) (2026-07-26) | canonical |
+| `app/src/services/rulesets/tuod/tuod.validator.ts` | `TUOD_V1` config + batch validation, ladder-derived turn-total bound (2026-07-26) | canonical |
 | `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 
@@ -172,8 +175,8 @@ Registered for discoverability, not as reading material — the rules live in `0
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
 | Migrations | `0001`–`0016` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13) |
-| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26) |
-| Game engines | All five (Score Training, Bob's 27, Singles Training, Doubles Training, 501) on the `GameEngine` contract (D138–D141): config-driven, fact-log-owning, rehydratable; five ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
+| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope; both TUOD presets verified against `TuodConfig` — unchanged), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26) |
+| Game engines | All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract (D138–D141, D153): config-driven, fact-log-owning, rehydratable; six ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |

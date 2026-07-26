@@ -1,9 +1,13 @@
 import { ScoreTrainingConfig } from "@lib/game/rulesets/types";
 import type { RulesetValidator } from "../interfaces";
+import {
+  QUICK_SCORE_MODES,
+  exceedsRoundsLimit,
+  isQuickScoreCapture,
+  validateQuickScoreTurns,
+} from "../quick-score.validator";
 import type { BatchValidationResult, ConfigValidationResult } from "../types";
 
-const ALLOWED_CAPTURE_MODE = "RECREATIONAL";
-const ALLOWED_INPUT_MODE = "QUICK_SCORE";
 const DEFAULT_MAX_VISIT_SCORE = 180;
 
 export const scoreTrainingValidator: RulesetValidator = {
@@ -12,15 +16,10 @@ export const scoreTrainingValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (
-      captureModeKey !== ALLOWED_CAPTURE_MODE ||
-      inputModeKey !== ALLOWED_INPUT_MODE
-    ) {
+    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
       return {
         valid: false,
-        issues: [
-          `Score Training V1 only supports ${ALLOWED_CAPTURE_MODE} + ${ALLOWED_INPUT_MODE}`,
-        ],
+        issues: [`Score Training V1 only supports ${QUICK_SCORE_MODES}`],
       };
     }
     const parsed = ScoreTrainingConfig.safeParse(config);
@@ -31,44 +30,17 @@ export const scoreTrainingValidator: RulesetValidator = {
   },
 
   validateBatch({ config, batch, existingTurnCount }): BatchValidationResult {
-    const durationType = config.duration_type as "ROUNDS" | "MINUTES";
-    const durationValue = config.duration_value as number;
     const maxVisitScore =
       (config.max_visit_score as number | undefined) ?? DEFAULT_MAX_VISIT_SCORE;
 
-    let newTurnCount = 0;
-    for (const stage of batch.stages) {
-      for (const turn of stage.turns) {
-        newTurnCount++;
-        if (turn.darts.length > 0) {
-          return {
-            valid: false,
-            code: "VALIDATION_FAILED",
-            issues: [
-              `turn ${turn.clientKey} must have no dart rows (RECREATIONAL + QUICK_SCORE)`,
-            ],
-          };
-        }
-        if (turn.totalScore < 0 || turn.totalScore > maxVisitScore) {
-          return {
-            valid: false,
-            code: "VALIDATION_FAILED",
-            issues: [
-              `turn ${turn.clientKey} totalScore must be between 0 and ${maxVisitScore}`,
-            ],
-          };
-        }
-      }
-    }
+    const turns = validateQuickScoreTurns(batch, maxVisitScore);
+    if (!turns.valid) return turns;
 
-    if (
-      durationType === "ROUNDS" &&
-      existingTurnCount + newTurnCount > durationValue
-    ) {
+    if (exceedsRoundsLimit(config, batch, existingTurnCount)) {
       return {
         valid: false,
         code: "VALIDATION_FAILED",
-        issues: [`session is limited to ${durationValue} visits`],
+        issues: [`session is limited to ${config.duration_value} visits`],
       };
     }
 
