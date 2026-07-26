@@ -45,25 +45,43 @@ export type DoublesTrainingState = {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
-export type FiveOhOneCheckout = {
-  dartsUsed: 1 | 2 | 3;
-  dartsOnDouble: 0 | 1 | 2 | 3;
-};
-
-export type FiveOhOneVisitOutcome = {
+/**
+ * One 501 visit as the player reports it. 501 is a quick-score game, so the
+ * input is a visit total rather than three darts. `finishedOnDouble` is the
+ * only field that can win a leg: it says the dart that took the score to
+ * exactly zero landed in a double. `dartsUsed` and `dartsAtDouble` are
+ * analytics facts about how the visit was thrown and never gate the win.
+ */
+export type FiveOhOneVisitInput = {
   scoreAttempted: number;
-  isBust: boolean;
-  remainingAfter: number;
-  checkout?: FiveOhOneCheckout;
+  finishedOnDouble?: boolean;
+  dartsUsed?: 1 | 2 | 3;
+  dartsAtDouble?: 0 | 1 | 2 | 3;
 };
 
+/**
+ * What one visit did to the leg it was thrown in. `scored` is what the turn
+ * records — 0 for a bust, so the attempted value is never persisted as a turn
+ * total and a bust can never move the remaining score.
+ */
+export type FiveOhOneVisitOutcome = {
+  isBust: boolean;
+  scored: number;
+  wonLeg: boolean;
+  remainingAfter: number;
+};
+
+/**
+ * 501 session state. `remainingScore` is the score left in the leg being
+ * played and `legsWon` counts completed legs; both are folds over the fact
+ * log, never accumulated fields. `status` is the whole session's — winning a
+ * leg short of `legsToWin` leaves it `IN_PROGRESS`.
+ */
 export type FiveOhOneState = {
   remainingScore: number;
-  visitHistory: FiveOhOneVisitOutcome[];
+  legsWon: number;
   status: "IN_PROGRESS" | "WON";
 };
-
-export const FIVE_OH_ONE_START_SCORE = 501;
 
 export type DartZoneKey =
   "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";
