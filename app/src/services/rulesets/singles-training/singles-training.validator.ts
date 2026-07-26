@@ -1,6 +1,9 @@
 import { SinglesConfig } from "@lib/types";
-import type { RulesetValidator } from "../interfaces";
-import type { BatchValidationResult, ConfigValidationResult } from "../types";
+import type { RulesetValidator } from "@services/interfaces";
+import type {
+  BatchValidationResult,
+  ConfigValidationResult,
+} from "@services/types";
 
 const ALLOWED_CAPTURE_MODE = "RECREATIONAL";
 const ALLOWED_INPUT_MODE = "DETAILED_DARTS";
