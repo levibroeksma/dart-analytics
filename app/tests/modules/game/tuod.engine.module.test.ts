@@ -105,14 +105,19 @@ describe("applyTuodAttempt", () => {
     expect(before).toEqual(initialTuodState(config()));
   });
 
-  it("rejects a success claimed on a target below the double-out minimum", () => {
-    const stranded = { ...initialTuodState(config()), currentTarget: 1 };
-    expect(() => applyTuodAttempt(config(), stranded, true)).toThrow();
+  it("floors a failure at the double-out minimum instead of dropping below it", () => {
+    const near = { ...initialTuodState(config()), currentTarget: 3 };
+    expect(applyTuodAttempt(config(), near, false).currentTarget).toBe(2);
   });
 
-  it("lets the ladder keep falling below the double-out minimum on failures", () => {
-    const stranded = { ...initialTuodState(config()), currentTarget: 1 };
-    expect(applyTuodAttempt(config(), stranded, false).currentTarget).toBe(0);
+  it("keeps a failure at the floor once the target is already there", () => {
+    const atFloor = { ...initialTuodState(config()), currentTarget: 2 };
+    expect(applyTuodAttempt(config(), atFloor, false).currentTarget).toBe(2);
+  });
+
+  it("still climbs by the finish bonus from the floor on a success", () => {
+    const atFloor = { ...initialTuodState(config()), currentTarget: 2 };
+    expect(applyTuodAttempt(config(), atFloor, true).currentTarget).toBe(12);
   });
 });
 
@@ -172,19 +177,6 @@ describe("TuodEngine.record — outcomes", () => {
     expect(engine.facts().turns).toHaveLength(0);
   });
 
-  it("rejects a claimed checkout once the ladder is below the double-out minimum", () => {
-    const engine = tuodEngineFactory.create({
-      ...config(),
-      startingTarget: 2,
-      durationValue: 50,
-    });
-    engine.record(MISS);
-
-    expect(engine.state().currentTarget).toBe(1);
-    expect(() => engine.record(CHECKOUT)).toThrow();
-    expect(engine.facts().turns).toHaveLength(1);
-  });
-
   it("refuses to record once the session is complete", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(MISS);
@@ -192,6 +184,60 @@ describe("TuodEngine.record — outcomes", () => {
     expect(engine.isComplete()).toBe(true);
     expect(() => engine.record(MISS)).toThrow();
     expect(engine.facts().turns).toHaveLength(1);
+  });
+});
+
+describe("TuodEngine — ladder floor", () => {
+  const floorConfig = () =>
+    ({
+      ...config(),
+      startingTarget: 3,
+      durationValue: 50,
+    }) satisfies TuodSnapshot;
+
+  it("floors a miss at target 3 to 2", () => {
+    const engine = tuodEngineFactory.create(floorConfig());
+    const state = engine.record(MISS);
+    expect(state.currentTarget).toBe(2);
+  });
+
+  it("keeps a miss at target 2 at 2", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 2,
+      durationValue: 50,
+    });
+    const state = engine.record(MISS);
+    expect(state.currentTarget).toBe(2);
+  });
+
+  it("stays at 2 through repeated misses at the floor", () => {
+    const engine = tuodEngineFactory.create(floorConfig());
+    const state = playAttempts(engine, [MISS, MISS, MISS, MISS, MISS]);
+
+    expect(state.currentTarget).toBe(2);
+    expect(state.failures).toBe(5);
+  });
+
+  it("still climbs by the finish bonus on a successful checkout at 2", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 2,
+    });
+    const state = engine.record(CHECKOUT);
+
+    expect(state.currentTarget).toBe(12);
+    expect(engine.facts().turns[0].totalScore).toBe(2);
+  });
+
+  it("rehydrates the same floored target a live session derived", () => {
+    const played = tuodEngineFactory.create(floorConfig());
+    playAttempts(played, [MISS, MISS, MISS, CHECKOUT, MISS]);
+
+    const rehydrated = tuodEngineFactory.create(floorConfig(), played.facts());
+
+    expect(rehydrated.state()).toEqual(played.state());
+    expect(rehydrated.facts()).toEqual(played.facts());
   });
 });
 
@@ -307,6 +353,26 @@ describe("TuodEngine.undo — exact inverse of record", () => {
     expect(engine.facts().turns).toHaveLength(0);
     expect(engine.state()).toEqual(initialTuodState(config()));
   });
+
+  it("undoes a miss clamped at the floor back to the exact prior state", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 3,
+      durationValue: 50,
+    });
+    engine.record(MISS);
+
+    const beforeFacts = engine.facts();
+    const beforeState = engine.state();
+    expect(beforeState.currentTarget).toBe(2);
+
+    engine.record(MISS);
+    expect(engine.state().currentTarget).toBe(2);
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts()).toEqual(beforeFacts);
+    expect(engine.state()).toEqual(beforeState);
+  });
 });
 
 describe("TuodEngine.wouldComplete — pure", () => {
@@ -320,6 +386,21 @@ describe("TuodEngine.wouldComplete — pure", () => {
 
     expect(engine.facts()).toEqual(before);
     expect(engine.facts().turns).toHaveLength(1);
+  });
+
+  it("does not change the ladder when probing a miss already at the floor", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 2,
+      durationValue: 50,
+    });
+    engine.record(MISS);
+
+    const before = engine.state();
+    engine.wouldComplete(MISS);
+
+    expect(engine.state()).toEqual(before);
+    expect(before.currentTarget).toBe(2);
   });
 
   it("is true for the attempt that reaches the configured round count", () => {
