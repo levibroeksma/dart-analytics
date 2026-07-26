@@ -1474,6 +1474,8 @@ git commit -m "feat: seed Bob's 27 and Doubles Training, correct drifted presets
 
 This is the D105/D110/D127 pattern — convert a discipline-only rule into an enforced one so engine #6 cannot repeat P4.
 
+**Add a second guard, from the Task 10 review.** That task deleted a local Zod schema in favour of a shared one and silently lost a `superRefine` bounding `duration_value`; the two tests covering it were repointed at a different invalid input and stayed green, so nothing caught it. Nothing mechanically ties a refinement's existence to a test. Add a check that every `superRefine`/`refine` in `app/src/lib/game/rulesets/types.ts` has a corresponding boundary-test block in `app/tests/lib/game/rulesets/`, so a dropped constraint fails the build rather than relying on a reviewer noticing.
+
 - [ ] **Step 1: Prove the check fails on a violation**
 
 Create a temporary `app/src/modules/game/__fixture.engine.module.ts` exporting nothing, run the script, confirm non-zero exit and a message naming the file, then delete the fixture.
