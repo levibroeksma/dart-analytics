@@ -104,8 +104,8 @@ describe("createSession", () => {
         source: "inline",
         config: {
           duration_type: "ROUNDS",
-          duration_value: 999,
-          max_darts_per_turn: 3,
+          duration_value: 10,
+          max_darts_per_turn: 4,
         },
       },
     });

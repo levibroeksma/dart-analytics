@@ -1,39 +1,62 @@
 import { z } from "zod";
 
-export const ScoreTrainingConfig = z.object({
-  duration_type: z.enum(["ROUNDS", "MINUTES"]),
-  duration_value: z.number().int().min(1),
-  max_darts_per_turn: z.number().int().min(1).max(3),
-  max_visit_score: z.number().int().default(180),
-});
+/**
+ * Every ruleset schema is `.strict()`: an unrecognized key fails the parse
+ * instead of being silently stripped, so a seeded preset that drifts from its
+ * schema surfaces as a rejected session rather than quietly losing data.
+ */
+export const ScoreTrainingConfig = z
+  .object({
+    duration_type: z.enum(["ROUNDS", "MINUTES"]),
+    duration_value: z.number().int().min(1),
+    max_darts_per_turn: z.number().int().min(1).max(3),
+    max_visit_score: z.number().int().default(180),
+  })
+  .strict();
 
-export const Bobs27Config = z.object({
-  start_score: z.number().int().default(27),
-  bull_hit_value: z.number().int().default(50),
-  miss_penalty_multiplier: z.number().int().default(1),
-});
+export const Bobs27Config = z
+  .object({
+    start_score: z.number().int().default(27),
+    bull_hit_value: z.number().int().default(50),
+    miss_penalty_multiplier: z.number().int().default(1),
+  })
+  .strict();
 
-export const SinglesConfig = z.object({
-  order_mode: z.enum(["LOW_TO_HIGH"]),
-  difficulty: z.enum(["EASY"]),
-  points_single: z.number().int().default(1),
-  points_double: z.number().int().default(2),
-  points_treble: z.number().int().default(3),
-});
+export const SinglesConfig = z
+  .object({
+    order_mode: z.enum(["LOW_TO_HIGH"]),
+    difficulty: z.enum(["EASY"]),
+    points_single: z.number().int().default(1),
+    points_double: z.number().int().default(2),
+    points_treble: z.number().int().default(3),
+  })
+  .strict();
 
-export const DoublesTrainingConfig = z.object({
-  mode: z.enum(["EASY"]),
-  order_mode: z.enum(["LOW_TO_HIGH"]),
-});
+export const DoublesTrainingConfig = z
+  .object({
+    mode: z.enum(["EASY"]),
+    order_mode: z.enum(["LOW_TO_HIGH"]),
+  })
+  .strict();
 
-export const FiveOhOneConfig = z.object({
-  starting_score: z.number().int().default(501),
-  legs_to_win: z.number().int().min(1).max(20),
-  check_in: z.enum(["STRAIGHT_IN"]),
-  check_out: z.enum(["DOUBLE_OUT"]),
-  max_darts_per_turn: z.number().int().min(1).max(3),
-  max_visit_score: z.number().int().default(180),
-});
+/**
+ * `starting_score` has a floor of 2 — the minimum a double-out leg can ever
+ * finish from (D1 = 2) — so a degenerate `startingScore: 0` config can never
+ * validate. Without this floor, `record({ scoreAttempted: 0 })` reports
+ * `IN_PROGRESS` (0 darts thrown yet), while a `state()` rehydrated from that
+ * same starting score folds zero turns and reports `WON`, since the engine's
+ * initial remaining score already equals zero.
+ */
+export const FiveOhOneConfig = z
+  .object({
+    starting_score: z.number().int().min(2).default(501),
+    legs_to_win: z.number().int().min(1).max(20),
+    check_in: z.enum(["STRAIGHT_IN"]),
+    check_out: z.enum(["DOUBLE_OUT"]),
+    max_darts_per_turn: z.number().int().min(1).max(3),
+    max_visit_score: z.number().int().default(180),
+  })
+  .strict();
 
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"

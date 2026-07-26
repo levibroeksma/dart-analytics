@@ -49,14 +49,11 @@ export type DoublesTrainingState = {
  * One 501 visit as the player reports it. 501 is a quick-score game, so the
  * input is a visit total rather than three darts. `finishedOnDouble` is the
  * only field that can win a leg: it says the dart that took the score to
- * exactly zero landed in a double. `dartsUsed` and `dartsAtDouble` are
- * analytics facts about how the visit was thrown and never gate the win.
+ * exactly zero landed in a double.
  */
 export type FiveOhOneVisitInput = {
   scoreAttempted: number;
   finishedOnDouble?: boolean;
-  dartsUsed?: 1 | 2 | 3;
-  dartsAtDouble?: 0 | 1 | 2 | 3;
 };
 
 /**
