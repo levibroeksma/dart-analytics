@@ -4,8 +4,8 @@ import type {
   RulesetVersionKey,
   ScoreTrainingSnapshot,
 } from "@lib/game/rulesets/types";
-import type { GameEngine } from "@modules/game/interfaces";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
+import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 
@@ -42,7 +42,7 @@ export type ScoreTrainingPlayContext = {
       reset(): void;
     };
   };
-  engine: GameEngine<unknown, unknown> | null;
+  engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
   remainingLabel(this: ScoreTrainingPlayContext): string;
   init(this: ScoreTrainingPlayContext): Promise<void>;

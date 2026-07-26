@@ -6,7 +6,7 @@ updated: 2026-07-26
 -->
 # Context Map
 
-> **Version:** 1.7.0 (2026-07-26 — game engine contract D138–D144: "New game engine" pack, Pattern 18, engine code + guard registrations, seed `0003`; prior 1.6.11 context-integrity guards D133)
+> **Version:** 1.7.1 (2026-07-26 — game engine review fixes D149–D152: CHECK bounds in the batch request schema, derived-value engine returns, `completedAt` at visit resolution, documented undo depth; prior 1.7.0 game engine contract D138–D144; 1.6.11 context-integrity guards D133)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -74,7 +74,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
-| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract (2026-07-26) | canonical | ~3.6k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns and `completedAt` timing (2026-07-26) | canonical | ~3.7k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |
@@ -111,7 +111,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2.1k |
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate (2026-07-17) | canonical | ~3.2k |
-| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members + engine anti-patterns (2026-07-26) | canonical | ~1.8k |
+| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y (2026-07-22) | canonical | ~2.9k |
@@ -173,7 +173,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | Domain model v1.0 | Frozen |
 | Migrations | `0001`–`0016` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13) |
 | Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26) |
-| Game engines | All five (Score Training, Bob's 27, Singles Training, Doubles Training, 501) on the `GameEngine` contract (D138–D141): config-driven, fact-log-owning, rehydratable; five ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh` (2026-07-26) |
+| Game engines | All five (Score Training, Bob's 27, Singles Training, Doubles Training, 501) on the `GameEngine` contract (D138–D141): config-driven, fact-log-owning, rehydratable; five ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |

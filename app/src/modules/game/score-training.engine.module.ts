@@ -15,6 +15,10 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
+function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
+  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
+}
+
 /**
  * Quick-score training: every visit is one turn under a single exercise block,
  * captured as a total rather than as individual darts. The engine owns the
@@ -26,14 +30,13 @@ export class ScoreTrainingEngine implements GameEngine<
 > {
   readonly rulesetVersionKey = "SCORE_TRAINING_V1";
   private readonly turns: TurnFact[];
-  private readonly liveState: ScoreTrainingState;
+  private timerExpired = false;
 
   constructor(
     private readonly config: ScoreTrainingSnapshot,
     prior?: EngineFacts,
   ) {
-    this.turns = prior ? [...prior.turns] : [];
-    this.liveState = { turnCount: this.turns.length, timerExpired: false };
+    this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
   /** A visit score is playable only as a whole number in `0..maxVisitScore`. */
@@ -54,7 +57,17 @@ export class ScoreTrainingEngine implements GameEngine<
     if (this.config.durationType === "ROUNDS") {
       return turnCount >= this.config.durationValue;
     }
-    return this.liveState.timerExpired && turnCount >= 1;
+    return this.timerExpired && turnCount >= 1;
+  }
+
+  /**
+   * Records that the MINUTES countdown has elapsed. The countdown itself lives
+   * in `game.store.ts`, not the engine, so expiry arrives as an explicit call
+   * rather than as a write through the object `state()` returned — that object
+   * is a derived copy, and writing to it changes nothing.
+   */
+  expireTimer(): void {
+    this.timerExpired = true;
   }
 
   /**
@@ -77,8 +90,7 @@ export class ScoreTrainingEngine implements GameEngine<
       totalScore: visitScore,
       darts: [],
     });
-    this.liveState.turnCount = this.turns.length;
-    return this.liveState;
+    return this.state();
   }
 
   /**
@@ -88,7 +100,6 @@ export class ScoreTrainingEngine implements GameEngine<
   undo(): boolean {
     if (this.turns.length === 0) return false;
     this.turns.pop();
-    this.liveState.turnCount = this.turns.length;
     return true;
   }
 
@@ -107,13 +118,15 @@ export class ScoreTrainingEngine implements GameEngine<
     return this.completesAt(this.turns.length);
   }
 
-  /** Returns the engine's live state object; assigning `timerExpired` on it drives MINUTES completion. */
   state(): ScoreTrainingState {
-    return this.liveState;
+    return {
+      turnCount: this.turns.length,
+      timerExpired: this.timerExpired,
+    };
   }
 
   facts(): EngineFacts {
-    return { stages: [STAGE], turns: [...this.turns] };
+    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
   }
 }
 

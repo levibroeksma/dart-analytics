@@ -9,6 +9,7 @@ Scope: API route handlers in Astro server endpoints. Global app rules and the va
 - Use standard success/error envelopes with `requestId`.
 - Middleware handles identity verification; services handle domain authorization; never parse JWT or implement business workflows in handlers.
 - Keep reads view-backed and writes transactional.
+- **Request schemas mirror the column CHECK constraints of the tables they write.** A bound the database enforces (`chk_*` in `database/migrations/`) belongs beside the field's type in the shared Zod schema, once — not restated per ruleset validator, which keeps only ruleset rules. A value the schema lets through and the database rejects aborts the write transaction and fails the whole batch with a 500 instead of a `VALIDATION_FAILED` naming the offending record. (2026-07-26)
 
 ## Tool Allowances & Restrictions (2026-07-23)
 

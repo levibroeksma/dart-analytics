@@ -1,8 +1,9 @@
 /**
- * Score Training's engine state. `timerExpired` is caller-driven: the MINUTES
- * countdown lives in `game.store.ts`, not the engine, so the play page assigns
- * it on the object returned by `state()`/`record()` before asking
- * `isComplete()` — keeping the contract's zero-argument `isComplete()` intact.
+ * Score Training's engine state, derived on every `state()` call. The MINUTES
+ * countdown lives in `game.store.ts`, not the engine, so `timerExpired`
+ * reports a flag the caller sets through `ScoreTrainingEngine.expireTimer()` —
+ * never by writing to this object, which is a copy. That keeps the contract's
+ * zero-argument `isComplete()` intact without handing out live state.
  */
 export type ScoreTrainingState = {
   turnCount: number;
@@ -106,12 +107,17 @@ export type DartFact = {
   score: number;
 };
 
-/** One row of `turns`. `totalScore` is the counted board score — 0 for a void visit, never negative. */
+/**
+ * One row of `turns`. `totalScore` is the counted board score — 0 for a void
+ * visit, never negative. `completedAt` is the client-observed end of the visit
+ * (`06-Spec/04-Runtime-Layer.md`), so it is stamped when the visit resolves and
+ * stays null while the visit is still open.
+ */
 export type TurnFact = {
   clientKey: string;
   stageClientKey: string;
   sequence: number;
-  completedAt: string;
+  completedAt: string | null;
   totalScore: number;
   darts: DartFact[];
 };
