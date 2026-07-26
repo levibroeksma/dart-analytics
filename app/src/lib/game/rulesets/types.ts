@@ -75,12 +75,40 @@ export const FiveOhOneConfig = z
   })
   .strict();
 
+/**
+ * Ten Up One Down: a checkout ladder that climbs by `finish_bonus` on a
+ * successful attempt and falls by `miss_penalty` on a failed one, played for a
+ * `duration_type`/`duration_value` session exactly as Score Training is.
+ *
+ * `starting_target` shares `FiveOhOneConfig.starting_score`'s floor of 2, the
+ * minimum a double-out attempt can ever finish from (D1 = 2). `finish_bonus`
+ * and `miss_penalty` each have a floor of 1: a step of 0 would leave the ladder
+ * frozen on one target, which is not the game. No key carries a default —
+ * every one is present in both seeded presets, and defaulting a ladder step
+ * would silently invent a rule the preset never stated.
+ *
+ * V1 models no ladder floor. Whether a failed attempt may drop the target below
+ * the start score is an open question in
+ * `docs/game-rules/rulesets/ten-up-one-down.md`, so no key expresses it yet.
+ */
+export const TuodConfig = z
+  .object({
+    starting_target: z.number().int().min(2),
+    finish_bonus: z.number().int().min(1),
+    miss_penalty: z.number().int().min(1),
+    duration_type: z.enum(["ROUNDS", "MINUTES"]),
+    duration_value: z.number().int().min(1),
+    max_darts_per_turn: z.number().int().min(1).max(3),
+  })
+  .strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
   | "SINGLES_V1"
   | "DOUBLES_TRAINING_V1"
-  | "501_V1";
+  | "501_V1"
+  | "TUOD_V1";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
@@ -88,6 +116,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SINGLES_V1: SinglesConfig,
   DOUBLES_TRAINING_V1: DoublesTrainingConfig,
   "501_V1": FiveOhOneConfig,
+  TUOD_V1: TuodConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -95,6 +124,7 @@ export type Bobs27ConfigData = z.infer<typeof Bobs27Config>;
 export type SinglesConfigData = z.infer<typeof SinglesConfig>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
+export type TuodConfigData = z.infer<typeof TuodConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -131,6 +161,15 @@ export type FiveOhOneSnapshot = {
   maxVisitScore: FiveOhOneConfigData["max_visit_score"];
 };
 
+export type TuodSnapshot = {
+  startingTarget: TuodConfigData["starting_target"];
+  finishBonus: TuodConfigData["finish_bonus"];
+  missPenalty: TuodConfigData["miss_penalty"];
+  durationType: TuodConfigData["duration_type"];
+  durationValue: TuodConfigData["duration_value"];
+  maxDartsPerTurn: TuodConfigData["max_darts_per_turn"];
+};
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -140,4 +179,6 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
         ? SinglesSnapshot
         : K extends "DOUBLES_TRAINING_V1"
           ? DoublesTrainingSnapshot
-          : FiveOhOneSnapshot;
+          : K extends "501_V1"
+            ? FiveOhOneSnapshot
+            : TuodSnapshot;

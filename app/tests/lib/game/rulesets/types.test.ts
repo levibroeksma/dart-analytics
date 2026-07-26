@@ -3,6 +3,7 @@ import {
   FiveOhOneConfig,
   RULESET_CONFIGS,
   ScoreTrainingConfig,
+  TuodConfig,
 } from "@lib/game/rulesets/types";
 
 describe("FiveOhOneConfig starting_score floor", () => {
@@ -90,6 +91,52 @@ describe("ScoreTrainingConfig duration_value bounds", () => {
       duration_type: "MINUTES",
       duration_value: 181,
       max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("TuodConfig bounds", () => {
+  const validRest = {
+    finish_bonus: 10,
+    miss_penalty: 1,
+    duration_type: "ROUNDS",
+    duration_value: 10,
+    max_darts_per_turn: 3,
+  };
+
+  it("rejects starting_target: 1, which no double can finish", () => {
+    const result = TuodConfig.safeParse({ ...validRest, starting_target: 1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts starting_target: 2, the minimum finishable double-out target", () => {
+    const result = TuodConfig.safeParse({ ...validRest, starting_target: 2 });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a finish_bonus or miss_penalty that cannot move the ladder", () => {
+    expect(
+      TuodConfig.safeParse({
+        ...validRest,
+        starting_target: 41,
+        finish_bonus: 0,
+      }).success,
+    ).toBe(false);
+    expect(
+      TuodConfig.safeParse({
+        ...validRest,
+        starting_target: 41,
+        miss_penalty: 0,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a visit longer than three darts", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      max_darts_per_turn: 4,
     });
     expect(result.success).toBe(false);
   });

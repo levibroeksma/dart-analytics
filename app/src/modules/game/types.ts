@@ -81,6 +81,36 @@ export type FiveOhOneState = {
   status: "IN_PROGRESS" | "WON";
 };
 
+/**
+ * One Ten Up One Down attempt as the player reports it. An attempt is a single
+ * visit at the current target, so the input describes the whole visit rather
+ * than three darts. `checkedOut` alone never wins: the finishing dart must land
+ * in a double, which is what `finishedOnDouble` says. A bust is reported the
+ * same way any other failure is — `checkedOut: false` — because a bust voids
+ * the visit and, with one visit per attempt, ends the attempt.
+ */
+export type TuodAttemptInput = {
+  checkedOut: boolean;
+  dartsUsed?: 1 | 2 | 3;
+  finishedOnDouble?: boolean;
+};
+
+/**
+ * Ten Up One Down session state. `currentTarget`, `attempts`, `successes` and
+ * `failures` are folded from the fact log on every read — the ladder position
+ * is never accumulated. `timerExpired` is the one field the log cannot derive:
+ * the MINUTES countdown lives in `game.store.ts`, so expiry arrives through
+ * `TuodEngine.expireTimer()` exactly as it does for Score Training, never by
+ * writing to this object, which is a copy.
+ */
+export type TuodState = {
+  currentTarget: number;
+  attempts: number;
+  successes: number;
+  failures: number;
+  timerExpired: boolean;
+};
+
 export type DartZoneKey =
   "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";
 
