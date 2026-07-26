@@ -2,12 +2,12 @@
 status: canonical
 scope: database/agent-rules
 read-when: before any SQL, migration, seed, or view work
-updated: 2026-07-13
+updated: 2026-07-26
 -->
 
 # Database Agent Guide
 
-> **Version:** 1.2.0
+> **Version:** 1.3.0 (new-game-type checklist covers schema/validator/engine registration, 2026-07-26)
 >
 > Condensed operating rules for AI agents (and developers) touching PostgreSQL in this project.
 >
@@ -196,10 +196,13 @@ Optional input: `docs/game-rules/rulesets/<game>.md` — a human-authored, non-c
 3. Seed `ruleset_versions` row
 4. Seed `configuration_templates` presets in `0002` or new seed
 5. Seed `exercise_templates` if needed
-6. Frontend game engine (outside database)
-7. Future: game-specific analytics view
+6. Shared configuration schema for the ruleset version in `app/src/lib/game/rulesets/types.ts` — one `.strict()` Zod object; a refinement there also needs an entry in `refinement-contract.ts` (`scripts/check-refinement-coverage.sh`)
+7. Server-side validator under `app/src/services/rulesets/<game>/`, parsing with that shared schema and enforcing the capture/input-mode matrix, registered in `services/rulesets/registry.ts` — without it `POST /api/sessions` rejects every session for the game
+8. Engine implementing the `GameEngine` contract (`04-Architecture-patterns.md` Pattern 18), registered in `modules/game/engine.registry.ts` under the same `rulesetVersionKey`
+9. `bash scripts/check-game-engines.sh` green — it fails when an engine is missing from either registry
+10. Future: game-specific analytics view
 
-No existing table changes required.
+Steps 1–5 are the only database work; 6–9 live in `app/` and are listed here because a game seeded without them is unplayable. The preset keys seeded in step 4 must parse against the step-6 schema exactly — the schemas are `.strict()`, so a drifted key fails the session rather than being silently stripped. No existing table changes required. <!-- 2026-07-26 -->
 
 ## Add a column to runtime table
 

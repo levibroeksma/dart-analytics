@@ -45,7 +45,9 @@ Before play, a **config screen** shows the session presets.
 
 ### Visit
 
-Three darts at the current double. A **miss** is anything that is not that double (for bull: not the required bull/double-bull as defined for the path).
+Three darts at the current double. A **miss** is anything that is not that double.
+
+**Bull (V1, resolved):** the bull target means the **inner bull (double bull, 50) only** — it is the double of the bull, so it is the only hit. The **outer bull (25) is a miss**, consistent with Bob's 27.
 
 If the player **hits** the double on the first or second dart, the visit **ends immediately** — collect darts and move to the next target.
 
@@ -90,8 +92,15 @@ Same as hard for hits, but if the player **misses with all three darts**, they *
 | **Easy**      | V1      | One visit per double; advance even after three misses. |
 | **Hard**      | V2+     | Remain on a double until hit.                          |
 | **Challenge** | V2+     | Three misses → previous double; D1 wipe → game over.   |
-| **Hit**       | V1      | Dart in the required double (or bull target).          |
+| **Hit**       | V1      | Dart in the required double; on the bull target, the inner bull only. |
+
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — only the darts actually thrown are recorded, so a visit ended early by a hit stores one or two darts, not three.
+- **One dart's fact:** intended = the current double (`DOUBLE` on its number; `INNER_BULL` on 25 for the bull target); hit = whatever landed; `score` = the **board** score of that dart (D1 = 2, S5 = 5, miss = 0).
+- **Stage type:** one `EXERCISE_BLOCK` for the whole run.
+- **Derived, never stored:** overall and per-target hit/miss ratios, and which dart of the visit scored the hit — all readable from the dart facts.
 
 ## Open questions
 
-- Whether “bull” means double bull only or outer/inner both count in this trainer.
+- None. Bull identity resolved 2026-07-26 (inner bull only; see Visit).

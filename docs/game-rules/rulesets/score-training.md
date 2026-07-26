@@ -80,6 +80,13 @@ N/A.
 | **Visit** | V1      | Three darts; sum is added to the session total. |
 | **N**     | V1      | How many visits in the session.                 |
 
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + QUICK_SCORE — one visit total per turn, **no dart rows**.
+- **One dart's fact:** none. Score Training does not record individual darts in V1; the unit of capture is the visit.
+- **Stage type:** one `EXERCISE_BLOCK` for the whole session.
+- **Derived, never stored:** the running total and three-dart average.
+
 ## Open questions
 
 - Default N (10 suggested) and max N when product locks ranges.

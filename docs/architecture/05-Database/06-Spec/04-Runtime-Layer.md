@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-07-22
+updated: 2026-07-26
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -482,6 +482,8 @@ Referenced by:
 
 The maximum number of darts per turn is owned by the ruleset, not by a database constraint.
 
+`total_score` is the sum of the visit's **counted dart board scores**: `0` for a void visit (a 501 bust, or a visit in which nothing counted), and never negative. Game-specific scores are derivations over the facts and are never written here — not a Bob's 27 running total, not its full-miss penalty, not Singles Training points, not a 501 remaining score. A penalty that would make the turn total negative is a property of the derivation, not of the visit. <!-- 2026-07-26 -->
+
 ## Design Rationale
 
 `total_score` is a controlled denormalisation: it duplicates the sum of dart scores so recreational sessions can store turn totals **without any dart rows**, and so common queries avoid aggregating darts.
@@ -541,11 +543,26 @@ References:
 
 ## Rules
 
+`score` is the **actual board score of the dart thrown** — single *n*, double 2*n*, treble 3*n*, outer bull 25, inner bull 50, miss 0. It is never a game-specific point value. Singles Training's 1/2/3 training points, for example, are derived from `hit_target_number` + `hit_zone_id` at read time and are never stored; storing them would silently corrupt every cross-game aggregation over `score`. <!-- 2026-07-26 -->
+
+Intention is captured per game. Bob's 27 and Doubles Training record a genuine `DOUBLE` intent (`INNER_BULL` on the bull target). **Singles Training records no intended zone at all** — by deliberate decision, single, double and treble on that segment are all valid intentional outcomes, so naming a "minimum ring" would fabricate an intent the player never held and corrupt the intended-vs-hit accuracy analysis this pair exists for (D06). Its engine therefore emits `intendedZoneKey: null` alongside a set `intendedTargetNumber`.
+
+**Open — that shape is not currently persistable.** `chk_dart_target_consistency` (migration `0007`) admits only *both* intention columns NULL or `intended_zone_id` NOT NULL, so a Singles Training dart row is rejected at INSERT. Resolving it needs a decision — a segment-level intent zone, a new migration relaxing the CHECK, or dropping `intended_target_number` for this game — and applied migrations are never edited. <!-- 2026-07-26 -->
+
 Capture depth follows the session's capture mode:
 
 - RECREATIONAL + QUICK_SCORE — dart rows omitted entirely (turn totals only)
 - RECREATIONAL + DETAILED_DARTS — hit-only dart rows (intention pair NULL) <!-- 2026-07-13 -->
 - ANALYTICS — every dart stores full intention and result
+
+### Known limitation — a 501 bust is indistinguishable from a scoreless visit
+
+501 is RECREATIONAL + QUICK_SCORE, so a busted visit and a genuine zero-scoring visit both persist as `turns.total_score = 0` with no dart rows. **The persisted model cannot tell them apart.** Two consequences, stated plainly:
+
+- **Bust rate is not computable at all** — no fact distinguishes the two cases.
+- **Checkout percentage undercounts attempts** — a busted checkout attempt is indistinguishable from a visit in which nothing counted, so it never enters the denominator.
+
+Recovering either requires DETAILED_DARTS capture for 501, or a schema revision adding an attempted-score or void-visit fact. Both are open: the capture-mode question is on the deferred list in `DECISIONS.md`. No fix is designed here. <!-- 2026-07-26 -->
 
 ## Design Rationale
 

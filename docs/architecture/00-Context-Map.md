@@ -2,11 +2,11 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-24
+updated: 2026-07-26
 -->
 # Context Map
 
-> **Version:** 1.6.11 (2026-07-23 — context-integrity guards D133: `scripts/check-doc-links.sh` + `scripts/check-context-budget.sh`; prior 1.6.10 mid-task fallow/`npm run check` gate)
+> **Version:** 1.7.0 (2026-07-26 — game engine contract D138–D144: "New game engine" pack, Pattern 18, engine code + guard registrations, seed `0003`; prior 1.6.11 context-integrity guards D133)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -18,22 +18,23 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
-| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~5.7k |
+| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~6k |
 | New view / analytics query | `05-Database/05-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~3.9k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges), `05-Database/06-Spec/01-Reference-Layer.md` | ~1.7k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~3.5k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~9.9k |
 | API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~8.3k |
 | Frontend page / component work | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/05-Astro-Components.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~11.9k |
-| Frontend gameplay / session features | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~14.3k |
-| Frontend new route / rendering | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `app/CLAUDE.md` | ~10.7k |
-| Frontend architecture / new pattern | `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/05-Astro-Components.md`, `04-Architecture-patterns.md`, `01-Principles.md` | ~15.6k |
-| New portable UI primitive | `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~9.5k |
+| Frontend gameplay / session features | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~15.1k |
+| Frontend new route / rendering | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `app/CLAUDE.md` | ~11.3k |
+| Frontend architecture / new pattern | `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/05-Astro-Components.md`, `04-Architecture-patterns.md`, `01-Principles.md` | ~17k |
+| New portable UI primitive | `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~10.4k |
 | New test / test-strategy question | `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md` | ~2.9k |
-| New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~5.5k |
-| Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.2k |
+| New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~5.9k |
+| New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~8k |
+| Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
-| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~8.7k |
+| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~10.5k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~3.5k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
@@ -69,11 +70,11 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~3.5k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~4.3k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
-| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns | canonical | ~3k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract (2026-07-26) | canonical | ~3.6k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |
@@ -88,13 +89,13 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types) | canonical | ~1.7k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
 | `06-Spec/03-Player-Layer.md` | players, player_settings | canonical | ~0.7k |
-| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency (2026-07-22) | canonical | ~3k |
+| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics + 501 bust limitation (2026-07-26) | canonical | ~3.7k |
 | `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`) (2026-07-17) | canonical | ~1.7k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.3k |
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
 | `09-Pre-Implementation-Review.md` | Design-gate record | historical | ~1.5k |
-| `10-Database-Agent-Guide.md` | Condensed DB rules for agents; ID strategy owner | canonical | ~2.2k |
+| `10-Database-Agent-Guide.md` | Condensed DB rules for agents; ID strategy owner; new-game-type checklist through engine registration (2026-07-26) | canonical | ~2.6k |
 | `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror (2026-07-24) | canonical | ~1.5k |
 
 ## API (`06-API/`) and Frontend (`07-Frontend/`)
@@ -108,9 +109,9 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22) | canonical | ~5.1k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~2.6k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2.1k |
-| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes | canonical | ~1.7k |
+| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate (2026-07-17) | canonical | ~3.2k |
-| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit | canonical | ~1.3k |
+| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members + engine anti-patterns (2026-07-26) | canonical | ~1.8k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y (2026-07-22) | canonical | ~2.9k |
@@ -122,7 +123,24 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
 | `migrations/0001`–`0016` | Applied schema chain — never modify | canonical (applied) |
-| `seeds/0001`–`0002` | Reference data + default templates | canonical |
+| `seeds/0001`, `0002` | Reference data + default templates | canonical |
+| `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
+
+## Game engine code + mechanical guards
+
+Registered for discoverability, not as reading material — the rules live in `04-Architecture-patterns.md` Pattern 18 and `07-Frontend/04-Modules-And-OOP.md`. (2026-07-26)
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/lib/game/rulesets/types.ts` | One `.strict()` Zod config schema per ruleset version (cross-runtime) | canonical |
+| `app/src/lib/game/rulesets/config-codec.ts` | snake_case wire config ↔ camelCase client snapshot | canonical |
+| `app/src/lib/game/rulesets/refinement-contract.ts` | Declared accept/reject boundaries every schema refinement must hold | canonical |
+| `app/src/modules/game/interfaces.ts` | `GameEngine` / `GameEngineFactory` — the contract itself | canonical |
+| `app/src/modules/game/engine.registry.ts` | `rulesetVersionKey` → engine factory lookup | canonical |
+| `app/src/modules/game/board-progression.module.ts` | Shared board paths and dartboard arithmetic | canonical |
+| `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
+| `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
+| `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 
 ## Context & history (repo root, `docs/`)
 
@@ -133,6 +151,8 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
+| `docs/superpowers/specs/2026-07-25-game-engine-review-design.md` | Game engine PR review: findings C1/C2, I1–I8, M1–M6, P1–P4, ST1–ST7 — all closed; resolutions are canonical in Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `06-Spec/04-Runtime-Layer.md` and `DECISIONS.md` D138–D144 (2026-07-26) | historical |
+| `docs/superpowers/plans/2026-07-25-game-engine-contract-hardening.md` | The 14-task plan that closed them (2026-07-26) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
@@ -152,7 +172,8 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
 | Migrations | `0001`–`0016` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13) |
-| Seeds | `0001` reference data, `0002` default templates |
+| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26) |
+| Game engines | All five (Score Training, Bob's 27, Singles Training, Doubles Training, 501) on the `GameEngine` contract (D138–D141): config-driven, fact-log-owning, rehydratable; five ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh` (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
