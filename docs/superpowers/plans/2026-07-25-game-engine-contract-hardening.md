@@ -1335,6 +1335,12 @@ Without this, `POST /api/sessions` rejects every game but Score Training (`sessi
 
 Capture/input matrix per game: Score Training and 501 are `RECREATIONAL` + `QUICK_SCORE` (turn totals, zero dart rows). Bob's 27, Singles Training and Doubles Training are `RECREATIONAL` + `DETAILED_DARTS` (hit-only dart rows, intention pair permitted) — their engines emit dart facts.
 
+**Three items carried in from the Task 9 review:**
+
+1. `starting_score` in `501_V1` has no lower bound, so `startingScore: 0` validates and produces a replay divergence (`record({scoreAttempted: 0})` returns `IN_PROGRESS` but a rehydrated `state()` returns `WON`). Add a `.min(2)` — the minimum finishable double-out score.
+2. `dartsUsed` and `dartsAtDouble` on the 501 visit input are accepted and then discarded: nothing reads them and no column stores them. Either wire them somewhere real or drop them from the input type; do not leave a field that lies about being captured.
+3. Add a `toEqual(before)` deep-equal assertion to the 501 test `keeps the new leg open when undoing a visit recorded inside it` — the behaviour is correct but pinned only by stage-count and `state()` assertions.
+
 **Decide `.strict()` vs `.strip()` first.** Task 2's schemas use default `z.object()`, which **silently strips** unrecognized keys (verified against Zod 3.25.76: `z.object({a}).parse({a:1,b:2})` → `{a:1}`). Two seeded presets already carry keys no schema models — 501's `sets_to_win` and Singles Training's `duration_type`/`duration_value`/`max_darts_per_turn` — and every `toSnapshot` call destroys them without a word. Switch `RULESET_CONFIGS` to `.strict()` so a seed/schema divergence fails a test instead of quietly losing data, and add a test proving an unknown key is rejected. Task 11 then makes the seeds match. If you keep `.strip()`, say why in the report.
 
 - [ ] **Step 1: Write the failing tests** (one file per validator; 501 shown)
@@ -1502,6 +1508,10 @@ git commit -m "feat: enforce the game engine contract mechanically"
 - [ ] **Step 2: Update `07-Frontend/04-Modules-And-OOP.md`** — replace the Engine vs Payload table with the contract; keep the Key Ownership table (it was already right — the engines were wrong). Add anti-patterns: "engine accumulates a score field instead of folding facts", "engine that cannot be rebuilt from persisted facts", "per-game payload module".
 
 - [ ] **Step 3: Register `lib/game/rulesets/` in `02-Folder-Structure.md`** as the cross-runtime home for ruleset config schemas, with the import-direction note: the Worker and the browser may both import it; it may import neither.
+
+- [ ] **Step 3b: Record the 501 bust/zero-score limitation** in `06-Spec/04-Runtime-Layer.md` under the capture-mode matrix, and in `docs/game-rules/rulesets/501.md` under a "Known limitations" heading.
+
+Under `RECREATIONAL` + `QUICK_SCORE` a 501 bust and a genuine zero-scoring visit are both persisted as `turns.total_score = 0` with no dart rows, so **the persisted model cannot tell them apart**. Consequences, stated plainly: bust rate is not computable at all, and checkout percentage undercounts attempts because a busted checkout is indistinguishable from a scoreless visit. Recovering either requires `DETAILED_DARTS` capture for 501, or a schema revision adding an attempted-score or void-visit fact. Record it as a known limitation and add the capture-mode question to the deferred list in `DECISIONS.md` — do not design the fix here.
 
 - [ ] **Step 4: Record the persistence semantics in `06-Spec/04-Runtime-Layer.md`** under `turns`/`darts`: `darts.score` is the actual board score of the dart thrown, never a game-specific point value; `turns.total_score` is the sum of counted dart scores (0 for a void visit) and is never negative; game-specific scores are derived. Closes I5.
 
