@@ -50,7 +50,7 @@ Three darts at the **current double**. A **miss** is anything that is not that d
 
 ### Scoring
 
-- Each **hit** on the double adds **that double’s face value** to the running score (e.g. D1 = +1 per hit, D20 = +20 per hit). Multiple hits in one visit all add.
+- Each **hit** on the double adds **that double’s face value** to the running score (e.g. D1 = +1 per hit, D20 = +20 per hit). Multiple hits in one visit each add that same face value — two hits at D20 add 40, three add 60. There is no bonus and no doubling for a multi-hit visit.
 - If **all three darts miss**, subtract **one times** the double’s value once (e.g. three misses at D1 → −1).
 
 Examples from the original notes:
@@ -67,7 +67,9 @@ _(Original write-up used 29/25 with a slightly different example arithmetic; the
 
 ### Progress
 
-After each visit, advance to the next double (1 → 2 → … → 20 → bull). Bull uses bull scoring as the “double value” for add/subtract (product should treat double bull / outer bull consistently — see open questions).
+After each visit, advance to the next double (1 → 2 → … → 20 → bull).
+
+**Bull (V1, resolved):** only the **inner bull (double bull, 50)** counts as a hit. A dart in the **outer bull (25) is a miss**, exactly like any other non-target dart. The bull’s “double value” for both adding and subtracting is **50** — a hit adds 50, a three-dart miss visit subtracts 50.
 
 ### Finishing / dying
 
@@ -93,12 +95,18 @@ Player **cannot die**; score may go negative. Run still ends when the bull visit
 
 | Term                | Version | Meaning                                                |
 | ------------------- | ------- | ------------------------------------------------------ |
-| **Hit**             | V1      | Dart in the required double.                           |
+| **Hit**             | V1      | Dart in the required double; on the bull target, the inner bull only. |
 | **Full miss visit** | V1      | All three darts miss → subtract 1× the double’s value. |
 | **Traditional**     | V1      | ≤0 ends the game; positive after bull wins.            |
 | **Easy**            | V2+     | No death; finish the path even with a negative score.  |
 
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — every dart thrown is recorded.
+- **One dart's fact:** intended = the current double (`DOUBLE` on its number; `INNER_BULL` on 25 for the bull target); hit = whatever landed; `score` = the **board** score of that dart (D20 = 40, T5 = 15, miss = 0) — never the game's point value.
+- **Stage type:** one `EXERCISE_BLOCK` for the whole run.
+- **Derived, never stored:** the running score, and the full-miss penalty. A visit's turn total is the sum of its darts' board scores and is never negative.
+
 ## Open questions
 
-- Confirm multi-hit math (each hit adds face value) vs any alternate house rules.
-- Bull: outer 25 vs inner 50 for add/subtract on hit and on full miss.
+- None. Multi-hit math and bull scoring resolved 2026-07-26 (see Scoring and Progress).

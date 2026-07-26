@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-07-16
+updated: 2026-07-26
 -->
 
 # Frontend Modules And OOP
 
-> **Version:** 0.1.2 (anti-pattern: inline export type/interface in .module.ts, 2026-07-17)
+> **Version:** 0.2.0 (GameEngine contract replaces the engine/payload split, 2026-07-26; prior 0.1.2 inline export type/interface anti-pattern, 2026-07-17)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -26,8 +26,8 @@ This document defines where object-oriented code belongs in the frontend, how po
 | Layer | OOP? | Pattern |
 | ----- | ---- | ------- |
 | `modules/ui/*.module.ts` | **Yes** | `new Timer(opts)`, lifecycle methods |
-| `modules/game/*.engine.module.ts` | **Yes** | Turn/scoring state machines when warranted |
-| `modules/game/*.payload.module.ts` | Prefer functions | Assembles typed API payloads |
+| `modules/game/*.engine.module.ts` | **Yes** | `GameEngine` contract — one shape for every game (Pattern 18) |
+| `modules/game/*.payload.module.ts` | Prefer functions | Assembles typed API payloads; one generic builder, not one per game |
 | `stores/`, `forms/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |
 
@@ -89,14 +89,25 @@ Alpine wiring for UI components is registered in `register-ui-data.ts`. Modules 
 
 ---
 
-# Engine vs Payload Modules
+# Game Engine Contract
 
-| Suffix | Owns | Example |
-| ------ | ---- | ------- |
-| `*.engine.module.ts` | In-session turn flow, scoring UX, `clientKey` assignment | `turn.engine.module.ts` |
-| `*.payload.module.ts` | Assembling `EventsBatchRequest` from store snapshots | `batch.payload.module.ts` |
+Every `*.engine.module.ts` implements the same contract (`modules/game/interfaces.ts`), built by a `GameEngineFactory` from a configuration snapshot bound to a `rulesetVersionKey`. Architecture-level statement: `../04-Architecture-patterns.md` Pattern 18.
 
-Payload modules import types from `@client/api/types` only. They never call `@client/api`.
+| Member | Owns |
+| ------ | ---- |
+| `record(input)` | Folds one observation — a dart or a whole visit — into the fact log; returns the new state |
+| `undo()` | Exact inverse of `record()` over `facts()`, including any stage that `record()` opened |
+| `wouldComplete(input)` | Pure predicate: would recording this input finish the session? Must not mutate |
+| `isComplete()` | Zero-argument — the engine owns its own completion state, never a caller-passed one |
+| `state()` | Derived view of the fact log: running score, training points, ratios |
+| `facts()` | `EngineFacts` = `StageFact[]` + `TurnFact[]`, the single fact log |
+| `create(config, prior)` | Factory member; `prior` is the rehydrate path — persisted facts replay into state |
+
+`wouldComplete()` exists because deciding completion by recording and rolling back is unsafe: 501's `record()` can open a `LEG` stage as well as a turn, so a rollback that pops only the turn leaves an orphan stage behind.
+
+One generic payload module assembles every batch — `events.payload.module.ts`'s `buildEventsBatch(participantRef, facts)`. Stages come from the engine, so 501's `LEG` stages and Score Training's single `EXERCISE_BLOCK` use the same builder with no per-game branch. Payload modules import types from `@client/api/types` only. They never call `@client/api`.
+
+Shared ruleset configuration schemas live in `lib/game/rulesets/` — see `02-Folder-Structure.md`.
 
 ---
 
@@ -135,6 +146,11 @@ This preserves D40 (client game engine) without making the frontend the authorit
 | Duplicating API validation as source of truth | Drift from frozen contract |
 | Persisting toast/modal state | Ephemeral UI |
 | `export type`/`export interface` declared inline in a `.module.ts` | Belongs in the folder's `types.ts`/`interfaces.ts` barrel (`../06-API/03-Shared-Conventions.md`) |
+| Engine accumulates a score/points field instead of folding `facts()` | The derivation survives and the fact is discarded — inverts "store what happened" (Pattern 9) |
+| Engine that cannot be rebuilt from persisted facts | Breaks local-first resume (D67/D88); `create(config, prior)` is the rehydrate path |
+| Per-game payload module | `events.payload.module.ts` builds every batch; stage assembly belongs to the engine |
+| Deciding completion by `record()` then `undo()` | Use `wouldComplete()`; a rollback can strand a stage the record opened |
+| Engine hardcodes its rules as module constants | Rules come from the validated config snapshot bound to its ruleset version |
 
 ---
 

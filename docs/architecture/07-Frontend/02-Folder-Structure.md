@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/folder-structure
 read-when: new frontend files, aliases, import direction
-updated: 2026-07-16
+updated: 2026-07-26
 -->
 
 # Frontend Folder Structure
 
-> **Version:** 0.2.1 (zero-exception .ts file-location rule, 2026-07-16)
+> **Version:** 0.2.2 (cross-runtime `lib/game/rulesets/`, 2026-07-26; prior 0.2.1 zero-exception .ts file-location rule, 2026-07-16)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -40,6 +40,8 @@ app/src/
 │   ├── auth/                        # @auth — authentication data factories, middleware helpers
 │   │   ├── login.data.ts
 │   │   └── logout.data.ts
+│   ├── game/                        # @lib/game — game data factories, session recovery
+│   │   └── rulesets/                # cross-runtime: ruleset config schemas + codec
 │   └── utils/                       # @utils (note: alias maps here, not to top-level utils/)
 ├── utils/                           # @utils — widely reused pure helpers
 ├── stores/                          # @stores — *.store.ts
@@ -70,8 +72,15 @@ app/src/
 | `services/`, `repositories/`, `db/`, `pages/api/**` | Worker | `@stores`, `@forms`, `@modules` (browser) |
 | `stores/`, `forms/`, `modules/`, `components/`, `pages/*.astro` | Browser | `lib/server/`, server `lib/auth/` |
 | `@client/**` | Browser | `services/`, `repositories/` |
+| `lib/game/rulesets/` | **Both** | everything — see below |
 
 **Naming collision guard:** `stores/` (Alpine client state) ≠ `services/` (Worker orchestration). They are unrelated layers.
+
+### Cross-runtime area — `lib/game/rulesets/`
+
+One definition per ruleset version lives here: the Zod configuration schema (`types.ts`), the snake_case↔camelCase codec (`config-codec.ts`), and the refinement contract the boundary tests execute (`refinement-contract.ts`). `lib/` is the only tree both runtimes may import, so the Worker validator (`services/rulesets/*`) and the browser engine (`modules/game/*`) share exactly one schema instead of keeping drifting copies.
+
+**Import direction:** the Worker and the browser may both import it; **it may import neither**. No `services/`, `repositories/`, `lib/server/`, `stores/`, `forms/`, `modules/` or Alpine import is permitted from inside it — a single runtime-specific import there splits the shared definition back in two.
 
 ---
 

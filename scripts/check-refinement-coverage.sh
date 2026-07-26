@@ -30,6 +30,17 @@
 #   * Boundary values the contract does not declare. The contract test proves
 #     the declared boundaries hold, not that they are the right boundaries.
 #   * Refinements in files other than types.ts; only that file is scanned.
+#   * FLOOR-SIDE weakening of a refinement whose floor a redundant field-level
+#     constraint already enforces. duration_value carries `.min(1)` on the
+#     field AND a [1, max] bound inside the superRefine. Lower or delete the
+#     refinement's floor and the contract's `duration_value 0` reject probes
+#     still reject — the field-level `.min(1)` catches them on its own — so the
+#     contract test stays green and this script, seeing the refinement still
+#     present, stays green too. Only CEILING-side weakening (the 50 -> 500
+#     case) is caught by execution, because nothing else bounds the top. Where
+#     a refinement duplicates a field-level bound, that duplicate is precisely
+#     what hides the regression; a probe can only prove the schema as a whole
+#     rejects a value, never which constraint did the rejecting.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 

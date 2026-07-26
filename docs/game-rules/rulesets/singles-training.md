@@ -58,7 +58,9 @@ Only darts that land in the **current** section score:
 
 Anything else is a miss for that dart (0). Sum points across the whole run.
 
-Bull: treat as its own target at the end of low→high (or start of high→low). Outer/inner bull scoring for training points can follow product choice; default: any bull hit counts as a hit on the bull target with a fixed training value (document in glossary when locked).
+Bull: treat as its own target at the end of low→high (or start of high→low).
+
+**Bull training points (V1, resolved):** **outer bull = 1 point, inner bull = 2 points** — the same single/double ladder as every other target, with no treble on the bull. Anything that is not a bull is a miss for that dart.
 
 ### Finishing
 
@@ -85,11 +87,19 @@ N/A.
 
 | Term                | Version | Meaning                                                                         |
 | ------------------- | ------- | ------------------------------------------------------------------------------- |
-| **Training points** | V1      | S/D/T quality score on the current section (1/2/3), not face-value X01 scoring. |
+| **Training points** | V1      | S/D/T quality score on the current section (1/2/3), not face-value X01 scoring. On the bull: outer 1, inner 2. |
 | **Low → high**      | V1      | 1, 2, … 20, bull.                                                               |
 | **High → low**      | V2+     | Bull, 20, 19, … 1.                                                              |
 | **Random**          | V2+     | All targets once, shuffled per session.                                         |
 
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — every dart thrown is recorded.
+- **One dart's fact:** intended = the current target's **number only**, with **no intended ring**; single, double and treble on that segment are all valid intentional outcomes, so recording one would fabricate an intent the player never held. Hit = whatever landed; `score` = the **board** score of that dart (T1 = 3, S20 = 20, inner bull = 50) — never the 1/2/3 training points.
+- **Stage type:** one `EXERCISE_BLOCK` for the whole run.
+- **Derived, never stored:** training points. They follow from the hit segment and ring against the visit's target.
+
 ## Open questions
 
-- Exact training-point values for outer vs inner bull.
+- Training-point values for outer vs inner bull resolved 2026-07-26 (outer 1, inner 2).
+- **Blocked:** a dart fact with a target number and no intended ring is currently rejected by `chk_dart_target_consistency` (migration `0007`). Needs a decision before Singles Training sessions can be uploaded — see `docs/architecture/05-Database/06-Spec/04-Runtime-Layer.md` § darts.

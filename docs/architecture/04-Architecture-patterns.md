@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-07-14
+updated: 2026-07-26
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.3.0 (Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.4.0 (Pattern 18 game engine contract 2026-07-26; prior 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -750,6 +750,54 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 ## Rule
 
 Detail lives in `07-Frontend/01`–`04` and `10-Frontend-Agent-Guide.md`. API integration boundary remains in `07-Frontend/00-Overview.md`.
+
+---
+
+# Pattern 18 — Game Engine Contract
+
+## Principle
+
+Every game engine implements one contract.
+
+A game is a validated configuration plus a fact log — not a bespoke API.
+
+---
+
+## Pattern
+
+```
+ruleset version key + validated configuration snapshot
+
+↓
+
+GameEngine  (record · undo · wouldComplete · isComplete · state · facts)
+
+↓
+
+EngineFacts  →  exercise_stages / turns / darts
+```
+
+---
+
+## Application
+
+- **Construction is config-driven.** A `GameEngineFactory` builds the engine from a configuration snapshot validated against its ruleset version's schema (Pattern 5). Rules are never module constants; a new rule option is a config key, not engine surgery.
+- **The engine owns the fact log.** `facts()` returns `EngineFacts` — stage, turn and dart records that map 1:1 onto the runtime tables. There is exactly one copy: the store persists what the engine returns and never accumulates a second.
+- **The engine mints the persistence keys** — `clientKey`, `sequence`, `completedAt`.
+- **The engine rehydrates from its own facts.** `create(config, prior)` replays persisted facts to rebuild state, so a page refresh restores the game exactly.
+- **Derived values are never stored in a fact.** Running score, training points, hit ratios and averages are folded from the fact log on read and belong in views (Pattern 9) — never in a field the engine accumulates.
+- **`wouldComplete(input)` is a pure predicate.** Deciding completion by recording and then rolling back is unsafe for an engine whose `record()` opens a stage — 501's can append a `LEG` — so completion is asked, never simulated. It must not mutate.
+- **`undo()` is an exact inverse of `record()` over `facts()`**, including any stage that `record()` opened. Popping only the turn leaves an orphan empty stage that the batch builder uploads silently.
+
+Registration is two-sided: `modules/game/engine.registry.ts` maps `rulesetVersionKey` to the engine factory, `services/rulesets/registry.ts` maps the same key to the server-side validator. `scripts/check-game-engines.sh` fails the build when an engine is absent from either.
+
+---
+
+## Rule
+
+A new game adds a configuration schema, a validator, an engine and seeds.
+
+It never adds a new engine API, a new fact model, or a per-game payload module.
 
 ---
 

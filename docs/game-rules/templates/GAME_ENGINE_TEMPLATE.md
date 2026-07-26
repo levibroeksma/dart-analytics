@@ -92,6 +92,17 @@ Everything deferred from V1, grouped clearly:
 ### Other
 - Anything else unlocked later
 
+## Capture
+
+**Required — do not skip.** A ruleset that cannot answer these four questions will produce an engine whose state shape cannot be persisted, which is only discovered once the game is built.
+
+- **Capture / input mode:** RECREATIONAL + QUICK_SCORE (visit totals, no dart rows), RECREATIONAL + DETAILED_DARTS (a row per dart thrown), or ANALYTICS (full intention and result per dart)
+- **One dart's fact:** what the intended target and ring are, what the hit records, and what `score` holds — always the dart's **board** score, never a game-specific point value
+- **Stage type:** which stage the game creates (`LEG`, `ROUND`, `EXERCISE_BLOCK`, …), and when a new one opens
+- **Derived, never stored:** which numbers this game shows the player that are folded from the facts rather than kept in a field — running scores, points, ratios, averages
+
+Write this in plain rules language. The engine-side contract it feeds is `docs/architecture/04-Architecture-patterns.md` Pattern 18.
+
 ## Glossary
 
 Named rules and terms used above (especially options that are locked in V1 but defined for later). Keep definitions short and human.
