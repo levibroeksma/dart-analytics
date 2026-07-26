@@ -41,6 +41,7 @@ astro check
 
 1. `seeds/0001_reference_data.sql`
 2. `seeds/0002_default_templates.sql`
+3. `seeds/0003_game_engine_reference.sql`
 
 ## References
 

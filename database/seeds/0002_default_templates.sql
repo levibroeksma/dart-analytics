@@ -78,6 +78,14 @@ VALUES (
     ) ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 -- Configuration presets: 501
+--
+-- Corrected (I4 / Task 11): dropped `sets_to_win`, modeled by no
+-- schema (sets are V2+); added `max_visit_score: 180`, the key
+-- FiveOhOneConfig actually models (05-Database-Agent-Guide.md §8,
+-- ruleset-owned score cap). DO UPDATE, not DO NOTHING — these two
+-- rows already exist in any seeded database, and DO NOTHING would
+-- leave the old `sets_to_win` shape in place, still rejected by
+-- the `.strict()` schema at session creation.
 -- ============================================================
 INSERT INTO configuration_templates (
         id,
@@ -99,10 +107,10 @@ VALUES (
         '{
             "starting_score": 501,
             "legs_to_win": 1,
-            "sets_to_win": 1,
             "check_in": "STRAIGHT_IN",
             "check_out": "DOUBLE_OUT",
-            "max_darts_per_turn": 3
+            "max_darts_per_turn": 3,
+            "max_visit_score": 180
         }'::jsonb,
         TRUE,
         now(),
@@ -117,19 +125,35 @@ VALUES (
         '{
             "starting_score": 501,
             "legs_to_win": 3,
-            "sets_to_win": 1,
             "check_in": "STRAIGHT_IN",
             "check_out": "DOUBLE_OUT",
-            "max_darts_per_turn": 3
+            "max_darts_per_turn": 3,
+            "max_visit_score": 180
         }'::jsonb,
         TRUE,
         now(),
         now()
-    ),
-    -- ============================================================
-    -- Configuration presets: TUOD
-    -- ============================================================
-    (
+    )
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    configuration = EXCLUDED.configuration,
+    updated_at = now();
+-- ============================================================
+-- Configuration presets: TUOD
+-- ============================================================
+INSERT INTO configuration_templates (
+        id,
+        game_type_id,
+        player_id,
+        name,
+        description,
+        configuration,
+        is_system_template,
+        created_at,
+        updated_at
+    )
+VALUES (
         '0198f300-0000-7000-8000-000000000003',
         '0198f000-0000-7000-8000-000000000002',
         NULL,
@@ -164,48 +188,78 @@ VALUES (
         TRUE,
         now(),
         now()
-    ),
-    -- ============================================================
-    -- Configuration presets: Singles Training
-    -- ============================================================
-    (
+    ) ON CONFLICT (id) DO NOTHING;
+-- ============================================================
+-- Configuration presets: Singles Training
+--
+-- Corrected (I4 / Task 11): SINGLES_V1 accepts only
+-- order_mode: LOW_TO_HIGH and difficulty: EASY, and models no
+-- duration_type/duration_value/max_darts_per_turn — Singles
+-- Training's visit length is fixed at 3 darts per target with no
+-- duration concept (docs/game-rules/rulesets/singles-training.md,
+-- "Config & presets (V1)"). DO UPDATE, not DO NOTHING — this row
+-- already exists in any seeded database with the old V2+ shape
+-- (HIGH_TO_LOW/NORMAL), still rejected by the `.strict()` schema
+-- at session creation.
+--
+-- The former second preset (`...0006`, RANDOM/HARD) is dropped
+-- rather than corrected: SINGLES_V1 locks both order_mode and
+-- difficulty to a single value each, so a corrected second row
+-- could only be a byte-for-byte duplicate of the row below. One
+-- V1 preset fully covers the one valid V1 configuration.
+-- ============================================================
+INSERT INTO configuration_templates (
+        id,
+        game_type_id,
+        player_id,
+        name,
+        description,
+        configuration,
+        is_system_template,
+        created_at,
+        updated_at
+    )
+VALUES (
         '0198f300-0000-7000-8000-000000000005',
         '0198f000-0000-7000-8000-000000000003',
         NULL,
-        'Singles — Normal, High to Low',
-        'All targets from 20 down to 1, normal difficulty.',
+        'Singles — Low to High, Easy',
+        'All targets from 1 up to 20 then bull, easy difficulty.',
         '{
-            "order_mode": "HIGH_TO_LOW",
-            "difficulty": "NORMAL",
-            "duration_type": "ROUNDS",
-            "duration_value": 20,
-            "max_darts_per_turn": 3
+            "order_mode": "LOW_TO_HIGH",
+            "difficulty": "EASY"
         }'::jsonb,
         TRUE,
         now(),
         now()
-    ),
-    (
-        '0198f300-0000-7000-8000-000000000006',
-        '0198f000-0000-7000-8000-000000000003',
-        NULL,
-        'Singles — Hard, Random Order',
-        'Random target order, hard difficulty.',
-        '{
-            "order_mode": "RANDOM",
-            "difficulty": "HARD",
-            "duration_type": "ROUNDS",
-            "duration_value": 20,
-            "max_darts_per_turn": 3
-        }'::jsonb,
-        TRUE,
-        now(),
-        now()
-    ),
-    -- ============================================================
-    -- Configuration presets: Score Training
-    -- ============================================================
-    (
+    )
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    configuration = EXCLUDED.configuration,
+    updated_at = now();
+-- Drop the redundant second Singles Training preset (see comment
+-- above): configuration_templates carries no FK from runtime
+-- tables — presets are copied into exercise_configurations at
+-- session start, never referenced (Hard Invariant, root
+-- CLAUDE.md) — so a plain DELETE cannot orphan session history.
+DELETE FROM configuration_templates
+WHERE id = '0198f300-0000-7000-8000-000000000006';
+-- ============================================================
+-- Configuration presets: Score Training
+-- ============================================================
+INSERT INTO configuration_templates (
+        id,
+        game_type_id,
+        player_id,
+        name,
+        description,
+        configuration,
+        is_system_template,
+        created_at,
+        updated_at
+    )
+VALUES (
         '0198f300-0000-7000-8000-000000000007',
         '0198f000-0000-7000-8000-000000000004',
         NULL,

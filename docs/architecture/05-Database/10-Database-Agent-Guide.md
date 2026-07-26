@@ -165,6 +165,7 @@ Current seeds:
 
 - `0001_reference_data.sql` — lookups + game types + rulesets + dart zones
 - `0002_default_templates.sql` — exercise templates, configuration presets, one system routine
+- `0003_game_engine_reference.sql` — `BOBS27`/`DOUBLES_TRAINING` game types, ruleset versions, configuration presets (2026-07-26)
 
 ---
 
@@ -229,7 +230,7 @@ docs/
 └── ...
 database/
 ├── migrations/0001–0016.sql
-└── seeds/0001–0002.sql
+└── seeds/0001–0002.sql, 0003_game_engine_reference.sql
 ```
 
 ---
