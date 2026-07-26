@@ -35,11 +35,11 @@ import {
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
-import type { GameEngine, GameEngineFactory } from "@modules/game/interfaces";
+import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
-import type { ScoreTrainingPlayContext } from "@lib/game/types";
-import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
+import type { ScoreTrainingPlayContext } from "@lib/types";
+import type { ScoreTrainingSnapshot } from "@lib/types";
+import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 
 const BLOCK: StageFact = {
   clientKey: "block-1",

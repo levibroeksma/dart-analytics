@@ -1,4 +1,4 @@
-import { Bobs27Config } from "@lib/game/rulesets/types";
+import { Bobs27Config } from "@lib/types";
 import type { RulesetValidator } from "../interfaces";
 import type { BatchValidationResult, ConfigValidationResult } from "../types";
 

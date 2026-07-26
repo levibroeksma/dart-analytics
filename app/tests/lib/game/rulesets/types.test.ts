@@ -4,7 +4,7 @@ import {
   RULESET_CONFIGS,
   ScoreTrainingConfig,
   TuodConfig,
-} from "@lib/game/rulesets/types";
+} from "@lib/types";
 
 describe("FiveOhOneConfig starting_score floor", () => {
   const validRest = {

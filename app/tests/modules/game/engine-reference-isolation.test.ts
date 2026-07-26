@@ -5,7 +5,7 @@ import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module"
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
-import type { GameEngine } from "@modules/game/interfaces";
+import type { GameEngine } from "@modules/interfaces";
 
 /**
  * Nothing an engine hands out may alias its internals. `state()` must be a

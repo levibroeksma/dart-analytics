@@ -1,4 +1,4 @@
-import { DoublesTrainingConfig } from "@lib/game/rulesets/types";
+import { DoublesTrainingConfig } from "@lib/types";
 import type { RulesetValidator } from "../interfaces";
 import type { BatchValidationResult, ConfigValidationResult } from "../types";
 

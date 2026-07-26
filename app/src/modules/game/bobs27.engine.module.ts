@@ -1,4 +1,4 @@
-import type { Bobs27Snapshot } from "@lib/game/rulesets/types";
+import type { Bobs27Snapshot } from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
   boardScore,

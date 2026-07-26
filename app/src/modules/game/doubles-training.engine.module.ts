@@ -1,4 +1,4 @@
-import type { DoublesTrainingSnapshot } from "@lib/game/rulesets/types";
+import type { DoublesTrainingSnapshot } from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
   boardScore,

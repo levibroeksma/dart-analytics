@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as rulesetTypes from "@lib/game/rulesets/types";
+import * as rulesetTypes from "@lib/types";
 import { REFINEMENT_CONTRACTS } from "@lib/game/rulesets/refinement-contract";
 
 // Executes every boundary the refinement contract declares. Unlike a text

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { bobs27Validator } from "@services/rulesets/bobs27/bobs27.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   start_score: 27,

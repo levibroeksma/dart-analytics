@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { scoreTrainingSetup } from "@lib/game/score-training-setup.data";
-import type { ScoreTrainingSetupContext } from "@lib/game/types";
+import type { ScoreTrainingSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
 

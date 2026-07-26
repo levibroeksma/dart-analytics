@@ -4,7 +4,7 @@ import type {
   FiveOhOneSnapshot,
   ScoreTrainingSnapshot,
   SinglesSnapshot,
-} from "@lib/game/rulesets/types";
+} from "@lib/types";
 
 /** Any ruleset's camelCase client snapshot, as persisted by `game.store.ts`. */
 export type ConfigSnapshot =

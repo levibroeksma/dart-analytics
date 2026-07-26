@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { singlesTrainingValidator } from "@services/rulesets/singles-training/singles-training.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   order_mode: "LOW_TO_HIGH",

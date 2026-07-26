@@ -4,7 +4,7 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import type { GameEngineFactory } from "@modules/game/interfaces";
+import type { GameEngineFactory } from "@modules/interfaces";
 
 const fixture = {
   rulesetVersionKey: "SCORE_TRAINING_V1",

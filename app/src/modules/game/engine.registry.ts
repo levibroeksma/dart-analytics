@@ -1,4 +1,4 @@
-import type { RulesetVersionKey } from "@lib/game/rulesets/types";
+import type { RulesetVersionKey } from "@lib/types";
 import type { GameEngineFactory } from "./interfaces";
 
 /**

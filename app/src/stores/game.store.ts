@@ -1,6 +1,6 @@
 import type { PersistFactory } from "@alpinejs/persist";
-import type { RulesetVersionKey } from "@lib/game/rulesets/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
+import type { RulesetVersionKey } from "@lib/types";
+import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 import type { ConfigSnapshot } from "./types";
 
 /** D91: bumped to 2 — the fact-log shape replaced `RecordedTurn`, so v1 state is discarded. */

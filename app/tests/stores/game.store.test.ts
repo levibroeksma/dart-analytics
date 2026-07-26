@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Persist } from "@alpinejs/persist";
 import { gameStore } from "@stores/game.store";
-import type { EngineFacts } from "@modules/game/types";
+import type { EngineFacts } from "@modules/types";
 
 /**
  * Mirrors @alpinejs/persist: one persist() closure shares `alias` across .as()

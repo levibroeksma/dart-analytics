@@ -1,8 +1,5 @@
-import { RULESET_CONFIGS } from "@lib/game/rulesets/types";
-import type {
-  ConfigSnapshotFor,
-  RulesetVersionKey,
-} from "@lib/game/rulesets/types";
+import { RULESET_CONFIGS } from "./types";
+import type { ConfigSnapshotFor, RulesetVersionKey } from "./types";
 
 /**
  * Converts a single snake_case wire key to its camelCase snapshot equivalent.

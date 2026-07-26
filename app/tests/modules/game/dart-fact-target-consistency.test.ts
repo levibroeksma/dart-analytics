@@ -10,7 +10,7 @@ import {
   numbersPath,
   targetAt,
 } from "@modules/game/board-progression.module";
-import type { GameEngine } from "@modules/game/interfaces";
+import type { GameEngine } from "@modules/interfaces";
 import type {
   Bobs27State,
   DartFact,
@@ -18,7 +18,7 @@ import type {
   DoublesTrainingState,
   EngineFacts,
   SinglesTrainingState,
-} from "@modules/game/types";
+} from "@modules/types";
 import type {
   Bobs27Snapshot,
   DoublesTrainingSnapshot,
@@ -26,7 +26,7 @@ import type {
   ScoreTrainingSnapshot,
   SinglesSnapshot,
   TuodSnapshot,
-} from "@lib/game/rulesets/types";
+} from "@lib/types";
 
 /**
  * Mirrors `chk_dart_target_consistency` (migration `0007`, `database/`): a
