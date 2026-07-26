@@ -4,8 +4,8 @@ import {
   scoreTrainingEngineFactory,
 } from "@modules/game/score-training.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import type { ScoreTrainingState } from "@modules/game/types";
-import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
+import type { ScoreTrainingState } from "@modules/types";
+import type { ScoreTrainingSnapshot } from "@lib/types";
 
 const ROUNDS_10: ScoreTrainingSnapshot = {
   durationType: "ROUNDS",

@@ -1,13 +1,15 @@
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
 import type { SessionActiveData } from "@client/api/types";
+import type { ScoreInputBuffer } from "@modules/game/score-input.module";
+import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
+import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   RulesetVersionKey,
   ScoreTrainingSnapshot,
-} from "@lib/game/rulesets/types";
-import type { ScoreInputBuffer } from "@modules/game/score-input.module";
-import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/game/types";
-import type { SegmentTimer } from "@modules/ui/segment-timer.module";
+} from "./rulesets/types";
+
+export * from "./rulesets/types";
 
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;

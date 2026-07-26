@@ -26,6 +26,8 @@ jobs:
         run: bash scripts/check-game-engines.sh
       - name: Refinement-coverage gate
         run: bash scripts/check-refinement-coverage.sh
+      - name: Type-barrel gate
+        run: bash scripts/check-type-barrels.sh
 
   app:
     runs-on: ubuntu-latest

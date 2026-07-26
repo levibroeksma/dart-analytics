@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { doublesTrainingValidator } from "@services/rulesets/doubles-training/doubles-training.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   mode: "EASY",

@@ -1,4 +1,4 @@
-import type { SinglesSnapshot } from "@lib/game/rulesets/types";
+import type { SinglesSnapshot } from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
   boardScore,

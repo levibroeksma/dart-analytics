@@ -1,4 +1,4 @@
-import { FiveOhOneConfig } from "@lib/game/rulesets/types";
+import { FiveOhOneConfig } from "@lib/types";
 import type { RulesetValidator } from "../interfaces";
 import {
   QUICK_SCORE_MODES,

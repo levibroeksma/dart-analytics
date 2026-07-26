@@ -1,4 +1,4 @@
-import type { ScoreTrainingSnapshot } from "@lib/game/rulesets/types";
+import type { ScoreTrainingSnapshot } from "@lib/types";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {

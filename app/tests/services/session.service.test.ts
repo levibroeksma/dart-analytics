@@ -40,7 +40,7 @@ import {
   listActiveSessions,
   listConfigurationPresets,
 } from "@services/session.service";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const inlineRequest = {
   gameTypeKey: "SCORE_TRAINING",

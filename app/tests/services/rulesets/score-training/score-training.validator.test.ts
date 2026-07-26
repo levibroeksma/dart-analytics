@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { scoreTrainingValidator } from "@services/rulesets/score-training/score-training.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   duration_type: "ROUNDS",

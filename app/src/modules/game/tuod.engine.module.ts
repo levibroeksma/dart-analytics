@@ -1,4 +1,4 @@
-import type { TuodSnapshot } from "@lib/game/rulesets/types";
+import type { TuodSnapshot } from "@lib/types";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {

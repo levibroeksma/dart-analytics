@@ -9,8 +9,8 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import type { RulesetVersionKey } from "@lib/game/rulesets/types";
-import type { EngineFacts, TurnFact } from "@modules/game/types";
+import type { RulesetVersionKey } from "@lib/types";
+import type { EngineFacts, TurnFact } from "@modules/types";
 import type { ScoreTrainingPlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,

@@ -1,4 +1,4 @@
-import { TuodConfig } from "@lib/game/rulesets/types";
+import { TuodConfig } from "@lib/types";
 import type { RulesetValidator } from "../interfaces";
 import {
   QUICK_SCORE_MODES,

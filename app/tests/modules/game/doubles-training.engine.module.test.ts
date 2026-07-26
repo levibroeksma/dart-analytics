@@ -11,8 +11,8 @@ import type {
   DartObservation,
   DoublesTrainingState,
   EngineFacts,
-} from "@modules/game/types";
-import type { DoublesTrainingSnapshot } from "@lib/game/rulesets/types";
+} from "@modules/types";
+import type { DoublesTrainingSnapshot } from "@lib/types";
 
 const config: DoublesTrainingSnapshot = {
   mode: "EASY",

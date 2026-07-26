@@ -11,8 +11,8 @@ import type {
   DartObservation,
   EngineFacts,
   SinglesTrainingState,
-} from "@modules/game/types";
-import type { SinglesSnapshot } from "@lib/game/rulesets/types";
+} from "@modules/types";
+import type { SinglesSnapshot } from "@lib/types";
 
 const config: SinglesSnapshot = {
   orderMode: "LOW_TO_HIGH",

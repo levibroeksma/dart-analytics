@@ -1,4 +1,4 @@
-import type { FiveOhOneSnapshot } from "@lib/game/rulesets/types";
+import type { FiveOhOneSnapshot } from "@lib/types";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {

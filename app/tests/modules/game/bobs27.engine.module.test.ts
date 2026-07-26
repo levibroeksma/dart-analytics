@@ -7,8 +7,8 @@ import {
 } from "@modules/game/bobs27.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import type { Bobs27State, DartObservation } from "@modules/game/types";
-import type { Bobs27Snapshot } from "@lib/game/rulesets/types";
+import type { Bobs27State, DartObservation } from "@modules/types";
+import type { Bobs27Snapshot } from "@lib/types";
 
 const config: Bobs27Snapshot = {
   startScore: 27,

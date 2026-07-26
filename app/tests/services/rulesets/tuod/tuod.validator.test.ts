@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { tuodValidator } from "@services/rulesets/tuod/tuod.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   starting_target: 41,

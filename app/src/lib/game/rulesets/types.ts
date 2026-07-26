@@ -182,3 +182,63 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
           : K extends "501_V1"
             ? FiveOhOneSnapshot
             : TuodSnapshot;
+
+/**
+ * One boundary probe: a complete, parseable config plus the label the contract
+ * test reports it under.
+ */
+export type BoundaryProbe<TConfig extends Record<string, unknown>> = {
+  readonly label: string;
+  readonly config: TConfig;
+};
+
+/**
+ * Every boundary one refined field must accept and must reject. `accept` and
+ * `reject` are both required: a contract that only rejects proves nothing
+ * about the values the schema is supposed to let through, and vice versa.
+ */
+export type RefinedFieldContract<TConfig extends Record<string, unknown>> = {
+  readonly field: string;
+  readonly accept: readonly BoundaryProbe<TConfig>[];
+  readonly reject: readonly BoundaryProbe<TConfig>[];
+};
+
+/**
+ * A single Zod issue as the contract test reads it — only the path matters,
+ * since the test uses it to confirm a rejection was blamed on the field the
+ * contract claims to cover rather than on some unrelated part of the config.
+ */
+export type RefinementIssue = {
+  readonly path: readonly PropertyKey[];
+};
+
+export type RefinementParseResult =
+  | { readonly success: true }
+  | {
+      readonly success: false;
+      readonly error: { readonly issues: readonly RefinementIssue[] };
+    };
+
+/**
+ * The only capability the contract test needs from a schema. Structural rather
+ * than `z.ZodTypeAny` so a contract entry cannot smuggle in a loosely typed
+ * stand-in that silently accepts everything.
+ */
+export type ParsableSchema = {
+  safeParse(data: unknown): RefinementParseResult;
+};
+
+/**
+ * One schema's refinement contract. `schemaName` is the export name in
+ * `types.ts`; `scripts/check-refinement-coverage.sh` compares the set of names
+ * declared here against the set of schemas that actually carry a
+ * `.superRefine(`/`.refine(` there, and the contract test asserts `schema` is
+ * the very export that name refers to.
+ */
+export type SchemaRefinementContract<
+  TConfig extends Record<string, unknown> = Record<string, unknown>,
+> = {
+  readonly schemaName: string;
+  readonly schema: ParsableSchema;
+  readonly fields: readonly RefinedFieldContract<TConfig>[];
+};

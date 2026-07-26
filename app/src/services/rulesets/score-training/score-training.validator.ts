@@ -1,4 +1,4 @@
-import { ScoreTrainingConfig } from "@lib/game/rulesets/types";
+import { ScoreTrainingConfig } from "@lib/types";
 import type { RulesetValidator } from "../interfaces";
 import {
   QUICK_SCORE_MODES,

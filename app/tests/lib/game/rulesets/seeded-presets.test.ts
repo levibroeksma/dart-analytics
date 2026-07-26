@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import type { RulesetVersionKey } from "@lib/game/rulesets/types";
+import type { RulesetVersionKey } from "@lib/types";
 
 /**
  * Every `configuration_templates` preset seeded, copied verbatim from

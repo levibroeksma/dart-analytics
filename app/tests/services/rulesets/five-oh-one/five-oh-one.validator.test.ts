@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { fiveOhOneValidator } from "@services/rulesets/five-oh-one/five-oh-one.validator";
-import type { DartFactInput } from "@routes/sessions/types";
+import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   starting_score: 501,

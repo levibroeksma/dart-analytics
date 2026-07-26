@@ -7,9 +7,9 @@ import {
 } from "@modules/game/five-oh-one.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
-import type { GameEngine } from "@modules/game/interfaces";
-import type { FiveOhOneState, FiveOhOneVisitInput } from "@modules/game/types";
-import type { FiveOhOneSnapshot } from "@lib/game/rulesets/types";
+import type { GameEngine } from "@modules/interfaces";
+import type { FiveOhOneState, FiveOhOneVisitInput } from "@modules/types";
+import type { FiveOhOneSnapshot } from "@lib/types";
 
 const config = () =>
   ({
