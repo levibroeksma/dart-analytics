@@ -40,6 +40,58 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(false);
   });
 
+  it("accepts duration_value: 50, the ROUNDS ceiling", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "ROUNDS",
+        duration_value: 50,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects duration_value: 51, one past the ROUNDS ceiling", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "ROUNDS",
+        duration_value: 51,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts duration_value: 180, the MINUTES ceiling", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "MINUTES",
+        duration_value: 180,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects duration_value: 181, one past the MINUTES ceiling", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "MINUTES",
+        duration_value: 181,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
   it("rejects a config carrying a key the shared schema does not model", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: { ...validConfig, unknown_key: "drift" },
