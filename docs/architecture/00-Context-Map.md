@@ -6,7 +6,7 @@ updated: 2026-07-26
 -->
 # Context Map
 
-> **Version:** 1.7.1 (2026-07-26 — game engine review fixes D149–D152: CHECK bounds in the batch request schema, derived-value engine returns, `completedAt` at visit resolution, documented undo depth; prior 1.7.0 game engine contract D138–D144; 1.6.11 context-integrity guards D133)
+> **Version:** 1.7.2 (2026-07-26 — D156: type-raising governs type imports, value imports exempt; `06-API/03-Shared-Conventions.md` → 1.7.0 and the type-barrel gate row restated; prior 1.7.1 game engine review fixes D149–D152; 1.7.0 game engine contract D138–D144; 1.6.11 context-integrity guards D133)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -105,7 +105,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/00-Overview.md` | Frozen v1 API baseline: runtime, routes, auth, envelopes (2026-07-22) | canonical | ~2.6k |
 | `06-API/01-Implementation-Strategy.md` | REST endpoints, Cloudflare + Neon constraints | canonical | ~2.1k |
 | `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering, API error boundary (2026-07-22) | canonical | ~2.9k |
-| `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry (2026-07-22) | canonical | ~3.3k |
+| `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry; type-raising governs type imports, value imports exempt (2026-07-26) | canonical | ~4k |
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22) | canonical | ~5.1k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~2.6k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2.1k |
@@ -144,7 +144,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/services/rulesets/tuod/tuod.validator.ts` | `TUOD_V1` config + batch validation, ladder-derived turn-total bound (2026-07-26) | canonical |
 | `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
-| `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel import deeper than the importing file's own folder or the area root; blind spots documented in its header (2026-07-26) | canonical |
+| `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel **type** import deeper than the importing file's own folder or the area root (value imports exempt, D156); blind spots documented in its header (2026-07-26) | canonical |
 
 ## Context & history (repo root, `docs/`)
 
@@ -180,7 +180,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | Game engines | All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract (D138–D141, D153): config-driven, fact-log-owning, rehydratable; six ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
-| API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
+| API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `03`→1.7.0 type-vs-value barrel rule (D156, 2026-07-26); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
 | Application code | Auth middleware with route-class 401/403 handling + API error boundary (D131); frozen envelope/error helpers; player provisioning (D76); `POST /api/sessions` server-guards single-active (D132); logout flow (`signOut`, `LogoutButton`) complete; Score Training first-deploy write/read subset live (S1) |
 | Frontend docs | `07-Style-Guide.md` →0.2.0 — sky/glass/`surface`/`foreground` visual contract; legacy `bg-bg`/`text-fg`/old surface-badge-nav API retired (2026-07-22); Handbook `02`→0.2.1, `03`→0.2.1, `04`→0.1.1, `10`→0.1.3, overview `00`→0.3.4 — shared `session-recovery.ts` decision table (D118) + Score Training hard-gate completion / play-page results modal (D119, supersedes D112 for this flow) (2026-07-17); prior: prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15); type/interface barrel-raising universal, no `.ts` outside `lib/`/`pages/api/`, centralized error mapping, self-learning gate (D103–D107, 2026-07-16); original `07-Style-Guide.md` 0.1.0 (D108, 2026-07-16) |
 | Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |

@@ -2,12 +2,12 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-22
+updated: 2026-07-26
 -->
 
 # API Shared Conventions
 
-> **Version:** 1.6.0 (`SESSION_ALREADY_ACTIVE` added to error-code registry, 2026-07-22)
+> **Version:** 1.7.0 (type-raising governs type imports; value imports exempt — D156, 2026-07-26; prior 1.6.0 `SESSION_ALREADY_ACTIVE` added to error-code registry, 2026-07-22)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -141,6 +141,40 @@ stable path — `@<area>/types` — regardless of how deep the type is defined.
   children's barrels — never a grandchild's path directly. Each level raises
   the level immediately below it.
 - An area-root `types.ts` may additionally re-export one genuinely cross-cutting type from a sibling area (not a child) when that type has no better-owned home — e.g. `pages/api/types.ts` re-exporting `ErrorCode` from `@server/errors`. This is the one deliberate exception to "never reaches past its direct children," used sparingly.
+
+**What the raising rule governs — type imports, not value imports:** the chain above binds
+`import type`. Every type import reaches its declaration through the area-root barrel
+(`@<area>/types`, `@<area>/interfaces`) — never a deeper path into the defining folder, and
+never a parent-relative barrel path (`../types`, `../../interfaces`), which is the same
+violation spelled with dots instead of `@`. A type import is erased at compile time, so the
+barrel hop costs nothing at runtime and the chain may be as deep as the tree is.
+
+**Value imports are exempt.** A runtime binding — a Zod schema, a `const` object, a class, a
+function — may be imported from its direct module path. Barrels carry runtime weight: a value
+pulled through a barrel drags that barrel's whole subtree into the module graph, and a barrel
+that raises a folder which imports back down through it is a genuine cycle
+(`modules/game/engine.registry.ts` → validator → `@services/types` → back down). Routing a
+value through a barrel stays allowed wherever it already works and no cycle results — several
+do — but it is never required, and a direct module path is never a violation.
+`scripts/check-type-barrels.sh` therefore applies its import rules to type imports only, and
+reads a statement that binds any value at all (`import { type Foo, bar }`) as a value import.
+
+A file's own folder barrel — `./types`, `./interfaces` — remains the correct relative form for
+declarations that folder owns, for both kinds of import.
+
+Two standing consequences of the value rule, both already in the tree:
+
+- `lib/server/types.ts` is deliberately **not** raised into `lib/types.ts`. It is its own area
+  root (`@server/*`), and its `ErrorCode` derives from the runtime `ERROR_HTTP` map in
+  `lib/server/errors.ts`; raising it would pull that Worker-side value into the browser
+  barrel's runtime graph (D117).
+- A route handler importing the Zod schema it validates against (`UpdateSessionRequest`,
+  `EventsBatchRequest`) imports a *value*, so a direct path into the defining folder's
+  `types.ts` is legitimate. `@routes/types` is equally legitimate for it: `pages/api/types.ts`
+  re-exports the live binding rather than copying it, so both paths resolve to the same module
+  instance (D155).
+
+<!-- 2026-07-26 -->
 
 **Hard rule — no inline type/interface declarations in implementation files:** `export type` and `export interface` never appear in a `.service.ts`, `.repository.ts`, `.store.ts`, `.module.ts`, `.data.ts`, `.form.ts`, `.schema.ts`, or any other implementation file. The declaration's body lives in that file's folder-level `types.ts` (for `type`) or `interfaces.ts` (for `interface`); the implementation file imports it back via a relative import if it needs to reference it internally. This holds even for a type used only within its own module — placement is not gated on a second consumer showing up. A Zod-derived contract type follows the same rule applied to `z.infer<>`: the schema and its inferred type both live directly in `types.ts` (per the Zod section above), never in a separately named `*.schema.ts` file whose type is re-exported. Exempt: a `type` alias that is never `export`ed and used only within its own defining file (a pure internal implementation detail, not a public contract). Not exempt: any `interface`/`type` describing the public shape of an exported function, class constructor, or component — even if today only invoked with inline object literals — since it is part of that export's public contract. The two standing exceptions from the `interfaces.ts` section below are unchanged: `.astro` component `interface Props` (D92) and `env.d.ts`. <!-- 2026-07-17 -->
 
