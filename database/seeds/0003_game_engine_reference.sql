@@ -11,6 +11,11 @@
 -- /api/sessions` has nothing to look up for `BOBS27_V1` or
 -- `DOUBLES_TRAINING_V1`, regardless of the registered validator.
 --
+-- Also carries a Task 11 review correction (Task 12): drops the
+-- stale SINGLES_TRAINING -> TIMED_MODE/ROUNDS_MODE game_type_features
+-- mapping from 0001_reference_data.sql, which claims a duration
+-- capability SinglesConfig does not model. See the DELETE below.
+--
 -- UUID allocation (continues the 0001/0002 ranges):
 -- - 0198f000-* game_types              (...0005 BOBS27, ...0006 DOUBLES_TRAINING)
 -- - 0198f100-* ruleset_versions        (...0005 BOBS27_V1, ...0006 DOUBLES_TRAINING_V1)
@@ -142,4 +147,20 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
+-- ============================================================
+-- Correction: stale SINGLES_TRAINING game_type_features mapping
+-- (carried in from the Task 11 review)
+--
+-- 0001_reference_data.sql mapped SINGLES_TRAINING to TIMED_MODE (1) and
+-- ROUNDS_MODE (2), but SinglesConfig models no duration_type/duration_value
+-- (Task 11 stripped both from the Singles preset) — the mapping claims a
+-- capability the game does not have. 0001's INSERT uses ON CONFLICT DO
+-- NOTHING, so removing the two rows there (also done in this task) only
+-- keeps a *fresh* seed from re-creating them; an already-seeded database
+-- still has them and needs this explicit DELETE, the same pattern as the
+-- dropped Singles preset row in 0002_default_templates.sql.
+-- ============================================================
+DELETE FROM game_type_features
+WHERE game_type_id = '0198f000-0000-7000-8000-000000000003'
+    AND game_feature_id IN (1, 2);
 COMMIT;
