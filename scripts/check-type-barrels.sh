@@ -14,11 +14,11 @@
 #      its parent folder's matching barrel, and a barrel only ever raises a
 #      DIRECT child (`export * from "./<child>/types"`) — never a grandchild,
 #      never an alias.
-#   3. ALIASED CONSUMPTION. An aliased barrel import resolves to an area root
-#      (`@lib/types`, `@modules/types`, `@services/types`, `@routes/types`, ...)
-#      and never to a deeper folder; and a file never reaches its OWN folder's
-#      barrel through an alias pointing back at itself (use `./types`).
-#   4. RELATIVE CONSUMPTION. A RELATIVE barrel import (`./types`,
+#   3. ALIASED CONSUMPTION. An aliased barrel TYPE import resolves to an area
+#      root (`@lib/types`, `@modules/types`, `@services/types`, `@routes/types`,
+#      ...) and never to a deeper folder; and a file never reaches its OWN
+#      folder's barrel through an alias pointing back at itself (use `./types`).
+#   4. RELATIVE CONSUMPTION. A RELATIVE barrel TYPE import (`./types`,
 #      `../types`, `../../interfaces`, `./sibling/types`, ...) resolves only
 #      to the importing file's OWN folder — `./types` / `./interfaces` and
 #      nothing else. Any relative form that reaches a different folder
@@ -35,6 +35,40 @@
 #      the documented, legitimate mechanics of the raising chain, not a
 #      consumer dodging rule 3.
 #
+# TYPE IMPORTS vs VALUE IMPORTS (rules 3 and 4 only). The raising convention
+# governs TYPE imports. A type import is erased at compile time, so the barrel
+# hop it takes costs nothing at runtime. A VALUE import — a Zod schema, a const
+# object, a class, a function — is exempt and may use its direct module path,
+# because a value pulled through a barrel drags that barrel's whole subtree into
+# the runtime module graph and can cycle (registry -> validator -> @services/types
+# -> back down). Rules 3 and 4 therefore skip any statement that binds a value.
+# Classification, per statement (Prettier wraps long lists, so a statement is
+# joined onto one line before it is classified):
+#
+#   type  — `import type ...` (dropped whole by the compiler), or a braced list
+#           whose EVERY specifier carries the inline `type` modifier
+#           (`import { type A, type B } from ...`). The braced form does still
+#           emit a bare `import {} from "..."` under `verbatimModuleSyntax`
+#           (on via astro/tsconfigs/base), but the importing file needs no
+#           binding out of it, so the reason for the exemption does not apply
+#           and the stricter reading is the safe one.
+#   value — anything that binds at least one runtime name: a plain named
+#           import, a default import, a namespace import, a side-effect import,
+#           and — deliberately — a MIXED statement such as
+#           `import { type Foo, bar } from ...`. One value binding is enough to
+#           create the runtime edge the exemption exists for, so the safe
+#           reading is that the whole statement is a value import.
+#
+# The exemption cannot be used to smuggle a type past rules 3 and 4: with
+# `verbatimModuleSyntax` enabled, importing a type without the `type` keyword is
+# a compile error (ts(1484)), which `npm run check` fails on. A type import can
+# therefore only ever present itself to this gate AS a type import.
+#
+# Re-export statements (`export * from`, `export type { ... } from`,
+# `export { ... } from`) stay fully checked by rule 3 regardless of what they
+# carry: they are the raising chain's own mechanics, governed by rule 2's
+# raising requirement, not by a consumer's freedom to reach for a value.
+#
 # Area roots are read from app/tsconfig.json's `paths` rather than hardcoded,
 # so adding an alias cannot silently desynchronise this gate.
 #
@@ -48,13 +82,20 @@
 #     lib/client/api/types.ts and pages/api/types.ts for ErrorCode), so it is
 #     permitted everywhere a barrel is permitted. Only `export *` is depth-
 #     checked. A barrel could therefore name-forward a grandchild's type.
-#   * A relative import whose specifier spans a `from` line that also embeds
-#     the substring "export" inside an identifier (e.g. a hypothetical type
-#     named `...Export...`) — rule 4 skips any line starting with `export`
-#     (after whitespace) to avoid double-flagging rule 2's territory, and
-#     that skip is a line-start check, not a word-boundary check. Prettier's
-#     one-import-per-source-line output makes this a theoretical gap in this
-#     codebase today, not an observed one.
+#   * Anything hiding behind a statement that rule 4 classifies as a re-export.
+#     That skip is now keyword-anchored (`export` followed by whitespace at the
+#     start of the joined statement), so an identifier merely beginning with
+#     "export" no longer triggers it — but a genuine `export ... from` relative
+#     specifier is still rule 2's territory and rule 4 does not second-guess it.
+#   * Two import statements sharing one source line. Statement joining ends at
+#     the first module specifier, so the second statement on that line is not
+#     classified or checked. Prettier emits one import per line, so this is
+#     theoretical here.
+#   * A dynamic `import("@lib/deep/types")`. It is a runtime construct — a value
+#     import by definition — so the exemption above covers it by design. The one
+#     form this loses is a dynamic import used purely in type position
+#     (`typeof import("@lib/deep/types")`), which is erased but reads as a value.
+#     No barrel is reached dynamically anywhere in the tree today.
 #   * Whether a raised type is the RIGHT type, or whether a barrel's contents
 #     make sense. This is a structural gate, not a design review.
 #
@@ -118,6 +159,80 @@ strip_comments() {
     }
     { print NR "\t" line }
   ' "$1"
+}
+
+# Emits "LINENO<TAB>statement" for every import/export statement in a file, with
+# a multi-line statement joined onto one line and LINENO the line it starts on.
+# Prettier wraps long specifier lists, so `} from "@services/types";` is often a
+# continuation line — classifying it needs the whole statement, not that line.
+import_statements() {
+  strip_comments "$1" | awk '
+    BEGIN { dq = sprintf("%c", 34); sq = sprintf("%c", 39); open = 0 }
+    {
+      lineno = $0
+      sub(/\t.*$/, "", lineno)
+      text = $0
+      sub(/^[0-9]*\t/, "", text)
+      if (!open) {
+        if (text !~ /^[[:space:]]*(import|export)([[:space:]]|\{|\*)/) next
+        start = lineno
+        buf = text
+        open = 1
+      } else {
+        buf = buf " " text
+      }
+      if (buf ~ ("from[[:space:]]*[" dq sq "]") \
+        || buf ~ ("^[[:space:]]*import[[:space:]]*[" dq sq "]") \
+        || buf ~ /;[[:space:]]*$/) {
+        print start "\t" buf
+        open = 0
+        buf = ""
+      }
+    }
+    END { if (open) print start "\t" buf }
+  '
+}
+
+# "type" (binds nothing at runtime), "value" (binds at least one runtime name),
+# or "reexport" (an `export ... from` statement). See the TYPE vs VALUE note in
+# this file's header for why a mixed statement counts as a value import.
+stmt_kind() {
+  stmt=$1
+
+  if printf '%s\n' "$stmt" | grep -qE '^[[:space:]]*export[[:space:]]'; then
+    printf 'reexport\n'
+    return
+  fi
+
+  if printf '%s\n' "$stmt" | grep -qE '^[[:space:]]*import[[:space:]]+type[[:space:]{]'; then
+    printf 'type\n'
+    return
+  fi
+
+  # A braced list with nothing between `import` and `{` binds no value only when
+  # every specifier carries the inline `type` modifier. `import Foo, { type A }`
+  # keeps a default binding, so it never reaches this branch.
+  if printf '%s\n' "$stmt" | grep -qE '^[[:space:]]*import[[:space:]]*\{'; then
+    inner=${stmt#*\{}
+    inner=${inner%%\}*}
+    kind=type
+    set -f
+    old_ifs=$IFS
+    IFS=,
+    for piece in $inner; do
+      case "$piece" in
+        *[![:space:]]*) ;;
+        *) continue ;;
+      esac
+      printf '%s\n' "$piece" | grep -qE '^[[:space:]]*type[[:space:]]+[A-Za-z_$]' || kind=value
+    done
+    IFS=$old_ifs
+    set +f
+    printf '%s\n' "$kind"
+    return
+  fi
+
+  printf 'value\n'
 }
 
 FAIL=0
@@ -199,8 +314,9 @@ while IFS= read -r barrel; do
 done < <(find "$SRC_ROOT" -type f \( -name "types.ts" -o -name "interfaces.ts" \) | sort)
 
 # ---------------------------------------------------------------------------
-# Rule 3 — aliased barrel imports stop at an area root, and never point a file
-# back at its own folder.
+# Rule 3 — aliased barrel TYPE imports stop at an area root, and never point a
+# file back at its own folder. Value imports are exempt (header: TYPE vs VALUE);
+# re-export statements stay checked.
 # ---------------------------------------------------------------------------
 SCAN_ROOTS="$SRC_ROOT"
 [ -d "$TEST_ROOT" ] && SCAN_ROOTS="$SRC_ROOT $TEST_ROOT"
@@ -211,6 +327,11 @@ while IFS= read -r file; do
     [ -z "$hit" ] && continue
     lineno=${hit%%	*}
     body=${hit#*	}
+
+    # A value import may use its direct module path — the raising rule binds
+    # type imports only.
+    [ "$(stmt_kind "$body")" = "value" ] && continue
+
     for spec in $(printf '%s' "$body" | grep -oE '"@[A-Za-z0-9]+/[^"]+"' | tr -d '"'); do
       case "$spec" in
         */types | */interfaces) ;;
@@ -240,16 +361,17 @@ while IFS= read -r file; do
         IMPORT_HITS=$((IMPORT_HITS + 1))
       fi
     done
-  done < <(strip_comments "$file" | grep -E "^[0-9]+	.*(from[[:space:]]*\"@|import[[:space:]]*\([[:space:]]*\"@)")
+  done < <(import_statements "$file" | grep -F '"@')
 done < <(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | sort)
 
 # ---------------------------------------------------------------------------
-# Rule 4 — relative barrel imports stop at the importing file's OWN folder.
+# Rule 4 — relative barrel TYPE imports stop at the importing file's OWN folder.
 # Same violation as rule 3 (reaching past the area barrel into a defining
 # folder, or past a sibling/child folder), just spelled with "../" or "./x/"
-# instead of an "@" alias. Barrel files (types.ts/interfaces.ts) are exempt:
-# raising a direct child and importing from a direct child to compose the
-# parent's own types are both legitimate (rule 2's territory).
+# instead of an "@" alias. Value imports are exempt for the same reason they are
+# under rule 3 (header: TYPE vs VALUE). Barrel files (types.ts/interfaces.ts)
+# are exempt too: raising a direct child and importing from a direct child to
+# compose the parent's own types are both legitimate (rule 2's territory).
 # ---------------------------------------------------------------------------
 REPO_ROOT=$(pwd -P)
 
@@ -267,11 +389,9 @@ while IFS= read -r file; do
     lineno=${hit%%	*}
     body=${hit#*	}
 
-    # Skip re-export raising lines (rule 2's territory) — only look at
-    # genuine consumption imports.
-    case "$body" in
-      [[:space:]]*export* | export*) continue ;;
-    esac
+    # Skip re-export raising lines (rule 2's territory) and value imports (they
+    # may use a direct module path) — only type consumption imports are checked.
+    [ "$(stmt_kind "$body")" = "type" ] || continue
 
     spec=$(printf '%s' "$body" \
       | grep -oE "['\"]\.\.?/[^'\"]+['\"]" | head -1 | tr -d "'\"")
@@ -301,15 +421,15 @@ while IFS= read -r file; do
       FAIL=1
       RELATIVE_HITS=$((RELATIVE_HITS + 1))
     fi
-  done < <(strip_comments "$file" | grep -E "^[0-9]+	.*from[[:space:]]*['\"]\.\.?/")
+  done < <(import_statements "$file" | grep -E "from[[:space:]]*['\"]\.\.?/")
 done < <(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | sort)
 
 if [ "$FAIL" -ne 0 ]; then
-  echo "FAIL: type-barrel gate found $DECL_HITS inline declaration(s), $RAISE_HITS raising break(s), $IMPORT_HITS deep aliased barrel import(s), $RELATIVE_HITS deep relative barrel import(s)." >&2
+  echo "FAIL: type-barrel gate found $DECL_HITS inline declaration(s), $RAISE_HITS raising break(s), $IMPORT_HITS deep aliased barrel type import(s), $RELATIVE_HITS deep relative barrel type import(s)." >&2
   echo "      Rule: docs/architecture/06-API/03-Shared-Conventions.md, \"\`types.ts\` barrels (type-raising)\"." >&2
   exit 1
 fi
 
 BARRELS=$(find "$SRC_ROOT" -type f \( -name "types.ts" -o -name "interfaces.ts" \) | wc -l | tr -d ' ')
 SCANNED=$(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | wc -l | tr -d ' ')
-echo "OK: $BARRELS type barrel(s) fully raised; no inline exported type/interface and no deep aliased or relative barrel import across $SCANNED scanned file(s)."
+echo "OK: $BARRELS type barrel(s) fully raised; no inline exported type/interface and no deep aliased or relative barrel TYPE import across $SCANNED scanned file(s)."
