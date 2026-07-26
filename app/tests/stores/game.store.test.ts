@@ -189,7 +189,31 @@ describe("gameStore", () => {
   });
 
   describe("D91 store version", () => {
-    it("discards persisted state written by an incompatible store version", () => {
+    /**
+     * Real Alpine resolves every `$persist` field to its hydrated value
+     * before calling a registered store's `init()` (`initInterceptors` runs
+     * first in `alpinejs/src/store.js`). The version check must live in
+     * `init()`, not run eagerly in the factory body: at factory-construction
+     * time in real Alpine, `_v` is still the unresolved interceptor Alpine's
+     * persist plugin returns, so an eager `!==` comparison there is never
+     * equal and would discard on every single page load regardless of the
+     * real persisted version. This test pins that the factory itself does
+     * not touch state — only `init()`, called after the fields hold their
+     * real values, may discard.
+     */
+    it("does not discard eagerly — the factory leaves incompatible state untouched until init() runs", () => {
+      const store = gameStore(
+        rehydratingPersistFactory({
+          "game._v": 1,
+          "game.sessionId": "stale-session",
+        }),
+      );
+
+      expect(store.sessionId).toBe("stale-session");
+      expect(store._v).toBe(1);
+    });
+
+    it("discards persisted state written by an incompatible store version once init() runs", () => {
       const store = gameStore(
         rehydratingPersistFactory({
           "game._v": 1,
@@ -207,6 +231,8 @@ describe("gameStore", () => {
           "game.idempotencyKey": "stale-key",
         }),
       );
+
+      store.init();
 
       expect(store.turns).toEqual([]);
       expect(store.stages).toEqual([]);
@@ -227,10 +253,12 @@ describe("gameStore", () => {
         rehydratingPersistFactory({ "game._v": 1, "game.sessionId": "stale" }),
       );
 
+      store.init();
+
       expect(store._v).toBe(2);
     });
 
-    it("rehydrates state written by the current store version", () => {
+    it("rehydrates state written by the current store version without discarding", () => {
       const store = gameStore(
         rehydratingPersistFactory({
           "game._v": 2,
@@ -239,6 +267,8 @@ describe("gameStore", () => {
           "game.turns": FACTS.turns,
         }),
       );
+
+      store.init();
 
       expect(store.sessionId).toBe("live-session");
       expect(store.turns).toEqual(FACTS.turns);

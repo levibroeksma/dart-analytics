@@ -12,11 +12,20 @@ const STORE_VERSION = 2;
  * store only mirrors it, so `recordFacts` replaces it wholesale rather than
  * appending — the two can never drift.
  *
- * D91: `_v` is compared against `STORE_VERSION` as soon as the fields have
- * rehydrated. State left by an incompatible version is discarded through
- * `reset()` before any caller can read it — a v1 fact log survives into a v2
- * session otherwise, and its turns carry no `stageClientKey`, which makes the
- * session permanently un-uploadable.
+ * D91: `_v` is compared against `STORE_VERSION` in `init()`, discarding state
+ * left by an incompatible version through `reset()` before any caller can
+ * read it — a v1 fact log survives into a v2 session otherwise, and its turns
+ * carry no `stageClientKey`, which makes the session permanently
+ * un-uploadable.
+ *
+ * The check lives in `init()`, not in this factory's own body. Alpine's
+ * `$persist` fields are `Alpine.interceptor` placeholders until `Alpine.store()`
+ * resolves them (`initInterceptors`, called before `init()` — see
+ * `alpinejs/src/store.js`); reading `this._v` any earlier compares that
+ * placeholder object to `STORE_VERSION` and is never equal, so the discard
+ * would fire on every load regardless of the real persisted value. Alpine
+ * calls a registered store's `init()` automatically once those placeholders
+ * are resolved, which is what makes the comparison here meaningful.
  *
  * @param persist - Must return a fresh Alpine `$persist` instance per call
  *   (D120). Reusing one `persist()` across fields collapses every `.as()` key
@@ -24,7 +33,7 @@ const STORE_VERSION = 2;
  *   `turns` hydrates as `null` from `game.idempotencyKey`.
  */
 export function gameStore(persist: PersistFactory) {
-  const store = {
+  return {
     _v: persist()(STORE_VERSION).as("game._v"),
     gameTypeKey: persist()<string | null>(null).as("game.gameTypeKey"),
     rulesetVersionKey: persist()<RulesetVersionKey | null>(null).as(
@@ -44,6 +53,14 @@ export function gameStore(persist: PersistFactory) {
     timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist()<boolean>(false).as("game.timerExpired"),
     idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),
+
+    /** Called by Alpine once this store's `$persist` fields have resolved. */
+    init() {
+      if (this._v !== STORE_VERSION) {
+        this.reset();
+        this._v = STORE_VERSION;
+      }
+    },
 
     startSession(input: {
       gameTypeKey: string;
@@ -88,11 +105,4 @@ export function gameStore(persist: PersistFactory) {
       this.idempotencyKey = null;
     },
   };
-
-  if (store._v !== STORE_VERSION) {
-    store.reset();
-    store._v = STORE_VERSION;
-  }
-
-  return store;
 }

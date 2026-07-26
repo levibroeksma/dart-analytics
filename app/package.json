@@ -17,7 +17,7 @@
     "env:prod": "neon env pull --branch main --file .env.production && npm run env:mirror -- --file .env.production",
     "db:status": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations status",
     "db:migrate": "dbmate --url \"$DATABASE_URL\" --migrations-dir ../database/migrations up",
-    "db:seed": "tsx scripts/seed.ts",
+    "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "seed:dev-auth": "tsx --env-file=.env scripts/seed-dev-auth.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
     "smoke": "tsx scripts/smoke.ts",
