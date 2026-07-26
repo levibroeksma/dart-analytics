@@ -489,6 +489,22 @@ describe("DoublesTrainingEngine.undo", () => {
     expect(engine.facts()).toEqual(before);
   });
 
+  it("is an exact inverse of record over facts() when a third miss closed the turn", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservationFor(engine.state()));
+    const before = engine.facts();
+
+    engine.record(missObservationFor(engine.state()));
+    expect(engine.state().targetIndex).toBe(1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(before);
+    expect(engine.state().targetIndex).toBe(0);
+    expect(engine.state().dartsThisVisit).toBe(2);
+    expect(engine.state().outcomes).toEqual([]);
+  });
+
   it("reopens the visit when undoing a hit that ended it early, rather than leaving it closed", () => {
     const engine = new DoublesTrainingEngine(config);
     engine.record(missObservationFor(engine.state()));
