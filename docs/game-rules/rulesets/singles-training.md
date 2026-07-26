@@ -95,7 +95,7 @@ N/A.
 ## Capture
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — every dart thrown is recorded.
-- **One dart's fact:** intended = the current target's **number only**, with **no intended ring**; single, double and treble on that segment are all valid intentional outcomes, so recording one would fabricate an intent the player never held. Hit = whatever landed; `score` = the **board** score of that dart (T1 = 3, S20 = 20, inner bull = 50) — never the 1/2/3 training points.
+- **One dart's fact:** intended = **nothing stored** — both the target number and the ring are null; single, double and treble on the current segment are all valid intentional outcomes, so recording either half of the pair would fabricate an intent the player never held (and a target number with no ring is rejected by `chk_dart_target_consistency` regardless). The intended target is recoverable from the visit index instead, since Singles plays one fixed target per visit. Hit = whatever landed; `score` = the **board** score of that dart (T1 = 3, S20 = 20, inner bull = 50) — never the 1/2/3 training points.
 - **Stage type:** one `EXERCISE_BLOCK` for the whole run.
 - **Derived, never stored:** training points. They follow from the hit segment and ring against the visit's target.
 

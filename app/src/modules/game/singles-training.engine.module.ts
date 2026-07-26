@@ -156,26 +156,30 @@ export class SinglesTrainingEngine implements GameEngine<
 
   /**
    * Appends one dart to the open visit, opening a new one when the last is
-   * already 3 darts deep. `intendedTargetNumber` captures the segment this
-   * dart was thrown at (the target's number, 25 for BULL); `intendedZoneKey`
-   * is always `null` — unlike Bob's 27, Singles Training treats single,
-   * double and treble on that segment as equally valid intentional outcomes
-   * (differing only in point value), so no single ring is "the" intended
-   * one, and recording one would fabricate an intent the player never held.
+   * already 3 darts deep. Both `intendedTargetNumber` and `intendedZoneKey`
+   * are always `null` — the whole intention pair, not just the zone. Unlike
+   * Bob's 27, Singles Training treats single, double and treble on the
+   * current segment as equally valid intentional outcomes (differing only in
+   * point value), so no single ring is "the" intended one; recording a target
+   * number without a ring would still assert an intention the player never
+   * held, and a target number with a null zone is rejected outright by
+   * `chk_dart_target_consistency` (migration `0007`), which only admits both
+   * intention columns NULL or the zone NOT NULL. Nothing analytic is lost:
+   * Singles plays exactly one target per visit in a fixed, configured order,
+   * so the intended target is always recoverable from the visit index
+   * (`targetIndex`) without storing it per dart. Do not restore either field.
    * The fact's `score` is the dart's board score, never the training points
    * the derived total adds.
    * @throws when the session has already ended; the fact log is left untouched.
    */
   record(observation: DartObservation): SinglesTrainingState {
     const before = this.deriveState();
-    const target = targetAt(numbersPath(), before.targetIndex);
     const after = applySinglesTrainingDart(this.config, before, observation);
 
     const openTurn = this.openOrCreateTurn();
     const dart: DartFact = {
       sequence: openTurn.darts.length + 1,
-      intendedTargetNumber:
-        target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
+      intendedTargetNumber: null,
       intendedZoneKey: null,
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
