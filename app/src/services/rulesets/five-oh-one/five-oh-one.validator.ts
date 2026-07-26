@@ -1,4 +1,4 @@
-import { ScoreTrainingConfig } from "@lib/game/rulesets/types";
+import { FiveOhOneConfig } from "@lib/game/rulesets/types";
 import type { RulesetValidator } from "../interfaces";
 import type { BatchValidationResult, ConfigValidationResult } from "../types";
 
@@ -6,7 +6,11 @@ const ALLOWED_CAPTURE_MODE = "RECREATIONAL";
 const ALLOWED_INPUT_MODE = "QUICK_SCORE";
 const DEFAULT_MAX_VISIT_SCORE = 180;
 
-export const scoreTrainingValidator: RulesetValidator = {
+/**
+ * 501 is RECREATIONAL + QUICK_SCORE: every turn is a visit total with no
+ * dart rows, capped at the ruleset's own `max_visit_score`.
+ */
+export const fiveOhOneValidator: RulesetValidator = {
   validateConfig({
     config,
     captureModeKey,
@@ -19,27 +23,23 @@ export const scoreTrainingValidator: RulesetValidator = {
       return {
         valid: false,
         issues: [
-          `Score Training V1 only supports ${ALLOWED_CAPTURE_MODE} + ${ALLOWED_INPUT_MODE}`,
+          `501 V1 only supports ${ALLOWED_CAPTURE_MODE} + ${ALLOWED_INPUT_MODE}`,
         ],
       };
     }
-    const parsed = ScoreTrainingConfig.safeParse(config);
+    const parsed = FiveOhOneConfig.safeParse(config);
     if (!parsed.success) {
       return { valid: false, issues: parsed.error.issues };
     }
     return { valid: true, config: parsed.data };
   },
 
-  validateBatch({ config, batch, existingTurnCount }): BatchValidationResult {
-    const durationType = config.duration_type as "ROUNDS" | "MINUTES";
-    const durationValue = config.duration_value as number;
+  validateBatch({ config, batch }): BatchValidationResult {
     const maxVisitScore =
       (config.max_visit_score as number | undefined) ?? DEFAULT_MAX_VISIT_SCORE;
 
-    let newTurnCount = 0;
     for (const stage of batch.stages) {
       for (const turn of stage.turns) {
-        newTurnCount++;
         if (turn.darts.length > 0) {
           return {
             valid: false,
@@ -59,17 +59,6 @@ export const scoreTrainingValidator: RulesetValidator = {
           };
         }
       }
-    }
-
-    if (
-      durationType === "ROUNDS" &&
-      existingTurnCount + newTurnCount > durationValue
-    ) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`session is limited to ${durationValue} visits`],
-      };
     }
 
     return { valid: true };

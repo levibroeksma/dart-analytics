@@ -55,9 +55,7 @@ export function initialFiveOhOneState(
  * bust matrix in precedence order: an overshoot busts; leaving exactly 1 busts
  * because 1 cannot be finished on a double (D1 is 2); reaching exactly 0 busts
  * unless the visit declares `finishedOnDouble`. A bust scores 0 and leaves the
- * remaining score untouched. `dartsAtDouble` counts darts thrown at a double
- * for analytics and is deliberately not consulted — only the dart that reached
- * zero decides the leg.
+ * remaining score untouched.
  */
 function resolveFiveOhOneVisit(
   remainingScore: number,
@@ -93,9 +91,7 @@ function resolveFiveOhOneVisit(
  * only reaches `WON` once `legsWon` reaches `config.legsToWin`.
  * `config.checkIn` and `config.checkOut` each carry exactly one value in
  * `501_V1` (`STRAIGHT_IN` / `DOUBLE_OUT`), so the straight-in start and
- * double-out finish are applied directly rather than branched on;
- * `config.maxDartsPerTurn` describes a visit the caller reports as a total, so
- * it constrains `dartsUsed` at the input's type level rather than here.
+ * double-out finish are applied directly rather than branched on.
  * @throws when the session is already complete, or when `scoreAttempted` is
  *   not a whole number within `0..config.maxVisitScore`; the caller's state is
  *   left untouched either way.

@@ -31,8 +31,6 @@ function winOneLeg(engine: FiveOhOneGameEngine): FiveOhOneState {
   return engine.record({
     scoreAttempted: 40,
     finishedOnDouble: true,
-    dartsUsed: 2,
-    dartsAtDouble: 1,
   });
 }
 
@@ -85,7 +83,7 @@ describe("applyFiveOhOneVisit — legal reduction", () => {
     };
     const next = applyFiveOhOneVisit(
       state,
-      { scoreAttempted: 60, finishedOnDouble: true, dartsAtDouble: 1 },
+      { scoreAttempted: 60, finishedOnDouble: true },
       config(),
     );
     expect(next.remainingScore).toBe(40);
@@ -162,7 +160,7 @@ describe("applyFiveOhOneVisit — bust matrix", () => {
   it("ignores a finish flag on an overshoot bust", () => {
     const next = applyFiveOhOneVisit(
       at(40),
-      { scoreAttempted: 50, finishedOnDouble: true, dartsAtDouble: 3 },
+      { scoreAttempted: 50, finishedOnDouble: true },
       config(),
     );
     expect(next.remainingScore).toBe(40);
@@ -172,7 +170,7 @@ describe("applyFiveOhOneVisit — bust matrix", () => {
   it("ignores a finish flag on a leaves-exactly-1 bust", () => {
     const next = applyFiveOhOneVisit(
       at(41),
-      { scoreAttempted: 40, finishedOnDouble: true, dartsAtDouble: 1 },
+      { scoreAttempted: 40, finishedOnDouble: true },
       config(),
     );
     expect(next.remainingScore).toBe(41);
@@ -196,7 +194,7 @@ describe("applyFiveOhOneVisit — double out", () => {
   it("wins the leg when the dart that reached zero was a double", () => {
     const next = applyFiveOhOneVisit(
       at(40),
-      { scoreAttempted: 40, finishedOnDouble: true, dartsUsed: 1 },
+      { scoreAttempted: 40, finishedOnDouble: true },
       config(),
     );
     expect(next.remainingScore).toBe(0);
@@ -204,10 +202,10 @@ describe("applyFiveOhOneVisit — double out", () => {
     expect(next.status).toBe("WON");
   });
 
-  it("busts when the finishing dart was not a double, however many darts were at a double", () => {
+  it("busts when the finishing dart was not a double", () => {
     const next = applyFiveOhOneVisit(
       at(40),
-      { scoreAttempted: 40, finishedOnDouble: false, dartsAtDouble: 3 },
+      { scoreAttempted: 40, finishedOnDouble: false },
       config(),
     );
     expect(next.remainingScore).toBe(40);
@@ -280,7 +278,6 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     const busted = engine.record({
       scoreAttempted: 40,
       finishedOnDouble: false,
-      dartsAtDouble: 2,
     });
 
     expect(busted.status).toBe("IN_PROGRESS");
@@ -296,8 +293,6 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     const won = engine.record({
       scoreAttempted: 40,
       finishedOnDouble: true,
-      dartsUsed: 2,
-      dartsAtDouble: 1,
     });
 
     expect(won.status).toBe("WON");
@@ -480,7 +475,6 @@ describe("FiveOhOneEngine.wouldComplete", () => {
       engine.wouldComplete({
         scoreAttempted: 40,
         finishedOnDouble: false,
-        dartsAtDouble: 2,
       }),
     ).toBe(false);
   });
@@ -574,10 +568,12 @@ describe("FiveOhOneEngine.undo", () => {
   it("keeps the new leg open when undoing a visit recorded inside it", () => {
     const engine = new FiveOhOneEngine({ ...config(), legsToWin: 2 });
     winOneLeg(engine);
+    const before = engine.facts();
     engine.record({ scoreAttempted: 60 });
     expect(engine.state().remainingScore).toBe(441);
 
     expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(before);
     expect(engine.facts().stages).toHaveLength(2);
     expect(engine.state()).toEqual({
       remainingScore: 501,

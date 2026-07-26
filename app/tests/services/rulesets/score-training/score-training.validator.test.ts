@@ -31,9 +31,18 @@ describe("scoreTrainingValidator.validateConfig", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {
         duration_type: "ROUNDS",
-        duration_value: 999,
-        max_darts_per_turn: 3,
+        duration_value: 10,
+        max_darts_per_turn: 4,
       },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a config carrying a key the shared schema does not model", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: { ...validConfig, unknown_key: "drift" },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

@@ -12,5 +12,3 @@ export type BatchValidationResult =
         | "BATCH_REFERENCE_MISSING";
       issues?: unknown;
     };
-
-export * from "./score-training/types";
