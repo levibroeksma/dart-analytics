@@ -56,13 +56,16 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 - Completed gameplay is immutable; corrections create new records.
 - Store facts; statistics live in views (`v_*`) only — never persisted.
+- An engine-only task must still prove its state shape can be persisted: name the capture/input mode, the stage type, and the `turns`/`darts` mapping in the spec before implementation. Deferring persistence is allowed; choosing a state shape that cannot express it is not. (2026-07-26)
 - IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
 - Never modify applied migrations (`0001`–`0016`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
+- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. (2026-07-26)
 - No git worktrees: check out task branches directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`. Declared preference — skills that offer worktree isolation should skip it without asking.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
+- When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety. (2026-07-26)
 
 ---
 

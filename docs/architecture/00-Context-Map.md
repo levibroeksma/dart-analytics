@@ -151,8 +151,8 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
-| `docs/superpowers/specs/2026-07-25-game-engine-review-design.md` | Game engine PR review: findings C1/C2, I1–I8, M1–M6, P1–P4, ST1–ST7 — all closed; resolutions are canonical in Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `06-Spec/04-Runtime-Layer.md` and `DECISIONS.md` D138–D144 (2026-07-26) | historical |
-| `docs/superpowers/plans/2026-07-25-game-engine-contract-hardening.md` | The 14-task plan that closed them (2026-07-26) | historical |
+| `docs/superpowers/specs/2026-07-25-game-engine-review-design.md` | Game engine PR review: findings C1/C2, I1–I8, M1–M6, P1–P4, ST1–ST7 — closed except **P1** (branch carries no PR against `main` yet — pending this task's completion) and **P3** (knowledge graph stale; `graphify` CLI absent in this environment); other resolutions are canonical in Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `06-Spec/04-Runtime-Layer.md` and `DECISIONS.md` D138–D144 (2026-07-26) | historical |
+| `docs/superpowers/plans/2026-07-25-game-engine-contract-hardening.md` | The 14-task plan closing the findings; P1 and P3 remain open as of Task 14 (2026-07-26) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
