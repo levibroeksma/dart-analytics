@@ -1,12 +1,15 @@
 import { ScoreTrainingConfig } from "@lib/types";
-import type { RulesetValidator } from "../interfaces";
+import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_MODES,
   exceedsRoundsLimit,
   isQuickScoreCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
-import type { BatchValidationResult, ConfigValidationResult } from "../types";
+import type {
+  BatchValidationResult,
+  ConfigValidationResult,
+} from "@services/types";
 
 const DEFAULT_MAX_VISIT_SCORE = 180;
 

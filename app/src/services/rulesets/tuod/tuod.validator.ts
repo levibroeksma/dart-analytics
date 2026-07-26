@@ -1,12 +1,15 @@
 import { TuodConfig } from "@lib/types";
-import type { RulesetValidator } from "../interfaces";
+import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_MODES,
   exceedsRoundsLimit,
   isQuickScoreCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
-import type { BatchValidationResult, ConfigValidationResult } from "../types";
+import type {
+  BatchValidationResult,
+  ConfigValidationResult,
+} from "@services/types";
 
 /** The highest three-dart double-out finish on a standard board (T20 T20 D25). */
 const MAX_THREE_DART_CHECKOUT = 170;

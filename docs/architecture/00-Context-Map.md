@@ -144,7 +144,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/services/rulesets/tuod/tuod.validator.ts` | `TUOD_V1` config + batch validation, ladder-derived turn-total bound (2026-07-26) | canonical |
 | `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
-| `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no barrel import deeper than `@<area>/types`; blind spots documented in its header (2026-07-26) | canonical |
+| `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel import deeper than the importing file's own folder or the area root; blind spots documented in its header (2026-07-26) | canonical |
 
 ## Context & history (repo root, `docs/`)
 

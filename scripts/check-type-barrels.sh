@@ -5,7 +5,7 @@
 # raised ./rulesets/types, and twenty-odd consumers were consequently forced
 # onto deep alias paths into the defining folder. Nothing mechanical objected.
 #
-# Three rules, all checked by parsing syntax rather than prose:
+# Four rules, all checked by parsing syntax rather than prose:
 #
 #   1. DECLARATION. `export type` / `export interface` never appears in an
 #      implementation file. The body lives in that folder's types.ts (for
@@ -14,10 +14,26 @@
 #      its parent folder's matching barrel, and a barrel only ever raises a
 #      DIRECT child (`export * from "./<child>/types"`) — never a grandchild,
 #      never an alias.
-#   3. CONSUMPTION. An aliased barrel import resolves to an area root
+#   3. ALIASED CONSUMPTION. An aliased barrel import resolves to an area root
 #      (`@lib/types`, `@modules/types`, `@services/types`, `@routes/types`, ...)
 #      and never to a deeper folder; and a file never reaches its OWN folder's
 #      barrel through an alias pointing back at itself (use `./types`).
+#   4. RELATIVE CONSUMPTION. A RELATIVE barrel import (`./types`,
+#      `../types`, `../../interfaces`, `./sibling/types`, ...) resolves only
+#      to the importing file's OWN folder — `./types` / `./interfaces` and
+#      nothing else. Any relative form that reaches a different folder
+#      (a parent, a sibling, a child) is the same "reach past the area
+#      barrel" violation rule 3 catches for aliases, just spelled with dots
+#      instead of `@`. PR review incident (2026-07-26): fourteen such imports
+#      — six rulesets/*/ validators reaching `../interfaces` + `../types`,
+#      two sessions route handlers reaching `../types` / `../../types` — hid
+#      from rule 3 precisely because they never used an alias. Barrel files
+#      (types.ts/interfaces.ts) are exempt from this rule: raising a direct
+#      child (`export * from "./<child>/types"`, rule 2) and importing named
+#      symbols from a direct child to compose the parent's own exported types
+#      (e.g. lib/game/types.ts importing from "./rulesets/types") are both
+#      the documented, legitimate mechanics of the raising chain, not a
+#      consumer dodging rule 3.
 #
 # Area roots are read from app/tsconfig.json's `paths` rather than hardcoded,
 # so adding an alias cannot silently desynchronise this gate.
@@ -32,13 +48,13 @@
 #     lib/client/api/types.ts and pages/api/types.ts for ErrorCode), so it is
 #     permitted everywhere a barrel is permitted. Only `export *` is depth-
 #     checked. A barrel could therefore name-forward a grandchild's type.
-#   * WITHIN-AREA RELATIVE imports (`../types`, `../../types`). Fourteen such
-#     imports predate this gate (services/rulesets/*/ validators reaching
-#     `../types`, two route handlers reaching `../../types`). They stay inside
-#     their own area and never cross an area boundary, which is what rule 3 is
-#     about, so they are not flagged. A consumer that wants to dodge rule 3 can
-#     therefore use a relative path instead of an alias — but only for types
-#     inside its own area, which is the case the convention cares least about.
+#   * A relative import whose specifier spans a `from` line that also embeds
+#     the substring "export" inside an identifier (e.g. a hypothetical type
+#     named `...Export...`) — rule 4 skips any line starting with `export`
+#     (after whitespace) to avoid double-flagging rule 2's territory, and
+#     that skip is a line-start check, not a word-boundary check. Prettier's
+#     one-import-per-source-line output makes this a theoretical gap in this
+#     codebase today, not an observed one.
 #   * Whether a raised type is the RIGHT type, or whether a barrel's contents
 #     make sense. This is a structural gate, not a design review.
 #
@@ -108,6 +124,7 @@ FAIL=0
 DECL_HITS=0
 RAISE_HITS=0
 IMPORT_HITS=0
+RELATIVE_HITS=0
 
 # ---------------------------------------------------------------------------
 # Rule 1 — no exported type/interface declarations in implementation files.
@@ -226,12 +243,73 @@ while IFS= read -r file; do
   done < <(strip_comments "$file" | grep -E "^[0-9]+	.*(from[[:space:]]*\"@|import[[:space:]]*\([[:space:]]*\"@)")
 done < <(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | sort)
 
+# ---------------------------------------------------------------------------
+# Rule 4 — relative barrel imports stop at the importing file's OWN folder.
+# Same violation as rule 3 (reaching past the area barrel into a defining
+# folder, or past a sibling/child folder), just spelled with "../" or "./x/"
+# instead of an "@" alias. Barrel files (types.ts/interfaces.ts) are exempt:
+# raising a direct child and importing from a direct child to compose the
+# parent's own types are both legitimate (rule 2's territory).
+# ---------------------------------------------------------------------------
+REPO_ROOT=$(pwd -P)
+
+while IFS= read -r file; do
+  base=$(basename "$file")
+  case "$base" in
+    types.ts | interfaces.ts) continue ;;
+    *.d.ts) continue ;;
+  esac
+  filedir=$(dirname "$file")
+  filedir_abs=$(cd "$filedir" && pwd -P)
+
+  while IFS= read -r hit; do
+    [ -z "$hit" ] && continue
+    lineno=${hit%%	*}
+    body=${hit#*	}
+
+    # Skip re-export raising lines (rule 2's territory) — only look at
+    # genuine consumption imports.
+    case "$body" in
+      [[:space:]]*export* | export*) continue ;;
+    esac
+
+    spec=$(printf '%s' "$body" \
+      | grep -oE "['\"]\.\.?/[^'\"]+['\"]" | head -1 | tr -d "'\"")
+    [ -z "$spec" ] && continue
+    case "$spec" in
+      */types | */interfaces) ;;
+      *) continue ;;
+    esac
+    if [ "$spec" = "./types" ] || [ "$spec" = "./interfaces" ]; then
+      continue
+    fi
+
+    specdir=$(dirname "$spec")
+    target_abs=$(cd "$filedir_abs/$specdir" 2>/dev/null && pwd -P)
+    barrel_name=$(basename "$spec")
+
+    if [ -z "$target_abs" ]; then
+      echo "FAIL: $file:$lineno imports \"$spec\" — target folder does not resolve." >&2
+      FAIL=1
+      RELATIVE_HITS=$((RELATIVE_HITS + 1))
+      continue
+    fi
+
+    if [ "$target_abs" != "$filedir_abs" ]; then
+      target_rel=${target_abs#"$REPO_ROOT"/}
+      echo "FAIL: $file:$lineno imports \"$spec\" — a relative import of a barrel outside this file's own folder. That reaches past the area barrel the same way a deep alias would (rule 3); import the $barrel_name barrel via its area-root alias instead (its owning folder is $target_rel), or use \"./$barrel_name\" only if that is truly this file's own folder." >&2
+      FAIL=1
+      RELATIVE_HITS=$((RELATIVE_HITS + 1))
+    fi
+  done < <(strip_comments "$file" | grep -E "^[0-9]+	.*from[[:space:]]*['\"]\.\.?/")
+done < <(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | sort)
+
 if [ "$FAIL" -ne 0 ]; then
-  echo "FAIL: type-barrel gate found $DECL_HITS inline declaration(s), $RAISE_HITS raising break(s), $IMPORT_HITS deep barrel import(s)." >&2
+  echo "FAIL: type-barrel gate found $DECL_HITS inline declaration(s), $RAISE_HITS raising break(s), $IMPORT_HITS deep aliased barrel import(s), $RELATIVE_HITS deep relative barrel import(s)." >&2
   echo "      Rule: docs/architecture/06-API/03-Shared-Conventions.md, \"\`types.ts\` barrels (type-raising)\"." >&2
   exit 1
 fi
 
 BARRELS=$(find "$SRC_ROOT" -type f \( -name "types.ts" -o -name "interfaces.ts" \) | wc -l | tr -d ' ')
 SCANNED=$(find $SCAN_ROOTS -type f \( -name "*.ts" -o -name "*.astro" \) ! -name "*.d.ts" | wc -l | tr -d ' ')
-echo "OK: $BARRELS type barrel(s) fully raised; no inline exported type/interface and no deep barrel import across $SCANNED scanned file(s)."
+echo "OK: $BARRELS type barrel(s) fully raised; no inline exported type/interface and no deep aliased or relative barrel import across $SCANNED scanned file(s)."

@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { UpdateSessionRequest } from "../types";
+import { UpdateSessionRequest } from "@routes/types";
 import { updateSessionStatus } from "@services/session.service";
 import { ok, fail } from "@server/envelope";
 import { parseAndValidateBody } from "@server/parse-json-body";

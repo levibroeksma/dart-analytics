@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { EventsBatchRequest } from "../../types";
+import { EventsBatchRequest } from "@routes/types";
 import { appendBatch } from "@services/session.service";
 import { ok, fail } from "@server/envelope";
 import { parseAndValidateBody } from "@server/parse-json-body";
