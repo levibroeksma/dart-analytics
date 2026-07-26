@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { FiveOhOneConfig, RULESET_CONFIGS } from "@lib/game/rulesets/types";
+import {
+  FiveOhOneConfig,
+  RULESET_CONFIGS,
+  ScoreTrainingConfig,
+} from "@lib/game/rulesets/types";
 
 describe("FiveOhOneConfig starting_score floor", () => {
   const validRest = {
@@ -32,6 +36,44 @@ describe("FiveOhOneConfig starting_score floor", () => {
       starting_score: 2,
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("ScoreTrainingConfig duration_value bounds", () => {
+  it("accepts duration_value: 50, the ROUNDS ceiling", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "ROUNDS",
+      duration_value: 50,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duration_value: 51, one past the ROUNDS ceiling", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "ROUNDS",
+      duration_value: 51,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts duration_value: 180, the MINUTES ceiling", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "MINUTES",
+      duration_value: 180,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duration_value: 181, one past the MINUTES ceiling", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "MINUTES",
+      duration_value: 181,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(false);
   });
 });
 

@@ -112,6 +112,66 @@ describe("createSession", () => {
     expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
   });
 
+  it("accepts an inline config with duration_value: 50, the ROUNDS ceiling", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      config: {
+        source: "inline",
+        config: {
+          duration_type: "ROUNDS",
+          duration_value: 50,
+          max_darts_per_turn: 3,
+        },
+      },
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects an inline config with duration_value: 51, one past the ROUNDS ceiling", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      config: {
+        source: "inline",
+        config: {
+          duration_type: "ROUNDS",
+          duration_value: 51,
+          max_darts_per_turn: 3,
+        },
+      },
+    });
+    expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+  });
+
+  it("accepts an inline config with duration_value: 180, the MINUTES ceiling", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      config: {
+        source: "inline",
+        config: {
+          duration_type: "MINUTES",
+          duration_value: 180,
+          max_darts_per_turn: 3,
+        },
+      },
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects an inline config with duration_value: 181, one past the MINUTES ceiling", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      config: {
+        source: "inline",
+        config: {
+          duration_type: "MINUTES",
+          duration_value: 181,
+          max_darts_per_turn: 3,
+        },
+      },
+    });
+    expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+  });
+
   it("resolves a template config, merging overrides", async () => {
     vi.mocked(repo.findConfigurationTemplate).mockResolvedValue({
       id: "tmpl-1",

@@ -5,6 +5,13 @@ import { z } from "zod";
  * instead of being silently stripped, so a seeded preset that drifts from its
  * schema surfaces as a rejected session rather than quietly losing data.
  */
+/**
+ * `duration_value` is bounded by `duration_type`: a ROUNDS session tops out
+ * at 50 rounds, a MINUTES session at 180 minutes. The bound is conditional so
+ * it cannot be expressed with `.min()`/`.max()` on the field alone — it needs
+ * a whole-object refinement that reads `duration_type` alongside
+ * `duration_value`.
+ */
 export const ScoreTrainingConfig = z
   .object({
     duration_type: z.enum(["ROUNDS", "MINUTES"]),
@@ -12,7 +19,17 @@ export const ScoreTrainingConfig = z
     max_darts_per_turn: z.number().int().min(1).max(3),
     max_visit_score: z.number().int().default(180),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    const [min, max] = val.duration_type === "ROUNDS" ? [1, 50] : [1, 180];
+    if (val.duration_value < min || val.duration_value > max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration_value"],
+        message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
+      });
+    }
+  });
 
 export const Bobs27Config = z
   .object({
