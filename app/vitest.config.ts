@@ -23,6 +23,8 @@ export default defineConfig({
       "@db": path.resolve(__dirname, "./src/db"),
       "@routes": path.resolve(__dirname, "./src/pages/api"),
       "@server": path.resolve(__dirname, "./src/lib/server"),
+      "@icons": path.resolve(__dirname, "./src/icons"),
+      "@layouts": path.resolve(__dirname, "./src/layouts"),
     },
   },
 });
