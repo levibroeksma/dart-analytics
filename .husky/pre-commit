@@ -1,2 +1,9 @@
 #!/usr/bin/env sh
 cd app && npx lint-staged
+cd .. && bash scripts/check-file-locations.sh \
+       && bash scripts/check-agent-mirrors.sh \
+       && bash scripts/check-astro-class-composition.sh \
+       && bash scripts/check-astro-conventions.sh \
+       && bash scripts/check-game-engines.sh \
+       && bash scripts/check-refinement-coverage.sh \
+       && bash scripts/check-type-barrels.sh

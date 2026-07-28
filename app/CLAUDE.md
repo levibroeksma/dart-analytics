@@ -66,7 +66,7 @@ Full documentation: https://docs.astro.build
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
-- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`). Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
+- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then the 7 structural gates (file-locations, agent-mirrors, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels) run from repo root. Hooks install via `npm install` (`prepare` → repo-root `.husky/`). (2026-07-28)
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate. (2026-07-24)
 
 ## Test-Driven Development (mandatory)
