@@ -30,6 +30,8 @@ jobs:
         run: bash scripts/check-type-barrels.sh
       - name: Alias-sync gate
         run: bash scripts/check-alias-sync.sh
+      - name: Constraint-mirror gate
+        run: bash scripts/check-constraint-mirror.sh
 
   app:
     runs-on: ubuntu-latest

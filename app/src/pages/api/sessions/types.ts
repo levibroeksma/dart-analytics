@@ -39,6 +39,7 @@ export type CreateSessionResponseData = z.infer<typeof CreateSessionResponse>;
  * the offending dart instead of a CHECK violation inside the write
  * transaction, which aborts the whole batch and loses the session upload.
  */
+// MIRRORS: chk_intended_target, chk_hit_target
 const TargetNumber = z.number().int().min(1).max(25).nullable();
 
 /**
@@ -48,6 +49,7 @@ const TargetNumber = z.number().int().min(1).max(25).nullable();
  * `chk_dart_target_consistency`, which admits both intention columns NULL or
  * the zone NOT NULL, never a target number on its own.
  */
+// MIRRORS: chk_dart_number, chk_dart_number_positive, chk_dart_score_positive, chk_hit_consistency, chk_dart_target_consistency
 export const DartFact = z
   .object({
     sequence: z.number().int().positive(),
@@ -71,6 +73,7 @@ export const DartFact = z
  * One `turns` row. `sequence` is bounded by `chk_turn_sequence_positive`
  * (migration `0007`); `totalScore` carries no CHECK, so none is asserted here.
  */
+// MIRRORS: chk_turn_sequence_positive
 export const TurnFact = z.object({
   clientKey: z.string(),
   participantRef: z.string(),
@@ -86,6 +89,7 @@ export const TurnFact = z.object({
  * `parentClientKey` is its own `clientKey` resolves to `parent_stage_id = id`
  * on insert.
  */
+// MIRRORS: chk_stage_sequence_positive, chk_stage_not_self_parent
 export const StageFact = z
   .object({
     clientKey: z.string(),

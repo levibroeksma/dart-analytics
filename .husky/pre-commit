@@ -7,4 +7,5 @@ cd .. && bash scripts/check-file-locations.sh \
        && bash scripts/check-game-engines.sh \
        && bash scripts/check-refinement-coverage.sh \
        && bash scripts/check-type-barrels.sh \
-       && bash scripts/check-alias-sync.sh
+       && bash scripts/check-alias-sync.sh \
+       && bash scripts/check-constraint-mirror.sh
