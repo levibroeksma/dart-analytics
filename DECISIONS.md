@@ -182,6 +182,7 @@ updated: 2026-07-26
 | D164 | 2026-07-28 | New skill `.claude/skills/context-maintenance/SKILL.md` holds the 8-step Context Maintenance procedure verbatim; root `CLAUDE.md`/`AGENT.md` keep only the invariant and a pointer to the skill | Procedure prose was loaded on every session regardless of relevance; skills load on demand |
 | D165 | 2026-07-28 | New skill `.claude/skills/validate-app/SKILL.md` holds the `validate:app` sequence and mid-task gate condition; `app/CLAUDE.md`/`AGENT.md` keep only the bare command and a pointer | Same context-budget rationale as D164, scoped to `app/` tasks |
 | D166 | 2026-07-28 | TDD red→green→refactor procedure folded into the existing project-local `verification-before-completion` skill as a Dart-Analytics addendum; `app/CLAUDE.md`/`AGENT.md`'s TDD section keeps only the non-procedural rules (test location, Vitest-only mocks, `.astro` inline-logic exemption D101) | Same principle (evidence before claims) already lived in that skill; folding avoids a third near-duplicate procedure skill |
+| D167 | 2026-07-28 | New skill `.claude/skills/run-all-gates/SKILL.md` dispatches the right `check-*.sh` scripts and `validate:app`/database checklist by changed area (`app/`, `database/`, `docs/`) and reports each result explicitly | Which gate applies to a given change was previously a memory burden; this makes it a lookup, and gives `verification-before-completion` a concrete command to point at |
 
 ## Deferred (open, not rejected)
 

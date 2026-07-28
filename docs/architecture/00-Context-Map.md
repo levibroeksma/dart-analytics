@@ -173,6 +173,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `.claude/skills/context-maintenance/SKILL.md` | Context Maintenance 8-step procedure, invoked before claiming any task done (2026-07-28) | canonical |
 | `.claude/skills/validate-app/SKILL.md` | `validate:app` sequence + mid-task gate condition for `app/` changes (2026-07-28) | canonical |
+| `.claude/skills/run-all-gates/SKILL.md` | Dispatches the right `check-*.sh` scripts by changed area, reports each result explicitly (2026-07-28) | canonical |
 | `graphify-out/graph.json` | Committed AST-only knowledge graph (generated; queried, not hand-edited) | generated |
 
 ---
