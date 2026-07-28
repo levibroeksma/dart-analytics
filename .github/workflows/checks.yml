@@ -39,3 +39,51 @@ jobs:
                 );
               }
             }
+
+  test-repointing-heuristic:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Diff app/tests for changed assertions with no changed describe/it title
+        id: scan
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE_REF" --depth=1
+          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'app/tests/**/*.test.ts' || true)
+          : > /tmp/flagged.txt
+          for f in $CHANGED_FILES; do
+            ASSERTION_HUNKS=$(git diff -U0 "origin/$BASE_REF"...HEAD -- "$f" | grep -E '^\+.*(\.toBe\(|\.toEqual\(|\.parse\(|expect\()' || true)
+            if [ -z "$ASSERTION_HUNKS" ]; then continue; fi
+            TITLE_HUNKS=$(git diff -U0 "origin/$BASE_REF"...HEAD -- "$f" | grep -E '^[+-].*\b(describe|it)\(' || true)
+            if [ -z "$TITLE_HUNKS" ]; then
+              echo "$f: assertion literal(s) changed, no describe/it title changed in the same diff" >> /tmp/flagged.txt
+            fi
+          done
+          if [ -s /tmp/flagged.txt ]; then
+            echo "flagged=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "flagged=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Post non-blocking review nudge
+        if: steps.scan.outputs.flagged == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body =
+              "**Test-repointing check (non-blocking):** these changed test files have a " +
+              "changed assertion literal but no changed `describe`/`it` title in the same " +
+              "diff — worth a human look per D148 (a dropped constraint can hide behind a " +
+              "test quietly repointed at a different input):\n\n```\n" +
+              fs.readFileSync("/tmp/flagged.txt", "utf8") +
+              "\n```";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
