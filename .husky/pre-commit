@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -e
 cd app && npx lint-staged
 cd .. && bash scripts/check-file-locations.sh \
        && bash scripts/check-agent-mirrors.sh \
