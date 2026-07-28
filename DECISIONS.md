@@ -179,6 +179,7 @@ updated: 2026-07-26
 | D161 | 2026-07-28 | New `scripts/check-style-tokens.sh` bans `font-medium`, `{...rest}`, and raw `bg-bg*`/`text-fg*` palette utilities across `app/src/**/*.{astro,css}` | Mechanizes the Style non-negotiables in app/CLAUDE.md (D108/D126/D128), previously enforced only by human review of the diff |
 | D162 | 2026-07-28 | New `checks.yml` job `branch-stack-cap` fails a PR whose base branch is itself the head of another open PR targeting a non-default branch | Mechanizes D147 (at most one open branch may target another) against live PR state, which a local script cannot see reliably |
 | D163 | 2026-07-28 | New `checks.yml` job `test-repointing-heuristic` posts a non-blocking PR comment when a changed `app/tests/**` assertion literal has no changed `describe`/`it` title in the same diff | Nudges human review toward D148's exact failure shape (a dropped constraint hidden behind a quietly repointed test) without hard-failing legitimate test updates |
+| D164 | 2026-07-28 | New skill `.claude/skills/context-maintenance/SKILL.md` holds the 8-step Context Maintenance procedure verbatim; root `CLAUDE.md`/`AGENT.md` keep only the invariant and a pointer to the skill | Procedure prose was loaded on every session regardless of relevance; skills load on demand |
 
 ## Deferred (open, not rejected)
 
