@@ -26,6 +26,10 @@ export function scoreTrainingSetup() {
     loadingReconciliation: false,
     reconciliationFailed: false,
 
+    /**
+     * On fetch failure, keeps the user on setup with a visible error and the
+     * picker fallback rather than the active-session modal.
+     */
     async init(this: ScoreTrainingSetupContext) {
       this.loadingReconciliation = true;
       try {
@@ -39,8 +43,6 @@ export function scoreTrainingSetup() {
 
         await this.reconcile(activeSessions);
       } catch {
-        // Preset/active-session fetch itself failed — keep user on setup with
-        // a visible error (toast-equivalent for this UI) and the picker fallback.
         this.showActiveSessionModal = false;
         this.error =
           "Could not load setup. Check your connection and try again.";
@@ -49,6 +51,12 @@ export function scoreTrainingSetup() {
       }
     },
 
+    /**
+     * `abandon_failed` blocks session creation instead of silently
+     * resetting: the orphan session is still ACTIVE server-side, so
+     * showing the picker would let a new session violate the
+     * single-active-session constraint (D118).
+     */
     async reconcile(
       this: ScoreTrainingSetupContext,
       activeSessions: SessionActiveData[],
@@ -65,7 +73,6 @@ export function scoreTrainingSetup() {
         this.showActiveSessionModal = true;
         this.reconciliationFailed = false;
       } else if (result.action === "abandon_failed") {
-        // Block: do not show the picker, do not allow session creation.
         this.showActiveSessionModal = false;
         this.reconciliationFailed = true;
       } else {

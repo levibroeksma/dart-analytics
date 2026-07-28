@@ -32,6 +32,8 @@ jobs:
         run: bash scripts/check-alias-sync.sh
       - name: Constraint-mirror gate
         run: bash scripts/check-constraint-mirror.sh
+      - name: No-inline-comments gate
+        run: bash scripts/check-no-inline-comments.sh
 
   app:
     runs-on: ubuntu-latest
