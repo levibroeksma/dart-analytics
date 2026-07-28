@@ -66,41 +66,32 @@ Full documentation: https://docs.astro.build
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
-- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`). Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
+- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then all 11 structural gates (file-locations, agent-mirrors, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens) run from repo root under `set -e`. Hooks install via `npm install` (`prepare` → repo-root `.husky/`). (2026-07-28)
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate. (2026-07-24)
 
 ## Test-Driven Development (mandatory)
 
-Every `app/` behavior change follows **red → green → refactor**:
-
-1. Write a failing test that names the expected behavior.
-2. Run `npm test` — confirm the **new** test fails for the right reason.
-3. Implement the minimal code to pass.
-4. Run `npm test` — all tests pass.
-5. Refactor only with tests green.
+Full red→green→refactor procedure: `verification-before-completion` skill, "Dart Analytics" section.
 
 Rules:
 
 - Place tests under `app/tests/`, mirroring `app/src/`'s (and `app/scripts/`'s) directory structure — never colocated beside the module under test.
 - Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
 - `.astro` markup: keep variant/branching logic inline in the component's own frontmatter. This logic is not unit-tested — there is no Astro-component test runner in this project — so do not extract a separate helper file solely to make it testable (D101).
-- Do not commit production code without its failing test written first (except greenfield scaffold commits that only add test infrastructure).
 
-Framework: **Vitest** (`vitest.config.ts` at `app/` root). Commands: `npm test` (CI), `npm run test:watch` (local).
+Framework: **Vitest** (`vitest.config.ts` at `app/` root).
 
-Ground rules beyond the command sequence above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
+Ground rules beyond the `verification-before-completion` skill's procedure (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`. (procedure moved to `verification-before-completion` skill, 2026-07-28)
 
 ## Validation Standard Procedure (sole definition)
 
-Run for `app/` changes before claiming completion:
+Run for `app/` changes before claiming completion — full procedure and mid-task gate condition in the `validate-app` skill:
 
 ```
 npm run validate:app
 ```
 
-This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `npm test` → `npm run check` (`rm -rf .astro && astro check`) → `bash scripts/refresh-graph.sh` (graph refresh warns instead of failing when the graphify CLI is absent — record that warning in the completion report). Stage `graphify-out/graph.json` when it changed. Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`. (2026-07-22)
-
-**Mid-task gate (multi-step / multi-commit work):** a focused vitest file going green is not enough to claim a task done when the change touches services, repositories, middleware, or shared client API code. Before that claim, also run `npx fallow` and `npm run check` and fix any new failures they surface — plan-faithful code can still leave type or maintainability gates red. The full `validate:app` remains the completion bar for the whole change set. (2026-07-22)
+(2026-07-22; procedure moved to `.claude/skills/validate-app/SKILL.md`, 2026-07-28)
 
 ## Forbidden
 
@@ -132,7 +123,7 @@ Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
 - Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
 - Forward leftover attributes as `{...props}` — never `{...rest}`
 - Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
-- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props)
+- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-28)
 
 ## Tool Allowances & Restrictions (2026-07-23)
 

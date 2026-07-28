@@ -62,7 +62,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - Never modify applied migrations (`0001`–`0016`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
-- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. (2026-07-26)
+- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`. (2026-07-26; gate added 2026-07-28)
 - No git worktrees: check out task branches directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`. Declared preference — skills that offer worktree isolation should skip it without asking.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
 - When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety. (2026-07-26)
@@ -71,18 +71,9 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 # Context Maintenance (mandatory, every task)
 
-The context system is part of every deliverable. Before claiming any task done:
+The context system is part of every deliverable. Before claiming any task done, run the `context-maintenance` skill.
 
-1. Update the `CLAUDE.md` nearest to what you changed if your change adds, alters, or invalidates a rule in it — and its `AGENT.md` mirror in the same directory, if one exists, kept byte-for-byte identical (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`).
-2. Register new, moved, renamed, or deleted docs in `00-Context-Map.md` in the same change.
-3. Record new architectural decisions as one-line entries in `DECISIONS.md`.
-4. Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
-5. Run `scripts/check-context-map.sh`, `scripts/check-file-locations.sh`, `scripts/check-agent-mirrors.sh`, `scripts/check-astro-class-composition.sh`, `scripts/check-astro-conventions.sh`, `scripts/check-doc-links.sh`, and `scripts/check-context-budget.sh` — all seven must pass.
-6. Refresh the knowledge graph: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this gate item is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.
-7. Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
-8. **Self-learning gate:** if this task surfaced a rule that was ambiguous, missing, unenforced, or contradicted by the real code/config — beyond what step 1 already requires for the change itself — propose the specific `CLAUDE.md`/`AGENT.md` sharpening in chat and get the user's explicit approval before writing it. Never apply a rule change unilaterally. If the user declines, leave the rule as-is and move on; the gate exists to keep rule evolution deliberate, not to force a change.
-
-A change that leaves the context map, CLAUDE.md files, decision ledger, **or knowledge graph** stale is incomplete, even if the code works.
+A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works. (procedure moved to `.claude/skills/context-maintenance/SKILL.md`, 2026-07-28)
 
 ---
 
