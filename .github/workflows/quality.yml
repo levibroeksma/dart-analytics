@@ -28,6 +28,8 @@ jobs:
         run: bash scripts/check-refinement-coverage.sh
       - name: Type-barrel gate
         run: bash scripts/check-type-barrels.sh
+      - name: Alias-sync gate
+        run: bash scripts/check-alias-sync.sh
 
   app:
     runs-on: ubuntu-latest

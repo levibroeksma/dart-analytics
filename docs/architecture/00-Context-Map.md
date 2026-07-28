@@ -146,6 +146,14 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 | `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel **type** import deeper than the importing file's own folder or the area root (value imports exempt, D156); blind spots documented in its header (2026-07-26) | canonical |
 
+## Cross-cutting mechanical guards (2026-07-28)
+
+Guards not specific to the game-engine contract, registered here for discoverability.
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `scripts/check-alias-sync.sh` | Guard: `tsconfig.json` compilerOptions.paths and `vitest.config.ts` resolve.alias never diverge (D113); `@styles` allowlisted as TS-only | canonical |
+
 ## Context & history (repo root, `docs/`)
 
 | File | Answers | Status |
