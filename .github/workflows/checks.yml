@@ -7,3 +7,35 @@ on:
 jobs:
   quality:
     uses: ./.github/workflows/quality.yml
+
+  branch-stack-cap:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Fail if this PR's base is already one level deep in an open-PR stack
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: openPRs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100,
+            });
+            const baseByHead = new Map(openPRs.map((pr) => [pr.head.ref, pr.base.ref]));
+            const defaultBranch = context.payload.repository.default_branch;
+            const thisBase = context.payload.pull_request.base.ref;
+
+            if (thisBase !== defaultBranch) {
+              const basesBase = baseByHead.get(thisBase);
+              if (basesBase && basesBase !== defaultBranch) {
+                core.setFailed(
+                  `This PR targets '${thisBase}', which is itself an open PR targeting ` +
+                  `'${basesBase}' (not '${defaultBranch}'). That is already one branch ` +
+                  `targeting another; this PR would add a second, stacking three deep. ` +
+                  `At most one open branch may target another task branch (root CLAUDE.md ` +
+                  `Hard Invariant) — land '${thisBase}' first, or merge the work into one branch.`
+                );
+              }
+            }
