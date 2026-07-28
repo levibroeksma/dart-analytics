@@ -52,7 +52,7 @@ jobs:
         id: scan
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          git fetch origin "$BASE_REF" --depth=1
+          git fetch origin "$BASE_REF" --depth=1 || true
           CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'app/tests/**/*.test.ts' || true)
           : > /tmp/flagged.txt
           for f in $CHANGED_FILES; do
