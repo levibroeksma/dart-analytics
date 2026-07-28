@@ -181,6 +181,7 @@ updated: 2026-07-26
 | D163 | 2026-07-28 | New `checks.yml` job `test-repointing-heuristic` posts a non-blocking PR comment when a changed `app/tests/**` assertion literal has no changed `describe`/`it` title in the same diff | Nudges human review toward D148's exact failure shape (a dropped constraint hidden behind a quietly repointed test) without hard-failing legitimate test updates |
 | D164 | 2026-07-28 | New skill `.claude/skills/context-maintenance/SKILL.md` holds the 8-step Context Maintenance procedure verbatim; root `CLAUDE.md`/`AGENT.md` keep only the invariant and a pointer to the skill | Procedure prose was loaded on every session regardless of relevance; skills load on demand |
 | D165 | 2026-07-28 | New skill `.claude/skills/validate-app/SKILL.md` holds the `validate:app` sequence and mid-task gate condition; `app/CLAUDE.md`/`AGENT.md` keep only the bare command and a pointer | Same context-budget rationale as D164, scoped to `app/` tasks |
+| D166 | 2026-07-28 | TDD red→green→refactor procedure folded into the existing project-local `verification-before-completion` skill as a Dart-Analytics addendum; `app/CLAUDE.md`/`AGENT.md`'s TDD section keeps only the non-procedural rules (test location, Vitest-only mocks, `.astro` inline-logic exemption D101) | Same principle (evidence before claims) already lived in that skill; folding avoids a third near-duplicate procedure skill |
 
 ## Deferred (open, not rejected)
 

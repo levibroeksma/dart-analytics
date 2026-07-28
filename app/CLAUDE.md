@@ -71,24 +71,17 @@ Full documentation: https://docs.astro.build
 
 ## Test-Driven Development (mandatory)
 
-Every `app/` behavior change follows **red → green → refactor**:
-
-1. Write a failing test that names the expected behavior.
-2. Run `npm test` — confirm the **new** test fails for the right reason.
-3. Implement the minimal code to pass.
-4. Run `npm test` — all tests pass.
-5. Refactor only with tests green.
+Full red→green→refactor procedure: `verification-before-completion` skill, "Dart Analytics" section.
 
 Rules:
 
 - Place tests under `app/tests/`, mirroring `app/src/`'s (and `app/scripts/`'s) directory structure — never colocated beside the module under test.
 - Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
 - `.astro` markup: keep variant/branching logic inline in the component's own frontmatter. This logic is not unit-tested — there is no Astro-component test runner in this project — so do not extract a separate helper file solely to make it testable (D101).
-- Do not commit production code without its failing test written first (except greenfield scaffold commits that only add test infrastructure).
 
-Framework: **Vitest** (`vitest.config.ts` at `app/` root). Commands: `npm test` (CI), `npm run test:watch` (local).
+Framework: **Vitest** (`vitest.config.ts` at `app/` root).
 
-Ground rules beyond the command sequence above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
+Ground rules beyond the command sequence above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`. (procedure moved to `verification-before-completion` skill, 2026-07-28)
 
 ## Validation Standard Procedure (sole definition)
 

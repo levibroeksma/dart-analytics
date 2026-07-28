@@ -130,6 +130,18 @@ From 24 failure memories:
 - Implications of success
 - ANY communication suggesting completion/correctness
 
+## Dart Analytics: red→green→refactor
+
+Every `app/` behavior change follows this cycle:
+
+1. Write a failing test that names the expected behavior.
+2. Run `npm test` — confirm the **new** test fails for the right reason.
+3. Implement the minimal code to pass.
+4. Run `npm test` — all tests pass.
+5. Refactor only with tests green.
+
+Commands: `npm test` (CI), `npm run test:watch` (local), both from `app/`. Do not commit production code without its failing test written first (except greenfield scaffold commits that only add test infrastructure).
+
 ## The Bottom Line
 
 **No shortcuts for verification.**
