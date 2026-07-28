@@ -8,32 +8,42 @@
 # directives, `///` triple-slash references. Out of scope, per the existing
 # rule: app/tests/, app/scripts/.
 #
-# A `{` counts as opening a function/method body only when the token
-# immediately before it (ignoring whitespace) is `)` or `=>` — this is what
-# tells a function/method/arrow body apart from an interface body, a class
-# body, a type literal, or an object literal, all of which also use `{}` but
-# are not "function bodies" under this rule.
+# A `{` counts as opening a function/method body when the buffer of
+# non-whitespace text since the last `{`/`}`/`;` ends in `)` or `=>` (arrow
+# functions), or in `)` optionally followed by a `:`-led return-type
+# annotation (e.g. `(x: number): boolean {`, `(): Promise<Response> {`) —
+# this is what tells a function/method/arrow body apart from an interface
+# body, a class body, a type literal, or an object literal, all of which
+# also use `{}` but are not "function bodies" under this rule. Interface
+# method *signatures* (`foo(): void;`) never reach a `{` at all, so they're
+# never misclassified.
 #
 # BLIND SPOT: this is a lexical heuristic, not an AST. A bare block statement
 # `{ ... }` at module level (not preceded by `)`/`=>`) is treated as
 # non-function, so a top-level scoping block would not be checked; and a
 # `switch (x) { ... }` at module level (rare in this codebase) would be
 # treated as a function body since its `{` is preceded by `)`. Neither shape
-# appears in this codebase's current style.
+# appears in this codebase's current style. A return type that itself
+# contains an object-literal shape with braces, e.g. `foo(): { a: number } {`,
+# will not be recognized as a function open (the inner `{}` breaks the
+# return-type character-class match) — rare in this codebase's style.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
 python3 - <<'PY'
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path("app/src")
 EXEMPT_PREFIXES = ("app/tests/", "app/scripts/")
 
+ARROW_OPEN_RE = re.compile(r"=>\s*$")
+PAREN_RETURN_OPEN_RE = re.compile(r"\)\s*(:[^{}();]*)?$")
+
 
 def is_function_open(preceding: str) -> bool:
-    p = preceding.rstrip()
-    return p.endswith(")") or p.endswith("=>")
+    return bool(ARROW_OPEN_RE.search(preceding)) or bool(PAREN_RETURN_OPEN_RE.search(preceding))
 
 
 fail = False
@@ -100,8 +110,12 @@ def scan(path: Path) -> None:
             preceding_buf = ""
             i += 1
             continue
+        if ch == ";":
+            preceding_buf = ""
+            i += 1
+            continue
         if not ch.isspace():
-            preceding_buf = (preceding_buf + ch)[-4:]
+            preceding_buf = (preceding_buf + ch)[-500:]
         i += 1
 
 
