@@ -155,6 +155,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-alias-sync.sh` | Guard: `tsconfig.json` compilerOptions.paths and `vitest.config.ts` resolve.alias never diverge (D113); `@styles` allowlisted as TS-only | canonical |
 | `scripts/check-constraint-mirror.sh` | Guard: every live CHECK constraint on `exercise_stages`/`turns`/`darts` has a `// MIRRORS: chk_x` anchor in `app/src/pages/api/sessions/types.ts` (D149); bound agreement executed in `constraint-mirror.test.ts`, not by this script | canonical |
 | `scripts/check-no-inline-comments.sh` | Guard: no `//` or non-JSDoc `/* */` comment inside a function/method body under `app/src/**/*.ts`; JSDoc `/** */` above a declaration stays exempt | canonical |
+| `scripts/check-style-tokens.sh` | Guard: no `font-medium`, `{...rest}`, or raw `bg-bg*`/`text-fg*` palette utilities under `app/src/**/*.{astro,css}` | canonical |
 
 ## Context & history (repo root, `docs/`)
 
