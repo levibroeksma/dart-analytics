@@ -62,7 +62,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - Never modify applied migrations (`0001`–`0016`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
-- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/checks.yml`. (2026-07-26; gate added 2026-07-28)
+- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`. (2026-07-26; gate added 2026-07-28)
 - No git worktrees: check out task branches directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`. Declared preference — skills that offer worktree isolation should skip it without asking.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
 - When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety. (2026-07-26)
