@@ -206,6 +206,51 @@ describe("ALL /api/auth/[...path]", () => {
     expect(targetString).not.toContain("undefined");
   });
 
+  it("strips content-encoding and content-length from the response, since fetch already decoded the body", async () => {
+    const upstream = new Response("{}", {
+      status: 200,
+      headers: {
+        "content-encoding": "gzip",
+        "content-length": "39",
+      },
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(upstream);
+
+    const response = await ALL(requestFor("get-session") as never);
+
+    expect(response.headers.get("content-encoding")).toBeNull();
+    expect(response.headers.get("content-length")).toBeNull();
+  });
+
+  it("rejects a percent-encoded traversal segment with 400 and performs no upstream fetch", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const response = await ALL(requestFor("..%2f..%2fsecret") as never);
+
+    expect(response.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects a literal .. traversal segment with 400 and performs no upstream fetch", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const response = await ALL(requestFor("../secret") as never);
+
+    expect(response.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("still forwards a normal path unaffected by the traversal check", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    const response = await ALL(requestFor("sign-in/email") as never);
+
+    expect(response.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("strips a trailing slash on NEON_AUTH_BASE_URL before joining the path", async () => {
     authBaseUrlBox.value = "https://auth.example.com/neondb/auth/";
     const fetchSpy = vi

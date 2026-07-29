@@ -28,14 +28,38 @@ function rebindCookie(cookie: string): string {
     : `${withoutDomain}; SameSite=Lax`;
 }
 
-function rewriteSetCookieHeaders(upstreamHeaders: Headers): Headers {
-  const rewritten = new Headers(upstreamHeaders);
+const STRIPPED_RESPONSE_HEADERS = ["content-encoding", "content-length"];
+
+/**
+ * Rewrites `Set-Cookie` per `rebindCookie()` and drops `Content-Encoding` /
+ * `Content-Length`. Both describe the upstream's original compressed byte
+ * stream, but `fetch` already transparently decompresses the body before
+ * this handler ever sees it — forwarding the stale headers alongside the
+ * decoded body would tell the browser it received gzip bytes of a length
+ * the real body doesn't match, breaking every `authClient` call.
+ */
+function buildResponseHeaders(upstreamHeaders: Headers): Headers {
+  const built = new Headers(upstreamHeaders);
+  for (const name of STRIPPED_RESPONSE_HEADERS) built.delete(name);
   const setCookies = upstreamHeaders.getSetCookie();
-  if (setCookies.length === 0) return rewritten;
-  rewritten.delete("set-cookie");
+  if (setCookies.length === 0) return built;
+  built.delete("set-cookie");
   for (const cookie of setCookies)
-    rewritten.append("set-cookie", rebindCookie(cookie));
-  return rewritten;
+    built.append("set-cookie", rebindCookie(cookie));
+  return built;
+}
+
+/**
+ * True when `forwardPath` contains a `..` path segment, literal or
+ * percent-encoded (`%2e`/`%2E` for the dot, `%2f`/`%2F` for a slash hiding
+ * a segment boundary from the URL parser). Neon Auth is trusted (spec
+ * decision B1), but its own stack may decode `%2f` before routing, so a
+ * segment that only looks opaque here must still be rejected before it is
+ * forwarded byte-for-byte.
+ */
+function hasTraversalSegment(forwardPath: string): boolean {
+  const decoded = forwardPath.replace(/%2e/gi, ".").replace(/%2f/gi, "/");
+  return decoded.split("/").some((segment) => segment === "..");
 }
 
 /**
@@ -60,6 +84,9 @@ export const ALL: APIRoute = async ({ request, params }) => {
   }
 
   const forwardPath = params.path ?? "";
+  if (hasTraversalSegment(forwardPath)) {
+    return new Response("Invalid path segment", { status: 400 });
+  }
   const requestUrl = new URL(request.url);
   const normalizedBaseUrl = authBaseUrl.replace(/\/+$/, "");
   const target = new URL(
@@ -82,6 +109,6 @@ export const ALL: APIRoute = async ({ request, params }) => {
   return new Response(upstreamResponse.body, {
     status: upstreamResponse.status,
     statusText: upstreamResponse.statusText,
-    headers: rewriteSetCookieHeaders(upstreamResponse.headers),
+    headers: buildResponseHeaders(upstreamResponse.headers),
   });
 };
