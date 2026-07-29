@@ -75,18 +75,18 @@ Branch workflow:
 
 ```sh
 neon link
-npm run env:dev    # neon checkout dev + mirror PUBLIC_NEON_AUTH_BASE_URL into .env
+npm run env:dev    # neon checkout dev + pull Neon vars
 ```
 
 Production secrets for deploy scripts go in a separate file — never overwrite `.env`:
 
 ```sh
-npm run env:prod   # neon env pull --branch main --file .env.production + PUBLIC_ mirror
+npm run env:prod   # neon env pull --branch main --file .env.production
 ```
 
 `astro dev` loads `.env` / `.env.development`, not `.env.production`. Keep `.neon` on `dev` for local work.
 
-Neon CLI env pull writes only Neon keys (`NEON_AUTH_BASE_URL`, …). Astro browser code needs `PUBLIC_NEON_AUTH_BASE_URL` — `npm run env:mirror` (and `env:dev` / `env:prod`) copies it. Manual copy is not required after those scripts.
+Neon CLI env pull writes only Neon keys (`NEON_AUTH_BASE_URL`, …) needed for server-side operations (middleware, seeds, proxy). Browser auth traffic flows through `/api/auth` (D172) — no client-side environment variables required.
 
 ---
 
@@ -150,7 +150,7 @@ See also [`../../../database/README.md`](../../../database/README.md).
 - Authentication provider: Neon Auth
 - API boundary verifies JWT claims (`sub`, `exp`) via `NEON_AUTH_JWKS_URL`
 - Server auth base URL: `NEON_AUTH_BASE_URL` (middleware, seeds)
-- Browser auth client: `PUBLIC_NEON_AUTH_BASE_URL` (`import.meta.env` — never import `lib/env.ts` in browser code)
+- Browser auth client: targets same-origin `/api/auth` proxy (never import `lib/env.ts` in browser code); proxy forwards server-side to `NEON_AUTH_BASE_URL`
 - Identity mapping: JWT `sub` -> `players.auth_user_id`
 - Unprovisioned users receive `403 PLAYER_NOT_PROVISIONED`
 
