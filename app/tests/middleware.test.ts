@@ -74,3 +74,28 @@ describe("middleware error boundary", () => {
     ).rejects.toThrow("page boom");
   });
 });
+
+describe("middleware auth proxy bypass", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("skips JWT verification for /api/auth/* and returns next() directly", async () => {
+    const next = vi.fn(() => new Response("proxied", { status: 200 }));
+    const res = await onRequest(
+      ctxFor("/api/auth/sign-in/email") as never,
+      next as never,
+    );
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(verifyBearerToken).not.toHaveBeenCalled();
+    expect((res as Response).status).toBe(200);
+    expect(await (res as Response).text()).toBe("proxied");
+  });
+
+  it("does not envelope a thrown error on the auth proxy route", async () => {
+    const next = vi.fn(() => {
+      throw new Error("proxy boom");
+    });
+    await expect(
+      onRequest(ctxFor("/api/auth/get-session") as never, next as never),
+    ).rejects.toThrow("proxy boom");
+  });
+});

@@ -58,7 +58,8 @@ export const onRequest: MiddlewareHandler = async (ctx, next) => {
   ctx.locals.requestId = crypto.randomUUID();
   const cls = classifyRoute(ctx.url.pathname);
 
-  if (cls === "public-page" || cls === "asset") return next();
+  if (cls === "public-page" || cls === "asset" || cls === "api-auth-proxy")
+    return next();
 
   if (cls === "api-provision" || cls === "api-protected") {
     try {
