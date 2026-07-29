@@ -75,18 +75,18 @@ Branch workflow:
 
 ```sh
 neon link
-npm run env:dev    # neon checkout dev + pull Neon vars
+npm run env:dev    # neon checkout dev + mirror PUBLIC_NEON_AUTH_BASE_URL
 ```
 
 Production secrets for deploy scripts go in a separate file — never overwrite `.env`:
 
 ```sh
-npm run env:prod   # neon env pull --branch main --file .env.production
+npm run env:prod   # neon env pull --branch main + mirror PUBLIC_NEON_AUTH_BASE_URL
 ```
 
 `astro dev` loads `.env` / `.env.development`, not `.env.production`. Keep `.neon` on `dev` for local work.
 
-Neon CLI env pull writes only Neon keys (`NEON_AUTH_BASE_URL`, …) needed for server-side operations (middleware, seeds, proxy). Browser auth traffic flows through `/api/auth` (D172) — no client-side environment variables required.
+Neon CLI env pull writes server-side keys only (`NEON_AUTH_BASE_URL`, …). Mirror writes `PUBLIC_NEON_AUTH_BASE_URL` (retained pending cleanup, out of scope). Browser auth proxies through `/api/auth` (D172) — app code no longer consumes client-side auth variables.
 
 ---
 
