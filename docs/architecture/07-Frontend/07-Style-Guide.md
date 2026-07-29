@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-07-22
+updated: 2026-07-29
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.0
+> **Version:** 0.2.1 (2026-07-29 — top safe-area inset on `body` noted alongside `h-dvh`/`overflow-hidden`, D174)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -29,7 +29,7 @@ Class *composition* (`cn()`, frontmatter `// Styles`, prop/`class` placement) li
 
 - **Dark only.** `html { color-scheme: dark only; }`, forced even when the OS prefers light (`@media (prefers-color-scheme: light)` re-asserts dark). No theme toggle exists or is planned for v1.
 - **Ambient backdrop.** `body::before` paints fixed radial gradients (soft top wash + sky `--accent-glow` corner bloom) over `--surface`. `body::after` adds a bottom vignette. Both layers are `pointer-events: none` and sit behind content (`z-index: -2` / `-1`).
-- **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-dvh max-h-dvh overflow-hidden` on `html`/`body`.
+- **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-dvh max-h-dvh overflow-hidden` on `html`/`body`; `body` also pads `env(safe-area-inset-top)` so content clears the iOS status bar in a standalone-launched web app (D174, 2026-07-29).
 - **Touch ergonomics.** `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html`.
 
 ---
