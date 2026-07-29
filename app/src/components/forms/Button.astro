@@ -16,6 +16,8 @@ interface Props {
   disabled?: boolean;
   ariaLabel?: string;
   class?: string;
+  /** Alpine expression evaluating to a boolean; controls the built-in spinner. */
+  loadingExpr?: string;
   [key: string]: unknown;
 }
 
@@ -28,11 +30,15 @@ const {
   disabled = false,
   ariaLabel,
   class: classNameProp = "",
+  loadingExpr = "loading",
   ...props
 }: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
+
+// Icons
+import LoadingIcon from "@icons/loading.svg";
 
 // Styles
 const variantClasses = {
@@ -59,10 +65,15 @@ const className = cn(
 >
   <slot name="iconBefore" />
   <span
-    x-show="!loading"
+    x-show={`!(${loadingExpr})`}
     x-cloak
   >
     {title}
   </span>
+  <LoadingIcon
+    x-show={loadingExpr}
+    x-cloak
+    class="size-5 animate-spin"
+  />
   <slot name="iconAfter" />
 </button>
