@@ -52,13 +52,15 @@ async function handleApiRequest(
  * INTERNAL_ERROR and returned in the frozen envelope with requestId; the raw
  * error is logged server-side, never sent to the client. Page routes
  * (D97/D98) bypass the boundary — navigation UX is enforced by auth.store
- * init(), not here.
+ * init(), not here. Note: `api-auth-proxy` is explicit in the early bypass to
+ * ensure it survives future catch-all narrowing; do not remove as redundant.
  */
 export const onRequest: MiddlewareHandler = async (ctx, next) => {
   ctx.locals.requestId = crypto.randomUUID();
   const cls = classifyRoute(ctx.url.pathname);
 
-  if (cls === "public-page" || cls === "asset") return next();
+  if (cls === "public-page" || cls === "asset" || cls === "api-auth-proxy")
+    return next();
 
   if (cls === "api-provision" || cls === "api-protected") {
     try {

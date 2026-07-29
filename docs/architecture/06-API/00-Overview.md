@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-07-22
+updated: 2026-07-29
 -->
 
 # API Overview
 
-> **Version:** 1.4.0 (frozen v1 API baseline; `SESSION_ALREADY_ACTIVE` + S1 implementation status, 2026-07-22)
+> **Version:** 1.5.0 (same-origin `/api/auth/*` proxy for Neon Auth traffic, D172, 2026-07-29)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -91,6 +91,12 @@ v1 captures the dart/turn/session facts statistics are derived from; the aggrega
 
 Idempotent; creates the `players` row for a JWT-valid user. Full contract in `04-Endpoint-Contracts.md`.
 
+### Auth Proxy
+
+- `ALL /api/auth/*` <!-- 2026-07-29 -->
+
+Same-origin transport for Neon Auth (Better Auth) traffic — forwards verbatim to `NEON_AUTH_BASE_URL` and rewrites `Set-Cookie` so the session cookie is first-party (D172). Intentionally **outside** this document's `ok/data/requestId` envelope contract: it is transport, not a domain endpoint, and its response shape is Better Auth's own. Not JWT-verified — this route is how a JWT is obtained in the first place.
+
 ---
 
 ## Authentication And Identity Flow
@@ -107,6 +113,7 @@ Idempotent; creates the `players` row for a JWT-valid user. Full contract in `04
 - `authUserId` is derived from JWT `sub` and mapped to `players.auth_user_id`.
 - Handlers never parse JWT directly.
 - Token issuance/refresh is external to this API (Neon Auth).
+- Neon Auth traffic itself (login, session check, sign-out) is proxied same-origin through `/api/auth/*` so the underlying Better Auth session cookie is first-party, not cross-site (D172, see Auth Proxy above) — this is what feeds `getJWTToken()`, not a change to the Bearer-JWT contract above.
 
 ---
 

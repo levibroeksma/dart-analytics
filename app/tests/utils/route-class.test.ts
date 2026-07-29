@@ -14,6 +14,16 @@ describe("classifyRoute", () => {
     expect(classifyRoute("/api/players/provision")).toBe("api-provision");
   });
 
+  it("classifies auth proxy paths", () => {
+    expect(classifyRoute("/api/auth/sign-in/email")).toBe("api-auth-proxy");
+    expect(classifyRoute("/api/auth/get-session")).toBe("api-auth-proxy");
+    expect(classifyRoute("/api/auth")).toBe("api-auth-proxy");
+  });
+
+  it("still classifies other /api/ paths as api-protected", () => {
+    expect(classifyRoute("/api/sessions")).toBe("api-protected");
+  });
+
   it("classifies / as protected-page", () => {
     expect(classifyRoute("/")).toBe("protected-page");
   });

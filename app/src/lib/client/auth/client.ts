@@ -1,14 +1,10 @@
 import { createAuthClient } from "@neondatabase/neon-js/auth";
 
-const baseUrl = import.meta.env.PUBLIC_NEON_AUTH_BASE_URL;
+const AUTH_PROXY_PATH = "/api/auth";
 
-if (!baseUrl) {
-  throw new Error(
-    "PUBLIC_NEON_AUTH_BASE_URL is missing. From app/: run `npm run env:dev` (or `npm run env:mirror`) and restart the dev server.",
-  );
-}
-
-export const authClient = createAuthClient(baseUrl);
+export const authClient = createAuthClient(
+  `${globalThis.location.origin}${AUTH_PROXY_PATH}`,
+);
 
 export async function getAccessToken(): Promise<string | null> {
   const result = await authClient.getSession();
