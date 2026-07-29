@@ -15,4 +15,5 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
   confirmLabel="Leave"
   onCancel="showExitModal = false"
   onConfirm="$dispatch('confirm-exit')"
+  loadingExpr="$store.game.loading"
 />

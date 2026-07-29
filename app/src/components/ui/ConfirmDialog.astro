@@ -23,6 +23,8 @@ interface Props {
   dismissible?: boolean;
   confirmVariant?: "primary" | "secondary" | "ghost";
   class?: string;
+  /** Forwarded to the Confirm button's Button.astro loadingExpr prop. */
+  loadingExpr?: string;
 }
 
 // Props
@@ -37,6 +39,7 @@ const {
   dismissible = true,
   confirmVariant = "primary",
   class: classNameProp,
+  loadingExpr,
 }: Props = Astro.props;
 
 // Components
@@ -81,6 +84,7 @@ const descriptionId = `${titleId}-desc`;
       class="w-1/3"
       title={confirmLabel}
       x-on:click={onConfirm}
+      loadingExpr={loadingExpr}
     />
   </div>
 </Modal>
