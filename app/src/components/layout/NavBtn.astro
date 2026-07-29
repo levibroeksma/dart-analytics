@@ -14,7 +14,9 @@ import { cn } from "@client/cn";
 import { isNavActive } from "@lib/utils/is-nav-active";
 
 // Styles
-const active = isNavActive(Astro.url.pathname, href, matchPrefix);
+const effectiveMatchPrefix =
+  matchPrefix ?? (href === "/" ? undefined : `${href}/`);
+const active = isNavActive(Astro.url.pathname, href, effectiveMatchPrefix);
 const className = cn(
   "flex flex-col items-center py-1.5 justify-center text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
   active ? "text-accent" : "text-muted-foreground",
