@@ -23,7 +23,6 @@ export type ScoreTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  abandonLoading: boolean;
   resultsSnapshot: { total: number; visits: number; average: number } | null;
   pendingFinishScore: number | null;
   showFinishConfirm: boolean;
@@ -40,6 +39,7 @@ export type ScoreTrainingPlayContext = {
       timerStartedAt?: string | null;
       timerExpired?: boolean;
       idempotencyKey?: string | null;
+      loading: boolean;
       recordFacts(facts: EngineFacts): void;
       reset(): void;
     };

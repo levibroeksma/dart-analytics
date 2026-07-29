@@ -96,11 +96,14 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
     timerStartedAt: null,
     timerExpired: false,
     idempotencyKey: null,
+    loading: false,
     recordFacts: vi.fn(function (this: GameStub, facts: EngineFacts) {
       this.stages = [...facts.stages];
       this.turns = [...facts.turns];
     }),
-    reset: vi.fn(),
+    reset: vi.fn(function (this: GameStub) {
+      this.loading = false;
+    }),
     ...overrides,
   };
 }
@@ -1092,7 +1095,7 @@ describe("scoreTrainingPlay", () => {
       expect(locationSpy.href).toBe("/games");
     });
 
-    it("ignores a second call while abandonLoading is true", async () => {
+    it("ignores a second call while $store.game.loading is true", async () => {
       let resolveComplete!: (
         v: Awaited<ReturnType<typeof completeSession>>,
       ) => void;
@@ -1126,7 +1129,7 @@ describe("scoreTrainingPlay", () => {
       await play.abandonAndExit.call(play);
 
       expect(play.error).toBe("Could not abandon session. Try again.");
-      expect(play.abandonLoading).toBe(false);
+      expect(play.$store.game.loading).toBe(false);
       expect(play.$store.game.reset).not.toHaveBeenCalled();
       expect(locationSpy.href).toBe("/games/score-training/play");
     });
