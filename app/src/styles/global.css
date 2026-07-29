@@ -106,6 +106,7 @@
 
   body {
     @apply relative h-dvh max-h-dvh overflow-hidden bg-surface font-sans text-foreground antialiased;
+    padding-top: env(safe-area-inset-top);
   }
 
   @media (prefers-color-scheme: light) {
