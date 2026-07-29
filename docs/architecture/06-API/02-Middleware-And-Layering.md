@@ -37,12 +37,12 @@ Per `00-Overview.md`, middleware verifies identity once per request and sets `lo
 | Required claims (`sub`, `exp`)              | Yes                    | Never                   |
 | `requestId` generation                      | Yes                    | Use from `locals`       |
 | Player lookup (`auth_user_id` → `playerId`) | Yes (per request)      | Never re-verify JWT     |
-| Route classification (public / protected / authenticated-unprovisioned) | Yes    | —                       |
+| Route classification (public / auth proxy / protected / authenticated-unprovisioned) | Yes    | —                       |
 | Session ownership                           | No                     | Service layer           |
 | Business validation                         | No                     | Service layer           |
 | Idempotency logic                           | No                     | Write handler + service |
 | Response envelope formatting                | Optional shared helper | Controller applies      |
-| API error boundary (uncaught → enveloped 5xx) | Yes (api-* routes) | Never |
+| API error boundary (uncaught → enveloped 5xx) | Yes (api-* routes except `api-auth-proxy`, D172) | Never |
 | UUIDv7 generation                           | No                     | Service layer           |
 | Database transactions                       | No                     | Service layer           |
 
@@ -270,6 +270,8 @@ Request arrives
     │
     ├─ public route? → next()
     │
+    ├─ auth proxy route (`api-auth-proxy`, `/api/auth/*`)? → next()  (D172)
+    │
     ├─ extract Bearer token
     │   └─ missing/invalid → 401 UNAUTHORIZED
     │
@@ -297,7 +299,7 @@ Request arrives
 5. All protected queries must be player-scoped using `locals.auth.playerId`.
 6. Batch writes must run inside a single service-level transaction.
 7. Idempotency is enforced in the service layer, not middleware.
-8. Uncaught errors on `api-*` routes are caught by middleware and returned as an enveloped `SERVICE_UNAVAILABLE`/`INTERNAL_ERROR` (D131); page routes are not enveloped.
+8. Uncaught errors on `api-*` routes are caught by middleware and returned as an enveloped `SERVICE_UNAVAILABLE`/`INTERNAL_ERROR` (D131), except `api-auth-proxy` (`/api/auth/*`), which bypasses the boundary and returns Better Auth's own response contract (D172); page routes are not enveloped.
 
 ---
 
