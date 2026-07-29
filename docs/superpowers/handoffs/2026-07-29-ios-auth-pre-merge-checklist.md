@@ -15,6 +15,10 @@
   3. Add to Home Screen.
   4. Sign in inside the installed app.
 
+## Expected after deploy
+
+Existing sessions were set under the old cross-origin cookie domain. After this deploys, the client asks the app's own origin instead, finds no cookie, and redirects to `/login`. Everyone gets logged out once. Harmless, one-time — not a regression.
+
 ## Why mandatory
 
 Auth traffic is now proxied same-origin through `/api/auth/*` and forwards the browser's `Origin` header unchanged (rewriting it would defeat CSRF protection). Better Auth origin-checks that header against `trustedOrigins` on every non-GET request. Without the `main`-branch registration, `POST /api/auth/sign-in/email` returns `403 FORBIDDEN` and login appears broken.

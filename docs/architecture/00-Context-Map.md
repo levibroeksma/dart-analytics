@@ -179,6 +179,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `docs/superpowers/plans/2026-07-29-ios-web-app-auth.md` | The 9-task plan implementing that spec, incl. the Neon Auth trusted-origin prerequisite (2026-07-29) | historical |
 | `docs/superpowers/handoffs/2026-07-29-ios-auth-pre-merge-checklist.md` | Operator checklist: manual Neon-console trusted-origin registration + iOS Safari verification, neither doable in-session (2026-07-29) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
+| `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `.claude/skills/context-maintenance/SKILL.md` | Context Maintenance 8-step procedure, invoked before claiming any task done (2026-07-28) | canonical |

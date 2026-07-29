@@ -119,11 +119,11 @@ wrangler secret list
 
 **Must be under the `production` Environment**, not repo-level secrets or a different environment — `deploy.yml`'s `deploy` job runs with `environment: production`, so only secrets scoped there are visible to it.
 
-### `PUBLIC_NEON_AUTH_BASE_URL` build variable (not a secret)
+### `PUBLIC_NEON_AUTH_BASE_URL` build variable (not a secret, no longer required by app code)
 
-Astro inlines `import.meta.env.PUBLIC_*` vars into the **client-side browser bundle at build time** — this is different from the Worker secrets in Phase 2, which only exist at request-time on Cloudflare's side and are never available during `npm run build`. `app/src/lib/client/auth/client.ts` reads `PUBLIC_NEON_AUTH_BASE_URL` at module scope and throws if it's missing — and since this module is imported by the global Alpine store bootstrap (`app.factory.ts` → `registerStores` → `auth.store.ts`), a missing value breaks **every** `x-data` component on **every** page (symptom: buttons/forms silently not rendering, `x-cloak` elements stuck hidden).
+Browser auth traffic now goes through the same-origin `/api/auth` proxy (D172): `app/src/lib/client/auth/client.ts` builds its base URL from `globalThis.location.origin` and no longer reads `PUBLIC_NEON_AUTH_BASE_URL` at all — the throw-on-missing guard is gone with it. The server-side `NEON_AUTH_BASE_URL` Worker secret (Phase 2) is what the proxy forwards to and remains required.
 
-Add it as a GitHub **Variable** (not a secret — this value is already public in the shipped browser bundle) under the same `production` Environment:
+`.github/workflows/deploy.yml`'s build step still forwards `vars.PUBLIC_NEON_AUTH_BASE_URL` into `npm run build`, but no application code consumes it anymore, so leaving it unset no longer breaks anything. Setting it is optional — kept here so the build step's env has a value instead of silently going unset:
 
 - GitHub repo → Settings → Environments → `production` → Variables → `PUBLIC_NEON_AUTH_BASE_URL`
 - Value: same as `NEON_AUTH_BASE_URL` in `.env.production` — this is project-specific, not a shared Neon domain (shape: `https://ep-<branch-id>.neonauth.<region>.aws.neon.tech/<database>/auth`); find it in the Neon console under your project's Auth section, or from a prior `neon env main` pull
