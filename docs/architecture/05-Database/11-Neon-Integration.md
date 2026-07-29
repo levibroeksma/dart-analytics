@@ -2,12 +2,12 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-07-24
+updated: 2026-07-29
 -->
 
 # Neon Integration Guide
 
-> **Version:** 1.0.1
+> **Version:** 1.1.0 (per-branch trusted origins required by the same-origin auth proxy, D172, 2026-07-29)
 >
 > Canonical implementation guide for Neon project topology, environment setup, and migration/query tooling in this repository.
 
@@ -154,6 +154,17 @@ See also [`../../../database/README.md`](../../../database/README.md).
 - Identity mapping: JWT `sub` -> `players.auth_user_id`
 - Unprovisioned users receive `403 PLAYER_NOT_PROVISIONED`
 
+### Trusted origins (required per branch)
+
+Browser auth traffic is proxied same-origin through `/api/auth/*` (D172), so every request Neon Auth receives carries the **app's** origin in its `Origin` header. Better Auth origin-checks that value against the branch's trusted-origins list on every non-GET request, so each deployed origin must be registered or sign-in returns `403 FORBIDDEN`:
+
+| Branch | Origin to register |
+| ------ | ------------------ |
+| `dev` | `http://localhost:4321` |
+| `main` | The deployed Worker URL (`https://<worker-name>.<subdomain>.workers.dev`, or the custom domain once configured) |
+
+Registered in the Neon console under the project's Auth section — there is no committed file for this list.
+
 ### Dev auth user (out of band)
 
 Sign-up UI is out of scope for v1. Provision the dev branch user once per environment:
@@ -161,7 +172,7 @@ Sign-up UI is out of scope for v1. Provision the dev branch user once per enviro
 | Step | Action |
 | ---- | ------ |
 | 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
-| 2 | Add trusted origin `http://localhost:4321` |
+| 2 | Add trusted origin `http://localhost:4321` (see Trusted origins above) |
 | 3 | Run `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
 | 4 | Run `npm run seed:dev-auth` from `app/` |
 
