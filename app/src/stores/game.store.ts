@@ -53,6 +53,7 @@ export function gameStore(persist: PersistFactory) {
     timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist()<boolean>(false).as("game.timerExpired"),
     idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),
+    loading: false,
 
     /** Called by Alpine once this store's `$persist` fields have resolved. */
     init() {
@@ -103,6 +104,7 @@ export function gameStore(persist: PersistFactory) {
       this.timerStartedAt = null;
       this.timerExpired = false;
       this.idempotencyKey = null;
+      this.loading = false;
     },
   };
 }
