@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/rendering
 read-when: new routes, prerender vs SSR decisions
-updated: 2026-07-15
+updated: 2026-07-29
 -->
 
 # Frontend Rendering Strategy
 
-> **Version:** 0.1.0
+> **Version:** 0.2.0 (same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
 >
 > Prerender-default rendering on Cloudflare Workers.
 >
@@ -78,6 +78,7 @@ Because prerendered HTML bypasses `middleware.ts` on this Cloudflare config (D97
 - `auth.store.ts` runs `init()` on Alpine boot (no `x-init`): `getSession()` then redirect authenticated users away from `PUBLIC_PAGES` (`/login` → `/`) and anonymous users away from protected paths (`/` → `/login`).
 - `BaseLayout.astro` cloaks the body until `$store.auth.ready` (`x-cloak` + `:class="{ invisible: !$store.auth.ready }"`) so app chrome does not flash before the gate resolves.
 - `PUBLIC_PAGES` is a single source in `@utils/auth-routes.ts` (shared with `middleware.ts` / `classifyRoute`).
+- `auth.store.ts`'s `authClient` calls the same-origin `/api/auth` proxy (`pages/api/auth/[...path].ts`), not the cross-origin Neon Auth URL directly — the underlying Better Auth session cookie is first-party as a result (D172), fixing login inside an installed iOS Home Screen web app.
 
 This gate is **navigation UX only** — the JWT-gated API remains the sole real authorization boundary (D97).
 
@@ -178,4 +179,4 @@ Use only when the browser must never see a value and prerender cannot supply it.
 | `02-Folder-Structure.md` | `app/src/` tree and aliases |
 | `03-Alpine-Patterns.md` | Alpine factory and hydration |
 | `../06-API/01-Implementation-Strategy.md` | Cloudflare Workers + Neon constraints |
-| `../../DECISIONS.md` | D79, D80, D88, D97, D98 |
+| `../../DECISIONS.md` | D79, D80, D88, D97, D98, D172 |
