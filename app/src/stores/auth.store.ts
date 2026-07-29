@@ -16,8 +16,10 @@ export function authStore() {
   return {
     status: "checking" as AuthStatus,
     ready: false,
+    loading: false,
 
     async init() {
+      this.loading = true;
       const hasSession = await hasActiveSession();
       const path = normalizePath(globalThis.location.pathname);
 
@@ -33,19 +35,30 @@ export function authStore() {
 
       this.status = hasSession ? "authenticated" : "anonymous";
       this.ready = true;
+      this.loading = false;
     },
 
     async signIn(email: string, password: string) {
-      const result = await authClient.signIn.email({ email, password });
-      if (result.error) {
-        throw new Error(result.error.message ?? "Sign in failed");
+      this.loading = true;
+      try {
+        const result = await authClient.signIn.email({ email, password });
+        if (result.error) {
+          throw new Error(result.error.message ?? "Sign in failed");
+        }
+        this.status = "authenticated";
+      } finally {
+        this.loading = false;
       }
-      this.status = "authenticated";
     },
 
     async signOut() {
-      await authClient.signOut();
-      this.status = "anonymous";
+      this.loading = true;
+      try {
+        await authClient.signOut();
+        this.status = "anonymous";
+      } finally {
+        this.loading = false;
+      }
     },
   };
 }
