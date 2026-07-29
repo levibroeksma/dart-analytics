@@ -53,6 +53,10 @@ export function gameStore(persist: PersistFactory) {
     timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist()<boolean>(false).as("game.timerExpired"),
     idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),
+    /** In-flight flag for actions whose button lives outside the page's own
+     * Alpine scope (e.g. the exit-modal Confirm button in ExitModal.astro,
+     * rendered inside GameLayout's isolated x-data) and so can only reach
+     * loading state via $store.game.loading, not a page-local variable. */
     loading: false,
 
     /** Called by Alpine once this store's `$persist` fields have resolved. */
