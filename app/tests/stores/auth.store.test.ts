@@ -108,7 +108,7 @@ describe("authStore.signOut", () => {
     let resolveSignOut!: () => void;
     vi.mocked(authClient.signOut).mockImplementation(
       () =>
-        new Promise((resolve) => {
+        new Promise<void>((resolve) => {
           resolveSignOut = resolve;
         }),
     );
