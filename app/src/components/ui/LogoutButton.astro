@@ -4,7 +4,6 @@ import Button from "@components/forms/Button.astro";
 
 // Icons
 import LogoutIcon from "@icons/logout.svg";
-import LoadingIcon from "@icons/loading.svg";
 ---
 
 <Button
@@ -19,12 +18,6 @@ import LoadingIcon from "@icons/loading.svg";
   <LogoutIcon
     x-show="!loading"
     slot="iconBefore"
-    x-cloak
-    class="size-6"
-  />
-  <LoadingIcon
-    x-show="loading"
-    slot="iconAfter"
     x-cloak
     class="size-6"
   />

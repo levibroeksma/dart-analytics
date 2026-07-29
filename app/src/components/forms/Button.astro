@@ -30,7 +30,7 @@ const {
   disabled = false,
   ariaLabel,
   class: classNameProp = "",
-  loadingExpr = "loading",
+  loadingExpr = "typeof loading !== 'undefined' && loading",
   ...props
 }: Props = Astro.props;
 

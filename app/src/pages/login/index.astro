@@ -3,7 +3,6 @@ export const prerender = true;
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
-import LoadingIcon from "@icons/loading.svg";
 ---
 
 <BaseLayout>
@@ -72,14 +71,7 @@ import LoadingIcon from "@icons/loading.svg";
             class="w-full mt-4"
             :disabled="loading"
             title="Sign in"
-          >
-            <LoadingIcon
-              x-show="loading"
-              x-cloak
-              slot="iconAfter"
-              class="size-6"
-            />
-          </Button>
+          />
         </form>
       </div>
     </main>
