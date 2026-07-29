@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import ExitModal from "@components/layout/games/ExitModal.astro";
+import Button from "@components/forms/Button.astro";
 import ExitIcon from "@icons/exit.svg";
 
 interface Props {
@@ -17,14 +18,19 @@ const { title, gameTitle }: Props = Astro.props;
     x-data="{ showExitModal: false }"
   >
     <header class="relative flex items-center p-3">
-      <button
+      <Button
         type="button"
-        class="relative z-10 btn btn-ghost p-2"
-        aria-label="Exit game"
+        variant="ghost"
+        icon
+        ariaLabel="Exit game"
+        class="relative z-10"
         @click="showExitModal = true"
       >
-        <ExitIcon class="size-6 text-muted" />
-      </button>
+        <ExitIcon
+          class="size-6 text-muted"
+          slot="iconBefore"
+        />
+      </Button>
       {
         gameTitle ? (
           <h1 class="pointer-events-none uppercase font-mono absolute inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
