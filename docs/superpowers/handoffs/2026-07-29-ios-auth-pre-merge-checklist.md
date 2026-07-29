@@ -6,9 +6,9 @@
 
 ## Actions
 
-- [ ] Look up the deployed Worker URL: `cd app && npx wrangler deployments list`. Shape: `https://<worker-name>.<subdomain>.workers.dev`, unless a custom domain is configured.
-- [ ] Register that origin as a trusted origin on the Neon Auth **`main`** branch — Neon console → project → Auth section.
-- [ ] Confirm `http://localhost:4321` is still registered on the **`dev`** branch.
+- [x] Look up the deployed Worker URL: `cd app && npx wrangler deployments list`. Shape: `https://<worker-name>.<subdomain>.workers.dev`, unless a custom domain is configured.
+- [x] Register that origin as a trusted origin on the Neon Auth `main` branch — Neon console → project → Auth section.
+- [x] Confirm `http://localhost:4321` is still registered on the `dev` branch.
 - [ ] Verify on an iOS device (no automated test covers this):
   1. Sign in on desktop first — a `403` here means the trusted origin is missing.
   2. Sign in in iOS Safari (tab, not installed).
