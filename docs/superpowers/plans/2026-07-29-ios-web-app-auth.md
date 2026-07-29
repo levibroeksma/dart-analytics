@@ -11,9 +11,10 @@
 ## Global Constraints
 
 - Full generic proxy under `/api/auth/*` — no endpoint allowlist (spec B1).
-- `Set-Cookie` rewrite: strip `Domain=`, force `SameSite=Lax`, keep `Secure` (spec B2).
+- `Set-Cookie` rewrite: strip `Domain=`, force `SameSite=Lax` (append it when upstream omits it), keep `Secure` (spec B2).
 - New route class `api-auth-proxy`: no JWT check, no player resolution, no `ok/data/requestId` envelope (spec B3).
-- Browser `authClient` base URL becomes the same-origin path `/api/auth` (spec B4).
+- Browser `authClient` base URL becomes same-origin (spec B4). **It must be an absolute URL** — `${globalThis.location.origin}/api/auth`, never the bare path `"/api/auth"`. Verified against `better-auth@1.4.18`: `createAuthClient(url)` passes `url` straight to `getBaseURL()`, which calls `assertHasProtocol()` → `new URL(url)` and throws `BetterAuthError: Invalid base URL` on a relative path (`better-auth/dist/utils/url.mjs:12-20`, `dist/client/config.mjs:11`).
+- **Neon Auth must trust the app's deployed origin.** `originCheckMiddleware` (`better-auth/dist/api/middlewares/origin-check.mjs:26`) validates the `Origin` header against `trustedOrigins` on every non-GET request. The proxy forwards the browser's `Origin: https://<app-host>` unchanged (rewriting it would defeat CSRF protection), so the app origin must be registered in Neon Auth or `POST /api/auth/sign-in/email` returns `403 FORBIDDEN`. See Task 0.
 - No new UX for the one-time re-login on first standalone launch — out of scope (spec B5).
 - `manifest.json`: `scope`/`start_url: "/"`, `display: "standalone"` (spec B6).
 - Ledger entries: **D172** (auth proxy), **D173** (manifest/meta) — these are the next free IDs (highest existing is D171).
@@ -24,14 +25,121 @@
 
 ---
 
+### Task 0: Register the app origin as a Neon Auth trusted origin
+
+**Files:**
+
+- Modify: `docs/architecture/05-Database/11-Neon-Integration.md`
+
+**Interfaces:** None — external configuration + documentation.
+
+> **Why this is Task 0, not a footnote:** without it the proxy returns `403 FORBIDDEN` on the login POST and the whole change appears broken. Before this change the browser called Neon Auth directly from the app's own origin, so the app origin was already the request `Origin` and no separate registration was needed for production. Once traffic is proxied, the `Origin` header still says `https://<app-host>` — but it now arrives at Neon Auth as a request Better Auth origin-checks against its `trustedOrigins` list, which only has the dev entry.
+
+- [ ] **Step 1: Determine the deployed app origin**
+
+Run: `cd app && npx wrangler deployments list`
+Read the Worker URL from the output (shape: `https://<worker-name>.<subdomain>.workers.dev`). This is the origin to register. If a custom domain has since been configured, use that instead.
+
+- [ ] **Step 2: Add the origin to Neon Auth's trusted origins**
+
+In the Neon console → the project's **Auth** section → trusted origins/domains, add the origin from Step 1 for the **`main`** branch (production). Confirm `http://localhost:4321` is still present on the **`dev`** branch — the existing local-development entry (`11-Neon-Integration.md`, "Dev auth user (out of band)", step 2).
+
+This is a console/config action, not a code change — there is no committed file that holds this list.
+
+- [ ] **Step 3: Document the requirement so it is not lost on the next environment**
+
+In `docs/architecture/05-Database/11-Neon-Integration.md`, change:
+
+```markdown
+### Dev auth user (out of band)
+
+Sign-up UI is out of scope for v1. Provision the dev branch user once per environment:
+
+| Step | Action |
+| ---- | ------ |
+| 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
+| 2 | Add trusted origin `http://localhost:4321` |
+| 3 | Run `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
+| 4 | Run `npm run seed:dev-auth` from `app/` |
+```
+
+to:
+
+```markdown
+### Trusted origins (required per branch)
+
+Browser auth traffic is proxied same-origin through `/api/auth/*` (D172), so every request Neon Auth receives carries the **app's** origin in its `Origin` header. Better Auth origin-checks that value against the branch's trusted-origins list on every non-GET request, so each deployed origin must be registered or sign-in returns `403 FORBIDDEN`:
+
+| Branch | Origin to register |
+| ------ | ------------------ |
+| `dev` | `http://localhost:4321` |
+| `main` | The deployed Worker URL (`https://<worker-name>.<subdomain>.workers.dev`, or the custom domain once configured) |
+
+Registered in the Neon console under the project's Auth section — there is no committed file for this list.
+
+### Dev auth user (out of band)
+
+Sign-up UI is out of scope for v1. Provision the dev branch user once per environment:
+
+| Step | Action |
+| ---- | ------ |
+| 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
+| 2 | Add trusted origin `http://localhost:4321` (see Trusted origins above) |
+| 3 | Run `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
+| 4 | Run `npm run seed:dev-auth` from `app/` |
+```
+
+- [ ] **Step 4: Bump the doc header and version**
+
+In the same file, change:
+
+```markdown
+<!--
+status: canonical
+scope: database/platform
+read-when: Neon environment and tooling work
+updated: 2026-07-24
+-->
+
+# Neon Integration Guide
+
+> **Version:** 1.0.1
+```
+
+to:
+
+```markdown
+<!--
+status: canonical
+scope: database/platform
+read-when: Neon environment and tooling work
+updated: 2026-07-29
+-->
+
+# Neon Integration Guide
+
+> **Version:** 1.1.0 (per-branch trusted origins required by the same-origin auth proxy, D172, 2026-07-29)
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/architecture/05-Database/11-Neon-Integration.md
+git commit -m "docs: require per-branch Neon Auth trusted origins for the same-origin proxy"
+```
+
+---
+
 ### Task 1: Route classification — add `api-auth-proxy`
 
 **Files:**
+
 - Modify: `app/src/lib/utils/types.ts`
 - Modify: `app/src/lib/utils/route-class.ts`
 - Modify: `app/tests/utils/route-class.test.ts`
 
 **Interfaces:**
+
 - Produces: `RouteClass` union gains `"api-auth-proxy"`; `classifyRoute(path: string): RouteClass` returns `"api-auth-proxy"` for any path starting with `/api/auth/`.
 
 - [ ] **Step 1: Write the failing test**
@@ -39,14 +147,15 @@
 Add to `app/tests/utils/route-class.test.ts` (append inside the existing `describe` block, after the `"classifies provision endpoint"` test):
 
 ```typescript
-  it("classifies auth proxy paths", () => {
-    expect(classifyRoute("/api/auth/sign-in/email")).toBe("api-auth-proxy");
-    expect(classifyRoute("/api/auth/get-session")).toBe("api-auth-proxy");
-  });
+it("classifies auth proxy paths", () => {
+  expect(classifyRoute("/api/auth/sign-in/email")).toBe("api-auth-proxy");
+  expect(classifyRoute("/api/auth/get-session")).toBe("api-auth-proxy");
+  expect(classifyRoute("/api/auth")).toBe("api-auth-proxy");
+});
 
-  it("still classifies other /api/ paths as api-protected", () => {
-    expect(classifyRoute("/api/sessions")).toBe("api-protected");
-  });
+it("still classifies other /api/ paths as api-protected", () => {
+  expect(classifyRoute("/api/sessions")).toBe("api-protected");
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -77,10 +186,11 @@ import { isPublicPage, normalizePath } from "./auth-routes";
 import type { RouteClass } from "./types";
 
 const PROVISION_ROUTE = "/api/players/provision";
-const AUTH_PROXY_PREFIX = "/api/auth/";
+const AUTH_PROXY_ROOT = "/api/auth";
 
 export function classifyRoute(path: string): RouteClass {
-  if (path.startsWith(AUTH_PROXY_PREFIX)) return "api-auth-proxy";
+  if (path === AUTH_PROXY_ROOT || path.startsWith(`${AUTH_PROXY_ROOT}/`))
+    return "api-auth-proxy";
   if (path === PROVISION_ROUTE) return "api-provision";
   if (path.startsWith("/api/")) return "api-protected";
   if (isPublicPage(normalizePath(path))) return "public-page";
@@ -92,7 +202,7 @@ export function classifyRoute(path: string): RouteClass {
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `cd app && npx vitest run tests/utils/route-class.test.ts`
-Expected: PASS (6 tests)
+Expected: PASS (6 tests, 7 assertions in the new auth-proxy case)
 
 - [ ] **Step 6: Commit**
 
@@ -106,10 +216,12 @@ git commit -m "feat: classify /api/auth/* as a new api-auth-proxy route class"
 ### Task 2: Middleware bypass for `api-auth-proxy`
 
 **Files:**
+
 - Modify: `app/src/middleware.ts`
 - Modify: `app/tests/middleware.test.ts`
 
 **Interfaces:**
+
 - Consumes: `classifyRoute` (Task 1), returns `RouteClass` including `"api-auth-proxy"`.
 - Produces: `onRequest` calls `next()` immediately for `api-auth-proxy` — never calls `verifyBearerToken` or the error-boundary `fail()`/`classifyThrownError()` path for this class.
 
@@ -154,14 +266,14 @@ Expected: FAIL — `/api/auth/sign-in/email` currently classifies as `api-protec
 In `app/src/middleware.ts`, change:
 
 ```typescript
-  if (cls === "public-page" || cls === "asset") return next();
+if (cls === "public-page" || cls === "asset") return next();
 ```
 
 to:
 
 ```typescript
-  if (cls === "public-page" || cls === "asset" || cls === "api-auth-proxy")
-    return next();
+if (cls === "public-page" || cls === "asset" || cls === "api-auth-proxy")
+  return next();
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -181,10 +293,12 @@ git commit -m "feat: bypass JWT check and error envelope for the auth proxy rout
 ### Task 3: Same-origin auth proxy route handler
 
 **Files:**
+
 - Create: `app/src/pages/api/auth/[...path].ts`
 - Test: `app/tests/pages/api/auth/[...path].test.ts`
 
 **Interfaces:**
+
 - Consumes: `env.auth.baseUrl` from `@lib/env` (same accessor pattern as `env.auth.jwksUrl` in `app/src/lib/auth/verify-jwt.ts`), which resolves `NEON_AUTH_BASE_URL`.
 - Produces: `export const ALL: APIRoute` — handles every HTTP method under `/api/auth/*`.
 
@@ -272,6 +386,39 @@ describe("ALL /api/auth/[...path]", () => {
     expect(setCookie).not.toContain("Domain=");
   });
 
+  it("appends SameSite=Lax when upstream omits the attribute", async () => {
+    const upstream = new Response("{}", {
+      status: 200,
+      headers: {
+        "set-cookie": "better-auth.session_token=abc; Path=/; HttpOnly",
+      },
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(upstream);
+
+    const response = await ALL(requestFor("get-session") as never);
+
+    expect(response.headers.get("set-cookie")).toContain("SameSite=Lax");
+  });
+
+  it("forwards the browser Origin header unchanged for the upstream CSRF check", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await ALL(
+      requestFor("sign-in/email", {
+        method: "POST",
+        headers: { origin: "https://app.example.com" },
+        body: "{}",
+      }) as never,
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string | URL, RequestInit];
+    expect(new Headers(init.headers).get("origin")).toBe(
+      "https://app.example.com",
+    );
+  });
+
   it("passes non-2xx status and body through untouched", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ error: "invalid" }), { status: 401 }),
@@ -284,9 +431,7 @@ describe("ALL /api/auth/[...path]", () => {
   });
 
   it("returns 502 when Neon Auth is unreachable", async () => {
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(
-      new Error("network down"),
-    );
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network down"));
 
     const response = await ALL(requestFor("get-session") as never);
 
@@ -316,13 +461,31 @@ Create `app/src/pages/api/auth/[...path].ts`:
 import type { APIRoute } from "astro";
 import { env } from "@lib/env";
 
-const STRIPPED_REQUEST_HEADERS = new Set(["connection", "keep-alive", "host"]);
+const STRIPPED_REQUEST_HEADERS = ["connection", "keep-alive", "host"];
 
-function buildForwardHeaders(request: Request, targetHost: string): Headers {
+/**
+ * Copies the browser's headers for the upstream call. `host` is dropped rather
+ * than rewritten — it is a forbidden header name that `fetch` sets from the
+ * target URL regardless. `origin` is deliberately forwarded unchanged: Better
+ * Auth origin-checks it against its trustedOrigins list (Task 0), and
+ * rewriting it here would defeat that CSRF protection.
+ */
+function buildForwardHeaders(request: Request): Headers {
   const headers = new Headers(request.headers);
   for (const name of STRIPPED_REQUEST_HEADERS) headers.delete(name);
-  headers.set("host", targetHost);
   return headers;
+}
+
+/**
+ * Rebinds one upstream cookie to the app's own host: drops `Domain` so it
+ * binds to whatever host served the request, and forces `SameSite=Lax`,
+ * appending the attribute when upstream omitted it entirely.
+ */
+function rebindCookie(cookie: string): string {
+  const withoutDomain = cookie.replace(/;\s*Domain=[^;]+/i, "");
+  return /SameSite=/i.test(withoutDomain)
+    ? withoutDomain.replace(/SameSite=[^;]+/i, "SameSite=Lax")
+    : `${withoutDomain}; SameSite=Lax`;
 }
 
 function rewriteSetCookieHeaders(upstreamHeaders: Headers): Headers {
@@ -330,14 +493,8 @@ function rewriteSetCookieHeaders(upstreamHeaders: Headers): Headers {
   const setCookies = upstreamHeaders.getSetCookie();
   if (setCookies.length === 0) return rewritten;
   rewritten.delete("set-cookie");
-  for (const cookie of setCookies) {
-    const withoutDomain = cookie.replace(/;\s*Domain=[^;]+/i, "");
-    const withLaxSameSite = withoutDomain.replace(
-      /SameSite=[^;]+/i,
-      "SameSite=Lax",
-    );
-    rewritten.append("set-cookie", withLaxSameSite);
-  }
+  for (const cookie of setCookies)
+    rewritten.append("set-cookie", rebindCookie(cookie));
   return rewritten;
 }
 
@@ -369,7 +526,7 @@ export const ALL: APIRoute = async ({ request, params }) => {
   try {
     upstreamResponse = await fetch(target, {
       method: request.method,
-      headers: buildForwardHeaders(request, target.host),
+      headers: buildForwardHeaders(request),
       body: hasBody ? await request.blob() : undefined,
       redirect: "manual",
     });
@@ -388,7 +545,7 @@ export const ALL: APIRoute = async ({ request, params }) => {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `cd app && npx vitest run tests/pages/api/auth/\[...path\].test.ts`
-Expected: PASS (5 tests)
+Expected: PASS (7 tests)
 
 - [ ] **Step 5: Type-check the new property access**
 
@@ -407,19 +564,25 @@ git commit -m "feat: proxy Neon Auth traffic same-origin through /api/auth"
 ### Task 4: Point the browser auth client at the same-origin proxy
 
 **Files:**
+
 - Modify: `app/src/lib/client/auth/client.ts`
 
 **Interfaces:**
-- Produces: `authClient` (unchanged shape — still `createAuthClient(...)`'s return value) now talks to `/api/auth` instead of the cross-origin `PUBLIC_NEON_AUTH_BASE_URL`. `getAccessToken()` signature unchanged.
 
-- [ ] **Step 1: Replace the cross-origin base URL with the same-origin proxy path**
+- Produces: `authClient` (unchanged shape — still `createAuthClient(...)`'s return value) now talks to the app's own origin at `/api/auth` instead of the cross-origin `PUBLIC_NEON_AUTH_BASE_URL`. `getAccessToken()` signature unchanged.
+
+- [ ] **Step 1: Replace the cross-origin base URL with an absolute same-origin URL**
 
 Replace the full contents of `app/src/lib/client/auth/client.ts`:
 
 ```typescript
 import { createAuthClient } from "@neondatabase/neon-js/auth";
 
-export const authClient = createAuthClient("/api/auth");
+const AUTH_PROXY_PATH = "/api/auth";
+
+export const authClient = createAuthClient(
+  `${globalThis.location.origin}${AUTH_PROXY_PATH}`,
+);
 
 export async function getAccessToken(): Promise<string | null> {
   const result = await authClient.getSession();
@@ -427,17 +590,19 @@ export async function getAccessToken(): Promise<string | null> {
 }
 ```
 
-This removes the `PUBLIC_NEON_AUTH_BASE_URL` presence check and its thrown error — the base URL is now a same-origin constant, not env-dependent, so there is nothing left to validate at module load.
+**The absolute URL is load-bearing — do not "simplify" this to the bare path `"/api/auth"`.** `createAuthClient(url)` forwards `url` to Better Auth's `getBaseURL()`, which calls `assertHasProtocol()` → `new URL(url)`; a relative path throws `BetterAuthError: Invalid base URL` at module load and the app never boots (`better-auth@1.4.18`, `dist/utils/url.mjs:12-20`, `dist/client/config.mjs:11`). Building it from `globalThis.location.origin` keeps it same-origin on `*.workers.dev`, on any future custom domain, and on `localhost:4321` with no per-environment configuration.
+
+This removes the `PUBLIC_NEON_AUTH_BASE_URL` presence check and its thrown error — the base URL now derives from the page's own origin, not env, so there is nothing left to validate at module load. This module is browser-only (reached solely through the Alpine client entrypoint: `auth.store.ts`, `login.data.ts`, `@client/api/client.ts`), so `globalThis.location` is always defined where it runs.
 
 - [ ] **Step 2: Run the full test suite to confirm nothing depended on the removed guard**
 
 Run: `cd app && npx vitest run`
 Expected: PASS — no existing test file covers `client.ts` (confirmed: `app/tests/lib/client/auth/` does not exist), so this is a refactor with no test to update.
 
-- [ ] **Step 3: Type-check**
+- [ ] **Step 3: Type-check and confirm the build does not evaluate this module server-side**
 
-Run: `cd app && npx astro check`
-Expected: no errors.
+Run: `cd app && npx astro check && npx astro build`
+Expected: both succeed. A build-time `TypeError: Cannot read properties of undefined (reading 'origin')` would mean something imports this module during prerendering — if that happens, wrap the base URL in a lazy getter rather than reverting to a relative path (which cannot work, per Step 1).
 
 - [ ] **Step 4: Commit**
 
@@ -451,6 +616,7 @@ git commit -m "feat: point browser auth client at the same-origin /api/auth prox
 ### Task 5: PWA manifest and standalone meta tags
 
 **Files:**
+
 - Create: `app/public/manifest.json`
 - Modify: `app/src/layouts/BaseLayout.astro`
 
@@ -560,6 +726,7 @@ git commit -m "feat: add PWA manifest and standalone web app meta tags"
 ### Task 6: API docs — register the auth proxy route surface
 
 **Files:**
+
 - Modify: `docs/architecture/06-API/00-Overview.md`
 - Modify: `docs/architecture/06-API/02-Middleware-And-Layering.md`
 
@@ -717,6 +884,7 @@ git commit -m "docs: register /api/auth/* as a same-origin transport-only proxy 
 ### Task 7: Frontend doc + DECISIONS ledger
 
 **Files:**
+
 - Modify: `docs/architecture/07-Frontend/01-Rendering-Strategy.md`
 - Modify: `DECISIONS.md`
 
@@ -808,6 +976,7 @@ git commit -m "docs: record D172/D173 and note the same-origin auth client"
 ### Task 8: Context map registration and final validation
 
 **Files:**
+
 - Modify: `docs/architecture/00-Context-Map.md`
 
 **Interfaces:** None — documentation + validation gates only.
@@ -850,6 +1019,27 @@ to:
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes; same-origin auth client (D172, 2026-07-29) | canonical | ~2.2k |
 ```
 
+- [ ] **Step 1b: Register this task's spec and plan in the Context & history table**
+
+In the same file's "Context & history (repo root, `docs/`)" table, add two rows after the existing `docs/superpowers/plans/2026-07-25-game-engine-contract-hardening.md` row:
+
+```markdown
+| `docs/superpowers/specs/2026-07-29-ios-web-app-auth-design.md` | iOS Home Screen web app auth: same-origin `/api/auth/*` proxy design, cookie-rebinding rules, PWA manifest scope (D172, D173) (2026-07-29) | historical |
+| `docs/superpowers/plans/2026-07-29-ios-web-app-auth.md` | The 9-task plan implementing that spec, incl. the Neon Auth trusted-origin prerequisite (2026-07-29) | historical |
+```
+
+Also update the `11-Neon-Integration.md` row in the Database handbook table, changing:
+
+```markdown
+| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror (2026-07-24) | canonical | ~1.5k |
+```
+
+to:
+
+```markdown
+| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror; per-branch trusted origins (D172, 2026-07-29) | canonical | ~1.6k |
+```
+
 - [ ] **Step 2: Update the Current Implementation State table**
 
 In the same file, change the `API docs` row's end (append a clause before the closing `|`):
@@ -887,6 +1077,7 @@ scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
 updated: 2026-07-26
 -->
+
 # Context Map
 
 > **Version:** 1.7.2 (2026-07-26 — D156: type-raising governs type imports, value imports exempt; `06-API/03-Shared-Conventions.md` → 1.7.0 and the type-barrel gate row restated; prior 1.7.1 game engine review fixes D149–D152; 1.7.0 game engine contract D138–D144; 1.6.11 context-integrity guards D133)
@@ -901,6 +1092,7 @@ scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
 updated: 2026-07-29
 -->
+
 # Context Map
 
 > **Version:** 1.7.3 (2026-07-29 — D172/D173: same-origin `/api/auth/*` proxy and `api-auth-proxy` route class fix iOS standalone web app auth; PWA manifest/meta tags; prior 1.7.2 D156)
@@ -939,6 +1131,7 @@ git commit -m "docs: register D172/D173 in the context map and bump touched doc 
 
 This step has no code change — it is the reminder called out in the spec's Testing section: no automated test can exercise real iOS storage-container isolation or WebKit cookie behavior. Before closing issue #55, manually verify on a real iOS device (Safari, not Simulator, since ITP/storage-container behavior does not fully reproduce in Simulator):
 
+0. **Desktop first — this catches the trusted-origin failure before touching a phone.** Sign in on the deployed URL in a desktop browser. A `403 FORBIDDEN` on `POST /api/auth/sign-in/email` means Task 0's trusted-origin registration is missing or has the wrong origin; fix that before continuing. Also confirm in DevTools → Application → Cookies that the session cookie is listed under the **app's own** host, not Neon Auth's.
 1. Sign in via iOS Safari in a normal tab; confirm session persists across reloads.
 2. "Add to Home Screen"; launch the installed icon. Expect `/login` (separate storage container — this is expected, not a bug, per spec B5).
 3. Sign in inside the installed app. Expect the session to establish and survive closing/reopening the installed app.
@@ -948,6 +1141,21 @@ This step has no code change — it is the reminder called out in the spec's Tes
 
 ## Self-Review Notes
 
-- **Spec coverage:** B1 (Task 3, full proxy) · B2 (Task 3, cookie rewrite) · B3 (Tasks 1–2, route class + middleware bypass) · B4 (Task 4, same-origin client) · B5 (Task 8 Step 7, no new UX, manual check only) · B6 (Task 5, manifest) · D172/D173 (Task 7) · doc updates table (Tasks 6–8) · verification plan (Task 5 Step 3 for build, Task 8 Steps 4–5 for gates, Task 8 Step 7 for the manual iOS checklist).
+- **Spec coverage:** B1 (Task 3, full proxy) · B2 (Task 3, cookie rewrite) · B3 (Tasks 1–2, route class + middleware bypass) · B4 (Task 4, same-origin client) · B5 (Task 8 Step 7, no new UX, manual check only) · B6 (Task 5, manifest) · D172/D173 (Task 7) · doc updates table (Tasks 6–8) · verification plan (Task 5 Step 3 for build, Task 8 Steps 4–5 for gates, Task 8 Step 7 for the manual checklist).
 - **Placeholder scan:** no TBD/TODO; the one open item (`apple-touch-icon` PNG) is called out explicitly as a deliberate, documented scope boundary with a stated reason, not an unresolved requirement.
-- **Type consistency:** `env.auth.baseUrl` used identically in Task 3's handler and its test mock; `ALL` export name matches between Task 3's handler and its test's import; `RouteClass` value `"api-auth-proxy"` is identical across Task 1 (type + classifier), Task 2 (middleware), and both doc edits (Tasks 6, 8).
+- **Type consistency:** `env.auth.baseUrl` used identically in Task 3's handler and its test mock; `ALL` export name matches between Task 3's handler and its test's import; `RouteClass` value `"api-auth-proxy"` is identical across Task 1 (type + classifier), Task 2 (middleware), and both doc edits (Tasks 6, 8); `AUTH_PROXY_PATH` (Task 4) and `AUTH_PROXY_ROOT` (Task 1) both resolve to the string `/api/auth`.
+
+## Verification Notes (checked against installed dependency sources, 2026-07-29)
+
+Findings that changed the plan after it was first drafted — recorded so a reviewer can see they were tested, not assumed:
+
+| Finding                                                                                                                                            | Evidence                                                                                                          | Where handled                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| A relative `baseURL` throws — `createAuthClient("/api/auth")` cannot work                                                                          | `better-auth@1.4.18` `dist/utils/url.mjs:12-20` (`assertHasProtocol` → `new URL`), `dist/client/config.mjs:11`    | Task 4 uses `${globalThis.location.origin}/api/auth`; Global Constraints call it out |
+| Better Auth origin-checks every non-GET against `trustedOrigins`; the proxy forwards the app's `Origin`, which was never registered for production | `dist/api/middlewares/origin-check.mjs:26` (`originCheckMiddleware`), `:36` (`isTrustedOrigin` → `403 FORBIDDEN`) | New Task 0 + `11-Neon-Integration.md` trusted-origins table                          |
+| `Headers.getSetCookie()` is available in the test runner                                                                                           | Vitest `environment: "node"` (`app/vitest.config.ts`), Node v22 — verified returning `['a=1']`                    | Task 3 test relies on it directly                                                    |
+| API routes are on-demand by default under `output: "server"`; no `prerender` export needed on the proxy route                                      | `app/astro.config.mjs`, and no `prerender` export exists anywhere under `app/src/pages/api/`                      | Task 3 handler adds none                                                             |
+| `check-file-locations.sh` permits `.ts` under `pages/api/**`, so the new route passes                                                              | `scripts/check-file-locations.sh:8` excludes `^app/src/pages/api/`                                                | Task 8 Step 5 gate run                                                               |
+| Context/doc gates all pass on the pre-change tree, so any failure in Task 8 is caused by this change                                               | `check-context-map.sh`, `check-doc-links.sh`, `check-context-budget.sh` each ran clean                            | Task 8 Step 4                                                                        |
+
+**Still unverified (`app/node_modules` is absent in the authoring environment):** the exact `@neon/env` property name for `NEON_AUTH_BASE_URL`. Task 3 assumes `env.auth.baseUrl`, mirroring the confirmed sibling `env.auth.jwksUrl` (`app/src/lib/auth/verify-jwt.ts:14`). Task 3 Step 5 verifies this with `astro check` and states the fallback.
