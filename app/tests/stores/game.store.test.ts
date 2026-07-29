@@ -188,6 +188,14 @@ describe("gameStore", () => {
     expect(store.idempotencyKey).toBeNull();
   });
 
+  it("defaults loading to false and clears it on reset", () => {
+    const store = gameStore(stubPersistFactory());
+    expect(store.loading).toBe(false);
+    store.loading = true;
+    store.reset();
+    expect(store.loading).toBe(false);
+  });
+
   describe("D91 store version", () => {
     /**
      * Real Alpine resolves every `$persist` field to its hydrated value
