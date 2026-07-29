@@ -130,7 +130,6 @@ export function scoreTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    abandonLoading: false,
     resultsSnapshot: null as {
       total: number;
       visits: number;
@@ -337,14 +336,14 @@ export function scoreTrainingPlay() {
     },
 
     async abandonAndExit(this: ScoreTrainingPlayContext) {
-      if (this.abandonLoading) return;
+      if (this.$store.game.loading) return;
       const sessionId = this.$store.game.sessionId;
       if (!sessionId) {
         this.$store.game.reset();
         globalThis.location.href = "/games";
         return;
       }
-      this.abandonLoading = true;
+      this.$store.game.loading = true;
       this.error = "";
       try {
         const facts = currentFacts(this);
@@ -364,7 +363,7 @@ export function scoreTrainingPlay() {
         globalThis.location.href = "/games";
       } catch {
         this.error = "Could not abandon session. Try again.";
-        this.abandonLoading = false;
+        this.$store.game.loading = false;
       }
     },
 
