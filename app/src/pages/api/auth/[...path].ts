@@ -45,7 +45,9 @@ function rewriteSetCookieHeaders(upstreamHeaders: Headers): Headers {
  * served the request, instead of cross-site to Neon Auth's own domain —
  * the fix for iOS standalone web app login. Not a domain endpoint: the
  * upstream response passes through untouched, never wrapped in the
- * `ok/data/requestId` envelope.
+ * `ok/data/requestId` envelope. Trailing slash(es) on `NEON_AUTH_BASE_URL`
+ * are stripped before joining with the forwarded path, so a misconfigured
+ * base URL never produces a double slash in the upstream target.
  */
 export const ALL: APIRoute = async ({ request, params }) => {
   let authBaseUrl: string;
@@ -59,7 +61,10 @@ export const ALL: APIRoute = async ({ request, params }) => {
 
   const forwardPath = params.path ?? "";
   const requestUrl = new URL(request.url);
-  const target = new URL(`${authBaseUrl}/${forwardPath}${requestUrl.search}`);
+  const normalizedBaseUrl = authBaseUrl.replace(/\/+$/, "");
+  const target = new URL(
+    `${normalizedBaseUrl}/${forwardPath}${requestUrl.search}`,
+  );
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
 
   let upstreamResponse: Response;
