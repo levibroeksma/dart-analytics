@@ -2,11 +2,11 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-26
+updated: 2026-07-29
 -->
 # Context Map
 
-> **Version:** 1.7.2 (2026-07-26 — D156: type-raising governs type imports, value imports exempt; `06-API/03-Shared-Conventions.md` → 1.7.0 and the type-barrel gate row restated; prior 1.7.1 game engine review fixes D149–D152; 1.7.0 game engine contract D138–D144; 1.6.11 context-integrity guards D133)
+> **Version:** 1.7.3 (2026-07-29 — D172/D173: same-origin `/api/auth/*` proxy and `api-auth-proxy` route class fix iOS standalone web app auth; PWA manifest/meta tags; prior 1.7.2 D156)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -70,7 +70,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~4.3k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~5.5k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -96,19 +96,19 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
 | `09-Pre-Implementation-Review.md` | Design-gate record | historical | ~1.5k |
 | `10-Database-Agent-Guide.md` | Condensed DB rules for agents; ID strategy owner; new-game-type checklist through engine registration (2026-07-26) | canonical | ~2.6k |
-| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror (2026-07-24) | canonical | ~1.5k |
+| `11-Neon-Integration.md` | Neon topology, branches, dbmate/drizzle workflow; `env:dev`/`env:prod` PUBLIC_ mirror; per-branch trusted origins (D172, 2026-07-29) | canonical | ~1.6k |
 
 ## API (`06-API/`) and Frontend (`07-Frontend/`)
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
-| `06-API/00-Overview.md` | Frozen v1 API baseline: runtime, routes, auth, envelopes (2026-07-22) | canonical | ~2.6k |
+| `06-API/00-Overview.md` | Frozen v1 API baseline: runtime, routes, auth, envelopes; `/api/auth/*` same-origin proxy (D172, 2026-07-29) | canonical | ~2.7k |
 | `06-API/01-Implementation-Strategy.md` | REST endpoints, Cloudflare + Neon constraints | canonical | ~2.1k |
-| `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering, API error boundary (2026-07-22) | canonical | ~2.9k |
+| `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering, API error boundary; `api-auth-proxy` route class (D172, 2026-07-29) | canonical | ~3.0k |
 | `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry; type-raising governs type imports, value imports exempt (2026-07-26) | canonical | ~4k |
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22) | canonical | ~5.1k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~2.6k |
-| `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes | canonical | ~2.1k |
+| `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes; same-origin auth client (D172, 2026-07-29) | canonical | ~2.2k |
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate (2026-07-17) | canonical | ~3.2k |
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
@@ -175,6 +175,9 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
 | `docs/superpowers/specs/2026-07-25-game-engine-review-design.md` | Game engine PR review: findings C1/C2, I1–I8, M1–M6, P1–P4, ST1–ST7 — closed except **P1** (branch carries no PR against `main` yet — pending this task's completion) and **P3** (knowledge graph stale; `graphify` CLI absent in this environment); other resolutions are canonical in Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `06-Spec/04-Runtime-Layer.md` and `DECISIONS.md` D138–D144 (2026-07-26) | historical |
 | `docs/superpowers/plans/2026-07-25-game-engine-contract-hardening.md` | The 14-task plan closing the findings; P1 and P3 remain open as of Task 14 (2026-07-26) | historical |
+| `docs/superpowers/specs/2026-07-29-ios-web-app-auth-design.md` | iOS Home Screen web app auth: same-origin `/api/auth/*` proxy design, cookie-rebinding rules, PWA manifest scope (D172, D173) (2026-07-29) | historical |
+| `docs/superpowers/plans/2026-07-29-ios-web-app-auth.md` | The 9-task plan implementing that spec, incl. the Neon Auth trusted-origin prerequisite (2026-07-29) | historical |
+| `docs/superpowers/handoffs/2026-07-29-ios-auth-pre-merge-checklist.md` | Operator checklist: manual Neon-console trusted-origin registration + iOS Safari verification, neither doable in-session (2026-07-29) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
@@ -201,8 +204,8 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | Game engines | All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract (D138–D141, D153): config-driven, fact-log-owning, rehydratable; six ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
-| API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `03`→1.7.0 type-vs-value barrel rule (D156, 2026-07-26); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13) |
-| Application code | Auth middleware with route-class 401/403 handling + API error boundary (D131); frozen envelope/error helpers; player provisioning (D76); `POST /api/sessions` server-guards single-active (D132); logout flow (`signOut`, `LogoutButton`) complete; Score Training first-deploy write/read subset live (S1) |
+| API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `03`→1.7.0 type-vs-value barrel rule (D156, 2026-07-26); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13); auth proxy `00`→1.5.0, `02`→1.4.0 (D172, 2026-07-29) |
+| Application code | Auth middleware with route-class 401/403 handling + API error boundary (D131); frozen envelope/error helpers; player provisioning (D76); `POST /api/sessions` server-guards single-active (D132); logout flow (`signOut`, `LogoutButton`) complete; Score Training first-deploy write/read subset live (S1); same-origin Neon Auth proxy (`/api/auth/*`) fixes iOS standalone-PWA login (D172, 2026-07-29) |
 | Frontend docs | `07-Style-Guide.md` →0.2.0 — sky/glass/`surface`/`foreground` visual contract; legacy `bg-bg`/`text-fg`/old surface-badge-nav API retired (2026-07-22); Handbook `02`→0.2.1, `03`→0.2.1, `04`→0.1.1, `10`→0.1.3, overview `00`→0.3.4 — shared `session-recovery.ts` decision table (D118) + Score Training hard-gate completion / play-page results modal (D119, supersedes D112 for this flow) (2026-07-17); prior: prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15); type/interface barrel-raising universal, no `.ts` outside `lib/`/`pages/api/`, centralized error mapping, self-learning gate (D103–D107, 2026-07-16); original `07-Style-Guide.md` 0.1.0 (D108, 2026-07-16) |
 | Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |
 | DB connection contract | `DATABASE_URL` = pooled (tooling), `DATABASE_URL_UNPOOLED` = direct (Worker runtime); `DATABASE_URL_POOLED` retired — user-verified against real `neonctl link` output (D95, 2026-07-15) |
