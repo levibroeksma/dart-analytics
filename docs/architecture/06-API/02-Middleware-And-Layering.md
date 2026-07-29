@@ -2,12 +2,12 @@
 status: canonical
 scope: api/middleware-layering
 read-when: middleware or folder-layering changes
-updated: 2026-07-22
+updated: 2026-07-29
 -->
 
 # API Middleware And Layering
 
-> **Version:** 1.3.0 (API error boundary for `api-*` routes, 2026-07-22)
+> **Version:** 1.4.0 (`api-auth-proxy` route class, D172, 2026-07-29)
 >
 > This document defines middleware responsibilities, the `locals` auth contract, and the recommended `app/` folder structure for the Worker API layer.
 >
@@ -61,6 +61,7 @@ Middleware classifies every request into exactly one class:
 | Class | JWT verified | Player resolved | Members |
 | ----- | ------------ | --------------- | ------- |
 | Public | No | No | unauthenticated routes (if any) |
+| Auth proxy | No | No | `/api/auth/*` only — same-origin transport to Neon Auth, not a domain route (D172) |
 | Protected | Yes | Yes — missing player → `403 PLAYER_NOT_PROVISIONED` | all domain routes (sessions, routines) |
 | Authenticated-unprovisioned | Yes | Skipped | `POST /api/players/provision` only (historically "provision-exempt", D62) |
 
