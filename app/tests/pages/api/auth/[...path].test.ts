@@ -141,6 +141,32 @@ describe("ALL /api/auth/[...path]", () => {
     );
   });
 
+  it("strips X-Forwarded-Host and Forwarded so Neon Auth does not reject the hostname", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await ALL(
+      requestFor("sign-in/email", {
+        method: "POST",
+        headers: {
+          origin: "http://localhost:4321",
+          "x-forwarded-host": "localhost:4321",
+          "x-forwarded-proto": "http",
+          forwarded: "host=localhost:4321;proto=http",
+        },
+        body: "{}",
+      }) as never,
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string | URL, RequestInit];
+    const headers = new Headers(init.headers);
+    expect(headers.get("origin")).toBe("http://localhost:4321");
+    expect(headers.get("x-forwarded-host")).toBeNull();
+    expect(headers.get("x-forwarded-proto")).toBeNull();
+    expect(headers.get("forwarded")).toBeNull();
+  });
+
   it("passes non-2xx status and body through untouched", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ error: "invalid" }), { status: 401 }),
