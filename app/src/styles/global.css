@@ -68,11 +68,22 @@
   --font-display: "Michroma", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --radius-sm: 0.375rem; /* 6px — nav items */
-  --radius-md: 0.5rem; /* 8px — buttons, inputs */
-  --radius-lg: 0.75rem; /* 12px — compact panels */
-  --radius-xl: 1rem; /* 16px — nav shell */
-  --radius-2xl: 1.25rem; /* 20px — cards */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  --dartboard-single-dark: oklch(100% 0 0 / 0.04);
+  --dartboard-single-light: oklch(68.5% 0.169 237.323 / 0.35);
+  --dartboard-wire-red: oklch(68.5% 0.169 237.323);
+  --dartboard-wire-green: oklch(100% 0 0 / 0.08);
+  --dartboard-label: #ffffff;
+  --dartboard-segment-hover: color-mix(
+    in oklab,
+    var(--accent) 40%,
+    transparent
+  );
 }
 
 @layer base {
@@ -457,5 +468,52 @@
         0 0 48px 24px color-mix(in oklch, var(--card-tint) 12%, transparent),
         inset 0 0 0 1px oklch(100% 0 0 / 0.08);
     }
+  }
+
+  /* Singles */
+  .dartboard-group .segment.dark .single {
+    fill: var(--dartboard-single-dark);
+  }
+  .dartboard-group .segment.light .single {
+    fill: var(--dartboard-single-light);
+  }
+  /* If you only want the outer bed: */
+  .dartboard-group .segment.dark .single.big {
+    fill: var(--dartboard-single-dark);
+  }
+  .dartboard-group .segment.light .single.big {
+    fill: var(--dartboard-single-light);
+  }
+  /* Multipliers — alternate by segment tone */
+  .dartboard-group .segment.dark .multiplier {
+    fill: var(--dartboard-wire-red);
+  }
+  .dartboard-group .segment.light .multiplier {
+    fill: var(--dartboard-wire-green);
+  }
+
+  /* Labels */
+  .dartboard-group .segment text {
+    fill: var(--accent);
+    /* display: none; */
+  }
+  /* Bull */
+  .dartboard-group .bullSegment .single {
+    fill: var(--dartboard-wire-green);
+  }
+  .dartboard-group .bullSegment .double {
+    fill: var(--dartboard-wire-red);
+  }
+  /* Hover — target children; <g> itself does not paint fill */
+  .dartboard-group .segment {
+    cursor: pointer;
+  }
+  .dartboard-group .segment:hover .single,
+  .dartboard-group .segment:hover .multiplier {
+    fill: var(--dartboard-segment-hover);
+  }
+  /* Or brighten without losing identity: */
+  .dartboard-group .segment:hover path {
+    filter: brightness(1.25);
   }
 }
