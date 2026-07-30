@@ -1,14 +1,25 @@
 import type { APIRoute } from "astro";
 import { env } from "@lib/env";
 
-const STRIPPED_REQUEST_HEADERS = ["connection", "keep-alive", "host"];
+const STRIPPED_REQUEST_HEADERS = [
+  "connection",
+  "keep-alive",
+  "host",
+  "x-forwarded-host",
+  "x-forwarded-proto",
+  "forwarded",
+];
 
 /**
  * Copies the browser's headers for the upstream call. `host` is dropped rather
  * than rewritten — it is a forbidden header name that `fetch` sets from the
- * target URL regardless. `origin` is deliberately forwarded unchanged: Better
- * Auth origin-checks it against its trustedOrigins list (Task 0), and
- * rewriting it here would defeat that CSRF protection.
+ * target URL regardless. Hop-by-hop forwarded headers (`x-forwarded-host`,
+ * `x-forwarded-proto`, `forwarded`) are also stripped: Vite/Workers inject
+ * the app's hostname there, and Neon Auth treats that as the auth host —
+ * rejecting with `INVALID_HOSTNAME` when it is `localhost` or a Worker
+ * origin. `origin` is deliberately forwarded unchanged: Better Auth
+ * origin-checks it against its trustedOrigins list (Task 0), and rewriting
+ * it here would defeat that CSRF protection.
  */
 function buildForwardHeaders(request: Request): Headers {
   const headers = new Headers(request.headers);
