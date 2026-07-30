@@ -159,16 +159,18 @@ export class DoublesTrainingEngine implements GameEngine<
   private readonly turns: TurnFact[];
 
   /**
-   * `config` is accepted (not hardcoded) for `GameEngineFactory` parity and
-   * so a future `DOUBLES_TRAINING_V1` mode/order variant can change engine
-   * behavior without a signature change; V1 locks `mode`/`orderMode` to a
-   * single value each (see `docs/game-rules/rulesets/doubles-training.md`),
-   * so neither is read yet.
+   * The config snapshot is accepted positionally for `GameEngineFactory`
+   * parity, so a future `DOUBLES_TRAINING_V1` mode/order variant can drive
+   * behavior without a signature change. It is deliberately not retained as
+   * a field: `DoublesTrainingConfig` locks `mode` to `EASY` and `order_mode`
+   * to `LOW_TO_HIGH` (single-value `.strict()` enums in
+   * `lib/game/rulesets/types.ts`), so Zod already guarantees the only values
+   * V1 can carry and nothing here would read them. Storing it instead left
+   * an unread private property — `ts(6138)` in `astro check`, and a false
+   * claim that this engine is config-driven when the other five genuinely
+   * are.
    */
-  constructor(
-    private readonly config: DoublesTrainingSnapshot,
-    prior?: EngineFacts,
-  ) {
+  constructor(_config: DoublesTrainingSnapshot, prior?: EngineFacts) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
