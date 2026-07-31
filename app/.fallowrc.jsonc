@@ -19,6 +19,10 @@
     "@tailwindcss/vite",
     "postgres",
     "jose",
+    // Offline brand asset generators (`icons:generate` / `logo:generate`) — not Worker runtime
+    "@resvg/resvg-js",
+    "culori",
+    "opentype.js",
   ],
   "duplicates": {
     "ignore": ["src/db/schema.ts"],
