@@ -17,27 +17,32 @@ const { title, gameTitle }: Props = Astro.props;
     class="mx-auto flex h-full max-w-lg flex-col"
     x-data="{ showExitModal: false }"
   >
-    <header class="relative flex items-center p-3">
-      <Button
-        type="button"
-        variant="ghost"
-        icon
-        ariaLabel="Exit game"
-        class="relative z-10"
-        @click="showExitModal = true"
-      >
-        <ExitIcon
-          class="size-6 text-muted"
-          slot="iconBefore"
-        />
-      </Button>
-      {
-        gameTitle ? (
-          <h1 class="pointer-events-none uppercase font-mono absolute inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
-            {gameTitle}
-          </h1>
-        ) : null
-      }
+    <header class="relative flex items-center pt-3">
+      <div class="w-1/8">
+        <Button
+          type="button"
+          variant="ghost"
+          icon
+          ariaLabel="Exit game"
+          class="relative z-10"
+          @click="showExitModal = true"
+        >
+          <ExitIcon
+            class="size-6 text-muted"
+            slot="iconBefore"
+          />
+        </Button>
+      </div>
+      <div class="w-6/8">
+        {
+          gameTitle ? (
+            <h1 class="pointer-events-none uppercase font-mono  inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
+              {gameTitle}
+            </h1>
+          ) : null
+        }
+      </div>
+      <div class="w-1/8"></div>
     </header>
     <main
       class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
