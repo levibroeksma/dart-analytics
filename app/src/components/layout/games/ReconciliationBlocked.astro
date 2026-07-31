@@ -1,0 +1,31 @@
+---
+import Button from "@components/forms/Button.astro";
+---
+
+<div
+  class="text-center py-8"
+  x-show="loadingReconciliation || reconciliationFailed"
+  x-cloak
+>
+  <p
+    class="text-sm text-muted-foreground"
+    x-show="loadingReconciliation"
+    x-cloak
+  >
+    Loading...
+  </p>
+  <div
+    x-show="reconciliationFailed && !loadingReconciliation"
+    x-cloak
+  >
+    <p class="text-sm text-error">
+      Could not clean up a previous session. Retry to continue.
+    </p>
+    <Button
+      type="button"
+      class="mt-4"
+      @click="retryReconciliation()"
+      title="Retry"
+    />
+  </div>
+</div>
