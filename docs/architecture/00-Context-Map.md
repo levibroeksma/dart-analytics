@@ -6,7 +6,7 @@ updated: 2026-07-31
 -->
 # Context Map
 
-> **Version:** 1.7.5 (2026-07-31 — D175: `scripts/check-style-tokens.sh` also bans Tailwind v3 prefix-important and leading-dash arbitrary negatives; prior 1.7.4 D174)
+> **Version:** 1.7.6 (2026-07-31 — brand asset generator scripts registered in inventory; prior 1.7.5 D175)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -164,6 +164,15 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-doc-links.sh` | Guard: markdown links and path-like backtick refs across the canonical doc set resolve (D133) | canonical |
 | `scripts/check-context-budget.sh` | Guard: this file's own `~Nk` token estimates don't drift from a chars/4 estimate (D133) | canonical |
 
+## Brand asset generators (2026-07-31)
+
+Registered for discoverability — regenerate committed outputs via `npm run icons:generate` / `npm run logo:generate` in `app/`.
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/scripts/generate-app-icons.ts` | Regenerate PWA/favicon PNGs + `favicon.svg`/`favicon.ico` from `bg-dartboard.svg` (`npm run icons:generate`) (2026-07-31) | canonical |
+| `app/scripts/generate-logo-lockup.ts` | Regenerate outlined `logo-lockup.svg` lockup from Michroma outlines (`npm run logo:generate`) (2026-07-31) | canonical |
+
 ## Context & history (repo root, `docs/`)
 
 | File | Answers | Status |
@@ -183,6 +192,8 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `docs/superpowers/handoffs/2026-07-29-ios-safe-area-verification-checklist.md` | Operator checklist: manual iOS-device verification of the safe-area fix, not doable in-session (2026-07-29) | historical |
 | `docs/superpowers/specs/2026-07-31-tailwind-v4-utility-syntax-gate-design.md` | Tailwind v4 utility syntax gate design: ban prefix-important (`!utility`) and leading-dash arbitrary negatives (`-prop-[…]`) in favor of `utility!` / `prop-[-…]` (D175) (2026-07-31) | historical |
 | `docs/superpowers/plans/2026-07-31-tailwind-v4-utility-syntax-gate.md` | The task plan implementing that spec: `scripts/check-style-tokens.sh` extension + Style Guide/agent-guide/mirror/context-map/decision updates (2026-07-31) | historical |
+| `docs/superpowers/specs/2026-07-31-logo-lockup-svg-design.md` | Outlined logo lockup SVG design: Michroma outlines, generator script, home/login adoption (2026-07-31) | historical |
+| `docs/superpowers/plans/2026-07-31-brand-lockup-and-app-icons.md` | The 5-task plan: dartboard favicon/PWA icons, BaseLayout links, logo-lockup generator + UI swap, context touch-up (2026-07-31) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
