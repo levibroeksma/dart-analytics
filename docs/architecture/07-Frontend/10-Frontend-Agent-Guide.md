@@ -145,7 +145,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] Forward leftover attributes as `{...props}` — never `{...rest}`
-- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix !utility; no -prop-[…] arbitrary negatives
+- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix `!utility`; no `-prop-[…]` arbitrary negatives
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] Every `x-show` element also has `x-cloak`
 - [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup

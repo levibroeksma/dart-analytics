@@ -11,13 +11,12 @@
 #   3. Bare "!flex" on the same line as cn(
 # Gaps (accepted): variable-held "!flex"; bare :class={`!flex`}; @apply !util
 #   (@apply skipped — collides with CSS !important).
-# Neg-arbitrary: token-anchor (^|[\s"'`=]) not \b (quote/- boundary); [^]] for BSD grep.
-#   -left-[45%] banned; left-[-45%] / -mt-4 / -rotate-45 OK; grid-cols-[13] not matched.
-#   Gap (accepted): multi-segment forms like -inset-x-[10%] are NOT caught — the
-#   token-anchor only matches a single word segment before the bracket
-#   (-word-[...]), and the anchor's required boundary char blocks matching the
-#   trailing -x-[…] alone since the preceding char there is a letter, not a
-#   boundary. No known occurrence in app/src as of 2026-07-31.
+# Neg-arbitrary: token-anchor (^|[[:space:]"'`=(]) not \b (quote/-/paren boundary);
+#   [^]] for BSD grep. Use POSIX [[:space:]] inside a bracket expression — \s is
+#   NOT a whitespace shorthand there, it matches a literal backslash or 's'.
+#   -left-[45%] and -inset-x-[10%] banned (multi-segment prop via (-[a-z0-9]+)*);
+#   left-[-45%] / -mt-4 / -rotate-45 OK; grid-cols-[13] not matched. Mid-attribute
+#   occurrences (preceded by whitespace, not just quote/start) are caught too.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -60,7 +59,7 @@ if [ -n "$PREFIX_IMPORTANT" ]; then
   FAIL=1
 fi
 
-NEG_ARBITRARY=$(grep -rnE '(^|[\s"'\'\''`=])-[a-z][a-z0-9]*-\[[^]]+\]' app/src --include="*.astro" --include="*.css")
+NEG_ARBITRARY=$(grep -rnE '(^|[[:space:]"'\''`=(])-[a-z][a-z0-9]*(-[a-z0-9]+)*-\[[^]]+\]' app/src --include="*.astro" --include="*.css")
 if [ -n "$NEG_ARBITRARY" ]; then
   echo "FAIL: leading-dash arbitrary utility (-prop-[…]) found — put the minus inside the brackets (prop-[-…]):" >&2
   echo "$NEG_ARBITRARY" >&2

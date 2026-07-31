@@ -7,7 +7,7 @@ updated: 2026-07-31
 
 # Frontend Style Guide
 
-> **Version:** 0.2.1 (2026-07-31 — Tailwind v4 utility syntax)
+> **Version:** 0.2.2 (2026-07-31 — Tailwind v4 utility syntax; prior 0.2.1 was D174 safe-area, 2026-07-29)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
