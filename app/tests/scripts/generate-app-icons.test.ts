@@ -1,12 +1,17 @@
 import { Resvg } from "@resvg/resvg-js";
 import { describe, expect, it } from "vitest";
 import {
-  assertNonBlackPng,
+  assertNonBlackRgba,
   createIco,
   svgOklchToSrgb,
 } from "../../scripts/generate-app-icons";
 
-function renderSquare(fill: string, size: number): Buffer {
+function renderSquarePixels(fill: string, size: number): Uint8Array {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${fill}"/></svg>`;
+  return new Resvg(svg).render().pixels;
+}
+
+function renderSquarePng(fill: string, size: number): Buffer {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${fill}"/></svg>`;
   return Buffer.from(new Resvg(svg).render().asPng());
 }
@@ -21,15 +26,21 @@ describe("generate-app-icons helpers", () => {
     expect(converted).toMatch(/fill="rgb\(\d+, \d+, \d+\)"/);
   });
 
-  it("rejects an all-black PNG", () => {
-    expect(() => assertNonBlackPng(renderSquare("#000", 16), "black")).toThrow(
-      "raster is all black",
+  it("rejects an all-black raster", () => {
+    expect(() =>
+      assertNonBlackRgba(renderSquarePixels("#000", 16), "black"),
+    ).toThrow("raster is all black");
+  });
+
+  it("accepts a non-black raster", () => {
+    expect(assertNonBlackRgba(renderSquarePixels("#fff", 16), "white")).toBe(
+      256,
     );
   });
 
   it("writes a two-frame PNG ICO directory", () => {
-    const png16 = renderSquare("#fff", 16);
-    const png32 = renderSquare("#fff", 32);
+    const png16 = renderSquarePng("#fff", 16);
+    const png32 = renderSquarePng("#fff", 32);
     const ico = createIco([
       { size: 16, png: png16 },
       { size: 32, png: png32 },

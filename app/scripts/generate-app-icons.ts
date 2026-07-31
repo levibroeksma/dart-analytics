@@ -6,7 +6,6 @@
  * Run: npm run icons:generate
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { inflateSync } from "node:zlib";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
@@ -78,136 +77,35 @@ function composeIconSvg(
 `;
 }
 
-function renderPng(svg: string, size: number): Buffer {
-  const resvg = new Resvg(svgOklchToSrgb(svg), {
-    fitTo: { mode: "width", value: size },
-  });
-  return Buffer.from(resvg.render().asPng());
-}
-
-function paeth(a: number, b: number, c: number): number {
-  const p = a + b - c;
-  const pa = Math.abs(p - a);
-  const pb = Math.abs(p - b);
-  const pc = Math.abs(p - c);
-  if (pa <= pb && pa <= pc) return a;
-  if (pb <= pc) return b;
-  return c;
-}
-
-function unfilterScanline(
-  filter: number,
-  row: Buffer,
-  prev: Buffer,
-  bpp: number,
-): Buffer {
-  const out = Buffer.from(row);
-  switch (filter) {
-    case 0:
-      break;
-    case 1:
-      for (let i = bpp; i < out.length; i++) {
-        out[i] = (out[i] + out[i - bpp]) & 0xff;
-      }
-      break;
-    case 2:
-      for (let i = 0; i < out.length; i++) {
-        out[i] = (out[i] + prev[i]) & 0xff;
-      }
-      break;
-    case 3:
-      for (let i = 0; i < out.length; i++) {
-        const left = i >= bpp ? out[i - bpp] : 0;
-        const up = prev[i];
-        out[i] = (out[i] + Math.floor((left + up) / 2)) & 0xff;
-      }
-      break;
-    case 4:
-      for (let i = 0; i < out.length; i++) {
-        const left = i >= bpp ? out[i - bpp] : 0;
-        const up = prev[i];
-        const upLeft = i >= bpp ? prev[i - bpp] : 0;
-        out[i] = (out[i] + paeth(left, up, upLeft)) & 0xff;
-      }
-      break;
-    default:
-      throw new Error(`unsupported PNG filter type: ${filter}`);
-  }
-  return out;
-}
-
 /**
- * Count RGBA pixels that are visible and not near-black (catches oklch raster failures).
+ * Count visible non-near-black RGBA pixels (catches oklch raster failures).
+ *
+ * @param pixels - Packed RGBA bytes from Resvg.
+ * @returns Count of pixels that are both opaque enough and not near-black.
  */
-function countNonBlackPixels(png: Buffer): number {
-  let offset = 8;
-  let width = 0;
-  let height = 0;
-  let colorType = 0;
-  const idatChunks: Buffer[] = [];
-
-  while (offset + 8 <= png.length) {
-    const len = png.readUInt32BE(offset);
-    const type = png.subarray(offset + 4, offset + 8).toString("ascii");
-    const data = png.subarray(offset + 8, offset + 8 + len);
-    if (type === "IHDR") {
-      width = data.readUInt32BE(0);
-      height = data.readUInt32BE(4);
-      colorType = data[9];
-    } else if (type === "IDAT") {
-      idatChunks.push(data);
-    } else if (type === "IEND") {
-      break;
-    }
-    offset += 12 + len;
-  }
-
-  if (colorType !== 6) {
-    throw new Error(`expected RGBA PNG (color type 6), got ${colorType}`);
-  }
-
-  const raw = inflateSync(Buffer.concat(idatChunks));
-  const bpp = 4;
-  const rowBytes = width * bpp;
+export function countNonBlackRgba(pixels: Uint8Array): number {
   let nonBlack = 0;
-  let pos = 0;
-  let prev: Buffer<ArrayBufferLike> = Buffer.alloc(rowBytes);
-
-  for (let y = 0; y < height; y++) {
-    const filter = raw[pos++];
-    const row = unfilterScanline(
-      filter,
-      raw.subarray(pos, pos + rowBytes),
-      prev,
-      bpp,
-    );
-    prev = row;
-    pos += rowBytes;
-
-    for (let x = 0; x < width; x++) {
-      const i = x * bpp;
-      const r = row[i];
-      const g = row[i + 1];
-      const b = row[i + 2];
-      const a = row[i + 3];
-      if (a > 0 && (r > 10 || g > 10 || b > 10)) {
-        nonBlack++;
-      }
+  for (let i = 0; i + 3 < pixels.length; i += 4) {
+    const r = pixels[i];
+    const g = pixels[i + 1];
+    const b = pixels[i + 2];
+    const a = pixels[i + 3];
+    if (a > 0 && (r > 10 || g > 10 || b > 10)) {
+      nonBlack++;
     }
   }
-
   return nonBlack;
 }
 
 /**
- * Reject a PNG whose visible pixels are all near-black.
+ * Reject a raster whose visible pixels are all near-black.
  *
- * @param png - Encoded RGBA PNG.
+ * @param pixels - Packed RGBA bytes.
  * @param label - Asset name used in errors and logs.
  * @returns Count of visible non-black pixels.
  */
-export function assertNonBlackPng(png: Buffer, label: string): number {
-  const nonBlack = countNonBlackPixels(png);
+export function assertNonBlackRgba(pixels: Uint8Array, label: string): number {
+  const nonBlack = countNonBlackRgba(pixels);
   if (nonBlack === 0) {
     throw new Error(
       `${label}: raster is all black — oklch conversion may have failed`,
@@ -216,10 +114,15 @@ export function assertNonBlackPng(png: Buffer, label: string): number {
   return nonBlack;
 }
 
-function writePng(path: string, png: Buffer, label: string): void {
-  const nonBlack = assertNonBlackPng(png, label);
-  writeFileSync(path, png);
+function renderPng(svg: string, size: number, label: string): Buffer {
+  const resvg = new Resvg(svgOklchToSrgb(svg), {
+    fitTo: { mode: "width", value: size },
+  });
+  const image = resvg.render();
+  const nonBlack = assertNonBlackRgba(image.pixels, label);
+  const png = Buffer.from(image.asPng());
   console.log(`  ${label}: ${nonBlack} non-black pixels, ${png.length} B`);
+  return png;
 }
 
 /**
@@ -238,7 +141,6 @@ export function createIco(
 
   let dataOffset = directorySize;
   frames.forEach(({ size, png }, index) => {
-    assertNonBlackPng(png, `favicon-${size}.png`);
     const entryOffset = 6 + index * 16;
     header[entryOffset] = size === 256 ? 0 : size;
     header[entryOffset + 1] = size === 256 ? 0 : size;
@@ -258,25 +160,28 @@ function main(): void {
   const faviconSvg = composeIconSvg(board, 512);
   writeFileSync(resolve(publicDir, "favicon.svg"), faviconSvg);
 
-  writePng(
+  writeFileSync(
     resolve(publicDir, "apple-touch-icon.png"),
-    renderPng(composeIconSvg(board, 180), 180),
-    "apple-touch-icon.png",
+    renderPng(composeIconSvg(board, 180), 180, "apple-touch-icon.png"),
   );
-  writePng(
+  writeFileSync(
     resolve(publicDir, "icon-192.png"),
-    renderPng(composeIconSvg(board, 192), 192),
-    "icon-192.png",
+    renderPng(composeIconSvg(board, 192), 192, "icon-192.png"),
   );
-  writePng(
+  writeFileSync(
     resolve(publicDir, "icon-512.png"),
-    renderPng(composeIconSvg(board, 512), 512),
-    "icon-512.png",
+    renderPng(composeIconSvg(board, 512), 512, "icon-512.png"),
   );
 
   const ico = createIco([
-    { size: 16, png: renderPng(composeIconSvg(board, 16), 16) },
-    { size: 32, png: renderPng(composeIconSvg(board, 32), 32) },
+    {
+      size: 16,
+      png: renderPng(composeIconSvg(board, 16), 16, "favicon-16.png"),
+    },
+    {
+      size: 32,
+      png: renderPng(composeIconSvg(board, 32), 32, "favicon-32.png"),
+    },
   ]);
   writeFileSync(resolve(publicDir, "favicon.ico"), ico);
 
