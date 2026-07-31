@@ -6,42 +6,20 @@ import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.ast
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ScoreTrainingResults from "@components/layout/games/result-modals/ScoreTrainingResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
 ---
 
-<GameLayout title="Score Training — Play">
+<GameLayout
+  title="Score Training — Play"
+  gameTitle="Score Training"
+>
   <div
     class="flex flex-col flex-1 min-h-0 p-3"
     x-data="scoreTrainingPlay()"
     @confirm-exit.window="abandonAndExit()"
   >
     {/* Loading / reconciliation-blocked */}
-    <div
-      class="text-center py-8"
-      x-show="loadingReconciliation || reconciliationFailed"
-      x-cloak
-    >
-      <p
-        class="text-sm text-muted-foreground"
-        x-show="loadingReconciliation"
-        x-cloak
-      >
-        Loading...
-      </p>
-      <div
-        x-show="reconciliationFailed && !loadingReconciliation"
-        x-cloak
-      >
-        <p class="text-sm text-error">
-          Could not clean up a previous session. Retry to continue.
-        </p>
-        <Button
-          type="button"
-          class="mt-4"
-          @click="retryReconciliation()"
-          title="Retry"
-        />
-      </div>
-    </div>
+    <ReconciliationBlocked />
 
     {/* No active session view */}
     <NoSessionPanel />
