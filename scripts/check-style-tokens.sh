@@ -7,11 +7,12 @@
 #
 # Prefix-! patterns (avoid Alpine/JS !ident and :class boolean negation):
 #   1. Static class= / class={`...`} only — (^|[^:]) so :class= is excluded
-#   2. Quoted/backticked compound !util-… or !util[…] (cn multiline, :class compounds)
+#   2. Quoted/backticked compound !util-… or !util-[…] / !util[…] (cn multiline, :class compounds)
 #   3. Bare "!flex" on the same line as cn(
 # Gaps (accepted): variable-held "!flex"; bare :class={`!flex`}; @apply !util
 #   (@apply skipped — collides with CSS !important).
-# Neg-arbitrary: -left-[45%] banned; -inset-x-[10%] caught via trailing -x-[10%].
+# Neg-arbitrary: token-anchor (^|[\s"'`=]) not \b (quote/- boundary); [^]] for BSD grep.
+#   -left-[45%] banned; left-[-45%] / -mt-4 / -rotate-45 OK; grid-cols-[13] not matched.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -42,7 +43,7 @@ PREFIX_IMPORTANT=$(
   {
     grep -rnE '(^|[^:])class="[^"]*![a-z]|(^|[^:])class='\''[^'\'']*![a-z]|(^|[^:])class=\{`[^`]*![a-z]' \
       app/src --include="*.astro" --include="*.css" || true
-    grep -rnE '["'\''`]![a-z][a-z0-9]*(-[a-z0-9./\[\]%-]+|\[[^\]]+\])' \
+    grep -rnE '["'\''`]![a-z][a-z0-9]*(-[a-z0-9./%-]+|-\[[^]]+\]|\[[^]]+\])' \
       app/src --include="*.astro" --include="*.css" || true
     grep -rnE 'cn\([^)]*["'\''`]![a-z]+["'\''`]' \
       app/src --include="*.astro" || true
@@ -54,8 +55,8 @@ if [ -n "$PREFIX_IMPORTANT" ]; then
   FAIL=1
 fi
 
-# -inset-x-[10%] matches via substring -x-[10%]
-NEG_ARBITRARY=$(grep -rnE '\b-[a-z][a-z0-9]*-\[[^\]]+\]' app/src --include="*.astro" --include="*.css")
+# -inset-x-[10%] matches via -x-[…] token suffix
+NEG_ARBITRARY=$(grep -rnE '(^|[\s"'\'\''`=])-[a-z][a-z0-9]*-\[[^]]+\]' app/src --include="*.astro" --include="*.css")
 if [ -n "$NEG_ARBITRARY" ]; then
   echo "FAIL: leading-dash arbitrary utility (-prop-[…]) found — put the minus inside the brackets (prop-[-…]):" >&2
   echo "$NEG_ARBITRARY" >&2
