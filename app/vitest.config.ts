@@ -25,6 +25,7 @@ export default defineConfig({
       "@server": path.resolve(__dirname, "./src/lib/server"),
       "@icons": path.resolve(__dirname, "./src/icons"),
       "@layouts": path.resolve(__dirname, "./src/layouts"),
+      "@assets": path.resolve(__dirname, "./src/assets"),
     },
   },
 });
