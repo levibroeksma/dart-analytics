@@ -2,11 +2,11 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-29
+updated: 2026-07-31
 -->
 # Context Map
 
-> **Version:** 1.7.4 (2026-07-29 — D174: `body` pads `env(safe-area-inset-top)` to stop iOS standalone-launch content overlapping the status bar; prior 1.7.3 D172/D173)
+> **Version:** 1.7.5 (2026-07-31 — D175: `scripts/check-style-tokens.sh` also bans Tailwind v3 prefix-important and leading-dash arbitrary negatives; prior 1.7.4 D174)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -114,7 +114,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
-| `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~2.9k |
+| `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — suffix `!important`, arbitrary negatives (D175, 2026-07-31); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~2.9k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
 ## SQL (`database/`)
@@ -155,7 +155,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-alias-sync.sh` | Guard: `tsconfig.json` compilerOptions.paths and `vitest.config.ts` resolve.alias never diverge (D113); `@styles` allowlisted as TS-only | canonical |
 | `scripts/check-constraint-mirror.sh` | Guard: every live CHECK constraint on `exercise_stages`/`turns`/`darts` has a `// MIRRORS: chk_x` anchor in `app/src/pages/api/sessions/types.ts` (D149); bound agreement executed in `constraint-mirror.test.ts`, not by this script | canonical |
 | `scripts/check-no-inline-comments.sh` | Guard: no `//` or non-JSDoc `/* */` comment inside a function/method body under `app/src/**/*.ts`; JSDoc `/** */` above a declaration stays exempt | canonical |
-| `scripts/check-style-tokens.sh` | Guard: no `font-medium`, `{...rest}`, or raw `bg-bg*`/`text-fg*` palette utilities under `app/src/**/*.{astro,css}` | canonical |
+| `scripts/check-style-tokens.sh` | Guard: no `font-medium`, `{...rest}`, raw `bg-bg*`/`text-fg*`, Tailwind prefix-important (`!utility`), or leading-dash arbitrary (`-prop-[…]`) under `app/src/**/*.{astro,css}` | canonical |
 | `scripts/check-file-locations.sh` | Guard: no `.ts` files directly under `components/`/`pages/` except `pages/api/**` | canonical |
 | `scripts/check-agent-mirrors.sh` | Guard: every `CLAUDE.md` has a byte-identical `AGENT.md` sibling | canonical |
 | `scripts/check-astro-class-composition.sh` | Guard: no `class:list` or manual class-join in `app/src/**/*.astro`; `cn()` only | canonical |
@@ -181,6 +181,8 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `docs/superpowers/specs/2026-07-29-ios-safe-area-top-inset-design.md` | iOS standalone web app top safe-area inset fix: `body` pads `env(safe-area-inset-top)` alongside existing `h-dvh`/`overflow-hidden` (D174) (2026-07-29) | historical |
 | `docs/superpowers/plans/2026-07-29-ios-safe-area-top-inset.md` | The 2-task plan implementing that spec, incl. the manual iOS verification handoff (2026-07-29) | historical |
 | `docs/superpowers/handoffs/2026-07-29-ios-safe-area-verification-checklist.md` | Operator checklist: manual iOS-device verification of the safe-area fix, not doable in-session (2026-07-29) | historical |
+| `docs/superpowers/specs/2026-07-31-tailwind-v4-utility-syntax-gate-design.md` | Tailwind v4 utility syntax gate design: ban prefix-important (`!utility`) and leading-dash arbitrary negatives (`-prop-[…]`) in favor of `utility!` / `prop-[-…]` (D175) (2026-07-31) | historical |
+| `docs/superpowers/plans/2026-07-31-tailwind-v4-utility-syntax-gate.md` | The task plan implementing that spec: `scripts/check-style-tokens.sh` extension + Style Guide/agent-guide/mirror/context-map/decision updates (2026-07-31) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
@@ -210,7 +212,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | Database handbook | `00`–`11` complete |
 | API docs | v1 frozen; contracts `00`–`04`; error boundary (D131) + `SESSION_ALREADY_ACTIVE` single-active guard (D132); `03`→1.7.0 type-vs-value barrel rule (D156, 2026-07-26); `00`→1.4.0, `02`→1.3.0, `03`→1.6.0, `04`→1.2.0 (2026-07-22); prior: `01` frozen at 1.0.0, `02`→1.2.0, `03`→1.5.0 (2026-07-16/17); hardening `00`→1.3.0, `04`→1.1.0 (2026-07-13); auth proxy `00`→1.5.0, `02`→1.4.0 (D172, 2026-07-29) |
 | Application code | Auth middleware with route-class 401/403 handling + API error boundary (D131); frozen envelope/error helpers; player provisioning (D76); `POST /api/sessions` server-guards single-active (D132); logout flow (`signOut`, `LogoutButton`) complete; Score Training first-deploy write/read subset live (S1); same-origin Neon Auth proxy (`/api/auth/*`) fixes iOS standalone-PWA login (D172, 2026-07-29) |
-| Frontend docs | `07-Style-Guide.md` →0.2.1 — top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29); prior 0.2.0 — sky/glass/`surface`/`foreground` visual contract; legacy `bg-bg`/`text-fg`/old surface-badge-nav API retired (2026-07-22); Handbook `02`→0.2.1, `03`→0.2.1, `04`→0.1.1, `10`→0.1.3, overview `00`→0.3.4 — shared `session-recovery.ts` decision table (D118) + Score Training hard-gate completion / play-page results modal (D119, supersedes D112 for this flow) (2026-07-17); prior: prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15); type/interface barrel-raising universal, no `.ts` outside `lib/`/`pages/api/`, centralized error mapping, self-learning gate (D103–D107, 2026-07-16); original `07-Style-Guide.md` 0.1.0 (D108, 2026-07-16) |
+| Frontend docs | `07-Style-Guide.md` →0.2.2 — Tailwind v4 utility syntax section (suffix `!important`, arbitrary negatives) before Anti-patterns (D175, 2026-07-31); `10`→0.1.6 — same rule condensed into §12 Styling + checklist (2026-07-31); prior 0.2.1 — top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29); prior 0.2.0 — sky/glass/`surface`/`foreground` visual contract; legacy `bg-bg`/`text-fg`/old surface-badge-nav API retired (2026-07-22); Handbook `02`→0.2.1, `03`→0.2.1, `04`→0.1.1, `10`→0.1.3, overview `00`→0.3.4 — shared `session-recovery.ts` decision table (D118) + Score Training hard-gate completion / play-page results modal (D119, supersedes D112 for this flow) (2026-07-17); prior: prerender-default, Alpine factory, client auth gate (D98), auto-cleanup recovery, completed-batch outbox + `_v` store guard, `.astro` authoring conventions; prerendered protected shells decided public-by-design, JWT-gated API is the real boundary (D97, 2026-07-15); tests live under `app/tests/` (never colocated), `.astro` variant logic stays inline in frontmatter (D101, 2026-07-15); type/interface barrel-raising universal, no `.ts` outside `lib/`/`pages/api/`, centralized error mapping, self-learning gate (D103–D107, 2026-07-16); original `07-Style-Guide.md` 0.1.0 (D108, 2026-07-16) |
 | Knowledge graph | graphify AST-only `graphify-out/graph.json` committed; canonical refresh via `scripts/refresh-graph.sh` (`graphify update .`); CLI + hooks documented in root/app `CLAUDE.md` (2026-07-15) |
 | DB connection contract | `DATABASE_URL` = pooled (tooling), `DATABASE_URL_UNPOOLED` = direct (Worker runtime); `DATABASE_URL_POOLED` retired — user-verified against real `neonctl link` output (D95, 2026-07-15) |
 
