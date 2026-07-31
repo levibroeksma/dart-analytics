@@ -1,6 +1,7 @@
 /**
  * Build favicon + PWA / iOS icons from bg-dartboard.svg (dark square + centered board).
  * Spec: docs/superpowers/specs/2026-07-31-logo-lockup-svg-design.md
+ * Decision: D176
  *
  * Run: npm run icons:generate
  */
@@ -10,7 +11,6 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
 import { formatRgb, parse } from "culori";
-import toIco from "to-ico";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(__dirname, "..");
@@ -47,7 +47,7 @@ function parseBoardSvg(svgText: string): {
 /**
  * Resvg does not rasterize oklch(); convert fills/strokes to sRGB before PNG export.
  */
-function svgOklchToSrgb(svg: string): string {
+export function svgOklchToSrgb(svg: string): string {
   return svg.replace(/oklch\([^)]+\)/gi, (match) => {
     const color = parse(match);
     if (!color) {
@@ -171,7 +171,7 @@ function countNonBlackPixels(png: Buffer): number {
   const rowBytes = width * bpp;
   let nonBlack = 0;
   let pos = 0;
-  let prev = Buffer.alloc(rowBytes);
+  let prev: Buffer<ArrayBufferLike> = Buffer.alloc(rowBytes);
 
   for (let y = 0; y < height; y++) {
     const filter = raw[pos++];
@@ -199,18 +199,60 @@ function countNonBlackPixels(png: Buffer): number {
   return nonBlack;
 }
 
-function writePng(path: string, png: Buffer, label: string): void {
+/**
+ * Reject a PNG whose visible pixels are all near-black.
+ *
+ * @param png - Encoded RGBA PNG.
+ * @param label - Asset name used in errors and logs.
+ * @returns Count of visible non-black pixels.
+ */
+export function assertNonBlackPng(png: Buffer, label: string): number {
   const nonBlack = countNonBlackPixels(png);
   if (nonBlack === 0) {
     throw new Error(
       `${label}: raster is all black — oklch conversion may have failed`,
     );
   }
+  return nonBlack;
+}
+
+function writePng(path: string, png: Buffer, label: string): void {
+  const nonBlack = assertNonBlackPng(png, label);
   writeFileSync(path, png);
   console.log(`  ${label}: ${nonBlack} non-black pixels, ${png.length} B`);
 }
 
-async function main(): Promise<void> {
+/**
+ * Package PNG frames into an ICO directory without transcoding them.
+ *
+ * @param frames - Square PNG frames and their pixel sizes.
+ * @returns ICO file bytes.
+ */
+export function createIco(
+  frames: ReadonlyArray<{ size: number; png: Buffer }>,
+): Buffer {
+  const directorySize = 6 + frames.length * 16;
+  const header = Buffer.alloc(directorySize);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(frames.length, 4);
+
+  let dataOffset = directorySize;
+  frames.forEach(({ size, png }, index) => {
+    assertNonBlackPng(png, `favicon-${size}.png`);
+    const entryOffset = 6 + index * 16;
+    header[entryOffset] = size === 256 ? 0 : size;
+    header[entryOffset + 1] = size === 256 ? 0 : size;
+    header.writeUInt16LE(1, entryOffset + 4);
+    header.writeUInt16LE(32, entryOffset + 6);
+    header.writeUInt32LE(png.length, entryOffset + 8);
+    header.writeUInt32LE(dataOffset, entryOffset + 12);
+    dataOffset += png.length;
+  });
+
+  return Buffer.concat([header, ...frames.map(({ png }) => png)]);
+}
+
+function main(): void {
   const board = parseBoardSvg(readFileSync(sourcePath, "utf8"));
 
   const faviconSvg = composeIconSvg(board, 512);
@@ -232,9 +274,9 @@ async function main(): Promise<void> {
     "icon-512.png",
   );
 
-  const ico = await toIco([
-    renderPng(composeIconSvg(board, 16), 16),
-    renderPng(composeIconSvg(board, 32), 32),
+  const ico = createIco([
+    { size: 16, png: renderPng(composeIconSvg(board, 16), 16) },
+    { size: 32, png: renderPng(composeIconSvg(board, 32), 32) },
   ]);
   writeFileSync(resolve(publicDir, "favicon.ico"), ico);
 
@@ -243,7 +285,6 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}

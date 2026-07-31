@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-26
+updated: 2026-07-31
 -->
 
 # Architectural Decision Ledger
@@ -191,6 +191,7 @@ updated: 2026-07-26
 | D173 | 2026-07-29 | `apple-mobile-web-app-capable` meta tags + `app/public/manifest.json` (`scope`/`start_url: "/"`, `display: "standalone"`) declare the app as an installable PWA | No manifest or meta tags existed; "Add to Home Screen" produced an unconfigured Safari Web Clip that could break navigation out to Safari on an auth redirect |
 | D174 | 2026-07-29 | `body` in `global.css` pads `padding-top: env(safe-area-inset-top)` alongside its existing `h-dvh max-h-dvh overflow-hidden` | `black-translucent` status bar style + `viewport-fit=cover` (D173) already draw content edge-to-edge; with no safe-area inset anywhere in the codebase, header/title content collided with the iOS status bar's clock/battery/signal icons in a standalone-launched web app |
 | D175 | 2026-07-31 | `scripts/check-style-tokens.sh` also bans Tailwind v3 prefix-important (`!utility`) and leading-dash arbitrary negatives (`-prop-[…]`) in favor of v4 `utility!` / `prop-[-…]` | Agents repeatedly landed deprecated forms; prose in the Style Guide was not enough — same latency pattern as D161. Shipped id is D175, not D174 — D174 was already taken by the 2026-07-29 safe-area-inset decision |
+| D176 | 2026-07-31 | Brand icon and lockup generators are checked in with their generated app assets; icon rasterization converts `oklch()` to sRGB for Resvg; `favicon.ico` remains a browser fallback but is omitted from the web manifest after its entry was mistyped as PNG | Deterministic regeneration keeps source and committed outputs reviewable; Resvg otherwise renders the board black; manifest metadata must describe each asset truthfully |
 
 ## Deferred (open, not rejected)
 

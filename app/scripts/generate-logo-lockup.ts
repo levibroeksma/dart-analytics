@@ -1,6 +1,7 @@
 /**
  * Build logo-lockup.svg: bg-dartboard mark + outlined Michroma "Darts"/"Analytics".
  * Spec: docs/superpowers/specs/2026-07-31-logo-lockup-svg-design.md
+ * Decision: D176
  *
  * Run: npm run logo:generate
  */
@@ -34,6 +35,31 @@ function boardInner(svgText: string): string {
     .replace(/^[\s\S]*?<svg[^>]*>/i, "")
     .replace(/<\/svg>\s*$/i, "")
     .trim();
+}
+
+/**
+ * Read the source board coordinate system.
+ *
+ * @param svgText - Complete dartboard SVG source.
+ * @returns Numeric viewBox bounds.
+ */
+export function parseBoardViewBox(svgText: string): {
+  minX: number;
+  minY: number;
+  width: number;
+  height: number;
+} {
+  const match = svgText.match(/viewBox=["']([^"']+)["']/i);
+  const parts = match?.[1].split(/[\s,]+/).map(Number);
+  if (
+    !parts ||
+    parts.length !== 4 ||
+    parts.some((part) => !Number.isFinite(part))
+  ) {
+    throw new Error("dartboard SVG missing or invalid viewBox");
+  }
+  const [minX, minY, width, height] = parts;
+  return { minX, minY, width, height };
 }
 
 /**
@@ -98,9 +124,9 @@ function textWidth(font: OpenTypeFont, text: string, fontSize: number): number {
 
 function main(): void {
   const boardSvg = readFileSync(boardPath, "utf8");
+  const boardViewBox = parseBoardViewBox(boardSvg);
   const font = opentype.parse(readFileSync(fontPath).buffer);
-  // Board source viewBox is 440×440 centered on 0; scale into 80×80 box at origin.
-  const boardScale = BOARD_PX / 440;
+  const boardScale = BOARD_PX / boardViewBox.width;
   const markX = BOARD_PX / 2;
   const markY = BOARD_PX / 2;
 
@@ -138,4 +164,6 @@ function main(): void {
   console.log(`Wrote ${outPath} (${width}×${height})`);
 }
 
-main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}
