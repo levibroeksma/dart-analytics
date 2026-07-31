@@ -156,7 +156,7 @@
     background: radial-gradient(
       ellipse 100% 80% at 50% 100%,
       transparent 30%,
-      oklch(0% 0 0 / 0.7) 100%
+      oklch(44.3% 0.11 240.79 / 0.3)
     );
   }
 
