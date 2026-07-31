@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-22
+updated: 2026-07-31
 -->
 
 # Frontend Agent Guide
 
-> **Version:** 0.1.5 (2026-07-21 — comment/format conventions + x-show/x-cloak rule)
+> **Version:** 0.1.6 (2026-07-31 — Tailwind v4 utility syntax)
 >
 > Condensed operating rules for AI agents (and developers) touching the Astro/Alpine frontend.
 >
@@ -116,7 +116,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 
 ## 12. Styling
 
-Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*` / `error*` / `success*` / `glass*`) — never raw palette utilities and never legacy `bg-bg*` / `text-fg*`. Primitive classes (`.btn` + variants, `.input`, `.control`, `.tab`, `.alert`, `.nav-pill`, `.gradient-card`, `.link-card`, `.card-wrapper`, `glass`) live in `global.css` — reuse, never reinvent. Build-time classes via `cn()` only (`scripts/check-astro-class-composition.sh`). Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`.
+Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*` / `error*` / `success*` / `glass*`) — never raw palette utilities and never legacy `bg-bg*` / `text-fg*`. Primitive classes (`.btn` + variants, `.input`, `.control`, `.tab`, `.alert`, `.nav-pill`, `.gradient-card`, `.link-card`, `.card-wrapper`, `glass`) live in `global.css` — reuse, never reinvent. Build-time classes via `cn()` only (`scripts/check-astro-class-composition.sh`). Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`. Tailwind v4: use suffix important (`utility!`) not prefix (`!utility`); arbitrary negatives as `prop-[-…]` not `-prop-[…]` (`scripts/check-style-tokens.sh`).
 
 ---
 
@@ -145,7 +145,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] Forward leftover attributes as `{...props}` — never `{...rest}`
-- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`
+- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix !utility; no -prop-[…] arbitrary negatives
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] Every `x-show` element also has `x-cloak`
 - [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup

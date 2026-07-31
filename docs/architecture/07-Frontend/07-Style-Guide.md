@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-07-29
+updated: 2026-07-31
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.1 (2026-07-29 — top safe-area inset on `body` noted alongside `h-dvh`/`overflow-hidden`, D174)
+> **Version:** 0.2.1 (2026-07-31 — Tailwind v4 utility syntax)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -180,6 +180,19 @@ Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.
 
 ---
 
+# Tailwind v4 class syntax
+
+This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era variants.
+
+| Do | Don't |
+| -- | ----- |
+| Suffix important: `max-w-none!`, `flex-row!`, `size-[130vmin]!` | Prefix important: `!max-w-none`, `!flex`, `!size-[130vmin]` |
+| Negative inside arbitrary: `left-[-45%]`, `bottom-[-25%]` | Leading-dash arbitrary: `-left-[45%]`, `-bottom-[25%]` |
+
+Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D175).
+
+---
+
 # Anti-patterns
 
 | Avoid | Prefer |
@@ -195,6 +208,8 @@ Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.
 | Ad-hoc button CSS | `.btn` + a variant class / `Button.astro` |
 | A second press/tap animation on top of `.btn:active` | Instant state update + the shared press scale |
 | Astro `class:list` or manual `[...].filter(Boolean).join(" ")` for build-time classes | `cn()` (`05-Astro-Components.md`; gated by `scripts/check-astro-class-composition.sh`) |
+| Prefix important `!utility` | Suffix important `utility!` (Tailwind v4) |
+| Leading-dash arbitrary `-prop-[…]` | `prop-[-…]` (minus inside brackets) |
 
 ---
 

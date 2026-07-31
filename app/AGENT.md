@@ -123,7 +123,8 @@ Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
 - Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
 - Forward leftover attributes as `{...props}` — never `{...rest}`
 - Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
-- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-28)
+- Tailwind v4 utilities only — suffix important (`utility!`), never prefix (`!utility`); arbitrary negatives as `left-[-45%]`, never `-left-[45%]`
+- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities/Tailwind v4 `!utility` + `-prop-[…]` mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31)
 
 ## Tool Allowances & Restrictions (2026-07-23)
 

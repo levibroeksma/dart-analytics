@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Style-token gate (app/CLAUDE.md "Style non-negotiables" / D108, D126, D128, D161):
+# Style-token gate (app/CLAUDE.md "Style non-negotiables" / D108, D126, D128, D161, D175):
 # - no font-medium, no {...rest} spread, no raw bg-bg*/text-fg* palette utilities
 # - no Tailwind v3 prefix-important (!utility) — use utility! (v4)
 # - no leading-dash arbitrary negatives (-left-[45%]) — use left-[-45%]
@@ -13,6 +13,11 @@
 #   (@apply skipped — collides with CSS !important).
 # Neg-arbitrary: token-anchor (^|[\s"'`=]) not \b (quote/- boundary); [^]] for BSD grep.
 #   -left-[45%] banned; left-[-45%] / -mt-4 / -rotate-45 OK; grid-cols-[13] not matched.
+#   Gap (accepted): multi-segment forms like -inset-x-[10%] are NOT caught — the
+#   token-anchor only matches a single word segment before the bracket
+#   (-word-[...]), and the anchor's required boundary char blocks matching the
+#   trailing -x-[…] alone since the preceding char there is a letter, not a
+#   boundary. No known occurrence in app/src as of 2026-07-31.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -55,7 +60,6 @@ if [ -n "$PREFIX_IMPORTANT" ]; then
   FAIL=1
 fi
 
-# -inset-x-[10%] matches via -x-[…] token suffix
 NEG_ARBITRARY=$(grep -rnE '(^|[\s"'\'\''`=])-[a-z][a-z0-9]*-\[[^]]+\]' app/src --include="*.astro" --include="*.css")
 if [ -n "$NEG_ARBITRARY" ]; then
   echo "FAIL: leading-dash arbitrary utility (-prop-[…]) found — put the minus inside the brackets (prop-[-…]):" >&2
