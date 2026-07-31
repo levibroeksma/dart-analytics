@@ -21,7 +21,8 @@
       "@services/*": ["./src/services/*"],
       "@repositories/*": ["./src/repositories/*"],
       "@db/*": ["./src/db/*"],
-      "@routes/*": ["./src/pages/api/*"]
+      "@routes/*": ["./src/pages/api/*"],
+      "@assets/*": ["./src/assets/*"]
     }
   }
 }
