@@ -2,7 +2,7 @@
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import LogoutButton from "@components/ui/LogoutButton.astro";
-import Dartboard from "../assets/bg-dartboard.svg";
+import LogoLockup from "../assets/logo-lockup.svg";
 ---
 
 <AppLayout title="Home">
@@ -10,15 +10,10 @@ import Dartboard from "../assets/bg-dartboard.svg";
     <LogoutButton />
   </div>
   <div class="px-4">
-    <div
-      class="flex w-fit items-center justify-center font-display text-accent"
-    >
-      <Dartboard class="size-20" />
-      <div class="flex flex-col text-2xl">
-        <span>Darts</span>
-        <span>Analytics</span>
-      </div>
-    </div>
+    <LogoLockup
+      aria-hidden="true"
+      class="h-20 w-auto"
+    />
     <article
       class="flex flex-col gap-2 px-2 text-sm text-muted-foreground space-y-4 pt-4"
     >
