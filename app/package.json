@@ -21,6 +21,7 @@
     "seed:dev-auth": "tsx --env-file=.env scripts/seed-dev-auth.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
     "smoke": "tsx scripts/smoke.ts",
+    "icons:generate": "tsx scripts/generate-app-icons.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
@@ -54,6 +55,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.1.1",
     "dbmate": "^2.33.0",
     "drizzle-kit": "^0.31.10",
@@ -63,6 +65,7 @@
     "postgres": "^3.4.9",
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
+    "to-ico": "^1.1.5",
     "tsx": "^4.23.0",
     "vitest": "^4.1.10",
     "wrangler": "^4.114.0"
