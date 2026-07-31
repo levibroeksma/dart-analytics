@@ -69,7 +69,6 @@
     "postgres": "^3.4.9",
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
-    "to-ico": "^1.1.5",
     "tsx": "^4.23.0",
     "vitest": "^4.1.10",
     "wrangler": "^4.114.0"
