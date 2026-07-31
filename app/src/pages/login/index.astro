@@ -3,7 +3,7 @@ export const prerender = true;
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
-import DartboardTwo from "../../assets/bg-dartboard.svg";
+import LogoLockup from "../../assets/logo-lockup.svg";
 ---
 
 <BaseLayout>
@@ -15,15 +15,11 @@ import DartboardTwo from "../../assets/bg-dartboard.svg";
         class="glass mx-auto rounded-lg border border-border bg-surface-raised w-full max-w-md space-y-12 p-6"
       >
         <div class="flex items-center justify-center">
-          <div
-            class="flex w-fit items-center justify-center font-display text-accent"
-          >
-            <DartboardTwo class="size-20" />
-            <div class="flex flex-col text-2xl">
-              <span>Darts</span>
-              <span>Analytics</span>
-            </div>
-          </div>
+          <LogoLockup
+            role="img"
+            aria-label="Darts Analytics"
+            class="h-20 w-auto"
+          />
         </div>
 
         <form
