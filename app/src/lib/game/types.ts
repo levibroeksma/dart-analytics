@@ -11,6 +11,8 @@ import type {
 
 export * from "./rulesets/types";
 
+export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
+
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
