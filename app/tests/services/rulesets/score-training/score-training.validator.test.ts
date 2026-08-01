@@ -40,11 +40,11 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(false);
   });
 
-  it("accepts duration_value: 50, the ROUNDS ceiling", () => {
+  it("accepts duration_value: 100, the ROUNDS ceiling", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {
         duration_type: "ROUNDS",
-        duration_value: 50,
+        duration_value: 100,
         max_darts_per_turn: 3,
       },
       captureModeKey: "RECREATIONAL",
@@ -53,11 +53,11 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("rejects duration_value: 51, one past the ROUNDS ceiling", () => {
+  it("rejects duration_value: 101, one past the ROUNDS ceiling", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {
         duration_type: "ROUNDS",
-        duration_value: 51,
+        duration_value: 101,
         max_darts_per_turn: 3,
       },
       captureModeKey: "RECREATIONAL",
@@ -66,11 +66,24 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(false);
   });
 
-  it("accepts duration_value: 180, the MINUTES ceiling", () => {
+  it("rejects duration_value: 2, one below the MINUTES floor", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {
         duration_type: "MINUTES",
-        duration_value: 180,
+        duration_value: 2,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts duration_value: 3, the MINUTES floor", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "MINUTES",
+        duration_value: 3,
         max_darts_per_turn: 3,
       },
       captureModeKey: "RECREATIONAL",
@@ -79,11 +92,24 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("rejects duration_value: 181, one past the MINUTES ceiling", () => {
+  it("accepts duration_value: 30, the MINUTES ceiling", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {
         duration_type: "MINUTES",
-        duration_value: 181,
+        duration_value: 30,
+        max_darts_per_turn: 3,
+      },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects duration_value: 31, one past the MINUTES ceiling", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "MINUTES",
+        duration_value: 31,
         max_darts_per_turn: 3,
       },
       captureModeKey: "RECREATIONAL",

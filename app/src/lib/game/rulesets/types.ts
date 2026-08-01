@@ -7,10 +7,10 @@ import { z } from "zod";
  */
 /**
  * `duration_value` is bounded by `duration_type`: a ROUNDS session tops out
- * at 50 rounds, a MINUTES session at 180 minutes. The bound is conditional so
- * it cannot be expressed with `.min()`/`.max()` on the field alone — it needs
- * a whole-object refinement that reads `duration_type` alongside
- * `duration_value`.
+ * at 100 rounds, a MINUTES session at 30 minutes (floor 3). The bound is
+ * conditional so it cannot be expressed with `.min()`/`.max()` on the field
+ * alone — it needs a whole-object refinement that reads `duration_type`
+ * alongside `duration_value`.
  */
 export const ScoreTrainingConfig = z
   .object({
@@ -21,7 +21,7 @@ export const ScoreTrainingConfig = z
   })
   .strict()
   .superRefine((val, ctx) => {
-    const [min, max] = val.duration_type === "ROUNDS" ? [1, 50] : [1, 180];
+    const [min, max] = val.duration_type === "ROUNDS" ? [1, 100] : [3, 30];
     if (val.duration_value < min || val.duration_value > max) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

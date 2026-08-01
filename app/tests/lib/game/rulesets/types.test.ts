@@ -41,7 +41,7 @@ describe("FiveOhOneConfig starting_score floor", () => {
 });
 
 describe("ScoreTrainingConfig duration_value bounds", () => {
-  it("rejects duration_value: 0, one below the shared ROUNDS/MINUTES floor", () => {
+  it("rejects duration_value: 0 for ROUNDS, one below the floor", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "ROUNDS",
       duration_value: 0,
@@ -50,7 +50,7 @@ describe("ScoreTrainingConfig duration_value bounds", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts duration_value: 1, the shared ROUNDS/MINUTES floor", () => {
+  it("accepts duration_value: 1 for ROUNDS, the floor", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "ROUNDS",
       duration_value: 1,
@@ -59,37 +59,55 @@ describe("ScoreTrainingConfig duration_value bounds", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts duration_value: 50, the ROUNDS ceiling", () => {
+  it("accepts duration_value: 100 for ROUNDS, the ceiling", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "ROUNDS",
-      duration_value: 50,
+      duration_value: 100,
       max_darts_per_turn: 3,
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects duration_value: 51, one past the ROUNDS ceiling", () => {
+  it("rejects duration_value: 101 for ROUNDS, one past the ceiling", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "ROUNDS",
-      duration_value: 51,
+      duration_value: 101,
       max_darts_per_turn: 3,
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts duration_value: 180, the MINUTES ceiling", () => {
+  it("rejects duration_value: 2 for MINUTES, one below the floor", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "MINUTES",
-      duration_value: 180,
+      duration_value: 2,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts duration_value: 3 for MINUTES, the floor", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "MINUTES",
+      duration_value: 3,
       max_darts_per_turn: 3,
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects duration_value: 181, one past the MINUTES ceiling", () => {
+  it("accepts duration_value: 30 for MINUTES, the ceiling", () => {
     const result = ScoreTrainingConfig.safeParse({
       duration_type: "MINUTES",
-      duration_value: 181,
+      duration_value: 30,
+      max_darts_per_turn: 3,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duration_value: 31 for MINUTES, one past the ceiling", () => {
+    const result = ScoreTrainingConfig.safeParse({
+      duration_type: "MINUTES",
+      duration_value: 31,
       max_darts_per_turn: 3,
     });
     expect(result.success).toBe(false);

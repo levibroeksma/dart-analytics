@@ -32,15 +32,23 @@
 #   * Refinements in files other than types.ts; only that file is scanned.
 #   * FLOOR-SIDE weakening of a refinement whose floor a redundant field-level
 #     constraint already enforces. duration_value carries `.min(1)` on the
-#     field AND a [1, max] bound inside the superRefine. Lower or delete the
-#     refinement's floor and the contract's `duration_value 0` reject probes
-#     still reject — the field-level `.min(1)` catches them on its own — so the
-#     contract test stays green and this script, seeing the refinement still
-#     present, stays green too. Only CEILING-side weakening (the 50 -> 500
-#     case) is caught by execution, because nothing else bounds the top. Where
-#     a refinement duplicates a field-level bound, that duplicate is precisely
-#     what hides the regression; a probe can only prove the schema as a whole
-#     rejects a value, never which constraint did the rejecting.
+#     field AND a [min, max] bound inside the superRefine, where min is 1 for
+#     ROUNDS and 3 for MINUTES. For ROUNDS the two floors coincide (both 1), so
+#     lowering or deleting the refinement's ROUNDS floor still leaves the
+#     contract's `duration_value 0 for ROUNDS` reject probe passing — the
+#     field-level `.min(1)` catches it on its own — so the contract test stays
+#     green and this script, seeing the refinement still present, stays green
+#     too. For MINUTES the floors no longer coincide: the refinement floor (3)
+#     sits strictly above the field-level floor (1), so `duration_value: 2` for
+#     MINUTES clears `.min(1)` and is rejected only by the superRefine. That
+#     makes the contract's `duration_value 2 for MINUTES` reject probe
+#     load-bearing — weakening or deleting the MINUTES floor makes that probe
+#     start parsing successfully, which the contract test does catch. CEILING-
+#     side weakening (e.g. 100 -> 1000) is caught on both duration types,
+#     because nothing else bounds the top. Where a refinement bound duplicates
+#     a field-level bound — true only for the ROUNDS floor now — that duplicate
+#     is precisely what hides the regression; a probe can only prove the schema
+#     as a whole rejects a value, never which constraint did the rejecting.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
