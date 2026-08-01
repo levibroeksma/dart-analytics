@@ -1,0 +1,87 @@
+---
+interface Props {
+  title: string;
+  description: string;
+}
+
+// Props
+const { title, description }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+import Input from "@components/forms/Input.astro";
+
+// Data
+const lockedSettings = [
+  { label: "Players", value: "Single player" },
+  { label: "Start score", value: "501" },
+  { label: "In", value: "Open in" },
+  { label: "Out", value: "Double out" },
+];
+---
+
+<div>
+  <h1 class="text-xl font-semibold text-foreground">{title}</h1>
+  <p class="text-sm text-muted-foreground">{description}</p>
+
+  <div class="mt-4 flex flex-col gap-3">
+    {/* V1 locked settings — shown for confirmation, not editable */}
+    <dl
+      class="glass rounded-lg border border-border bg-surface-raised px-4 py-3 space-y-1"
+    >
+      {
+        lockedSettings.map((setting) => (
+          <div class="flex items-center justify-between">
+            <dt class="text-sm text-muted-foreground">{setting.label}</dt>
+            <dd class="text-sm text-foreground">{setting.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="flex flex-col gap-1">
+      <label
+        for="legsToWin"
+        class="text-sm text-muted-foreground"
+      >
+        Legs to win
+      </label>
+      <Input
+        id="legsToWin"
+        name="legsToWin"
+        type="text"
+        inputmode="numeric"
+        {...{
+          "x-model.number": "legsToWin",
+          "x-on:input": "clampNotice = ''",
+        }}
+      />
+      <p
+        class="text-sm text-muted-foreground"
+        role="status"
+        x-show="clampNotice"
+        x-text="clampNotice"
+        x-cloak
+      >
+      </p>
+    </div>
+  </div>
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+
+  <div class="mt-4">
+    <Button
+      type="button"
+      :disabled="loading"
+      @click="start()"
+      title="Let's play"
+    />
+  </div>
+</div>
