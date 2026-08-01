@@ -28,12 +28,6 @@ import { cn } from "@client/cn";
 const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
 ---
 
-{
-  /** TODO:
-   * Add checkout route tips based on configuration (if config.showRoutes && isTarget)
-   * Note: config not yet implemented, deferred
-   */
-}
 <div class={className}>
   <div
     class="rounded-lg border border-border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center"
@@ -47,10 +41,9 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
       {isTarget ? "Target" : "Score"}
     </span>
     {
-      /**
-       * TODO: progress slot — darts thrown, 3-dart avg, previous score (per game).
-       * Out of scope for Score Training play UI.
-       */
+      /* Per-game progress region — e.g. 501's checkout route plus its
+      darts/average/previous stats. Games with nothing to add pass no slot
+      content and the region collapses. */
     }
     <slot name="progress" />
   </div>

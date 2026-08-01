@@ -1,0 +1,54 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import FiveOhOne from "@components/layout/games/interfaces/FiveOhOne.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import FiveOhOneResults from "@components/layout/games/result-modals/FiveOhOneResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="501 — Play"
+  gameTitle="501"
+>
+  <div
+    class="flex flex-col flex-1 min-h-0 p-3"
+    x-data="fiveOhOnePlay()"
+    @confirm-exit.window="abandonAndExit()"
+  >
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/501/setup" />
+
+    {/* Gameplay view */}
+    <FiveOhOne
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {
+      /* Double-out confirm — 501 can only know a checkout from a bust by asking */
+    }
+    <div
+      x-show="showDoubleConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="double-confirm-title"
+        title="Finished on a double?"
+        description="Confirm the last dart landed in a double, or the visit is recorded as a bust."
+        cancelLabel="No — bust"
+        confirmLabel="Yes"
+        onCancel="denyDouble()"
+        onConfirm="confirmDouble()"
+        dismissible={false}
+      />
+    </div>
+
+    {/* Results modal (overlay) */}
+    <FiveOhOneResults />
+  </div>
+</GameLayout>
