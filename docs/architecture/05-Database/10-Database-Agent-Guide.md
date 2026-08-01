@@ -234,7 +234,7 @@ docs/
 └── ...
 database/
 ├── migrations/0001–0016.sql
-└── seeds/0001–0002.sql, 0003_game_engine_reference.sql
+└── seeds/0001–0002.sql, 0003_game_engine_reference.sql, 0004_score_training_minutes_preset.sql
 ```
 
 ---
