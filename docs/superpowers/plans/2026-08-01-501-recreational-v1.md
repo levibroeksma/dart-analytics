@@ -394,8 +394,10 @@ interface Props {
   href?: string;
 }
 
+// Props
 const { href = "/games/score-training/setup" }: Props = Astro.props;
 
+// Components
 import Link from "@components/ui/Link.astro";
 ---
 
