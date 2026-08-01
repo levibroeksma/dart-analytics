@@ -8,17 +8,41 @@ import {
   completeSession,
   type SessionActiveData,
 } from "@client/api/sessions";
+import {
+  clampScoreTrainingDuration,
+  scoreTrainingDurationClampNotice,
+} from "@lib/game/score-training-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import type { ScoreTrainingSetupContext } from "./types";
+import type {
+  ScoreTrainingDurationType,
+  ScoreTrainingSetupContext,
+} from "./types";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY = "SCORE_TRAINING_V1";
 
+const FALLBACK_DURATION: Record<ScoreTrainingDurationType, number> = {
+  ROUNDS: 10,
+  MINUTES: 5,
+};
+
+/**
+ * Reads `duration_value` off a preset's `configuration`, which the API types
+ * as `Record<string, unknown>`. Returns undefined when the key is absent or
+ * not a number, so callers fall back to `FALLBACK_DURATION`.
+ */
+function durationValueOf(preset: ConfigurationPresetData | undefined) {
+  const raw = preset?.configuration?.duration_value;
+  return typeof raw === "number" ? raw : undefined;
+}
+
 export function scoreTrainingSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
-    selectedTemplateId: "",
+    durationType: "ROUNDS" as ScoreTrainingDurationType,
+    durationValue: 10 as number | string | null,
+    clampNotice: "",
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -39,7 +63,11 @@ export function scoreTrainingSetup() {
         ]);
 
         this.presets = presets;
-        this.selectedTemplateId = presets[0]?.configurationTemplateId ?? "";
+        this.durationType = "ROUNDS";
+        this.durationValue =
+          durationValueOf(this.presetForMode("ROUNDS")) ??
+          FALLBACK_DURATION.ROUNDS;
+        this.clampNotice = "";
 
         await this.reconcile(activeSessions);
       } catch {
@@ -49,6 +77,26 @@ export function scoreTrainingSetup() {
       } finally {
         this.loadingReconciliation = false;
       }
+    },
+
+    presetForMode(
+      this: ScoreTrainingSetupContext,
+      type: ScoreTrainingDurationType,
+    ) {
+      return this.presets.find((p) => {
+        const cfg = p.configuration as { duration_type?: string } | null;
+        return cfg?.duration_type === type;
+      });
+    },
+
+    selectMode(
+      this: ScoreTrainingSetupContext,
+      type: ScoreTrainingDurationType,
+    ) {
+      this.durationType = type;
+      this.durationValue =
+        durationValueOf(this.presetForMode(type)) ?? FALLBACK_DURATION[type];
+      this.clampNotice = "";
     },
 
     /**
@@ -113,19 +161,28 @@ export function scoreTrainingSetup() {
     },
 
     async start(this: ScoreTrainingSetupContext) {
-      const preset = this.presets.find(
-        (p) => p.configurationTemplateId === this.selectedTemplateId,
-      );
+      const preset = this.presetForMode(this.durationType);
       if (!preset) {
-        this.error = "Select a preset first.";
+        this.error = "Could not find a preset for this mode.";
         return;
       }
+      const { value, clamped } = clampScoreTrainingDuration(
+        this.durationType,
+        this.durationValue,
+      );
+      this.durationValue = value;
+      this.clampNotice = clamped
+        ? scoreTrainingDurationClampNotice(this.durationType)
+        : "";
+
       this.loading = true;
+      this.error = "";
       try {
-        const configSnapshot = toSnapshot(
-          RULESET_VERSION_KEY,
-          preset.configuration,
-        );
+        const wire = {
+          ...(preset.configuration as Record<string, unknown>),
+          duration_value: value,
+        };
+        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -134,6 +191,7 @@ export function scoreTrainingSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
+            overrides: { duration_value: value },
           },
         });
         this.$store.game.startSession({
