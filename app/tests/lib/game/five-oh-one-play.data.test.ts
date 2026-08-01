@@ -12,7 +12,12 @@ vi.mock("@client/api/sessions", () => ({
   createSession: vi.fn(),
 }));
 
-import { fetchActiveSessions } from "@client/api/sessions";
+import {
+  appendBatch,
+  completeSession,
+  createSession,
+  fetchActiveSessions,
+} from "@client/api/sessions";
 import {
   registerEngineFactory,
   resetEngineRegistry,
@@ -319,5 +324,219 @@ describe("checkoutHint", () => {
     const play = makePlay(); // remaining 501
     await play.init.call(play);
     expect(play.checkoutHint.call(play)).toBe("");
+  });
+});
+
+describe("uploadAndCompleteSession", () => {
+  it("uploads the batch, completes the session, and snapshots match-wide results", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      turns: [turnFact("t1", "leg-1", 1, 461), turnFact("t2", "leg-1", 2, 40)],
+    });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot).toEqual({
+      total: 501,
+      legs: 1,
+      average: 250.5,
+    });
+  });
+
+  it("reports legs WON, not legs played, when a Best-of-5 is won 3-1", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 4, turns: 4, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    // Four legs played (three won, one lost) — stages.length is 4, legsToWin is 3.
+    const play = makePlay({
+      configSnapshot: bestOf5Config(),
+      stages: [
+        LEG_1,
+        { ...LEG_1, clientKey: "leg-2", sequence: 2 },
+        { ...LEG_1, clientKey: "leg-3", sequence: 3 },
+        { ...LEG_1, clientKey: "leg-4", sequence: 4 },
+      ],
+      turns: [
+        turnFact("t1", "leg-1", 1, 501),
+        turnFact("t2", "leg-2", 1, 501),
+        turnFact("t3", "leg-3", 1, 200),
+        turnFact("t4", "leg-4", 1, 501),
+      ],
+    });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot?.legs).toBe(3);
+  });
+
+  it("treats SESSION_ALREADY_COMPLETED as success", async () => {
+    const error = new Error("SESSION_ALREADY_COMPLETED");
+    (error as { code?: string }).code = "SESSION_ALREADY_COMPLETED";
+    vi.mocked(completeSession).mockRejectedValue(error);
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 0 },
+    });
+    const play = makePlay({ turns: [turnFact("t1", "leg-1", 1, 501)] });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.completionError).toBe("");
+    expect(play.completionStatus).toBe("succeeded");
+  });
+
+  it('sets completionStatus "failed" on upload error', async () => {
+    vi.mocked(appendBatch).mockRejectedValue(new Error("Network error"));
+    const play = makePlay({ turns: [turnFact("t1", "leg-1", 1, 501)] });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.completionError).toContain("connection");
+    expect(play.completionStatus).toBe("failed");
+  });
+});
+
+describe("full checkout flow drives completion", () => {
+  it("confirmDouble on the match-winning leg uploads and completes the session", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      turns: turnsReaching(40), // remaining 40
+    });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+
+    await play.confirmDouble.call(play);
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
+});
+
+describe("back", () => {
+  it("resets the store and navigates to /games", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    const play = makePlay();
+
+    await play.back.call(play);
+
+    expect(play.$store.game.reset).toHaveBeenCalled();
+    expect(locationSpy.href).toBe("/games");
+  });
+});
+
+describe("abandonAndExit", () => {
+  it("with turns: appendBatch then completeSession ABANDONED, reset, navigate", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const play = makePlay({ turns: [turnFact("t1", "leg-1", 1, 60)] });
+
+    await play.abandonAndExit.call(play);
+
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+    expect(play.$store.game.reset).toHaveBeenCalled();
+    expect(locationSpy.href).toBe("/games");
+  });
+
+  it("with zero turns: skips the batch call entirely", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const play = makePlay({ turns: [] });
+
+    await play.abandonAndExit.call(play);
+
+    expect(appendBatch).not.toHaveBeenCalled();
+    expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+  });
+});
+
+describe("playAgain", () => {
+  it("replays the same template and starts a fresh engine at sequence 1", async () => {
+    const play = makePlay({
+      turns: [turnFact("t1", "leg-1", 1, 461), turnFact("t2", "leg-1", 2, 40)],
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith({
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      config: { source: "template", templateRef: "tpl-1" },
+    });
+    expect(play.$store.game.sessionId).toBe("new-session");
+    expect(play.$store.game.turns).toEqual([]);
+    expect(play.finished).toBe(false);
+    expect(play.completionStatus).toBe("pending");
+    expect(play.resultsSnapshot).toBeNull();
+    expect(play.hasActiveSession).toBe(true);
+
+    play.scoreInput.setValue("100");
+    await play.submitVisit.call(play);
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].sequence).toBe(1);
+  });
+
+  it("sets playAgainError and leaves completionStatus untouched on failure", async () => {
+    const play = makePlay();
+    play.completionStatus = "succeeded";
+    vi.mocked(createSession).mockRejectedValue(new Error("Network error"));
+
+    await play.playAgain.call(play);
+
+    expect(play.playAgainError).toBeTruthy();
+    expect(play.completionStatus).toBe("succeeded");
   });
 });

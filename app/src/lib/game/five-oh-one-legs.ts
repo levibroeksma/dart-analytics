@@ -3,7 +3,7 @@
  * V1 config screen in `docs/game-rules/rulesets/501.md`.
  */
 export const FIVE_OH_ONE_LEGS_MIN = 1;
-export const FIVE_OH_ONE_LEGS_MAX = 20;
+const FIVE_OH_ONE_LEGS_MAX = 20;
 
 export const FIVE_OH_ONE_LEGS_NOTICE = "Allowed range: 1–20 legs";
 

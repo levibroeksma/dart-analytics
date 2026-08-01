@@ -419,6 +419,17 @@ import Link from "@components/ui/Link.astro";
 </div>
 ```
 
+> **Status note (2026-08-01):** the Step 2 code block above was edited in
+> place on 2026-08-01 to add the required `// Props` and `// Components`
+> frontmatter section headers (matching the file as actually committed,
+> `app/src/components/layout/games/NoSessionPanel.astro`). That edit was
+> itself a rewrite of a historical planning document — `docs/CLAUDE.md`
+> requires `docs/superpowers/**` to carry "status notes only, never
+> rewrites." It is left in place here rather than reverted, since reverting
+> it would be a second rewrite of the same kind. Later corrections in this
+> plan (see the Task 6 status note above) use this append-only status-note
+> convention instead of editing historical examples in place.
+
 - [ ] **Step 3: Verify Score Training is unaffected**
 
 Run: `cd app && npm run dev -- --background` then open `/games/score-training/setup` and `/games/score-training/play` in a browser (or `astro dev status`/`astro dev logs` if already running in the background). Confirm the "No active session" link still points at `/games/score-training/setup` and, if you have a lingering active session to test with, the modal still reads "You have an active Score Training session." Stop the dev server when done (`astro dev stop`) if you started it just for this check.
