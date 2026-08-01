@@ -143,9 +143,14 @@ export function checkoutPathFor(remainingScore: number): readonly string[] | nul
 - Otherwise returns a canonical dart-label sequence, e.g.
   `checkoutPathFor(121) → ["T20", "T11", "D4"]`, `checkoutPathFor(170) →
   ["T20", "T20", "BULL"]`.
-- Table values authored/verified against a standard published checkout chart
-  during implementation; unit-tested with spot checks across the range
-  (170, 167→null, 160, 40, 2, 1→null, 0→null).
+- Table values are verified **arithmetically**, not by eye: an invariant test
+  walks all of 2–170 and asserts every route sums exactly to its key, ends on a
+  double or BULL, and uses at most three darts, plus that exactly the bogey
+  numbers and 1 return null. Spot checks alone proved insufficient — the first
+  draft took its 133–170 routes from a published chart whose first column meant
+  "treble" but printed a bare number, so 31 routes were short by one treble and
+  the hardcoded spot-check assertions agreed with them. <!-- corrected 2026-08-01 -->
+  Add or edit an entry only with the invariant test green.
 - `FiveOhOne.astro` renders the path (e.g. joined "T20 T11 D4") only when
   `checkoutPathFor(remaining)` is non-null; hidden otherwise (`x-show` +
   `x-cloak`, per house Alpine rules).
@@ -193,7 +198,8 @@ match-wide (not leg-scoped; this is the closing summary, not the live card).
 Standard TDD (red→green→refactor), tests under `app/tests/` mirroring
 `app/src/`, never colocated:
 
-- `checkout-path.module.ts` — unit tests, spot-checking the table (see above).
+- `checkout-path.module.ts` — spot checks for documentation value **plus** the
+  whole-range invariant test described above, which is the real safety net.
 - `five-oh-one-legs.ts` — unit tests for the clamp bounds, flooring, and the
   blank-field fallback.
 - `five-oh-one-play.data.ts` — unit tests for: submit routing (checkout vs.

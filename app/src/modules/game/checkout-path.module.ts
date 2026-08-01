@@ -5,12 +5,15 @@
  * absence as "no finish route" rather than tracking a separate bogey list.
  * Labels: a plain number is a single ("20"), "T"-prefixed is a treble,
  * "D"-prefixed is a double, "BULL" is the inner bull (50, always the last
- * dart of a route that uses it). Sourced from the published 40-170 chart at
- * https://raw.githubusercontent.com/4lexBaum/darts-score/master/checkout.json
- * (verified against the known 170 = 20/T20/BULL and 100 = T20/D20 finishes);
- * 2-39 follows the standard "single + smallest covering double" convention
- * visible in that same source for 41-49 (e.g. 41: 9,D16), extended down the
- * doubling ladder D1/D2/D4/D8/D16.
+ * dart of a route that uses it).
+ *
+ * Every route sums exactly to its key, ends on a double or BULL, and uses at
+ * most three darts. Those invariants are asserted across the whole 2-170 range
+ * by `app/tests/modules/game/checkout-path.module.test.ts` — edit an entry only
+ * with that test green, and never trust a printed chart by eye. The 133-170
+ * routes were originally transcribed from a chart whose first column meant
+ * "treble" but printed a bare number, which left 31 routes one treble short
+ * while the hand-written spot-check assertions agreed with them.
  */
 const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
   170: ["T20", "T20", "BULL"],

@@ -41,7 +41,7 @@ import { checkoutPathFor } from "@modules/game/checkout-path.module";
 
 describe("checkoutPathFor", () => {
   it("returns the highest possible finish for 170", () => {
-    expect(checkoutPathFor(170)).toEqual(["20", "T20", "BULL"]);
+    expect(checkoutPathFor(170)).toEqual(["T20", "T20", "BULL"]);
   });
 
   it("returns null for every bogey number", () => {
@@ -51,7 +51,7 @@ describe("checkoutPathFor", () => {
   });
 
   it("returns a two-dart finish for 160", () => {
-    expect(checkoutPathFor(160)).toEqual(["20", "T20", "D20"]);
+    expect(checkoutPathFor(160)).toEqual(["T20", "T20", "D20"]);
   });
 
   it("returns the classic two-dart 100 finish", () => {
@@ -105,45 +105,45 @@ Expected: FAIL — `Cannot find module '@modules/game/checkout-path.module'`
  * absence as "no finish route" rather than tracking a separate bogey list.
  * Labels: a plain number is a single ("20"), "T"-prefixed is a treble,
  * "D"-prefixed is a double, "BULL" is the inner bull (50, always the last
- * dart of a route that uses it). Sourced from the published 40-170 chart at
- * https://raw.githubusercontent.com/4lexBaum/darts-score/master/checkout.json
- * (verified against the known 170 = 20/T20/BULL and 100 = T20/D20 finishes);
- * 2-39 follows the standard "single + smallest covering double" convention
- * visible in that same source for 41-49 (e.g. 41: 9,D16), extended down the
- * doubling ladder D1/D2/D4/D8/D16.
+ * dart of a route that uses it).
+ *
+ * Every route sums exactly to its key, ends on a double or BULL, and uses at
+ * most three darts — enforced for the whole table by the invariant test in
+ * `app/tests/modules/game/checkout-path.module.test.ts`, not by spot checks.
+ * Add or edit an entry only with that test green.
  */
 const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
-  170: ["20", "T20", "BULL"],
-  167: ["20", "T19", "BULL"],
-  164: ["19", "T19", "BULL"],
-  161: ["20", "T17", "BULL"],
-  160: ["20", "T20", "D20"],
-  158: ["20", "T20", "D19"],
-  157: ["19", "T20", "D20"],
-  156: ["20", "T20", "D18"],
-  155: ["20", "T19", "D19"],
-  154: ["20", "T18", "D20"],
-  153: ["20", "T19", "D18"],
-  152: ["20", "T20", "D16"],
-  151: ["20", "T17", "D20"],
-  150: ["20", "T18", "D18"],
-  149: ["20", "T19", "D16"],
-  148: ["20", "T20", "D14"],
-  147: ["20", "T17", "D18"],
-  146: ["20", "T18", "D16"],
-  145: ["20", "T15", "D20"],
-  144: ["20", "T20", "D12"],
-  143: ["20", "T17", "D16"],
-  142: ["20", "T14", "D20"],
-  141: ["20", "T15", "D18"],
-  140: ["20", "T16", "D16"],
-  139: ["20", "T13", "D20"],
-  138: ["20", "T16", "D15"],
-  137: ["18", "T17", "D16"],
-  136: ["20", "T20", "D8"],
-  135: ["20", "T13", "D18"],
-  134: ["20", "T14", "D16"],
-  133: ["20", "T19", "D8"],
+  170: ["T20", "T20", "BULL"],
+  167: ["T20", "T19", "BULL"],
+  164: ["T19", "T19", "BULL"],
+  161: ["T20", "T17", "BULL"],
+  160: ["T20", "T20", "D20"],
+  158: ["T20", "T20", "D19"],
+  157: ["T19", "T20", "D20"],
+  156: ["T20", "T20", "D18"],
+  155: ["T20", "T19", "D19"],
+  154: ["T20", "T18", "D20"],
+  153: ["T20", "T19", "D18"],
+  152: ["T20", "T20", "D16"],
+  151: ["T20", "T17", "D20"],
+  150: ["T20", "T18", "D18"],
+  149: ["T20", "T19", "D16"],
+  148: ["T20", "T20", "D14"],
+  147: ["T20", "T17", "D18"],
+  146: ["T20", "T18", "D16"],
+  145: ["T20", "T15", "D20"],
+  144: ["T20", "T20", "D12"],
+  143: ["T20", "T17", "D16"],
+  142: ["T20", "T14", "D20"],
+  141: ["T20", "T15", "D18"],
+  140: ["T20", "T16", "D16"],
+  139: ["T20", "T13", "D20"],
+  138: ["T20", "T16", "D15"],
+  137: ["T18", "T17", "D16"],
+  136: ["T20", "T20", "D8"],
+  135: ["T20", "T13", "D18"],
+  134: ["T20", "T14", "D16"],
+  133: ["T20", "T19", "D8"],
   132: ["T20", "T16", "D12"],
   131: ["T20", "T13", "D16"],
   130: ["T20", "T18", "D8"],
