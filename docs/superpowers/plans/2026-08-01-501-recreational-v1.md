@@ -4,7 +4,7 @@
 
 **Goal:** Ship a playable v1 of 501 (recreational, `501_V1` ruleset) with the same score-input UX as Score Training, plus an optimal-finish-path hint and leg-scoped progress stats (darts thrown, 3-dart average, previous score) on the play card.
 
-**Architecture:** Frontend-only. The `FiveOhOneEngine` (`app/src/modules/game/five-oh-one.engine.module.ts`) and all DB seeds already exist and are unmodified. This plan adds: a pure checkout-path lookup module, two small shared-component reuse fixes, new Alpine context types, new setup/play `.data.ts` factories, and new setup/play pages + interface/results components — mirroring the existing Score Training flow file-for-file.
+**Architecture:** Frontend-only. The `FiveOhOneEngine` (`app/src/modules/game/five-oh-one.engine.module.ts`) and all DB seeds already exist and are unmodified. This plan adds: a pure checkout-path lookup module, a legs clamp helper, two small shared-component reuse fixes, new Alpine context types, new setup/play `.data.ts` factories, and new setup/play pages + interface/results components — mirroring the existing Score Training flow file-for-file.
 
 **Tech Stack:** Astro.js, TypeScript, Alpine.js, Vitest.
 
@@ -12,6 +12,8 @@
 
 - `GAME_TYPE_KEY = "501"`, `RULESET_VERSION_KEY = "501_V1"` (seeded `implementation_key` values — `database/seeds/0001_reference_data.sql`).
 - No changes to `app/src/modules/game/five-oh-one.engine.module.ts`, `app/src/services/rulesets/five-oh-one/five-oh-one.validator.ts`, or any DB migration/seed file.
+- **V1 game rules and config screen come from `docs/game-rules/rulesets/501.md`**: open in, double out, first-to-N legs, visit = up to 3 darts, bust restores the pre-visit score. Config screen shows Players / Start score / In / Out **locked** and **Legs (N) editable, default 1, min 1, max 20** — matching `FiveOhOneConfig.legs_to_win`'s `.min(1).max(20)`.
+- A checkout is decided by the **final** dart: a visit that reaches exactly 0 without its last dart in a double is a bust, not a win (`501.md` §Finishing). This is why the exact-zero path asks before recording.
 - Alpine v3 shorthand only (`:attr`, `@event`); no `x-init`; always `x-data="factory()"`; every `x-show` carries `x-cloak`.
 - `.ts` files never live directly under `components/` or `pages/`. Suffixes: `.data.ts` (Alpine.data factory, no `$persist`), `.module.ts` (portable pure/OOP code, no `$persist`, no Alpine import, no `@client/api`).
 - Semantic Tailwind tokens only (`surface`/`foreground`/`muted*`/`accent*`/`error*`/`success*`); no `font-medium`; build-time classes via `cn()` only.
@@ -435,7 +437,7 @@ git commit -m "Generalize ContinueSessionModal and NoSessionPanel for reuse by 5
 
 **Interfaces:**
 - Consumes: `ConfigurationPresetData` (`@client/api/configuration-templates`), `SessionActiveData` (`@client/api/types`), `ScoreInputBuffer` (`@modules/game/score-input.module`), `FiveOhOneEngine` (`@modules/game/five-oh-one.engine.module`), `EngineFacts`, `StageFact`, `TurnFact` (`@modules/types`), `RulesetVersionKey`, `FiveOhOneSnapshot` (`./rulesets/types`).
-- Produces: `FiveOhOnePresetKey`, `FiveOhOneSetupContext`, `FiveOhOnePlayContext` — every task from here on imports these from `@lib/types`.
+- Produces: `FiveOhOneSetupContext`, `FiveOhOnePlayContext` — every task from here on imports these from `@lib/types`.
 
 - [ ] **Step 1: Add the types**
 
@@ -449,11 +451,10 @@ import type { FiveOhOneSnapshot } from "./rulesets/types";
 Add near the bottom of the file, after `ScoreTrainingSetupContext`:
 
 ```typescript
-export type FiveOhOnePresetKey = "QUICK_PLAY" | "BEST_OF_5";
-
 export type FiveOhOneSetupContext = {
   presets: ConfigurationPresetData[];
-  selectedPreset: FiveOhOnePresetKey;
+  legsToWin: number | string | null;
+  clampNotice: string;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -475,10 +476,7 @@ export type FiveOhOneSetupContext = {
   retryReconciliation(this: FiveOhOneSetupContext): Promise<void>;
   continueSession(this: FiveOhOneSetupContext): void;
   abandonSession(this: FiveOhOneSetupContext): Promise<void>;
-  presetFor(
-    this: FiveOhOneSetupContext,
-    key: FiveOhOnePresetKey,
-  ): ConfigurationPresetData | undefined;
+  basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
@@ -553,17 +551,114 @@ git commit -m "Add FiveOhOneSetupContext and FiveOhOnePlayContext Alpine types"
 
 ---
 
-### Task 4: `five-oh-one-setup.data.ts`
+### Task 4: Legs clamp helper + `five-oh-one-setup.data.ts`
+
+**Requirement source:** `docs/game-rules/rulesets/501.md` §"Config & presets (V1)" specifies the config screen shows Players / Start score / In / Out as **locked** values and **Legs (N) as editable, default 1, min 1, max 20** — not a choice between two fixed presets. `FiveOhOneConfig.legs_to_win` in `app/src/lib/game/rulesets/types.ts` carries exactly that `.min(1).max(20)` bound. Session creation therefore follows Score Training's established shape: pick the base template, pass the chosen N as an `overrides` value.
 
 **Files:**
+- Create: `app/src/lib/game/five-oh-one-legs.ts`
 - Create: `app/src/lib/game/five-oh-one-setup.data.ts`
+- Test: `app/tests/lib/game/five-oh-one-legs.test.ts`
 - Test: `app/tests/lib/game/five-oh-one-setup.data.test.ts`
 
 **Interfaces:**
-- Consumes: `fetchConfigurationPresets`, `createSession`, `fetchActiveSessions`, `completeSession` (`@client/api/*`), `reconcileActiveSession` (`@lib/game/session-recovery`), `toSnapshot` (`@lib/game/rulesets/config-codec`), `FiveOhOneSetupContext`, `FiveOhOnePresetKey` (`@lib/types`, from Task 3).
-- Produces: `fiveOhOneSetup(): FiveOhOneSetupContext` (minus `$store`) — Task 5 wires this into `register-route-data.ts` and the setup page.
+- Consumes: `fetchConfigurationPresets`, `createSession`, `fetchActiveSessions`, `completeSession` (`@client/api/*`), `reconcileActiveSession` (`@lib/game/session-recovery`), `toSnapshot` (`@lib/game/rulesets/config-codec`), `FiveOhOneSetupContext` (`@lib/types`, from Task 3).
+- Produces: `clampFiveOhOneLegs(value: unknown): { value: number; clamped: boolean }`, `FIVE_OH_ONE_LEGS_NOTICE: string`, `fiveOhOneSetup(): FiveOhOneSetupContext` (minus `$store`) — Task 5 wires the factory into `register-route-data.ts` and the setup page.
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Write the failing clamp tests**
+
+```typescript
+// app/tests/lib/game/five-oh-one-legs.test.ts
+import { describe, expect, it } from "vitest";
+import {
+  clampFiveOhOneLegs,
+  FIVE_OH_ONE_LEGS_NOTICE,
+} from "@lib/game/five-oh-one-legs";
+
+describe("clampFiveOhOneLegs", () => {
+  it("passes an in-range value through unclamped", () => {
+    expect(clampFiveOhOneLegs(3)).toEqual({ value: 3, clamped: false });
+  });
+
+  it("accepts both bounds", () => {
+    expect(clampFiveOhOneLegs(1)).toEqual({ value: 1, clamped: false });
+    expect(clampFiveOhOneLegs(20)).toEqual({ value: 20, clamped: false });
+  });
+
+  it("clamps above the maximum of 20", () => {
+    expect(clampFiveOhOneLegs(50)).toEqual({ value: 20, clamped: true });
+  });
+
+  it("clamps below the minimum of 1", () => {
+    expect(clampFiveOhOneLegs(0)).toEqual({ value: 1, clamped: true });
+    expect(clampFiveOhOneLegs(-4)).toEqual({ value: 1, clamped: true });
+  });
+
+  it("floors a fractional value", () => {
+    expect(clampFiveOhOneLegs(3.7)).toEqual({ value: 3, clamped: true });
+  });
+
+  it("clamps a blank or non-numeric input to the minimum", () => {
+    expect(clampFiveOhOneLegs(null)).toEqual({ value: 1, clamped: true });
+    expect(clampFiveOhOneLegs("")).toEqual({ value: 1, clamped: true });
+    expect(clampFiveOhOneLegs(Number.NaN)).toEqual({ value: 1, clamped: true });
+  });
+
+  it("states the allowed range in its notice", () => {
+    expect(FIVE_OH_ONE_LEGS_NOTICE).toBe("Allowed range: 1–20 legs");
+  });
+});
+```
+
+- [ ] **Step 2: Run the clamp tests to verify they fail**
+
+Run: `cd app && npx vitest run tests/lib/game/five-oh-one-legs.test.ts`
+Expected: FAIL — `Cannot find module '@lib/game/five-oh-one-legs'`
+
+- [ ] **Step 3: Write the clamp module**
+
+Mirrors `score-training-duration.ts`, with one fixed bound pair instead of a per-mode pair.
+
+```typescript
+// app/src/lib/game/five-oh-one-legs.ts
+
+/**
+ * `legs_to_win` bounds, matching `FiveOhOneConfig`'s `.min(1).max(20)` and the
+ * V1 config screen in `docs/game-rules/rulesets/501.md`.
+ */
+export const FIVE_OH_ONE_LEGS_MIN = 1;
+export const FIVE_OH_ONE_LEGS_MAX = 20;
+
+export const FIVE_OH_ONE_LEGS_NOTICE = "Allowed range: 1–20 legs";
+
+/**
+ * Floors finite numbers, then clamps into the inclusive legs bounds.
+ * Non-finite / non-number inputs clamp to the minimum, so a blank field
+ * submits a playable single-leg match rather than failing validation.
+ */
+export function clampFiveOhOneLegs(value: unknown): {
+  value: number;
+  clamped: boolean;
+} {
+  const numeric = typeof value === "number" ? value : Number.NaN;
+  if (!Number.isFinite(numeric)) {
+    return { value: FIVE_OH_ONE_LEGS_MIN, clamped: true };
+  }
+  const floored = Math.floor(numeric);
+  const clampedValue = Math.min(
+    FIVE_OH_ONE_LEGS_MAX,
+    Math.max(FIVE_OH_ONE_LEGS_MIN, floored),
+  );
+  return { value: clampedValue, clamped: clampedValue !== numeric };
+}
+```
+
+- [ ] **Step 4: Run the clamp tests to verify they pass**
+
+Run: `cd app && npx vitest run tests/lib/game/five-oh-one-legs.test.ts`
+Expected: PASS (7 tests)
+
+- [ ] **Step 5: Write the failing setup-factory tests**
 
 ```typescript
 // app/tests/lib/game/five-oh-one-setup.data.test.ts
@@ -622,7 +717,7 @@ describe("fiveOhOneSetup", () => {
     return { ...fiveOhOneSetup(), $store: store, ...overrides };
   }
 
-  it("defaults to Quick Play and loads both presets", async () => {
+  it("defaults legsToWin to the base preset's value and loads the presets", async () => {
     const setup = createSetup();
     vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
       QUICK_PLAY_PRESET,
@@ -633,8 +728,21 @@ describe("fiveOhOneSetup", () => {
     await setup.init();
 
     expect(presetsApi.fetchConfigurationPresets).toHaveBeenCalledWith("501");
-    expect(setup.selectedPreset).toBe("QUICK_PLAY");
+    expect(setup.legsToWin).toBe(1);
+    expect(setup.clampNotice).toBe("");
     expect(setup.presets).toHaveLength(2);
+  });
+
+  it("falls back to 1 leg when no preset declares legs_to_win", async () => {
+    const setup = createSetup();
+    vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
+      { configurationTemplateId: "t", name: "odd", configuration: {} } as any,
+    ]);
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+
+    await setup.init();
+
+    expect(setup.legsToWin).toBe(1);
   });
 
   it('shows the active-session modal on "match"', async () => {
@@ -684,18 +792,22 @@ describe("fiveOhOneSetup", () => {
     expect(locationSpy.href).toBe("/games/501/play");
   });
 
-  it("presetFor matches Quick Play by legs_to_win = 1 and Best of 5 by legs_to_win = 3", () => {
+  it("basePreset picks the single-leg template as the override base", () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [BEST_OF_5_PRESET, QUICK_PLAY_PRESET],
     });
-    expect(setup.presetFor("QUICK_PLAY")).toBe(QUICK_PLAY_PRESET);
-    expect(setup.presetFor("BEST_OF_5")).toBe(BEST_OF_5_PRESET);
+    expect(setup.basePreset()).toBe(QUICK_PLAY_PRESET);
   });
 
-  it("creates a session from the selected preset with no overrides and redirects", async () => {
+  it("falls back to the first preset when none declares legs_to_win = 1", () => {
+    const setup = createSetup({ presets: [BEST_OF_5_PRESET] });
+    expect(setup.basePreset()).toBe(BEST_OF_5_PRESET);
+  });
+
+  it("creates a session overriding legs_to_win with the chosen value and redirects", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
-      selectedPreset: "BEST_OF_5",
+      legsToWin: 5,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
       sessionId: "new-session-id",
@@ -713,16 +825,20 @@ describe("fiveOhOneSetup", () => {
       rulesetVersionKey: "501_V1",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
-      config: { source: "template", templateRef: "tmpl-best-of-5" },
+      config: {
+        source: "template",
+        templateRef: "tmpl-quick",
+        overrides: { legs_to_win: 5 },
+      },
     });
     expect(store.game.startSession).toHaveBeenCalledWith(
       expect.objectContaining({
         gameTypeKey: "501",
         rulesetVersionKey: "501_V1",
-        templateRef: "tmpl-best-of-5",
+        templateRef: "tmpl-quick",
         configSnapshot: expect.objectContaining({
           startingScore: 501,
-          legsToWin: 3,
+          legsToWin: 5,
           checkIn: "STRAIGHT_IN",
           checkOut: "DOUBLE_OUT",
         }),
@@ -731,10 +847,84 @@ describe("fiveOhOneSetup", () => {
     expect(locationSpy.href).toBe("/games/501/play");
   });
 
+  it("clamps an out-of-range legs value, sets the notice, and still creates", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 99,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        { ref: "participant-1", displayName: "Player", participantTypeKey: "PLAYER" },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(setup.legsToWin).toBe(20);
+    expect(setup.clampNotice).toBe("Allowed range: 1–20 legs");
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({ overrides: { legs_to_win: 20 } }),
+      }),
+    );
+  });
+
+  it("clamps a blank field to a single leg", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: null,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        { ref: "participant-1", displayName: "Player", participantTypeKey: "PLAYER" },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(setup.legsToWin).toBe(1);
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({ overrides: { legs_to_win: 1 } }),
+      }),
+    );
+  });
+
+  it("errors when no preset is available at all", async () => {
+    const setup = createSetup({ presets: [], legsToWin: 3 });
+    await setup.start();
+    expect(sessionsApi.createSession).not.toHaveBeenCalled();
+    expect(setup.error).toBe("Could not find a preset for 501.");
+  });
+
+  it("rejects a preset whose configuration fails schema validation, before creating a session", async () => {
+    const setup = createSetup({
+      presets: [
+        {
+          configurationTemplateId: "template-1",
+          name: "Broken",
+          configuration: { starting_score: 501 },
+        } as any,
+      ],
+      legsToWin: 3,
+    });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).not.toHaveBeenCalled();
+    expect(store.game.startSession).not.toHaveBeenCalled();
+    expect(setup.error).toMatch(/Could not start the session/);
+    expect(setup.loading).toBe(false);
+  });
+
   it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
-      selectedPreset: "QUICK_PLAY",
+      legsToWin: 1,
     });
     vi.mocked(sessionsApi.createSession).mockRejectedValue(
       Object.assign(new Error("already active"), {
@@ -755,12 +945,12 @@ describe("fiveOhOneSetup", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [ ] **Step 6: Run the setup tests to verify they fail**
 
 Run: `cd app && npx vitest run tests/lib/game/five-oh-one-setup.data.test.ts`
 Expected: FAIL — `Cannot find module '@lib/game/five-oh-one-setup.data'`
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 7: Write the setup implementation**
 
 ```typescript
 // app/src/lib/game/five-oh-one-setup.data.ts
@@ -776,15 +966,20 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import type { FiveOhOnePresetKey, FiveOhOneSetupContext } from "./types";
+import {
+  clampFiveOhOneLegs,
+  FIVE_OH_ONE_LEGS_MIN,
+  FIVE_OH_ONE_LEGS_NOTICE,
+} from "@lib/game/five-oh-one-legs";
+import type { FiveOhOneSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY = "501_V1";
 
-function legsToWinFor(key: FiveOhOnePresetKey): number {
-  return key === "QUICK_PLAY" ? 1 : 3;
-}
-
+/**
+ * Reads `legs_to_win` off a preset's `configuration`, which the API types as
+ * `Record<string, unknown>`.
+ */
 function presetLegsToWin(
   preset: ConfigurationPresetData | undefined,
 ): number | undefined {
@@ -795,7 +990,8 @@ function presetLegsToWin(
 export function fiveOhOneSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
-    selectedPreset: "QUICK_PLAY" as FiveOhOnePresetKey,
+    legsToWin: FIVE_OH_ONE_LEGS_MIN as number | string | null,
+    clampNotice: "",
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -811,7 +1007,9 @@ export function fiveOhOneSetup() {
           fetchActiveSessions(),
         ]);
         this.presets = presets;
-        this.selectedPreset = "QUICK_PLAY";
+        this.legsToWin =
+          presetLegsToWin(this.basePreset()) ?? FIVE_OH_ONE_LEGS_MIN;
+        this.clampNotice = "";
         await this.reconcile(activeSessions);
       } catch {
         this.showActiveSessionModal = false;
@@ -822,9 +1020,17 @@ export function fiveOhOneSetup() {
       }
     },
 
-    presetFor(this: FiveOhOneSetupContext, key: FiveOhOnePresetKey) {
-      return this.presets.find(
-        (p) => presetLegsToWin(p) === legsToWinFor(key),
+    /**
+     * The template whose configuration is copied, with `legs_to_win`
+     * overridden by the player's chosen value. The single-leg preset is
+     * preferred so the override is the only difference from a seeded default;
+     * any preset will do when that one is absent, since every 501 preset
+     * shares the same locked V1 values for every other key.
+     */
+    basePreset(this: FiveOhOneSetupContext) {
+      return (
+        this.presets.find((p) => presetLegsToWin(p) === FIVE_OH_ONE_LEGS_MIN) ??
+        this.presets[0]
       );
     },
 
@@ -884,18 +1090,23 @@ export function fiveOhOneSetup() {
     },
 
     async start(this: FiveOhOneSetupContext) {
-      const preset = this.presetFor(this.selectedPreset);
+      const preset = this.basePreset();
       if (!preset) {
-        this.error = "Could not find a preset for this mode.";
+        this.error = "Could not find a preset for 501.";
         return;
       }
+      const { value, clamped } = clampFiveOhOneLegs(this.legsToWin);
+      this.legsToWin = value;
+      this.clampNotice = clamped ? FIVE_OH_ONE_LEGS_NOTICE : "";
+
       this.loading = true;
       this.error = "";
       try {
-        const configSnapshot = toSnapshot(
-          RULESET_VERSION_KEY,
-          preset.configuration,
-        );
+        const wire = {
+          ...(preset.configuration as Record<string, unknown>),
+          legs_to_win: value,
+        };
+        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -904,6 +1115,7 @@ export function fiveOhOneSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
+            overrides: { legs_to_win: value },
           },
         });
         this.$store.game.startSession({
@@ -930,16 +1142,16 @@ export function fiveOhOneSetup() {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [ ] **Step 8: Run the setup tests to verify they pass**
 
 Run: `cd app && npx vitest run tests/lib/game/five-oh-one-setup.data.test.ts`
-Expected: PASS (7 tests)
+Expected: PASS (11 tests)
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add app/src/lib/game/five-oh-one-setup.data.ts app/tests/lib/game/five-oh-one-setup.data.test.ts
-git commit -m "Add fiveOhOneSetup Alpine data factory"
+git add app/src/lib/game/five-oh-one-legs.ts app/src/lib/game/five-oh-one-setup.data.ts app/tests/lib/game/five-oh-one-legs.test.ts app/tests/lib/game/five-oh-one-setup.data.test.ts
+git commit -m "Add 501 legs clamp helper and fiveOhOneSetup data factory"
 ```
 
 ---
@@ -956,6 +1168,8 @@ git commit -m "Add fiveOhOneSetup Alpine data factory"
 
 - [ ] **Step 1: Create the setup form**
 
+Per `docs/game-rules/rulesets/501.md` §"Config & presets (V1)": Players / Start score / In / Out are **shown, locked**; Legs (N) is **editable**, default 1, min 1, max 20. The locked rows are static markup — they are V1 constants, not state, so they carry no Alpine binding.
+
 ```astro
 ---
 // app/src/components/layout/games/FiveOhOneSetupForm.astro
@@ -969,33 +1183,62 @@ const { title, description }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
+import Input from "@components/forms/Input.astro";
+
+// Data
+const lockedSettings = [
+  { label: "Players", value: "Single player" },
+  { label: "Start score", value: "501" },
+  { label: "In", value: "Open in" },
+  { label: "Out", value: "Double out" },
+];
 ---
 
 <div>
   <h1 class="text-xl font-semibold text-foreground">{title}</h1>
   <p class="text-sm text-muted-foreground">{description}</p>
 
-  <div class="mt-4 flex flex-col gap-2">
-    <label class="flex items-center gap-2">
-      <input
-        type="radio"
-        class="control"
-        name="preset"
-        value="QUICK_PLAY"
-        x-model="selectedPreset"
+  <div class="mt-4 flex flex-col gap-3">
+    {/* V1 locked settings — shown for confirmation, not editable */}
+    <dl
+      class="glass rounded-lg border border-border bg-surface-raised px-4 py-3 space-y-1"
+    >
+      {
+        lockedSettings.map((setting) => (
+          <div class="flex items-center justify-between">
+            <dt class="text-sm text-muted-foreground">{setting.label}</dt>
+            <dd class="text-sm text-foreground">{setting.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="flex flex-col gap-1">
+      <label
+        for="legsToWin"
+        class="text-sm text-muted-foreground"
+      >
+        Legs to win
+      </label>
+      <Input
+        id="legsToWin"
+        name="legsToWin"
+        type="text"
+        inputmode="numeric"
+        {...{
+          "x-model.number": "legsToWin",
+          "x-on:input": "clampNotice = ''",
+        }}
       />
-      <span>Quick Play — single leg</span>
-    </label>
-    <label class="flex items-center gap-2">
-      <input
-        type="radio"
-        class="control"
-        name="preset"
-        value="BEST_OF_5"
-        x-model="selectedPreset"
-      />
-      <span>Best of 5 Legs</span>
-    </label>
+      <p
+        class="text-sm text-muted-foreground"
+        role="status"
+        x-show="clampNotice"
+        x-text="clampNotice"
+        x-cloak
+      >
+      </p>
+    </div>
   </div>
 
   <p
@@ -1059,7 +1302,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     >
       <FiveOhOneSetupForm
         title="501"
-        description="Pick your match length, then let's play."
+        description="Confirm the format and set your legs, then let's play."
       />
     </template>
 
@@ -1093,7 +1336,7 @@ export function registerRouteData(Alpine: Alpine) {
 
 - [ ] **Step 4: Manual verification**
 
-Run: `cd app && npm run dev -- --background`, then visit `/games/501/setup`. Confirm: the radio choice defaults to "Quick Play", switching to "Best of 5 Legs" and clicking "Let's play" creates a session and redirects to `/games/501/play` (a 404 is expected until Task 8 — that's fine, this task only proves setup → session-create works). Stop the dev server afterward (`astro dev stop`).
+Run: `cd app && npm run dev -- --background`, then visit `/games/501/setup`. Confirm: the four locked rows read Single player / 501 / Open in / Double out; "Legs to win" defaults to `1`; typing `99` and clicking "Let's play" clamps the field to `20`, shows "Allowed range: 1–20 legs", and still creates the session and redirects to `/games/501/play` (a 404 there is expected until Task 8 — this task only proves setup → session-create works). Stop the dev server afterward (`astro dev stop`).
 
 - [ ] **Step 5: Commit**
 
@@ -1700,7 +1943,7 @@ export function fiveOhOnePlay() {
       this.error = "";
     },
 
-    // Implemented in Task 7 — completion upload, navigation, and replay.
+    /** Implemented in Task 7 — completion upload, navigation, and replay. */
     async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {},
     async back(this: FiveOhOnePlayContext): Promise<void> {},
     async playAgain(this: FiveOhOnePlayContext): Promise<void> {},
@@ -1708,6 +1951,8 @@ export function fiveOhOnePlay() {
   };
 }
 ```
+
+**Note on the comment form:** `/** */` (JSDoc), never `//`. `scripts/check-no-inline-comments.sh` treats the whole `fiveOhOnePlay()` body — including the object literal it returns — as a function body, so a `//` comment here fails the gate; JSDoc is exempt (verified against the guard).
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -1777,6 +2022,37 @@ describe("uploadAndCompleteSession", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot).toEqual({ total: 501, legs: 1, average: 250.5 });
+  });
+
+  it("reports legs WON, not legs played, when a Best-of-5 is won 3-1", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 4, turns: 4, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    // Four legs played (three won, one lost) — stages.length is 4, legsToWin is 3.
+    const play = makePlay({
+      configSnapshot: bestOf5Config(),
+      stages: [
+        LEG_1,
+        { ...LEG_1, clientKey: "leg-2", sequence: 2 },
+        { ...LEG_1, clientKey: "leg-3", sequence: 3 },
+        { ...LEG_1, clientKey: "leg-4", sequence: 4 },
+      ],
+      turns: [
+        turnFact("t1", "leg-1", 1, 501),
+        turnFact("t2", "leg-2", 1, 501),
+        turnFact("t3", "leg-3", 1, 200),
+        turnFact("t4", "leg-4", 1, 501),
+      ],
+    });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot?.legs).toBe(3);
   });
 
   it('treats SESSION_ALREADY_COMPLETED as success', async () => {
@@ -1973,10 +2249,18 @@ function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
 }
 
 /**
- * Match-wide summary for the results modal. A match only completes when the
- * winning checkout's leg is the last one played — `record()` never opens a
- * further leg stage in that case — so `stages.length` already equals the
- * number of legs won by the time this runs.
+ * Match-wide summary for the results modal.
+ *
+ * `legsWon` is the caller's `config.legsToWin`, never `stages.length`: a stage
+ * exists per leg *played*, and a Best-of-5 won 3-1 played four legs while
+ * winning three. This function only ever runs on the completion path, which
+ * `record()` reaches exactly when `legsWon` hits `legsToWin` — so the
+ * configured target is the legs actually won, by definition.
+ *
+ * `average` is per-visit, matching Score Training. For 501 that equals the
+ * 3-dart average for every full visit; the checkout visit may have used fewer
+ * than three darts, which this slightly under-weights. Recovering it needs
+ * per-dart capture, which 501 does not have (`06-Spec/04-Runtime-Layer.md`).
  */
 function computeStats(
   turns: TurnFact[],
@@ -2033,7 +2317,7 @@ async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {
 
   this.resultsSnapshot = computeStats(
     this.$store.game.turns,
-    this.$store.game.stages.length,
+    this.$store.game.configSnapshot!.legsToWin,
   );
   this.completionStatus = "succeeded";
 },
@@ -2157,6 +2441,7 @@ git commit -m "Implement fiveOhOnePlay completion, abandon, and play-again"
 - Create: `app/src/components/layout/games/result-modals/FiveOhOneResults.astro`
 - Create: `app/src/pages/games/501/play/index.astro`
 - Modify: `app/src/lib/client/alpine/register-route-data.ts`
+- Modify: `app/src/components/layout/games/SinglePlayerDisplay.astro` (retire two resolved TODOs)
 
 **Interfaces:**
 - Consumes: `fiveOhOnePlay` (Task 6/7), `SinglePlayerDisplay`, `ScoreInput`, `StatRow` (existing, unchanged), `ContinueSessionModal`/`NoSessionPanel` (Task 2), `ConfirmDialog`, `GameLayout` (existing, unchanged).
@@ -2439,23 +2724,84 @@ export function registerRouteData(Alpine: Alpine) {
 }
 ```
 
-- [ ] **Step 5: Manual end-to-end verification**
+- [ ] **Step 5: Retire the two resolved TODOs in `SinglePlayerDisplay.astro`**
+
+That component currently carries two `{/* TODO */}` blocks this task resolves — one reserving checkout route tips, one reserving the darts/average/previous progress slot as "out of scope for Score Training play UI". Both are now implemented by `FiveOhOne.astro` through the existing `progress` slot. Leaving them would tell the next reader the capability is still missing.
+
+Delete the TODO block above the root `<div>` entirely, and replace the TODO block above `<slot name="progress" />` with a plain description of the slot's contract. The component's markup and props are otherwise unchanged — no behavioral edit:
+
+```astro
+---
+/**
+ * Single-player score/target display with Alpine live binding.
+ * @param {string} [score] Alpine expression for score text
+ * @param {string} [target] Alpine expression for target text
+ * @param {boolean} [isTarget] Show target vs score
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  score?: string;
+  target?: string;
+  isTarget?: boolean;
+  class?: string;
+}
+
+// Props
+const {
+  score,
+  target,
+  isTarget = true,
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
+---
+
+<div class={className}>
+  <div
+    class="rounded-lg border border-border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center"
+  >
+    <h1
+      class="text-7xl font-mono font-bold tabular-nums"
+      x-text={isTarget ? target : score}
+    >
+    </h1>
+    <span class="text-sm text-muted-foreground uppercase">
+      {isTarget ? "Target" : "Score"}
+    </span>
+    {
+      /* Per-game progress region — e.g. 501's checkout route plus its
+      darts/average/previous stats. Games with nothing to add pass no slot
+      content and the region collapses. */
+    }
+    <slot name="progress" />
+  </div>
+</div>
+```
+
+- [ ] **Step 6: Manual end-to-end verification**
 
 Run: `cd app && npm run dev -- --background`, then in a browser:
 
-1. Visit `/games/501/setup`, pick "Quick Play", click "Let's play" — lands on `/games/501/play` with the target showing 501.
+1. Visit `/games/501/setup`, leave "Legs to win" at `1`, click "Let's play" — lands on `/games/501/play` with the target showing 501.
 2. Enter a score that doesn't reach 0 (e.g. `100`) — remaining drops to 401, no confirm dialog, "Previous" stat shows `100`.
 3. Manually drive the remaining score down to exactly 40 (e.g. enter `180`, `180`, `41`), then enter `40` — the "Finished on a double?" dialog appears. Click "No — bust" — remaining stays at 40, "Previous" shows `0`.
-4. Enter `40` again, click "Yes" — Quick Play (1 leg) shows the Match Summary modal with Total/Legs/Average, saves, "Play again" and "Back to games" both work.
+4. Enter `40` again, click "Yes" — a 1-leg match shows the Match Summary modal with Total/Legs/Average, saves, "Play again" and "Back to games" both work.
 5. Check that when remaining is 121 the checkout hint under the target reads `T19 14 BULL`, and that it disappears when remaining is a bogey number (e.g. drive to 169 if practical, or trust Task 1's unit coverage) or above 170.
 6. Confirm undo removes the last visit and the exit (top-left) button abandons correctly.
+7. **Layout check:** the target card is capped at `max-h-2/5` (copied from Score Training), and 501 now puts a checkout line *plus* three stat rows in its `progress` slot. Confirm nothing clips or overflows at a phone viewport (~390×844 in devtools) with a long hint like `T19 14 BULL` showing. If it clips, raise the cap on the `class` prop passed from `FiveOhOne.astro` — do not restructure `SinglePlayerDisplay`.
+8. Load `/games/score-training/play` once more and confirm its display is visually unchanged by the Step 5 edit (it passes no `progress` slot content, so the region should collapse to nothing).
 
 Stop the dev server afterward (`astro dev stop`).
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add app/src/components/layout/games/interfaces/FiveOhOne.astro app/src/components/layout/games/result-modals/FiveOhOneResults.astro app/src/pages/games/501/play/index.astro app/src/lib/client/alpine/register-route-data.ts
+git add app/src/components/layout/games/interfaces/FiveOhOne.astro app/src/components/layout/games/result-modals/FiveOhOneResults.astro app/src/pages/games/501/play/index.astro app/src/lib/client/alpine/register-route-data.ts app/src/components/layout/games/SinglePlayerDisplay.astro
 git commit -m "Add 501 play page: interface, results modal, and double-confirm wiring"
 ```
 
@@ -2530,13 +2876,39 @@ Expected: all pass. (`check-game-engines.sh` / `check-refinement-coverage.sh` ar
 Run: `cd app && npm run format:check`
 Expected: clean. If not, run `npm run format`, review the diff, and commit it separately.
 
-- [ ] **Step 5: Context maintenance**
+- [ ] **Step 5: Register this task's docs and new module in the Context Map**
 
-Invoke the `context-maintenance` skill per root `CLAUDE.md` before considering this feature done — it will confirm whether `00-Context-Map.md` needs any registration for the new pages/components/modules (per the design doc, likely none beyond what the existing Frontend gameplay context pack already covers) and run `scripts/check-context-map.sh` / `check-doc-links.sh` / `check-context-budget.sh`.
+Root `CLAUDE.md` requires every new doc to be registered in `docs/architecture/00-Context-Map.md` **in the same change**. Three concrete edits — do these explicitly rather than assuming the skill infers them:
 
-- [ ] **Step 6: Final commit if any formatting/context changes were needed**
+1. In the `## Context & history (repo root, `docs/`)` table, add two rows alongside the existing `docs/superpowers/**` entries (every prior spec and plan has its own row — match that form):
+
+```markdown
+| `docs/superpowers/specs/2026-08-01-501-recreational-v1-design.md` | 501 recreational v1 design: setup/play flow mirroring Score Training, double-out confirm gate, checkout-path lookup, leg-scoped progress stats (2026-08-01) | historical |
+| `docs/superpowers/plans/2026-08-01-501-recreational-v1.md` | The 10-task plan implementing that spec: checkout-path module, shared-component reuse fixes, setup/play data factories, play UI, validation pass (2026-08-01) | historical |
+```
+
+2. In the `## Game engine code + mechanical guards` table, register the new module for discoverability beside `board-progression.module.ts`:
+
+```markdown
+| `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
+```
+
+3. Bump this file's `> **Version:**` line at the top, following the existing convention of naming the change and keeping the prior note. Current value is `1.7.7`; make it `1.7.8` with a `2026-08-01 — 501 recreational v1 spec/plan + checkout-path module registered` note and demote the existing `1.7.7` note to the "prior" clause.
+
+**Pre-existing drift, do not fix here:** `docs/superpowers/specs/2026-07-31-score-training-configurable-duration-design.md` and `docs/superpowers/plans/2026-08-01-score-training-configurable-duration.md` are both already merged to `main` and are **absent** from the Context Map inventory. `scripts/check-context-map.sh` does not enforce `docs/superpowers/**` registration, which is how they slipped through. That gap is not this task's to close — raise it separately rather than expanding this diff. Register only this task's two docs.
+
+- [ ] **Step 6: Run the context-integrity guards**
+
+Run: `bash scripts/check-context-map.sh && bash scripts/check-doc-links.sh && bash scripts/check-context-budget.sh`
+Expected: all three pass. `check-context-budget.sh` is the one most likely to complain — it compares each file's `~Nk` estimate against a chars/4 estimate, and the three rows above lengthen `00-Context-Map.md`. If it fails, update this file's own `~5.5k` estimate in its File Inventory row to the value the script reports.
+
+- [ ] **Step 7: Context maintenance skill**
+
+Invoke the `context-maintenance` skill per root `CLAUDE.md` for the remaining gate items it owns (CLAUDE.md/AGENT.md mirror sync, `DECISIONS.md` consideration, knowledge-graph refresh, branch/PR check, self-learning gate). No `DECISIONS.md` entry is expected: this task adds no new architectural decision — it implements an existing engine behind the established Score Training page pattern. If the skill's review disagrees, follow the skill.
+
+- [ ] **Step 8: Final commit**
 
 ```bash
 git add -A
-git commit -m "Format and context-maintenance pass for 501 recreational v1"
+git commit -m "Register 501 v1 docs and checkout-path module in the context map"
 ```

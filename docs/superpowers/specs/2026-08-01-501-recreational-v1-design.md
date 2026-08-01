@@ -19,7 +19,11 @@ score is a legal double-out finish, and leg-scoped progress stats (darts thrown,
 - No database, migration, or API changes. Seeds already contain the `501` game
   type, `501_V1` ruleset, and two configuration presets ("501 — Quick Play",
   "501 — Best of 5 Legs") — `database/seeds/0001_reference_data.sql`,
-  `0002_default_templates.sql`.
+  `0002_default_templates.sql`. The single-leg preset serves as the
+  configuration base; `legs_to_win` is overridden per session.
+- Game rules are already specified in `docs/game-rules/rulesets/501.md` (V1
+  feature table, config screen, bust/finishing semantics). This design
+  implements that note; it does not restate or revise it.
 - No engine changes. `app/src/modules/game/five-oh-one.engine.module.ts`
   (`FiveOhOneEngine`) already implements the full `GameEngine` contract:
   straight-in start, double-out finish, bust rules, leg progression,
@@ -41,22 +45,32 @@ score is a legal double-out finish, and leg-scoped progress stats (darts thrown,
 
 ## Setup flow
 
-New `FiveOhOneSetupForm.astro`. `SetupSessionForm.astro` is explicitly
-Score-Training-shaped (duration-mode radios) and is not reused. The 501 form is
-a radio choice between the two seeded presets, keyed by preset name or
-`legs_to_win`:
+**Requirement source:** `docs/game-rules/rulesets/501.md` §"Config & presets
+(V1)" — the config screen shows Players / Start score / In / Out as **locked**
+values, and **Legs (N) as editable, default 1, min 1, max 20**. This supersedes
+an earlier sketch of this design that offered a radio choice between the two
+seeded presets; that sketch contradicted the ruleset note and the
+`FiveOhOneConfig.legs_to_win` `.min(1).max(20)` bound. <!-- corrected 2026-08-01 -->
 
-- "Quick Play" (`legs_to_win: 1`)
-- "Best of 5 Legs" (`legs_to_win: 3`)
+New `FiveOhOneSetupForm.astro`. `SetupSessionForm.astro` is explicitly
+Score-Training-shaped (duration-mode radios) and is not reused. The 501 form
+shows the four locked V1 settings as static rows plus one editable "Legs to
+win" numeric field.
+
+New `five-oh-one-legs.ts` supplies `clampFiveOhOneLegs` +
+`FIVE_OH_ONE_LEGS_NOTICE`, mirroring the existing
+`score-training-duration.ts` clamp/notice pair with a single fixed 1–20 bound.
 
 New `five-oh-one-setup.data.ts` Alpine factory mirrors
-`score-training-setup.data.ts`:
-`fetchConfigurationPresets("501")` + `fetchActiveSessions()` +
-`reconcileActiveSession("501", ...)` (shared helper, unchanged) → on `start()`,
+`score-training-setup.data.ts`: `fetchConfigurationPresets("501")` +
+`fetchActiveSessions()` + `reconcileActiveSession("501", ...)` (shared helper,
+unchanged) → on `start()`, clamp the legs field, then
 `createSession({ gameTypeKey: "501", rulesetVersionKey: "501_V1",
 captureModeKey: "RECREATIONAL", inputModeKey: "QUICK_SCORE", config: { source:
-"template", templateRef: preset.configurationTemplateId } })`, then
-`$store.game.startSession(...)` and redirect to `/games/501/play`.
+"template", templateRef: basePreset.configurationTemplateId, overrides: {
+legs_to_win: value } } })`, then `$store.game.startSession(...)` and redirect to
+`/games/501/play`. The override shape is exactly Score Training's
+`duration_value` pattern; the single-leg seeded preset is the override base.
 
 ### Shared-component reuse fixes (in scope)
 
@@ -165,7 +179,9 @@ match-wide (not leg-scoped; this is the closing summary, not the live card).
 
 - `lib/game/types.ts`: add `FiveOhOnePlayContext` / `FiveOhOneSetupContext`
   (mirrors `ScoreTrainingPlayContext`/`ScoreTrainingSetupContext`), including
-  the new `showDoubleConfirm` field and leg-scoped stat method signatures.
+  the new `showDoubleConfirm` field, the setup context's `legsToWin` /
+  `clampNotice` / `basePreset()` members, and leg-scoped stat method
+  signatures.
 - `modules/game/types.ts`: no new exported types needed —
   `checkoutPathFor`'s return type (`readonly string[] | null`) is inline in
   its own signature per existing precedent (`board-progression.module.ts`
@@ -178,12 +194,15 @@ Standard TDD (red→green→refactor), tests under `app/tests/` mirroring
 `app/src/`, never colocated:
 
 - `checkout-path.module.ts` — unit tests, spot-checking the table (see above).
+- `five-oh-one-legs.ts` — unit tests for the clamp bounds, flooring, and the
+  blank-field fallback.
 - `five-oh-one-play.data.ts` — unit tests for: submit routing (checkout vs.
   bust vs. plain visit), double-confirm gating, leg-scoped stat computation,
-  match-complete detection.
+  match-complete detection, and that the results summary reports legs **won**
+  rather than legs played.
 - `five-oh-one-setup.data.ts` — unit tests mirroring
   `score-training-setup.data.ts`'s existing coverage (preset fetch,
-  reconciliation, start).
+  reconciliation, legs clamping, start with the `legs_to_win` override).
 - `ContinueSessionModal.astro` / `NoSessionPanel.astro` prop changes: no new
   tests (D101 — `.astro` markup/branching stays untested inline); verify by
   running the app.
