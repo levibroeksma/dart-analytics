@@ -4,8 +4,9 @@ import type { RulesetVersionKey } from "@lib/types";
 
 /**
  * Every `configuration_templates` preset seeded, copied verbatim from
- * `database/seeds/0002_default_templates.sql` and
- * `database/seeds/0003_game_engine_reference.sql`. Keeping this list in sync
+ * `database/seeds/0002_default_templates.sql`,
+ * `database/seeds/0003_game_engine_reference.sql`, and
+ * `database/seeds/0004_score_training_minutes_preset.sql`. Keeping this list in sync
  * with the seed files is what turns a future seed/schema divergence into a
  * failing test here instead of a session that will not start — which is
  * exactly what the two TUOD presets were until `TUOD_V1` gained a schema,
