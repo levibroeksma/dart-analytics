@@ -9,27 +9,64 @@ const { title, description }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
+import Input from "@components/forms/Input.astro";
 ---
 
 <div>
   <h1 class="text-xl font-semibold text-foreground">{title}</h1>
   <p class="text-sm text-muted-foreground">{description}</p>
 
-  <div class="mt-4 flex flex-col gap-2">
-    <template
-      x-for="preset in presets"
-      :key="preset.configurationTemplateId"
-    >
+  <div class="mt-4 flex flex-col gap-3">
+    <div class="flex flex-col gap-2">
       <label class="flex items-center gap-2">
         <input
           type="radio"
-          name="preset"
-          :value="preset.configurationTemplateId"
-          x-model="selectedTemplateId"
+          class="control"
+          name="durationType"
+          value="ROUNDS"
+          x-model="durationType"
+          @change="selectMode('ROUNDS')"
         />
-        <span x-text="preset.name"></span>
+        <span>Rounds</span>
       </label>
-    </template>
+      <label class="flex items-center gap-2">
+        <input
+          type="radio"
+          class="control"
+          name="durationType"
+          value="MINUTES"
+          x-model="durationType"
+          @change="selectMode('MINUTES')"
+        />
+        <span>Timed</span>
+      </label>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label
+        for="durationValue"
+        class="text-sm text-muted-foreground"
+        x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+      ></label>
+      <Input
+        id="durationValue"
+        name="durationValue"
+        type="text"
+        inputmode="numeric"
+        {...{
+          "x-model.number": "durationValue",
+          "x-on:input": "clampNotice = ''",
+        }}
+      />
+      <p
+        class="text-sm text-muted-foreground"
+        role="status"
+        x-show="clampNotice"
+        x-text="clampNotice"
+        x-cloak
+      >
+      </p>
+    </div>
   </div>
 
   <p
