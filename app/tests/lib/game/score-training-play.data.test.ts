@@ -740,7 +740,11 @@ describe("scoreTrainingPlay", () => {
         rulesetVersionKey: "SCORE_TRAINING_V1",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "QUICK_SCORE",
-        config: { source: "template", templateRef: "tpl-1" },
+        config: {
+          source: "template",
+          templateRef: "tpl-1",
+          overrides: { duration_value: 20 },
+        },
       });
       expect(play.$store.game.sessionId).toBe("new-session");
       expect(play.$store.game.participantRef).toBe("new-participant");
@@ -756,6 +760,60 @@ describe("scoreTrainingPlay", () => {
       expect(play.playAgainError).toBe("");
       expect(play.resultsSnapshot).toBeNull();
       expect(play.hasActiveSession).toBe(true);
+    });
+
+    it("replays with the session's own round count, not the template default", async () => {
+      const play = makePlay({ configSnapshot: rounds(25) });
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: {
+            source: "template",
+            templateRef: "tpl-1",
+            overrides: { duration_value: 25 },
+          },
+        }),
+      );
+    });
+
+    it("replays with the session's own minute count, not the template default", async () => {
+      const play = makePlay({ configSnapshot: minutes(12) });
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: {
+            source: "template",
+            templateRef: "tpl-1",
+            overrides: { duration_value: 12 },
+          },
+        }),
+      );
     });
 
     it("playAgain starts a fresh engine whose first visit is sequence 1", async () => {
