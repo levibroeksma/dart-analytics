@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger
 read-when: answering "why was X decided?" before touching any history
-updated: 2026-07-31
+updated: 2026-08-01
 -->
 
 # Architectural Decision Ledger
@@ -192,6 +192,8 @@ updated: 2026-07-31
 | D174 | 2026-07-29 | `body` in `global.css` pads `padding-top: env(safe-area-inset-top)` alongside its existing `h-dvh max-h-dvh overflow-hidden` | `black-translucent` status bar style + `viewport-fit=cover` (D173) already draw content edge-to-edge; with no safe-area inset anywhere in the codebase, header/title content collided with the iOS status bar's clock/battery/signal icons in a standalone-launched web app |
 | D175 | 2026-07-31 | `scripts/check-style-tokens.sh` also bans Tailwind v3 prefix-important (`!utility`) and leading-dash arbitrary negatives (`-prop-[…]`) in favor of v4 `utility!` / `prop-[-…]` | Agents repeatedly landed deprecated forms; prose in the Style Guide was not enough — same latency pattern as D161. Shipped id is D175, not D174 — D174 was already taken by the 2026-07-29 safe-area-inset decision |
 | D176 | 2026-07-31 | Brand icon and lockup generators are checked in with their generated app assets; icon rasterization converts `oklch()` to sRGB for Resvg; `favicon.ico` remains a browser fallback but is omitted from the web manifest after its entry was mistyped as PNG | Deterministic regeneration keeps source and committed outputs reviewable; Resvg otherwise renders the board black; manifest metadata must describe each asset truthfully |
+| D177 | 2026-08-01 | `ScoreTrainingConfig.duration_value` bounds changed to ROUNDS 1–100 (was 1–50) / MINUTES 3–30 (was 1–180); minutes default realigned to 5 (was 15). Setup screen exposes both as a Rounds/Timed mode radio plus one editable field, clamped client-side with a notice, and bounded server-side by the same `superRefine` | Product locked session-duration ranges for the configurable-duration feature; the old MINUTES floor of 1 was not load-bearing against the field-level `.min(1)`, so raising it to 3 makes the refinement's floor probe for MINUTES the first actually load-bearing one (see `refinement-contract.ts` blind-spot note) |
+| D178 | 2026-08-01 | Score Training's "Play again" now threads the just-completed session's `durationValue` into the new session's `create` call as `overrides.duration_value`, instead of leaving the fresh session on the template's stored default | Before this fix, play-again silently reverted a custom duration (e.g. a 20-round or 12-minute session) back to the template default on every replay, contradicting the whole point of making duration configurable — a persisted-behavior change, not just new UI |
 
 ## Deferred (open, not rejected)
 
