@@ -58,11 +58,11 @@ const SEEDED_PRESETS: ReadonlyArray<{
     },
   },
   {
-    name: "Score Training — 15 Minutes",
+    name: "Score Training — 5 Minutes",
     rulesetVersionKey: "SCORE_TRAINING_V1",
     configuration: {
       duration_type: "MINUTES",
-      duration_value: 15,
+      duration_value: 5,
       max_darts_per_turn: 3,
     },
   },

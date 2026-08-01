@@ -278,11 +278,11 @@ VALUES (
         '0198f300-0000-7000-8000-000000000008',
         '0198f000-0000-7000-8000-000000000004',
         NULL,
-        'Score Training — 15 Minutes',
-        'Timed scoring practice.',
+        'Score Training — 5 Minutes',
+        'Five minutes of scoring practice.',
         '{
             "duration_type": "MINUTES",
-            "duration_value": 15,
+            "duration_value": 5,
             "max_darts_per_turn": 3
         }'::jsonb,
         TRUE,
