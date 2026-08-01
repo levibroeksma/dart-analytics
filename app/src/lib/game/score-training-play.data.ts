@@ -392,7 +392,11 @@ export function scoreTrainingPlay() {
             rulesetVersionKey: RULESET_VERSION_KEY,
             captureModeKey: "RECREATIONAL",
             inputModeKey: "QUICK_SCORE",
-            config: { source: "template", templateRef },
+            config: {
+              source: "template",
+              templateRef,
+              overrides: { duration_value: config.durationValue },
+            },
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
