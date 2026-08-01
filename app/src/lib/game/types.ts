@@ -64,7 +64,9 @@ export type ScoreTrainingPlayContext = {
 
 export type ScoreTrainingSetupContext = {
   presets: ConfigurationPresetData[];
-  selectedTemplateId: string;
+  durationType: ScoreTrainingDurationType;
+  durationValue: number | string | null;
+  clampNotice: string;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -86,5 +88,13 @@ export type ScoreTrainingSetupContext = {
   retryReconciliation(this: ScoreTrainingSetupContext): Promise<void>;
   continueSession(this: ScoreTrainingSetupContext): void;
   abandonSession(this: ScoreTrainingSetupContext): Promise<void>;
+  selectMode(
+    this: ScoreTrainingSetupContext,
+    type: ScoreTrainingDurationType,
+  ): void;
+  presetForMode(
+    this: ScoreTrainingSetupContext,
+    type: ScoreTrainingDurationType,
+  ): ConfigurationPresetData | undefined;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
