@@ -408,6 +408,43 @@ describe("uploadAndCompleteSession", () => {
     expect(play.completionError).toContain("connection");
     expect(play.completionStatus).toBe("failed");
   });
+
+  it("retries uploadAndCompleteSession without recording a new turn, keeping the same idempotency key", async () => {
+    const priorTurns = turnsReaching(40);
+    const checkoutTurn = turnFact(
+      "t-checkout",
+      "leg-1",
+      priorTurns.length + 1,
+      40,
+    );
+    const play = makePlay({ turns: [...priorTurns, checkoutTurn] });
+
+    vi.mocked(appendBatch).mockRejectedValueOnce(new Error("network blip"));
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.completionStatus).toBe("failed");
+    const keyAfterFailure = play.$store.game.idempotencyKey;
+    expect(keyAfterFailure).toBeTruthy();
+    const turnCountBeforeRetry = play.$store.game.turns.length;
+
+    vi.mocked(appendBatch).mockResolvedValueOnce({
+      created: { stages: 1, turns: priorTurns.length + 1, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    // The regression this test guards against: minting a fresh key on retry
+    // would let the server persist the same batch twice under two different
+    // idempotency keys.
+    expect(play.$store.game.idempotencyKey).toBe(keyAfterFailure);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.$store.game.turns).toHaveLength(turnCountBeforeRetry);
+  });
 });
 
 describe("full checkout flow drives completion", () => {

@@ -427,7 +427,7 @@ import Link from "@components/ui/Link.astro";
 > requires `docs/superpowers/**` to carry "status notes only, never
 > rewrites." It is left in place here rather than reverted, since reverting
 > it would be a second rewrite of the same kind. Later corrections in this
-> plan (see the Task 6 status note above) use this append-only status-note
+> plan (see the Task 6 status note below) use this append-only status-note
 > convention instead of editing historical examples in place.
 
 - [ ] **Step 3: Verify Score Training is unaffected**
