@@ -190,6 +190,15 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
 
+## Project Override — dart-analytics (2026-08-01)
+
+This repo always finishes a branch the same way: **Option 2, every time.**
+
+- **Skip Step 4's menu.** Do not ask which option — go straight to Option 2 (Push and Create PR). Root `CLAUDE.md`'s hard invariants already require every completed task's branch to be integrated into `main` via PR promptly, so there is no real choice to present; Options 1/3/4 don't apply to a finished task here.
+- **Create the PR, don't just push.** After `git push -u origin <feature-branch>`, open the PR immediately (check for a PR template first, per the harness's GitHub instructions) rather than leaving the push unpaired.
+- **Subscribe and drive to green.** Call `subscribe_pr_activity` on the new PR right after creating it. This branch's babysitting posture is "PRs you created — yours to drive": for every CI failure or review comment, diagnose and push a fix, or reply explaining why not — never leave a wake silent. Pre-commit/pre-push hook failures follow the same rule: fix the underlying issue and re-stage, don't bypass with `--no-verify`.
+- **This still runs after the format gate and full test suite**, unchanged from Option 2 below — the override only removes the menu-and-choice step, not the verification steps before it.
+
 ## Quick Reference
 
 | Option | Merge | Push | Keep Worktree | Cleanup Branch |
