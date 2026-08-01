@@ -34,7 +34,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~8k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
-| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~10.5k |
+| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~15.2k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~3.5k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
