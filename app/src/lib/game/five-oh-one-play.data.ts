@@ -1,0 +1,268 @@
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
+import { getEngineFactory } from "@modules/game/engine.registry";
+import {
+  applyFiveOhOneVisit,
+  initialFiveOhOneState,
+} from "@modules/game/five-oh-one.engine.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { fetchActiveSessions } from "@client/api/sessions";
+import { reconcileActiveSession } from "@lib/game/session-recovery";
+import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
+import type { EngineFacts, FiveOhOneState, TurnFact } from "@modules/types";
+import type { FiveOhOnePlayContext } from "./types";
+
+// Value import, not `import type`: the class is the narrowing target below,
+// and importing it also runs the module's side effect, which registers
+// fiveOhOneEngineFactory so the registry can resolve this page's own
+// RULESET_VERSION_KEY.
+import { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
+
+const GAME_TYPE_KEY = "501";
+const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
+
+/**
+ * Rebuilds the engine for the persisted session, replaying the store's fact
+ * log so a reload restores the game exactly. Only this page's own ruleset is
+ * ever resolved — mirrors `score-training-play.data.ts`'s `resumeEngine`.
+ */
+function resumeEngine(
+  game: FiveOhOnePlayContext["$store"]["game"],
+): FiveOhOneEngine | null {
+  const { configSnapshot, rulesetVersionKey } = game;
+  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
+  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (!factory) return null;
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
+  return engine instanceof FiveOhOneEngine ? engine : null;
+}
+
+/**
+ * Folds a leg's turns into a `FiveOhOneState`, exactly like the engine's own
+ * private replay, but reading only from the reactive `$store.game` fields —
+ * never `engine.state()` — so every Alpine display expression that calls
+ * this (directly or through `remainingScore`/`checkoutHint`/the stat
+ * methods) re-renders when `recordFacts` writes a new turn. `engine` is a
+ * plain class instance; its own internal mutations carry no Alpine
+ * reactivity, so display must never depend on them (see
+ * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention, already
+ * followed by `ScoreTrainingResults.astro`).
+ */
+function foldLegState(
+  turns: TurnFact[],
+  config: FiveOhOneSnapshot,
+): FiveOhOneState {
+  return turns.reduce(
+    (state, turn) =>
+      applyFiveOhOneVisit(
+        state,
+        { scoreAttempted: turn.totalScore, finishedOnDouble: true },
+        config,
+      ),
+    initialFiveOhOneState(config),
+  );
+}
+
+export function fiveOhOnePlay() {
+  return {
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    loading: false,
+    error: "",
+    finished: false,
+    hasActiveSession: false,
+    loadingReconciliation: false,
+    reconciliationFailed: false,
+    completionStatus: "pending" as
+      "pending" | "saving" | "succeeded" | "failed",
+    completionError: "",
+    playAgainError: "",
+    playAgainLoading: false,
+    resultsSnapshot: null as {
+      total: number;
+      legs: number;
+      average: number;
+    } | null,
+    pendingCheckoutScore: null as number | null,
+    showDoubleConfirm: false,
+    engine: null as FiveOhOneEngine | null,
+
+    turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
+      const openLeg = this.$store.game.stages.at(-1);
+      if (!openLeg) return [];
+      return this.$store.game.turns.filter(
+        (turn) => turn.stageClientKey === openLeg.clientKey,
+      );
+    },
+
+    remainingScore(this: FiveOhOnePlayContext): number {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return 0;
+      return foldLegState(this.turnsInCurrentLeg(), config).remainingScore;
+    },
+
+    checkoutHint(this: FiveOhOnePlayContext): string {
+      const path = checkoutPathFor(this.remainingScore());
+      return path ? path.join(" ") : "";
+    },
+
+    dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return this.turnsInCurrentLeg().length * maxDartsPerTurn;
+    },
+
+    averageThisLeg(this: FiveOhOnePlayContext): string {
+      const turns = this.turnsInCurrentLeg();
+      const dartsThrown = this.dartsThrownThisLeg();
+      if (dartsThrown === 0) return "0.0";
+      const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
+      return ((total / dartsThrown) * 3).toFixed(1);
+    },
+
+    previousScoreThisLeg(this: FiveOhOnePlayContext): string {
+      const last = this.turnsInCurrentLeg().at(-1);
+      return last ? String(last.totalScore) : "—";
+    },
+
+    async init(this: FiveOhOnePlayContext) {
+      this.loadingReconciliation = true;
+      try {
+        const activeSessions = await fetchActiveSessions();
+        const result = await reconcileActiveSession(
+          GAME_TYPE_KEY,
+          this.$store.game.sessionId,
+          activeSessions,
+          this.$store.game,
+        );
+
+        if (result.action === "abandon_failed") {
+          this.reconciliationFailed = true;
+          this.hasActiveSession = false;
+          return;
+        }
+        this.reconciliationFailed = false;
+
+        if (result.action === "no_active") {
+          this.hasActiveSession = false;
+          return;
+        }
+
+        const config = this.$store.game.configSnapshot;
+        const engine = resumeEngine(this.$store.game);
+        if (!config || !engine) {
+          this.hasActiveSession = false;
+          return;
+        }
+        this.engine = engine;
+        this.$store.game.recordFacts(engine.facts());
+        this.hasActiveSession = true;
+      } catch {
+        this.reconciliationFailed = true;
+        this.hasActiveSession = false;
+      } finally {
+        this.loadingReconciliation = false;
+      }
+    },
+
+    async retryReconciliation(this: FiveOhOnePlayContext) {
+      await this.init();
+    },
+
+    /**
+     * Folds one visit into the engine's fact log, then checks for a match
+     * win. Shared by the plain-reduction path (`submitVisit`) and both
+     * double-confirm resolutions (`confirmDouble`/`denyDouble`) so the
+     * record → mirror → complete sequence exists exactly once.
+     */
+    async recordVisit(
+      this: FiveOhOnePlayContext,
+      score: number,
+      finishedOnDouble: boolean,
+    ) {
+      if (!this.engine) return;
+      try {
+        this.engine.record({ scoreAttempted: score, finishedOnDouble });
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
+        this.loading = false;
+        return;
+      }
+      this.error = "";
+      this.scoreInput.clear();
+      this.$store.game.recordFacts(this.engine.facts());
+      this.loading = false;
+
+      if (this.engine.isComplete()) {
+        this.finished = true;
+        this.completionStatus = "pending";
+        await this.uploadAndCompleteSession();
+      }
+    },
+
+    /**
+     * 501 is double-out but this app only captures a visit's total, not
+     * individual darts — so when the entered score would bring the leg's
+     * remaining total to exactly 0, the app cannot know from the number
+     * alone whether the last dart was a double (a win) or not (a bust).
+     * `isCheckoutAttempt` gates a "Finished on a double?" confirm before
+     * anything is recorded; every other visit records immediately.
+     */
+    async submitVisit(this: FiveOhOnePlayContext) {
+      if (!this.engine || this.finished || this.showDoubleConfirm) return;
+      this.loading = true;
+
+      const score = Number(this.scoreInput.value);
+      const config = this.$store.game.configSnapshot;
+      const remaining = this.remainingScore();
+      const isCheckoutAttempt =
+        !!config && remaining - score === 0 && score <= config.maxVisitScore;
+
+      if (isCheckoutAttempt) {
+        this.error = "";
+        this.pendingCheckoutScore = score;
+        this.scoreInput.clear();
+        this.showDoubleConfirm = true;
+        this.loading = false;
+        return;
+      }
+
+      await this.recordVisit(score, false);
+    },
+
+    async confirmDouble(this: FiveOhOnePlayContext) {
+      if (!this.engine || this.finished || !this.showDoubleConfirm) return;
+      if (this.pendingCheckoutScore == null) return;
+      const score = this.pendingCheckoutScore;
+      this.pendingCheckoutScore = null;
+      this.showDoubleConfirm = false;
+      await this.recordVisit(score, true);
+    },
+
+    async denyDouble(this: FiveOhOnePlayContext) {
+      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
+      const score = this.pendingCheckoutScore;
+      this.pendingCheckoutScore = null;
+      this.showDoubleConfirm = false;
+      await this.recordVisit(score, false);
+    },
+
+    undoVisit(this: FiveOhOnePlayContext) {
+      if (this.finished || this.showDoubleConfirm) return;
+      if (!this.engine || !this.engine.undo()) return;
+
+      this.$store.game.recordFacts(this.engine.facts());
+      this.scoreInput.clear();
+      this.error = "";
+    },
+
+    /** Implemented in Task 7 — completion upload, navigation, and replay. */
+    async uploadAndCompleteSession(
+      this: FiveOhOnePlayContext,
+    ): Promise<void> {},
+    async back(this: FiveOhOnePlayContext): Promise<void> {},
+    async playAgain(this: FiveOhOnePlayContext): Promise<void> {},
+    async abandonAndExit(this: FiveOhOnePlayContext): Promise<void> {},
+  };
+}

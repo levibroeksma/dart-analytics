@@ -1678,6 +1678,24 @@ describe("checkoutHint", () => {
 });
 ```
 
+> **Status note (2026-08-01):** the Step 1 fixtures above use a single
+> synthetic turn — `turnFact("t1", "leg-1", 1, 461)` and, in the
+> leg-scoped-stats reset test, `turnFact("t2", "leg-1", 2, 401)` — to
+> fast-forward a fresh 501 leg to "remaining 40". A turn worth more than
+> `maxVisitScore` (180) is not a reachable game state: the engine's replay
+> path (`applyFiveOhOneVisit`, called from both `foldLegState` and the
+> engine's own `deriveState()`) rejects it with "Enter a score between 0 and
+> 180." on rehydrate. Verified directly against the real, unmodified
+> `FiveOhOneEngine`, not just the page's own code. The test file actually
+> committed for Task 6 replaces every such fixture with a `turnsReaching(40)`
+> helper that builds a legal multi-turn sequence (180, 180, 101) reaching the
+> same remaining score, and adjusts the turn-count assertions that depended
+> on the single-turn shape accordingly. See
+> `app/tests/lib/game/five-oh-one-play.data.test.ts` for the corrected,
+> executable version — this historical record is left as originally
+> written, per `docs/CLAUDE.md`'s "status notes only, never rewrites" rule
+> for `docs/superpowers/**`.
+
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `cd app && npx vitest run tests/lib/game/five-oh-one-play.data.test.ts`
