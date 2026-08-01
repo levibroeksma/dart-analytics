@@ -2,11 +2,11 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-07-31
+updated: 2026-08-01
 -->
 # Context Map
 
-> **Version:** 1.7.6 (2026-07-31 — brand asset generator scripts registered in inventory; prior 1.7.5 D175)
+> **Version:** 1.7.7 (2026-08-01 — seed `database/seeds/0004_score_training_minutes_preset.sql` registered in the seed inventory (Context Packs row, file-inventory rows, Seeds summary row); prior 1.7.6 brand asset generators)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -20,7 +20,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | --------- | ------------ | ------- |
 | New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~6k |
 | New view / analytics query | `05-Database/05-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~3.9k |
-| New seed data | `database/seeds/0001` or `0002` (match id ranges), `05-Database/06-Spec/01-Reference-Layer.md` | ~1.7k |
+| New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~1.7k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~3.5k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~9.9k |
 | API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~8.3k |
@@ -125,6 +125,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `migrations/0001`–`0016` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
+| `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |
 
 ## Game engine code + mechanical guards
 
@@ -217,7 +218,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
 | Migrations | `0001`–`0016` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13) |
-| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope; both TUOD presets verified against `TuodConfig` — unchanged), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26) |
+| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope; both TUOD presets verified against `TuodConfig` — unchanged), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26), `0004` Score Training minutes preset realigned to 5 (2026-07-31) |
 | Game engines | All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract (D138–D141, D153): config-driven, fact-log-owning, rehydratable; six ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |
