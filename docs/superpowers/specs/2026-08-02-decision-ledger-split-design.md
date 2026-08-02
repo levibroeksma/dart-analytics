@@ -350,3 +350,15 @@ A frontend Alpine task loads `DECISIONS.md` (small) + `decisions/frontend/alpine
 its `depends-on` files, instead of 65 KB of full project history. Every one of the 163
 existing decisions is still findable by its unchanged ID, and no existing citation
 anywhere in the repo needed editing.
+
+---
+
+## Status note (append-only)
+
+Implemented 2026-08-02. Final counts: 163 migrated decisions across 10 domain files
+(`decisions/architecture.md`, `decisions/database.md`, `decisions/api.md`,
+`decisions/game-engine.md`, `decisions/testing.md`, `decisions/frontend/architecture.md`,
+`decisions/frontend/astro.md`, `decisions/frontend/alpine.md`, `decisions/frontend/style.md`,
+`decisions/context-system.md`) plus the router; `DECISIONS.md` shrank from 65140 to 5646
+bytes. D184 — the first block-format decision, recording this restructure — was appended
+to `decisions/context-system.md`.
