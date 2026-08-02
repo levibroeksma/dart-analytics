@@ -42,19 +42,21 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 
 Append a new block to the file matching the decision's domain (routing table above). Never create a new decision file without also adding it to the routing table and `scripts/decision-map.txt`.
 
-- Next id is the current maximum plus one (`D183` at time of writing — check `git grep -ohE '^### D[0-9]+' decisions/**` if this note is stale).
+- Next id is the current maximum plus one (`D184` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
 - Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
 - Block format:
 
 ```markdown
-### D184 — Short imperative title
-Status: Accepted · Date: 2026-08-02
+### D<next> — Short imperative title
+Status: Accepted · Date: YYYY-MM-DD
 Decision: …
 Reason: …
 Consequences: …
 Supersedes: D86
 ```
 
+`D<next>` and `YYYY-MM-DD` are placeholders — substitute the derived next id and today's date. (They are deliberately not a real id: an earlier draft used a concrete number, which was then issued as a real decision, so anyone copying the template verbatim would have collided with it.) `Supersedes:` is optional and omitted unless the decision reverses an earlier one; `Consequences:` is expected. See `decisions/context-system.md`'s D184 for a worked example.
+
 ## ID-gap note
 
-Ids are non-contiguous: 163 decisions exist, the highest is `D183`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: 164 decisions exist (163 migrated rows plus D184), the highest is `D184`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
