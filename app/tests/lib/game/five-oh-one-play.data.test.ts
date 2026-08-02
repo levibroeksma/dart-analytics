@@ -551,7 +551,11 @@ describe("playAgain", () => {
       rulesetVersionKey: "501_V1",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
-      config: { source: "template", templateRef: "tpl-1" },
+      config: {
+        source: "template",
+        templateRef: "tpl-1",
+        overrides: { legs_to_win: 1 },
+      },
     });
     expect(play.$store.game.sessionId).toBe("new-session");
     expect(play.$store.game.turns).toEqual([]);
@@ -575,5 +579,36 @@ describe("playAgain", () => {
 
     expect(play.playAgainError).toBeTruthy();
     expect(play.completionStatus).toBe("succeeded");
+  });
+
+  it("threads the original legsToWin into the new session's config override, not the always-single-leg template's stored default", async () => {
+    const play = makePlay({ configSnapshot: bestOf5Config() });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith({
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      config: {
+        source: "template",
+        templateRef: "tpl-1",
+        overrides: { legs_to_win: 3 },
+      },
+    });
   });
 });

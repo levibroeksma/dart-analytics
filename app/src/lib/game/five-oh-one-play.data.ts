@@ -408,7 +408,11 @@ export function fiveOhOnePlay() {
             rulesetVersionKey: RULESET_VERSION_KEY,
             captureModeKey: "RECREATIONAL",
             inputModeKey: "QUICK_SCORE",
-            config: { source: "template", templateRef },
+            config: {
+              source: "template",
+              templateRef,
+              overrides: { legs_to_win: config.legsToWin },
+            },
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
