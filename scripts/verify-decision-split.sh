@@ -15,6 +15,12 @@
 # app/src/** (e.g. checkout-path.module.ts's ~40 double/treble tokens) is
 # never scanned.
 #
+# Diagnostics render each id with its original spelling as it appears in the
+# source it came from (e.g. `D05`, not the normalised-int `D5`) — the
+# normalised int is only ever used as the dict/set key, never printed —
+# so a failure message stays grep-able against DECISIONS.md and
+# scripts/decision-map.txt verbatim.
+#
 # Blind spots:
 #   - Map drift reads DECISIONS.md's *current* content as "the ledger". Task 3
 #     runs this before reducing DECISIONS.md to a router, when the ledger
@@ -56,18 +62,31 @@ def fail(msg: str) -> None:
     FAIL = True
 
 
+def spelling(padded_digits: str) -> str:
+    """Render an id's original digit spelling (e.g. '05') as `D05`."""
+    return f"D{padded_digits}"
+
+
 # --- snapshot ----------------------------------------------------------------
+# snapshot[id] is the full original row text; snapshot_digits[id] is that same
+# row's original `D<digits>` spelling, kept alongside the normalised int key
+# so diagnostics never lose the ledger's zero-padding.
 snapshot: dict[int, str] = {}
+snapshot_digits: dict[int, str] = {}
 with open(snapshot_path, encoding="utf-8") as f:
     for line in f:
         line = line.rstrip("\n")
         if not line:
             continue
         id_str, row = line.split("\t", 1)
-        snapshot[int(id_str)] = row
+        id_num = int(id_str)
+        snapshot[id_num] = row
+        m = ROW_RE.match(row)
+        snapshot_digits[id_num] = m.group(1) if m else id_str
 
 # --- every `| D<n> |` occurrence under decisions/** ---------------------------
 occurrences: dict[int, list[tuple[str, str]]] = {}
+occurrence_digits: dict[int, str] = {}
 out_files = sorted(Path(out_dir).rglob("*.md")) if Path(out_dir).is_dir() else []
 for path in out_files:
     with open(path, encoding="utf-8") as f:
@@ -78,12 +97,21 @@ for path in out_files:
                 continue
             id_num = int(m.group(1))
             occurrences.setdefault(id_num, []).append((str(path), line))
+            occurrence_digits.setdefault(id_num, m.group(1))
+
+
+def id_spelling(id_num: int) -> str:
+    """Best-available original spelling for an id, preferring the snapshot
+    (the ledger's own text) then the occurrence text found under decisions/**."""
+    digits = snapshot_digits.get(id_num) or occurrence_digits.get(id_num)
+    return spelling(digits) if digits is not None else f"D{id_num}"
+
 
 # --- Class 1: Missing ----------------------------------------------------------
 missing = sorted(i for i in snapshot if i not in occurrences)
 if missing:
     fail("Missing: " + f"{len(missing)} id(s) in snapshot absent from {out_dir}/**: "
-         + ", ".join(f"D{i}" for i in missing))
+         + ", ".join(id_spelling(i) for i in missing))
 else:
     print(f"OK: Missing — all {len(snapshot)} snapshot ids present in {out_dir}/**")
 
@@ -92,7 +120,7 @@ dup_ids = sorted(i for i, occ in occurrences.items() if len(occ) > 1)
 if dup_ids:
     for i in dup_ids:
         locs = ", ".join(f for f, _ in occurrences[i])
-        fail(f"Duplicated: D{i} appears {len(occurrences[i])}x ({locs})")
+        fail(f"Duplicated: {id_spelling(i)} appears {len(occurrences[i])}x ({locs})")
 else:
     print(f"OK: Duplicated — no id appears more than once across {out_dir}/**")
 
@@ -106,12 +134,13 @@ for i, occ in occurrences.items():
             altered.append((i, fpath))
 if altered:
     for i, fpath in altered:
-        fail(f"Altered: D{i} in {fpath} differs byte-for-byte from its snapshot text")
+        fail(f"Altered: {id_spelling(i)} in {fpath} differs byte-for-byte from its snapshot text")
 else:
     print("OK: Altered — every matched row is byte-identical to its snapshot text")
 
 # --- Class 4: Map drift -------------------------------------------------------------
 map_ids: set[int] = set()
+map_digits: dict[int, str] = {}
 with open(map_path, encoding="utf-8") as f:
     for raw in f:
         line = raw.strip()
@@ -119,23 +148,30 @@ with open(map_path, encoding="utf-8") as f:
             continue
         _, ids_part = line.split(":", 1)
         for tok in ids_part.split():
-            map_ids.add(int(tok))
+            id_num = int(tok)
+            map_ids.add(id_num)
+            map_digits.setdefault(id_num, tok)
 
 ledger_ids: set[int] = set()
+ledger_digits: dict[int, str] = {}
 with open(ledger_path, encoding="utf-8") as f:
     for raw in f:
         line = raw.rstrip("\n")
         m = ROW_RE.match(line)
         if m:
-            ledger_ids.add(int(m.group(1)))
+            id_num = int(m.group(1))
+            ledger_ids.add(id_num)
+            ledger_digits.setdefault(id_num, m.group(1))
 
 only_in_map = sorted(map_ids - ledger_ids)
 only_in_ledger = sorted(ledger_ids - map_ids)
 if only_in_map or only_in_ledger:
     if only_in_map:
-        fail("Map drift: id(s) in map absent from ledger: " + ", ".join(f"D{i}" for i in only_in_map))
+        fail("Map drift: id(s) in map absent from ledger: "
+             + ", ".join(spelling(map_digits[i]) for i in only_in_map))
     if only_in_ledger:
-        fail("Map drift: id(s) in ledger absent from map: " + ", ".join(f"D{i}" for i in only_in_ledger))
+        fail("Map drift: id(s) in ledger absent from map: "
+             + ", ".join(spelling(ledger_digits[i]) for i in only_in_ledger))
 else:
     print(f"OK: Map drift — {len(map_ids)} map ids and {len(ledger_ids)} ledger ids agree exactly")
 

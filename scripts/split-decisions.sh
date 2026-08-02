@@ -12,11 +12,33 @@
 #   3. Read scripts/decision-front-matter.txt (sidecar) for each target file's
 #      front-matter block, so this script never hardcodes front-matter prose
 #      it would otherwise need editing to change (see that file's header).
+#      A duplicate `=== path ===` marker or an unterminated block (a new
+#      header appearing before the previous block's `=== end ===`) is a hard
+#      failure naming the offending marker and its line number — never a
+#      silent overwrite and never a silently dropped block.
 #   4. Pre-flight: reject if any front-matter value is a TODO placeholder.
-#   5. Write each decisions/<path>.md as: front-matter, the 4-column table
+#      Reports every offending (path, line) pair before exiting.
+#   5. Pre-flight: reject if any mapped target path has no front-matter block,
+#      or any id mapped to a path is absent from the ledger snapshot. Reports
+#      every offending path across the whole map before exiting — same
+#      all-offenders-at-once contract as step 4. This guard used to live
+#      inside the writer loop (step 7) and could leave a half-written
+#      decisions/ tree if a later path failed after an earlier one had
+#      already been written; it is now fully hoisted so no decisions/*.md is
+#      ever written unless every path is known to succeed.
+#   6. Remove any decisions/**/*.md not named by the current map (a path
+#      renamed or dropped from decision-map.txt since the last run) —
+#      decision-map.txt is the single source of truth for what should exist,
+#      so a stale file is deleted rather than silently left behind. Every
+#      deletion is printed.
+#   7. Write each decisions/<path>.md as: front-matter, the 4-column table
 #      header, then that file's rows in ascending numeric id order, copied
 #      byte-for-byte from the snapshot. Never writes a row it did not read
 #      from the snapshot; never rewords, rewraps, or re-aligns a row.
+#
+# Steps 4-5 run to completion and report every offender before step 6 or 7
+# touches decisions/ at all — a failure anywhere in 4-5 leaves decisions/
+# completely untouched.
 #
 # Idempotent: safe to re-run, each target file is fully rewritten each time.
 #
@@ -104,26 +126,52 @@ with open(map_path, encoding="utf-8") as f:
             id_to_path[id_num] = path
 
 # --- 3. Read the front-matter sidecar ---------------------------------------
+# A duplicate `=== path ===` marker or a block left unterminated when the next
+# header appears is an explicit, immediate failure naming the offending
+# marker and line number — never a silent overwrite, never a silently
+# dropped block.
 fm_blocks: dict[str, list[str]] = {}
 current: str | None = None
+current_line: int | None = None
 buf: list[str] = []
 block_re = re.compile(r"^===\s*(\S+)\s*===\s*$")
 with open(fm_path, encoding="utf-8") as f:
-    for raw in f:
+    for lineno, raw in enumerate(f, start=1):
         line = raw.rstrip("\n")
         m = block_re.match(line)
         if m:
             token = m.group(1)
             if token == "end":
-                if current is not None:
-                    fm_blocks[current] = buf
+                if current is None:
+                    fail(f"{fm_path}:{lineno}: '=== end ===' marker with no open block")
+                fm_blocks[current] = buf
                 current = None
+                current_line = None
                 buf = []
             else:
+                if current is not None:
+                    fail(
+                        f"{fm_path}:{current_line}: block '=== {current} ===' is never "
+                        f"terminated — next marker '=== {token} ===' found at line {lineno} "
+                        f"before an '=== end ===' closed it"
+                    )
+                if token in fm_blocks:
+                    fail(
+                        f"{fm_path}:{lineno}: duplicate block '=== {token} ===' — this path "
+                        f"already has a front-matter block earlier in the file; a second "
+                        f"block would silently overwrite the first"
+                    )
                 current = token
+                current_line = lineno
                 buf = []
         elif current is not None:
             buf.append(line)
+
+if current is not None:
+    fail(
+        f"{fm_path}:{current_line}: block '=== {current} ===' is never terminated — "
+        f"reached end of file with no '=== end ==='"
+    )
 
 # --- 4. Pre-flight: reject TODO placeholders --------------------------------
 allow_todo = os.environ.get("ALLOW_TODO_FRONTMATTER", "").lower() == "1"
@@ -145,16 +193,58 @@ if offenders and not allow_todo:
         error_msg += f"  {path}: {line}\n"
     fail(error_msg.rstrip())
 
-# --- 5. Write each target file -----------------------------------------------
-written = 0
+# --- 5. Pre-flight: reject unwritable target paths --------------------------
+# Both conditions below used to be checked inline in the writer loop (former
+# step 5), where fail()'s immediate exit meant a path that tripped either
+# check *after* an earlier path had already been written left a half-migrated
+# decisions/ tree with a non-zero exit. Hoisted here, over the full sorted
+# target list, so every offender is collected and reported together and
+# nothing is written unless every path will succeed.
+write_offenders: list[str] = []
 for path, ids in sorted(targets.items()):
     if path not in fm_blocks:
-        fail(f"no front-matter block for '{path}' in {fm_path} (expected '=== {path} ===')")
+        write_offenders.append(
+            f"no front-matter block for '{path}' in {fm_path} (expected '=== {path} ===')"
+        )
     missing = [i for i in ids if i not in rows]
     if missing:
-        fail(f"{path}: id(s) mapped but absent from {ledger_path}: "
-             + ", ".join(f"D{i}" for i in missing))
+        write_offenders.append(
+            f"{path}: id(s) mapped but absent from {ledger_path}: "
+            + ", ".join(f"D{i}" for i in missing)
+        )
 
+if write_offenders:
+    error_msg = f"Cannot write decisions/ — {len(write_offenders)} problem(s) found:\n"
+    for o in write_offenders:
+        error_msg += f"  {o}\n"
+    fail(error_msg.rstrip())
+
+# --- 6. Remove stale target files not named by the current map --------------
+# decision-map.txt is the single source of truth for what should exist under
+# decisions/. A path renamed or dropped from the map since the last run would
+# otherwise leave its old decisions/<path>.md behind with no warning.
+# Removal (not just detection) is used, since a stale file left in place is
+# indistinguishable from a live one to a casual reader of decisions/ — but
+# every deletion is printed so it is never silent.
+out_root = Path(out_dir)
+if out_root.is_dir():
+    current_paths = set(targets.keys())
+    for existing in sorted(out_root.rglob("*.md")):
+        rel = existing.relative_to(out_root)
+        rel_str = str(rel)
+        if rel_str.endswith(".md"):
+            rel_str = rel_str[: -len(".md")]
+        if rel_str not in current_paths:
+            existing.unlink()
+            print(f"removed stale {existing} (no longer in {map_path})")
+    # Prune now-empty subdirectories the deletions above may have left behind.
+    for d in sorted((p for p in out_root.rglob("*") if p.is_dir()), reverse=True):
+        if not any(d.iterdir()):
+            d.rmdir()
+
+# --- 7. Write each target file -----------------------------------------------
+written = 0
+for path, ids in sorted(targets.items()):
     fm_lines = [l for l in fm_blocks[path] if l.strip() != ""]
     body = ["<!--", *fm_lines, "-->", ""] + HEADER
     for id_num in sorted(ids):
