@@ -2,7 +2,28 @@
 # Doc-link / path-reference gate — Context Maintenance (root CLAUDE.md).
 # Validates markdown links and path-like backtick refs across the canonical
 # doc set. Alias/base-aware; skips bare identifiers and DECISIONS history noise
-# (DECISIONS.md is outside the scan set). See D133.
+# (DECISIONS.md itself is still outside the scan set — see below). See D133.
+#
+# decisions/**.md IS in scope (2026-08-02 ledger split), but only for the
+# markdown-link pass, not the path-like-backtick pass. Verified by actually
+# adding the full path-like check and running it: it fails on refs like
+# `lib/api/client.ts`, `results/index.astro`, and
+# `lib/game/score-training-results.data.ts` inside decisions/frontend/*.md —
+# real code paths at the time those decisions were written, since renamed,
+# moved, or deleted as the codebase evolved (e.g. D119 explicitly supersedes
+# the dedicated /results page D112 describes). A decision records history;
+# it is not required to track current file layout, and DECISIONS.md's own
+# prior blanket exclusion (D133, "DECISIONS history noise") was carved out
+# for exactly this. Cross-references to other canonical DOCS from decisions/
+# already resolve fine (e.g. `docs/architecture/00-Context-Map.md`,
+# `06-API/03-Shared-Conventions.md`) and decisions carry zero markdown
+# [text](path) links today, so the markdown-link pass still runs over
+# decisions/**.md — a real navigable cross-reference added later is still
+# checked — while path-like backtick mentions of app/src/** code, which are
+# routinely stale citations rather than links, are not. DECISIONS.md itself
+# stays fully excluded as before: it is the router, not a domain file, and
+# its own prose (Source key `P*n*` / date shorthand, the "How to add a
+# decision" fenced example) is the same class of noise.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -56,6 +77,13 @@ def err(msg: str) -> None:
 def canonical_files() -> list[Path]:
     files: list[Path] = []
     files.extend(sorted(Path("docs/architecture").rglob("*.md")))
+    # decisions/**.md, not 'decisions/**/*.md': the latter glob only matches
+    # files at least one directory below decisions/ under this repo's git
+    # (2.43) and would silently miss the 6 top-level domain files. rglob
+    # here is Python's own recursive glob, unaffected by that git quirk, but
+    # the note travels with the pattern so a future git-ls-files rewrite of
+    # this loop doesn't reintroduce the gap.
+    files.extend(sorted(Path("decisions").rglob("*.md")))
     pairs = [
         Path("CLAUDE.md"),
         Path("AGENT.md"),
@@ -130,6 +158,10 @@ def resolves(ref: str, source: Path) -> bool:
 
 def check_file(path: Path) -> None:
     text = path.read_text(encoding="utf-8")
+    # decisions/**: skip the path-like-backtick pass (see IS_DECISION below),
+    # but still run the markdown-link pass — decisions carry none today, but
+    # a real [text](path) cross-reference added later should still resolve.
+    is_decision = path.parts[0] == "decisions"
     # 1) markdown links
     for m in MD_LINK.finditer(text):
         target = m.group(2).strip()
@@ -141,6 +173,8 @@ def check_file(path: Path) -> None:
             continue
         if not resolves(local, path):
             err(f"{path}: unresolved markdown link ({m.group(1)}) -> {target}")
+    if is_decision:
+        return
     # 2) path-like backticks
     for m in PATH_LIKE.finditer(text):
         ref = m.group(1)

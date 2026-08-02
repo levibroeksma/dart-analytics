@@ -40,9 +40,17 @@ bash scripts/check-constraint-mirror.sh
 
 Then work through the Validation Checklist in `database/CLAUDE.md` by hand (migration numbering, index rationale, spec sync) — it is not fully mechanized.
 
+## If `decisions/` or `DECISIONS.md` changed, also run
+
+```bash
+bash scripts/check-decision-ids.sh
+```
+
+Durable id-integrity guard for the split ledger (uniqueness, no id regression against the 2026-08-02 baseline, `Supersedes:` targets resolve, `DECISIONS.md` stays a router). Not in the "Always run" list or `.husky/pre-commit` — it only has something to say when decisions/** itself changed, and pre-commit already runs on every commit for the 11 structural gates. `context-maintenance`'s decision-ledger step also calls this out directly when a new decision block is added; this entry covers the rest (e.g. re-filing an id between domain files).
+
 ## If only `docs/` changed
 
-The "Always run" scripts above already cover doc consistency (context map, links, token budget). No additional scripts apply — also review `docs/CLAUDE.md`'s Editing Workflow by hand (canonical-doc-first, cascade to secondary docs), which is not mechanized.
+The "Always run" scripts above already cover doc consistency (context map, links, token budget). No additional scripts apply — also review `docs/CLAUDE.md`'s Editing Workflow by hand (canonical-doc-first, cascade to secondary docs), which is not mechanized. If the changed docs are under `decisions/` or `DECISIONS.md`, see the section above instead.
 
 ## Reporting
 
