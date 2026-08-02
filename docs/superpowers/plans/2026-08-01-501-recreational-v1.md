@@ -2676,6 +2676,19 @@ import IsLoading from "@components/ui/IsLoading.astro";
 </div>
 ```
 
+> **Status note (2026-08-02):** the live Legs row in the Step 2 code block above
+> specifies `$store.game.stages.length`, which counts legs *played* rather than
+> legs *won*. A match won 3-1 in Best-of-5 plays four legs while winning three,
+> so this renders "4" during saving and then corrects to "3" when the snapshot
+> renders — or stays "4" indefinitely if the save fails. Review caught this
+> transient error; the committed component uses `$store.game.configSnapshot?.legsToWin`
+> instead, matching the `computeStats` rule in `five-oh-one-play.data.ts` which
+> states: "a stage exists per leg *played*, and a Best-of-5 won 3-1 played four
+> legs while winning three. This function only ever runs on the completion path,
+> which reaches exactly when `legsWon` hits `legsToWin` — so the configured
+> target is the legs actually won, by definition." The human approved this
+> deviation on 2026-08-01.
+
 - [ ] **Step 3: Create the play page**
 
 ```astro
