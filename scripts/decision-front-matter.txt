@@ -1,0 +1,116 @@
+# Sidecar for scripts/split-decisions.sh's front-matter injection.
+#
+# One block per target path from scripts/decision-map.txt, delimited by
+# `=== <path> ===` / `=== end ===`. Block body is copied verbatim between the
+# ledger's `<!--` / `-->` front-matter fence — one `key: value` line per line,
+# in whatever order and with whatever keys the consumer wants (this file does
+# not interpret the keys, only extracts the raw lines).
+#
+# Task 2 (this commit) ships every block as TODO placeholders so the split
+# script is runnable end-to-end without inventing real front-matter prose.
+# Task 3 replaces each block's content with the real values before running
+# scripts/split-decisions.sh for real — see
+# docs/superpowers/plans/2026-08-02-decision-ledger-split.md Task 3 Step 1 for
+# the intended per-file status/scope/read-when/load-when/depends-on/related.
+# split-decisions.sh fails loudly if a path from decision-map.txt has no block
+# here, so a forgotten file cannot ship with placeholder prose.
+
+=== architecture ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== database ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== api ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== game-engine ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== testing ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== frontend/architecture ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== frontend/astro ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== frontend/alpine ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== frontend/style ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
+
+=== context-system ===
+status: TODO
+scope: TODO
+read-when: TODO
+load-when: TODO
+depends-on: TODO
+related: TODO
+updated: TODO
+=== end ===
