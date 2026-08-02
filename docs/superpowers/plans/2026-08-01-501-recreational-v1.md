@@ -2849,6 +2849,44 @@ git add app/src/components/layout/games/interfaces/FiveOhOne.astro app/src/compo
 git commit -m "Add 501 play page: interface, results modal, and double-confirm wiring"
 ```
 
+> **Status note (2026-08-02):** the double-out confirm shipped by this task
+> (Step 3 above) was a non-dismissible two-button `ConfirmDialog` — "Yes"
+> (`confirmDouble()`) always recorded immediately, "No — bust"
+> (`denyDouble()`) always recorded a bust — with no way to back out of a
+> mistyped score, and a match-winning "Yes" uploaded and `PATCH COMPLETED`d
+> the session immediately, after which `undoVisit` is guarded off and the
+> record is immutable. The final whole-branch review redesigned this in two
+> ways, both implemented in `five-oh-one-play.data.ts` /
+> `app/src/pages/games/501/play/index.astro` /
+> `app/src/components/layout/games/DoubleCheckoutConfirm.astro`:
+>
+> 1. `submitVisit`'s gate now also requires
+>    `checkoutPathFor(remaining) !== null`, so the seven bogey numbers and
+>    171-180 — remainders no double-out finish can reach — skip the dialog
+>    entirely and record straight through as a bust (`finishedOnDouble:
+>    false`), rather than asking a question with no legal "yes" answer.
+> 2. The dialog gained a third action, Cancel (`cancelCheckout` — mirrors
+>    Score Training's `cancelFinish`: records nothing, restores the pending
+>    score to the keypad via `scoreInput.setValue`, closes the dialog).
+>    "Yes" (`confirmDouble`) no longer always records immediately: it asks
+>    the pure predicate `engine.wouldComplete({ scoreAttempted,
+>    finishedOnDouble: true })` (D181 — this answers match-win, not leg-win).
+>    A leg-only win still records right away, same as before. A match-
+>    ending win instead opens a second confirm
+>    (`showMatchFinishConfirm`/`confirmMatchFinish`/`cancelMatchFinish`,
+>    rendered via the existing two-button `ConfirmDialog`) and defers
+>    recording — and therefore the upload/`PATCH COMPLETED` — until the
+>    player confirms a second time; cancelling that second confirm restores
+>    the score exactly like the first dialog's Cancel.
+>
+> New Alpine state: `showMatchFinishConfirm`. New methods:
+> `cancelCheckout`, `confirmMatchFinish`, `cancelMatchFinish`. Full TDD
+> coverage (7 scenarios: unfinishable-remainder bypass, finishable-remainder
+> dialog-opens-records-nothing, Cancel, Bust/miss, leg-win-records-
+> immediately, match-win-opens-second-confirm, cancel-second-confirm) lives
+> in `app/tests/lib/game/five-oh-one-play.data.test.ts`. Recorded as
+> `DECISIONS.md` D183. The human approved this redesign on 2026-08-02.
+
 ---
 
 ### Task 9: Link 501 from the games list

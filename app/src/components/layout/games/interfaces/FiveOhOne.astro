@@ -63,9 +63,9 @@ import StatRow from "@components/layout/games/StatRow.astro";
     digitHandler="scoreInput.appendDigit"
     onDelete="scoreInput.deleteLast($event)"
     onSubmit="submitVisit()"
-    submitDisabled="!scoreInput.value || showDoubleConfirm || finished"
-    padDisabled="showDoubleConfirm || finished"
+    submitDisabled="!scoreInput.value || showDoubleConfirm || showMatchFinishConfirm || finished"
+    padDisabled="showDoubleConfirm || showMatchFinishConfirm || finished"
     undoClick="undoVisit()"
-    undoDisabled="!$store.game.turns.length || showDoubleConfirm || finished"
+    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showMatchFinishConfirm || finished"
   />
 </div>

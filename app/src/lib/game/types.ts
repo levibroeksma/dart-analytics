@@ -145,6 +145,7 @@ export type FiveOhOnePlayContext = {
   resultsSnapshot: { total: number; legs: number; average: number } | null;
   pendingCheckoutScore: number | null;
   showDoubleConfirm: boolean;
+  showMatchFinishConfirm: boolean;
   $store: {
     game: {
       rulesetVersionKey: RulesetVersionKey | null;
@@ -172,6 +173,9 @@ export type FiveOhOnePlayContext = {
   submitVisit(this: FiveOhOnePlayContext): Promise<void>;
   confirmDouble(this: FiveOhOnePlayContext): Promise<void>;
   denyDouble(this: FiveOhOnePlayContext): Promise<void>;
+  cancelCheckout(this: FiveOhOnePlayContext): void;
+  confirmMatchFinish(this: FiveOhOnePlayContext): Promise<void>;
+  cancelMatchFinish(this: FiveOhOnePlayContext): void;
   recordVisit(
     this: FiveOhOnePlayContext,
     score: number,

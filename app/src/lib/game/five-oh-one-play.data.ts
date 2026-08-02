@@ -133,6 +133,7 @@ export function fiveOhOnePlay() {
     } | null,
     pendingCheckoutScore: null as number | null,
     showDoubleConfirm: false,
+    showMatchFinishConfirm: false,
     engine: null as FiveOhOneEngine | null,
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
@@ -255,16 +256,32 @@ export function fiveOhOnePlay() {
      * alone whether the last dart was a double (a win) or not (a bust).
      * `isCheckoutAttempt` gates a "Finished on a double?" confirm before
      * anything is recorded; every other visit records immediately.
+     *
+     * `checkoutPathFor` narrows that gate to remainders a double-out finish
+     * can actually reach: the seven bogey numbers and 171-180 have no legal
+     * finish route, so a "Yes" answer there could never be true. Those visits
+     * skip the dialog and fall straight through to `recordVisit` as a bust,
+     * which the engine's own bust rule already produces for a zeroing visit
+     * with `finishedOnDouble: false`.
      */
     async submitVisit(this: FiveOhOnePlayContext) {
-      if (!this.engine || this.finished || this.showDoubleConfirm) return;
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showDoubleConfirm ||
+        this.showMatchFinishConfirm
+      )
+        return;
       this.loading = true;
 
       const score = Number(this.scoreInput.value);
       const config = this.$store.game.configSnapshot;
       const remaining = this.remainingScore();
       const isCheckoutAttempt =
-        !!config && remaining - score === 0 && score <= config.maxVisitScore;
+        !!config &&
+        remaining - score === 0 &&
+        score <= config.maxVisitScore &&
+        checkoutPathFor(remaining) !== null;
 
       if (isCheckoutAttempt) {
         this.error = "";
@@ -278,10 +295,32 @@ export function fiveOhOnePlay() {
       await this.recordVisit(score, false);
     },
 
+    /**
+     * "Yes" on the double-out confirm. A checkout that only wins a leg
+     * records immediately, same as before this dialog existed. A checkout
+     * that wins the whole match is irreversible once uploaded — `recordVisit`
+     * marks the session `finished` and `PATCH COMPLETED`s it — so this asks
+     * `engine.wouldComplete` (a pure predicate, matches D181: match-win, not
+     * leg-win) and opens a second confirm instead of recording right away.
+     * `pendingCheckoutScore` is deliberately left set for that second dialog
+     * to record or restore.
+     */
     async confirmDouble(this: FiveOhOnePlayContext) {
       if (!this.engine || this.finished || !this.showDoubleConfirm) return;
       if (this.pendingCheckoutScore == null) return;
       const score = this.pendingCheckoutScore;
+
+      if (
+        this.engine.wouldComplete({
+          scoreAttempted: score,
+          finishedOnDouble: true,
+        })
+      ) {
+        this.showDoubleConfirm = false;
+        this.showMatchFinishConfirm = true;
+        return;
+      }
+
       this.pendingCheckoutScore = null;
       this.showDoubleConfirm = false;
       await this.recordVisit(score, true);
@@ -295,8 +334,52 @@ export function fiveOhOnePlay() {
       await this.recordVisit(score, false);
     },
 
+    /**
+     * Cancel on the double-out confirm. Mirrors Score Training's
+     * `cancelFinish`: nothing is recorded, and the pending score is restored
+     * into the keypad so a mistyped entry is not lost.
+     */
+    cancelCheckout(this: FiveOhOnePlayContext) {
+      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
+      this.scoreInput.setValue(String(this.pendingCheckoutScore));
+      this.pendingCheckoutScore = null;
+      this.showDoubleConfirm = false;
+    },
+
+    /**
+     * Confirm on the second, match-ending dialog: records the checkout that
+     * `confirmDouble` deferred, which drives `recordVisit`'s own completion
+     * check and upload.
+     */
+    async confirmMatchFinish(this: FiveOhOnePlayContext) {
+      if (!this.engine || this.finished || !this.showMatchFinishConfirm) return;
+      if (this.pendingCheckoutScore == null) return;
+      const score = this.pendingCheckoutScore;
+      this.pendingCheckoutScore = null;
+      this.showMatchFinishConfirm = false;
+      await this.recordVisit(score, true);
+    },
+
+    /**
+     * Cancel on the second, match-ending dialog. Same contract as
+     * `cancelCheckout`: nothing is recorded, and the score returns to the
+     * keypad rather than being lost.
+     */
+    cancelMatchFinish(this: FiveOhOnePlayContext) {
+      if (!this.showMatchFinishConfirm || this.pendingCheckoutScore == null)
+        return;
+      this.scoreInput.setValue(String(this.pendingCheckoutScore));
+      this.pendingCheckoutScore = null;
+      this.showMatchFinishConfirm = false;
+    },
+
     undoVisit(this: FiveOhOnePlayContext) {
-      if (this.finished || this.showDoubleConfirm) return;
+      if (
+        this.finished ||
+        this.showDoubleConfirm ||
+        this.showMatchFinishConfirm
+      )
+        return;
       if (!this.engine || !this.engine.undo()) return;
 
       this.$store.game.recordFacts(this.engine.facts());
@@ -429,6 +512,7 @@ export function fiveOhOnePlay() {
         this.resultsSnapshot = null;
         this.pendingCheckoutScore = null;
         this.showDoubleConfirm = false;
+        this.showMatchFinishConfirm = false;
         this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;

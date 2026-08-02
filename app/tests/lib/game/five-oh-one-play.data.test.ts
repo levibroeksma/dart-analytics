@@ -197,22 +197,6 @@ describe("submitVisit — exact-zero opens the double confirm", () => {
     expect(play.error).toBe("Enter a score between 0 and 180.");
   });
 
-  it("confirmDouble records a checkout and wins the leg", async () => {
-    const priorTurns = turnsReaching(40);
-    const play = makePlay({ turns: priorTurns }); // remaining 40
-    await play.init.call(play);
-    play.scoreInput.setValue("40");
-    await play.submitVisit.call(play);
-
-    await play.confirmDouble.call(play);
-
-    expect(play.showDoubleConfirm).toBe(false);
-    expect(play.pendingCheckoutScore).toBeNull();
-    expect(play.$store.game.turns).toHaveLength(priorTurns.length + 1);
-    expect(play.$store.game.turns[priorTurns.length].totalScore).toBe(40);
-    expect(play.finished).toBe(true); // Quick Play: legsToWin 1, this checkout wins the match
-  });
-
   it("denyDouble records a bust — score 0, remaining unchanged", async () => {
     const priorTurns = turnsReaching(40);
     const play = makePlay({ turns: priorTurns }); // remaining 40
@@ -241,8 +225,112 @@ describe("submitVisit — exact-zero opens the double confirm", () => {
     await play.confirmDouble.call(play);
 
     expect(play.finished).toBe(false);
+    expect(play.showMatchFinishConfirm).toBe(false); // leg win only, no second confirm
     expect(play.$store.game.stages).toHaveLength(2); // leg 2 opened
     expect(play.remainingScore.call(play)).toBe(501); // fresh leg
+  });
+});
+
+describe("submitVisit — unfinishable remainder skips the double confirm", () => {
+  it("records a bust directly on a bogey number, no dialog opens", async () => {
+    const priorTurns = turnsReaching(169); // bogey number — no double-out route exists
+    const play = makePlay({ turns: priorTurns });
+    await play.init.call(play);
+    play.scoreInput.setValue("169");
+
+    await play.submitVisit.call(play);
+
+    expect(play.showDoubleConfirm).toBe(false);
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length + 1);
+    expect(play.$store.game.turns[priorTurns.length].totalScore).toBe(0);
+    expect(play.remainingScore.call(play)).toBe(169); // unchanged by the bust
+  });
+});
+
+describe("confirmDouble — leg win vs match win", () => {
+  it("opens the match-finish confirm and records nothing when the checkout ends the match", async () => {
+    const priorTurns = turnsReaching(40);
+    const play = makePlay({ turns: priorTurns }); // Quick Play: legsToWin 1
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+
+    await play.confirmDouble.call(play);
+
+    expect(play.showDoubleConfirm).toBe(false);
+    expect(play.showMatchFinishConfirm).toBe(true);
+    expect(play.pendingCheckoutScore).toBe(40);
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length); // nothing recorded yet
+    expect(play.finished).toBe(false);
+  });
+});
+
+describe("confirmMatchFinish", () => {
+  it("records the deferred checkout, finishes, and uploads", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const priorTurns = turnsReaching(40);
+    const play = makePlay({ turns: priorTurns });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+    await play.confirmDouble.call(play);
+    expect(play.showMatchFinishConfirm).toBe(true);
+
+    await play.confirmMatchFinish.call(play);
+
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.pendingCheckoutScore).toBeNull();
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length + 1);
+    expect(play.$store.game.turns[priorTurns.length].totalScore).toBe(40);
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
+});
+
+describe("cancelMatchFinish", () => {
+  it("records nothing and restores the pending score to the input", async () => {
+    const priorTurns = turnsReaching(40);
+    const play = makePlay({ turns: priorTurns });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+    await play.confirmDouble.call(play);
+    expect(play.showMatchFinishConfirm).toBe(true);
+
+    play.cancelMatchFinish.call(play);
+
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.pendingCheckoutScore).toBeNull();
+    expect(play.scoreInput.value).toBe("40");
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length);
+    expect(play.finished).toBe(false);
+  });
+});
+
+describe("cancelCheckout", () => {
+  it("records nothing, restores the pending score to the input, and closes the dialog", async () => {
+    const priorTurns = turnsReaching(40);
+    const play = makePlay({ turns: priorTurns });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+    expect(play.showDoubleConfirm).toBe(true);
+
+    play.cancelCheckout.call(play);
+
+    expect(play.showDoubleConfirm).toBe(false);
+    expect(play.pendingCheckoutScore).toBeNull();
+    expect(play.scoreInput.value).toBe("40");
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length);
   });
 });
 
@@ -448,7 +536,7 @@ describe("uploadAndCompleteSession", () => {
 });
 
 describe("full checkout flow drives completion", () => {
-  it("confirmDouble on the match-winning leg uploads and completes the session", async () => {
+  it("confirmDouble defers to the match-finish confirm, and confirmMatchFinish uploads and completes the session", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 2, darts: 0 },
     });
@@ -465,6 +553,11 @@ describe("full checkout flow drives completion", () => {
     await play.submitVisit.call(play);
 
     await play.confirmDouble.call(play);
+    expect(play.finished).toBe(false);
+    expect(play.showMatchFinishConfirm).toBe(true);
+    expect(appendBatch).not.toHaveBeenCalled();
+
+    await play.confirmMatchFinish.call(play);
 
     expect(play.finished).toBe(true);
     expect(play.completionStatus).toBe("succeeded");
