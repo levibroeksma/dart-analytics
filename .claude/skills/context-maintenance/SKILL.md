@@ -1,6 +1,6 @@
 ---
 name: context-maintenance
-description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md/AGENT.md sync, context-map registration, DECISIONS.md entry, knowledge-graph refresh, gate scripts, branch/PR check, self-learning gate) so the context system never goes stale.
+description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md/AGENT.md sync, context-map registration, decisions/** entry, knowledge-graph refresh, gate scripts, branch/PR check, self-learning gate) so the context system never goes stale.
 ---
 
 # Context Maintenance

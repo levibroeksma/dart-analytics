@@ -97,7 +97,7 @@ Examples include:
 - database model
 - API contracts
 - frontend behaviour
-- previous DECISIONS.md entries
+- previous recorded decisions (`decisions/**`)
 
 The objective is to understand the existing system before introducing changes.
 
