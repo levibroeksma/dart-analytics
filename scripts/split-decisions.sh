@@ -12,7 +12,8 @@
 #   3. Read scripts/decision-front-matter.txt (sidecar) for each target file's
 #      front-matter block, so this script never hardcodes front-matter prose
 #      it would otherwise need editing to change (see that file's header).
-#   4. Write each decisions/<path>.md as: front-matter, the 4-column table
+#   4. Pre-flight: reject if any front-matter value is a TODO placeholder.
+#   5. Write each decisions/<path>.md as: front-matter, the 4-column table
 #      header, then that file's rows in ascending numeric id order, copied
 #      byte-for-byte from the snapshot. Never writes a row it did not read
 #      from the snapshot; never rewords, rewraps, or re-aligns a row.
@@ -42,6 +43,7 @@ OUT_DIR="decisions"
 [ -f "$FRONT_MATTER" ] || { echo "FAIL: $FRONT_MATTER not found" >&2; exit 1; }
 
 python3 - "$LEDGER" "$MAP" "$FRONT_MATTER" "$SNAPSHOT" "$OUT_DIR" <<'PY'
+import os
 import re
 import sys
 from pathlib import Path
@@ -123,7 +125,27 @@ with open(fm_path, encoding="utf-8") as f:
         elif current is not None:
             buf.append(line)
 
-# --- 4. Write each target file -----------------------------------------------
+# --- 4. Pre-flight: reject TODO placeholders --------------------------------
+allow_todo = os.environ.get("ALLOW_TODO_FRONTMATTER", "").lower() == "1"
+offenders: list[tuple[str, str]] = []
+todo_re = re.compile(r"\bTODO\b")
+for path, lines in fm_blocks.items():
+    for line in lines:
+        if todo_re.search(line):
+            offenders.append((path, line))
+
+if offenders and not allow_todo:
+    error_msg = (
+        f"Front-matter contains TODO placeholders in {fm_path}.\n"
+        f"Replace all placeholders before running the migration — see\n"
+        f"docs/superpowers/plans/2026-08-02-decision-ledger-split.md Task 3 Step 1.\n\n"
+        f"Offending entries:\n"
+    )
+    for path, line in offenders:
+        error_msg += f"  {path}: {line}\n"
+    fail(error_msg.rstrip())
+
+# --- 5. Write each target file -----------------------------------------------
 written = 0
 for path, ids in sorted(targets.items()):
     if path not in fm_blocks:
