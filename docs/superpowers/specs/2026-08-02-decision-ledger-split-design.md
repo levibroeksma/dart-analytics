@@ -44,19 +44,50 @@ may change; its *ID* may not. This is what lets the split require **zero** citat
 updates. (It also rules out the researched `D-001` reformat, which would break all
 ~180 references for cosmetic gain.)
 
-### IDs are not contiguous
+### IDs are not contiguous — and nothing is missing
 
-163 decisions but the maximum ID is `D183` — exactly 20 numbers were never issued:
+163 decisions but the maximum ID is `D183`. Exactly 20 numbers were never issued:
 
 ```
 18 19 29 38 39 42 43 44 45 46 47 48 49 53 54 55 56 57 58 59
 ```
 
-Any verification must compare against the actual extracted ID set, never against
-`range(1, max)` — a contiguity assumption would report 20 phantom losses.
+**These are numbering artifacts, not lost decisions.** Established by investigation
+(2026-08-02), so nobody repeats it:
 
-Single digits are zero-padded (`D01`…`D09`); `D10` upward are not. Verification must
-normalise before comparing, and migrated rows keep their original spelling.
+1. The gap set in the **first** revision of `DECISIONS.md` (`3cc3423`, 2026-07-14) is
+   identical to today's within range 1–94 — nothing was deleted after creation.
+2. Every commit that ever touched `DECISIONS.md` was searched for these IDs, in table
+   form and in any form: zero hits. They never existed in the ledger.
+3. The ledger was distilled from `architecture/000_master_context.md` and
+   `original-conversation/PROMPT_*.md` (all removed in the 2026-07-14 restructure,
+   recoverable from git). The master context at its last living commit
+   (`7827765`) is 451 lines of topical prose with **no `D\d+` identifiers at all** —
+   the IDs were invented during distillation, not carried from a numbered source.
+   There is no upstream decision to recover.
+4. No document, script, or source file cites any of the 20.
+
+**Consequences for this work:**
+
+- Verification must compare against the actual extracted ID set, never
+  `range(1, max)` — a contiguity assumption reports 20 phantom losses.
+- Single digits are zero-padded (`D01`…`D09`); `D10` upward are not. Normalise before
+  comparing; migrated rows keep their original spelling.
+- The full pre-ledger design history survives only in git (`git log --all --diff-filter=D`
+  finds the deleted `original-conversation/` tree and master context). It is the only
+  record of *why* the pre-`D94` decisions were made — do not treat that history as
+  disposable.
+
+### `D\d+` collides with dart notation
+
+`D18` is both a decision-ID pattern and standard darts notation for *double 18*.
+`app/src/modules/game/checkout-path.module.ts` contains ~40 such tokens (`D20`, `D16`,
+`D8`, …), and `app/src/**/*.ts` uses the same notation throughout the engines.
+
+**Therefore** `check-decision-ids.sh` and the migration verifier must anchor on
+position — `^\| D18 \|` for a table row, `^### D18` for a block heading — and never a
+bare `\bD18\b`. An unanchored search reports the checkout table as dozens of duplicate
+decision IDs. Any future tooling over decision IDs inherits this constraint.
 
 ### Three gate scripts hardcode the single file
 
@@ -241,6 +272,10 @@ Makes the append-only and unique-ID rules enforceable rather than aspirational:
 3. Every `Supersedes: D\d+` target **exists**.
 4. `DECISIONS.md` itself contains **no** decision rows (it is a router; a decision
    added there would be invisible to the domain files).
+
+All four checks anchor on position (`^| D18 |`, `^### D18`) — never a bare `\bD18\b`,
+per the dart-notation collision above. The script's scan set is `decisions/**` plus
+`DECISIONS.md`; it must not scan `app/src/**`.
 
 **Where it runs:** with the three *context-integrity* gates
 (`check-context-map.sh`, `check-doc-links.sh`, `check-context-budget.sh`), which the
