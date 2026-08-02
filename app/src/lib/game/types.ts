@@ -2,11 +2,13 @@ import type { ConfigurationPresetData } from "@client/api/configuration-template
 import type { SessionActiveData } from "@client/api/types";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
+import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   RulesetVersionKey,
   ScoreTrainingSnapshot,
+  FiveOhOneSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -97,4 +99,91 @@ export type ScoreTrainingSetupContext = {
     type: ScoreTrainingDurationType,
   ): ConfigurationPresetData | undefined;
   start(this: ScoreTrainingSetupContext): Promise<void>;
+};
+
+export type FiveOhOneSetupContext = {
+  presets: ConfigurationPresetData[];
+  legsToWin: number | string | null;
+  clampNotice: string;
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+  };
+  init(this: FiveOhOneSetupContext): Promise<void>;
+  reconcile(
+    this: FiveOhOneSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: FiveOhOneSetupContext): Promise<void>;
+  continueSession(this: FiveOhOneSetupContext): void;
+  abandonSession(this: FiveOhOneSetupContext): Promise<void>;
+  basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
+  start(this: FiveOhOneSetupContext): Promise<void>;
+};
+
+export type FiveOhOnePlayContext = {
+  scoreInput: ScoreInputBuffer;
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: { total: number; legs: number; average: number } | null;
+  pendingCheckoutScore: number | null;
+  showDoubleConfirm: boolean;
+  showMatchFinishConfirm: boolean;
+  $store: {
+    game: {
+      rulesetVersionKey: RulesetVersionKey | null;
+      sessionId: string | null;
+      participantRef: string | null;
+      templateRef: string | null;
+      configSnapshot: FiveOhOneSnapshot | null;
+      stages: StageFact[];
+      turns: TurnFact[];
+      idempotencyKey?: string | null;
+      loading: boolean;
+      recordFacts(facts: EngineFacts): void;
+      reset(): void;
+    };
+  };
+  engine: FiveOhOneEngine | null;
+  turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
+  remainingScore(this: FiveOhOnePlayContext): number;
+  checkoutHint(this: FiveOhOnePlayContext): string;
+  dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
+  averageThisLeg(this: FiveOhOnePlayContext): string;
+  previousScoreThisLeg(this: FiveOhOnePlayContext): string;
+  init(this: FiveOhOnePlayContext): Promise<void>;
+  retryReconciliation(this: FiveOhOnePlayContext): Promise<void>;
+  submitVisit(this: FiveOhOnePlayContext): Promise<void>;
+  confirmDouble(this: FiveOhOnePlayContext): Promise<void>;
+  denyDouble(this: FiveOhOnePlayContext): Promise<void>;
+  cancelCheckout(this: FiveOhOnePlayContext): void;
+  confirmMatchFinish(this: FiveOhOnePlayContext): Promise<void>;
+  cancelMatchFinish(this: FiveOhOnePlayContext): void;
+  recordVisit(
+    this: FiveOhOnePlayContext,
+    score: number,
+    finishedOnDouble: boolean,
+  ): Promise<void>;
+  undoVisit(this: FiveOhOnePlayContext): void;
+  uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
+  back(this: FiveOhOnePlayContext): Promise<void>;
+  playAgain(this: FiveOhOnePlayContext): Promise<void>;
+  abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };

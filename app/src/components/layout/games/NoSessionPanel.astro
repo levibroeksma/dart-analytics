@@ -1,4 +1,12 @@
 ---
+interface Props {
+  href?: string;
+}
+
+// Props
+const { href = "/games/score-training/setup" }: Props = Astro.props;
+
+// Components
 import Link from "@components/ui/Link.astro";
 ---
 
@@ -11,7 +19,7 @@ import Link from "@components/ui/Link.astro";
   <p class="text-muted-foreground">Start a new session to continue.</p>
 
   <Link
-    href="/games/score-training/setup"
+    href={href}
     variant="primary"
     class="mt-4"
   >

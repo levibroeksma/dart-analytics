@@ -3,6 +3,12 @@
  * Presentational — parent setup page owns showActiveSessionModal (x-if).
  * Custom two-action footer (not cancel/confirm) on Modal shell.
  */
+interface Props {
+  gameTitle?: string;
+}
+
+// Props
+const { gameTitle = "Score Training" }: Props = Astro.props;
 
 // Components
 import Modal from "@components/ui/Modal.astro";
@@ -24,8 +30,7 @@ import Button from "@components/forms/Button.astro";
     id="continue-session-desc"
     class="mt-2 text-sm text-muted-foreground"
   >
-    You have an active Score Training session. Continue playing or start a new
-    one?
+    You have an active {gameTitle} session. Continue playing or start a new one?
   </p>
   <p
     class="mt-3 text-sm text-error"

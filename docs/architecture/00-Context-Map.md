@@ -6,7 +6,7 @@ updated: 2026-08-01
 -->
 # Context Map
 
-> **Version:** 1.7.7 (2026-08-01 — seed `database/seeds/0004_score_training_minutes_preset.sql` registered in the seed inventory (Context Packs row, file-inventory rows, Seeds summary row); prior 1.7.6 brand asset generators)
+> **Version:** 1.7.8 (2026-08-01 — 501 recreational v1 spec/plan + checkout-path module registered; prior 1.7.7 — seed `database/seeds/0004_score_training_minutes_preset.sql` registered in the seed inventory (Context Packs row, file-inventory rows, Seeds summary row))
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -139,6 +139,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/interfaces.ts` | `GameEngine` / `GameEngineFactory` — the contract itself | canonical |
 | `app/src/modules/game/engine.registry.ts` | `rulesetVersionKey` → engine factory lookup | canonical |
 | `app/src/modules/game/board-progression.module.ts` | Shared board paths and dartboard arithmetic | canonical |
+| `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
 | `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
 | `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
 | `app/src/services/rulesets/quick-score.validator.ts` | Shared RECREATIONAL + QUICK_SCORE batch rules (no dart rows, turn-total bound, ROUNDS attempt cap) (2026-07-26) | canonical |
@@ -195,6 +196,8 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `docs/superpowers/plans/2026-07-31-tailwind-v4-utility-syntax-gate.md` | The task plan implementing that spec: `scripts/check-style-tokens.sh` extension + Style Guide/agent-guide/mirror/context-map/decision updates (2026-07-31) | historical |
 | `docs/superpowers/specs/2026-07-31-logo-lockup-svg-design.md` | Outlined logo lockup SVG design: Michroma outlines, generator script, home/login adoption (2026-07-31) | historical |
 | `docs/superpowers/plans/2026-07-31-brand-lockup-and-app-icons.md` | The 5-task plan: dartboard favicon/PWA icons, BaseLayout links, logo-lockup generator + UI swap, context touch-up (2026-07-31) | historical |
+| `docs/superpowers/specs/2026-08-01-501-recreational-v1-design.md` | 501 recreational v1 design: setup/play flow mirroring Score Training, double-out confirm gate, checkout-path lookup, leg-scoped progress stats (2026-08-01) | historical |
+| `docs/superpowers/plans/2026-08-01-501-recreational-v1.md` | The 10-task plan implementing that spec: checkout-path module, shared-component reuse fixes, setup/play data factories, play UI, validation pass (2026-08-01) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |

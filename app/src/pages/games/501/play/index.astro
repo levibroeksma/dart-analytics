@@ -1,0 +1,65 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import FiveOhOne from "@components/layout/games/interfaces/FiveOhOne.astro";
+import DoubleCheckoutConfirm from "@components/layout/games/DoubleCheckoutConfirm.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import FiveOhOneResults from "@components/layout/games/result-modals/FiveOhOneResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="501 — Play"
+  gameTitle="501"
+>
+  <div
+    class="flex flex-col flex-1 min-h-0 p-3"
+    x-data="fiveOhOnePlay()"
+    @confirm-exit.window="abandonAndExit()"
+  >
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/501/setup" />
+
+    {/* Gameplay view */}
+    <FiveOhOne
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {
+      /* Double-out confirm — 501 can only know a checkout from a bust by asking */
+    }
+    <div
+      x-show="showDoubleConfirm"
+      x-cloak
+    >
+      <DoubleCheckoutConfirm />
+    </div>
+
+    {
+      /* Match-finish confirm — a "Yes" here uploads and completes the session, so it gets its own irreversible-action confirm rather than recording straight from the first dialog */
+    }
+    <div
+      x-show="showMatchFinishConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="match-finish-confirm-title"
+        title="Finish match?"
+        description="This checkout wins the match. Confirm to save and finish, or cancel to change the score."
+        cancelLabel="Cancel"
+        confirmLabel="Finish match"
+        onCancel="cancelMatchFinish()"
+        onConfirm="confirmMatchFinish()"
+        dismissible={false}
+      />
+    </div>
+
+    {/* Results modal (overlay) */}
+    <FiveOhOneResults />
+  </div>
+</GameLayout>
