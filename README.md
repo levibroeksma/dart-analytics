@@ -24,5 +24,5 @@ Personal darts scoring and long-term progression tracking. Architecture-first: e
 ## Where to read next
 
 - Architecture & documentation philosophy: `docs/architecture/README.md`
-- Why decisions were made: `DECISIONS.md`
+- Why decisions were made: `DECISIONS.md` (router — load only the `decisions/**` domain file your question needs)
 - Agent operating rules: `CLAUDE.md`

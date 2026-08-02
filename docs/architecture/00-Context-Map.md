@@ -6,7 +6,7 @@ updated: 2026-08-01
 -->
 # Context Map
 
-> **Version:** 1.7.8 (2026-08-01 — 501 recreational v1 spec/plan + checkout-path module registered; prior 1.7.7 — seed `database/seeds/0004_score_training_minutes_preset.sql` registered in the seed inventory (Context Packs row, file-inventory rows, Seeds summary row))
+> **Version:** 1.7.9 (2026-08-02 — decision ledger split registered: `DECISIONS.md` is now a router, its 163 decisions live in 10 `decisions/**` domain files; File Inventory's single `DECISIONS.md` row replaced with 11 rows (router + 10 domain files, each with its own `~Nk`); Context Packs "Why was X decided?" row repointed at the router + only the domain file(s) a task needs; prior 1.7.8 — 501 recreational v1 spec/plan + checkout-path module registered)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -34,7 +34,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~8k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
-| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~15.2k |
+| "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history | ~4k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~3.5k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
@@ -70,7 +70,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~5.5k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~7k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -175,11 +175,28 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `app/scripts/generate-app-icons.ts` | Regenerate PWA/favicon PNGs + `favicon.svg`/`favicon.ico` from `bg-dartboard.svg` (`npm run icons:generate`) (2026-07-31) | canonical |
 | `app/scripts/generate-logo-lockup.ts` | Regenerate outlined `logo-lockup.svg` lockup from Michroma outlines (`npm run logo:generate`) (2026-07-31) | canonical |
 
+## Decision ledger (repo root, `decisions/`) (2026-08-02)
+
+`DECISIONS.md` routes to these; it holds no decision rows itself. Load-when lists mirror the router's own routing table — don't re-derive them here.
+
+| File | Answers | Status | ~Tokens |
+| ---- | ------- | ------ | ------- |
+| `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.4k |
+| `decisions/architecture.md` | 17 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~0.8k |
+| `decisions/database.md` | 14 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~1k |
+| `decisions/api.md` | 29 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker | canonical | ~2.1k |
+| `decisions/game-engine.md` | 26 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |
+| `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
+| `decisions/frontend/architecture.md` | 14 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client | canonical | ~2k |
+| `decisions/frontend/astro.md` | 14 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter | canonical | ~1.5k |
+| `decisions/frontend/alpine.md` | 11 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~0.8k |
+| `decisions/frontend/style.md` | 8 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface | canonical | ~0.9k |
+| `decisions/context-system.md` | 25 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI | canonical | ~2.8k |
+
 ## Context & history (repo root, `docs/`)
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `DECISIONS.md` | One-line ledger of every architectural decision (2026-07-22) | canonical |
 | `README.md` | Repo orientation: project summary, folder layout, getting started (2026-07-14) | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
