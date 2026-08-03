@@ -38,13 +38,7 @@ jobs:
         run: GRAPH_REFRESH_STRICT=1 bash scripts/refresh-graph.sh
 
       - name: Compute delta
-        id: delta
-        run: |
-          {
-            echo "output<<GRAPH_DELTA_EOF"
-            python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json
-            echo "GRAPH_DELTA_EOF"
-          } >> "$GITHUB_OUTPUT"
+        run: python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json | tee /tmp/graph-delta.txt
 
       - name: Check for changes
         id: check
@@ -56,14 +50,20 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # The delta text reaches this step as a file, never as a ${{ }} splice into
+      # the script: it contains node ids extracted by a third party (graphify,
+      # pinned only to a minor range), and raw interpolation would let a quote or
+      # backtick in one of them run as shell in a contents:write job.
       - name: Write PR body
         if: steps.check.outputs.changed == 'true'
+        env:
+          MAIN_SHA: ${{ github.sha }}
         run: |
           {
-            echo "Knowledge graph rebuilt from \`main\` @ ${{ github.sha }}."
+            echo "Knowledge graph rebuilt from \`main\` @ ${MAIN_SHA}."
             echo
             echo '```'
-            printf '%s\n' "${{ steps.delta.outputs.output }}"
+            cat /tmp/graph-delta.txt
             echo '```'
           } > /tmp/graph-pr-body.md
 
@@ -156,18 +156,23 @@ jobs:
       - name: Rebuild knowledge graph
         run: GRAPH_REFRESH_STRICT=1 bash scripts/refresh-graph.sh
 
+      # continue-on-error because this job is informational: a parse miss must not
+      # turn a PR's checks red. Under the default `bash -eo pipefail`, a grep that
+      # matches nothing aborts the step, so without this the delta job's
+      # non-blocking guarantee would rest on graph-delta.py's exact print wording.
       - name: Compute delta and render comment body
-        id: delta
+        continue-on-error: true
         run: |
           DELTA_OUTPUT="$(python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json)"
           echo "$DELTA_OUTPUT"
 
-          OLD_NODES=$(echo "$DELTA_OUTPUT" | grep '^nodes:' | sed -E 's/.*old=([0-9]+).*/\1/')
-          NEW_NODES=$(echo "$DELTA_OUTPUT" | grep '^nodes:' | sed -E 's/.*new=([0-9]+).*/\1/')
-          NODE_DELTA=$(echo "$DELTA_OUTPUT" | grep '^nodes:' | sed -E 's/.*delta=([+-][0-9]+).*/\1/')
-          OLD_LINKS=$(echo "$DELTA_OUTPUT" | grep '^links:' | sed -E 's/.*old=([0-9]+).*/\1/')
-          NEW_LINKS=$(echo "$DELTA_OUTPUT" | grep '^links:' | sed -E 's/.*new=([0-9]+).*/\1/')
-          LINK_DELTA=$(echo "$DELTA_OUTPUT" | grep '^links:' | sed -E 's/.*delta=([+-][0-9]+).*/\1/')
+          field() { echo "$DELTA_OUTPUT" | { grep "^$1:" || true; } | sed -E "s/.*$2=([+-]?[0-9]+).*/\1/"; }
+          OLD_NODES=$(field nodes old)
+          NEW_NODES=$(field nodes new)
+          NODE_DELTA=$(field nodes delta)
+          OLD_LINKS=$(field links old)
+          NEW_LINKS=$(field links new)
+          LINK_DELTA=$(field links delta)
 
           {
             echo "<!-- graph-delta -->"
