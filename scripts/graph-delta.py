@@ -2,10 +2,11 @@
 """Compare two graphify graph.json files and report the node/link delta.
 
 `built_at_commit` records the HEAD a graph was built from, so it changes on
-every commit and makes raw byte comparison useless. Stripping it and sorting
-nodes/links makes two rebuilds of the same tree byte-identical (verified
-2026-08-03). This script exists so both CI jobs and a human use the same
-normalisation rather than three subtly different ones.
+every commit and makes raw byte comparison useless. By never reading
+`built_at_commit` and sorting nodes/links consistently, two rebuilds of the
+same tree compare identically (verified 2026-08-03). This script exists so
+both CI jobs and a human use the same normalisation rather than three
+subtly different ones.
 
 Usage: graph-delta.py OLD.json NEW.json
 Exit code is always 0 — this reports, it does not judge.
@@ -17,8 +18,8 @@ SAMPLE_CAP = 5
 
 
 def load(path):
-    """Load a graphify graph.json. Missing or unparseable -> treated as an
-    empty graph (a fresh clone may not have a prior graph.json yet)."""
+    """Load a graphify graph.json. Missing, unparseable, or wrong type ->
+    treated as an empty graph (a fresh clone may not have a prior graph.json yet)."""
     try:
         with open(path) as f:
             data = json.load(f)
@@ -28,14 +29,17 @@ def load(path):
     except (json.JSONDecodeError, OSError) as e:
         print(f"note: {path} unparseable ({e}) — treating as empty graph")
         return {"nodes": [], "links": []}
+
+    if not isinstance(data, dict):
+        print(f"note: {path} is {type(data).__name__}, not a JSON object — treating as empty graph")
+        return {"nodes": [], "links": []}
+
     return data
 
 
-def normalise(data):
-    """Strip the volatile built_at_commit field and sort nodes/links so two
-    rebuilds of the same tree compare byte-identical."""
-    nodes = data.get("nodes", [])
-    links = data.get("links", [])
+def normalise(nodes, links):
+    """Sort nodes/links so two rebuilds of the same tree compare byte-identical.
+    Never reads built_at_commit, so it cannot affect the comparison."""
     norm_nodes = sorted(
         (json.dumps(n, sort_keys=True) for n in nodes)
     )
@@ -59,9 +63,12 @@ def main():
     old = load(old_path)
     new = load(new_path)
 
-    old_nodes_raw, new_nodes_raw = old.get("nodes", []), new.get("nodes", [])
-    old_nodes, old_links = normalise(old)
-    new_nodes, new_links = normalise(new)
+    old_nodes_raw = old.get("nodes", [])
+    old_links_raw = old.get("links", [])
+    new_nodes_raw = new.get("nodes", [])
+    new_links_raw = new.get("links", [])
+    old_nodes, old_links = normalise(old_nodes_raw, old_links_raw)
+    new_nodes, new_links = normalise(new_nodes_raw, new_links_raw)
 
     old_node_count, new_node_count = len(old_nodes), len(new_nodes)
     old_link_count, new_link_count = len(old_links), len(new_links)
