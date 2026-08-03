@@ -5,7 +5,7 @@ This tree holds **non-canonical, pre-spec, human-authored** descriptions of dart
 | Subfolder | Contents | Lands in |
 | --- | --- | --- |
 | `rulesets/` | One file per dartboard game, in the `templates/GAME_ENGINE_TEMPLATE.md` shape | `docs/architecture/05-Database/10-Database-Agent-Guide.md` § "Add a new game type" |
-| `routines/` | Training-routine outlines | The deferred `ROUTINE_RUN` entity / routine-run write path (D64, `DECISIONS.md`) |
+| `routines/` | Training-routine outlines | The deferred `ROUTINE_RUN` entity / routine-run write path (D64, `decisions/api.md`) |
 | `trivia/` | Standalone practice-tool descriptions (e.g. checkout trivia) | **No pipeline yet** — open question, resolved via the normal engineering workflow (`docs/architecture/03-Engineering-Workflow.md`) when first implemented, not predetermined here |
 | `templates/` | Authoring template(s) used to write files under `rulesets/` | N/A — meta-doc, stays in place |
 

@@ -811,7 +811,7 @@ A new pattern may only be introduced when:
 2. The benefits are clearly explained.
 3. Alternatives have been considered.
 4. The decision is documented.
-5. A `DECISIONS.md` entry is recorded when the pattern is adopted.
+5. A new block is appended to the matching domain file under `decisions/**` (routed via `DECISIONS.md`) when the pattern is adopted.
 
 ---
 

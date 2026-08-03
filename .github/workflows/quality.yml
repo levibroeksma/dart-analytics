@@ -22,6 +22,8 @@ jobs:
         run: bash scripts/check-doc-links.sh
       - name: Context-budget gate
         run: bash scripts/check-context-budget.sh
+      - name: Decision-id integrity gate
+        run: bash scripts/check-decision-ids.sh
       - name: Game-engine contract gate
         run: bash scripts/check-game-engines.sh
       - name: Refinement-coverage gate
