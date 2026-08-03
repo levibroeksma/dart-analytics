@@ -98,7 +98,7 @@ astro check
 
 ## Knowledge graph (optional but recommended)
 
-`graphify-out/graph.json` is committed — no rebuild needed to browse the map. For auto-refresh on commit:
+`graphify-out/graph.json` is committed and kept fresh by CI (`.github/workflows/graph.yml` rebuilds it on merge to `main`) — no local install is needed for freshness, only to query the graph while working. For auto-refresh on commit as well:
 
 ```sh
 uv tool install graphifyy    # or: pipx install graphifyy
@@ -106,7 +106,7 @@ pip install "graphifyy[sql]" # SQL migration parsing
 graphify hook install
 ```
 
-See root `CLAUDE.md` and `app/CLAUDE.md` for query commands and the completion-gate refresh step.
+See root `CLAUDE.md` and `app/CLAUDE.md` for query commands.
 
 ## Architecture References
 
