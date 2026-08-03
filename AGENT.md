@@ -75,6 +75,8 @@ The context system is part of every deliverable. Before claiming any task done, 
 
 A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works. (procedure moved to `.claude/skills/context-maintenance/SKILL.md`, 2026-07-28)
 
+Decisions are append-only and domain-scoped: never edit or delete an existing block in `decisions/**`; a reversal is a new decision citing `Supersedes:` in the domain file it belongs to, per `DECISIONS.md`'s routing table. (2026-08-02)
+
 ---
 
 # Forbidden Actions
@@ -92,7 +94,7 @@ A change that leaves the context map, CLAUDE.md files, decision ledger, or knowl
 | Need | File |
 | ---- | ---- |
 | Context packs, file inventory, authority order | `docs/architecture/00-Context-Map.md` |
-| Why a decision was made | `DECISIONS.md` |
+| Why a decision was made | `DECISIONS.md` (router); domain files live in `decisions/**` |
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
 | Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |
 | Raw, pre-spec game/routine/trivia rule notes (non-canonical) | `docs/game-rules/README.md` |
@@ -109,7 +111,7 @@ This file is a router and gatekeeper. Work following it involves context discove
 - **Grep** — verify conventions, cross-reference rules, check doc links
 - **Glob** — find files by pattern when validating file location rules
 - **Bash** — run validation scripts (`scripts/check-*.sh`, `scripts/refresh-graph.sh`) and git commands
-- **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, context map entries
+- **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, `decisions/**`, context map entries
 
 ## Restrict
 

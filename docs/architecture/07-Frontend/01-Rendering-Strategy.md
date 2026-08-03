@@ -179,4 +179,6 @@ Use only when the browser must never see a value and prerender cannot supply it.
 | `02-Folder-Structure.md` | `app/src/` tree and aliases |
 | `03-Alpine-Patterns.md` | Alpine factory and hydration |
 | `../06-API/01-Implementation-Strategy.md` | Cloudflare Workers + Neon constraints |
-| `../../DECISIONS.md` | D79, D80, D88, D97, D98, D172 |
+| `../../decisions/frontend/astro.md` | D79, D80, D97 |
+| `../../decisions/frontend/alpine.md` | D88, D98 |
+| `../../decisions/api.md` | D172 |

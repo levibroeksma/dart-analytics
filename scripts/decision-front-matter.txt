@@ -1,0 +1,123 @@
+# Sidecar for scripts/split-decisions.sh's front-matter injection. SPENT
+# one-shot migration tooling (2026-08-02), retained for provenance only —
+# not a live source for a domain file's front-matter. Editing this file has
+# no effect after the split: split-decisions.sh now refuses to run (the
+# ledger it reads from holds zero rows), so nothing ever re-reads this
+# sidecar again. To change a domain file's own load-when/depends-on/related,
+# edit that file's front-matter directly; scripts/check-decision-ids.sh is
+# the ongoing guard, not this file.
+#
+# One block per target path from scripts/decision-map.txt, delimited by
+# `=== <path> ===` / `=== end ===`. Block body is copied verbatim between the
+# ledger's `<!--` / `-->` front-matter fence — one `key: value` line per line,
+# in whatever order and with whatever keys the consumer wants (this file does
+# not interpret the keys, only extracts the raw lines).
+#
+# Task 3 filled every block with real status/scope/read-when/load-when/
+# depends-on/related/updated values (see
+# docs/superpowers/plans/2026-08-02-decision-ledger-split.md Task 3 Step 1).
+# `load-when` keywords are matched against an agent's task description, so
+# they are worded as words a task actually uses, not category labels.
+# `depends-on: none` marks a file with no prerequisite reading; `related:`
+# lists adjacent files worth loading for cross-domain tasks, not implied
+# loading for every task that touches this file.
+
+=== architecture ===
+status: canonical
+scope: decisions/architecture
+read-when: why a domain-model/session/stage/turn/dart choice was made
+load-when: domain model, activity, session, stage, turn, dart, ruleset, platform
+depends-on: none
+related: decisions/database.md, decisions/game-engine.md
+updated: 2026-08-02
+=== end ===
+
+=== database ===
+status: canonical
+scope: decisions/database
+read-when: why a schema/migration/view/index/seed choice was made
+load-when: schema, migration, table, column, constraint, index, view, Neon, seed
+depends-on: decisions/architecture.md
+related: decisions/api.md, decisions/game-engine.md
+updated: 2026-08-02
+=== end ===
+
+=== api ===
+status: canonical
+scope: decisions/api
+read-when: why an endpoint/contract/auth/envelope choice was made
+load-when: endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker
+depends-on: decisions/architecture.md
+related: decisions/database.md, decisions/frontend/architecture.md
+updated: 2026-08-02
+=== end ===
+
+=== game-engine ===
+status: canonical
+scope: decisions/game-engine
+read-when: why an engine/ruleset/scoring/checkout choice was made
+load-when: engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training
+depends-on: decisions/architecture.md, decisions/database.md
+related: decisions/api.md, decisions/testing.md
+updated: 2026-08-02
+=== end ===
+
+=== testing ===
+status: canonical
+scope: decisions/testing
+read-when: why a test-strategy/TDD/mock/coverage choice was made
+load-when: test, TDD, Vitest, mock, coverage
+depends-on: decisions/architecture.md
+related: decisions/game-engine.md
+updated: 2026-08-02
+=== end ===
+
+=== frontend/architecture ===
+status: canonical
+scope: decisions/frontend/architecture
+read-when: why a frontend layering/folder-structure/barrel choice was made
+load-when: layering, folder structure, suffix, barrel, type import, error mapping, API client
+depends-on: decisions/architecture.md
+related: decisions/api.md, decisions/frontend/alpine.md
+updated: 2026-08-02
+=== end ===
+
+=== frontend/astro ===
+status: canonical
+scope: decisions/frontend/astro
+read-when: why an .astro component/routing/prerender choice was made
+load-when: .astro, component, prerender, routing, layout, cn(), props, frontmatter
+depends-on: decisions/frontend/architecture.md
+related: decisions/frontend/style.md
+updated: 2026-08-02
+=== end ===
+
+=== frontend/alpine ===
+status: canonical
+scope: decisions/frontend/alpine
+read-when: why an Alpine store/persist/recovery choice was made
+load-when: Alpine, stores, state, persist, recovery, x-data, x-show
+depends-on: decisions/architecture.md, decisions/frontend/architecture.md
+related: decisions/frontend/astro.md, decisions/api.md
+updated: 2026-08-02
+=== end ===
+
+=== frontend/style ===
+status: canonical
+scope: decisions/frontend/style
+read-when: why a CSS token/primitive/typography/spacing choice was made
+load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface
+depends-on: decisions/frontend/architecture.md
+related: decisions/frontend/astro.md
+updated: 2026-08-02
+=== end ===
+
+=== context-system ===
+status: canonical
+scope: decisions/context-system
+read-when: why a docs/context-map/CLAUDE.md/skill/gate choice was made
+load-when: docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI
+depends-on: none
+related: decisions/architecture.md
+updated: 2026-08-02
+=== end ===

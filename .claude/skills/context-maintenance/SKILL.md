@@ -1,6 +1,6 @@
 ---
 name: context-maintenance
-description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md/AGENT.md sync, context-map registration, DECISIONS.md entry, knowledge-graph refresh, gate scripts, branch/PR check, self-learning gate) so the context system never goes stale.
+description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md/AGENT.md sync, context-map registration, decisions/** entry, knowledge-graph refresh, gate scripts, branch/PR check, self-learning gate) so the context system never goes stale.
 ---
 
 # Context Maintenance
@@ -9,7 +9,7 @@ Before claiming any task done on this repository:
 
 1. **CLAUDE.md/AGENT.md sync.** Update the `CLAUDE.md` nearest to what you changed if your change adds, alters, or invalidates a rule in it — and its `AGENT.md` mirror in the same directory, if one exists, kept byte-for-byte identical (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`).
 2. **Context map.** Register new, moved, renamed, or deleted docs in `docs/architecture/00-Context-Map.md` in the same change.
-3. **Decision ledger.** Record new architectural decisions as one-line entries in `DECISIONS.md`.
+3. **Decision ledger.** `DECISIONS.md` is a router, not a record — never add a decision row there. Follow `DECISIONS.md`'s own "How to add a decision" section verbatim (domain-file routing, next-id derivation, block format, `Supersedes:`, new-file⇒routing-table registration). Run `scripts/check-decision-ids.sh` and confirm it passes before claiming the task done.
 4. **Dates.** Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
 5. **Gate scripts.** Invoke the `run-all-gates` skill and confirm every script it runs passes.
 6. **Knowledge graph.** Refresh: `bash scripts/refresh-graph.sh`, then stage `graphify-out/graph.json` (AST-only — no API cost). Git hooks automate this at commit; this step is the backstop when hooks are not installed. If graphify is not set up in this environment, say so in the completion report rather than skipping silently.

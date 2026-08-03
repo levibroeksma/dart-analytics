@@ -7,7 +7,7 @@ updated: 2026-07-11
 
 # Architecture Documentation
 
-> **Version:** 1.5.0 (2026-07-14)
+> **Version:** 1.5.1 (2026-08-03 — versioning note repointed at `decisions/**`, routed via `DECISIONS.md`; prior 1.5.0, 2026-07-14)
 >
 > This repository follows a strict architecture-first development philosophy. Every change to the application must be designed before it is implemented. The goal is to create a maintainable, scalable and extensible platform that can evolve for many years without accumulating technical debt.
 
@@ -171,7 +171,7 @@ For `app/` implementation validation, include `npx fallow` in the standard verif
 
 # Versioning
 
-Architecture documents use semantic versioning. Major changes require a version bump and, where appropriate, a dated entry in `DECISIONS.md` (the project's ADR mechanism, D52). <!-- 2026-07-14 -->
+Architecture documents use semantic versioning. Major changes require a version bump and, where appropriate, a dated block appended to the matching domain file under `decisions/**`, routed via `DECISIONS.md` (the project's ADR mechanism, D52). <!-- 2026-07-14 -->
 
 ---
 

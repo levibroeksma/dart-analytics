@@ -7,7 +7,7 @@ updated: 2026-07-15
 
 # Engineering Workflow
 
-> **Version:** 1.1.0
+> **Version:** 1.1.1 (2026-08-03 — decision-ledger split: `DECISIONS.md` prompts repointed at `decisions/**` block format, no longer "one line + rationale")
 >
 > This document defines the mandatory engineering workflow for all contributors, including human developers and AI assistants.
 >
@@ -97,7 +97,7 @@ Examples include:
 - database model
 - API contracts
 - frontend behaviour
-- previous DECISIONS.md entries
+- previous recorded decisions (`decisions/**`)
 
 The objective is to understand the existing system before introducing changes.
 
@@ -132,7 +132,7 @@ Evaluate whether the requested change affects:
 
 If architecture changes are required, they should be documented before implementation begins.
 
-Major architectural changes require a dated `DECISIONS.md` entry (one line + rationale — the project's ADR mechanism).
+Major architectural changes require a dated block appended to the matching domain file under `decisions/**` — Status/Date/Decision/Reason/Consequences, routed via `DECISIONS.md` (the project's ADR mechanism).
 
 ---
 
@@ -258,7 +258,7 @@ Prefer extension over duplication.
 
 - Which architectural layer owns this responsibility?
 - Does ownership change?
-- Does this require a `DECISIONS.md` entry?
+- Does this require a new decision block under `decisions/**`?
 - Does the ERD change?
 
 ---
@@ -296,7 +296,7 @@ Prefer extension over duplication.
 
 - Which documents must be updated?
 - Should a new architectural pattern be documented?
-- Is a `DECISIONS.md` entry required?
+- Is a new decision block required under `decisions/**`?
 
 ---
 

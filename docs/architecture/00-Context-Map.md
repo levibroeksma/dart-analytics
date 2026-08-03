@@ -2,11 +2,11 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-08-01
+updated: 2026-08-03
 -->
 # Context Map
 
-> **Version:** 1.7.8 (2026-08-01 — 501 recreational v1 spec/plan + checkout-path module registered; prior 1.7.7 — seed `database/seeds/0004_score_training_minutes_preset.sql` registered in the seed inventory (Context Packs row, file-inventory rows, Seeds summary row))
+> **Version:** 1.7.11 (2026-08-03 — final whole-branch review fixes for the decision-ledger split: D135/D136 re-filed database.md→context-system.md (counts 12/28, deploy/Prettier/format/husky added to its `load-when` + router row); PWA/manifest/icon/safe-area added to frontend/astro.md + frontend/style.md `load-when` + router rows; "Why was X decided?" pack-row regex-skip fixed (single `~2.5k` cell, real ~2.3k–5.8k range moved to prose); Authority Order now names `decisions/**` explicitly; `01-Rendering-Strategy.md`'s stale `DECISIONS.md` citation row repointed at the 3 domain files that actually hold D79/D80/D88/D97/D98/D172; decision-ledger migration tooling (split-decisions.sh, verify-decision-split.sh, decision-map.txt, decision-front-matter.txt) registered as spent/historical; `scripts/check-decision-ids.sh` gains row-hash and registration checks (`scripts/decision-row-hashes.tsv` added); prior 1.7.10 — `scripts/check-decision-ids.sh` registered under Cross-cutting mechanical guards: durable id-integrity gate for the split ledger, position-anchored against darts `D<n>` notation; prior 1.7.9 — decision ledger split registered: `DECISIONS.md` is now a router, its 163 decisions live in 10 `decisions/**` domain files; File Inventory's single `DECISIONS.md` row replaced with 11 rows (router + 10 domain files, each with its own `~Nk`); Context Packs "Why was X decided?" row repointed at the router + only the domain file(s) a task needs; prior 1.7.8 — 501 recreational v1 spec/plan + checkout-path module registered)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -34,7 +34,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~8k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
-| "Why was X decided?" | `DECISIONS.md` (repo root); deeper lineage: git history | ~15.2k |
+| "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Actual per-task total varies with domain (router + testing.md, the smallest, runs ~2.3k; router + game-engine.md, the largest, runs ~5.8k) — the single figure in the last column below prices only the router + the one example file named above. | ~2.5k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~3.5k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
@@ -57,7 +57,7 @@ When documents conflict, higher wins; correct the lower one:
 8. SQL migrations `0001`–`0016` and seeds
 9. Application code in `app/`
 
-If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and `DECISIONS.md` are context, never authority.
+If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
 
 ---
 
@@ -70,7 +70,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~5.5k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~7k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -165,6 +165,8 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-context-map.sh` | Guard: every path referenced from a CLAUDE.md/README.md/context map exists; migration-range claims agree with `database/migrations/` (2026-07-23) | canonical |
 | `scripts/check-doc-links.sh` | Guard: markdown links and path-like backtick refs across the canonical doc set resolve (D133) | canonical |
 | `scripts/check-context-budget.sh` | Guard: this file's own `~Nk` token estimates don't drift from a chars/4 estimate (D133) | canonical |
+| `scripts/check-decision-ids.sh` | Guard: every id across `decisions/**` is unique, none of the 163-id 2026-08-02 baseline has disappeared, every `Supersedes:` target exists, `DECISIONS.md` stays a router, every migrated row still hash-matches `scripts/decision-row-hashes.tsv` (D184+ out of scope by design), every `decisions/**.md` file is registered in the router's routing table; position-anchored to avoid darts `D18`/`D20` notation; blind spots documented in its header (2026-08-02; hash + registration checks 2026-08-03) | canonical |
+| `scripts/decision-row-hashes.tsv` | Data file: id → sha256 of the 163 migrated rows' exact text at the 2026-08-02 split, read by `scripts/check-decision-ids.sh`'s row-integrity check | canonical |
 
 ## Brand asset generators (2026-07-31)
 
@@ -175,11 +177,39 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `app/scripts/generate-app-icons.ts` | Regenerate PWA/favicon PNGs + `favicon.svg`/`favicon.ico` from `bg-dartboard.svg` (`npm run icons:generate`) (2026-07-31) | canonical |
 | `app/scripts/generate-logo-lockup.ts` | Regenerate outlined `logo-lockup.svg` lockup from Michroma outlines (`npm run logo:generate`) (2026-07-31) | canonical |
 
+## Decision ledger (repo root, `decisions/`) (2026-08-02)
+
+`DECISIONS.md` routes to these; it holds no decision rows itself. Load-when lists mirror the router's own routing table — don't re-derive them here.
+
+| File | Answers | Status | ~Tokens |
+| ---- | ------- | ------ | ------- |
+| `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.8k |
+| `decisions/architecture.md` | 17 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~0.8k |
+| `decisions/database.md` | 12 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~0.8k |
+| `decisions/api.md` | 29 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker | canonical | ~2.1k |
+| `decisions/game-engine.md` | 26 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |
+| `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
+| `decisions/frontend/architecture.md` | 14 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client | canonical | ~2k |
+| `decisions/frontend/astro.md` | 14 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~1.5k |
+| `decisions/frontend/alpine.md` | 11 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~0.8k |
+| `decisions/frontend/style.md` | 8 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area | canonical | ~0.9k |
+| `decisions/context-system.md` | 28 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~3.2k |
+
+### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
+
+Registered for discoverability and provenance, not as reading material: `scripts/split-decisions.sh` ran once (2026-08-02) to produce the `decisions/**` tree above and now hard-fails if re-run (the ledger it reads from holds zero rows); `scripts/verify-decision-split.sh` proves that one run was lossless against an ephemeral `/tmp` snapshot and legitimately SKIPs once that snapshot is gone; `scripts/decision-map.txt` and `scripts/decision-front-matter.txt` were that run's inputs. None of the four is the ongoing guard — `scripts/check-decision-ids.sh` (registered under Cross-cutting mechanical guards below) is.
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `scripts/split-decisions.sh` | Spent one-shot migration script: wrote `decisions/**` from `DECISIONS.md` + the map + the front-matter sidecar (2026-08-02) | historical |
+| `scripts/verify-decision-split.sh` | Spent one-shot verifier: proves that migration was lossless against a `/tmp` snapshot (SKIPs once the snapshot is gone) | historical |
+| `scripts/decision-map.txt` | Spent migration input: id → target-file assignment as it stood at the 2026-08-02 split | historical |
+| `scripts/decision-front-matter.txt` | Spent migration input: per-target-file front-matter blocks as they stood at the 2026-08-02 split | historical |
+
 ## Context & history (repo root, `docs/`)
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `DECISIONS.md` | One-line ledger of every architectural decision (2026-07-22) | canonical |
 | `README.md` | Repo orientation: project summary, folder layout, getting started (2026-07-14) | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |

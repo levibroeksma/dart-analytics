@@ -8,7 +8,7 @@ The checkbox list is inlined here so every PR prefills it.
 
 ## Summary
 
-<!-- What changed and why, in 2-4 sentences. Link the spec / plan / DECISIONS.md entry if one exists. -->
+<!-- What changed and why, in 2-4 sentences. Link the spec / plan / decisions/ entry if one exists. -->
 
 ## Changes
 
@@ -18,8 +18,9 @@ The checkbox list is inlined here so every PR prefills it.
 
 ## Architectural decisions
 
-<!-- New or changed decisions this PR introduces. Add a one-line row to
-     DECISIONS.md for each. Delete this section if there are none. -->
+<!-- New or changed decisions this PR introduces. Append a block to the
+     appropriate decisions/ domain file for each (see DECISIONS.md's routing
+     table). Delete this section if there are none. -->
 
 -
 
@@ -43,8 +44,8 @@ The checkbox list is inlined here so every PR prefills it.
 - [ ] Preserves replayability
 - [ ] Completed gameplay remains immutable (corrections create new records)
 - [ ] Statistics remain derived — no persisted stats
-- [ ] Documentation updated (context map, `DECISIONS.md`, affected docs)
-- [ ] A DECISIONS.md entry was added if an architectural decision was made
+- [ ] Documentation updated (context map, the appropriate `decisions/` domain file, affected docs)
+- [ ] A decision block was appended to the appropriate `decisions/` domain file if an architectural decision was made
 
 ## Notes
 

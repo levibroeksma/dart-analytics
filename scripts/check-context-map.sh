@@ -3,8 +3,15 @@
 # protocol (root CLAUDE.md). Fails when the context system has gone stale:
 #   1. a path referenced from a CLAUDE.md / README.md / 00-Context-Map.md does not exist
 #   2. a doc quotes a migration range that disagrees with database/migrations/
-#   3. a canonical doc under docs/architecture/ or database/ lacks a status front-matter header
+#   3. a canonical doc under docs/architecture/, database/, or decisions/ lacks a status front-matter header
 #   4. a doc under docs/architecture/ is not registered in 00-Context-Map.md
+#
+# decisions/** glob note: `git ls-files 'decisions/**/*.md'` only matches
+# files at least one directory below decisions/ under this repo's git
+# (2.43) — it would silently return just the 4 files under
+# decisions/frontend/ and miss the 6 top-level ones (architecture.md,
+# database.md, api.md, game-engine.md, testing.md, context-system.md). This
+# script uses `decisions/**.md` instead, verified to return all 10.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -30,7 +37,7 @@ done
 # --- 2. Migration range consistency ----------------------------------------
 ACTUAL_MAX=$(ls database/migrations/ | grep -oE '^[0-9]{4}' | sort | tail -1)
 if [ -n "$ACTUAL_MAX" ]; then
-  for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md'); do
+  for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.md'); do
     head -6 "$f" | grep -q '^status: historical' && continue
     for q in $(grep -hoE '0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null | grep -oE '[0-9]{4}$' | sort -u); do
       [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
@@ -40,7 +47,7 @@ if [ -n "$ACTUAL_MAX" ]; then
 fi
 
 # --- 3. Front-matter headers -----------------------------------------------
-for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
+for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
   head -1 "$f" | grep -q '^<!--' && head -6 "$f" | grep -q '^status:' \
     || err "$f lacks status front-matter header"
 done
