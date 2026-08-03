@@ -18,15 +18,27 @@ SAMPLE_CAP = 5
 
 
 def load(path):
-    """Load a graphify graph.json. Missing, unparseable, or wrong type ->
-    treated as an empty graph (a fresh clone may not have a prior graph.json yet)."""
+    """Load a graphify graph.json, always returning a dict whose 'nodes' and
+    'links' are lists of dicts — callers need no further shape checks.
+
+    A missing, unreadable, unparseable, or non-object file yields an empty
+    graph (a fresh clone may not have a prior graph.json yet). A file that
+    parses but whose 'nodes' or 'links' is malformed loses only that key;
+    the other one survives."""
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         print(f"note: {path} not found — treating as empty graph")
         return {"nodes": [], "links": []}
-    except (json.JSONDecodeError, OSError) as e:
+    except OSError as e:
+        # Directory, permission denied, I/O error — json.load was never reached,
+        # so calling this "unparseable" would misdescribe it.
+        print(f"note: {path} unreadable ({e}) — treating as empty graph")
+        return {"nodes": [], "links": []}
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        # UnicodeDecodeError fires inside json.load's read, before any JSON
+        # syntax check, and is neither an OSError nor a JSONDecodeError.
         print(f"note: {path} unparseable ({e}) — treating as empty graph")
         return {"nodes": [], "links": []}
 
@@ -75,10 +87,9 @@ def main():
     old = load(old_path)
     new = load(new_path)
 
-    old_nodes_raw = old.get("nodes", [])
-    old_links_raw = old.get("links", [])
-    new_nodes_raw = new.get("nodes", [])
-    new_links_raw = new.get("links", [])
+    # load() guarantees both keys exist as lists of dicts.
+    old_nodes_raw, old_links_raw = old["nodes"], old["links"]
+    new_nodes_raw, new_links_raw = new["nodes"], new["links"]
     old_nodes, old_links = normalise(old_nodes_raw, old_links_raw)
     new_nodes, new_links = normalise(new_nodes_raw, new_links_raw)
 
