@@ -34,6 +34,18 @@ def load(path):
         print(f"note: {path} is {type(data).__name__}, not a JSON object — treating as empty graph")
         return {"nodes": [], "links": []}
 
+    for key in ("nodes", "links"):
+        value = data.get(key, [])
+        if not isinstance(value, list):
+            print(f"note: {path} {key!r} is {type(value).__name__}, not a list — treating as empty {key}")
+            data[key] = []
+            continue
+        clean = [item for item in value if isinstance(item, dict)]
+        dropped = len(value) - len(clean)
+        if dropped:
+            print(f"note: {path} {key!r} had {dropped} non-object entr{'y' if dropped == 1 else 'ies'} — dropped")
+        data[key] = clean
+
     return data
 
 
