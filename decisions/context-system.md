@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/context-system
 read-when: why a docs/context-map/CLAUDE.md/skill/gate choice was made
-load-when: docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky
+load-when: docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky, pre-commit, branch, PR, workflow, AGENT.md
 depends-on: none
 related: decisions/architecture.md
 updated: 2026-08-03

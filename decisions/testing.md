@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/testing
 read-when: why a test-strategy/TDD/mock/coverage choice was made
-load-when: test, TDD, Vitest, mock, coverage
+load-when: test, TDD, Vitest, mock, coverage, fixture, test location, red-green, suite
 depends-on: decisions/architecture.md
 related: decisions/game-engine.md
 updated: 2026-08-02

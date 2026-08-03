@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/api
 read-when: why an endpoint/contract/auth/envelope choice was made
-load-when: endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker
+load-when: endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT
 depends-on: decisions/architecture.md
 related: decisions/database.md, decisions/frontend/architecture.md
 updated: 2026-08-02

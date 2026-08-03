@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/architecture
 read-when: why a domain-model/session/stage/turn/dart choice was made
-load-when: domain model, activity, session, stage, turn, dart, ruleset, platform
+load-when: domain model, activity, session, stage, turn, dart, ruleset, platform, player, participant, configuration, snapshot, immutability
 depends-on: none
 related: decisions/database.md, decisions/game-engine.md
 updated: 2026-08-02

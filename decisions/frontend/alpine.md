@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/frontend/alpine
 read-when: why an Alpine store/persist/recovery choice was made
-load-when: Alpine, stores, state, persist, recovery, x-data, x-show
+load-when: Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery
 depends-on: decisions/architecture.md, decisions/frontend/architecture.md
 related: decisions/frontend/astro.md, decisions/api.md
 updated: 2026-08-02

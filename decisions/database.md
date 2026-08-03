@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/database
 read-when: why a schema/migration/view/index/seed choice was made
-load-when: schema, migration, table, column, constraint, index, view, Neon, seed
+load-when: schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/game-engine.md
 updated: 2026-08-03

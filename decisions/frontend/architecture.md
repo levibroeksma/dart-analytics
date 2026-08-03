@@ -2,7 +2,7 @@
 status: canonical
 scope: decisions/frontend/architecture
 read-when: why a frontend layering/folder-structure/barrel choice was made
-load-when: layering, folder structure, suffix, barrel, type import, error mapping, API client
+load-when: layering, folder structure, suffix, barrel, type import, error mapping, API client, types, interfaces, error, import direction, aliases
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/frontend/alpine.md
 updated: 2026-08-02

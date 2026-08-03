@@ -17,16 +17,16 @@ updated: 2026-08-02
 
 | Domain | File | Load when |
 | ------ | ---- | --------- |
-| Domain model | `decisions/architecture.md` | domain model, activity, session, stage, turn, dart, ruleset, platform |
-| Database platform & process | `decisions/database.md` | schema, migration, table, column, constraint, index, view, Neon, seed |
-| API | `decisions/api.md` | endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker |
-| Game engines | `decisions/game-engine.md` | engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training |
-| Testing | `decisions/testing.md` | test, TDD, Vitest, mock, coverage |
-| Frontend architecture | `decisions/frontend/architecture.md` | layering, folder structure, suffix, barrel, type import, error mapping, API client |
-| Frontend Astro | `decisions/frontend/astro.md` | .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area |
-| Frontend Alpine | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show |
-| Frontend style | `decisions/frontend/style.md` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area |
-| Context & documentation system | `decisions/context-system.md` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky |
+| Domain model | `decisions/architecture.md` | domain model, activity, session, stage, turn, dart, ruleset, platform, player, participant, configuration, snapshot, immutability |
+| Database platform & process | `decisions/database.md` | schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation |
+| API | `decisions/api.md` | endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT |
+| Game engines | `decisions/game-engine.md` | engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training, undo, leg, visit, bust, turns, darts |
+| Testing | `decisions/testing.md` | test, TDD, Vitest, mock, coverage, fixture, test location, red-green, suite |
+| Frontend architecture | `decisions/frontend/architecture.md` | layering, folder structure, suffix, barrel, type import, error mapping, API client, types, interfaces, error, import direction, aliases |
+| Frontend Astro | `decisions/frontend/astro.md` | .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area, nav, page, slot, class composition |
+| Frontend Alpine | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery |
+| Frontend style | `decisions/frontend/style.md` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility |
+| Context & documentation system | `decisions/context-system.md` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky, pre-commit, branch, PR, workflow, AGENT.md |
 
 Each domain file's own front-matter carries the same `load-when` list plus `depends-on`/`related` — load those directly rather than re-deriving them here. `depends-on` files are assumed and load alongside the target file every time; `related` files are adjacent, load them only when the task actually spans domains.
 
