@@ -2,10 +2,10 @@
 status: canonical
 scope: decisions/frontend/astro
 read-when: why an .astro component/routing/prerender choice was made
-load-when: .astro, component, prerender, routing, layout, cn(), props, frontmatter
+load-when: .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/style.md
-updated: 2026-08-02
+updated: 2026-08-03
 -->
 
 | # | Source | Decision | Rationale |

@@ -1,6 +1,13 @@
-# Single source for the decision ledger split into domain files.
+# Input to the one-shot decision-ledger split (2026-08-02). SPENT migration
+# tooling, retained for provenance only — do not hand-edit to re-file a
+# decision: re-running scripts/split-decisions.sh now fails ("no | D<n> |
+# rows found in DECISIONS.md", since the router holds zero rows), and
+# scripts/verify-decision-split.sh's Map-drift check compares id *sets*
+# only, so editing this file to reflect a re-file has no detectable effect
+# either way. Re-filing an id between domain files today means moving its
+# row directly in decisions/**; the ongoing guard for the result is
+# scripts/check-decision-ids.sh, not this map or its verifier.
 # IDs are unpadded here (01, 40, 183) but keep original padding in DECISIONS.md rows (D01, D40, D183).
-# To re-file decisions: edit this map and re-run the verifier in Task 2.
 
 architecture: 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17
 database: 20 21 22 23 24 25 26 27 28 74 95 135 136 137

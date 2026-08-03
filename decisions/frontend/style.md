@@ -2,10 +2,10 @@
 status: canonical
 scope: decisions/frontend/style
 read-when: why a CSS token/primitive/typography/spacing choice was made
-load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface
+load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-08-02
+updated: 2026-08-03
 -->
 
 | # | Source | Decision | Rationale |

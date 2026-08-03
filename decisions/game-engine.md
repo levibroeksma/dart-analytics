@@ -4,7 +4,7 @@ scope: decisions/game-engine
 read-when: why an engine/ruleset/scoring/checkout choice was made
 load-when: engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training
 depends-on: decisions/architecture.md, decisions/database.md
-related: decisions/api.md, decisions/testing.md
+related: decisions/api.md, decisions/testing.md, decisions/frontend/architecture.md
 updated: 2026-08-02
 -->
 

@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# SPENT one-shot migration tooling (2026-08-02), retained for provenance
+# only. Proves the historical split-decisions.sh run was lossless against an
+# ephemeral /tmp snapshot that does not survive a fresh clone — most checks
+# below legitimately SKIP once that snapshot is gone, and an all-SKIP run
+# still exits non-zero (see the exit-code note near the bottom). This script
+# is not the ongoing guard for the split ledger: scripts/check-decision-ids.sh
+# is, and it needs no snapshot.
+#
 # Verifies scripts/split-decisions.sh moved every decision losslessly.
 #
 # Compares /tmp/decisions-before.tsv (the pre-migration snapshot

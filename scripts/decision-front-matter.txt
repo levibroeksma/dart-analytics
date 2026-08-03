@@ -1,4 +1,11 @@
-# Sidecar for scripts/split-decisions.sh's front-matter injection.
+# Sidecar for scripts/split-decisions.sh's front-matter injection. SPENT
+# one-shot migration tooling (2026-08-02), retained for provenance only —
+# not a live source for a domain file's front-matter. Editing this file has
+# no effect after the split: split-decisions.sh now refuses to run (the
+# ledger it reads from holds zero rows), so nothing ever re-reads this
+# sidecar again. To change a domain file's own load-when/depends-on/related,
+# edit that file's front-matter directly; scripts/check-decision-ids.sh is
+# the ongoing guard, not this file.
 #
 # One block per target path from scripts/decision-map.txt, delimited by
 # `=== <path> ===` / `=== end ===`. Block body is copied verbatim between the

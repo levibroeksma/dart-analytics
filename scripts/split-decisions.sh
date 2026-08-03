@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPENT one-shot migration tooling (ran once, 2026-08-02), retained for
+# provenance only. DECISIONS.md now holds zero `| D<n> |` rows (it was
+# reduced to a router by that run), so step 1 below finds nothing and this
+# script hard-fails every time it is invoked again — that is expected, not a
+# regression. scripts/check-decision-ids.sh is the ongoing guard for the
+# split ledger; this script is not meant to run again.
+#
 # Migrates DECISIONS.md's per-decision table rows into decisions/<path>.md
 # domain files, per scripts/decision-map.txt (D01-D183, see that file's header
 # for the id-gap and zero-padding notes).
@@ -40,7 +47,10 @@
 # touches decisions/ at all — a failure anywhere in 4-5 leaves decisions/
 # completely untouched.
 #
-# Idempotent: safe to re-run, each target file is fully rewritten each time.
+# Idempotent: safe to re-run, each target file is fully rewritten each time —
+# was true only while DECISIONS.md still held its rows. Now that it is a
+# router (zero rows), step 1 finds nothing and the script exits with a hard
+# failure instead of rewriting anything. See the SPENT-tooling note above.
 #
 # Blind spots:
 #   - Assumes one decision row per physical line in DECISIONS.md's tables

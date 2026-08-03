@@ -111,7 +111,7 @@ This file is a router and gatekeeper. Work following it involves context discove
 - **Grep** — verify conventions, cross-reference rules, check doc links
 - **Glob** — find files by pattern when validating file location rules
 - **Bash** — run validation scripts (`scripts/check-*.sh`, `scripts/refresh-graph.sh`) and git commands
-- **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, context map entries
+- **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, `decisions/**`, context map entries
 
 ## Restrict
 
