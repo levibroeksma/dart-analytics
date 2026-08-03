@@ -413,3 +413,30 @@ Invoke the `context-maintenance` skill for the items it owns. Note the irony to 
 ```bash
 git add -A && git commit -m "Final verification pass for CI-owned graph refresh" || echo "nothing to commit"
 ```
+
+---
+
+## Status note (2026-08-03, appended after execution — plan text above left as written)
+
+**Task 3 Step 1 item 7 and Step 4 of this plan were wrong.** Both specified
+`git diff --quiet graphify-out/graph.json` as the refresh job's commit gate.
+`graphify update .` stamps `built_at_commit = HEAD` on every rebuild, so that
+byte diff reports "changed" on every push to `main` even when no node or link
+moved. The consequence was not cosmetic: the designed no-op path was
+unreachable, and `chore/graph-refresh` would be force-pushed on every merge,
+each force-push dismissing the PR's approvals so the PR carrying the real
+graph could never hold a green approved state long enough to land — the same
+silent staleness this plan exists to close, moved one hop downstream.
+
+This plan contradicted its own spec, which recorded under "Facts established by
+measurement" that a naive byte-diff gate "would fail on every CI run even when
+the graph is semantically unchanged. Any comparison must normalise that field
+away." D185's Consequences clause says the same. The implementer followed the
+literal instruction; two review rounds on `graph.yml` caught a script-injection
+vector and a `pipefail` abort but not this. The final whole-branch review
+caught it.
+
+Shipped instead (commit 8bfb8bc): the gate reads `grep -qx identical
+/tmp/graph-delta.txt`, using the normalising helper the plan already required
+for the PR body. A missing, empty, or substring-only delta file reads as
+changed, erring toward committing a correct graph rather than skipping one.
