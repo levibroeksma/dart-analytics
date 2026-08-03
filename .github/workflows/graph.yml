@@ -161,6 +161,7 @@ jobs:
       # matches nothing aborts the step, so without this the delta job's
       # non-blocking guarantee would rest on graph-delta.py's exact print wording.
       - name: Compute delta and render comment body
+        id: render
         continue-on-error: true
         run: |
           DELTA_OUTPUT="$(python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json)"
@@ -180,8 +181,15 @@ jobs:
             echo "Committed ${OLD_NODES} / ${OLD_LINKS} → rebuilt ${NEW_NODES} / ${NEW_LINKS}"
             echo "The graph is refreshed automatically after merge (\`graph.yml\`)."
           } > /tmp/graph-delta-body.md
+          echo "rendered=true" >> "$GITHUB_OUTPUT"
 
+      # Gated on the body actually being written. continue-on-error above forces
+      # the previous step's conclusion to success, so without this gate a hard
+      # failure there (unreachable interpreter, say) would reach readFileSync on
+      # a file that was never written -- leaving any stale comment in place with
+      # only a step icon as the signal.
       - name: Post or update delta comment
+        if: steps.render.outputs.rendered == 'true'
         continue-on-error: true
         uses: actions/github-script@v7
         with:
