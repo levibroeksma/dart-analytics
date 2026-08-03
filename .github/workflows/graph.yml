@@ -40,11 +40,19 @@ jobs:
       - name: Compute delta
         run: python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json | tee /tmp/graph-delta.txt
 
+      # Gate on the NORMALISED comparison, not `git diff --quiet`. graphify stamps
+      # built_at_commit = HEAD on every rebuild, so a byte diff reports "changed"
+      # on every push to main even when no node or link moved -- which would
+      # force-push chore/graph-refresh and reset its PR's approvals forever,
+      # stalling the graph that PR is meant to land. graph-delta.py prints the
+      # literal `identical` exactly when node/link content matches, ignoring the
+      # stamp. If the delta file is missing or unreadable, this reads as changed,
+      # which errs toward committing a correct graph rather than skipping one.
       - name: Check for changes
         id: check
         run: |
-          if git diff --quiet graphify-out/graph.json; then
-            echo "graph already current"
+          if grep -qx identical /tmp/graph-delta.txt; then
+            echo "graph already current (content unchanged; built_at_commit stamp ignored)"
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -135,8 +143,14 @@ jobs:
               );
             }
 
+  # Skips fork PRs (their token cannot comment, so it must skip rather than fail)
+  # and the refresh job's own PR, whose entire content is the graph -- a delta
+  # comment there would restate the PR body against the branch it just built.
   delta:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: |
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.head_ref != 'chore/graph-refresh'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
