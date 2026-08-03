@@ -74,8 +74,13 @@ def normalise(nodes, links):
 
 
 def node_ids(nodes):
-    """Set of node ids, independent of any other field (community, etc.)."""
-    return {n.get("id", "?") for n in nodes}
+    """Set of node ids as strings, independent of any other field (community, etc.).
+
+    Stringified because the caller both hashes these and sorts them: a list or
+    dict id is unhashable, and mixing string with numeric ids makes sorted()
+    raise. Real graphify ids are already strings, so this only affects
+    malformed input, where reporting beats crashing."""
+    return {str(n.get("id", "?")) for n in nodes}
 
 
 def main():
