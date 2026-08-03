@@ -47,4 +47,4 @@ if ! python3 -c "import tree_sitter_sql" 2>/dev/null; then
   soft_or_fail "WARN: graphifyy[sql] extra missing — refusing to rebuild (SQL files would vanish, see spec 2026-07-14)"
 fi
 graphify update .   # canonical command — empirically determined in Task 2 (see note above); do not swap back to `graphify extract . --update`, it demands an LLM API key
-echo "graph refreshed: graphify-out/graph.json (stage it if changed)"
+echo "graph refreshed: graphify-out/graph.json (nothing to stage — freshness is CI-owned, D185)"
