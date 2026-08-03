@@ -7,7 +7,7 @@ updated: 2026-08-02
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. The 163 individual decisions (D01–D183, 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All 164 decisions (D01–D184: 163 migrated table rows plus D184's block, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -23,12 +23,12 @@ updated: 2026-08-02
 | Game engines | `decisions/game-engine.md` | engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training |
 | Testing | `decisions/testing.md` | test, TDD, Vitest, mock, coverage |
 | Frontend architecture | `decisions/frontend/architecture.md` | layering, folder structure, suffix, barrel, type import, error mapping, API client |
-| Frontend Astro | `decisions/frontend/astro.md` | .astro, component, prerender, routing, layout, cn(), props, frontmatter |
+| Frontend Astro | `decisions/frontend/astro.md` | .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area |
 | Frontend Alpine | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show |
-| Frontend style | `decisions/frontend/style.md` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface |
-| Context & documentation system | `decisions/context-system.md` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI |
+| Frontend style | `decisions/frontend/style.md` | style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area |
+| Context & documentation system | `decisions/context-system.md` | docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky |
 
-Each domain file's own front-matter carries the same `load-when` list plus `depends-on`/`related` — load those directly rather than re-deriving them here.
+Each domain file's own front-matter carries the same `load-when` list plus `depends-on`/`related` — load those directly rather than re-deriving them here. `depends-on` files are assumed and load alongside the target file every time; `related` files are adjacent, load them only when the task actually spans domains.
 
 ## Deferred (open, not rejected)
 
@@ -40,7 +40,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 
 ## How to add a decision
 
-Append a new block to the file matching the decision's domain (routing table above). Never create a new decision file without also adding it to the routing table and `scripts/decision-map.txt`.
+Append a new block to the file matching the decision's domain (routing table above), after the existing table, at the end of the file — never inside it. Never create a new decision file without also adding it to the routing table above; `scripts/check-decision-ids.sh` fails any `decisions/**` file missing from this table.
 
 - Next id is the current maximum plus one (`D184` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
 - Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
