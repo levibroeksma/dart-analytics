@@ -103,17 +103,15 @@ function ringMidRadius(zoneKey: DartZoneKey): number | null {
   if (zoneKey === "TREBLE") {
     return (BOARD_RADII_MM.trebleInner + BOARD_RADII_MM.trebleOuter) / 2;
   }
-  if (zoneKey === "SINGLE") {
-    return (BOARD_RADII_MM.trebleOuter + BOARD_RADII_MM.doubleInner) / 2;
-  }
   return null;
 }
 
 /**
- * The aim point of a declared target: the centre of the named zone on the
- * named number. This is the reference a miss margin is measured from, and it
- * is derived here so the client, the Worker and the read layer all measure
- * from the same point.
+ * The aim point of a declared target, used as the reference a miss margin is
+ * measured from. Answers for `DOUBLE`, `TREBLE`, `INNER_BULL` and
+ * `OUTER_BULL`, where the zone has one centre. Returns `null` for `SINGLE`,
+ * because a single spans two disjoint bands (inner and outer) with no single
+ * centre to name, and for `MISS`, which has no target.
  */
 export function zoneCentroid(
   targetNumber: number | null,

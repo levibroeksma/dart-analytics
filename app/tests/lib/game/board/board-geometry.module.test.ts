@@ -133,4 +133,8 @@ describe("zoneCentroid", () => {
   it("has no centroid for a miss", () => {
     expect(zoneCentroid(null, "MISS")).toBeNull();
   });
+
+  it("has no centroid for a single, which spans two disjoint bands", () => {
+    expect(zoneCentroid(20, "SINGLE")).toBeNull();
+  });
 });
