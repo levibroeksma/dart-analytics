@@ -10,7 +10,7 @@
 
 ## Prerequisite
 
-**Plan 1 (`2026-08-05-visual-board-capture-core.md`) must be merged first.** This plan seeds capability rows for `ANALYTICS + VISUAL_BOARD`, which is only honest once the engines from plan 1 can actually produce dart-level facts. Seed `0005` (the `VISUAL_BOARD` input mode) comes from plan 1, whose chain ends at migration `0018`. This plan owns `0019`–`0021` and creates the capability table itself.
+**Plan 1 (`2026-08-05-visual-board-capture-core.md`) must be merged first.** This plan seeds capability rows for `ANALYTICS + VISUAL_BOARD`, which is only honest once the engines from plan 1 can actually produce dart-level facts. Seeds `0005` (the `VISUAL_BOARD` input mode) and `0006` (the `INNER_SINGLE`/`OUTER_SINGLE` dart zones) come from plan 1, whose chain ends at migration `0018`. This plan owns `0019`–`0021` and creates the capability table itself.
 
 ## Global Constraints
 
@@ -156,7 +156,7 @@ const VISUAL_BOARD: ModePair = {
  * registry and by the Worker's session-creation path so a mode no engine can
  * satisfy is refused on both sides.
  *
- * `database/seeds/0006_ruleset_version_capabilities.sql` mirrors this table
+ * `database/seeds/0007_ruleset_version_capabilities.sql` mirrors this table
  * into `ruleset_version_capabilities`, and a parity test proves the two agree.
  * Adding a pair here without adding the seed row leaves the database rejecting
  * sessions the code accepts.
@@ -246,7 +246,7 @@ Create `database/migrations/0019_ruleset_version_capabilities.sql`:
 -- Declare which capture/input mode combinations each ruleset
 -- version supports.
 --
--- Seeded by database/seeds/0006; migration 0020 adds the
+-- Seeded by database/seeds/0007; migration 0020 adds the
 -- composite foreign key from exercise_sessions once those rows
 -- exist. The three-way split (table -> seed -> FK) is forced
 -- by the apply order: seeds run after migrations.
@@ -277,7 +277,7 @@ DROP TABLE IF EXISTS ruleset_version_capabilities;
 - [ ] **Step 2: Apply and verify**
 
 Run: `cd app && npm run db:migrate && npx dbmate --url "$DATABASE_URL" query "SELECT COUNT(*) FROM ruleset_version_capabilities;"`
-Expected: applies; returns `0` — the table exists and is empty until seed `0006`.
+Expected: applies; returns `0` — the table exists and is empty until seed `0007`.
 
 - [ ] **Step 3: Re-introspect**
 
@@ -296,7 +296,7 @@ git commit -m "Add the ruleset version capability table"
 ### Task 2: Seed the capability table
 
 **Files:**
-- Create: `database/seeds/0006_ruleset_version_capabilities.sql`
+- Create: `database/seeds/0007_ruleset_version_capabilities.sql`
 - Modify: `database/README.md`
 
 **Interfaces:**
@@ -327,11 +327,11 @@ Expected: the distinct combinations in use. **Every row returned must appear in 
 
 - [ ] **Step 2: Write the seed**
 
-Create `database/seeds/0006_ruleset_version_capabilities.sql`:
+Create `database/seeds/0007_ruleset_version_capabilities.sql`:
 
 ```sql
 -- ============================================================
--- Seed: 0006_ruleset_version_capabilities.sql
+-- Seed: 0007_ruleset_version_capabilities.sql
 --
 -- Declares which capture/input mode combination each ruleset
 -- version supports. Mirrors app/src/lib/game/rulesets/
@@ -399,12 +399,12 @@ Expected: `0`. **Any other number means Task 4 will fail** — add the missing p
 
 - [ ] **Step 5: Register the seed**
 
-Add `0006_ruleset_version_capabilities.sql` to `database/README.md`'s `## Seed Order` list, following the existing formatting.
+Add `0007_ruleset_version_capabilities.sql` to `database/README.md`'s `## Seed Order` list, following the existing formatting.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add database/seeds/0006_ruleset_version_capabilities.sql database/README.md
+git add database/seeds/0007_ruleset_version_capabilities.sql database/README.md
 git commit -m "Seed ruleset version capability rows"
 ```
 
@@ -433,7 +433,7 @@ import { RULESET_CAPABILITIES } from "@lib/game/rulesets/capabilities";
 
 const seedPath = fileURLToPath(
   new URL(
-    "../../../../../database/seeds/0006_ruleset_version_capabilities.sql",
+    "../../../../../database/seeds/0007_ruleset_version_capabilities.sql",
     import.meta.url,
   ),
 );
@@ -495,10 +495,10 @@ git commit -m "Guard capability constant against seed drift"
 - Modify: `app/DEPLOYMENT.md`
 
 **Interfaces:**
-- Consumes: seed `0006` (Task 2).
+- Consumes: seed `0007` (Task 2).
 - Produces: `fk_sessions_capability` on `exercise_sessions`.
 
-**This migration fails on any populated database if seed `0006` has not run.** That is the single most likely way this change breaks a deploy, so it is documented in three places.
+**This migration fails on any populated database if seed `0007` has not run.** That is the single most likely way this change breaks a deploy, so it is documented in three places.
 
 - [ ] **Step 1: Re-verify the precondition**
 
@@ -518,7 +518,7 @@ Create `database/migrations/0020_session_capability_fk.sql`:
 -- unstorable: exercise_sessions gains a composite foreign key
 -- to ruleset_version_capabilities.
 --
--- PREREQUISITE: database/seeds/0006_ruleset_version_
+-- PREREQUISITE: database/seeds/0007_ruleset_version_
 -- capabilities.sql MUST have been applied first. Seeds run
 -- after migrations in the standard flow, so this migration is
 -- deliberately separated from 0019 (which creates the table)
@@ -584,7 +584,7 @@ npm run db:migrate     # 0020 adds the composite FK
 npm run db:introspect
 ```
 
-Add a sentence stating that `0020` requires seed `0006` and fails without it.
+Add a sentence stating that `0020` requires seed `0007` and fails without it.
 
 In `app/DEPLOYMENT.md`, add the same three-phase order to the deploy steps, with the same warning.
 
@@ -1616,7 +1616,7 @@ Add `v_player_settings` contract rows to `06-Spec/05-Read-Model-Layer.md` and `0
 
 - [ ] **Step 4: Update the migration chain**
 
-In `03-Migrations.md`, extend the chain to `0021`, describing `0019` (capability table), `0020` (capability composite FK, **requires seed `0006` first**) and `0021` (`v_player_settings`).
+In `03-Migrations.md`, extend the chain to `0021`, describing `0019` (capability table), `0020` (capability composite FK, **requires seed `0007` first**) and `0021` (`v_player_settings`).
 
 - [ ] **Step 5: Append the decisions**
 

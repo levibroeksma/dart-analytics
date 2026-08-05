@@ -1850,6 +1850,16 @@ git commit -m "Add dart-level capture to the Score Training engine"
 
 ---
 
+### Task 11b: Distinguish inner and outer single bands
+
+**Added 2026-08-05 by owner decision, mid-execution.** A single is two disjoint bands — inner (15.9–97 mm) and outer (107–162 mm) — separated by the treble ring, and both are analytically meaningful: a miss vector against a single target is uncomputable without knowing the band. `dart_zones` gains seeded rows 7 `INNER_SINGLE` and 8 `OUTER_SINGLE`; `DartZoneKey` gains both and **retains** bare `SINGLE` for keypad capture, which has no coordinate and cannot know its band. `classify()` never returns bare `SINGLE`; `zoneCentroid()` answers for both bands and still returns `null` for the unbanded value.
+
+Full task text: `.superpowers/sdd/task-11b-brief.md`. Seed is `database/seeds/0006_single_band_dart_zones.sql`; no migration is required, as `dart_zones` is a seeded lookup.
+
+This supersedes the earlier decision that `zoneCentroid` returns `null` for singles — that resolution stands only for the unbanded `SINGLE` value.
+
+---
+
 ### Task 12: 501 records dart-level visits
 
 **Files:**
