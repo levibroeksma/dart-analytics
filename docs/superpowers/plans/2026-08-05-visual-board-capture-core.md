@@ -350,6 +350,8 @@ export function zoneCentroid(
 }
 ```
 
+**Reconciliation note (Task 15, 2026-08-05).** The `SINGLE` branches in `classify()` and `ringMidRadius()` shown above were removed in `74006ea` and replaced with the `INNER_SINGLE`/`OUTER_SINGLE` split by Task 11b below — this code block is what Task 1 actually shipped at the time, not what the file contains after Task 11b landed. The shipped, current version is `app/src/lib/game/board/board-geometry.module.ts`; this plan is a point-in-time record and is not rewritten to match later tasks (`docs/CLAUDE.md`).
+
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `cd app && npx vitest run tests/lib/game/board/board-geometry.module.test.ts`

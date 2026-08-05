@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-07-11
+updated: 2026-08-05
 -->
 
 # Database SQL Artifacts
@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/   # ordered schema migrations (0001–0016)
+├── migrations/   # ordered schema migrations (0001–0018)
 └── seeds/        # controlled reference/system data
 ```
 

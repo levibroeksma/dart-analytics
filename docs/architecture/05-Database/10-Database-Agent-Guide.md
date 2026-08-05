@@ -233,8 +233,8 @@ docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── ...
 database/
-├── migrations/0001–0016.sql
-└── seeds/0001–0002.sql, 0003_game_engine_reference.sql, 0004_score_training_minutes_preset.sql
+├── migrations/0001–0018.sql
+└── seeds/0001–0002.sql, 0003_game_engine_reference.sql, 0004_score_training_minutes_preset.sql, 0005_visual_board_input_mode.sql, 0006_single_band_dart_zones.sql
 ```
 
 ---

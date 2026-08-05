@@ -6,7 +6,7 @@ updated: 2026-08-07
 -->
 # Context Map
 
-> **Version:** 1.7.14 (2026-08-07 — D187: Alpine closure rule for UI module instances — an Alpine factory driving a `modules/ui/*` class keeps the instance in the factory closure, never on `this.*`, since Alpine's deep-proxied reactive state throws when an ES private field is read through the Proxy (renumbered from a draft D185 during rebase onto main, which had already taken D185/D186 for the graph-CI-ownership decisions via PR #70); Setup Toggle integration design/plan registered; `03-Alpine-Patterns.md` →0.2.3; prior 1.7.13 — D186: `graph.yml`'s PR creation is contingent on the repo's "Allow GitHub Actions to create and approve pull requests" setting, off by default; the job now degrades to a pushed `chore/graph-refresh` branch plus a run summary instead of failing, measured on the first real post-merge run; `graph.yml` File Inventory row updated; prior 1.7.12 — graph freshness moved to CI: `.github/workflows/graph.yml` + `scripts/graph-delta.py` registered in File Inventory; `graphify-out/graph.json` row updated to state it is CI-maintained (still `generated`, still never hand-edited); D185 records the decision, and the corresponding local-refresh/completion-report language dropped from root+`app` `CLAUDE.md`/`AGENT.md`, the `context-maintenance` skill, the `validate-app` skill (which still told agents to record the warning and stage the graph — it is `app/CLAUDE.md`'s named sole validation procedure, so it would have produced a fifth staleness disclosure), `app/README.md`, and this file's Knowledge graph conventions row; prior 1.7.11 — final whole-branch review fixes for the decision-ledger split: D135/D136 re-filed database.md→context-system.md (counts 12/28, deploy/Prettier/format/husky added to its `load-when` + router row); PWA/manifest/icon/safe-area added to frontend/astro.md + frontend/style.md `load-when` + router rows; "Why was X decided?" pack-row regex-skip fixed (single `~2.5k` cell, real ~2.3k–5.8k range moved to prose); Authority Order now names `decisions/**` explicitly; `01-Rendering-Strategy.md`'s stale `DECISIONS.md` citation row repointed at the 3 domain files that actually hold D79/D80/D88/D97/D98/D172; decision-ledger migration tooling (split-decisions.sh, verify-decision-split.sh, decision-map.txt, decision-front-matter.txt) registered as spent/historical; `scripts/check-decision-ids.sh` gains row-hash and registration checks (`scripts/decision-row-hashes.tsv` added); prior 1.7.10 — `scripts/check-decision-ids.sh` registered under Cross-cutting mechanical guards: durable id-integrity gate for the split ledger, position-anchored against darts `D<n>` notation; prior 1.7.9 — decision ledger split registered: `DECISIONS.md` is now a router, its 163 decisions live in 10 `decisions/**` domain files; File Inventory's single `DECISIONS.md` row replaced with 11 rows (router + 10 domain files, each with its own `~Nk`); Context Packs "Why was X decided?" row repointed at the router + only the domain file(s) a task needs; prior 1.7.8 — 501 recreational v1 spec/plan + checkout-path module registered)
+> **Version:** 1.7.15 (2026-08-05 — visual board capture core plan 1, Task 15: migration range bumped to `0001`–`0018` throughout (`06-Spec/04-Runtime-Layer.md`, `06-Spec/05-Read-Model-Layer.md`, `05-Views.md`, `03-Migrations.md`, this file, `database/README.md`, `10-Database-Agent-Guide.md`, `docs/architecture/README.md`, `database/CLAUDE.md`/`AGENT.md`) closing the open `scripts/check-context-map.sh` gate failure recorded against `0017`; `06-Spec/04-Runtime-Layer.md` gains the shipped `location_x`/`location_y` shape, the ANALYTICS+VISUAL_BOARD capture-depth pairing, the QUICK_SCORE-scoped 501 bust limitation retitle + VISUAL_BOARD retirement note, and the `total_score` bust carve-out; `v_dart_locations` registered in `06-Spec/05-Read-Model-Layer.md` and `05-Views.md`; `board-geometry.module.ts`, `miss-margin.module.ts`, `visual-board.validator.ts` and seeds `0005`/`0006` registered in File Inventory; D188 (dart coordinates shipped, `decisions/database.md`) and D189 (mode-scoped bust visibility, `decisions/game-engine.md`) appended; operator handoff `docs/superpowers/handoffs/2026-08-05-visual-board-operator-checklist.md` added and registered — no real database in this container, so migrations `0017`/`0018` and seeds `0005`/`0006` ship unapplied; prior 1.7.14 — 2026-08-07 — D187: Alpine closure rule for UI module instances — an Alpine factory driving a `modules/ui/*` class keeps the instance in the factory closure, never on `this.*`, since Alpine's deep-proxied reactive state throws when an ES private field is read through the Proxy (renumbered from a draft D185 during rebase onto main, which had already taken D185/D186 for the graph-CI-ownership decisions via PR #70); Setup Toggle integration design/plan registered; `03-Alpine-Patterns.md` →0.2.3; prior 1.7.13 — D186: `graph.yml`'s PR creation is contingent on the repo's "Allow GitHub Actions to create and approve pull requests" setting, off by default; the job now degrades to a pushed `chore/graph-refresh` branch plus a run summary instead of failing, measured on the first real post-merge run; `graph.yml` File Inventory row updated; prior 1.7.12 — graph freshness moved to CI: `.github/workflows/graph.yml` + `scripts/graph-delta.py` registered in File Inventory; `graphify-out/graph.json` row updated to state it is CI-maintained (still `generated`, still never hand-edited); D185 records the decision, and the corresponding local-refresh/completion-report language dropped from root+`app` `CLAUDE.md`/`AGENT.md`, the `context-maintenance` skill, the `validate-app` skill (which still told agents to record the warning and stage the graph — it is `app/CLAUDE.md`'s named sole validation procedure, so it would have produced a fifth staleness disclosure), `app/README.md`, and this file's Knowledge graph conventions row; prior 1.7.11 — final whole-branch review fixes for the decision-ledger split: D135/D136 re-filed database.md→context-system.md (counts 12/28, deploy/Prettier/format/husky added to its `load-when` + router row); PWA/manifest/icon/safe-area added to frontend/astro.md + frontend/style.md `load-when` + router rows; "Why was X decided?" pack-row regex-skip fixed (single `~2.5k` cell, real ~2.3k–5.8k range moved to prose); Authority Order now names `decisions/**` explicitly; `01-Rendering-Strategy.md`'s stale `DECISIONS.md` citation row repointed at the 3 domain files that actually hold D79/D80/D88/D97/D98/D172; decision-ledger migration tooling (split-decisions.sh, verify-decision-split.sh, decision-map.txt, decision-front-matter.txt) registered as spent/historical; `scripts/check-decision-ids.sh` gains row-hash and registration checks (`scripts/decision-row-hashes.tsv` added); prior 1.7.10 — `scripts/check-decision-ids.sh` registered under Cross-cutting mechanical guards: durable id-integrity gate for the split ledger, position-anchored against darts `D<n>` notation; prior 1.7.9 — decision ledger split registered: `DECISIONS.md` is now a router, its 163 decisions live in 10 `decisions/**` domain files; File Inventory's single `DECISIONS.md` row replaced with 11 rows (router + 10 domain files, each with its own `~Nk`); Context Packs "Why was X decided?" row repointed at the router + only the domain file(s) a task needs; prior 1.7.8 — 501 recreational v1 spec/plan + checkout-path module registered)
 >
 > Single source for: what documentation exists, what each file answers, which files a task needs, and the authority order when documents conflict. Maintained under the mandatory Context Maintenance protocol in the root `CLAUDE.md`.
 
@@ -35,7 +35,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Actual per-task total varies with domain (router + testing.md, the smallest, runs ~2.3k; router + game-engine.md, the largest, runs ~5.8k) — the single figure in the last column below prices only the router + the one example file named above. | ~2.5k |
-| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0016`; never patch applied files | ~3.5k |
+| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0018`; never patch applied files | ~3.5k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
 
@@ -54,7 +54,7 @@ When documents conflict, higher wins; correct the lower one:
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
 7. `03-Engineering-Workflow.md`
-8. SQL migrations `0001`–`0016` and seeds
+8. SQL migrations `0001`–`0018` and seeds
 9. Application code in `app/`
 
 If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
@@ -70,7 +70,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~7k |
+| `00-Context-Map.md` | This file — routing, packs, authority | canonical | ~9k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -82,15 +82,15 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~2.3k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0016` | canonical | ~3.5k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0018` | canonical | ~3.5k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
 | `05-Views.md` | View categories and replay rules | canonical | ~2.2k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types) | canonical | ~1.7k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
 | `06-Spec/03-Player-Layer.md` | players, player_settings | canonical | ~0.7k |
-| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics + 501 bust limitation (2026-07-26) | canonical | ~3.7k |
-| `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`) (2026-07-17) | canonical | ~1.7k |
+| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics, `location_x`/`location_y` shipped, VISUAL_BOARD capture depth, QUICK_SCORE-scoped 501 bust limitation + `total_score` bust carve-out (2026-08-05) | canonical | ~3.9k |
+| `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`), incl. `v_dart_locations` (2026-08-05) | canonical | ~2k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.3k |
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
@@ -122,10 +122,12 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0016` | Applied schema chain — never modify | canonical (applied) |
+| `migrations/0001`–`0018` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
 | `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |
+| `database/seeds/0005_visual_board_input_mode.sql` | `VISUAL_BOARD` input mode (2026-08-05) | canonical |
+| `database/seeds/0006_single_band_dart_zones.sql` | `INNER_SINGLE` (id 7) / `OUTER_SINGLE` (id 8) dart zones (D187, 2026-08-05) | canonical |
 
 ## Game engine code + mechanical guards
 
@@ -142,8 +144,11 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
 | `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
 | `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
+| `app/src/lib/game/board/board-geometry.module.ts` | Regulation board radii, clockwise sector order, `classify(x, y)` → `BoardHit` (target/zone/score), `zoneCentroid` (2026-08-05) | canonical |
+| `app/src/lib/game/board/miss-margin.module.ts` | Distance + bearing from a dart's landing point to its declared zone's centroid; deliberately outside SQL — see `v_dart_locations` (2026-08-05) | canonical |
 | `app/src/services/rulesets/quick-score.validator.ts` | Shared RECREATIONAL + QUICK_SCORE batch rules (no dart rows, turn-total bound, ROUNDS attempt cap) (2026-07-26) | canonical |
 | `app/src/services/rulesets/tuod/tuod.validator.ts` | `TUOD_V1` config + batch validation, ladder-derived turn-total bound (2026-07-26) | canonical |
+| `app/src/services/rulesets/visual-board.validator.ts` | Re-derives every ANALYTICS + VISUAL_BOARD dart from its coordinate via `classify()`, refuses a batch that disagrees; `isVisualBoardCapture` predicate shared with the engines (2026-08-05) | canonical |
 | `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 | `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel **type** import deeper than the importing file's own folder or the area root (value imports exempt, D156); blind spots documented in its header (2026-07-26) | canonical |
@@ -185,9 +190,9 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.8k |
 | `decisions/architecture.md` | 18 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~1.2k |
-| `decisions/database.md` | 12 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~0.8k |
+| `decisions/database.md` | 13 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~1.1k |
 | `decisions/api.md` | 29 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker | canonical | ~2.1k |
-| `decisions/game-engine.md` | 26 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |
+| `decisions/game-engine.md` | 27 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |
 | `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
 | `decisions/frontend/architecture.md` | 14 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client | canonical | ~2k |
 | `decisions/frontend/astro.md` | 14 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~1.5k |
@@ -230,6 +235,9 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | `docs/superpowers/plans/2026-08-01-501-recreational-v1.md` | The 10-task plan implementing that spec: checkout-path module, shared-component reuse fixes, setup/play data factories, play UI, validation pass (2026-08-01) | historical |
 | `docs/superpowers/specs/2026-08-07-setup-toggle-integration-design.md` | Setup Toggle integration design: `modules/ui` Toggle class, closure-held Alpine factory, `x-model`/`x-modelable` binding to `scoreTrainingSetup` (2026-08-07) | historical |
 | `docs/superpowers/plans/2026-08-07-setup-toggle-integration.md` | The 4-task plan implementing that spec: Toggle module + types barrel, `lib/ui` Alpine factory, setup form/`$watch`/submit wiring, docs + verification (2026-08-07) | historical |
+| `docs/superpowers/specs/2026-08-05-visual-board-input-design.md` | Visual board input design: tap-to-throw capture, shared `classify(x, y)` geometry, spatial facts goal, split into three plans (2026-08-05) | historical |
+| `docs/superpowers/plans/2026-08-05-visual-board-capture-core.md` | Plan 1 (this branch, complete): board-geometry/miss-margin modules, migrations `0017`/`0018`, seeds `0005`/`0006`, `INNER_SINGLE`/`OUTER_SINGLE` bands (D187), both engines' visual paths, `v_dart_locations` (2026-08-05) | historical |
+| `docs/superpowers/handoffs/2026-08-05-visual-board-operator-checklist.md` | Operator checklist: apply migrations `0017`/`0018` + seeds `0005`/`0006`, `drizzle-kit introspect` diff against the hand-written `schema.ts` coordinate columns, `chk_dart_location_pair` rejection check, `v_dart_locations` angle-convention check, bust-vs-scoreless divergence check — none doable in-session, no database in this environment (2026-08-05) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
@@ -254,8 +262,8 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | Area | Status |
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
-| Migrations | `0001`–`0016` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13) |
-| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope; both TUOD presets verified against `TuodConfig` — unchanged), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26), `0004` Score Training minutes preset realigned to 5 (2026-07-31) |
+| Migrations | `0001`–`0018` complete; `0015` time-semantics constraints, `0016` replay/overview rebuild + `v_configuration_presets` (2026-07-13); `0017` dart location columns (`chk_dart_location_pair`) + two `player_settings` FKs, `0018` `v_dart_locations` (2026-08-05) |
+| Seeds | `0001` reference data, `0002` default templates (Singles/501 presets corrected to V1 scope; both TUOD presets verified against `TuodConfig` — unchanged), `0003` `BOBS27` + `DOUBLES_TRAINING` reference data (2026-07-26), `0004` Score Training minutes preset realigned to 5 (2026-07-31), `0005` `VISUAL_BOARD` input mode, `0006` `INNER_SINGLE`/`OUTER_SINGLE` dart zones (D187, 2026-08-05) |
 | Game engines | All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract (D138–D141, D153): config-driven, fact-log-owning, rehydratable; six ruleset validators registered; guarded by `scripts/check-game-engines.sh` + `scripts/check-refinement-coverage.sh`. Review fixes D149–D152: batch request schema mirrors the write path's column CHECKs, `state()`/`facts()` return derived copies, `completedAt` stamped at visit resolution, undo depth documented (2026-07-26) |
 | Database spec | `06-Database-Specification.md` v2.2.0 — split into `06-Spec/` chapters (2026-07-11) |
 | Database handbook | `00`–`11` complete |

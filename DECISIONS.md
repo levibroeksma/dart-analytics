@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-08-05
+updated: 2026-08-05 (D188/D189)
 -->
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. All 167 decisions (D01–D187: 163 migrated table rows plus D184's, D185's, D186's and D187's blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All 169 decisions (D01–D189: 163 migrated table rows plus D184's, D185's, D186's, D187's, D188's and D189's blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -32,7 +32,7 @@ Each domain file's own front-matter carries the same `load-when` list plus `depe
 
 ## Deferred (open, not rejected)
 
-ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12; raw notes: `docs/game-rules/routines/`) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · dart coordinates `location_x/y` (P67, until UI capture) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · player_settings endpoints (2026-07-13) · configuration-preset CRUD (2026-07-13) · PATCH /api/players/me rename (2026-07-13) · per-dart thrown_at timestamp (2026-07-13) · 501 capture mode — DETAILED_DARTS, or a schema revision adding an attempted-score / void-visit fact, so a bust stops being indistinguishable from a scoreless visit and bust rate + true checkout attempts become computable (2026-07-26) · `scripts/check-context-map.sh` false positive — its migration-range regex cannot tell a seed range from a migration range, so a seed chain quoted as ending at 0003 is compared against the migration chain end and fails; worked around by rewording the affected doc line, script deliberately left unfixed (2026-07-26)
+ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12; raw notes: `docs/game-rules/routines/`) · multi-session activities (2026-07-12) · guest/DartBot participants (2026-07-12) · `board_segments` lookup (P37) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · player_settings endpoints (2026-07-13) · configuration-preset CRUD (2026-07-13) · PATCH /api/players/me rename (2026-07-13) · per-dart thrown_at timestamp (2026-07-13) · 501 capture mode — DETAILED_DARTS, or a schema revision adding an attempted-score / void-visit fact, so a bust stops being indistinguishable from a scoreless visit and bust rate + true checkout attempts become computable (2026-07-26) · `scripts/check-context-map.sh` false positive — its migration-range regex cannot tell a seed range from a migration range, so a seed chain quoted as ending at 0003 is compared against the migration chain end and fails; worked around by rewording the affected doc line, script deliberately left unfixed (2026-07-26)
 
 ## Facts vs. decisions
 
@@ -42,7 +42,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 
 Append a new block to the file matching the decision's domain (routing table above), after the existing table, at the end of the file — never inside it. Never create a new decision file without also adding it to the routing table above; `scripts/check-decision-ids.sh` fails any `decisions/**` file missing from this table.
 
-- Next id is the current maximum plus one (`D185` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
+- Next id is the current maximum plus one (`D190` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
 - Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
 - Block format:
 
@@ -59,4 +59,4 @@ Supersedes: D86
 
 ## ID-gap note
 
-Ids are non-contiguous: 167 decisions exist (163 migrated rows plus D184, D185, D186 and D187), the highest is `D187`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: 169 decisions exist (163 migrated rows plus D184, D185, D186, D187, D188 and D189), the highest is `D189`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.

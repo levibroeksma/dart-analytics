@@ -5,7 +5,7 @@ read-when: why a schema/migration/view/index/seed choice was made
 load-when: schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/game-engine.md
-updated: 2026-08-03
+updated: 2026-08-05
 -->
 
 | # | Source | Decision | Rationale |
@@ -22,3 +22,9 @@ updated: 2026-08-03
 | D74 | 2026-07-13 | Migration `0016` rebuilds `v_game_replay` (LEFT JOIN darts, `turn_total_score`, `stage_id`/`parent_stage_id`) and floors `v_session_overview.duration_seconds` | Recreational + nested-stage replay; integer DTO contract |
 | D95 | 2026-07-15 | Reversed connection-string contract per user-verified `neonctl link` output: `DATABASE_URL` = pooled (tooling: dbmate, drizzle-kit), `DATABASE_URL_UNPOOLED` = direct (Worker runtime `getDb()`); `DATABASE_URL_POOLED` eliminated entirely, no manually-maintained alias | Matches Neon's real 5-variable output exactly; supersedes commit `a2be0eb`'s unverified reverse assumption |
 | D137 | 2026-07-24 | Local Neon env: `npm run env:dev` / `env:prod` pull branch vars into `.env` / `.env.production` and mirror `PUBLIC_NEON_AUTH_BASE_URL`; `npm run dev` runs `env:dev` first; never pull `main` into `.env` | Neon CLI omits Astro `PUBLIC_` keys; deploy must not leave local `astro dev` on production |
+
+### D188 — Dart coordinates ship as regulation millimetres with a pair-or-neither constraint
+Status: Accepted · Date: 2026-08-05
+Decision: `darts.location_x` / `darts.location_y` ship as `NUMERIC(6, 2)` millimetres, origin at the bull centre, y increasing downward to match `dartboard.svg` (migration `0017`). Both columns are nullable, but never independently: `chk_dart_location_pair` rejects one present without the other. `v_dart_locations` (migration `0018`) exposes them plus derived `radius_mm` / `angle_degrees`; miss margin needs a zone centroid, which stays out of SQL entirely and is computed in the application read layer (`app/src/lib/game/board/miss-margin.module.ts`) instead.
+Reason: A landing point is one fact, not two independently-optional columns — the CHECK constraint makes "half a coordinate" unrepresentable rather than a client-side convention. This is the shipped shape that replaces the deferral recorded in `06-Spec/04-Runtime-Layer.md` ("`location_x`/`location_y` board coordinates are deferred"), now that the visual board UI can capture them.
+Consequences: Migration `0017` also adds the two `player_settings` foreign keys (`fk_player_settings_capture_mode`, `fk_player_settings_input_mode`) that `06-Spec/03-Player-Layer.md` specified but `0003` never created — bundled because both were reviewed together and neither is separable from the other in that migration. No capability table ships alongside this pair; it is deferred to a later plan.
