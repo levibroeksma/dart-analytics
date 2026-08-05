@@ -1820,8 +1820,7 @@ and the `wouldComplete` visual branch above passes `this.state().turnCount + 1` 
   wouldComplete(input: ScoreTrainingInput): boolean {
     if (this.inputMode === "VISUAL_BOARD") {
       const turn = this.openTurn();
-      const closesVisit = !turn || turn.darts.length === DARTS_PER_VISIT - 1;
-      if (!closesVisit) return false;
+      if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
       return this.completesAt(this.state().turnCount + 1);
     }
 
@@ -2077,6 +2076,8 @@ const DARTS_PER_VISIT = 3;
 `remainingBeforeVisit(visit)` is the leg's starting score minus the `totalScore` of every **earlier** turn in the same leg — add it as a private helper reading `this.turns`, and reuse the config's `startingScore`. `openLeg()`, `turnCountIn()` and `legStage()` already exist in this file; do not duplicate them.
 
 Dispatch from `record()` exactly as Task 11 does, and extend `undo()` with the per-dart branch, clearing `completedAt` and recomputing `totalScore` from the remaining darts, popping the turn when its last dart goes.
+
+**`wouldComplete()` — do not copy the shape this plan originally showed.** `openVisit()` returns `null` both at session start and right after a visit closes, which is exactly when the next dart *opens* a visit and cannot close anything. Guard with `if (!visit || visit.darts.length !== DARTS_PER_VISIT - 1) return false;` — only a dart landing in an already-open visit that holds two darts can complete it. 501 differs from Score Training in one way: a visit can also close early on a checkout or a bust, so `wouldComplete()` must additionally answer `true` when the dart under consideration would check out the final leg, regardless of how many darts the visit holds. Test both: a dart that opens a visit never completes the session, and a first-dart checkout on the last leg does. (Corrected 2026-08-05 after the same inverted condition shipped in Task 11 and was caught in review.)
 
 - [ ] **Step 5: Run test to verify it passes**
 
