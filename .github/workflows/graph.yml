@@ -105,6 +105,10 @@ jobs:
               base: "main",
             });
 
+            const branch = "chore/graph-refresh";
+            const compare =
+              `https://github.com/${context.repo.owner}/${context.repo.repo}/compare/main...${branch}?expand=1`;
+
             let pr;
             if (existing.length > 0) {
               pr = existing[0];
@@ -117,16 +121,52 @@ jobs:
               });
               core.notice(`Updated existing graph refresh PR #${pr.number}`);
             } else {
-              const { data: created } = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title,
-                head: "chore/graph-refresh",
-                base: "main",
-                body,
-              });
-              pr = created;
-              core.notice(`Opened graph refresh PR #${pr.number}`);
+              try {
+                const { data: created } = await github.rest.pulls.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title,
+                  head: branch,
+                  base: "main",
+                  body,
+                });
+                pr = created;
+                core.notice(`Opened graph refresh PR #${pr.number}`);
+              } catch (err) {
+                // The repo setting "Allow GitHub Actions to create and approve
+                // pull requests" is off, so GITHUB_TOKEN gets a 403 on POST
+                // /pulls. The refreshed graph is already pushed to the branch,
+                // so the work is not lost and failing the run would only paint
+                // main red on every merge -- noise that gets ignored, which is
+                // how staleness crept back in the first place. Surface it in the
+                // run summary instead. Any other error still fails the job.
+                const forbidden =
+                  err.status === 403 &&
+                  /not permitted to create or approve pull requests/i.test(err.message);
+                if (!forbidden) throw err;
+
+                core.warning(
+                  `Graph refreshed and pushed to ${branch}, but this repo does not ` +
+                  `allow GitHub Actions to open pull requests, so no PR was created.`
+                );
+                await core.summary
+                  .addHeading("Knowledge graph refreshed — PR not opened", 3)
+                  .addRaw(
+                    `The rebuilt graph is pushed to \`${branch}\`, but GitHub Actions ` +
+                    `is not permitted to create pull requests in this repository, so it ` +
+                    `could not open one.`
+                  )
+                  .addBreak()
+                  .addRaw(
+                    `**Open it manually:** [compare main...${branch}](${compare}) — ` +
+                    `or enable *Settings → Actions → General → Workflow permissions → ` +
+                    `"Allow GitHub Actions to create and approve pull requests"* and this ` +
+                    `becomes automatic.`
+                  )
+                  .addCodeBlock(body, "text")
+                  .write();
+                return;
+              }
             }
 
             try {
