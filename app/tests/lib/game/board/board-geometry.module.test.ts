@@ -41,7 +41,7 @@ describe("classify", () => {
   it("scores the inner single of 20", () => {
     expect(classify(0, -50)).toEqual({
       targetNumber: 20,
-      zoneKey: "SINGLE",
+      zoneKey: "INNER_SINGLE",
       score: 20,
     });
   });
@@ -49,15 +49,24 @@ describe("classify", () => {
   it("scores the outer single of 20", () => {
     expect(classify(0, -130)).toEqual({
       targetNumber: 20,
-      zoneKey: "SINGLE",
+      zoneKey: "OUTER_SINGLE",
       score: 20,
     });
+  });
+
+  it("splits the two single bands at the treble ring", () => {
+    expect(classify(0, -(BOARD_RADII_MM.trebleInner - 0.01)).zoneKey).toBe(
+      "INNER_SINGLE",
+    );
+    expect(classify(0, -BOARD_RADII_MM.trebleOuter).zoneKey).toBe(
+      "OUTER_SINGLE",
+    );
   });
 
   it("scores 3 straight down", () => {
     expect(classify(0, 130)).toEqual({
       targetNumber: 3,
-      zoneKey: "SINGLE",
+      zoneKey: "OUTER_SINGLE",
       score: 3,
     });
   });
@@ -65,7 +74,7 @@ describe("classify", () => {
   it("scores 6 straight right", () => {
     expect(classify(130, 0)).toEqual({
       targetNumber: 6,
-      zoneKey: "SINGLE",
+      zoneKey: "OUTER_SINGLE",
       score: 6,
     });
   });
@@ -73,7 +82,7 @@ describe("classify", () => {
   it("scores 11 straight left", () => {
     expect(classify(-130, 0)).toEqual({
       targetNumber: 11,
-      zoneKey: "SINGLE",
+      zoneKey: "OUTER_SINGLE",
       score: 11,
     });
   });
@@ -96,9 +105,11 @@ describe("classify", () => {
 
   it("treats each ring boundary as belonging to the outer ring", () => {
     expect(classify(0, -BOARD_RADII_MM.innerBull).zoneKey).toBe("OUTER_BULL");
-    expect(classify(0, -BOARD_RADII_MM.outerBull).zoneKey).toBe("SINGLE");
+    expect(classify(0, -BOARD_RADII_MM.outerBull).zoneKey).toBe("INNER_SINGLE");
     expect(classify(0, -BOARD_RADII_MM.trebleInner).zoneKey).toBe("TREBLE");
-    expect(classify(0, -BOARD_RADII_MM.trebleOuter).zoneKey).toBe("SINGLE");
+    expect(classify(0, -BOARD_RADII_MM.trebleOuter).zoneKey).toBe(
+      "OUTER_SINGLE",
+    );
     expect(classify(0, -BOARD_RADII_MM.doubleInner).zoneKey).toBe("DOUBLE");
     expect(classify(0, -BOARD_RADII_MM.doubleOuter).zoneKey).toBe("MISS");
   });
@@ -134,7 +145,20 @@ describe("zoneCentroid", () => {
     expect(zoneCentroid(null, "MISS")).toBeNull();
   });
 
-  it("has no centroid for a single, which spans two disjoint bands", () => {
+  it("puts the inner single 20 centroid between the bull and the treble", () => {
+    const centroid = zoneCentroid(20, "INNER_SINGLE");
+    expect(centroid).not.toBeNull();
+    expect(centroid!.x).toBeCloseTo(0, 6);
+    expect(centroid!.y).toBeCloseTo(-56.45, 6);
+  });
+
+  it("puts the outer single 20 centroid between the treble and the double", () => {
+    const centroid = zoneCentroid(20, "OUTER_SINGLE");
+    expect(centroid).not.toBeNull();
+    expect(centroid!.y).toBeCloseTo(-134.5, 6);
+  });
+
+  it("still has no centroid for an unbanded single", () => {
     expect(zoneCentroid(20, "SINGLE")).toBeNull();
   });
 });

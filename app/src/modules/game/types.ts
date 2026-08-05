@@ -111,8 +111,20 @@ export type TuodState = {
   timerExpired: boolean;
 };
 
+/**
+ * `SINGLE` is the unbanded value recorded by keypad capture, which has no
+ * coordinate and therefore cannot know its band; coordinate capture always
+ * resolves to `INNER_SINGLE` or `OUTER_SINGLE`.
+ */
 export type DartZoneKey =
-  "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";
+  | "SINGLE"
+  | "INNER_SINGLE"
+  | "OUTER_SINGLE"
+  | "DOUBLE"
+  | "TREBLE"
+  | "OUTER_BULL"
+  | "INNER_BULL"
+  | "MISS";
 
 export type StageTypeKey = "MATCH" | "SET" | "LEG" | "ROUND" | "EXERCISE_BLOCK";
 

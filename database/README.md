@@ -44,6 +44,7 @@ astro check
 3. `seeds/0003_game_engine_reference.sql`
 4. `seeds/0004_score_training_minutes_preset.sql`
 5. `seeds/0005_visual_board_input_mode.sql`
+6. `seeds/0006_single_band_dart_zones.sql`
 
 ## References
 

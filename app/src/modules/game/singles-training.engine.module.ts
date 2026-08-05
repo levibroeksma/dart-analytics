@@ -11,6 +11,7 @@ import type {
   BoardTarget,
   DartFact,
   DartObservation,
+  DartZoneKey,
   EngineFacts,
   SinglesTrainingState,
   StageFact,
@@ -36,6 +37,18 @@ export function initialSinglesTrainingState(): SinglesTrainingState {
   };
 }
 
+/**
+ * Every `DartZoneKey` a single ring can produce: the unbanded value keypad
+ * capture records, plus the two bands coordinate capture resolves to. Singles
+ * Training treats all three as equally valid single hits, differing only from
+ * DOUBLE and TREBLE in point value.
+ */
+const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
+  "SINGLE",
+  "INNER_SINGLE",
+  "OUTER_SINGLE",
+]);
+
 function trainingPointsFor(
   target: BoardTarget,
   config: SinglesSnapshot,
@@ -48,7 +61,7 @@ function trainingPointsFor(
     return 0;
   }
   if (observation.hitTargetNumber !== target.number) return 0;
-  if (observation.hitZoneKey === "SINGLE") return config.pointsSingle;
+  if (SINGLE_ZONE_KEYS.has(observation.hitZoneKey)) return config.pointsSingle;
   if (observation.hitZoneKey === "DOUBLE") return config.pointsDouble;
   if (observation.hitZoneKey === "TREBLE") return config.pointsTreble;
   return 0;

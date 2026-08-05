@@ -184,7 +184,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.8k |
-| `decisions/architecture.md` | 17 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~0.8k |
+| `decisions/architecture.md` | 18 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~1.2k |
 | `decisions/database.md` | 12 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~0.8k |
 | `decisions/api.md` | 29 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker | canonical | ~2.1k |
 | `decisions/game-engine.md` | 26 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |

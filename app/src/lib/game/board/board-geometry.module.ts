@@ -88,10 +88,11 @@ export function classify(x: number, y: number): BoardHit {
   const zoneKey: DartZoneKey =
     radius >= BOARD_RADII_MM.doubleInner
       ? "DOUBLE"
-      : radius >= BOARD_RADII_MM.trebleInner &&
-          radius < BOARD_RADII_MM.trebleOuter
-        ? "TREBLE"
-        : "SINGLE";
+      : radius >= BOARD_RADII_MM.trebleOuter
+        ? "OUTER_SINGLE"
+        : radius >= BOARD_RADII_MM.trebleInner
+          ? "TREBLE"
+          : "INNER_SINGLE";
 
   return { targetNumber, zoneKey, score: scoreFor(targetNumber, zoneKey) };
 }
@@ -103,15 +104,22 @@ function ringMidRadius(zoneKey: DartZoneKey): number | null {
   if (zoneKey === "TREBLE") {
     return (BOARD_RADII_MM.trebleInner + BOARD_RADII_MM.trebleOuter) / 2;
   }
+  if (zoneKey === "INNER_SINGLE") {
+    return (BOARD_RADII_MM.outerBull + BOARD_RADII_MM.trebleInner) / 2;
+  }
+  if (zoneKey === "OUTER_SINGLE") {
+    return (BOARD_RADII_MM.trebleOuter + BOARD_RADII_MM.doubleInner) / 2;
+  }
   return null;
 }
 
 /**
  * The aim point of a declared target, used as the reference a miss margin is
- * measured from. Answers for `DOUBLE`, `TREBLE`, `INNER_BULL` and
- * `OUTER_BULL`, where the zone has one centre. Returns `null` for `SINGLE`,
- * because a single spans two disjoint bands (inner and outer) with no single
- * centre to name, and for `MISS`, which has no target.
+ * measured from. Answers for `DOUBLE`, `TREBLE`, `INNER_SINGLE`,
+ * `OUTER_SINGLE`, `INNER_BULL` and `OUTER_BULL`, where the zone has one
+ * centre. Returns `null` for the bare `SINGLE` recorded by keypad capture,
+ * which spans two disjoint bands (inner and outer) with no single centre to
+ * name, and for `MISS`, which has no target.
  */
 export function zoneCentroid(
   targetNumber: number | null,

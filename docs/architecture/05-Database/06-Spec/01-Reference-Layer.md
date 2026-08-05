@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-07-13
+updated: 2026-08-05
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -288,7 +288,9 @@ Defines every valid dartboard scoring zone.
 
 Seeded values:
 
-- SINGLE
+- SINGLE (unbanded — recorded by keypad capture, which has no coordinate and cannot know its band)
+- INNER_SINGLE (15.9–97mm from the bull centre; coordinate capture resolves to this band or OUTER_SINGLE, never bare SINGLE)
+- OUTER_SINGLE (107–162mm from the bull centre)
 - DOUBLE
 - TREBLE
 - OUTER_BULL
