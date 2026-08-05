@@ -43,6 +43,7 @@ astro check
 2. `seeds/0002_default_templates.sql`
 3. `seeds/0003_game_engine_reference.sql`
 4. `seeds/0004_score_training_minutes_preset.sql`
+5. `seeds/0005_visual_board_input_mode.sql`
 
 ## References
 
