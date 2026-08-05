@@ -57,6 +57,9 @@ export type FiveOhOneVisitInput = {
   finishedOnDouble?: boolean;
 };
 
+/** 501 accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
+export type FiveOhOneInput = FiveOhOneVisitInput | DartObservation;
+
 /**
  * What one visit did to the leg it was thrown in. `scored` is what the turn
  * records — 0 for a bust, so the attempted value is never persisted as a turn

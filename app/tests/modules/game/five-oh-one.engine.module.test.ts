@@ -692,3 +692,177 @@ describe("FiveOhOneEngine — rehydration", () => {
     expect(resumed.undo()).toBe(false);
   });
 });
+
+describe("visual board capture", () => {
+  const config = {
+    startingScore: 501,
+    maxVisitScore: 180,
+    legsToWin: 1,
+  } as never;
+
+  const dartAt = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  const trebleTwenty = dartAt(0, -102);
+  const doubleTwenty = dartAt(0, -166);
+
+  it("deducts each dart from the remaining score as it lands", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingScore).toBe(441);
+
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingScore).toBe(381);
+  });
+
+  it("keeps dart rows with real scores when a visit busts", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 70 } as never,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const busted = engine.facts().turns.at(-1)!;
+    expect(busted.totalScore).toBe(0);
+    expect(busted.darts.map((dart) => dart.score)).toEqual([60, 60]);
+    expect(engine.state().remainingScore).toBe(70);
+  });
+
+  it("wins the leg on a double that reaches exactly zero", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 40 } as never,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(doubleTwenty);
+
+    expect(engine.isComplete()).toBe(true);
+    const turn = engine.facts().turns.at(-1)!;
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.totalScore).toBe(40);
+  });
+
+  it("does not win on a non-double that reaches zero", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 60 } as never,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.facts().turns.at(-1)!.totalScore).toBe(0);
+  });
+
+  it("undoes one dart at a time", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().remainingScore).toBe(441);
+  });
+
+  it("leaves quick-score behaviour unchanged", () => {
+    const engine = fiveOhOneEngineFactory.create(config) as FiveOhOneEngine;
+
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
+  });
+});
+
+describe("FiveOhOneEngine.wouldComplete — visual board", () => {
+  const config = {
+    startingScore: 40,
+    maxVisitScore: 180,
+    legsToWin: 1,
+  } as never;
+
+  const dartAt = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  const trebleTwenty = dartAt(0, -102);
+  const doubleTwenty = dartAt(0, -166);
+  const miss = dartAt(0, -190);
+
+  it("is false for a dart that merely opens a visit", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+  });
+
+  it("is true for a first-dart checkout on the final leg", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    expect(engine.wouldComplete(doubleTwenty)).toBe(true);
+  });
+
+  it("is false for a checkout that only wins a leg short of legsToWin", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), legsToWin: 2 } as never,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    expect(engine.wouldComplete(doubleTwenty)).toBe(false);
+  });
+
+  it("is false once a visit is open on two darts with no checkout dart", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 501 } as never,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+  });
+
+  it("does not mutate the fact log", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    const before = engine.facts();
+
+    expect(engine.wouldComplete(doubleTwenty)).toBe(true);
+    expect(engine.wouldComplete(miss)).toBe(false);
+
+    expect(engine.facts()).toEqual(before);
+  });
+});

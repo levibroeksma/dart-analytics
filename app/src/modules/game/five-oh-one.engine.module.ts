@@ -1,14 +1,20 @@
 import type { FiveOhOneSnapshot } from "@lib/types";
+import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
+  DartObservation,
   EngineFacts,
+  EngineInputMode,
+  FiveOhOneInput,
   FiveOhOneState,
   FiveOhOneVisitInput,
   FiveOhOneVisitOutcome,
   StageFact,
   TurnFact,
 } from "./types";
+
+const DARTS_PER_VISIT = 3;
 
 /**
  * Builds the `LEG` stage for leg `sequence`. Legs are root stages — 501 has no
@@ -136,7 +142,7 @@ export function applyFiveOhOneVisit(
  * reproduces the leg exactly.
  */
 export class FiveOhOneEngine implements GameEngine<
-  FiveOhOneVisitInput,
+  FiveOhOneInput,
   FiveOhOneState
 > {
   readonly rulesetVersionKey = "501_V1";
@@ -146,6 +152,7 @@ export class FiveOhOneEngine implements GameEngine<
   constructor(
     private readonly config: FiveOhOneSnapshot,
     prior?: EngineFacts,
+    private readonly inputMode: EngineInputMode = "QUICK_SCORE",
   ) {
     this.stages =
       prior && prior.stages.length > 0
@@ -185,6 +192,29 @@ export class FiveOhOneEngine implements GameEngine<
       .length;
   }
 
+  /** The visit still being thrown in the open leg, or null when the last one closed. */
+  private openVisit(): TurnFact | null {
+    const last = this.turns.at(-1);
+    if (!last || last.completedAt !== null) return null;
+    return last;
+  }
+
+  /**
+   * The leg's starting score minus the counted total of every earlier turn in
+   * the same leg — the score `visit` opened against, before any of its own
+   * darts were thrown.
+   */
+  private remainingBeforeVisit(visit: TurnFact): number {
+    const scoredBefore = this.turns
+      .filter(
+        (turn) =>
+          turn.stageClientKey === visit.stageClientKey &&
+          turn.sequence < visit.sequence,
+      )
+      .reduce((sum, turn) => sum + turn.totalScore, 0);
+    return this.config.startingScore - scoredBefore;
+  }
+
   /**
    * Appends one visit to the open leg, then opens the next leg's stage when
    * that visit won a leg and the match continues. Stages and turns move
@@ -192,7 +222,14 @@ export class FiveOhOneEngine implements GameEngine<
    * @throws when the score is out of range or the session has already ended;
    *   the fact log is left untouched.
    */
-  record(input: FiveOhOneVisitInput): FiveOhOneState {
+  record(input: FiveOhOneInput): FiveOhOneState {
+    if (this.inputMode === "VISUAL_BOARD") {
+      return this.recordDart(input as DartObservation);
+    }
+    return this.recordVisitTotal(input as FiveOhOneVisitInput);
+  }
+
+  private recordVisitTotal(input: FiveOhOneVisitInput): FiveOhOneState {
     const before = this.deriveState();
     const after = applyFiveOhOneVisit(before, input, this.config);
     const outcome = resolveFiveOhOneVisit(before.remainingScore, input);
@@ -215,14 +252,88 @@ export class FiveOhOneEngine implements GameEngine<
   }
 
   /**
+   * Records one dart. The visit closes when it busts, when it checks out on a
+   * double, or on the third dart.
+   *
+   * A busted visit keeps its dart rows and their real board scores while
+   * `totalScore` goes to 0 — counted zero, thrown non-zero. That divergence is
+   * the fact that makes bust rate computable, and it is why `totalScore` is
+   * not simply the sum of the visit's darts here.
+   */
+  private recordDart(observation: DartObservation): FiveOhOneState {
+    const resolved =
+      observation.locationX === null || observation.locationY === null
+        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
+        : classify(observation.locationX, observation.locationY);
+
+    const leg = this.openLeg();
+    let visit = this.openVisit();
+    if (!visit) {
+      visit = {
+        clientKey: crypto.randomUUID(),
+        stageClientKey: leg.clientKey,
+        sequence: this.turnCountIn(leg.clientKey) + 1,
+        completedAt: null,
+        totalScore: 0,
+        darts: [],
+      };
+      this.turns.push(visit);
+    }
+
+    visit.darts.push({
+      sequence: visit.darts.length + 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: resolved.targetNumber,
+      hitZoneKey: resolved.zoneKey,
+      score: resolved.score,
+      locationX: observation.locationX,
+      locationY: observation.locationY,
+    });
+
+    const remainingBefore = this.remainingBeforeVisit(visit);
+    const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
+    const remainingAfter = remainingBefore - thrown;
+    const checkedOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
+    const busted =
+      remainingAfter < 0 ||
+      remainingAfter === 1 ||
+      (remainingAfter === 0 && !checkedOut);
+
+    if (busted) {
+      visit.totalScore = 0;
+      visit.completedAt = new Date().toISOString();
+    } else {
+      visit.totalScore = thrown;
+      if (checkedOut || visit.darts.length === DARTS_PER_VISIT) {
+        visit.completedAt = new Date().toISOString();
+      }
+    }
+
+    if (checkedOut && this.deriveState().status !== "WON") {
+      this.stages.push(legStage(this.stages.length + 1));
+    }
+
+    return this.deriveState();
+  }
+
+  /**
    * Pops the last recorded visit, including one replayed from persisted facts,
    * and removes the leg stage that visit opened. The stage only goes when the
    * popped turn belonged to an earlier leg — that is exactly the case where
    * `record()` appended a stage — so undoing a visit played inside a new leg
-   * leaves that leg open.
-   * @returns true if a visit was removed; false if there was nothing to undo.
+   * leaves that leg open. Under `VISUAL_BOARD`, one dart goes at a time:
+   * popping a visit's only dart pops the visit itself, by the same rule;
+   * popping one of several darts instead clears `completedAt` and recomputes
+   * `totalScore` from the darts left behind, reopening the visit.
+   * @returns true if a dart or a visit was removed; false if there was
+   *   nothing to undo.
    */
   undo(): boolean {
+    if (this.inputMode === "VISUAL_BOARD") {
+      return this.undoDart();
+    }
+
     const removed = this.turns.pop();
     if (!removed) return false;
 
@@ -237,15 +348,86 @@ export class FiveOhOneEngine implements GameEngine<
     return true;
   }
 
+  private undoDart(): boolean {
+    const visit = this.turns.at(-1);
+    if (!visit) return false;
+
+    visit.darts.pop();
+
+    const openLeg = this.stages.at(-1);
+    if (
+      this.stages.length > 1 &&
+      openLeg &&
+      openLeg.clientKey !== visit.stageClientKey
+    ) {
+      this.stages.pop();
+    }
+
+    if (visit.darts.length === 0) {
+      this.turns.pop();
+      return true;
+    }
+
+    visit.totalScore = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
+    visit.completedAt = null;
+    return true;
+  }
+
+  /**
+   * Whether the dart under consideration would check out the final leg — the
+   * one 501 way a session can complete on a single dart, independent of how
+   * many darts the open visit already holds.
+   */
+  private dartChecksOutFinalLeg(
+    observation: DartObservation,
+    before: FiveOhOneState,
+  ): boolean {
+    const resolved =
+      observation.locationX === null || observation.locationY === null
+        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
+        : classify(observation.locationX, observation.locationY);
+
+    const remainingAfter = before.remainingScore - resolved.score;
+    const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
+    return checksOut && before.legsWon + 1 >= this.config.legsToWin;
+  }
+
+  /**
+   * Answers the finish-confirm gate under `VISUAL_BOARD` without touching the
+   * fact log. A dart that checks out the final leg completes the session
+   * whatever the open visit's dart count — the one way 501 can end on a
+   * single dart. Otherwise only a dart landing in an already-open visit
+   * holding two darts could close it by count, and closing a visit by count
+   * alone never wins 501 without a checkout, so that case answers false too.
+   */
+  private wouldCompleteDart(observation: DartObservation): boolean {
+    const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") return false;
+
+    if (this.dartChecksOutFinalLeg(observation, before)) return true;
+
+    const visit = this.openVisit();
+    if (!visit || visit.darts.length !== DARTS_PER_VISIT - 1) return false;
+    return false;
+  }
+
   /**
    * Answers the finish-confirm gate without touching the fact log. Only the
    * checkout that takes `legsWon` to `legsToWin` completes the session — a
    * checkout that merely wins a leg does not — and a visit `record()` would
    * reject never completes it either.
    */
-  wouldComplete(input: FiveOhOneVisitInput): boolean {
+  wouldComplete(input: FiveOhOneInput): boolean {
+    if (this.inputMode === "VISUAL_BOARD") {
+      return this.wouldCompleteDart(input as DartObservation);
+    }
+
+    const visitInput = input as FiveOhOneVisitInput;
     if (
-      !isPlayableVisitScore(input.scoreAttempted, this.config.maxVisitScore)
+      !isPlayableVisitScore(
+        visitInput.scoreAttempted,
+        this.config.maxVisitScore,
+      )
     ) {
       return false;
     }
@@ -253,7 +435,9 @@ export class FiveOhOneEngine implements GameEngine<
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
 
-    return applyFiveOhOneVisit(before, input, this.config).status === "WON";
+    return (
+      applyFiveOhOneVisit(before, visitInput, this.config).status === "WON"
+    );
   }
 
   isComplete(): boolean {
@@ -274,12 +458,16 @@ export class FiveOhOneEngine implements GameEngine<
 
 export const fiveOhOneEngineFactory: GameEngineFactory<
   FiveOhOneSnapshot,
-  FiveOhOneVisitInput,
+  FiveOhOneInput,
   FiveOhOneState
 > = {
   rulesetVersionKey: "501_V1",
-  create(config: FiveOhOneSnapshot, prior?: EngineFacts) {
-    return new FiveOhOneEngine(config, prior);
+  create(
+    config: FiveOhOneSnapshot,
+    prior?: EngineFacts,
+    inputMode?: EngineInputMode,
+  ) {
+    return new FiveOhOneEngine(config, prior, inputMode);
   },
 };
 
