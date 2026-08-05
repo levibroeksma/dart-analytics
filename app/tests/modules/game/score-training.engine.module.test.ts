@@ -266,3 +266,133 @@ describe("ScoreTrainingEngine.undo", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("visual board capture", () => {
+  const config = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+  } as never;
+
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: 0,
+    locationY: -180,
+  } as const;
+
+  it("opens a turn on the first dart and closes it on the third", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0]!.completedAt).toBeNull();
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const [turn] = engine.facts().turns;
+    expect(turn!.darts).toHaveLength(3);
+    expect(turn!.totalScore).toBe(180);
+    expect(turn!.completedAt).not.toBeNull();
+  });
+
+  it("stores each dart's landing coordinate", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+
+    expect(engine.facts().turns[0]!.darts[0]).toMatchObject({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      locationX: 0,
+      locationY: -102,
+    });
+  });
+
+  it("counts a miss as zero without a target number", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(miss);
+
+    expect(engine.facts().turns[0]!.darts[0]).toMatchObject({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      score: 0,
+    });
+    expect(engine.facts().turns[0]!.totalScore).toBe(0);
+  });
+
+  it("undoes one dart at a time and removes the turn it opened", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0]!.darts).toHaveLength(1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("rehydrates a part-thrown visit from persisted facts", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const revived = scoreTrainingEngineFactory.create(
+      config,
+      engine.facts(),
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    revived.record(trebleTwenty);
+
+    const [turn] = revived.facts().turns;
+    expect(turn!.darts).toHaveLength(3);
+    expect(turn!.totalScore).toBe(180);
+    expect(turn!.completedAt).not.toBeNull();
+  });
+
+  it("leaves quick-score behaviour unchanged", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+    ) as ScoreTrainingEngine;
+
+    engine.record(85);
+
+    const [turn] = engine.facts().turns;
+    expect(turn!.darts).toHaveLength(0);
+    expect(turn!.totalScore).toBe(85);
+  });
+});

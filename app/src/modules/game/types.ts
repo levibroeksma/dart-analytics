@@ -134,6 +134,12 @@ export type DartObservation = {
   locationY: number | null;
 };
 
+/** How a session feeds visits to an engine: a whole visit total, or one dart at a time. */
+export type EngineInputMode = "QUICK_SCORE" | "VISUAL_BOARD";
+
+/** Score Training accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
+export type ScoreTrainingInput = number | DartObservation;
+
 /**
  * One row of `darts`. `score` is the actual board score, never a game-specific
  * point value. The location pair is written together or not at all, mirroring

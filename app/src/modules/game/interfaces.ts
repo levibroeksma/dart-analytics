@@ -1,5 +1,5 @@
 import type { RulesetVersionKey } from "@lib/types";
-import type { EngineFacts } from "./types";
+import type { EngineFacts, EngineInputMode } from "./types";
 
 /**
  * Contract every game engine implements, regardless of ruleset. `TInput` is
@@ -29,5 +29,9 @@ export interface GameEngine<TInput, TState> {
  */
 export interface GameEngineFactory<TConfig, TInput, TState> {
   readonly rulesetVersionKey: RulesetVersionKey;
-  create(config: TConfig, prior?: EngineFacts): GameEngine<TInput, TState>;
+  create(
+    config: TConfig,
+    prior?: EngineFacts,
+    inputMode?: EngineInputMode,
+  ): GameEngine<TInput, TState>;
 }
