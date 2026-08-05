@@ -12,3 +12,17 @@ export type BoardHit = {
   zoneKey: DartZoneKey;
   score: number;
 };
+
+/** A dart as the read layer sees it, carrying declared intent and a landing point. */
+export type MissMarginInput = {
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+  locationX: number | null;
+  locationY: number | null;
+};
+
+/** How far from the declared aim point a dart landed, and in which direction. */
+export type MissMargin = {
+  distanceMm: number;
+  bearingDegrees: number;
+};
