@@ -179,6 +179,22 @@ export class FiveOhOneEngine implements GameEngine<
     return state;
   }
 
+  /**
+   * Classifies one board observation into the target, zone, and score it
+   * struck. A miss carries no coordinates, so it resolves to a scoreless
+   * `MISS` hit using the observation's own zone key rather than going through
+   * `classify()`.
+   */
+  private resolveObservation(observation: DartObservation) {
+    return observation.locationX === null || observation.locationY === null
+      ? {
+          targetNumber: null,
+          zoneKey: observation.hitZoneKey,
+          score: 0,
+        }
+      : classify(observation.locationX, observation.locationY);
+  }
+
   private openLeg(): StageFact {
     const stage = this.stages.at(-1);
     if (!stage) {
@@ -261,10 +277,7 @@ export class FiveOhOneEngine implements GameEngine<
    * not simply the sum of the visit's darts here.
    */
   private recordDart(observation: DartObservation): FiveOhOneState {
-    const resolved =
-      observation.locationX === null || observation.locationY === null
-        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
-        : classify(observation.locationX, observation.locationY);
+    const resolved = this.resolveObservation(observation);
 
     const leg = this.openLeg();
     let visit = this.openVisit();
@@ -310,11 +323,12 @@ export class FiveOhOneEngine implements GameEngine<
       }
     }
 
-    if (checkedOut && this.deriveState().status !== "WON") {
+    const after = this.deriveState();
+    if (checkedOut && after.status !== "WON") {
       this.stages.push(legStage(this.stages.length + 1));
     }
 
-    return this.deriveState();
+    return after;
   }
 
   /**
@@ -382,10 +396,7 @@ export class FiveOhOneEngine implements GameEngine<
     observation: DartObservation,
     before: FiveOhOneState,
   ): boolean {
-    const resolved =
-      observation.locationX === null || observation.locationY === null
-        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
-        : classify(observation.locationX, observation.locationY);
+    const resolved = this.resolveObservation(observation);
 
     const remainingAfter = before.remainingScore - resolved.score;
     const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
@@ -394,21 +405,16 @@ export class FiveOhOneEngine implements GameEngine<
 
   /**
    * Answers the finish-confirm gate under `VISUAL_BOARD` without touching the
-   * fact log. A dart that checks out the final leg completes the session
-   * whatever the open visit's dart count — the one way 501 can end on a
-   * single dart. Otherwise only a dart landing in an already-open visit
-   * holding two darts could close it by count, and closing a visit by count
-   * alone never wins 501 without a checkout, so that case answers false too.
+   * fact log. A dart that checks out the final leg completes the session —
+   * the one way a 501 session can complete, whatever the open visit's dart
+   * count. A dart count alone never completes a 501 session, so every other
+   * case answers false.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
 
-    if (this.dartChecksOutFinalLeg(observation, before)) return true;
-
-    const visit = this.openVisit();
-    if (!visit || visit.darts.length !== DARTS_PER_VISIT - 1) return false;
-    return false;
+    return this.dartChecksOutFinalLeg(observation, before);
   }
 
   /**

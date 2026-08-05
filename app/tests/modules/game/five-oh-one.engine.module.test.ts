@@ -866,3 +866,80 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     expect(engine.facts()).toEqual(before);
   });
 });
+
+describe("FiveOhOneEngine.undo — visual board", () => {
+  const dartAt = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  const trebleTwenty = dartAt(0, -102);
+  const doubleTwenty = dartAt(0, -166);
+
+  it("undoes a checkout thrown on the second dart of a visit, popping the newly-opened leg and leaving the first dart in the earlier leg", () => {
+    const config = {
+      startingScore: 100,
+      maxVisitScore: 180,
+      legsToWin: 2,
+    } as never;
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(doubleTwenty);
+    expect(engine.state()).toEqual({
+      remainingScore: 100,
+      legsWon: 1,
+      status: "IN_PROGRESS",
+    });
+    expect(engine.facts().stages).toHaveLength(2);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().stages).toHaveLength(1);
+    const reopened = engine.facts().turns.at(-1)!;
+    expect(reopened.darts).toHaveLength(1);
+    expect(reopened.darts[0].score).toBe(60);
+    expect(reopened.completedAt).toBeNull();
+    expect(engine.state()).toEqual({
+      remainingScore: 40,
+      legsWon: 0,
+      status: "IN_PROGRESS",
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().stages).toHaveLength(1);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state()).toEqual({
+      remainingScore: 100,
+      legsWon: 0,
+      status: "IN_PROGRESS",
+    });
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("leaves the stage list untouched when undoing a dart from an ordinary visit that never opened a leg", () => {
+    const config = {
+      startingScore: 501,
+      maxVisitScore: 180,
+      legsToWin: 2,
+    } as never;
+    const engine = fiveOhOneEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    const stagesBefore = engine.facts().stages;
+    expect(stagesBefore).toHaveLength(1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().stages).toHaveLength(1);
+    expect(engine.facts().stages).toEqual(stagesBefore);
+  });
+});
