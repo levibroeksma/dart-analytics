@@ -440,3 +440,28 @@ Shipped instead (commit 8bfb8bc): the gate reads `grep -qx identical
 /tmp/graph-delta.txt`, using the normalising helper the plan already required
 for the PR body. A missing, empty, or substring-only delta file reads as
 changed, erring toward committing a correct graph rather than skipping one.
+
+### Correction to the status note above (2026-08-03, same day)
+
+The note above overstated the defect, and the overstatement is recorded here
+rather than edited away. It claimed graphify "stamps `built_at_commit` = HEAD on
+every rebuild", so the byte-diff gate would fire on every push and the no-op
+path was unreachable. **That premise is false.** Measured directly afterwards:
+three empty commits, each followed by `bash scripts/refresh-graph.sh`, left
+`graphify-out/graph.json` byte-identical (same md5) with its stamp frozen at an
+older commit while HEAD moved three times. graphify restamps only when it
+actually rebuilds content, so `git diff --quiet` tracked content change closely
+and the force-push/approval-churn scenario was not reachable.
+
+The finding came from the final whole-branch review and was accepted, verified
+against a hand-edited stamp, and shipped before the premise itself was tested.
+The hand-edited test proved only that the two gates *can* disagree, not that
+production ever produces that state.
+
+The normalised gate in `8bfb8bc` is kept, on its own merits rather than the
+claimed ones: it keys on node/link content, so it will not force-push the
+refresh branch for a metadata-only rewrite (a stamp bump or a future schema
+field). Both gates are correct against graphify 0.9.32; this one is narrower.
+Commit `8bfb8bc`'s message and the comment it added to `graph.yml` both carried
+the false premise; the comment is corrected, the commit message stands as
+written since history is not rewritten.

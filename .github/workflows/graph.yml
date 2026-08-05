@@ -40,14 +40,17 @@ jobs:
       - name: Compute delta
         run: python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json | tee /tmp/graph-delta.txt
 
-      # Gate on the NORMALISED comparison, not `git diff --quiet`. graphify stamps
-      # built_at_commit = HEAD on every rebuild, so a byte diff reports "changed"
-      # on every push to main even when no node or link moved -- which would
-      # force-push chore/graph-refresh and reset its PR's approvals forever,
-      # stalling the graph that PR is meant to land. graph-delta.py prints the
-      # literal `identical` exactly when node/link content matches, ignoring the
-      # stamp. If the delta file is missing or unreadable, this reads as changed,
-      # which errs toward committing a correct graph rather than skipping one.
+      # Gate on the NORMALISED comparison rather than `git diff --quiet`.
+      # Measured 2026-08-03: graphify writes built_at_commit = HEAD only when it
+      # actually rewrites the graph -- three empty commits with a rebuild after
+      # each left the file byte-identical and the stamp frozen -- so a byte diff
+      # does NOT fire on every push, and either gate would work today. This one
+      # is used because it keys on the thing we care about: a byte diff would also
+      # commit on a metadata-only rewrite (a stamp bump or a future schema field)
+      # and force-push chore/graph-refresh for a graph whose content did not move.
+      # graph-delta.py prints the literal `identical` exactly when node/link
+      # content matches. If the delta file is missing or unreadable this reads as
+      # changed, erring toward committing a correct graph rather than skipping one.
       - name: Check for changes
         id: check
         run: |

@@ -12,6 +12,7 @@ Usage: graph-delta.py OLD.json NEW.json
 Exit code is always 0 — this reports, it does not judge.
 """
 import json
+import os
 import sys
 
 SAMPLE_CAP = 5
@@ -125,4 +126,14 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # A closing consumer (`graph-delta.py a b | head`) makes print raise
+    # BrokenPipeError, which exited 120 with a traceback -- the always-exit-0
+    # contract does not exempt the pipe. Python also warns at shutdown if it
+    # cannot flush stdout, so stdout is pointed at devnull before exiting.
+    try:
+        code = main()
+        sys.stdout.flush()
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        code = 0
+    sys.exit(code)
