@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-08-03
+updated: 2026-08-05
 -->
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. All 165 decisions (D01–D185: 163 migrated table rows plus D184's and D185's blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All 166 decisions (D01–D186: 163 migrated table rows plus D184's, D185's and D186's blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -59,4 +59,4 @@ Supersedes: D86
 
 ## ID-gap note
 
-Ids are non-contiguous: 165 decisions exist (163 migrated rows plus D184 and D185), the highest is `D185`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: 166 decisions exist (163 migrated rows plus D184, D185 and D186), the highest is `D186`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
