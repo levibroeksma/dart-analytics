@@ -18,7 +18,7 @@ Worktrees are not used in this repo — task branches are checked out directly i
 
 ## Knowledge Graph (graphify)
 
-One-time per clone (hooks are local, not committed):
+Freshness is CI-owned: `.github/workflows/graph.yml` rebuilds `graphify-out/graph.json` on every merge to `main` and opens a PR with the delta. Installing the CLI locally is optional — only useful for querying the graph while working:
 
 ```
 uv tool install graphifyy    # or: pipx install graphifyy
@@ -26,8 +26,9 @@ pip install "graphifyy[sql]" # REQUIRED — without it all SQL migrations vanish
 graphify hook install         # AST-only rebuild on commit
 ```
 
-- Rebuilds go through `scripts/refresh-graph.sh` (canonical flags; warns instead of failing when the CLI is absent). Record graph-not-refreshed in the completion report when it warns.
+- Rebuilds go through `scripts/refresh-graph.sh` (canonical flags; warns instead of failing when the CLI is absent locally — CI sets `GRAPH_REFRESH_STRICT=1`, where the same conditions are hard failures).
 - `graphify-out/graph.json` is committed; `graphify-out/graph.html` and the regenerable report are git-ignored.
+- If you install the commit hook, do not stage `graphify-out/graph.json` yourself — CI owns it (D185), and a local graph commit only creates a conflict against the `chore/graph-refresh` PR.
 - Extraction is AST-only — never configure an LLM API key for graphify (keeps it free/deterministic). Use `--code-only` so doc files do not trigger semantic extraction.
 - Query the graph to orient before searching: `graphify query/path/explain` (see root `CLAUDE.md`).
 

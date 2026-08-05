@@ -1,0 +1,240 @@
+name: graph
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'graphify-out/**'
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: graph-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install graphify
+        run: pip install 'graphifyy[sql]>=0.9.32,<0.10'
+
+      - name: Snapshot committed graph
+        run: cp graphify-out/graph.json /tmp/graph-before.json
+
+      - name: Refresh knowledge graph
+        run: GRAPH_REFRESH_STRICT=1 bash scripts/refresh-graph.sh
+
+      - name: Compute delta
+        run: python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json | tee /tmp/graph-delta.txt
+
+      # Gate on the NORMALISED comparison rather than `git diff --quiet`.
+      # Measured 2026-08-03: graphify writes built_at_commit = HEAD only when it
+      # actually rewrites the graph -- three empty commits with a rebuild after
+      # each left the file byte-identical and the stamp frozen -- so a byte diff
+      # does NOT fire on every push, and either gate would work today. This one
+      # is used because it keys on the thing we care about: a byte diff would also
+      # commit on a metadata-only rewrite (a stamp bump or a future schema field)
+      # and force-push chore/graph-refresh for a graph whose content did not move.
+      # graph-delta.py prints the literal `identical` exactly when node/link
+      # content matches. If the delta file is missing or unreadable this reads as
+      # changed, erring toward committing a correct graph rather than skipping one.
+      - name: Check for changes
+        id: check
+        run: |
+          if grep -qx identical /tmp/graph-delta.txt; then
+            echo "graph already current (content unchanged; built_at_commit stamp ignored)"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The delta text reaches this step as a file, never as a ${{ }} splice into
+      # the script: it contains node ids extracted by a third party (graphify,
+      # pinned only to a minor range), and raw interpolation would let a quote or
+      # backtick in one of them run as shell in a contents:write job.
+      - name: Write PR body
+        if: steps.check.outputs.changed == 'true'
+        env:
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          {
+            echo "Knowledge graph rebuilt from \`main\` @ ${MAIN_SHA}."
+            echo
+            echo '```'
+            cat /tmp/graph-delta.txt
+            echo '```'
+          } > /tmp/graph-pr-body.md
+
+      - name: Commit refreshed graph onto the reused branch
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C chore/graph-refresh
+          git add graphify-out/graph.json
+          git commit -m "chore(graph): refresh knowledge graph"
+          git push --force origin chore/graph-refresh
+
+      - name: Open or update the refresh PR
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("/tmp/graph-pr-body.md", "utf8");
+            const title = "chore(graph): refresh knowledge graph";
+
+            const { data: existing } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              head: `${context.repo.owner}:chore/graph-refresh`,
+              base: "main",
+            });
+
+            let pr;
+            if (existing.length > 0) {
+              pr = existing[0];
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                title,
+                body,
+              });
+              core.notice(`Updated existing graph refresh PR #${pr.number}`);
+            } else {
+              const { data: created } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                head: "chore/graph-refresh",
+                base: "main",
+                body,
+              });
+              pr = created;
+              core.notice(`Opened graph refresh PR #${pr.number}`);
+            }
+
+            try {
+              await github.graphql(
+                `mutation($id: ID!) {
+                  enablePullRequestAutoMerge(input: { pullRequestId: $id }) {
+                    clientMutationId
+                  }
+                }`,
+                { id: pr.node_id }
+              );
+              core.notice("Auto-merge enabled on the refresh PR.");
+            } catch (err) {
+              core.notice(
+                `Auto-merge not enabled (repo setting off, or branch protection ` +
+                `requirements unmet): ${err.message}`
+              );
+            }
+
+  # Skips fork PRs (their token cannot comment, so it must skip rather than fail)
+  # and the refresh job's own PR, whose entire content is the graph -- a delta
+  # comment there would restate the PR body against the branch it just built.
+  delta:
+    if: |
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.head_ref != 'chore/graph-refresh'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install graphify
+        run: pip install 'graphifyy[sql]>=0.9.32,<0.10'
+
+      - name: Snapshot committed graph
+        run: cp graphify-out/graph.json /tmp/graph-before.json
+
+      - name: Rebuild knowledge graph
+        run: GRAPH_REFRESH_STRICT=1 bash scripts/refresh-graph.sh
+
+      # continue-on-error because this job is informational: a parse miss must not
+      # turn a PR's checks red. Under the default `bash -eo pipefail`, a grep that
+      # matches nothing aborts the step, so without this the delta job's
+      # non-blocking guarantee would rest on graph-delta.py's exact print wording.
+      - name: Compute delta and render comment body
+        id: render
+        continue-on-error: true
+        run: |
+          DELTA_OUTPUT="$(python3 scripts/graph-delta.py /tmp/graph-before.json graphify-out/graph.json)"
+          echo "$DELTA_OUTPUT"
+
+          field() { echo "$DELTA_OUTPUT" | { grep "^$1:" || true; } | sed -E "s/.*$2=([+-]?[0-9]+).*/\1/"; }
+          OLD_NODES=$(field nodes old)
+          NEW_NODES=$(field nodes new)
+          NODE_DELTA=$(field nodes delta)
+          OLD_LINKS=$(field links old)
+          NEW_LINKS=$(field links new)
+          LINK_DELTA=$(field links delta)
+
+          {
+            echo "<!-- graph-delta -->"
+            echo "**Knowledge graph delta:** ${NODE_DELTA} nodes, ${LINK_DELTA} links"
+            echo "Committed ${OLD_NODES} / ${OLD_LINKS} → rebuilt ${NEW_NODES} / ${NEW_LINKS}"
+            echo "The graph is refreshed automatically after merge (\`graph.yml\`)."
+          } > /tmp/graph-delta-body.md
+          echo "rendered=true" >> "$GITHUB_OUTPUT"
+
+      # Gated on the body actually being written. continue-on-error above forces
+      # the previous step's conclusion to success, so without this gate a hard
+      # failure there (unreachable interpreter, say) would reach readFileSync on
+      # a file that was never written -- leaving any stale comment in place with
+      # only a step icon as the signal.
+      - name: Post or update delta comment
+        if: steps.render.outputs.rendered == 'true'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("/tmp/graph-delta-body.md", "utf8");
+            const marker = "<!-- graph-delta -->";
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }

@@ -47,7 +47,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 - **Consult before broad grep/exploration:** `graphify query "<question>"`, `graphify path "<A>" "<B>"`, `graphify explain "<entity>"`. Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
-- **Freshness is a completion-gate item** (see Context Maintenance below): git hooks auto-rebuild the graph at commit; the gate step is the backstop when hooks are absent. Setup for a fresh clone: see `app/CLAUDE.md`.
+- **Freshness is CI-owned**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main` and opens a PR; it is no longer a local completion-report item. A local CLI install is optional, for querying the graph while working — see `app/CLAUDE.md`.
 - **Scope caveat:** `.astro` files are only partially parsed (no tree-sitter grammar); TS/JS/SQL/Markdown are fully covered.
 
 ---
