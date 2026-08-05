@@ -465,25 +465,24 @@ git commit -m "Guard dartboard.svg against geometry-module drift"
 ### Task 3: Migration 0017 — coordinate columns
 
 **Files:**
-- Create: `database/migrations/0017_dart_locations_and_capabilities.sql`
+- Create: `database/migrations/0017_dart_locations.sql`
 
 **Interfaces:**
 - Consumes: nothing.
 - Produces: `darts.location_x`, `darts.location_y`, constraint `chk_dart_location_pair`.
 
-This migration also creates `ruleset_version_capabilities` and the two missing `player_settings` FKs, because plan 2 needs the table to exist before its seed runs and a single migration keeps the numbering honest. Plan 2 adds the composite FK in `0018`.
+This migration also adds the two missing `player_settings` FKs, correcting a documented-but-never-created constraint. It creates **no** capability table — that belongs entirely to plan 2, so this plan ships nothing it does not use.
 
 - [ ] **Step 1: Write the migration**
 
-Create `database/migrations/0017_dart_locations_and_capabilities.sql`:
+Create `database/migrations/0017_dart_locations.sql`:
 
 ```sql
 -- ============================================================
--- Migration: 0017_dart_locations_and_capabilities.sql
+-- Migration: 0017_dart_locations.sql
 --
 -- Purpose:
--- Capture where a dart landed, and declare which mode
--- combinations each ruleset version supports.
+-- Capture where a dart landed.
 --
 -- darts.location_x / location_y store the landing point in
 -- regulation millimetres, origin at the bull centre, y
@@ -491,13 +490,6 @@ Create `database/migrations/0017_dart_locations_and_capabilities.sql`:
 -- nullable: quick-score sessions write no dart rows at all,
 -- and a visual session records NULL for a dart whose landing
 -- point was never seen (bounce-out).
---
--- ruleset_version_capabilities is seeded by database/seeds/
--- 0005; migration 0018 adds the composite foreign key from
--- exercise_sessions once those rows exist. Splitting the two
--- is required: seeds run after migrations, so a foreign key
--- created here would be validated against existing sessions
--- before any capability row existed.
 --
 -- Also adds the two player_settings foreign keys that
 -- 06-Spec/03-Player-Layer.md specifies but migration 0003
@@ -524,23 +516,6 @@ ADD CONSTRAINT chk_dart_location_pair CHECK (
 COMMENT ON COLUMN darts.location_x IS 'Landing point, millimetres right of the bull centre.';
 COMMENT ON COLUMN darts.location_y IS 'Landing point, millimetres below the bull centre.';
 
-CREATE TABLE ruleset_version_capabilities (
-    ruleset_version_id UUID NOT NULL,
-    capture_mode_id SMALLINT NOT NULL,
-    input_mode_id SMALLINT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    CONSTRAINT pk_ruleset_version_capabilities PRIMARY KEY (
-        ruleset_version_id,
-        capture_mode_id,
-        input_mode_id
-    ),
-    CONSTRAINT fk_rvc_ruleset_version FOREIGN KEY (ruleset_version_id) REFERENCES ruleset_versions(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_rvc_capture_mode FOREIGN KEY (capture_mode_id) REFERENCES capture_modes(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_rvc_input_mode FOREIGN KEY (input_mode_id) REFERENCES input_modes(id) ON DELETE RESTRICT
-);
-
-COMMENT ON TABLE ruleset_version_capabilities IS 'Which capture/input mode combinations each ruleset version supports.';
-
 ALTER TABLE player_settings
 ADD CONSTRAINT fk_player_settings_capture_mode FOREIGN KEY (default_capture_mode_id) REFERENCES capture_modes(id) ON DELETE RESTRICT,
     ADD CONSTRAINT fk_player_settings_input_mode FOREIGN KEY (default_input_mode_id) REFERENCES input_modes(id) ON DELETE RESTRICT;
@@ -549,8 +524,6 @@ ADD CONSTRAINT fk_player_settings_capture_mode FOREIGN KEY (default_capture_mode
 ALTER TABLE player_settings
 DROP CONSTRAINT fk_player_settings_input_mode,
     DROP CONSTRAINT fk_player_settings_capture_mode;
-
-DROP TABLE IF EXISTS ruleset_version_capabilities;
 
 ALTER TABLE darts
 DROP CONSTRAINT chk_dart_location_pair;
@@ -563,7 +536,7 @@ DROP COLUMN location_y,
 - [ ] **Step 2: Apply the migration**
 
 Run: `cd app && npm run db:status && npm run db:migrate && npm run db:status`
-Expected: `0017_dart_locations_and_capabilities.sql` moves from pending to applied.
+Expected: `0017_dart_locations.sql` moves from pending to applied.
 
 - [ ] **Step 3: Verify the constraint rejects a half-set pair**
 
@@ -581,13 +554,13 @@ Expected: an error naming `chk_dart_location_pair` or `fk_darts_turn` — either
 - [ ] **Step 4: Re-introspect the Drizzle schema**
 
 Run: `cd app && npx drizzle-kit introspect`
-Expected: `app/src/db/schema.ts` gains `locationX` / `locationY` on `darts` and a `rulesetVersionCapabilities` table.
+Expected: `app/src/db/schema.ts` gains `locationX` / `locationY` on `darts`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add database/migrations/0017_dart_locations_and_capabilities.sql app/src/db/schema.ts
-git commit -m "Add dart location columns and ruleset capability table"
+git add database/migrations/0017_dart_locations.sql app/src/db/schema.ts
+git commit -m "Add dart location columns"
 ```
 
 ---
@@ -1801,21 +1774,7 @@ Replace `undo()` with:
   }
 ```
 
-Change `wouldComplete` and the factory:
-
-```typescript
-  wouldComplete(input: ScoreTrainingInput): boolean {
-    if (this.inputMode === "VISUAL_BOARD") {
-      const turn = this.openTurn();
-      const closesVisit = !turn || turn.darts.length === DARTS_PER_VISIT - 1;
-      if (!closesVisit) return false;
-      return this.completesAt(this.turns.length + (turn ? 0 : 1));
-    }
-
-    if (!this.isPlayable(input as number)) return false;
-    return this.completesAt(this.turns.length + 1);
-  }
-```
+Change the factory to pass the input mode through:
 
 ```typescript
 export const scoreTrainingEngineFactory: GameEngineFactory<
@@ -1834,7 +1793,9 @@ export const scoreTrainingEngineFactory: GameEngineFactory<
 };
 ```
 
-Note `completesAt` counts **closed** turns, so `state().turnCount` must not count a part-thrown visit. Change `state()` to:
+`completesAt(turnCount)` **keeps its parameter** — it stays a pure function of the count it is handed, so the single completion rule still serves both `isComplete()` (the count now) and `wouldComplete()` (the count one visit ahead). Do not change its body.
+
+What does change is the count each caller passes: a part-thrown visit is not a completed turn. Change `state()` to count only closed turns:
 
 ```typescript
   state(): ScoreTrainingState {
@@ -1845,7 +1806,29 @@ Note `completesAt` counts **closed** turns, so `state().turnCount` must not coun
   }
 ```
 
-and `isComplete()` / `completesAt()` to read `this.state().turnCount` rather than `this.turns.length`.
+Then `isComplete()` passes that closed count:
+
+```typescript
+  isComplete(): boolean {
+    return this.completesAt(this.state().turnCount);
+  }
+```
+
+and the `wouldComplete` visual branch above passes `this.state().turnCount + 1` — the count as it will stand once the visit in progress closes — rather than `this.turns.length`. Update the branch shown in this step accordingly:
+
+```typescript
+  wouldComplete(input: ScoreTrainingInput): boolean {
+    if (this.inputMode === "VISUAL_BOARD") {
+      const turn = this.openTurn();
+      const closesVisit = !turn || turn.darts.length === DARTS_PER_VISIT - 1;
+      if (!closesVisit) return false;
+      return this.completesAt(this.state().turnCount + 1);
+    }
+
+    if (!this.isPlayable(input as number)) return false;
+    return this.completesAt(this.state().turnCount + 1);
+  }
+```
 
 - [ ] **Step 6: Run test to verify it passes**
 
@@ -2108,23 +2091,23 @@ git commit -m "Add dart-level capture to the 501 engine, making busts visible"
 ### Task 13: `v_dart_locations` read model
 
 **Files:**
-- Create: `database/migrations/0019_dart_location_read_model.sql`
+- Create: `database/migrations/0018_dart_location_read_model.sql`
 
 **Interfaces:**
 - Consumes: `darts.location_x` / `location_y` (Task 3).
 - Produces: view `v_dart_locations`.
 
-Migration `0018` is reserved for plan 2's composite FK, so this view takes `0019`. If plan 2 has not landed when this runs, still use `0019` and leave `0018` for it — the numbers are labels, not a queue.
+This plan's chain is `0017` then `0018`, contiguous. Plan 2 continues from `0019`.
 
 The view carries **no board geometry**: radius and angle are plain arithmetic. Miss margin is derived in the app read layer from `zoneCentroid`, so there is exactly one definition of where a zone's centre is.
 
 - [ ] **Step 1: Write the migration**
 
-Create `database/migrations/0019_dart_location_read_model.sql`:
+Create `database/migrations/0018_dart_location_read_model.sql`:
 
 ```sql
 -- ============================================================
--- Migration: 0019_dart_location_read_model.sql
+-- Migration: 0018_dart_location_read_model.sql
 --
 -- Purpose:
 -- Expose dart landing coordinates for spatial analysis.
@@ -2204,7 +2187,7 @@ Expected: `up = 0`, `right_side = 90` — the same clockwise-from-vertical beari
 - [ ] **Step 4: Commit**
 
 ```bash
-git add database/migrations/0019_dart_location_read_model.sql
+git add database/migrations/0018_dart_location_read_model.sql
 git commit -m "Add v_dart_locations read model"
 ```
 
@@ -2436,7 +2419,7 @@ Add a `v_dart_locations` contract row to `06-Spec/05-Read-Model-Layer.md` and a 
 
 - [ ] **Step 6: Update the migration chain doc**
 
-In `05-Database/03-Migrations.md`, extend the chain description from `0001`–`0016` to `0001`–`0019`, describing `0017` (dart locations + capability table + player_settings FKs) and `0019` (`v_dart_locations`). Note that `0018` belongs to the capability plan.
+In `05-Database/03-Migrations.md`, extend the chain description from `0001`–`0016` to `0001`–`0018`, describing `0017` (dart location columns + the two `player_settings` FKs) and `0018` (`v_dart_locations`).
 
 - [ ] **Step 7: Append the decisions**
 
@@ -2475,7 +2458,7 @@ git commit -m "Document dart location capture and mode-scoped bust visibility"
 
 **Spec coverage.** Migration `0017` columns and constraint (Task 3); `VISUAL_BOARD` seed (Task 4); classifier and geometry (Task 1); SVG parity (Task 2); type widening (Tasks 5–6); batch schema mirror (Task 7); write path (Task 8); Worker re-classification (Task 9); validator routing (Task 10); both engines' visual paths, turn totals as sums, per-dart undo, rehydration, bust asymmetry (Tasks 11–12); `v_dart_locations` (Task 13); miss margin outside SQL (Task 14); every documentation edit and gate (Task 15).
 
-Deliberately deferred to plan 2, per the split: the capability **seed rows**, migration `0018`'s composite FK, the cross-runtime capability constant, `check-game-engines.sh`'s input-mode assertion, and the settings endpoints. Task 3 creates the capability *table* only, so plan 2's seed has somewhere to land.
+Deliberately deferred to plan 2, per the split: the capability table itself, its seed rows, the composite FK, the cross-runtime capability constant, `check-game-engines.sh`'s input-mode assertion, and the settings endpoints. This plan creates nothing it does not use.
 
 **Type consistency.** `classify` returns `BoardHit` in Tasks 1, 9, 11 and 12. `EngineInputMode` is defined once (Task 11) and reused in Task 12. `DartObservation` and `DartFact` carry `locationX` / `locationY` from Task 5 onward, including the Zod mirror in Task 7 and the Worker validator in Task 9. `zoneCentroid` is defined in Task 1 and consumed only in Task 14.
 

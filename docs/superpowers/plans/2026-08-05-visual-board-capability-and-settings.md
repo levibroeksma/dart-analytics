@@ -10,13 +10,13 @@
 
 ## Prerequisite
 
-**Plan 1 (`2026-08-05-visual-board-capture-core.md`) must be merged first.** This plan seeds capability rows for `ANALYTICS + VISUAL_BOARD`, which is only honest once the engines from plan 1 can actually produce dart-level facts. Migration `0017` (which creates `ruleset_version_capabilities`) and seed `0005` (the `VISUAL_BOARD` input mode) both come from plan 1.
+**Plan 1 (`2026-08-05-visual-board-capture-core.md`) must be merged first.** This plan seeds capability rows for `ANALYTICS + VISUAL_BOARD`, which is only honest once the engines from plan 1 can actually produce dart-level facts. Seed `0005` (the `VISUAL_BOARD` input mode) comes from plan 1, whose chain ends at migration `0018`. This plan owns `0019`–`0021` and creates the capability table itself.
 
 ## Global Constraints
 
 - The six existing ruleset version keys are `501_V1`, `TUOD_V1`, `SINGLES_V1`, `SCORE_TRAINING_V1`, `BOBS27_V1`, `DOUBLES_TRAINING_V1`.
 - Seeded lookup ids: `capture_modes` `1 RECREATIONAL`, `2 ANALYTICS`; `input_modes` `1 QUICK_SCORE`, `2 DETAILED_DARTS`, `3 VISUAL_BOARD`.
-- **Every mode combination any existing session already uses must be seeded before migration `0018` runs**, or the composite FK rejects live rows.
+- **Every mode combination any existing session already uses must be seeded before migration `0020` runs**, or the composite FK rejects live rows.
 - Input mode is chosen in the profile only. Setup pages inherit it and offer no override.
 - A game with an active session is never filtered out of the games page, whatever the current mode.
 - Missing `player_settings` row reads as `RECREATIONAL` + `QUICK_SCORE`; the row is created lazily on first write. No backfill.
@@ -223,6 +223,76 @@ git commit -m "Declare each ruleset version's supported mode pairs"
 
 ---
 
+### Task 1b: Migration 0019 — the capability table
+
+**Files:**
+- Create: `database/migrations/0019_ruleset_version_capabilities.sql`
+
+**Interfaces:**
+- Consumes: `ruleset_versions`, `capture_modes`, `input_modes`.
+- Produces: table `ruleset_version_capabilities`.
+
+The table and its foreign key are deliberately in **different** migrations with the seed between them: seeds run after migrations, so a composite FK created here would be validated against existing `exercise_sessions` rows before any capability row existed, and every one of them would violate it.
+
+- [ ] **Step 1: Write the migration**
+
+Create `database/migrations/0019_ruleset_version_capabilities.sql`:
+
+```sql
+-- ============================================================
+-- Migration: 0019_ruleset_version_capabilities.sql
+--
+-- Purpose:
+-- Declare which capture/input mode combinations each ruleset
+-- version supports.
+--
+-- Seeded by database/seeds/0006; migration 0020 adds the
+-- composite foreign key from exercise_sessions once those rows
+-- exist. The three-way split (table -> seed -> FK) is forced
+-- by the apply order: seeds run after migrations.
+-- ============================================================
+
+-- migrate:up
+CREATE TABLE ruleset_version_capabilities (
+    ruleset_version_id UUID NOT NULL,
+    capture_mode_id SMALLINT NOT NULL,
+    input_mode_id SMALLINT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT pk_ruleset_version_capabilities PRIMARY KEY (
+        ruleset_version_id,
+        capture_mode_id,
+        input_mode_id
+    ),
+    CONSTRAINT fk_rvc_ruleset_version FOREIGN KEY (ruleset_version_id) REFERENCES ruleset_versions(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_rvc_capture_mode FOREIGN KEY (capture_mode_id) REFERENCES capture_modes(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_rvc_input_mode FOREIGN KEY (input_mode_id) REFERENCES input_modes(id) ON DELETE RESTRICT
+);
+
+COMMENT ON TABLE ruleset_version_capabilities IS 'Which capture/input mode combinations each ruleset version supports.';
+
+-- migrate:down
+DROP TABLE IF EXISTS ruleset_version_capabilities;
+```
+
+- [ ] **Step 2: Apply and verify**
+
+Run: `cd app && npm run db:migrate && npx dbmate --url "$DATABASE_URL" query "SELECT COUNT(*) FROM ruleset_version_capabilities;"`
+Expected: applies; returns `0` — the table exists and is empty until seed `0006`.
+
+- [ ] **Step 3: Re-introspect**
+
+Run: `cd app && npx drizzle-kit introspect`
+Expected: `app/src/db/schema.ts` gains `rulesetVersionCapabilities`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add database/migrations/0019_ruleset_version_capabilities.sql app/src/db/schema.ts
+git commit -m "Add the ruleset version capability table"
+```
+
+---
+
 ### Task 2: Seed the capability table
 
 **Files:**
@@ -230,7 +300,7 @@ git commit -m "Declare each ruleset version's supported mode pairs"
 - Modify: `database/README.md`
 
 **Interfaces:**
-- Consumes: `ruleset_version_capabilities` (plan 1, migration `0017`).
+- Consumes: `ruleset_version_capabilities` (Task 1b, migration `0019`).
 - Produces: one row per declared pair, matching `RULESET_CAPABILITIES`.
 
 Every row must exist before Task 4's composite FK runs, including the pairs existing sessions already use.
@@ -267,7 +337,7 @@ Create `database/seeds/0006_ruleset_version_capabilities.sql`:
 -- version supports. Mirrors app/src/lib/game/rulesets/
 -- capabilities.ts; a parity test proves the two agree.
 --
--- Migration 0018 adds the composite foreign key from
+-- Migration 0020 adds the composite foreign key from
 -- exercise_sessions to this table, so every combination any
 -- existing session already uses MUST be present here before
 -- that migration runs.
@@ -417,10 +487,10 @@ git commit -m "Guard capability constant against seed drift"
 
 ---
 
-### Task 4: Migration 0018 — the composite foreign key
+### Task 4: Migration 0020 — the composite foreign key
 
 **Files:**
-- Create: `database/migrations/0018_session_capability_fk.sql`
+- Create: `database/migrations/0020_session_capability_fk.sql`
 - Modify: `database/README.md`
 - Modify: `app/DEPLOYMENT.md`
 
@@ -437,11 +507,11 @@ Expected: `0`. Do not proceed otherwise.
 
 - [ ] **Step 2: Write the migration**
 
-Create `database/migrations/0018_session_capability_fk.sql`:
+Create `database/migrations/0020_session_capability_fk.sql`:
 
 ```sql
 -- ============================================================
--- Migration: 0018_session_capability_fk.sql
+-- Migration: 0020_session_capability_fk.sql
 --
 -- Purpose:
 -- Make an undeclared capture/input mode combination physically
@@ -451,7 +521,7 @@ Create `database/migrations/0018_session_capability_fk.sql`:
 -- PREREQUISITE: database/seeds/0006_ruleset_version_
 -- capabilities.sql MUST have been applied first. Seeds run
 -- after migrations in the standard flow, so this migration is
--- deliberately separated from 0017 (which creates the table)
+-- deliberately separated from 0019 (which creates the table)
 -- and the apply order for this change is:
 --
 --   db:migrate (through 0017) -> db:seed -> db:migrate (0018)
@@ -481,7 +551,7 @@ DROP CONSTRAINT fk_sessions_capability;
 - [ ] **Step 3: Apply it**
 
 Run: `cd app && npm run db:migrate && npm run db:status`
-Expected: `0018_session_capability_fk.sql` applied.
+Expected: `0020_session_capability_fk.sql` applied.
 
 - [ ] **Step 4: Verify it refuses an undeclared combination**
 
@@ -508,13 +578,13 @@ In `database/README.md`, under `## Standard Local Flow`, replace the flow block 
 
 ```sh
 npm run db:status
-npm run db:migrate     # through 0017
+npm run db:migrate     # through 0019
 npm run db:seed        # 0006 fills the capability table
-npm run db:migrate     # 0018 adds the composite FK
+npm run db:migrate     # 0020 adds the composite FK
 npm run db:introspect
 ```
 
-Add a sentence stating that `0018` requires seed `0006` and fails without it.
+Add a sentence stating that `0020` requires seed `0006` and fails without it.
 
 In `app/DEPLOYMENT.md`, add the same three-phase order to the deploy steps, with the same warning.
 
@@ -526,7 +596,7 @@ Expected: `app/src/db/schema.ts` gains the composite FK.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add database/migrations/0018_session_capability_fk.sql database/README.md app/DEPLOYMENT.md app/src/db/schema.ts
+git add database/migrations/0020_session_capability_fk.sql database/README.md app/DEPLOYMENT.md app/src/db/schema.ts
 git commit -m "Enforce declared mode combinations with a composite FK"
 ```
 
@@ -729,7 +799,7 @@ git commit -m "Reject undeclared mode pairs at session creation"
 ### Task 7: `v_player_settings` read model
 
 **Files:**
-- Create: `database/migrations/0020_player_settings_read_model.sql`
+- Create: `database/migrations/0021_player_settings_read_model.sql`
 
 **Interfaces:**
 - Consumes: `player_settings`, `capture_modes`, `input_modes`.
@@ -739,11 +809,11 @@ Reads go through views; the API never selects from `player_settings` directly.
 
 - [ ] **Step 1: Write the migration**
 
-Create `database/migrations/0020_player_settings_read_model.sql`:
+Create `database/migrations/0021_player_settings_read_model.sql`:
 
 ```sql
 -- ============================================================
--- Migration: 0020_player_settings_read_model.sql
+-- Migration: 0021_player_settings_read_model.sql
 --
 -- Purpose:
 -- Expose player mode preferences as keys rather than ids.
@@ -777,7 +847,7 @@ Expected: applies; returns zero rows without error.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add database/migrations/0020_player_settings_read_model.sql
+git add database/migrations/0021_player_settings_read_model.sql
 git commit -m "Add v_player_settings read model"
 ```
 
@@ -1534,7 +1604,7 @@ history. This supersedes D60's deferral clause; the client no longer persists
 last-used modes locally.
 ```
 
-Also correct the Relationships section: the `capture_modes` / `input_modes` foreign keys it always claimed now genuinely exist, added in migration `0017`.
+Also correct the Relationships section: the `capture_modes` / `input_modes` foreign keys it always claimed now genuinely exist, added in plan 1's migration `0017`.
 
 - [ ] **Step 2: Document the endpoints**
 
@@ -1546,7 +1616,7 @@ Add `v_player_settings` contract rows to `06-Spec/05-Read-Model-Layer.md` and `0
 
 - [ ] **Step 4: Update the migration chain**
 
-In `03-Migrations.md`, extend the chain to `0020`, describing `0018` (capability composite FK, **requires seed `0006` first**) and `0020` (`v_player_settings`).
+In `03-Migrations.md`, extend the chain to `0021`, describing `0019` (capability table), `0020` (capability composite FK, **requires seed `0006` first**) and `0021` (`v_player_settings`).
 
 - [ ] **Step 5: Append the decisions**
 
@@ -1583,7 +1653,7 @@ git commit -m "Document capability declaration and player settings"
 
 ## Self-Review
 
-**Spec coverage.** Cross-runtime capability constant (Task 1); capability seed (Task 2); constant-seed parity (Task 3); migration `0018` composite FK with its apply-order documentation (Task 4); registry filtering and the extended engine gate (Task 5); session-creation rejection (Task 6); `v_player_settings` (Task 7); settings endpoints through controller/service/repository (Task 8); client and store (Task 9); profile form (Task 10); games filter, banner, empty state and the active-session guard (Task 11); all documentation and decisions (Task 12).
+**Spec coverage.** Cross-runtime capability constant (Task 1); capability table (Task 1b); capability seed (Task 2); constant-seed parity (Task 3); migration `0020` composite FK with its apply-order documentation (Task 4); registry filtering and the extended engine gate (Task 5); session-creation rejection (Task 6); `v_player_settings` (Task 7); settings endpoints through controller/service/repository (Task 8); client and store (Task 9); profile form (Task 10); games filter, banner, empty state and the active-session guard (Task 11); all documentation and decisions (Task 12).
 
 **Type consistency.** `ModePair` is defined once (Task 1) and consumed by `supportsMode` / `capableRulesets` throughout. `PlayerSettings` is defined in Task 8's service types and used identically by the repository, the API client and the store. `GameCardDescriptor` is defined in Task 11 and used only there. `capableRulesets` is consumed by Task 5's registry, Task 8's service and Task 11's visibility module with the same signature in each.
 
