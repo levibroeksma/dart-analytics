@@ -556,6 +556,8 @@ export async function appendBatch(
     config,
     batch,
     existingTurnCount,
+    captureModeKey: session.captureModeKey,
+    inputModeKey: session.inputModeKey,
   });
   if (!batchValidation.valid) {
     return {

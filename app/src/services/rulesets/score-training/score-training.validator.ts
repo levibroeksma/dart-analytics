@@ -6,6 +6,11 @@ import {
   isQuickScoreCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
+import {
+  isVisualBoardCapture,
+  validateVisualBoardTurns,
+} from "../visual-board.validator";
+import type { EventsBatchRequestInput } from "@routes/types";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
@@ -32,7 +37,31 @@ export const scoreTrainingValidator: RulesetValidator = {
     return { valid: true, config: parsed.data };
   },
 
-  validateBatch({ config, batch, existingTurnCount }): BatchValidationResult {
+  validateBatch({
+    config,
+    batch,
+    existingTurnCount,
+    captureModeKey,
+    inputModeKey,
+  }: {
+    config: Record<string, unknown>;
+    batch: EventsBatchRequestInput;
+    existingTurnCount: number;
+    captureModeKey: string;
+    inputModeKey: string;
+  }): BatchValidationResult {
+    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
+      return validateVisualBoardTurns(batch);
+    }
+
+    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+      return {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
+      };
+    }
+
     const maxVisitScore =
       (config.max_visit_score as number | undefined) ?? DEFAULT_MAX_VISIT_SCORE;
 

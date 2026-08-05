@@ -47,12 +47,14 @@ describe("findStageTypeIdMap", () => {
 });
 
 describe("findSessionRow", () => {
-  it("joins ruleset_versions to expose rulesetVersionKey", async () => {
+  it("joins ruleset_versions, capture_modes and input_modes to expose their keys", async () => {
     const row = {
       id: "s1",
       playerId: "p1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     };
     const db = { select: vi.fn(() => fakeSelect([row])) } as any;
     const { findSessionRow } = await import("@repositories/session.repository");

@@ -19,6 +19,8 @@ export interface SessionRow {
   playerId: string;
   statusId: number;
   rulesetVersionKey: string;
+  captureModeKey: string;
+  inputModeKey: string;
 }
 
 export interface IdempotencyRecord {
