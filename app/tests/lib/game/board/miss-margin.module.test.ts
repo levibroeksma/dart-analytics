@@ -92,4 +92,56 @@ describe("missMargin", () => {
 
     expect(margin).toBeNull();
   });
+
+  it("bearing 0 degrees when landing above the centroid", () => {
+    const margin = missMargin({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -112,
+    });
+
+    expect(margin).not.toBeNull();
+    expect(margin!.bearingDegrees).toBeCloseTo(0, 6);
+    expect(margin!.distanceMm).toBeCloseTo(10, 6);
+  });
+
+  it("bearing 180 degrees when landing below the centroid", () => {
+    const margin = missMargin({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -92,
+    });
+
+    expect(margin).not.toBeNull();
+    expect(margin!.bearingDegrees).toBeCloseTo(180, 6);
+    expect(margin!.distanceMm).toBeCloseTo(10, 6);
+  });
+
+  it("bearing 270 degrees when landing left of the centroid", () => {
+    const margin = missMargin({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+      locationX: -10,
+      locationY: -102,
+    });
+
+    expect(margin).not.toBeNull();
+    expect(margin!.bearingDegrees).toBeCloseTo(270, 6);
+    expect(margin!.distanceMm).toBeCloseTo(10, 6);
+  });
+
+  it("bearing 45 degrees when landing diagonally up-right", () => {
+    const margin = missMargin({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+      locationX: 10,
+      locationY: -112,
+    });
+
+    expect(margin).not.toBeNull();
+    expect(margin!.bearingDegrees).toBeCloseTo(45, 6);
+    expect(margin!.distanceMm).toBeCloseTo(Math.sqrt(200), 6);
+  });
 });
