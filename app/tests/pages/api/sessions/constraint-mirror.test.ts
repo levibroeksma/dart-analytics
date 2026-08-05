@@ -15,6 +15,8 @@ const validDart = {
   hitTargetNumber: 20,
   hitZoneKey: "SINGLE",
   score: 20,
+  locationX: null,
+  locationY: null,
 };
 
 describe("darts CHECK constraint mirrors", () => {
@@ -114,5 +116,52 @@ describe("exercise_stages CHECK constraint mirrors", () => {
     expect(
       StageFact.safeParse({ ...base, parentClientKey: "stage-1" }).success,
     ).toBe(false);
+  });
+});
+
+describe("chk_dart_location_pair", () => {
+  const base = {
+    sequence: 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    score: 60,
+  };
+
+  it("accepts both coordinates present", () => {
+    const result = DartFact.safeParse({
+      ...base,
+      locationX: 0,
+      locationY: -102,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts both coordinates null", () => {
+    const result = DartFact.safeParse({
+      ...base,
+      locationX: null,
+      locationY: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects only x present", () => {
+    const result = DartFact.safeParse({
+      ...base,
+      locationX: 12.5,
+      locationY: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects only y present", () => {
+    const result = DartFact.safeParse({
+      ...base,
+      locationX: null,
+      locationY: 12.5,
+    });
+    expect(result.success).toBe(false);
   });
 });

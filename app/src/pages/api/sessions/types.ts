@@ -45,11 +45,12 @@ const TargetNumber = z.number().int().min(1).max(25).nullable();
 /**
  * One `darts` row. The bounds mirror that table's CHECK constraints exactly —
  * `chk_dart_number_positive` and `chk_dart_score_positive` (migration `0007`)
- * alongside the target-number range — and the refinement mirrors
+ * alongside the target-number range — and the refinements mirror
  * `chk_dart_target_consistency`, which admits both intention columns NULL or
- * the zone NOT NULL, never a target number on its own.
+ * the zone NOT NULL, and `chk_dart_location_pair` (migration `0017`), which
+ * admits both coordinates NULL or both present.
  */
-// MIRRORS: chk_dart_number, chk_dart_number_positive, chk_dart_score_positive, chk_hit_consistency, chk_dart_target_consistency
+// MIRRORS: chk_dart_number, chk_dart_number_positive, chk_dart_score_positive, chk_hit_consistency, chk_dart_target_consistency, chk_dart_location_pair
 export const DartFact = z
   .object({
     sequence: z.number().int().positive(),
@@ -58,6 +59,8 @@ export const DartFact = z
     hitTargetNumber: TargetNumber,
     hitZoneKey: z.string(),
     score: z.number().int().nonnegative(),
+    locationX: z.number().nullable(),
+    locationY: z.number().nullable(),
   })
   .refine(
     (dart) =>
@@ -67,7 +70,11 @@ export const DartFact = z
         "intendedZoneKey is required whenever intendedTargetNumber is set",
       path: ["intendedZoneKey"],
     },
-  );
+  )
+  .refine((dart) => (dart.locationX === null) === (dart.locationY === null), {
+    message: "locationX and locationY must both be set or both be null",
+    path: ["locationY"],
+  });
 
 /**
  * One `turns` row. `sequence` is bounded by `chk_turn_sequence_positive`

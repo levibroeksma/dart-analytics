@@ -467,6 +467,8 @@ describe("appendBatch", () => {
             hitTargetNumber: 20,
             hitZoneKey: "SINGLE",
             score: 20,
+            locationX: null,
+            locationY: null,
           },
         ],
       }),

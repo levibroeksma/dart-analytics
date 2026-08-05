@@ -109,6 +109,8 @@ describe("fiveOhOneValidator.validateBatch", () => {
         hitTargetNumber: 20,
         hitZoneKey: "SINGLE",
         score: 20,
+        locationX: null,
+        locationY: null,
       },
     ];
     const result = fiveOhOneValidator.validateBatch({
