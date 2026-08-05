@@ -395,4 +395,92 @@ describe("visual board capture", () => {
     expect(turn!.darts).toHaveLength(0);
     expect(turn!.totalScore).toBe(85);
   });
+
+  it("undoes the third dart of a closed visit back to two, clearing completedAt and totalScore", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const [closed] = engine.facts().turns;
+    expect(closed!.completedAt).not.toBeNull();
+    expect(closed!.totalScore).toBe(180);
+
+    expect(engine.undo()).toBe(true);
+
+    const [reopened] = engine.facts().turns;
+    expect(reopened!.darts).toHaveLength(2);
+    expect(reopened!.completedAt).toBeNull();
+    expect(reopened!.totalScore).toBe(120);
+  });
+
+  describe("wouldComplete", () => {
+    const single = {
+      maxVisitScore: 180,
+      durationType: "ROUNDS",
+      durationValue: 1,
+    } as never;
+
+    it("is false before any dart is recorded (single round)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+    });
+
+    it("is false after the first dart and true after the second (single round)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(true);
+    });
+
+    it("is false on darts 1 and 2 of the second visit and true only on dart 3 (two rounds)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        config,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      engine.record(trebleTwenty);
+      engine.record(trebleTwenty);
+
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(true);
+    });
+
+    it("does not mutate the fact log", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      const factsBefore = structuredClone(engine.facts());
+
+      engine.wouldComplete(trebleTwenty);
+
+      expect(engine.facts().turns).toEqual(factsBefore.turns);
+    });
+  });
 });

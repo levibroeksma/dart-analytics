@@ -188,12 +188,14 @@ export class ScoreTrainingEngine implements GameEngine<
    * is only ever recorded once, by `record()`, after the player confirms.
    * A score `record()` would reject never completes the session — the caller
    * falls through to `record()` and surfaces its range error instead.
+   * Under `VISUAL_BOARD`, only a dart that completes an already-open visit
+   * (one that already holds `DARTS_PER_VISIT - 1` darts) can complete the
+   * session — a dart that opens a new visit never can.
    */
   wouldComplete(input: ScoreTrainingInput): boolean {
     if (this.inputMode === "VISUAL_BOARD") {
       const turn = this.openTurn();
-      const closesVisit = !turn || turn.darts.length === DARTS_PER_VISIT - 1;
-      if (!closesVisit) return false;
+      if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
       return this.completesAt(this.state().turnCount + 1);
     }
 
