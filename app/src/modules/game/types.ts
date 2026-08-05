@@ -121,13 +121,24 @@ export type BoardTarget =
   | { kind: "DOUBLE"; number: number }
   | { kind: "BULL" };
 
-/** What the player did, as observed at input time — the engine's only input. */
+/**
+ * What the player did, as observed at input time — the engine's only input.
+ * `locationX` / `locationY` are the landing point in regulation millimetres
+ * (origin bull centre, y increasing downward), present only for VISUAL_BOARD
+ * capture and null together when the landing point was never seen.
+ */
 export type DartObservation = {
   hitTargetNumber: number | null;
   hitZoneKey: DartZoneKey;
+  locationX: number | null;
+  locationY: number | null;
 };
 
-/** One row of `darts`. `score` is the actual board score, never a game-specific point value. */
+/**
+ * One row of `darts`. `score` is the actual board score, never a game-specific
+ * point value. The location pair is written together or not at all, mirroring
+ * `chk_dart_location_pair`.
+ */
 export type DartFact = {
   sequence: number;
   intendedTargetNumber: number | null;
@@ -135,6 +146,8 @@ export type DartFact = {
   hitTargetNumber: number | null;
   hitZoneKey: DartZoneKey;
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 };
 
 /**
