@@ -27,6 +27,29 @@ function batchWithDart(dart: Record<string, unknown>) {
   } as never;
 }
 
+function batchWithDarts(darts: Record<string, unknown>[], totalScore: number) {
+  return {
+    stages: [
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+        turns: [
+          {
+            clientKey: "turn-1",
+            participantRef: "p1",
+            sequence: 1,
+            totalScore,
+            completedAt: "2026-08-05T12:00:00.000Z",
+            darts,
+          },
+        ],
+      },
+    ],
+  } as never;
+}
+
 const trebleTwenty = {
   sequence: 1,
   intendedTargetNumber: null,
@@ -36,6 +59,17 @@ const trebleTwenty = {
   score: 60,
   locationX: 0,
   locationY: -102,
+};
+
+const doubleTwenty = {
+  sequence: 2,
+  intendedTargetNumber: null,
+  intendedZoneKey: null,
+  hitTargetNumber: 20,
+  hitZoneKey: "DOUBLE",
+  score: 40,
+  locationX: 0,
+  locationY: -166,
 };
 
 describe("isVisualBoardCapture", () => {
@@ -96,6 +130,22 @@ describe("validateVisualBoardTurns", () => {
     expect(result.valid).toBe(true);
   });
 
+  it("rejects a coordinate-less dart that claims a zone", () => {
+    const result = validateVisualBoardTurns(
+      batchWithDart({
+        sequence: 1,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: null,
+        hitZoneKey: "TREBLE",
+        score: 0,
+        locationX: null,
+        locationY: null,
+      }),
+    );
+    expect(result.valid).toBe(false);
+  });
+
   it("rejects a coordinate-less dart that claims a score", () => {
     const result = validateVisualBoardTurns(
       batchWithDart({
@@ -131,5 +181,53 @@ describe("validateVisualBoardTurns", () => {
     };
     batch.stages[0]!.turns[0]!.totalScore = 0;
     expect(validateVisualBoardTurns(batch as never)).toEqual({ valid: true });
+  });
+
+  it("accepts a three-dart turn whose total is the sum of its darts", () => {
+    const darts = [
+      trebleTwenty,
+      doubleTwenty,
+      { ...trebleTwenty, sequence: 3 },
+    ];
+    expect(validateVisualBoardTurns(batchWithDarts(darts, 160))).toEqual({
+      valid: true,
+    });
+  });
+
+  it("rejects a three-dart turn total that is not the sum of its darts", () => {
+    const darts = [
+      trebleTwenty,
+      doubleTwenty,
+      { ...trebleTwenty, sequence: 3 },
+    ];
+    const result = validateVisualBoardTurns(batchWithDarts(darts, 161));
+    expect(result.valid).toBe(false);
+    if (!result.valid)
+      expect((result.issues as string[] | undefined)?.[0]).toContain(
+        "totalScore",
+      );
+  });
+
+  it("accepts a three-dart turn with a zero total as a bust", () => {
+    const darts = [
+      trebleTwenty,
+      doubleTwenty,
+      { ...trebleTwenty, sequence: 3 },
+    ];
+    expect(validateVisualBoardTurns(batchWithDarts(darts, 0))).toEqual({
+      valid: true,
+    });
+  });
+
+  it("rejects a three-dart turn whose second dart disagrees with its coordinate", () => {
+    const darts = [
+      trebleTwenty,
+      { ...doubleTwenty, hitZoneKey: "TREBLE" },
+      { ...trebleTwenty, sequence: 3 },
+    ];
+    const result = validateVisualBoardTurns(batchWithDarts(darts, 160));
+    expect(result.valid).toBe(false);
+    if (!result.valid)
+      expect((result.issues as string[] | undefined)?.[0]).toContain("zone");
   });
 });

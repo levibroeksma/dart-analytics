@@ -31,9 +31,9 @@ function reject(issue: string): BatchValidationResult {
  * the analytical dataset.
  *
  * A dart with no coordinate is an unseen throw (bounce-out): it must score
- * nothing and name no target. A turn total of 0 against scoring darts is a
- * bust and is accepted; any other disagreement between the total and the sum
- * of its darts is refused.
+ * nothing, name no target, and carry zone MISS. A turn total of 0 against
+ * scoring darts is a bust and is accepted; any other disagreement between the
+ * total and the sum of its darts is refused.
  */
 export function validateVisualBoardTurns(
   batch: EventsBatchRequestInput,
@@ -44,9 +44,13 @@ export function validateVisualBoardTurns(
 
       for (const dart of turn.darts) {
         if (dart.locationX === null || dart.locationY === null) {
-          if (dart.score !== 0 || dart.hitTargetNumber !== null) {
+          if (
+            dart.score !== 0 ||
+            dart.hitTargetNumber !== null ||
+            dart.hitZoneKey !== "MISS"
+          ) {
             return reject(
-              `dart ${dart.sequence} in turn ${turn.clientKey} has no location, so it must score 0 and name no target (${VISUAL_BOARD_MODES})`,
+              `dart ${dart.sequence} in turn ${turn.clientKey} has no location, so it must score 0, name no target, and zone MISS (${VISUAL_BOARD_MODES})`,
             );
           }
           continue;
