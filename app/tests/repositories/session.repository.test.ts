@@ -177,6 +177,64 @@ describe("insertBatchRecords", () => {
     });
     expect(result).toEqual({ stages: 0, turns: 0, darts: 0 });
   });
+
+  it("carries the dart location pair into the darts insert as numeric strings", async () => {
+    const { darts: dartsTable } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    const insertCalls: { table: unknown; rows: unknown[] }[] = [];
+    vi.mocked(withTransaction).mockImplementationOnce((async (
+      fn: (tx: unknown) => unknown,
+    ) => {
+      const tx = {
+        insert: (table: unknown) => ({
+          values: (rows: unknown[]) => {
+            insertCalls.push({ table, rows });
+            return Promise.resolve();
+          },
+        }),
+      };
+      return fn(tx);
+    }) as any);
+
+    const { insertBatchRecords } =
+      await import("@repositories/session.repository");
+    await insertBatchRecords({
+      sessionId: "s1",
+      idempotencyRecordId: "idem-row-3",
+      idempotencyKey: "idem-3",
+      normalizedPayloadHash: "hash-3",
+      stages: [],
+      turns: [
+        {
+          id: "turn-1",
+          stageId: "stage-1",
+          participantId: "p1",
+          sequenceNumber: 1,
+          totalScore: 60,
+          completedAt: null,
+          darts: [
+            {
+              id: "dart-1",
+              dartNumber: 1,
+              intendedTargetNumber: null,
+              intendedZoneId: null,
+              hitTargetNumber: 20,
+              hitZoneId: 9,
+              score: 60,
+              locationX: 0,
+              locationY: -102,
+            },
+          ],
+        },
+      ],
+    });
+
+    const dartsCall = insertCalls.find((call) => call.table === dartsTable);
+    expect(dartsCall?.rows[0]).toMatchObject({
+      locationX: "0",
+      locationY: "-102",
+    });
+  });
 });
 
 describe("findActiveSessionForGameType", () => {

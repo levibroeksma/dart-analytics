@@ -524,6 +524,20 @@ describe("appendBatch", () => {
       ],
     });
     expect(result).toMatchObject({ ok: true });
+    expect(vi.mocked(repo.insertBatchRecords)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        turns: [
+          expect.objectContaining({
+            darts: [
+              expect.objectContaining({
+                locationX: 0,
+                locationY: -102,
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
   });
 
   it("returns the stored result on idempotent retry with the same payload", async () => {

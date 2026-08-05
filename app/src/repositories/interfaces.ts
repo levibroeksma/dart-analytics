@@ -59,6 +59,8 @@ export interface BatchInsertDart {
   hitTargetNumber: number | null;
   hitZoneId: number;
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 }
 
 export interface BatchInsertTurn {

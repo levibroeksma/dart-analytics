@@ -11,6 +11,7 @@ import {
   boolean,
   foreignKey,
   integer,
+  numeric,
   uniqueIndex,
   jsonb,
   primaryKey,
@@ -671,6 +672,8 @@ export const darts = pgTable(
       withTimezone: true,
       mode: "string",
     }).notNull(),
+    locationX: numeric("location_x", { precision: 6, scale: 2 }),
+    locationY: numeric("location_y", { precision: 6, scale: 2 }),
   },
   (table) => [
     index("idx_darts_hit_target").using(
@@ -722,6 +725,10 @@ export const darts = pgTable(
     check(
       "chk_hit_consistency",
       sql`((hit_zone_id IS NULL) AND (hit_target_number IS NULL)) OR (hit_zone_id IS NOT NULL)`,
+    ),
+    check(
+      "chk_dart_location_pair",
+      sql`((location_x IS NULL) AND (location_y IS NULL)) OR ((location_x IS NOT NULL) AND (location_y IS NOT NULL))`,
     ),
   ],
 );
