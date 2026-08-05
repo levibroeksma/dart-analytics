@@ -235,6 +235,122 @@ describe("insertBatchRecords", () => {
       locationY: "-102",
     });
   });
+
+  it("preserves fractional coordinates as precise strings", async () => {
+    const { darts: dartsTable } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    const insertCalls: { table: unknown; rows: unknown[] }[] = [];
+    vi.mocked(withTransaction).mockImplementationOnce((async (
+      fn: (tx: unknown) => unknown,
+    ) => {
+      const tx = {
+        insert: (table: unknown) => ({
+          values: (rows: unknown[]) => {
+            insertCalls.push({ table, rows });
+            return Promise.resolve();
+          },
+        }),
+      };
+      return fn(tx);
+    }) as any);
+
+    const { insertBatchRecords } =
+      await import("@repositories/session.repository");
+    await insertBatchRecords({
+      sessionId: "s2",
+      idempotencyRecordId: "idem-row-4",
+      idempotencyKey: "idem-4",
+      normalizedPayloadHash: "hash-4",
+      stages: [],
+      turns: [
+        {
+          id: "turn-2",
+          stageId: "stage-2",
+          participantId: "p2",
+          sequenceNumber: 1,
+          totalScore: 50,
+          completedAt: null,
+          darts: [
+            {
+              id: "dart-2",
+              dartNumber: 1,
+              intendedTargetNumber: null,
+              intendedZoneId: null,
+              hitTargetNumber: 18,
+              hitZoneId: 5,
+              score: 50,
+              locationX: -166.5,
+              locationY: 45.25,
+            },
+          ],
+        },
+      ],
+    });
+
+    const dartsCall = insertCalls.find((call) => call.table === dartsTable);
+    expect(dartsCall?.rows[0]).toMatchObject({
+      locationX: "-166.5",
+      locationY: "45.25",
+    });
+  });
+
+  it("converts null coordinates to database null, not the string 'null'", async () => {
+    const { darts: dartsTable } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    const insertCalls: { table: unknown; rows: unknown[] }[] = [];
+    vi.mocked(withTransaction).mockImplementationOnce((async (
+      fn: (tx: unknown) => unknown,
+    ) => {
+      const tx = {
+        insert: (table: unknown) => ({
+          values: (rows: unknown[]) => {
+            insertCalls.push({ table, rows });
+            return Promise.resolve();
+          },
+        }),
+      };
+      return fn(tx);
+    }) as any);
+
+    const { insertBatchRecords } =
+      await import("@repositories/session.repository");
+    await insertBatchRecords({
+      sessionId: "s3",
+      idempotencyRecordId: "idem-row-5",
+      idempotencyKey: "idem-5",
+      normalizedPayloadHash: "hash-5",
+      stages: [],
+      turns: [
+        {
+          id: "turn-3",
+          stageId: "stage-3",
+          participantId: "p3",
+          sequenceNumber: 1,
+          totalScore: 0,
+          completedAt: null,
+          darts: [
+            {
+              id: "dart-3",
+              dartNumber: 1,
+              intendedTargetNumber: null,
+              intendedZoneId: null,
+              hitTargetNumber: null,
+              hitZoneId: 1,
+              score: 0,
+              locationX: null,
+              locationY: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    const dartsCall = insertCalls.find((call) => call.table === dartsTable);
+    expect(dartsCall?.rows[0]).toMatchObject({
+      locationX: null,
+      locationY: null,
+    });
+  });
 });
 
 describe("findActiveSessionForGameType", () => {
