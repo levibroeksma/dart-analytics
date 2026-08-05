@@ -181,6 +181,8 @@ export class DoublesTrainingEngine implements GameEngine<
         state = applyDoublesTrainingDart(state, {
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneKey: dart.hitZoneKey,
+          locationX: dart.locationX,
+          locationY: dart.locationY,
         });
       }
     }
@@ -230,6 +232,8 @@ export class DoublesTrainingEngine implements GameEngine<
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+      locationX: null,
+      locationY: null,
     };
 
     openTurn.darts.push(dart);

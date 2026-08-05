@@ -31,9 +31,16 @@ function hitObservationFor(
     return {
       hitTargetNumber: 25,
       hitZoneKey: zone === "DOUBLE" ? "INNER_BULL" : "OUTER_BULL",
+      locationX: null,
+      locationY: null,
     };
   }
-  return { hitTargetNumber: target.number, hitZoneKey: zone };
+  return {
+    hitTargetNumber: target.number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  };
 }
 
 function missObservationFor(state: SinglesTrainingState): DartObservation {
@@ -41,6 +48,8 @@ function missObservationFor(state: SinglesTrainingState): DartObservation {
   return {
     hitTargetNumber: target.kind === "BULL" ? 25 : target.number,
     hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
   };
 }
 
@@ -88,6 +97,8 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(1);
     expect(next.targetIndex).toBe(0);
@@ -100,6 +111,8 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(2);
   });
@@ -109,6 +122,8 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(3);
   });
@@ -118,6 +133,8 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(0);
     expect(next.dartsThisVisit).toBe(1);
@@ -128,6 +145,8 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(0);
     expect(next.dartsThisVisit).toBe(1);
@@ -138,14 +157,20 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
     state = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
     });
     state = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
     });
     state = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
     });
     expect(state.totalPoints).toBe(6);
     expect(state.targetIndex).toBe(1);
@@ -206,6 +231,8 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     const next = applySinglesTrainingDart(config, bullState, {
       hitTargetNumber: 25,
       hitZoneKey: "OUTER_BULL",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(1);
   });
@@ -214,6 +241,8 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     const next = applySinglesTrainingDart(config, bullState, {
       hitTargetNumber: 25,
       hitZoneKey: "INNER_BULL",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(2);
   });
@@ -222,6 +251,8 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     const next = applySinglesTrainingDart(config, bullState, {
       hitTargetNumber: 25,
       hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(0);
   });
@@ -236,6 +267,8 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     const next = applySinglesTrainingDart(config, twoDartsIn, {
       hitTargetNumber: 25,
       hitZoneKey: "OUTER_BULL",
+      locationX: null,
+      locationY: null,
     });
     expect(next.status).toBe("COMPLETE");
     expect(next.dartsThisVisit).toBe(0);
@@ -245,6 +278,8 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     const next = applySinglesTrainingDart(config, bullState, {
       hitTargetNumber: 25,
       hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
     });
     expect(next.totalPoints).toBe(0);
   });
@@ -262,6 +297,8 @@ describe("applySinglesTrainingDart — terminal state guard", () => {
       applySinglesTrainingDart(config, completeState, {
         hitTargetNumber: 25,
         hitZoneKey: "OUTER_BULL",
+        locationX: null,
+        locationY: null,
       }),
     ).toThrow();
   });
@@ -270,7 +307,12 @@ describe("applySinglesTrainingDart — terminal state guard", () => {
 describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptance)", () => {
   it("stores board score in the fact and derives training points", () => {
     const engine = singlesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.score).toBe(3);
@@ -281,7 +323,12 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
 
   it("scores a dart that missed the target as zero training points but keeps the board fact", () => {
     const engine = singlesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 20, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.facts().turns[0].darts[0].score).toBe(60);
     expect(engine.state().totalPoints).toBe(0);
@@ -289,9 +336,24 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
 
   it("advances to the next target after three darts", () => {
     const engine = singlesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.state().targetIndex).toBe(1);
     expect(engine.facts().turns).toHaveLength(1);
@@ -303,7 +365,12 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
       config,
       facts20TargetsPlayed(),
     );
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "INNER_BULL" });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "INNER_BULL",
+      locationX: null,
+      locationY: null,
+    });
 
     const dart = engine.facts().turns.at(-1)!.darts.at(-1)!;
     expect(dart.hitZoneKey).toBe("INNER_BULL");
@@ -316,16 +383,36 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
       config,
       facts20TargetsPlayed(),
     );
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.isComplete()).toBe(true);
   });
 
   it("records no intended target number and no intended zone on every dart — the target is derivable from the visit index instead", () => {
     const engine = singlesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 20, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.intendedTargetNumber).toBeNull();
@@ -334,9 +421,24 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
 
   it("rehydrates the derived total points and target from persisted facts", () => {
     const first = singlesTrainingEngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = singlesTrainingEngineFactory.create(config, first.facts());
     expect(resumed.state().totalPoints).toBe(9);
@@ -437,14 +539,29 @@ describe("SinglesTrainingEngine", () => {
 
   it("delegates record to the reducer and exposes the updated state via state()", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.state().totalPoints).toBe(3);
     expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
       kind: "NUMBER",
       number: 1,
     });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.state().totalPoints).toBe(9);
     expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
       kind: "NUMBER",
@@ -505,12 +622,32 @@ describe("SinglesTrainingEngine.wouldComplete", () => {
       config,
       facts20TargetsPlayed(),
     );
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.state().status).toBe("COMPLETE");
     expect(
-      engine.wouldComplete({ hitTargetNumber: 25, hitZoneKey: "OUTER_BULL" }),
+      engine.wouldComplete({
+        hitTargetNumber: 25,
+        hitZoneKey: "OUTER_BULL",
+        locationX: null,
+        locationY: null,
+      }),
     ).toBe(false);
   });
 
@@ -578,18 +715,35 @@ describe("SinglesTrainingEngine.undo", () => {
 
   it("reverts a single dart", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.undo()).toBe(true);
     expect(engine.state().totalPoints).toBe(0);
   });
 
   it("reverts the 3rd dart of a visit, restoring the mid-visit total, then can still resolve the visit", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
     const afterThird = engine.record({
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
     });
     expect(afterThird.totalPoints).toBe(3);
     expect(afterThird.targetIndex).toBe(1);
@@ -601,7 +755,12 @@ describe("SinglesTrainingEngine.undo", () => {
       number: 1,
     });
 
-    const resumed = engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+    const resumed = engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
     expect(resumed.totalPoints).toBe(2);
     expect(resumed.targetIndex).toBe(1);
     expect(resumed.dartsThisVisit).toBe(0);
@@ -632,10 +791,30 @@ describe("SinglesTrainingEngine.undo", () => {
 
   it("walks back across multiple visits with repeated undos", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 2, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 2,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.state().totalPoints).toBe(4);
     expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
       kind: "NUMBER",
@@ -656,11 +835,26 @@ describe("SinglesTrainingEngine.undo", () => {
 
   it("rehydrates from persisted facts and continues to undo across the boundary", () => {
     const first = singlesTrainingEngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = singlesTrainingEngineFactory.create(config, first.facts());
-    resumed.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    resumed.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(resumed.state().totalPoints).toBe(3);
 
     expect(resumed.undo()).toBe(true);

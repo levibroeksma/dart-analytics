@@ -40,7 +40,12 @@ const engines: EngineCase[] = [
         bullHitValue: 50,
         missPenaltyMultiplier: 1,
       });
-      engine.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+      engine.record({
+        hitTargetNumber: 1,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      });
       return engine;
     },
   ],
@@ -54,7 +59,12 @@ const engines: EngineCase[] = [
         pointsDouble: 2,
         pointsTreble: 3,
       });
-      engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+      engine.record({
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: null,
+        locationY: null,
+      });
       return engine;
     },
   ],
@@ -65,7 +75,12 @@ const engines: EngineCase[] = [
         mode: "EASY",
         orderMode: "LOW_TO_HIGH",
       });
-      engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+      engine.record({
+        hitTargetNumber: 1,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
       return engine;
     },
   ],

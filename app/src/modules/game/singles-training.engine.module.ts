@@ -132,6 +132,8 @@ export class SinglesTrainingEngine implements GameEngine<
         state = applySinglesTrainingDart(this.config, state, {
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneKey: dart.hitZoneKey,
+          locationX: dart.locationX,
+          locationY: dart.locationY,
         });
       }
     }
@@ -186,6 +188,8 @@ export class SinglesTrainingEngine implements GameEngine<
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+      locationX: null,
+      locationY: null,
     };
 
     openTurn.darts.push(dart);
