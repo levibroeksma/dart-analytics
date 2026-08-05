@@ -57,6 +57,8 @@ Each is its own later spec.
 | 4 | Units are **regulation millimetres**, origin bull centre, y-axis down | The SVG is already drawn in them; margins read as "8 mm short of T20"; survives an SVG redesign |
 | 5 | Intent stays ruleset-declared | No extra taps; margin is derived from the intended zone's centroid where a ruleset declares one |
 | 6 | Off-board handled two ways: surround tap stores real coordinates; a "no location" action stores `MISS` with NULL coordinates | A bounce-out has no honest landing point; a surround miss does, and it is the data the feature exists for |
+| 6a | A miss always stores `hit_target_number` NULL, never the sector it landed in | `hit_target_number` keeps one meaning — "this number was actually hit". `v_dart_analytics` compares `intended_target_number = hit_target_number`, so a sector-tagged miss on the intended number would read as a target match. Sector-of-miss stays derivable from the coordinate |
+| 6b | Input mode is a profile-level setting only; no per-session override | One app mode, one place to change it. The setup pages inherit it; `03-Player-Layer.md`'s "copied onto the session" rule is unaffected — the value is still snapshotted at session start |
 | 7 | Capability declared in a cross-runtime constant **and** a seeded capability table | Code owns "this engine implements this mode"; the database still cannot hold an undeclared combination |
 | 8 | App mode persists server-side in `player_settings` | Supersedes D60's deferral clause — the value now gates which games are visible, so a per-device value would disagree across devices |
 
@@ -84,18 +86,39 @@ Each is its own later spec.
 
 ## Database
 
-### Migration `0017`
+The schema change spans **two** migrations with the seed run between them. This
+is forced, not stylistic: `database/README.md` states "Seeds run after
+migrations", so a composite FK created in the same migration as its empty
+capability table would be validated against existing `exercise_sessions` rows
+before any capability row exists, and every one of them would violate it.
+
+### Migration `0017` — tables and columns
 
 - `darts.location_x`, `darts.location_y` — `NUMERIC(6,2)`, nullable, millimetres.
 - `chk_dart_location_pair` — both NULL or both present.
 - `ruleset_version_capabilities` — `(ruleset_version_id, capture_mode_id,
   input_mode_id)`, composite primary key, each column FK'd to its lookup.
-- Composite FK from `exercise_sessions` `(ruleset_version_id, capture_mode_id,
-  input_mode_id)` to that primary key. The database then physically cannot hold
-  a session whose mode combination is undeclared.
 - The two `player_settings` FKs that `03-Player-Layer.md` specifies but
   migration `0003` never created: `default_capture_mode_id` → `capture_modes`,
   `default_input_mode_id` → `input_modes`.
+
+### Seed `0005` — fills the capability table
+
+Runs between the two migrations (see below).
+
+### Migration `0018` — the composite FK
+
+- Composite FK from `exercise_sessions` `(ruleset_version_id, capture_mode_id,
+  input_mode_id)` to the capability primary key. The database then physically
+  cannot hold a session whose mode combination is undeclared.
+
+**Apply-order hazard, stated plainly.** The standard flow in
+`database/README.md` is `db:migrate` then `db:seed` — it does not express
+"migrate, seed, migrate". Applying `0018` before seed `0005` has run fails on
+any database holding sessions. The plan must make this explicit in
+`database/README.md`'s Standard Local Flow and in `app/DEPLOYMENT.md`, and the
+`0018` migration header must state its seed prerequisite. This is the single
+most likely way this change breaks a real deploy.
 
 Migrations `0001`–`0016` are untouched.
 
@@ -149,7 +172,9 @@ Sectors are 18° wide, 20 centred on the upward vertical.
 - `06-API/04-Endpoint-Contracts.md` — the settings endpoints.
 - `06-Spec/05-Read-Model-Layer.md` and `05-Database/05-Views.md` — view
   contracts for `v_dart_locations` and `v_player_settings`.
-- `00-Context-Map.md` — new files registered; migration range updated to `0017`.
+- `00-Context-Map.md` — new files registered; migration range updated to `0018`.
+- `database/README.md` and `app/DEPLOYMENT.md` — the migrate → seed → migrate
+  apply order the composite FK requires.
 - `decisions/**` — new decisions, append-only, routed per `DECISIONS.md`:
   coordinates shipped (`database.md`), `VISUAL_BOARD` + capability table
   (`architecture.md`), engine input-mode branch + mode-scoped bust
@@ -248,13 +273,20 @@ Undo is per dart.
 ### Settings and games page
 
 - Profile page gains the app-mode form, reading and writing the settings
-  endpoints.
+  endpoints. This is the **only** place mode is chosen; setup pages inherit it
+  and offer no override.
 - Games page filters its cards by capability and shows an analytics-mode
   banner when analytics capture is on.
 - The games page stays `prerender = true`; the filter runs client-side in
   Alpine against the settings store, consistent with D97 — prerendered
   protected shells are public by design, and the JWT-gated API is the real
   boundary.
+- **A game with an active session is never filtered out**, whatever the current
+  mode. The session snapshotted its own modes at start and is unaffected by a
+  later profile change, but hiding its card would make the existing recovery
+  flow unreachable and strand the session.
+- **Empty state:** if analytics mode is on and no game is capable, the page
+  shows why and offers a direct switch back, rather than an empty list.
 
 ### Accessibility
 
@@ -269,12 +301,19 @@ style gates.
 
 ## Read model
 
-`v_dart_locations` exposes coordinates plus derived polar form (radius mm, angle
-degrees), and — where the ruleset declared intent — the margin to the intended
-zone's centroid.
+`v_dart_locations` exposes coordinates plus derived polar form — radius in
+millimetres and angle in degrees, both plain `sqrt`/`atan2` arithmetic carrying
+no board semantics.
 
-Everything is derived in the view. Nothing computed is stored. Existing `v_*`
-views are untouched; coord-less darts return NULL and remain valid rows.
+**Miss margin is not computed in the view.** It needs the intended zone's
+centroid, which is board geometry, and decision 3 keeps board geometry out of
+SQL. Margin is derived in the app read layer from the same cross-runtime
+`board-geometry.module.ts` the client and Worker use, so one definition of
+where a treble's centre is serves all three. Putting it in SQL would create a
+second copy that drifts silently from the classifier.
+
+Nothing computed is stored. Existing `v_*` views are untouched; coord-less
+darts return NULL and remain valid rows.
 
 ---
 
@@ -303,6 +342,27 @@ declares its supported input modes; `scripts/check-constraint-mirror.sh`;
 
 ---
 
+## Edge cases
+
+- **Fewer than three darts in a visit.** 501 writes one `DartFact` per dart
+  actually thrown: a leg won on the second dart writes two rows, and a bust
+  ends the visit at the dart that caused it. Score Training always writes
+  three. Nothing pads a visit to three rows.
+- **No `player_settings` row exists.** `POST /api/players/provision` creates
+  the player only, so every current player has no settings row. The read
+  endpoint returns the defaults `RECREATIONAL` + `QUICK_SCORE` for a missing
+  row and the row is created lazily on first write — no backfill migration,
+  and existing behaviour is unchanged for anyone who never opens the form.
+- **Magnifier at the board edge.** The inset flips to the opposite side of the
+  touch point when it would otherwise overflow the viewport, and follows a
+  handedness preference so it is never placed under the throwing thumb.
+- **Coordinates in a non-visual session.** Impossible by construction: only the
+  visual input path produces them, and the Worker rejects coordinates on a
+  session whose input mode is not `VISUAL_BOARD`.
+- **`NULL` coordinates inside a visual session** mean "thrown, landing point
+  unknown" (bounce-out or unseen), not "not captured" — the session's input
+  mode disambiguates, which is why the mode lives on the session.
+
 ## Risks
 
 | Risk | Mitigation |
@@ -312,4 +372,6 @@ declares its supported input modes; `scripts/check-constraint-mirror.sh`;
 | Capability constant and seed drift | Parity test + composite FK |
 | Fat-finger misclassification biases treble/double data | Magnifier; commit on release, not press |
 | Composite FK rejects an existing session shape | Seed `0005` covers all six ruleset versions' current combination |
+| `0018` applied before seed `0005` fails on any populated database | Seed prerequisite stated in the migration header, `database/README.md` and `app/DEPLOYMENT.md` |
+| Margin defined twice (SQL and classifier) and drifting | Margin computed only in the app read layer, from the cross-runtime module |
 | Engine branch doubles the paths under test | Rehydration tested in both modes; `QUICK_SCORE` behaviour asserted unchanged |
