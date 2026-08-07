@@ -16,22 +16,16 @@ const { value, label, ...props }: Props = Astro.props;
 ---
 
 <li
-  class="min-w-0 min-h-10 w-full h-full p-2 rounded-full flex items-center justify-center cursor-pointer"
+  class="min-w-0 min-h-10 w-full h-full rounded-full flex items-center justify-center"
   data-toggle-value={value}
   :class={`activeTab === '${value}' ? 'text-accent' : 'text-muted-foreground'`}
-  @click={`select('${value}')`}
   {...props}
 >
-  <input
-    type="radio"
-    id={value}
-    value={value}
-    class="hidden peer"
-  />
-  <label
-    for={value}
-    class="w-full"
+  <button
+    type="button"
+    class="w-full h-full p-2 font-semibold text-center cursor-pointer"
+    @click={`select('${value}')`}
   >
-    <div class="w-full font-semibold text-center">{label}</div>
-  </label>
+    {label}
+  </button>
 </li>

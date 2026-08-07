@@ -1,13 +1,20 @@
 ---
-import InfoIcon from "@icons/info.svg";
-import ChevronDownIcon from "@icons/chevron-down.svg";
-
+/**
+ * Collapsible rules panel for a game's setup page.
+ * @param {string} title
+ * @param {string} description
+ */
 interface Props {
   title: string;
   description: string;
 }
 
+// Props
 const { title, description }: Props = Astro.props;
+
+// Icons
+import InfoIcon from "@icons/info.svg";
+import ChevronDownIcon from "@icons/chevron-down.svg";
 ---
 
 <div

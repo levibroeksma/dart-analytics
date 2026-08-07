@@ -285,6 +285,7 @@ describe("scoreTrainingSetup", () => {
       expect(watcher).toBeDefined();
 
       setup.durationType = "MINUTES";
+      setup.clampNotice = "Allowed range: 1–100 rounds";
       watcher!.callback("MINUTES" as never);
 
       expect(setup.durationValue).toBe(5);
@@ -433,6 +434,20 @@ describe("scoreTrainingSetup", () => {
       expect(store.game.startSession).not.toHaveBeenCalled();
       expect(setup.error).toMatch(/Could not start the session/);
       expect(setup.loading).toBe(false);
+    });
+
+    it("ignores a second start call while the first is in flight", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 20,
+        loading: true,
+      });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).not.toHaveBeenCalled();
+      expect(store.game.startSession).not.toHaveBeenCalled();
     });
 
     it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {

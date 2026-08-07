@@ -165,6 +165,7 @@ export function scoreTrainingSetup() {
     },
 
     async start(this: ScoreTrainingSetupContext) {
+      if (this.loading) return;
       const preset = this.presetForMode(this.durationType);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";

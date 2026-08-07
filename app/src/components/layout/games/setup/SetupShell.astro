@@ -1,11 +1,18 @@
 ---
-import Button from "@components/forms/Button.astro";
-
+/**
+ * Setup page shell: titled card wrapping a form that submits via `start()`.
+ * @param {string} title
+ */
 interface Props {
   title: string;
+  [key: string]: unknown;
 }
 
+// Props
 const { title, ...props }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
 ---
 
 <div {...props}>
@@ -21,6 +28,7 @@ const { title, ...props }: Props = Astro.props;
       class="rounded-full! w-full bg-accent! text-white! border-tab-border!"
       variant="primary"
       title="Start Game"
+      :disabled="loading"
     />
   </form>
 </div>

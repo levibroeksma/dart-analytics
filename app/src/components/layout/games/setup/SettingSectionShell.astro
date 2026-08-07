@@ -1,8 +1,13 @@
 ---
+/**
+ * Titled card wrapping a setup form's setting controls.
+ */
 interface Props {
-  [key: string]: any;
+  [key: string]: unknown;
 }
-const { ...props } = Astro.props;
+
+// Props
+const { ...props }: Props = Astro.props;
 ---
 
 <div

@@ -1,11 +1,17 @@
 ---
-import UserIcon from "@icons/user.svg";
-
+/**
+ * Circular player avatar with the player's name underneath.
+ * @param {string} name
+ */
 interface Props {
   name: string;
 }
 
-const { name } = Astro.props;
+// Props
+const { name }: Props = Astro.props;
+
+// Icons
+import UserIcon from "@icons/user.svg";
 ---
 
 <div class="flex flex-col gap-1 items-center justify-center">

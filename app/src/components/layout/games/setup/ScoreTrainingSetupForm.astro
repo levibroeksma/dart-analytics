@@ -34,14 +34,35 @@ const infoSection = {
       class="w-full"
     />
     <Input
+      id="durationValue"
+      name="durationValue"
       type="text"
+      inputmode="numeric"
       placeholder="Number of rounds"
       x-model.number="durationValue"
       class="glass border-tab-border rounded-full!"
     />
-    <span
+    <label
+      for="durationValue"
       class="text-xs text-muted-foreground px-4 py-0 italic"
       x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
-    ></span>
+    ></label>
+    <p
+      class="text-sm text-muted-foreground px-4 py-0"
+      role="status"
+      x-show="clampNotice"
+      x-text="clampNotice"
+      x-cloak
+    >
+    </p>
   </SettingSectionShell>
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
 </SetupShell>
