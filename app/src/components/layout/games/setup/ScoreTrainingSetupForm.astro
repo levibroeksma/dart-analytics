@@ -1,0 +1,47 @@
+---
+// Components
+import Input from "@components/forms/Input.astro";
+import Toggle from "./Toggle.astro";
+import InfoSection from "./InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const formatOpts = [
+  { value: "ROUNDS", label: "Rounds" },
+  { value: "MINUTES", label: "Time" },
+];
+
+const infoSection = {
+  title: "Scoring Training",
+  description:
+    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
+};
+---
+
+<SetupShell title="Score Training">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={formatOpts}
+      x-model="durationType"
+      class="w-full"
+    />
+    <Input
+      type="text"
+      placeholder="Number of rounds"
+      x-model.number="durationValue"
+      class="glass border-tab-border rounded-full!"
+    />
+    <span
+      class="text-xs text-muted-foreground px-4 py-0 italic"
+      x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+    ></span>
+  </SettingSectionShell>
+</SetupShell>

@@ -3,8 +3,8 @@ export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
-import SetupSessionForm from "@components/layout/games/SetupSessionForm.astro";
 import IsLoading from "@components/ui/IsLoading.astro";
+import ScoreTrainingSetupForm from "@components/layout/games/setup/ScoreTrainingSetupForm.astro";
 ---
 
 <AppLayout title="Score Training — Setup">
@@ -33,10 +33,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
     <template
       x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
     >
-      <SetupSessionForm
-        title="Score Training"
-        description="Pick your desired configuration, then let's play."
-      />
+      <ScoreTrainingSetupForm />
     </template>
 
     <template x-if="loadingReconciliation">

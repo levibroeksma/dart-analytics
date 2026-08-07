@@ -1,0 +1,26 @@
+---
+import Button from "@components/forms/Button.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title, ...props }: Props = Astro.props;
+---
+
+<div {...props}>
+  <form
+    class="flex flex-col gap-3 max-w-sm"
+    @submit.prevent="start()"
+  >
+    <h2 class="text-accent text-center text-xl">{title}</h2>
+    <slot />
+
+    <Button
+      type="submit"
+      class="rounded-full! w-full bg-accent! text-white! border-tab-border!"
+      variant="primary"
+      title="Start Game"
+    />
+  </form>
+</div>

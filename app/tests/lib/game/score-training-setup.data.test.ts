@@ -41,10 +41,23 @@ describe("scoreTrainingSetup", () => {
     };
   });
 
+  let watchers: Array<{
+    key: string;
+    callback: (value: never) => void;
+  }>;
+
   function createSetup(
     overrides: Partial<ScoreTrainingSetupContext> = {},
   ): ScoreTrainingSetupContext {
-    return { ...scoreTrainingSetup(), $store: store, ...overrides };
+    watchers = [];
+    return {
+      ...scoreTrainingSetup(),
+      $store: store,
+      $watch: (key: string, callback: (value: never) => void) => {
+        watchers.push({ key, callback });
+      },
+      ...overrides,
+    } as ScoreTrainingSetupContext;
   }
 
   describe("reconciliation on init", () => {
@@ -253,6 +266,27 @@ describe("scoreTrainingSetup", () => {
       });
       setup.selectMode("MINUTES");
       expect(setup.durationType).toBe("MINUTES");
+      expect(setup.durationValue).toBe(5);
+      expect(setup.clampNotice).toBe("");
+    });
+
+    it("init registers a durationType watcher that runs selectMode", async () => {
+      const setup = createSetup();
+
+      vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
+        ROUND_PRESET,
+        MINUTES_PRESET,
+      ]);
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+
+      await setup.init();
+
+      const watcher = watchers.find((w) => w.key === "durationType");
+      expect(watcher).toBeDefined();
+
+      setup.durationType = "MINUTES";
+      watcher!.callback("MINUTES" as never);
+
       expect(setup.durationValue).toBe(5);
       expect(setup.clampNotice).toBe("");
     });
