@@ -31,8 +31,8 @@ export function toggleData(config: ToggleDataConfig = {}) {
   return {
     activeTab: config.initial ?? config.options?.[0]?.value ?? "",
     options: config.options ?? [],
-    orientation: (config.orientation ?? "vertical") as Orientation,
-    pill: { w: 0, h: 0, x: 0, y: 0 } as Pill,
+    orientation: config.orientation ?? "vertical",
+    pill: { w: 0, h: 0, x: 0, y: 0 },
 
     init(this: ToggleDataContext) {
       const resolved = this.options.some((o) => o.value === this.activeTab)
