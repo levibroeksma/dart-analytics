@@ -1,0 +1,69 @@
+---
+// Components
+import Input from "@components/forms/Input.astro";
+import Toggle from "./Toggle.astro";
+import InfoSection from "./InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const formatOpts = [
+  { value: "ROUNDS", label: "Rounds" },
+  { value: "MINUTES", label: "Time" },
+];
+
+const infoSection = {
+  title: "Scoring Training",
+  description:
+    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
+};
+---
+
+<SetupShell title="Score Training">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={formatOpts}
+      x-model="durationType"
+      class="w-full"
+    />
+    <Input
+      id="durationValue"
+      name="durationValue"
+      type="text"
+      inputmode="numeric"
+      :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
+      x-model.number="durationValue"
+      @input="clampNotice = ''"
+      class="glass border-tab-border rounded-full! mt-4"
+    />
+    <label
+      for="durationValue"
+      class="text-xs text-muted-foreground px-4 py-0 italic"
+      x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+    ></label>
+    <p
+      class="text-sm text-muted-foreground px-4 py-0"
+      role="status"
+      x-show="clampNotice"
+      x-text="clampNotice"
+      x-cloak
+    >
+    </p>
+  </SettingSectionShell>
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>

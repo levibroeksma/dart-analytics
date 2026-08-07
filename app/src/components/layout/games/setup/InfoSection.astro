@@ -1,0 +1,47 @@
+---
+/**
+ * Collapsible rules panel for a game's setup page.
+ * @param {string} title
+ * @param {string} description
+ */
+interface Props {
+  title: string;
+  description: string;
+}
+
+// Props
+const { title, description }: Props = Astro.props;
+
+// Icons
+import InfoIcon from "@icons/info.svg";
+import ChevronDownIcon from "@icons/chevron-down.svg";
+---
+
+<div
+  x-data="{ expanded: false }"
+  class="bg-tab-card border-tab-border rounded-3xl p-3 border"
+>
+  <button
+    type="button"
+    @click="expanded = ! expanded"
+    class="flex justify-between items-center w-full"
+  >
+    <div class="flex items-center gap-2">
+      <InfoIcon class="size-4 text-accent" />
+      <h4 class="text-center text-sm">{title} rules</h4>
+    </div>
+    <ChevronDownIcon
+      class="size-4 -rotate-90 transition-transform duration-300"
+      :class="expanded ? 'rotate-0' : '-rotate-90'"
+    />
+  </button>
+
+  <p
+    x-show="expanded"
+    x-cloak
+    x-collapse.duration.300ms
+    class="text-xs text-muted-foreground mt-2 italic"
+  >
+    {description}
+  </p>
+</div>

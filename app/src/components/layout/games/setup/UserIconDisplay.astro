@@ -1,0 +1,26 @@
+---
+/**
+ * Circular player avatar with the player's name underneath.
+ * @param {string} name
+ */
+interface Props {
+  name: string;
+}
+
+// Props
+const { name }: Props = Astro.props;
+
+// Icons
+import UserIcon from "@icons/user.svg";
+---
+
+<div class="flex flex-col gap-1 items-center justify-center">
+  <div
+    class="p-3 border-x border-t w-fit border-sky-500/70 rounded-full bg-tab-active"
+  >
+    <UserIcon
+      class="size-8 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
+    />
+  </div>
+  <span class="text-sm text-accent font-semibold">{name}</span>
+</div>

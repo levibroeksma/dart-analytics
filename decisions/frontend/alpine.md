@@ -5,7 +5,7 @@ read-when: why an Alpine store/persist/recovery choice was made
 load-when: Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery
 depends-on: decisions/architecture.md, decisions/frontend/architecture.md
 related: decisions/frontend/astro.md, decisions/api.md
-updated: 2026-08-02
+updated: 2026-08-07
 -->
 
 | # | Source | Decision | Rationale |
@@ -21,3 +21,9 @@ updated: 2026-08-02
 | D100 | 2026-07-15 | Alpine v3 shorthand mandatory: `:attr` and `@event` instead of `x-bind:*` / `x-on:*`; `x-on:*` only inside Astro `{}` when linter rejects `@` | Consistent templates; matches Alpine 3 defaults |
 | D118 | 2026-07-17 | Shared session recovery helper for setup & play: identical decision table in `app/src/lib/game/session-recovery.ts` (no page-specific variants) reconciles local `sessionId` vs server ACTIVE SCORE_TRAINING session; returns `"match"` \| `"no_active"` \| `"abandon_failed"` — the latter blocks session creation instead of silently resetting (orphan still ACTIVE; create would violate `uq_sessions_single_active`); match shows Continue/Abandon modal on setup only; mismatch never shows a dialog | Single implementation prevents table drift and UX loop where setup re-renders the modal twice |
 | D120 | 2026-07-17 | Persisted Alpine stores take a `PersistFactory` (`() => Alpine.$persist`), calling it once per field — never reuse one `persist()` across fields. Alpine's `$persist` getter returns a fresh closure each access; a shared closure collapses every `.as()` key onto the last alias (e.g. `turns` hydrated as `null` from `game.idempotencyKey`) | Root-cause fix for play-page Alpine crashes; documents the plugin's shared-`alias` hazard |
+
+### D187 — Hold UI module instances off the Alpine reactive object
+Status: Accepted · Date: 2026-08-07
+Decision: An Alpine factory that drives a `modules/ui/*` class keeps the instance in the factory closure, never on `this.*`. The registered `Alpine.data()` name matches the factory call in markup (`toggle`), and the factory file lives under `lib/<domain>/` (`lib/ui/toggle.data.ts`), not in `lib/client/alpine/` which holds only the entry factory and registrars.
+Reason: Alpine deep-proxies reactive state, and an ES private field throws when read through a Proxy, so `mount()` / `layout()` never ran and the Toggle pill stayed 0×0. A mismatched registration name fails the same way, silently.
+Consequences: `modules/ui` classes are unit-tested with an explicit Proxy guard that documents the hazard. `x-modelable` still exposes scalar reactive fields (`activeTab`), so parent `x-model` binding is unaffected. The Toggle's paired `.astro` deliberately sits in `components/layout/games/setup/` rather than `components/ui/` because it uses app `tab-*` tokens — the same one-directional reading of the pairing rule that `segment-timer.module.ts` already relies on.

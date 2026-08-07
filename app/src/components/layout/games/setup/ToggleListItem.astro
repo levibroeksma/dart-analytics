@@ -1,0 +1,31 @@
+---
+/**
+ * One option inside a Toggle. Reads `activeTab` and calls `select()` from the
+ * Toggle's Alpine scope.
+ * @param {string} value
+ * @param {string} label
+ */
+interface Props {
+  value: string;
+  label: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { value, label, ...props }: Props = Astro.props;
+---
+
+<li
+  class="min-w-0 min-h-10 w-full h-full rounded-full flex items-center justify-center"
+  data-toggle-value={value}
+  :class={`activeTab === '${value}' ? 'text-accent' : 'text-muted-foreground'`}
+  {...props}
+>
+  <button
+    type="button"
+    class="w-full h-full p-2 font-semibold text-center cursor-pointer"
+    @click={`select('${value}')`}
+  >
+    {label}
+  </button>
+</li>

@@ -1,0 +1,94 @@
+---
+/**
+ * Pill-style toggle. Bind the selected value from a parent scope with
+ * `x-model`; the value is exposed through `x-modelable="activeTab"`.
+ * @param {ToggleOption[]} options
+ * @param {"horizontal"|"vertical"} orientation
+ * @param {string} [initial] Only when there is no parent `x-model`
+ * @param {string} [hint] Italic caption rendered under the control
+ * @param {string} [class] Extra classes
+ */
+interface ToggleOption {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  options: ToggleOption[];
+  orientation: "horizontal" | "vertical";
+  initial?: string;
+  hint?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  options,
+  orientation,
+  initial,
+  hint,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import ToggleListItem from "./ToggleListItem.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Data
+const config = {
+  options,
+  orientation,
+  initial: initial ?? options[0]?.value ?? "",
+};
+const n = options.length;
+
+// Styles
+const className = cn("tab-container", classNameProp ?? "w-fit");
+const shellClass =
+  "relative grow w-full h-full rounded-tab border-x border-t border-tab-border bg-tab-card tab-wrapper p-2";
+const listClass = "relative z-1 grid h-full w-full items-stretch gap-3";
+const listStyle =
+  orientation === "horizontal"
+    ? `grid-template-columns: repeat(${n}, minmax(0, 1fr));`
+    : `grid-template-rows: repeat(${n}, minmax(0, 1fr));`;
+---
+
+<div
+  class={className}
+  x-data={`toggle(${JSON.stringify(config)})`}
+  x-modelable="activeTab"
+  {...props}
+>
+  <div
+    x-ref="list"
+    class={shellClass}
+  >
+    <div
+      class="pointer-events-none absolute left-0 top-0 z-0 rounded-tab-pill bg-tab-active backdrop-blur-[2px] transition-transform duration-500 ease-out border"
+      :style="`width:${pill.w}px;height:${pill.h}px;transform:translate(${pill.x}px,${pill.y}px)`"
+    >
+    </div>
+    <ul
+      class={listClass}
+      style={listStyle}
+    >
+      {
+        options.map((opt) => (
+          <ToggleListItem
+            value={opt.value}
+            label={opt.label}
+          />
+        ))
+      }
+    </ul>
+  </div>
+</div>
+{
+  hint && (
+    <span class="text-xs text-muted-foreground px-4 py-0 italic">{hint}</span>
+  )
+}

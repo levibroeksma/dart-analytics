@@ -55,6 +55,10 @@ export function scoreTrainingSetup() {
      * picker fallback rather than the active-session modal.
      */
     async init(this: ScoreTrainingSetupContext) {
+      this.$watch("durationType", (type) => {
+        this.selectMode(type);
+      });
+
       this.loadingReconciliation = true;
       try {
         const [presets, activeSessions] = await Promise.all([
@@ -161,6 +165,7 @@ export function scoreTrainingSetup() {
     },
 
     async start(this: ScoreTrainingSetupContext) {
+      if (this.loading) return;
       const preset = this.presetForMode(this.durationType);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";

@@ -1,0 +1,34 @@
+---
+/**
+ * Setup page shell: titled card wrapping a form that submits via `start()`.
+ * @param {string} title
+ */
+interface Props {
+  title: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { title, ...props }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+---
+
+<div {...props}>
+  <form
+    class="flex flex-col gap-3 max-w-sm"
+    @submit.prevent="start()"
+  >
+    <h2 class="text-accent text-center text-xl">{title}</h2>
+    <slot />
+
+    <Button
+      type="submit"
+      class="rounded-full! w-full bg-accent! text-white! border-tab-border!"
+      variant="primary"
+      title="Start Game"
+      :disabled="loading"
+    />
+  </form>
+</div>

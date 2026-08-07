@@ -1,6 +1,7 @@
 "use strict";
 
 import persist from "@alpinejs/persist";
+import collapse from "@alpinejs/collapse";
 
 import type { Alpine } from "alpinejs";
 
@@ -10,10 +11,8 @@ import { registerUiData } from "./register-ui-data";
 
 export default (Alpine: Alpine) => {
   Alpine.plugin(persist);
-
+  Alpine.plugin(collapse);
   registerStores(Alpine);
-
   registerRouteData(Alpine);
-
   registerUiData(Alpine);
 };

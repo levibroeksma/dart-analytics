@@ -82,6 +82,10 @@ export type ScoreTrainingSetupContext = {
       reset(): void;
     };
   };
+  $watch(
+    key: "durationType",
+    callback: (value: ScoreTrainingDurationType) => void,
+  ): void;
   init(this: ScoreTrainingSetupContext): Promise<void>;
   reconcile(
     this: ScoreTrainingSetupContext,
