@@ -7,7 +7,7 @@ updated: 2026-08-07
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.2.3
+> **Version:** 0.2.4
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -55,6 +55,7 @@ alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" })
 "use strict";
 
 import persist from "@alpinejs/persist";
+import collapse from "@alpinejs/collapse";
 import type { Alpine } from "alpinejs";
 import { registerStores } from "./register-stores";
 import { registerUiData } from "./register-ui-data";
@@ -62,6 +63,7 @@ import { registerRouteData } from "./register-route-data";
 
 export default (Alpine: Alpine) => {
   Alpine.plugin(persist);
+  Alpine.plugin(collapse);
   registerStores(Alpine);
   registerUiData(Alpine);
   registerRouteData(Alpine);
