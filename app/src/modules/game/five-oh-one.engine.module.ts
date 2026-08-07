@@ -1,4 +1,5 @@
 import type { FiveOhOneSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -252,7 +253,7 @@ export class FiveOhOneEngine implements GameEngine<
 
     const leg = this.openLeg();
     this.turns.push({
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: leg.clientKey,
       sequence: this.turnCountIn(leg.clientKey) + 1,
       completedAt: new Date().toISOString(),
@@ -283,7 +284,7 @@ export class FiveOhOneEngine implements GameEngine<
     let visit = this.openVisit();
     if (!visit) {
       visit = {
-        clientKey: crypto.randomUUID(),
+        clientKey: newClientKey(),
         stageClientKey: leg.clientKey,
         sequence: this.turnCountIn(leg.clientKey) + 1,
         completedAt: null,

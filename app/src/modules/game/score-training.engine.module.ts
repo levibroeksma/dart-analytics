@@ -1,4 +1,5 @@
 import type { ScoreTrainingSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -100,7 +101,7 @@ export class ScoreTrainingEngine implements GameEngine<
     }
 
     this.turns.push({
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
@@ -126,7 +127,7 @@ export class ScoreTrainingEngine implements GameEngine<
     let turn = this.openTurn();
     if (!turn) {
       turn = {
-        clientKey: crypto.randomUUID(),
+        clientKey: newClientKey(),
         stageClientKey: STAGE.clientKey,
         sequence: this.turns.length + 1,
         completedAt: null,

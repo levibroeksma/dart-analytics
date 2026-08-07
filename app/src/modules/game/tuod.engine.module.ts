@@ -1,4 +1,5 @@
 import type { TuodSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
@@ -186,7 +187,7 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
 
     const succeeded = isTuodSuccess(input);
     this.turns.push({
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: this.stage.clientKey,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),

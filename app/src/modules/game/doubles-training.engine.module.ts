@@ -1,4 +1,5 @@
 import type { DoublesTrainingSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
   boardScore,
@@ -194,7 +195,7 @@ export class DoublesTrainingEngine implements GameEngine<
     if (last && isVisitOpen(last)) return last;
 
     const turn: TurnFact = {
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
       completedAt: null,

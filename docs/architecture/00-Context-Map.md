@@ -141,6 +141,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/interfaces.ts` | `GameEngine` / `GameEngineFactory` — the contract itself | canonical |
 | `app/src/modules/game/engine.registry.ts` | `rulesetVersionKey` → engine factory lookup | canonical |
 | `app/src/modules/game/board-progression.module.ts` | Shared board paths and dartboard arithmetic | canonical |
+| `app/src/modules/game/client-key.module.ts` | `newClientKey()` — transient batch correlation token, explicitly not an entity id (D190) (2026-08-05) | canonical |
 | `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
 | `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
 | `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
@@ -189,7 +190,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.8k |
-| `decisions/architecture.md` | 18 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform | canonical | ~1.2k |
+| `decisions/architecture.md` | 19 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys | canonical | ~1.6k |
 | `decisions/database.md` | 13 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~1.1k |
 | `decisions/api.md` | 29 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker | canonical | ~2.1k |
 | `decisions/game-engine.md` | 27 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~4.1k |
