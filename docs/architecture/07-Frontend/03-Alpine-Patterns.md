@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, forms, data components, persist
-updated: 2026-07-21
+updated: 2026-08-07
 -->
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.2.2
+> **Version:** 0.2.3
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -73,7 +73,7 @@ export default (Alpine: Alpine) => {
 | File | Registers |
 | ---- | --------- |
 | `register-stores.ts` | `Alpine.store()` for all stores |
-| `register-ui-data.ts` | `Alpine.data()` for portable UI (timer, toast, modal, chart) |
+| `register-ui-data.ts` | `Alpine.data()` for portable UI (timer, toast, modal, chart, toggle) |
 | `register-route-data.ts` | `Alpine.data()` for route components (play, session-setup, …) |
 
 Each registrar receives `Alpine` as an argument. Factory files (`.store.ts`, `.data.ts`) export functions only — they do not import Alpine.
@@ -277,6 +277,7 @@ Details: `00-Overview.md`.
 | `x-show` without `x-cloak` | FOUC before Alpine hydrates |
 | `` x-text={`'${prop}'`} `` or `` @click={`'${click}'`} `` | Emits a string literal — Alpine will not evaluate the expression |
 | `;`-separated statements on `@click` | Prefer one factory method / click prop |
+| OOP module instance stored on the Alpine data object (`this.toggle = new Toggle()`) | Alpine deep-proxies reactive state; a proxied class throws on every ES private field, so lifecycle methods silently never run — hold it in the factory's closure |
 
 ---
 

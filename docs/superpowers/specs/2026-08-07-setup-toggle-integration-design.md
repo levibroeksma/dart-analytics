@@ -4,6 +4,8 @@
 > **Status:** approved (brainstorming consensus)
 > **Scope:** Wire a pill Toggle (OOP module + Alpine factory + setup Astro shell) into Score Training setup via `x-model` / `x-modelable`, linked to `scoreTrainingSetup`.
 > **Out of scope:** Moving Toggle into portable `components/ui/`; restyling off `tab-*` tokens onto semantic-only tokens; DOM layout unit tests beyond the Proxy private-field guard (optional stubs deferred).
+>
+> **Revised 2026-08-07** after validating the implementation plan against the frontend handbook and gate scripts: the Alpine factory moves to `lib/ui/toggle.data.ts` (`02-Folder-Structure.md` colocation rule — `lib/client/alpine/` holds only the entry factory and registrars), the module's `type` aliases live in a new `modules/ui/types.ts` raised by `modules/types.ts` rather than in `interfaces.ts`, and the setup test helper gains a mocked `$watch` (its absence would break every existing `init()` test).
 
 ---
 
@@ -31,9 +33,9 @@ Authority: `07-Frontend/03-Alpine-Patterns.md`, `04-Modules-And-OOP.md`, `02-Fol
 
 In scope:
 
-- `modules/ui/toggle.module.ts` + types on `modules/ui/interfaces.ts`
+- `modules/ui/toggle.module.ts` + types on a new `modules/ui/types.ts` (raised by `modules/types.ts`)
 - `tests/modules/ui/toggle.module.test.ts` (Vitest port of value/Proxy tests)
-- `lib/client/alpine/toggle.data.ts` + register as `Alpine.data("toggle", …)`
+- `lib/ui/toggle.data.ts` + register as `Alpine.data("toggle", …)`
 - Fix `Toggle.astro` / `ToggleListItem.astro` conventions (`cn`, `{...props}`, no `font-medium`)
 - Wire `ScoreTrainingSetupForm.astro` (no nested `x-data`; domain option values; `x-model`)
 - `$watch("durationType", …)` in `score-training-setup.data.ts` calling `selectMode`
@@ -56,7 +58,7 @@ Page: x-data="scoreTrainingSetup()"
        └─ Toggle.astro
             x-data="toggle(config)" + x-modelable="activeTab"
             x-model="durationType"  (parent)
-                 └─ toggle.data.ts (closure holds Toggle instance)
+                 └─ lib/ui/toggle.data.ts (closure holds Toggle instance)
                       └─ modules/ui/toggle.module.ts
                            mount / ResizeObserver / pill layout
 ```
@@ -64,9 +66,10 @@ Page: x-data="scoreTrainingSetup()"
 | File | Role |
 | ---- | ---- |
 | `app/src/modules/ui/toggle.module.ts` | OOP class; `#` privates; `mount` / `unmount` / `layout` / `setValue` |
-| `app/src/modules/ui/interfaces.ts` | Add `ToggleOption`, `Orientation`, `Pill`, `ToggleOpts` |
+| `app/src/modules/ui/types.ts` | New barrel: `ToggleOption`, `Orientation`, `Pill`, `ToggleOpts` |
+| `app/src/modules/types.ts` | Raise it: `export * from "./ui/types";` |
 | `app/tests/modules/ui/toggle.module.test.ts` | Vitest: defaults, initial, unknown, setValue, Proxy private-field guard |
-| `app/src/lib/client/alpine/toggle.data.ts` | `toggleData(config)` factory; class in closure only |
+| `app/src/lib/ui/toggle.data.ts` | `toggleData(config)` factory; class in closure only |
 | `app/src/lib/client/alpine/register-ui-data.ts` | `Alpine.data("toggle", toggleData)` (name must match markup) |
 | `app/src/components/layout/games/setup/Toggle.astro` | Shell + pill; `x-data={`toggle(${JSON.stringify(config)})`}` |
 | `app/src/components/layout/games/setup/ToggleListItem.astro` | Option row; `@click` → `select(value)` |
@@ -154,7 +157,7 @@ Alpine `$watch` does not fire on registration. Subsequent changes (Toggle → `x
 - `setValue` ignores unknown; accepts known
 - Proxy wrapper throws on private-field access (documents “Alpine must not wrap Toggle”)
 
-**Setup:** existing `score-training-setup.data.test.ts` continues to exercise `selectMode` directly. Do not unit-test Alpine `$watch` wiring; rely on `selectMode` tests + manual check.
+**Setup:** existing `score-training-setup.data.test.ts` continues to exercise `selectMode` directly, and its context helper gains a mocked `$watch` that records `(key, callback)` — mandatory, since `init()` now calls it. One added test asserts the recorded `durationType` callback runs `selectMode`. Alpine's own `$watch` runtime stays untested; only our callback is.
 
 **Manual:**
 
