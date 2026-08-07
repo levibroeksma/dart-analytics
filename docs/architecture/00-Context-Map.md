@@ -191,7 +191,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
 | `decisions/frontend/architecture.md` | 14 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client | canonical | ~2k |
 | `decisions/frontend/astro.md` | 14 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~1.5k |
-| `decisions/frontend/alpine.md` | 12 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~0.8k |
+| `decisions/frontend/alpine.md` | 12 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.1k |
 | `decisions/frontend/style.md` | 8 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area | canonical | ~0.9k |
 | `decisions/context-system.md` | 30 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~4.1k |
 
