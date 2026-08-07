@@ -38,8 +38,9 @@ const infoSection = {
       name="durationValue"
       type="text"
       inputmode="numeric"
-      placeholder="Number of rounds"
+      :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
       x-model.number="durationValue"
+      @input="clampNotice = ''"
       class="glass border-tab-border rounded-full!"
     />
     <label
