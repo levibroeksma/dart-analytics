@@ -26,10 +26,31 @@ describe("generateId", () => {
     expect(match![1]).toBe("7");
   });
 
-  it("mints ids that sort in creation order", () => {
+  /**
+   * The sortability D12 buys is timestamp-ordered at millisecond granularity.
+   * This implementation carries no intra-millisecond counter, so two ids minted
+   * inside the same millisecond share a timestamp and order by their random
+   * tail — permitted by RFC 9562, which makes the counter method optional.
+   * Nothing in this codebase orders by id (replay and stats order by
+   * `sequence_number` and `created_at`), so that is a caveat, not a defect.
+   */
+  it("mints ids that sort in creation order across a millisecond", async () => {
     const first = generateId();
+    await new Promise((resolve) => setTimeout(resolve, 2));
     const second = generateId();
+
     expect([second, first].sort()).toEqual([first, second]);
+  });
+
+  it("stamps the current time into the leading 48 bits", () => {
+    const before = Date.now();
+    const timestamp = Number.parseInt(
+      generateId().replace(/-/g, "").slice(0, 12),
+      16,
+    );
+
+    expect(timestamp).toBeGreaterThanOrEqual(before);
+    expect(timestamp).toBeLessThanOrEqual(Date.now());
   });
 });
 
