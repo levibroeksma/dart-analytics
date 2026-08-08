@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-08-05
+updated: 2026-08-08
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -277,6 +277,50 @@ Rules evolve through versioning rather than modification.
 Historical gameplay references immutable rule versions.
 
 Rulesets own game limits such as maximum darts per turn and score caps. These limits are enforced by the application, not by database CHECK constraints.
+
+---
+
+# ruleset_version_capabilities (migration 0019)
+
+## Purpose
+
+Declares which capture/input mode combinations each ruleset version's engine actually implements. <!-- 2026-08-08 -->
+
+## Primary Key
+
+Composite: (ruleset_version_id, capture_mode_id, input_mode_id)
+
+## Key Columns
+
+- ruleset_version_id
+- capture_mode_id
+- input_mode_id
+- created_at
+
+## Relationships
+
+References:
+
+- ruleset_versions (RESTRICT)
+- capture_modes (RESTRICT)
+- input_modes (RESTRICT)
+
+Referenced by:
+
+- exercise_sessions, through the composite `fk_sessions_capability` added in migration `0020`
+
+## Constraints
+
+- `pk_ruleset_version_capabilities` — the composite primary key, which is what makes `fk_sessions_capability` referenceable
+- three single-column foreign keys, all `ON DELETE RESTRICT`
+
+## Design Rationale
+
+Capability is keyed on **ruleset version**, not game type: a ruleset version is the immutable unit an engine is written against (D03/D13), so "501 supports the visual board" is only ever true of a particular version of the 501 rules. Keying on game type would make a v2 ruleset inherit v1's capabilities silently.
+
+The declaration exists twice on purpose. `app/src/lib/game/rulesets/capabilities.ts` is the code-side source both runtimes import; `seeds/0007_ruleset_version_capabilities.sql` mirrors it into this table so migration `0020`'s composite foreign key can make an undeclared combination physically unstorable. A parity test and `database/verification/0007_capability_seed_checks.sql` prove the two agree.
+
+Rows are seeded, not player data — but the ids are UUIDs and SMALLINTs resolved by `implementation_key` at seed time, so this table follows the reference-layer seeding rules rather than D12's SMALLINT lookup-id rule.
 
 ---
 

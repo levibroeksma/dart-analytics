@@ -42,11 +42,32 @@ describe("fiveOhOneValidator.validateConfig", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("rejects a capture/input mode combination the ruleset does not support", () => {
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid config", () => {
+    const result = fiveOhOneValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a capture/input mode combination the ruleset does not support, naming both supported pairs", () => {
     const result = fiveOhOneValidator.validateConfig({
       config: validConfig,
       captureModeKey: "ANALYTICS",
       inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+    const issues = !result.valid ? String(result.issues) : "";
+    expect(issues).toContain("RECREATIONAL + QUICK_SCORE");
+    expect(issues).toContain("ANALYTICS + VISUAL_BOARD");
+  });
+
+  it("rejects ANALYTICS + VISUAL_BOARD with an invalid config", () => {
+    const result = fiveOhOneValidator.validateConfig({
+      config: { ...validConfig, starting_score: 0 },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
     });
     expect(result.valid).toBe(false);
   });

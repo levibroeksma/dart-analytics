@@ -59,7 +59,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - An engine-only task must still prove its state shape can be persisted: name the capture/input mode, the stage type, and the `turns`/`darts` mapping in the spec before implementation. Deferring persistence is allowed; choosing a state shape that cannot express it is not. (2026-07-26)
 - IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
-- Never modify applied migrations (`0001`–`0018`); new schema change = new numbered migration + spec update.
+- Never modify applied migrations (`0001`–`0021`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
 - At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`. (2026-07-26; gate added 2026-07-28)

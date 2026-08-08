@@ -27,6 +27,40 @@ describe("scoreTrainingValidator.validateConfig", () => {
     expect(result.valid).toBe(false);
   });
 
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid config", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a capture/input mode combination the ruleset does not support, naming both supported pairs", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+    const issues = !result.valid ? String(result.issues) : "";
+    expect(issues).toContain("RECREATIONAL + QUICK_SCORE");
+    expect(issues).toContain("ANALYTICS + VISUAL_BOARD");
+  });
+
+  it("rejects ANALYTICS + VISUAL_BOARD with an invalid config", () => {
+    const result = scoreTrainingValidator.validateConfig({
+      config: {
+        duration_type: "ROUNDS",
+        duration_value: 10,
+        max_darts_per_turn: 4,
+      },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(false);
+  });
+
   it("rejects an invalid config shape", () => {
     const result = scoreTrainingValidator.validateConfig({
       config: {

@@ -86,3 +86,18 @@ export interface ActiveSessionSummary {
   sessionId: string;
   startedAt: string;
 }
+
+/**
+ * A `v_player_settings` row. Both keys are nullable: the view LEFT JOINs the
+ * lookup tables, and `player_settings` allows either mode column to be unset.
+ */
+export interface PlayerSettingsRow {
+  defaultCaptureModeKey: string | null;
+  defaultInputModeKey: string | null;
+}
+
+/** Mode keys to store on a player's settings row. */
+export interface PlayerSettingsInput {
+  defaultCaptureModeKey: string;
+  defaultInputModeKey: string;
+}

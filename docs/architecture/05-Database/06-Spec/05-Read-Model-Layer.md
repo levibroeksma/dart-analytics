@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-08-05
+updated: 2026-08-08
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -245,6 +245,34 @@ Both derived columns are `NUMERIC`, not `double precision`. `MOD()` has no `doub
 
 ---
 
+# v_player_settings
+
+## Category
+
+API Read Model
+
+## Purpose
+
+Exposes a player's default capture and input mode as implementation keys rather than lookup ids. Backs `GET /api/players/me/settings` and the read half of `PATCH`. <!-- 2026-08-08 -->
+
+## Sources
+
+- player_settings
+- capture_modes (LEFT JOIN)
+- input_modes (LEFT JOIN)
+
+## Exposes
+
+`player_id`, `default_capture_mode_key`, `default_input_mode_key`, `updated_at`.
+
+## Design Rationale
+
+Both lookup joins are `LEFT JOIN` because `player_settings.default_capture_mode_id` and `default_input_mode_id` are nullable — an `INNER JOIN` would drop the whole row instead of returning NULL keys, and the service could not then tell "no preference stored" from "no settings row at all".
+
+A player with no settings row produces **no row here**. That is deliberate: the service applies the `RECREATIONAL` + `QUICK_SCORE` defaults, and the row is created lazily on first write, so no backfill is needed for players provisioned before settings shipped. The same fallback covers a row whose mode ids are NULL.
+
+---
+
 # Read Model Layer Summary
 
 The initial read models cover the three core read paths:
@@ -256,6 +284,7 @@ The initial read models cover the three core read paths:
 | Analytics | v_dart_analytics, v_dart_locations |
 | Routine execution | v_routine_execution |
 | Game setup | v_configuration_presets |
+| Player preferences | v_player_settings |
 
 New statistics are delivered as new views — never as stored aggregates.
 

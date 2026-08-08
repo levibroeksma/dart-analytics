@@ -1,0 +1,136 @@
+---
+/**
+ * App-mode picker. Reads and writes the `settings` Alpine store, which loads
+ * itself in `init()`; each choice persists on click and the store keeps the
+ * previous pair when a save fails. Roving-tabindex radiogroup: the selected
+ * option is the group's only tab stop, arrow keys move + persist selection
+ * and follow it with focus, and the checkmark supplements colour as the
+ * selected-state cue. Quick score holds the tab stop whenever the stored mode
+ * is neither of the two offered here — `PATCH` accepts pairs this form does
+ * not show (RECREATIONAL + DETAILED_DARTS), and without the fallback both
+ * options would be tabindex -1 and the group unreachable by keyboard.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import CheckIcon from "@icons/check.svg";
+
+// Styles
+const className = cn("space-y-4", classNameProp);
+const optionClass =
+  "w-full rounded-lg border px-4 py-3 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
+const checkClass =
+  "size-5 shrink-0 text-accent transition-opacity duration-150";
+---
+
+<section
+  class={className}
+  aria-labelledby="app-mode-heading"
+  {...props}
+>
+  <div class="space-y-1">
+    <h2
+      id="app-mode-heading"
+      class="text-lg font-semibold text-foreground"
+    >
+      App mode
+    </h2>
+    <p class="text-sm text-muted-foreground">
+      Your preferred way to score. Only games that support the mode you pick are
+      shown. Dart-by-dart capture is not built yet — analytics games still score
+      by visit total for now.
+    </p>
+  </div>
+
+  <div
+    class="space-y-2"
+    role="radiogroup"
+    aria-labelledby="app-mode-heading"
+    x-data="{
+      async selectOther(captureModeKey, inputModeKey, ref) {
+        if ($store.settings.loading) return;
+        await $store.settings.save(captureModeKey, inputModeKey);
+        $nextTick(() => $refs[ref].focus());
+      },
+    }"
+  >
+    <button
+      type="button"
+      role="radio"
+      x-ref="quickScoreOption"
+      class={optionClass}
+      :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
+      :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
+      :disabled="$store.settings.loading"
+      @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
+      @keydown.arrow-left.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+      @keydown.arrow-up.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+      @keydown.arrow-right.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+      @keydown.arrow-down.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+    >
+      <span class="flex items-center justify-between gap-3">
+        <span class="block">
+          <span class="block font-semibold text-foreground"> Quick score </span>
+          <span class="block text-sm text-muted-foreground">
+            Enter a visit total each turn.
+          </span>
+        </span>
+        <CheckIcon
+          class={checkClass}
+          :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'opacity-100' : 'opacity-0'"
+          aria-hidden="true"
+        />
+      </span>
+    </button>
+
+    <button
+      type="button"
+      role="radio"
+      x-ref="analyticsOption"
+      class={optionClass}
+      :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
+      :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 0 : -1"
+      :disabled="$store.settings.loading"
+      @click="$store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
+      @keydown.arrow-left.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+      @keydown.arrow-up.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+      @keydown.arrow-right.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+      @keydown.arrow-down.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+    >
+      <span class="flex items-center justify-between gap-3">
+        <span class="block">
+          <span class="block font-semibold text-foreground">Analytics</span>
+          <span class="block text-sm text-muted-foreground">
+            For per-dart tracking, once the board is built.
+          </span>
+        </span>
+        <CheckIcon
+          class={checkClass}
+          :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'opacity-100' : 'opacity-0'"
+          aria-hidden="true"
+        />
+      </span>
+    </button>
+  </div>
+
+  <p
+    class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="$store.settings.error"
+    x-text="$store.settings.error"
+    x-cloak
+  >
+  </p>
+</section>

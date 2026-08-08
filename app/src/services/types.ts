@@ -15,6 +15,12 @@ export type CreateSessionResult = {
   }[];
 };
 
+/** A player's default capture and input modes, as implementation keys. */
+export type PlayerSettings = {
+  defaultCaptureModeKey: string;
+  defaultInputModeKey: string;
+};
+
 export type AppendBatchResult = {
   created: { stages: number; turns: number; darts: number };
 };

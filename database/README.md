@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0018)
+├── migrations/     # ordered schema migrations (0001–0021)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -31,12 +31,17 @@ From `app/`:
 
 ```sh
 npm run db:status
-npm run db:migrate
-npm run db:seed
-drizzle-kit introspect
+npm run db:migrate     # expected to STOP at 0020 — see below
+npm run db:seed        # 0007 fills the capability table
+npm run db:migrate     # 0020 and 0021 now apply
+npm run db:introspect
 npx fallow
 astro check
 ```
+
+`0020` adds a composite foreign key from `exercise_sessions` to `ruleset_version_capabilities` and requires seed `0007` to have already run — applying `0020` before `0007` (or against a populated database whose sessions use a combination `0007` does not declare) fails on constraint validation.
+
+**The first `db:migrate` failing at `0020` is expected, not a broken migration.** `db:migrate` is `dbmate up`, which takes no target version and applies every pending migration in one run. Against a populated database it will commit `0019`, then stop at `0020` because the capability table is still empty. Run `db:seed`, then `db:migrate` again to apply `0020` and `0021`. On an empty `exercise_sessions` the first run succeeds straight through — the stop is data-dependent, so do not treat its absence as a sign the order does not matter.
 
 ## Seed Order
 
@@ -46,6 +51,7 @@ astro check
 4. `seeds/0004_score_training_minutes_preset.sql`
 5. `seeds/0005_visual_board_input_mode.sql`
 6. `seeds/0006_single_band_dart_zones.sql`
+7. `seeds/0007_ruleset_version_capabilities.sql`
 
 ## Verification Scripts
 
@@ -64,7 +70,10 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 
 | Script | Covers |
 | ------ | ------ |
+| `verification/0007_capability_seed_checks.sql` | `seeds/0007` row count, per-triple resolution, zero undeclared `exercise_sessions`, parity with `capabilities.ts` (12 checks) |
 | `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
+| `verification/0020_capability_fk_checks.sql` | `fk_sessions_capability` exists over the exact composite columns, refuses an undeclared capture/input mode combination, permits a declared one (4 checks) |
+| `verification/0021_player_settings_checks.sql` | `v_player_settings` exists with the exact expected columns, translates known mode ids to implementation keys, omits a row for a player with no settings, and preserves the `LEFT JOIN` (NULL mode ids still yield a row with NULL keys) (7 checks) |
 
 ## References
 

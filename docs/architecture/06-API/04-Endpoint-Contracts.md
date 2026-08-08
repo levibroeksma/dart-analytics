@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-07-22
+updated: 2026-08-08
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.2.0 (`SESSION_ALREADY_ACTIVE` on `POST /api/sessions`, 2026-07-22)
+> **Version:** 1.3.0 (`GET`/`PATCH /api/players/me/settings`, 2026-08-08; prior 1.2.0 — `SESSION_ALREADY_ACTIVE` on `POST /api/sessions`, 2026-07-22)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -188,6 +188,47 @@ type ProvisionPlayerResponse = z.infer<typeof ProvisionPlayerResponse>;
 
 ---
 
+## Player Settings — `GET` / `PATCH /api/players/me/settings`
+
+The caller's default capture and input mode — the "app mode" the profile screen sets and the games page filters by. Settings are **defaults only**: they are read at session start and copied onto the session, so changing one never rewrites history. Shipped 2026-08-08, superseding D60's deferral clause; the client no longer persists last-used modes locally. <!-- 2026-08-08 -->
+
+**Auth:** standard protected route class — JWT-verified, player resolved by middleware. `me` is always the authenticated player; no player id travels in the path.
+
+### `GET /api/players/me/settings`
+
+Read-only, backed by `v_player_settings` (migration `0021`). A player with no settings row — every player provisioned before settings shipped — reads as `RECREATIONAL` + `QUICK_SCORE`; so does a row whose mode ids are NULL. No backfill runs and the read never writes.
+
+Success → `200` with the standard `ok()` envelope carrying `PlayerSettingsResponse`.
+
+### `PATCH /api/players/me/settings`
+
+Replaces both modes; there is no partial update. The row is created lazily on first write.
+
+- A pair no ruleset version declares in `ruleset_version_capabilities` → `422 VALIDATION_FAILED`, with `error.details.reason` naming the rejected pair. The service checks it against `capableRulesets()` (`app/src/lib/game/rulesets/capabilities.ts`), the same declaration migration `0020`'s composite foreign key enforces on `exercise_sessions`. Without this the player could be left in an app mode in which no game can be started.
+- A malformed body → `422 VALIDATION_FAILED` from the shared request-parsing helper.
+- Success → `200` with the standard `ok()` envelope carrying the stored `PlayerSettingsResponse` (the request echoed back).
+
+No new error codes are introduced; both cases reuse `VALIDATION_FAILED` from the registry in `03-Shared-Conventions.md`.
+
+```typescript
+// design sketch — reference values are implementation_key strings
+const UpdatePlayerSettingsRequest = z.object({
+  defaultCaptureModeKey: z.string(),         // capture_modes.implementation_key
+  defaultInputModeKey: z.string(),           // input_modes.implementation_key
+});
+type UpdatePlayerSettingsRequest = z.infer<typeof UpdatePlayerSettingsRequest>;
+
+const PlayerSettingsResponse = z.object({    // v_player_settings — GET and PATCH result
+  defaultCaptureModeKey: z.string(),
+  defaultInputModeKey: z.string(),
+});
+type PlayerSettingsResponse = z.infer<typeof PlayerSettingsResponse>;
+```
+
+`player_id` and `updated_at` are view columns and are deliberately not echoed: the caller is `me`, and no client reads the timestamp.
+
+---
+
 ## Configuration Presets — `GET /api/configuration-templates?gameType=<key>`
 
 Lists the configuration presets available to the caller for one game type: system presets plus the caller's own. Backed 1:1 by `v_configuration_presets` (migration `0016`), player-scoped in the repository (`player_id IS NULL OR player_id = caller`). The returned `configurationTemplateId` is what `POST /api/sessions` accepts as `templateRef`. Preset CRUD is deferred post-v1; v1 presets are the read-only system seeds. <!-- 2026-07-13 -->
@@ -222,6 +263,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
+| `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 
 **Deferred (post-v1):** `GET /api/statistics/overview`, `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. Statistics endpoints do not ship in v1; when built they must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`) per the view-backed-reads rule. v1 stores all dart/turn/session facts these derive from. <!-- 2026-07-12 -->
 
@@ -296,7 +338,7 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
 });
 ```
 
-All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation).
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings).
 
 ---
 

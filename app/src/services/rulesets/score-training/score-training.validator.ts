@@ -1,9 +1,10 @@
 import { ScoreTrainingConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
 import {
-  QUICK_SCORE_MODES,
+  QUICK_SCORE_OR_VISUAL_BOARD_MODES,
   exceedsRoundsLimit,
   isQuickScoreCapture,
+  isQuickScoreOrVisualBoardCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
 import {
@@ -18,16 +19,25 @@ import type {
 
 const DEFAULT_MAX_VISIT_SCORE = 180;
 
+/**
+ * Score Training supports two mode pairs. Under RECREATIONAL + QUICK_SCORE
+ * every turn is a visit total with no dart rows, capped at the ruleset's own
+ * `max_visit_score`. Under ANALYTICS + VISUAL_BOARD every dart carries a
+ * landing coordinate, re-derived and cross-checked by
+ * `validateVisualBoardTurns`.
+ */
 export const scoreTrainingValidator: RulesetValidator = {
   validateConfig({
     config,
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
       return {
         valid: false,
-        issues: [`Score Training V1 only supports ${QUICK_SCORE_MODES}`],
+        issues: [
+          `Score Training V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
+        ],
       };
     }
     const parsed = ScoreTrainingConfig.safeParse(config);

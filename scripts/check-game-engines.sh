@@ -3,12 +3,22 @@
 # services/rulesets/registry.ts): every app/src/modules/game/*.engine.module.ts
 # must (a) export a *EngineFactory, (b) call registerEngineFactory(...), and
 # (c) name a rulesetVersionKey with a matching entry in
-# app/src/services/rulesets/registry.ts, so engine #6 cannot regress the
-# contract with no server-side validator wired up.
+# app/src/services/rulesets/registry.ts and (d) a matching key in
+# RULESET_CAPABILITIES (app/src/lib/game/rulesets/capabilities.ts), so engine
+# #6 cannot regress the contract with no server-side validator wired up and
+# no declared capture/input mode support.
+#
+# WHAT THIS CANNOT CATCH:
+#   * That the modes declared for a rulesetVersionKey in RULESET_CAPABILITIES
+#     match what the engine actually implements. This gate proves the key is
+#     declared, not that the declared pairs reflect the engine's real
+#     behaviour — that parity is the responsibility of the ruleset's own
+#     tests, not this structural check.
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
 REGISTRY_FILE="app/src/services/rulesets/registry.ts"
+CAPABILITIES_FILE="app/src/lib/game/rulesets/capabilities.ts"
 FAIL=0
 CONFORMING=0
 
@@ -20,6 +30,20 @@ fi
 
 if [ ! -f "$REGISTRY_FILE" ]; then
   echo "FAIL: ruleset validator registry not found at $REGISTRY_FILE" >&2
+  exit 1
+fi
+
+if [ ! -f "$CAPABILITIES_FILE" ]; then
+  echo "FAIL: ruleset capabilities file not found at $CAPABILITIES_FILE" >&2
+  exit 1
+fi
+
+CAPABILITY_KEYS=$(awk '/^export const RULESET_CAPABILITIES/{flag=1; next} flag && /^};/{flag=0} flag' "$CAPABILITIES_FILE" \
+  | grep -oE '^[[:space:]]*"?[A-Z0-9_]+"?:' \
+  | sed -E 's/^[[:space:]]*"?([A-Z0-9_]+)"?:$/\1/' \
+  | sort -u)
+if [ -z "$CAPABILITY_KEYS" ]; then
+  echo "FAIL: parsed zero ruleset keys from RULESET_CAPABILITIES in $CAPABILITIES_FILE — cannot verify declared mode support" >&2
   exit 1
 fi
 
@@ -48,6 +72,12 @@ for file in $MODULES; do
     for key in $KEYS; do
       if ! grep -qE "(^|[^A-Za-z0-9_])\"?${key}\"?[[:space:]]*:" "$REGISTRY_FILE"; then
         echo "FAIL: $file names rulesetVersionKey \"$key\" with no entry in $REGISTRY_FILE" >&2
+        FAIL=1
+        BAD=1
+      fi
+
+      if ! printf '%s\n' "$CAPABILITY_KEYS" | grep -qxF "$key"; then
+        echo "FAIL: $file names rulesetVersionKey \"$key\" with no entry in RULESET_CAPABILITIES ($CAPABILITIES_FILE)" >&2
         FAIL=1
         BAD=1
       fi
