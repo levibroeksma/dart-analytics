@@ -29,8 +29,14 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
     updateSessionStatusRecord: vi.fn(),
   };
 });
+vi.mock("@services/rulesets/registry", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@services/rulesets/registry")>();
+  return { ...actual, getRulesetValidator: vi.fn(actual.getRulesetValidator) };
+});
 
 import * as repo from "@repositories/session.repository";
+import * as registry from "@services/rulesets/registry";
 import {
   appendBatch,
   canonicalize,
@@ -275,6 +281,46 @@ describe("createSession", () => {
     await expect(createSession("player-1", inlineRequest)).rejects.toThrow(
       "Connection terminated",
     );
+  });
+
+  it("rejects a mode pair the ruleset does not declare", async () => {
+    // SCORE_TRAINING_V1's real validator already refuses RECREATIONAL +
+    // DETAILED_DARTS on its own (a different reason: "only supports ...
+    // QUICK_SCORE"), which would mask whether the capabilities guard under
+    // test is doing anything. Swap in a permissive validator for this one
+    // call so the guard is the only thing standing between this request and
+    // a database write.
+    vi.mocked(registry.getRulesetValidator).mockReturnValueOnce({
+      validateConfig: () => ({ valid: true, config: {} }),
+      validateBatch: () => ({ valid: true }),
+    });
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.ok).toBe(false);
+    expect(result).toMatchObject({ code: "VALIDATION_FAILED" });
+    expect(repo.insertSessionRecords).not.toHaveBeenCalled();
+  });
+
+  it("accepts a mode pair the ruleset declares", async () => {
+    // SINGLES_V1 declares exactly RECREATIONAL + DETAILED_DARTS, and its real
+    // validator accepts this config too, so this is a genuine end-to-end
+    // happy path the guard must not block — it fails a guard that is
+    // over-broad (rejects everything) as surely as the previous test fails
+    // one that is missing entirely.
+    const result = await createSession("player-1", {
+      gameTypeKey: "SINGLES",
+      rulesetVersionKey: "SINGLES_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+      config: {
+        source: "inline",
+        config: { order_mode: "LOW_TO_HIGH", difficulty: "EASY" },
+      },
+    });
+    expect(result.ok).toBe(true);
   });
 });
 

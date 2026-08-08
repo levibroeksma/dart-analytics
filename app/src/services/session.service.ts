@@ -1,5 +1,6 @@
 import { getDb } from "@db/client";
 import { generateId } from "@lib/id";
+import { supportsMode } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
 import {
   countTurnsForSession,
@@ -28,6 +29,7 @@ import type {
   EventsBatchRequestInput,
   UpdateSessionRequestInput,
 } from "@routes/types";
+import type { RulesetVersionKey } from "@lib/types";
 import type {
   AppendBatchResult,
   CreateSessionResult,
@@ -252,6 +254,22 @@ export async function createSession(
       ok: false,
       code: "VALIDATION_FAILED",
       details: { reason: "no validator registered for rulesetVersionKey" },
+    };
+  }
+
+  if (
+    !supportsMode(
+      input.rulesetVersionKey as RulesetVersionKey,
+      input.captureModeKey,
+      input.inputModeKey,
+    )
+  ) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: {
+        reason: `${input.rulesetVersionKey} does not declare captureModeKey ${input.captureModeKey} + inputModeKey ${input.inputModeKey}`,
+      },
     };
   }
 
