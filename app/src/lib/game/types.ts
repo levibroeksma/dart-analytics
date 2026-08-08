@@ -52,6 +52,9 @@ export type ScoreTrainingPlayContext = {
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
   remainingLabel(this: ScoreTrainingPlayContext): string;
+  threeDartAverage(this: ScoreTrainingPlayContext): string;
+  dartsThrownThisLeg(this: ScoreTrainingPlayContext): number;
+  previousScoreThisLeg(this: ScoreTrainingPlayContext): string;
   init(this: ScoreTrainingPlayContext): Promise<void>;
   retryReconciliation(this: ScoreTrainingPlayContext): Promise<void>;
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;

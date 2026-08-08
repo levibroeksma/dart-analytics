@@ -9,6 +9,11 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import {
+  dartsThrownCount,
+  perVisitAverageDisplay,
+  previousScoreDisplay,
+} from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
 import type { EngineFacts, TurnFact } from "@modules/types";
 import type { ScoreTrainingPlayContext } from "./types";
@@ -142,6 +147,20 @@ export function scoreTrainingPlay() {
 
     remainingLabel(this: ScoreTrainingPlayContext): string {
       return formatRemaining(this.$store.game.timerRemainingMs);
+    },
+
+    threeDartAverage(this: ScoreTrainingPlayContext): string {
+      return perVisitAverageDisplay(this.$store.game.turns);
+    },
+
+    dartsThrownThisLeg(this: ScoreTrainingPlayContext): number {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return dartsThrownCount(this.$store.game.turns.length, maxDartsPerTurn);
+    },
+
+    previousScoreThisLeg(this: ScoreTrainingPlayContext): string {
+      return previousScoreDisplay(this.$store.game.turns);
     },
 
     /**
