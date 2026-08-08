@@ -25,12 +25,12 @@ Decisions locked in brainstorming:
 | ----- | ------ |
 | Average method name | Keep Astro wiring: `threeDartAverage()` |
 | Average formula (ST) | Per-visit: `sum(totalScore) / visitCount`, `.toFixed(1)`; `"0.0"` when empty |
-| 501 average | Keep darts-based 3DA: `((sum / dartsThrown) * 3).toFixed(1)` (checkout visits may be short) |
+| 501 average | Keep darts-based 3DA: `((sum / dartsThrown) * 3).toFixed(1)` with `dartsThrown = turns.length * maxDartsPerTurn` (current behavior; equals per-visit under that counting rule) |
 | Implementation | Play-factory methods + extract shared pure helpers where math is identical |
 | Turn scope (ST) | All `$store.game.turns` |
 | Empty previous | `"—"` (same as 501) |
 
-Authority: `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md`. Precedent: 501 leg-scoped progress stats in `five-oh-one-play.data.ts` + `five-oh-one-play.data.test.ts`.
+Authority: `07-Frontend/02-Folder-Structure.md`, `03-Alpine-Patterns.md`, `04-Modules-And-OOP.md`, `06-Test-Strategy.md`, `06-API/03-Shared-Conventions.md` (type barrels), Pattern 18 (`04-Architecture-patterns.md`), `app/CLAUDE.md`. Precedent: 501 leg-scoped progress stats; game-domain pure helpers `five-oh-one-legs.ts` / `score-training-duration.ts` / `session-recovery.ts`.
 
 ---
 
@@ -49,7 +49,8 @@ Out of scope:
 
 - Changing `ScoreTraining.astro` labels/expressions (already correct)
 - Results snapshot / completion modal average semantics
-- Shared average formula across ST and 501 (intentionally different when visits are short)
+- Merging the two average helpers into one (kept as named formulas even though they agree under turn×max dart counting)
+- Changing dart counting to actual dart rows (would alter 501 checkout-leg averages)
 
 ---
 
@@ -64,7 +65,7 @@ ScoreTraining.astro / FiveOhOne.astro
 
 | File | Role |
 | ---- | ---- |
-| `app/src/lib/game/play-visit-stats.ts` | Pure display helpers |
+| `app/src/lib/game/play-visit-stats.ts` | Pure display helpers (game-domain; same home as `five-oh-one-legs.ts` / `score-training-duration.ts` — not `@utils`) |
 | `app/src/lib/game/score-training-play.data.ts` | Thin methods over `$store.game.turns` |
 | `app/src/lib/game/five-oh-one-play.data.ts` | Thin methods over `turnsInCurrentLeg()` via helpers |
 | `app/src/lib/game/types.ts` | Declare ST methods on `ScoreTrainingPlayContext` |
@@ -78,7 +79,7 @@ ScoreTraining.astro / FiveOhOne.astro
 
 ## Helper API
 
-Input turns are `{ totalScore: number }[]` (no full `TurnFact` dependency).
+Input turns are `{ totalScore: number }[]` (no full `TurnFact` dependency). Do **not** `export type` / `export interface` from `play-visit-stats.ts` — type-barrel gate (`06-API/03-Shared-Conventions.md`, `scripts/check-type-barrels.sh`). Inline the param shape, or if a named type is needed put it in `lib/game/types.ts` and raise it.
 
 | Helper | Behavior |
 | ------ | -------- |
@@ -144,8 +145,8 @@ Add a `describe` for session progress stats (mirror 501’s `"leg-scoped progres
 
 ### 4. Verification
 
-- `cd app && npx vitest run tests/lib/game/play-visit-stats.test.ts tests/lib/game/score-training-play.data.test.ts tests/lib/game/five-oh-one-play.data.test.ts`
-- Broader `validate:app` before claiming the implementation task done
+- Mid-task (red/green): scoped Vitest on the three files above is fine
+- Before claiming done (`06-Test-Strategy.md`): full `npm test` (complete suite — not `--bail`, not only touched files) and `npm run validate:app`
 
 ---
 
@@ -158,6 +159,18 @@ Add a `describe` for session progress stats (mirror 501’s `"leg-scoped progres
 5. Helper + ST + 501 targeted Vitest suites green
 
 ---
+
+## Doc alignment notes
+
+| Doc rule | Design stance |
+| -------- | ------------- |
+| Pattern 18 / engines: never store derived averages in facts | Helpers + play methods derive on read from turn facts; engines untouched |
+| `00-Overview` Must Not: stats from raw DB tables | N/A — mid-session UI folds the client fact log (same as existing 501 StatRows), not SQL tables |
+| `02-Folder-Structure`: domain helpers in `lib/game/` | `play-visit-stats.ts` beside other game pure helpers; not `utils/` |
+| Type barrels: no inline `export type` in implementation files | Param shapes stay anonymous (or named only in `types.ts`) |
+| D101: do not extract helpers solely for Astro testability | Extraction is for ST↔501 reuse, not to unit-test `.astro` |
+| Hard invariant: migrated tests keep the same guarantee | 501 leg-stats expectations unchanged; no re-pointing at different inputs |
+| `06-Test-Strategy`: full suite before done | Scoped Vitest mid-task only; full `npm test` + `validate:app` at completion |
 
 ## Implementation notes
 
