@@ -46,6 +46,7 @@ astro check
 4. `seeds/0004_score_training_minutes_preset.sql`
 5. `seeds/0005_visual_board_input_mode.sql`
 6. `seeds/0006_single_band_dart_zones.sql`
+7. `seeds/0007_ruleset_version_capabilities.sql`
 
 ## Verification Scripts
 
@@ -65,6 +66,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | Script | Covers |
 | ------ | ------ |
 | `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
+| `verification/0007_capability_seed_checks.sql` | `seeds/0007` row count, per-triple resolution, zero undeclared `exercise_sessions`, parity with `capabilities.ts` (12 checks) |
 
 ## References
 
