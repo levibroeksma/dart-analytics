@@ -354,4 +354,61 @@ describe("boardInput", () => {
 
     expect(commits).toHaveLength(0);
   });
+
+  it("stays inactive when the press transform fails", () => {
+    const input = boardInput({
+      toBoard: () => null,
+      onCommit: () => {},
+      handedness: "RIGHT",
+      viewport: { width: 400, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 0, clientY: -102 });
+
+    expect(input.active).toBe(false);
+    expect(input.preview).toBeNull();
+    expect(input.placement).toBeNull();
+  });
+
+  it("commits nothing when release follows a press whose transform failed", () => {
+    const commits: DartObservation[] = [];
+    const input = boardInput({
+      toBoard: () => null,
+      onCommit: (observation) => commits.push(observation),
+      handedness: "RIGHT",
+      viewport: { width: 400, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 0, clientY: -102 });
+    input.release();
+
+    expect(commits).toHaveLength(0);
+  });
+
+  it("commits the press position when a later move's transform fails", () => {
+    const commits: DartObservation[] = [];
+    let detached = false;
+    const input = boardInput({
+      toBoard: (pointer) =>
+        detached ? null : { x: pointer.clientX, y: pointer.clientY },
+      onCommit: (observation) => commits.push(observation),
+      handedness: "RIGHT",
+      viewport: { width: 400, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 0, clientY: -102 });
+    detached = true;
+    input.move({ clientX: 0, clientY: -166 });
+    input.release();
+
+    expect(commits[0]).toEqual({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    });
+  });
 });
