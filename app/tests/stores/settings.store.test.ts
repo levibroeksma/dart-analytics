@@ -54,6 +54,7 @@ describe("settingsStore", () => {
       defaultCaptureModeKey: "ANALYTICS",
       defaultInputModeKey: "VISUAL_BOARD",
     });
+    expect(store.captureModeKey).toBe("ANALYTICS");
     expect(store.inputModeKey).toBe("VISUAL_BOARD");
   });
 
@@ -63,6 +64,7 @@ describe("settingsStore", () => {
     const store = settingsStore();
     await store.save("ANALYTICS", "VISUAL_BOARD");
 
+    expect(store.captureModeKey).toBe("RECREATIONAL");
     expect(store.inputModeKey).toBe("QUICK_SCORE");
     expect(store.error).not.toBeNull();
   });
