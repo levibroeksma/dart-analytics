@@ -15,6 +15,19 @@
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
+# Check 2's ranges are written with a U+2013 en-dash. Under a POSIX/C locale
+# that is three bytes, the `.?` slots in the pattern below are consumed by its
+# continuation bytes, and every range silently stops matching — the check then
+# passes by finding nothing rather than by finding nothing wrong. CI runs in a
+# UTF-8 locale and does match, so the two disagree. Pin the locale so a stale
+# range fails everywhere or nowhere.
+UTF8_LOCALE=$(locale -a 2>/dev/null | grep -iE '(^C|en_US)\.utf-?8$' | head -1)
+if [ -n "$UTF8_LOCALE" ]; then
+  export LC_ALL="$UTF8_LOCALE"
+else
+  echo "WARN: no UTF-8 locale available; migration-range checks may under-report" >&2
+fi
+
 MAP="docs/architecture/00-Context-Map.md"
 FAIL=0
 err() { echo "FAIL: $*" >&2; FAIL=1; }
@@ -35,11 +48,18 @@ for f in $ROUTING_FILES; do
 done
 
 # --- 2. Migration range consistency ----------------------------------------
+# decisions/** is excluded: a decision records what was true when it was made,
+# and check-decision-ids.sh hashes the migrated rows so they cannot be edited
+# to follow the chain. Demanding both is a contradiction, and the ledger is the
+# side that must not move. Lines naming seeds are skipped too — seeds carry
+# their own numbering, which the chain max says nothing about.
 ACTUAL_MAX=$(ls database/migrations/ | grep -oE '^[0-9]{4}' | sort | tail -1)
 if [ -n "$ACTUAL_MAX" ]; then
-  for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.md'); do
+  for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md'); do
     head -6 "$f" | grep -q '^status: historical' && continue
-    for q in $(grep -hoE '0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null | grep -oE '[0-9]{4}$' | sort -u); do
+    for q in $(grep -hiE '0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null \
+      | grep -iv 'seed' \
+      | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
       [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
         && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
     done

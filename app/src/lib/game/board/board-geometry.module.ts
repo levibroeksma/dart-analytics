@@ -1,7 +1,6 @@
+import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import type { DartZoneKey } from "@modules/types";
 import type { BoardHit, BoardPoint } from "./types";
-
-export const BULL_TARGET_NUMBER = 25;
 
 /**
  * Regulation board radii in millimetres, measured from the bull centre. These

@@ -5,6 +5,7 @@ import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
+  DartZoneKey,
   EngineFacts,
   EngineInputMode,
   FiveOhOneInput,
@@ -279,20 +280,7 @@ export class FiveOhOneEngine implements GameEngine<
    */
   private recordDart(observation: DartObservation): FiveOhOneState {
     const resolved = this.resolveObservation(observation);
-
-    const leg = this.openLeg();
-    let visit = this.openVisit();
-    if (!visit) {
-      visit = {
-        clientKey: newClientKey(),
-        stageClientKey: leg.clientKey,
-        sequence: this.turnCountIn(leg.clientKey) + 1,
-        completedAt: null,
-        totalScore: 0,
-        darts: [],
-      };
-      this.turns.push(visit);
-    }
+    const visit = this.openVisit() ?? this.openNewVisit();
 
     visit.darts.push({
       sequence: visit.darts.length + 1,
@@ -305,10 +293,45 @@ export class FiveOhOneEngine implements GameEngine<
       locationY: observation.locationY,
     });
 
-    const remainingBefore = this.remainingBeforeVisit(visit);
+    const checkedOut = this.settleVisit(visit, resolved.zoneKey);
+
+    const after = this.deriveState();
+    if (checkedOut && after.status !== "WON") {
+      this.stages.push(legStage(this.stages.length + 1));
+    }
+
+    return after;
+  }
+
+  /** Appends an empty visit to the open leg and returns it. */
+  private openNewVisit(): TurnFact {
+    const leg = this.openLeg();
+    const visit: TurnFact = {
+      clientKey: newClientKey(),
+      stageClientKey: leg.clientKey,
+      sequence: this.turnCountIn(leg.clientKey) + 1,
+      completedAt: null,
+      totalScore: 0,
+      darts: [],
+    };
+    this.turns.push(visit);
+    return visit;
+  }
+
+  /**
+   * Applies the bust and checkout rules to a visit that just took a dart, and
+   * stamps `completedAt` when the visit resolves.
+   *
+   * A busted visit keeps its dart rows and their real board scores while
+   * `totalScore` goes to 0 — counted zero, thrown non-zero. That divergence is
+   * the fact that makes bust rate computable, and it is why `totalScore` is
+   * not simply the sum of the visit's darts.
+   * @returns whether the visit checked out on a double.
+   */
+  private settleVisit(visit: TurnFact, hitZoneKey: DartZoneKey): boolean {
     const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    const remainingAfter = remainingBefore - thrown;
-    const checkedOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
+    const remainingAfter = this.remainingBeforeVisit(visit) - thrown;
+    const checkedOut = remainingAfter === 0 && hitZoneKey === "DOUBLE";
     const busted =
       remainingAfter < 0 ||
       remainingAfter === 1 ||
@@ -317,19 +340,15 @@ export class FiveOhOneEngine implements GameEngine<
     if (busted) {
       visit.totalScore = 0;
       visit.completedAt = new Date().toISOString();
-    } else {
-      visit.totalScore = thrown;
-      if (checkedOut || visit.darts.length === DARTS_PER_VISIT) {
-        visit.completedAt = new Date().toISOString();
-      }
+      return false;
     }
 
-    const after = this.deriveState();
-    if (checkedOut && after.status !== "WON") {
-      this.stages.push(legStage(this.stages.length + 1));
+    visit.totalScore = thrown;
+    if (checkedOut || visit.darts.length === DARTS_PER_VISIT) {
+      visit.completedAt = new Date().toISOString();
     }
 
-    return after;
+    return checkedOut;
   }
 
   /**
