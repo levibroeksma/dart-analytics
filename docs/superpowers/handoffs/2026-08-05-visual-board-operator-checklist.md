@@ -40,8 +40,10 @@ Expected: the diff is empty, or differs only in generator formatting/comments �
 Steps 3, 4 and 5 are one committed script. They used to be prose asking the operator to hunt for a real `turn_id` and hand-type inserts against it — the shape of a step that gets skipped. The script builds its own fixture, runs every check, prints one PASS/FAIL row each, and ends in `ROLLBACK`, so it is safe against a seeded dev database and leaves nothing behind (D193).
 
 ```bash
-psql "$DATABASE_URL" -f ../database/verification/0018_visual_board_checks.sql
+npm run db:verify 0018
 ```
+
+(There is no local `psql` — this project has no local PostgreSQL server, so the runner goes through `postgres.js`. `psql "$DATABASE_URL" -f ../database/verification/0018_visual_board_checks.sql` is equivalent where the client is installed.)
 
 Expected: `ALL 11 CHECKS PASSED`. What it covers:
 

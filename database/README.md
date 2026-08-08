@@ -51,11 +51,20 @@ astro check
 
 `verification/` holds SQL that asserts behaviour only a real database can show — constraints firing, view expressions resolving, derived columns reading correctly. Each script builds its own fixture inside one transaction, resolves every lookup row by `implementation_key` rather than by hardcoded id, prints a PASS/FAIL row per check, and ends in `ROLLBACK`. Nothing survives the run, so they are safe against a seeded dev database.
 
+From `app/`:
+
 ```sh
-psql "$DATABASE_URL" -f database/verification/0018_visual_board_checks.sql
+npm run db:verify              # every script
+npm run db:verify 0018         # only scripts whose filename matches
 ```
 
-Expect `ALL n CHECKS PASSED`. These are not a substitute for the Vitest suite: they cover the SQL layer, which unit tests cannot reach.
+Expect `ALL n CHECKS PASSED`; the command exits non-zero if any check fails. It runs through `postgres.js` rather than `psql`, which is not installed locally — this project uses a Neon `dev` branch instead of a local PostgreSQL server (D24), so the client binaries are not there either. `psql "$DATABASE_URL" -f <file>` works identically if you do have it.
+
+These are not a substitute for the Vitest suite: they cover the SQL layer, which unit tests cannot reach. They are not part of `npm test` — they need a live `DATABASE_URL` and are run deliberately, per environment.
+
+| Script | Covers |
+| ------ | ------ |
+| `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
 
 ## References
 

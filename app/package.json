@@ -20,6 +20,7 @@
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "seed:dev-auth": "tsx --env-file=.env scripts/seed-dev-auth.ts",
     "db:introspect": "drizzle-kit introspect --config drizzle.config.ts",
+    "db:verify": "tsx --env-file=.env scripts/verify-db.ts",
     "smoke": "tsx scripts/smoke.ts",
     "icons:generate": "tsx scripts/generate-app-icons.ts",
     "logo:generate": "tsx scripts/generate-logo-lockup.ts",
