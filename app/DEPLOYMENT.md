@@ -60,12 +60,16 @@ set -a
 source .env.production
 set +a
 
-npm run db:migrate     # through 0019
+npm run db:migrate     # expected to STOP at 0020 — see below
 npm run db:seed        # 0007 fills the capability table
-npm run db:migrate     # 0020 adds the composite FK
+npm run db:migrate     # 0020 and 0021 now apply
 ```
 
 `0020` adds a composite foreign key from `exercise_sessions` to `ruleset_version_capabilities` and requires seed `0007` to have already run — applying `0020` before `0007` (or against a populated database whose sessions use a combination `0007` does not declare) fails on constraint validation.
+
+**The first `db:migrate` failing at `0020` is expected on a populated database.** `db:migrate` is `dbmate up`, which takes no target version and applies everything pending in one run: it commits `0019`, then stops at `0020` because the capability table is not yet seeded. Seed, then re-run to apply `0020` and `0021`. Against an empty `exercise_sessions` the first run goes straight through, so the stop is data-dependent — production will hit it, a fresh environment will not.
+
+Before the second `db:migrate`, run `npm run db:verify 0007` and read check 3's `undeclared` / `total` detail rather than the summary line: it is the precondition `0020` validates against, and it passes trivially when `exercise_sessions` is empty.
 
 Verify:
 

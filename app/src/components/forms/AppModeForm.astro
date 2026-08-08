@@ -5,7 +5,10 @@
  * previous pair when a save fails. Roving-tabindex radiogroup: the selected
  * option is the group's only tab stop, arrow keys move + persist selection
  * and follow it with focus, and the checkmark supplements colour as the
- * selected-state cue.
+ * selected-state cue. Quick score holds the tab stop whenever the stored mode
+ * is neither of the two offered here — `PATCH` accepts pairs this form does
+ * not show (RECREATIONAL + DETAILED_DARTS), and without the fallback both
+ * options would be tabindex -1 and the group unreachable by keyboard.
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -43,8 +46,9 @@ const checkClass =
       App mode
     </h2>
     <p class="text-sm text-muted-foreground">
-      Analytics mode records every dart's landing point, and only games that
-      support it are shown.
+      Your preferred way to score. Only games that support the mode you pick are
+      shown. Dart-by-dart capture is not built yet — analytics games still score
+      by visit total for now.
     </p>
   </div>
 
@@ -67,7 +71,7 @@ const checkClass =
       class={optionClass}
       :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
       :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
-      :tabindex="$store.settings.inputModeKey === 'QUICK_SCORE' ? 0 : -1"
+      :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
       :disabled="$store.settings.loading"
       @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
       @keydown.arrow-left.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
@@ -109,7 +113,7 @@ const checkClass =
         <span class="block">
           <span class="block font-semibold text-foreground">Analytics</span>
           <span class="block text-sm text-muted-foreground">
-            Tap the board where each dart lands.
+            For per-dart tracking, once the board is built.
           </span>
         </span>
         <CheckIcon

@@ -36,11 +36,20 @@ export function resetEngineRegistry(): void {
 }
 
 /**
- * Every registered ruleset version playable under the given mode pair —
- * the intersection of what an engine exists for and what that engine declares
- * it supports. The games page filters its cards on this, so a game whose
- * engine was never registered never appears, even if the capability table
- * declares it.
+ * Every registered ruleset version playable under the given mode pair — the
+ * intersection of what an engine exists for and what that engine declares it
+ * supports.
+ *
+ * **Currently has no production consumer.** It was written for the games page,
+ * but that page cannot use it: `REGISTRY` is populated only by each engine
+ * module's bottom-of-file `registerEngineFactory` call, so a caller sees an
+ * entry only if it has already imported that engine. The games page imports
+ * none of them, so this would return an empty list and hide every card. The
+ * page filters on `supportsMode` instead, which reads the static declaration
+ * and is import-order independent.
+ *
+ * Kept pending a decision on removal. Any future caller must first satisfy
+ * itself that the engines it cares about are actually imported in its bundle.
  */
 export function registeredRulesetsFor(
   captureModeKey: string,

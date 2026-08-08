@@ -18,14 +18,21 @@ const VISUAL_BOARD: ModePair = {
 
 /**
  * Which capture/input mode combinations each ruleset version's engine actually
- * implements. This is the code-side source of truth, imported by the client
- * registry and by the Worker's session-creation path so a mode no engine can
- * satisfy is refused on both sides.
+ * implements. This is the code-side source of truth. `createSession`
+ * (`services/session.service.ts`) refuses an undeclared pair before any write,
+ * `settings.service.ts` refuses an app mode no ruleset can play, and the games
+ * page filters its cards on it through `lib/game/rulesets/games-visibility.ts`.
  *
  * `database/seeds/0007_ruleset_version_capabilities.sql` mirrors this table
  * into `ruleset_version_capabilities`, and a parity test proves the two agree.
  * Adding a pair here without adding the seed row leaves the database rejecting
  * sessions the code accepts.
+ *
+ * Each ruleset's `validateConfig` states the same thing independently, and is
+ * deliberately not wired to this constant — one says what the system claims to
+ * support, the other what a ruleset implements, and collapsing them would
+ * destroy the cross-check. `capability-validator-parity.test.ts` proves they
+ * agree in both directions.
  */
 export const RULESET_CAPABILITIES: Readonly<
   Record<RulesetVersionKey, readonly ModePair[]>

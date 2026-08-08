@@ -44,7 +44,7 @@ describe("findSettings", () => {
 });
 
 vi.mock("@db/client", () => ({
-  withTransaction: vi.fn(async (fn: (tx: unknown) => unknown) => {
+  withTransaction: vi.fn(async (_fn: (tx: unknown) => unknown) => {
     throw new Error(
       "withTransaction must be mocked per test via mockImplementationOnce",
     );

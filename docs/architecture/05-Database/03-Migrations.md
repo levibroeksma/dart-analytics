@@ -542,10 +542,12 @@ Contains:
 **Apply order — `seeds/0007` must run before this migration:**
 
 ```
-db:migrate   # through 0019 — creates the empty capability table
-db:seed      # 0007 fills it
-db:migrate   # 0020 adds the composite FK
+db:migrate   # expected to STOP at 0020 on a populated database
+db:seed      # 0007 fills the capability table
+db:migrate   # 0020 and 0021 now apply
 ```
+
+`db:migrate` is `dbmate up`, which takes no target version and applies every pending migration in one run — it cannot be told to stop at `0019`. On a populated database it commits `0019` and then fails at `0020`, because the capability table is still empty. That failure is the expected first step, not a broken migration: seed, then re-run. On an empty `exercise_sessions` the first run applies everything without stopping, so the behaviour is data-dependent.
 
 Applying `0020` against a populated database whose sessions use a combination `0007` does not declare fails on constraint validation. `database/verification/0007_capability_seed_checks.sql` check 3 (zero undeclared `exercise_sessions`) is the precondition to run first; read its `undeclared`/`total` detail rather than only the summary line, since an empty `exercise_sessions` passes it trivially.
 
