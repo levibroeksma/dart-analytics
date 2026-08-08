@@ -33,4 +33,7 @@ export {
   type UpdateSessionRequestInput,
   type SessionActiveData,
   type ConfigurationPresetData,
+  UpdatePlayerSettingsRequest,
+  type UpdatePlayerSettingsInput,
+  type PlayerSettingsResponseData,
 } from "@routes/types";
