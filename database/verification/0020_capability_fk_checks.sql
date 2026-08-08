@@ -77,7 +77,7 @@ SELECT '1',
     format('found column order: %s', cols.names)
 FROM (
         SELECT array_agg(
-                a.attname
+                a.attname::TEXT
                 ORDER BY k.ord
             ) AS names
         FROM pg_constraint c

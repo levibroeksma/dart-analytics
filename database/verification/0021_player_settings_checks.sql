@@ -125,7 +125,8 @@ SELECT '1',
     END,
     format('%s matching information_schema.views row(s) found', count(*))
 FROM information_schema.views
-WHERE table_name = 'v_player_settings';
+WHERE table_schema = 'public'
+    AND table_name = 'v_player_settings';
 
 -- ------------------------------------------------------------
 -- Step 1 (continued): exactly the four expected columns, in
@@ -145,11 +146,12 @@ SELECT '1',
     format('found column order: %s', cols.names)
 FROM (
         SELECT array_agg(
-                column_name
+                column_name::TEXT
                 ORDER BY ordinal_position
             ) AS names
         FROM information_schema.columns
-        WHERE table_name = 'v_player_settings'
+        WHERE table_schema = 'public'
+            AND table_name = 'v_player_settings'
     ) cols;
 
 -- ------------------------------------------------------------
