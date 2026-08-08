@@ -85,6 +85,12 @@ const DEFAULT_MAGNIFIER_SIZE = 120;
  * fingertip covers far more than that: the player needs to see what is under
  * the crosshair, adjust, and only then let go. A press that never moves still
  * commits at its own position, so a confident tap costs one gesture.
+ *
+ * A press only becomes active once `options.toBoard` yields a point. If the
+ * SVG is detached (a page teardown racing the pointer event), the transform
+ * returns null and the controller stays inert — `active` false, nothing to
+ * preview, nothing for a following `release()` to commit. It must never
+ * report a live press it cannot honour.
  */
 export function boardInput(options: BoardInputOptions): BoardInputController {
   const magnifierSize = options.magnifierSize ?? DEFAULT_MAGNIFIER_SIZE;
@@ -94,9 +100,9 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
   let placement: MagnifierPlacement | null = null;
   let active = false;
 
-  function track(pointer: BoardPointer): void {
+  function track(pointer: BoardPointer): boolean {
     const board = options.toBoard(pointer);
-    if (!board) return;
+    if (!board) return false;
 
     point = board;
     placement = magnifierPlacement(
@@ -105,6 +111,7 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
       handedness,
       magnifierSize,
     );
+    return true;
   }
 
   function reset(): void {
@@ -128,8 +135,7 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
     },
 
     press(pointer) {
-      active = true;
-      track(pointer);
+      active = track(pointer);
     },
 
     move(pointer) {
