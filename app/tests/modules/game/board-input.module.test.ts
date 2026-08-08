@@ -3,11 +3,22 @@ import { screenToBoard } from "@modules/game/board-input.module";
 
 /**
  * A stand-in for an SVG whose viewBox maps 1 board millimetre to 2 screen
- * pixels, with the board centre at screen (400, 400).
+ * pixels, with the board centre at screen (400, 400). Returns the forward
+ * (board→screen) CTM from getScreenCTM(), whose distinct inverse
+ * (screen→board) must be applied to map pointers correctly. If the module
+ * drops the .inverse() call, this test fails.
  */
 function fakeSvg(): SVGSVGElement {
-  const matrix = {
-    inverse: () => matrix,
+  const forward = {
+    a: 2,
+    b: 0,
+    c: 0,
+    d: 2,
+    e: 400,
+    f: 400,
+  };
+
+  const inverse = {
     a: 0.5,
     b: 0,
     c: 0,
@@ -16,10 +27,12 @@ function fakeSvg(): SVGSVGElement {
     f: -200,
   };
 
+  forward.inverse = () => inverse;
+
   const point = {
     x: 0,
     y: 0,
-    matrixTransform: (m: typeof matrix) => ({
+    matrixTransform: (m: typeof inverse) => ({
       x: point.x * m.a + point.y * m.c + m.e,
       y: point.x * m.b + point.y * m.d + m.f,
     }),
@@ -27,7 +40,7 @@ function fakeSvg(): SVGSVGElement {
 
   return {
     createSVGPoint: () => point,
-    getScreenCTM: () => matrix,
+    getScreenCTM: () => forward,
   } as unknown as SVGSVGElement;
 }
 
