@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { screenToBoard } from "@modules/game/board-input.module";
+import {
+  MAGNIFIER_GAP,
+  magnifierPlacement,
+  screenToBoard,
+} from "@modules/game/board-input.module";
 
 /**
  * A stand-in for an SVG whose viewBox maps 1 board millimetre to 2 screen
@@ -73,8 +77,6 @@ describe("screenToBoard", () => {
   });
 });
 
-import { magnifierPlacement } from "@modules/game/board-input.module";
-
 describe("magnifierPlacement", () => {
   const viewport = { width: 400, height: 800 };
   const size = 120;
@@ -137,5 +139,89 @@ describe("magnifierPlacement", () => {
       size,
     );
     expect(placement.offsetY).toBeGreaterThan(0);
+  });
+
+  function magnifierBox(
+    pointer: { clientX: number; clientY: number },
+    placement: { offsetX: number; offsetY: number },
+    boxSize: number,
+  ) {
+    return {
+      left: pointer.clientX + placement.offsetX - boxSize / 2,
+      right: pointer.clientX + placement.offsetX + boxSize / 2,
+      top: pointer.clientY + placement.offsetY - boxSize / 2,
+      bottom: pointer.clientY + placement.offsetY + boxSize / 2,
+    };
+  }
+
+  it("keeps the magnifier box inside the viewport for a centre-of-screen press", () => {
+    const pointer = { clientX: 200, clientY: 400 };
+    const placement = magnifierPlacement(pointer, viewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(viewport.width);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+    expect(box.bottom).toBeLessThanOrEqual(viewport.height);
+  });
+
+  it("keeps the magnifier box inside the viewport near the left edge", () => {
+    const pointer = { clientX: 10, clientY: 400 };
+    const placement = magnifierPlacement(pointer, viewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(viewport.width);
+  });
+
+  it("keeps the magnifier box inside the viewport near the right edge", () => {
+    const pointer = { clientX: 390, clientY: 400 };
+    const placement = magnifierPlacement(pointer, viewport, "LEFT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(viewport.width);
+  });
+
+  it("keeps the magnifier box inside the viewport near the top edge", () => {
+    const pointer = { clientX: 200, clientY: 10 };
+    const placement = magnifierPlacement(pointer, viewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+    expect(box.bottom).toBeLessThanOrEqual(viewport.height);
+  });
+
+  it("keeps the magnifier box inside the viewport near the bottom edge", () => {
+    const pointer = { clientX: 200, clientY: 790 };
+    const placement = magnifierPlacement(pointer, viewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+    expect(box.bottom).toBeLessThanOrEqual(viewport.height);
+  });
+
+  it("pins the magnifier to the viewport's left edge when the viewport is narrower than the magnifier", () => {
+    const pointer = { clientX: 25, clientY: 400 };
+    const narrowViewport = { width: 50, height: 800 };
+    const placement = magnifierPlacement(
+      pointer,
+      narrowViewport,
+      "RIGHT",
+      size,
+    );
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.left).toBe(0);
+  });
+
+  it("pins the magnifier to the viewport's top edge when the viewport is shorter than the magnifier", () => {
+    const pointer = { clientX: 200, clientY: 25 };
+    const shortViewport = { width: 400, height: 50 };
+    const placement = magnifierPlacement(pointer, shortViewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(box.top).toBe(0);
+  });
+
+  it("clears the fingertip by at least MAGNIFIER_GAP on both axes", () => {
+    const pointer = { clientX: 200, clientY: 400 };
+    const placement = magnifierPlacement(pointer, viewport, "RIGHT", size);
+    const box = magnifierBox(pointer, placement, size);
+    expect(pointer.clientX - box.right).toBeGreaterThanOrEqual(MAGNIFIER_GAP);
+    expect(pointer.clientY - box.bottom).toBeGreaterThanOrEqual(MAGNIFIER_GAP);
   });
 });
