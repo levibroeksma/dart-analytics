@@ -13,6 +13,11 @@ import {
 } from "@client/api/sessions";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import {
+  dartsThrownCount,
+  previousScoreDisplay,
+  threeDartAverageDisplay,
+} from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
 import type { EngineFacts, FiveOhOneState, TurnFact } from "@modules/types";
 import type { FiveOhOnePlayContext } from "./types";
@@ -158,20 +163,17 @@ export function fiveOhOnePlay() {
     dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
       const maxDartsPerTurn =
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return this.turnsInCurrentLeg().length * maxDartsPerTurn;
+      return dartsThrownCount(this.turnsInCurrentLeg().length, maxDartsPerTurn);
     },
 
     averageThisLeg(this: FiveOhOnePlayContext): string {
-      const turns = this.turnsInCurrentLeg();
-      const dartsThrown = this.dartsThrownThisLeg();
-      if (dartsThrown === 0) return "0.0";
-      const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
-      return ((total / dartsThrown) * 3).toFixed(1);
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return threeDartAverageDisplay(this.turnsInCurrentLeg(), maxDartsPerTurn);
     },
 
     previousScoreThisLeg(this: FiveOhOnePlayContext): string {
-      const last = this.turnsInCurrentLeg().at(-1);
-      return last ? String(last.totalScore) : "—";
+      return previousScoreDisplay(this.turnsInCurrentLeg());
     },
 
     async init(this: FiveOhOnePlayContext) {
