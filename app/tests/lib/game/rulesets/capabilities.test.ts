@@ -47,6 +47,18 @@ describe("supportsMode", () => {
   it("rejects an unknown pair", () => {
     expect(supportsMode("501_V1", "ANALYTICS", "DETAILED_DARTS")).toBe(false);
   });
+
+  it.each(["SINGLES_V1", "BOBS27_V1", "DOUBLES_TRAINING_V1"] as const)(
+    "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
+    (rulesetVersionKey) => {
+      expect(
+        supportsMode(rulesetVersionKey, "RECREATIONAL", "DETAILED_DARTS"),
+      ).toBe(true);
+      expect(
+        supportsMode(rulesetVersionKey, "ANALYTICS", "DETAILED_DARTS"),
+      ).toBe(false);
+    },
+  );
 });
 
 describe("capableRulesets", () => {
