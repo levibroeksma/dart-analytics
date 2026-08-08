@@ -198,3 +198,17 @@ export type EngineFacts = {
   stages: StageFact[];
   turns: TurnFact[];
 };
+
+/** A pointer position in client (viewport) pixels. */
+export type BoardPointer = {
+  clientX: number;
+  clientY: number;
+};
+
+/** A point on the board in millimetres, or null when the transform is unavailable. */
+export type BoardCoordinate = {
+  x: number;
+  y: number;
+};
+
+export type ScreenToBoard = (pointer: BoardPointer) => BoardCoordinate | null;
