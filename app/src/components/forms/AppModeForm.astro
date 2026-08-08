@@ -1,0 +1,87 @@
+---
+/**
+ * App-mode picker. Reads and writes the `settings` Alpine store, which loads
+ * itself in `init()`; each choice persists on click and the store keeps the
+ * previous pair when a save fails.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("space-y-4", classNameProp);
+const optionClass =
+  "w-full rounded-lg border px-4 py-3 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
+---
+
+<section
+  class={className}
+  aria-labelledby="app-mode-heading"
+  {...props}
+>
+  <div class="space-y-1">
+    <h2
+      id="app-mode-heading"
+      class="text-lg font-semibold text-foreground"
+    >
+      App mode
+    </h2>
+    <p class="text-sm text-muted-foreground">
+      Analytics mode records every dart's landing point, and only games that
+      support it are shown.
+    </p>
+  </div>
+
+  <div
+    class="space-y-2"
+    role="radiogroup"
+    aria-labelledby="app-mode-heading"
+  >
+    <button
+      type="button"
+      role="radio"
+      class={optionClass}
+      :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
+      :disabled="$store.settings.loading"
+      @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
+    >
+      <span class="block font-semibold text-foreground">Quick score</span>
+      <span class="block text-sm text-muted-foreground">
+        Enter a visit total each turn.
+      </span>
+    </button>
+
+    <button
+      type="button"
+      role="radio"
+      class={optionClass}
+      :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
+      :disabled="$store.settings.loading"
+      @click="$store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
+    >
+      <span class="block font-semibold text-foreground">Analytics</span>
+      <span class="block text-sm text-muted-foreground">
+        Tap the board where each dart lands.
+      </span>
+    </button>
+  </div>
+
+  <p
+    class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="$store.settings.error"
+    x-text="$store.settings.error"
+    x-cloak
+  >
+  </p>
+</section>

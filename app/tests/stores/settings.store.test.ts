@@ -30,6 +30,20 @@ describe("settingsStore", () => {
     expect(store.loading).toBe(false);
   });
 
+  it("loads on init so a registered store hydrates without x-init", async () => {
+    fetchSettings.mockResolvedValue({
+      defaultCaptureModeKey: "ANALYTICS",
+      defaultInputModeKey: "VISUAL_BOARD",
+    });
+
+    const store = settingsStore();
+    await store.init();
+
+    expect(fetchSettings).toHaveBeenCalledTimes(1);
+    expect(store.captureModeKey).toBe("ANALYTICS");
+    expect(store.inputModeKey).toBe("VISUAL_BOARD");
+  });
+
   it("keeps quick score when the load fails", async () => {
     fetchSettings.mockRejectedValue(new Error("offline"));
 

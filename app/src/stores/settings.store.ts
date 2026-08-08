@@ -4,6 +4,10 @@ import { fetchSettings, saveSettings } from "@client/api/settings";
  * The player's app mode. Defaults to quick score until a load succeeds, so a
  * failed or slow settings call leaves every game visible rather than hiding
  * the whole games page behind a network error.
+ *
+ * Registered through `Alpine.store("settings", settingsStore())`, so Alpine
+ * calls `init()` once its interceptors resolve — that is the sanctioned
+ * hydration hook, `x-init` being forbidden repo-wide.
  */
 export function settingsStore() {
   return {
@@ -11,6 +15,10 @@ export function settingsStore() {
     inputModeKey: "QUICK_SCORE",
     loading: false,
     error: null as string | null,
+
+    async init() {
+      await this.load();
+    },
 
     async load() {
       this.loading = true;
