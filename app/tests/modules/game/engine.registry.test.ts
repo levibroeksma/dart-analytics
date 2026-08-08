@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   getEngineFactory,
+  registeredRulesetsFor,
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
@@ -28,5 +29,35 @@ describe("engine registry", () => {
   it("rejects a duplicate registration for the same ruleset version", () => {
     registerEngineFactory(fixture);
     expect(() => registerEngineFactory(fixture)).toThrow(/already registered/);
+  });
+});
+
+describe("registeredRulesetsFor", () => {
+  it("lists only registered rulesets that declare the pair", () => {
+    resetEngineRegistry();
+    registerEngineFactory({
+      rulesetVersionKey: "501_V1",
+      create: () => ({}) as never,
+    });
+
+    expect(registeredRulesetsFor("ANALYTICS", "VISUAL_BOARD")).toEqual([
+      "501_V1",
+    ]);
+  });
+
+  it("excludes a registered ruleset that does not declare the pair", () => {
+    resetEngineRegistry();
+    registerEngineFactory({
+      rulesetVersionKey: "TUOD_V1",
+      create: () => ({}) as never,
+    });
+
+    expect(registeredRulesetsFor("ANALYTICS", "VISUAL_BOARD")).toEqual([]);
+  });
+
+  it("excludes a capable ruleset whose engine is not registered", () => {
+    resetEngineRegistry();
+
+    expect(registeredRulesetsFor("ANALYTICS", "VISUAL_BOARD")).toEqual([]);
   });
 });

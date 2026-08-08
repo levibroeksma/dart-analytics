@@ -1,4 +1,5 @@
 import type { RulesetVersionKey } from "@lib/types";
+import { capableRulesets } from "@lib/game/rulesets/capabilities";
 import type { GameEngineFactory } from "./interfaces";
 
 /**
@@ -32,4 +33,20 @@ export function getEngineFactory(
 /** Test-only: clears registrations so each test starts from an empty registry. */
 export function resetEngineRegistry(): void {
   REGISTRY.clear();
+}
+
+/**
+ * Every registered ruleset version playable under the given mode pair —
+ * the intersection of what an engine exists for and what that engine declares
+ * it supports. The games page filters its cards on this, so a game whose
+ * engine was never registered never appears, even if the capability table
+ * declares it.
+ */
+export function registeredRulesetsFor(
+  captureModeKey: string,
+  inputModeKey: string,
+): readonly RulesetVersionKey[] {
+  return capableRulesets(captureModeKey, inputModeKey).filter((key) =>
+    REGISTRY.has(key),
+  );
 }
