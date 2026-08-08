@@ -9,15 +9,6 @@ import { screenToBoard } from "@modules/game/board-input.module";
  * drops the .inverse() call, this test fails.
  */
 function fakeSvg(): SVGSVGElement {
-  const forward = {
-    a: 2,
-    b: 0,
-    c: 0,
-    d: 2,
-    e: 400,
-    f: 400,
-  };
-
   const inverse = {
     a: 0.5,
     b: 0,
@@ -27,7 +18,15 @@ function fakeSvg(): SVGSVGElement {
     f: -200,
   };
 
-  forward.inverse = () => inverse;
+  const forward = {
+    inverse: () => inverse,
+    a: 2,
+    b: 0,
+    c: 0,
+    d: 2,
+    e: 400,
+    f: 400,
+  };
 
   const point = {
     x: 0,
