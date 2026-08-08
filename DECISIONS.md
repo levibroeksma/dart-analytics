@@ -2,12 +2,12 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-08-08 (D188–D192)
+updated: 2026-08-08 (D188–D193)
 -->
 
 # Architectural Decision Ledger
 
-> This file is a **router**, not a record. All 172 decisions (D01–D192: 163 migrated table rows plus the D184–D192 blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
+> This file is a **router**, not a record. All 173 decisions (D01–D193: 163 migrated table rows plus the D184–D193 blocks, D01–D183 with 20 ids never issued — see the ID-gap note below) live in `decisions/**`, one domain file per row of the table below. This file holds only what's shared across all of them: the authority note, the Source key, the routing table, the Deferred list, and the rules for adding a new decision.
 >
 > Canonical docs always win over this ledger — a decision explains *why*, `docs/architecture/**` states *what is*. On conflict, `docs/architecture/00-Context-Map.md`'s authority order governs.
 >
@@ -42,7 +42,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 
 Append a new block to the file matching the decision's domain (routing table above), after the existing table, at the end of the file — never inside it. Never create a new decision file without also adding it to the routing table above; `scripts/check-decision-ids.sh` fails any `decisions/**` file missing from this table.
 
-- Next id is the current maximum plus one (`D193` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
+- Next id is the current maximum plus one (`D194` at time of writing). Don't trust that number — derive it: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
 - Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
 - Block format:
 
@@ -59,4 +59,4 @@ Supersedes: D86
 
 ## ID-gap note
 
-Ids are non-contiguous: 172 decisions exist (163 migrated rows plus D184–D192), the highest is `D192`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: 173 decisions exist (163 migrated rows plus D184–D193), the highest is `D193`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.

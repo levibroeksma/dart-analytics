@@ -13,8 +13,9 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/   # ordered schema migrations (0001–0018)
-└── seeds/        # controlled reference/system data
+├── migrations/     # ordered schema migrations (0001–0018)
+├── seeds/          # controlled reference/system data
+└── verification/   # rollback-safe checks run against a live database
 ```
 
 ## Execution Model
@@ -45,6 +46,16 @@ astro check
 4. `seeds/0004_score_training_minutes_preset.sql`
 5. `seeds/0005_visual_board_input_mode.sql`
 6. `seeds/0006_single_band_dart_zones.sql`
+
+## Verification Scripts
+
+`verification/` holds SQL that asserts behaviour only a real database can show — constraints firing, view expressions resolving, derived columns reading correctly. Each script builds its own fixture inside one transaction, resolves every lookup row by `implementation_key` rather than by hardcoded id, prints a PASS/FAIL row per check, and ends in `ROLLBACK`. Nothing survives the run, so they are safe against a seeded dev database.
+
+```sh
+psql "$DATABASE_URL" -f database/verification/0018_visual_board_checks.sql
+```
+
+Expect `ALL n CHECKS PASSED`. These are not a substitute for the Vitest suite: they cover the SQL layer, which unit tests cannot reach.
 
 ## References
 
