@@ -28,12 +28,18 @@ export function screenToBoard(svg: SVGSVGElement): ScreenToBoard {
   };
 }
 
-const MAGNIFIER_GAP = 16;
+export const MAGNIFIER_GAP = 16;
 
 /**
  * Places the magnifier away from the throwing hand and clear of the viewport
  * edges. It sits above the pointer by default, because a fingertip covers what
  * is directly beneath it, and drops below only when there is no room above.
+ * Handedness picks the preferred side on the X axis, flipping to the opposite
+ * side when that overflows. After the flip, each axis is independently
+ * clamped so the magnifier's box stays within the viewport; when the viewport
+ * is narrower (X) or shorter (Y) than the magnifier itself, the clamp pins
+ * the box to the viewport's near edge (left on X, top on Y) instead of
+ * leaving it hanging outside the viewport.
  */
 export function magnifierPlacement(
   pointer: BoardPointer,
@@ -42,19 +48,26 @@ export function magnifierPlacement(
   size: number,
 ): MagnifierPlacement {
   const reach = size / 2 + MAGNIFIER_GAP;
+  const half = size / 2;
   const preferLeft = handedness === "RIGHT";
 
   let offsetX = preferLeft ? -reach : reach;
-  if (pointer.clientX + offsetX - size / 2 < 0) {
+  if (pointer.clientX + offsetX - half < 0) {
     offsetX = reach;
-  } else if (pointer.clientX + offsetX + size / 2 > viewport.width) {
+  } else if (pointer.clientX + offsetX + half > viewport.width) {
     offsetX = -reach;
   }
+  const minOffsetX = half - pointer.clientX;
+  const maxOffsetX = viewport.width - pointer.clientX - half;
+  offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, offsetX));
 
   let offsetY = -reach;
-  if (pointer.clientY + offsetY - size / 2 < 0) {
+  if (pointer.clientY + offsetY - half < 0) {
     offsetY = reach;
   }
+  const minOffsetY = half - pointer.clientY;
+  const maxOffsetY = viewport.height - pointer.clientY - half;
+  offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, offsetY));
 
   return { offsetX, offsetY };
 }
