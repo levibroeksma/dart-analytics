@@ -46,6 +46,30 @@ describe("readSettings", () => {
       defaultInputModeKey: "QUICK_SCORE",
     });
   });
+
+  it("falls back to the full default pair when only the capture mode key is null", async () => {
+    vi.mocked(repo.findSettings).mockResolvedValue({
+      defaultCaptureModeKey: null,
+      defaultInputModeKey: "QUICK_SCORE",
+    });
+
+    await expect(readSettings(playerId)).resolves.toEqual({
+      defaultCaptureModeKey: "RECREATIONAL",
+      defaultInputModeKey: "QUICK_SCORE",
+    });
+  });
+
+  it("falls back to the full default pair when only the input mode key is null", async () => {
+    vi.mocked(repo.findSettings).mockResolvedValue({
+      defaultCaptureModeKey: "ANALYTICS",
+      defaultInputModeKey: null,
+    });
+
+    await expect(readSettings(playerId)).resolves.toEqual({
+      defaultCaptureModeKey: "RECREATIONAL",
+      defaultInputModeKey: "QUICK_SCORE",
+    });
+  });
 });
 
 describe("writeSettings", () => {
