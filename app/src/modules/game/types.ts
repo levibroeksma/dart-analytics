@@ -1,3 +1,5 @@
+import type { BoardHit } from "@lib/types";
+
 /**
  * Score Training's engine state, derived on every `state()` call. The MINUTES
  * countdown lives in `game.store.ts`, not the engine, so `timerExpired`
@@ -220,4 +222,24 @@ export type Handedness = "LEFT" | "RIGHT";
 export type MagnifierPlacement = {
   offsetX: number;
   offsetY: number;
+};
+
+export type BoardInputOptions = {
+  toBoard: ScreenToBoard;
+  onCommit: (observation: DartObservation) => void;
+  handedness?: Handedness;
+  viewport?: { width: number; height: number };
+  magnifierSize?: number;
+};
+
+export type BoardInputController = {
+  readonly active: boolean;
+  readonly preview: BoardHit | null;
+  readonly point: BoardCoordinate | null;
+  readonly placement: MagnifierPlacement | null;
+  press(pointer: BoardPointer): void;
+  move(pointer: BoardPointer): void;
+  release(): void;
+  cancel(): void;
+  commitUnseen(): void;
 };

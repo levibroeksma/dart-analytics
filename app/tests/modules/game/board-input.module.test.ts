@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   MAGNIFIER_GAP,
+  boardInput,
   magnifierPlacement,
   screenToBoard,
 } from "@modules/game/board-input.module";
+import type { DartObservation } from "@modules/types";
 
 /**
  * A stand-in for an SVG whose viewBox maps 1 board millimetre to 2 screen
@@ -223,5 +225,133 @@ describe("magnifierPlacement", () => {
     const box = magnifierBox(pointer, placement, size);
     expect(pointer.clientX - box.right).toBeGreaterThanOrEqual(MAGNIFIER_GAP);
     expect(pointer.clientY - box.bottom).toBeGreaterThanOrEqual(MAGNIFIER_GAP);
+  });
+});
+
+function controller(onCommit: (observation: DartObservation) => void) {
+  return boardInput({
+    toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+    onCommit,
+    handedness: "RIGHT",
+    viewport: { width: 400, height: 800 },
+    magnifierSize: 120,
+  });
+}
+
+describe("boardInput", () => {
+  it("activates on press and previews what is under the pointer", () => {
+    const input = controller(() => {});
+    input.press({ clientX: 0, clientY: -102 });
+
+    expect(input.active).toBe(true);
+    expect(input.preview).toEqual({
+      targetNumber: 20,
+      zoneKey: "TREBLE",
+      score: 60,
+    });
+  });
+
+  it("commits nothing until release", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.press({ clientX: 0, clientY: -102 });
+    expect(commits).toHaveLength(0);
+
+    input.release();
+    expect(commits).toHaveLength(1);
+  });
+
+  it("commits the position the pointer was dragged to, not where it started", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.press({ clientX: 0, clientY: -102 });
+    input.move({ clientX: 0, clientY: -166 });
+    input.release();
+
+    expect(commits[0]).toEqual({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+  });
+
+  it("commits a press that never moved", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.press({ clientX: 0, clientY: -102 });
+    input.release();
+
+    expect(commits[0]!.hitZoneKey).toBe("TREBLE");
+  });
+
+  it("goes inactive after release", () => {
+    const input = controller(() => {});
+    input.press({ clientX: 0, clientY: -102 });
+    input.release();
+
+    expect(input.active).toBe(false);
+    expect(input.preview).toBeNull();
+  });
+
+  it("commits nothing when cancelled", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.press({ clientX: 0, clientY: -102 });
+    input.cancel();
+    input.release();
+
+    expect(commits).toHaveLength(0);
+    expect(input.active).toBe(false);
+  });
+
+  it("commits a surround tap as a miss with real coordinates", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.press({ clientX: 0, clientY: -190 });
+    input.release();
+
+    expect(commits[0]).toEqual({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: -190,
+    });
+  });
+
+  it("commits an unseen dart with no coordinates", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.commitUnseen();
+
+    expect(commits[0]).toEqual({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+  });
+
+  it("exposes a magnifier placement while active", () => {
+    const input = controller(() => {});
+    input.press({ clientX: 200, clientY: 400 });
+
+    expect(input.placement).not.toBeNull();
+    expect(input.placement!.offsetX).toBeLessThan(0);
+  });
+
+  it("ignores a release that follows no press", () => {
+    const commits: DartObservation[] = [];
+    const input = controller((observation) => commits.push(observation));
+
+    input.release();
+
+    expect(commits).toHaveLength(0);
   });
 });

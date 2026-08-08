@@ -1,4 +1,8 @@
+import { classify } from "@lib/game/board/board-geometry.module";
 import type {
+  BoardCoordinate,
+  BoardInputController,
+  BoardInputOptions,
   BoardPointer,
   ScreenToBoard,
   Handedness,
@@ -70,4 +74,99 @@ export function magnifierPlacement(
   offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, offsetY));
 
   return { offsetX, offsetY };
+}
+
+const DEFAULT_MAGNIFIER_SIZE = 120;
+
+/**
+ * The press-drag-release cycle over the board.
+ *
+ * Nothing commits until release, because the treble ring is 10 mm tall and a
+ * fingertip covers far more than that: the player needs to see what is under
+ * the crosshair, adjust, and only then let go. A press that never moves still
+ * commits at its own position, so a confident tap costs one gesture.
+ */
+export function boardInput(options: BoardInputOptions): BoardInputController {
+  const magnifierSize = options.magnifierSize ?? DEFAULT_MAGNIFIER_SIZE;
+  const handedness = options.handedness ?? "RIGHT";
+
+  let point: BoardCoordinate | null = null;
+  let placement: MagnifierPlacement | null = null;
+  let active = false;
+
+  function track(pointer: BoardPointer): void {
+    const board = options.toBoard(pointer);
+    if (!board) return;
+
+    point = board;
+    placement = magnifierPlacement(
+      pointer,
+      options.viewport ?? { width: 0, height: 0 },
+      handedness,
+      magnifierSize,
+    );
+  }
+
+  function reset(): void {
+    active = false;
+    point = null;
+    placement = null;
+  }
+
+  return {
+    get active() {
+      return active;
+    },
+    get preview() {
+      return point ? classify(point.x, point.y) : null;
+    },
+    get point() {
+      return point;
+    },
+    get placement() {
+      return placement;
+    },
+
+    press(pointer) {
+      active = true;
+      track(pointer);
+    },
+
+    move(pointer) {
+      if (!active) return;
+      track(pointer);
+    },
+
+    release() {
+      if (!active || !point) {
+        reset();
+        return;
+      }
+
+      const hit = classify(point.x, point.y);
+      const committed = point;
+      reset();
+
+      options.onCommit({
+        hitTargetNumber: hit.targetNumber,
+        hitZoneKey: hit.zoneKey,
+        locationX: committed.x,
+        locationY: committed.y,
+      });
+    },
+
+    cancel() {
+      reset();
+    },
+
+    commitUnseen() {
+      reset();
+      options.onCommit({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+    },
+  };
 }
