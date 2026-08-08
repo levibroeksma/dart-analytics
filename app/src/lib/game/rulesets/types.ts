@@ -242,3 +242,9 @@ export type SchemaRefinementContract<
   readonly schema: ParsableSchema;
   readonly fields: readonly RefinedFieldContract<TConfig>[];
 };
+
+/** One capture/input mode combination a ruleset version's engine implements. */
+export type ModePair = {
+  captureModeKey: string;
+  inputModeKey: string;
+};
