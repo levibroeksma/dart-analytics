@@ -1013,3 +1013,12 @@ export const vDartLocations = pgView("v_dart_locations", {
 }).as(
   sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, im.implementation_key AS input_mode_key, st.id AS stage_id, t.sequence_number AS turn_sequence, t.total_score AS turn_total_score, d.dart_number, d.hit_target_number, hit_zone.implementation_key AS hit_zone_key, d.intended_target_number, intended_zone.implementation_key AS intended_zone_key, d.score, d.location_x, d.location_y, sqrt(power(d.location_x, 2::numeric) + power(d.location_y, 2::numeric)) AS radius_mm, mod(degrees(atan2(d.location_x::double precision, (- d.location_y)::double precision))::numeric + 360::numeric, 360::numeric) AS angle_degrees FROM darts d JOIN turns t ON t.id = d.turn_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN dart_zones hit_zone ON hit_zone.id = d.hit_zone_id LEFT JOIN dart_zones intended_zone ON intended_zone.id = d.intended_zone_id WHERE d.location_x IS NOT NULL AND d.location_y IS NOT NULL`,
 );
+
+export const vPlayerSettings = pgView("v_player_settings", {
+  playerId: uuid("player_id"),
+  defaultCaptureModeKey: text("default_capture_mode_key"),
+  defaultInputModeKey: text("default_input_mode_key"),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
+}).as(
+  sql`SELECT ps.player_id, cm.implementation_key AS default_capture_mode_key, im.implementation_key AS default_input_mode_key, ps.updated_at FROM player_settings ps LEFT JOIN capture_modes cm ON cm.id = ps.default_capture_mode_id LEFT JOIN input_modes im ON im.id = ps.default_input_mode_id`,
+);
