@@ -11,9 +11,9 @@ import {
   boolean,
   foreignKey,
   integer,
-  numeric,
   uniqueIndex,
   jsonb,
+  numeric,
   primaryKey,
   pgView,
 } from "drizzle-orm/pg-core";
@@ -45,23 +45,6 @@ export const gameFeatures = pgTable(
       "chk_game_features_key_not_empty",
       sql`length(TRIM(BOTH FROM implementation_key)) > 0`,
     ),
-  ],
-);
-
-export const durationTypes = pgTable(
-  "duration_types",
-  {
-    id: smallint().primaryKey().notNull(),
-    implementationKey: text("implementation_key").notNull(),
-    name: text().notNull(),
-    description: text(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    unique("uq_duration_types_implementation_key").on(table.implementationKey),
   ],
 );
 
@@ -149,8 +132,8 @@ export const gameTypes = pgTable(
   ],
 );
 
-export const dartZones = pgTable(
-  "dart_zones",
+export const durationTypes = pgTable(
+  "duration_types",
   {
     id: smallint().primaryKey().notNull(),
     implementationKey: text("implementation_key").notNull(),
@@ -162,7 +145,43 @@ export const dartZones = pgTable(
     }).notNull(),
   },
   (table) => [
-    unique("uq_dart_zones_implementation_key").on(table.implementationKey),
+    unique("uq_duration_types_implementation_key").on(table.implementationKey),
+  ],
+);
+
+export const participantTypes = pgTable(
+  "participant_types",
+  {
+    id: smallint().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    description: text(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("uq_participant_types_implementation_key").on(
+      table.implementationKey,
+    ),
+  ],
+);
+
+export const stageTypes = pgTable(
+  "stage_types",
+  {
+    id: smallint().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    description: text(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("uq_stage_types_implementation_key").on(table.implementationKey),
   ],
 );
 
@@ -197,30 +216,6 @@ export const rulesetVersions = pgTable(
   ],
 );
 
-export const players = pgTable(
-  "players",
-  {
-    id: uuid().primaryKey().notNull(),
-    authUserId: text("auth_user_id").notNull(),
-    displayName: text("display_name").notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    updatedAt: timestamp("updated_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    unique("uq_players_auth_user_id").on(table.authUserId),
-    check(
-      "chk_players_display_name_not_empty",
-      sql`length(TRIM(BOTH FROM display_name)) > 0`,
-    ),
-  ],
-);
-
 export const playerSettings = pgTable(
   "player_settings",
   {
@@ -242,6 +237,16 @@ export const playerSettings = pgTable(
       foreignColumns: [players.id],
       name: "fk_player_settings_player",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.defaultCaptureModeId],
+      foreignColumns: [captureModes.id],
+      name: "fk_player_settings_capture_mode",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.defaultInputModeId],
+      foreignColumns: [inputModes.id],
+      name: "fk_player_settings_input_mode",
+    }).onDelete("restrict"),
   ],
 );
 
@@ -275,6 +280,30 @@ export const exerciseTemplates = pgTable(
   ],
 );
 
+export const players = pgTable(
+  "players",
+  {
+    id: uuid().primaryKey().notNull(),
+    authUserId: text("auth_user_id").notNull(),
+    displayName: text("display_name").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("uq_players_auth_user_id").on(table.authUserId),
+    check(
+      "chk_players_display_name_not_empty",
+      sql`length(TRIM(BOTH FROM display_name)) > 0`,
+    ),
+  ],
+);
+
 export const routineTemplates = pgTable(
   "routine_templates",
   {
@@ -298,6 +327,23 @@ export const routineTemplates = pgTable(
       foreignColumns: [players.id],
       name: "fk_routine_templates_player",
     }).onDelete("cascade"),
+  ],
+);
+
+export const dartZones = pgTable(
+  "dart_zones",
+  {
+    id: smallint().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    description: text(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("uq_dart_zones_implementation_key").on(table.implementationKey),
   ],
 );
 
@@ -371,8 +417,8 @@ export const exerciseSessions = pgTable(
     index("idx_sessions_active")
       .using(
         "btree",
-        table.playerId.asc().nullsLast().op("int2_ops"),
-        table.statusId.asc().nullsLast().op("uuid_ops"),
+        table.playerId.asc().nullsLast().op("uuid_ops"),
+        table.statusId.asc().nullsLast().op("int2_ops"),
       )
       .where(sql`(completed_at IS NULL)`),
     index("idx_sessions_activity").using(
@@ -389,7 +435,7 @@ export const exerciseSessions = pgTable(
     index("idx_sessions_player_created").using(
       "btree",
       table.playerId.asc().nullsLast().op("uuid_ops"),
-      table.createdAt.desc().nullsFirst().op("timestamptz_ops"),
+      table.createdAt.desc().nullsFirst().op("uuid_ops"),
     ),
     uniqueIndex("uq_sessions_single_active")
       .using(
@@ -440,39 +486,42 @@ export const exerciseSessions = pgTable(
   ],
 );
 
-export const participantTypes = pgTable(
-  "participant_types",
+export const routineSteps = pgTable(
+  "routine_steps",
   {
-    id: smallint().primaryKey().notNull(),
-    implementationKey: text("implementation_key").notNull(),
-    name: text().notNull(),
-    description: text(),
+    id: uuid().primaryKey().notNull(),
+    routineTemplateId: uuid("routine_template_id").notNull(),
+    exerciseTemplateId: uuid("exercise_template_id").notNull(),
+    sequenceNumber: integer("sequence_number").notNull(),
+    durationTypeId: smallint("duration_type_id").notNull(),
+    durationValue: integer("duration_value").notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
     }).notNull(),
   },
   (table) => [
-    unique("uq_participant_types_implementation_key").on(
-      table.implementationKey,
+    foreignKey({
+      columns: [table.routineTemplateId],
+      foreignColumns: [routineTemplates.id],
+      name: "fk_routine_steps_routine",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.exerciseTemplateId],
+      foreignColumns: [exerciseTemplates.id],
+      name: "fk_routine_steps_exercise",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.durationTypeId],
+      foreignColumns: [durationTypes.id],
+      name: "fk_routine_steps_duration_type",
+    }).onDelete("restrict"),
+    unique("uq_routine_steps_sequence").on(
+      table.routineTemplateId,
+      table.sequenceNumber,
     ),
-  ],
-);
-
-export const stageTypes = pgTable(
-  "stage_types",
-  {
-    id: smallint().primaryKey().notNull(),
-    implementationKey: text("implementation_key").notNull(),
-    name: text().notNull(),
-    description: text(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    unique("uq_stage_types_implementation_key").on(table.implementationKey),
+    check("chk_routine_step_sequence_positive", sql`sequence_number > 0`),
+    check("chk_routine_duration_positive", sql`duration_value > 0`),
   ],
 );
 
@@ -578,21 +627,21 @@ export const exerciseStages = pgTable(
     index("idx_stages_session_sequence").using(
       "btree",
       table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
+      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
     ),
     uniqueIndex("uq_stages_root_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
+        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
       )
       .where(sql`(parent_stage_id IS NULL)`),
     uniqueIndex("uq_stages_sibling_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
-        table.parentStageId.asc().nullsLast().op("int4_ops"),
-        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
+        table.parentStageId.asc().nullsLast().op("uuid_ops"),
+        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
       )
       .where(sql`(parent_stage_id IS NOT NULL)`),
     foreignKey({
@@ -618,15 +667,112 @@ export const exerciseStages = pgTable(
   ],
 );
 
-export const routineSteps = pgTable(
-  "routine_steps",
+export const turns = pgTable(
+  "turns",
   {
     id: uuid().primaryKey().notNull(),
-    routineTemplateId: uuid("routine_template_id").notNull(),
-    exerciseTemplateId: uuid("exercise_template_id").notNull(),
+    exerciseStageId: uuid("exercise_stage_id").notNull(),
+    participantId: uuid("participant_id").notNull(),
     sequenceNumber: integer("sequence_number").notNull(),
-    durationTypeId: smallint("duration_type_id").notNull(),
-    durationValue: integer("duration_value").notNull(),
+    totalScore: integer("total_score").default(0).notNull(),
+    completedAt: timestamp("completed_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    index("idx_turns_participant").using(
+      "btree",
+      table.participantId.asc().nullsLast().op("uuid_ops"),
+    ),
+    index("idx_turns_stage_sequence").using(
+      "btree",
+      table.exerciseStageId.asc().nullsLast().op("int4_ops"),
+      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.exerciseStageId],
+      foreignColumns: [exerciseStages.id],
+      name: "fk_turn_stage",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.participantId],
+      foreignColumns: [participants.id],
+      name: "fk_turn_participant",
+    }).onDelete("restrict"),
+    unique("uq_turns_stage_participant_sequence").on(
+      table.exerciseStageId,
+      table.participantId,
+      table.sequenceNumber,
+    ),
+    check("chk_turn_sequence_positive", sql`sequence_number > 0`),
+  ],
+);
+
+export const configurationTemplates = pgTable(
+  "configuration_templates",
+  {
+    id: uuid().primaryKey().notNull(),
+    gameTypeId: uuid("game_type_id").notNull(),
+    playerId: uuid("player_id"),
+    name: text().notNull(),
+    description: text(),
+    configuration: jsonb().notNull(),
+    isSystemTemplate: boolean("is_system_template").default(false).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    index("idx_configuration_templates_game_type").using(
+      "btree",
+      table.gameTypeId.asc().nullsLast().op("uuid_ops"),
+    ),
+    index("idx_configuration_templates_player")
+      .using("btree", table.playerId.asc().nullsLast().op("uuid_ops"))
+      .where(sql`(player_id IS NOT NULL)`),
+    foreignKey({
+      columns: [table.gameTypeId],
+      foreignColumns: [gameTypes.id],
+      name: "fk_configuration_templates_game_type",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.playerId],
+      foreignColumns: [players.id],
+      name: "fk_configuration_templates_player",
+    }).onDelete("cascade"),
+    check(
+      "chk_configuration_templates_system_ownership",
+      sql`(NOT is_system_template) OR (player_id IS NULL)`,
+    ),
+    check(
+      "chk_configuration_templates_name_not_empty",
+      sql`length(TRIM(BOTH FROM name)) > 0`,
+    ),
+    check(
+      "chk_configuration_templates_object",
+      sql`jsonb_typeof(configuration) = 'object'::text`,
+    ),
+  ],
+);
+
+export const sessionWriteIdempotency = pgTable(
+  "session_write_idempotency",
+  {
+    id: uuid().primaryKey().notNull(),
+    sessionId: uuid("session_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    normalizedPayloadHash: text("normalized_payload_hash").notNull(),
+    result: jsonb().notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -634,26 +780,18 @@ export const routineSteps = pgTable(
   },
   (table) => [
     foreignKey({
-      columns: [table.routineTemplateId],
-      foreignColumns: [routineTemplates.id],
-      name: "fk_routine_steps_routine",
+      columns: [table.sessionId],
+      foreignColumns: [exerciseSessions.id],
+      name: "fk_session_write_idempotency_session",
     }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.exerciseTemplateId],
-      foreignColumns: [exerciseTemplates.id],
-      name: "fk_routine_steps_exercise",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [table.durationTypeId],
-      foreignColumns: [durationTypes.id],
-      name: "fk_routine_steps_duration_type",
-    }).onDelete("restrict"),
-    unique("uq_routine_steps_sequence").on(
-      table.routineTemplateId,
-      table.sequenceNumber,
+    unique("uq_session_write_idempotency_session_key").on(
+      table.sessionId,
+      table.idempotencyKey,
     ),
-    check("chk_routine_step_sequence_positive", sql`sequence_number > 0`),
-    check("chk_routine_duration_positive", sql`duration_value > 0`),
+    check(
+      "chk_session_write_idempotency_result_is_object",
+      sql`jsonb_typeof(result) = 'object'::text`,
+    ),
   ],
 );
 
@@ -733,134 +871,6 @@ export const darts = pgTable(
   ],
 );
 
-export const turns = pgTable(
-  "turns",
-  {
-    id: uuid().primaryKey().notNull(),
-    exerciseStageId: uuid("exercise_stage_id").notNull(),
-    participantId: uuid("participant_id").notNull(),
-    sequenceNumber: integer("sequence_number").notNull(),
-    totalScore: integer("total_score").default(0).notNull(),
-    completedAt: timestamp("completed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    index("idx_turns_participant").using(
-      "btree",
-      table.participantId.asc().nullsLast().op("uuid_ops"),
-    ),
-    index("idx_turns_stage_sequence").using(
-      "btree",
-      table.exerciseStageId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
-    ),
-    foreignKey({
-      columns: [table.exerciseStageId],
-      foreignColumns: [exerciseStages.id],
-      name: "fk_turn_stage",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.participantId],
-      foreignColumns: [participants.id],
-      name: "fk_turn_participant",
-    }).onDelete("restrict"),
-    unique("uq_turns_stage_participant_sequence").on(
-      table.exerciseStageId,
-      table.participantId,
-      table.sequenceNumber,
-    ),
-    check("chk_turn_sequence_positive", sql`sequence_number > 0`),
-  ],
-);
-
-export const configurationTemplates = pgTable(
-  "configuration_templates",
-  {
-    id: uuid().primaryKey().notNull(),
-    gameTypeId: uuid("game_type_id").notNull(),
-    playerId: uuid("player_id"),
-    name: text().notNull(),
-    description: text(),
-    configuration: jsonb().notNull(),
-    isSystemTemplate: boolean("is_system_template").default(false).notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    updatedAt: timestamp("updated_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    index("idx_configuration_templates_game_type").using(
-      "btree",
-      table.gameTypeId.asc().nullsLast().op("uuid_ops"),
-    ),
-    index("idx_configuration_templates_player")
-      .using("btree", table.playerId.asc().nullsLast().op("uuid_ops"))
-      .where(sql`(player_id IS NOT NULL)`),
-    foreignKey({
-      columns: [table.gameTypeId],
-      foreignColumns: [gameTypes.id],
-      name: "fk_configuration_templates_game_type",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [table.playerId],
-      foreignColumns: [players.id],
-      name: "fk_configuration_templates_player",
-    }).onDelete("cascade"),
-    check(
-      "chk_configuration_templates_name_not_empty",
-      sql`length(TRIM(BOTH FROM name)) > 0`,
-    ),
-    check(
-      "chk_configuration_templates_object",
-      sql`jsonb_typeof(configuration) = 'object'::text`,
-    ),
-    check(
-      "chk_configuration_templates_system_ownership",
-      sql`(NOT is_system_template) OR (player_id IS NULL)`,
-    ),
-  ],
-);
-
-export const sessionWriteIdempotency = pgTable(
-  "session_write_idempotency",
-  {
-    id: uuid().primaryKey().notNull(),
-    sessionId: uuid("session_id").notNull(),
-    idempotencyKey: text("idempotency_key").notNull(),
-    normalizedPayloadHash: text("normalized_payload_hash").notNull(),
-    result: jsonb().notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.sessionId],
-      foreignColumns: [exerciseSessions.id],
-      name: "fk_session_write_idempotency_session",
-    }).onDelete("cascade"),
-    unique("uq_session_write_idempotency_session_key").on(
-      table.sessionId,
-      table.idempotencyKey,
-    ),
-    check(
-      "chk_session_write_idempotency_result_is_object",
-      sql`jsonb_typeof(result) = 'object'::text`,
-    ),
-  ],
-);
-
 export const gameTypeFeatures = pgTable(
   "game_type_features",
   {
@@ -893,35 +903,6 @@ export const gameTypeFeatures = pgTable(
     unique("uq_game_type_feature").on(table.gameTypeId, table.gameFeatureId),
   ],
 );
-export const vSessionOverview = pgView("v_session_overview", {
-  sessionId: uuid("session_id"),
-  playerId: uuid("player_id"),
-  gameTypeKey: text("game_type_key"),
-  gameTypeName: text("game_type_name"),
-  statusKey: text("status_key"),
-  captureModeKey: text("capture_mode_key"),
-  startedAt: timestamp("started_at", { withTimezone: true, mode: "string" }),
-  completedAt: timestamp("completed_at", {
-    withTimezone: true,
-    mode: "string",
-  }),
-  durationSeconds: integer("duration_seconds"),
-}).as(
-  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, gt.name AS game_type_name, gs.implementation_key AS status_key, cm.implementation_key AS capture_mode_key, es.started_at, es.completed_at, floor(EXTRACT(epoch FROM COALESCE(es.completed_at, now()) - es.started_at))::integer AS duration_seconds FROM exercise_sessions es JOIN game_types gt ON gt.id = es.game_type_id JOIN game_statuses gs ON gs.id = es.status_id JOIN capture_modes cm ON cm.id = es.capture_mode_id`,
-);
-
-export const vConfigurationPresets = pgView("v_configuration_presets", {
-  configurationTemplateId: uuid("configuration_template_id"),
-  playerId: uuid("player_id"),
-  gameTypeKey: text("game_type_key"),
-  name: text(),
-  description: text(),
-  configuration: jsonb(),
-  isSystemTemplate: boolean("is_system_template"),
-}).as(
-  sql`SELECT ct.id AS configuration_template_id, ct.player_id, gt.implementation_key AS game_type_key, ct.name, ct.description, ct.configuration, ct.is_system_template FROM configuration_templates ct JOIN game_types gt ON gt.id = ct.game_type_id`,
-);
-
 export const vActiveSessions = pgView("v_active_sessions", {
   sessionId: uuid("session_id"),
   playerId: uuid("player_id"),
@@ -980,4 +961,55 @@ export const vGameReplay = pgView("v_game_replay", {
   score: integer(),
 }).as(
   sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, st.parent_stage_id, st.sequence_number AS stage_sequence, stg.implementation_key AS stage_type_key, t.sequence_number AS turn_sequence, p.display_name AS participant_name, t.total_score AS turn_total_score, d.dart_number, d.intended_target_number, dz1.implementation_key AS intended_zone_key, d.hit_target_number, dz2.implementation_key AS hit_zone_key, d.score FROM exercise_sessions es JOIN exercise_stages st ON st.exercise_session_id = es.id JOIN stage_types stg ON stg.id = st.stage_type_id JOIN turns t ON t.exercise_stage_id = st.id JOIN participants p ON p.id = t.participant_id LEFT JOIN darts d ON d.turn_id = t.id LEFT JOIN dart_zones dz1 ON dz1.id = d.intended_zone_id LEFT JOIN dart_zones dz2 ON dz2.id = d.hit_zone_id`,
+);
+
+export const vSessionOverview = pgView("v_session_overview", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  gameTypeKey: text("game_type_key"),
+  gameTypeName: text("game_type_name"),
+  statusKey: text("status_key"),
+  captureModeKey: text("capture_mode_key"),
+  startedAt: timestamp("started_at", { withTimezone: true, mode: "string" }),
+  completedAt: timestamp("completed_at", {
+    withTimezone: true,
+    mode: "string",
+  }),
+  durationSeconds: integer("duration_seconds"),
+}).as(
+  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, gt.name AS game_type_name, gs.implementation_key AS status_key, cm.implementation_key AS capture_mode_key, es.started_at, es.completed_at, floor(EXTRACT(epoch FROM COALESCE(es.completed_at, now()) - es.started_at))::integer AS duration_seconds FROM exercise_sessions es JOIN game_types gt ON gt.id = es.game_type_id JOIN game_statuses gs ON gs.id = es.status_id JOIN capture_modes cm ON cm.id = es.capture_mode_id`,
+);
+
+export const vConfigurationPresets = pgView("v_configuration_presets", {
+  configurationTemplateId: uuid("configuration_template_id"),
+  playerId: uuid("player_id"),
+  gameTypeKey: text("game_type_key"),
+  name: text(),
+  description: text(),
+  configuration: jsonb(),
+  isSystemTemplate: boolean("is_system_template"),
+}).as(
+  sql`SELECT ct.id AS configuration_template_id, ct.player_id, gt.implementation_key AS game_type_key, ct.name, ct.description, ct.configuration, ct.is_system_template FROM configuration_templates ct JOIN game_types gt ON gt.id = ct.game_type_id`,
+);
+
+export const vDartLocations = pgView("v_dart_locations", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  gameTypeKey: text("game_type_key"),
+  inputModeKey: text("input_mode_key"),
+  stageId: uuid("stage_id"),
+  turnSequence: integer("turn_sequence"),
+  turnTotalScore: integer("turn_total_score"),
+  dartNumber: smallint("dart_number"),
+  hitTargetNumber: smallint("hit_target_number"),
+  hitZoneKey: text("hit_zone_key"),
+  intendedTargetNumber: smallint("intended_target_number"),
+  intendedZoneKey: text("intended_zone_key"),
+  score: integer(),
+  locationX: numeric("location_x", { precision: 6, scale: 2 }),
+  locationY: numeric("location_y", { precision: 6, scale: 2 }),
+  radiusMm: numeric("radius_mm"),
+  angleDegrees: numeric("angle_degrees"),
+}).as(
+  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, im.implementation_key AS input_mode_key, st.id AS stage_id, t.sequence_number AS turn_sequence, t.total_score AS turn_total_score, d.dart_number, d.hit_target_number, hit_zone.implementation_key AS hit_zone_key, d.intended_target_number, intended_zone.implementation_key AS intended_zone_key, d.score, d.location_x, d.location_y, sqrt(power(d.location_x, 2::numeric) + power(d.location_y, 2::numeric)) AS radius_mm, mod(degrees(atan2(d.location_x::double precision, (- d.location_y)::double precision))::numeric + 360::numeric, 360::numeric) AS angle_degrees FROM darts d JOIN turns t ON t.id = d.turn_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN dart_zones hit_zone ON hit_zone.id = d.hit_zone_id LEFT JOIN dart_zones intended_zone ON intended_zone.id = d.intended_zone_id WHERE d.location_x IS NOT NULL AND d.location_y IS NOT NULL`,
 );

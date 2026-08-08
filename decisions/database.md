@@ -5,7 +5,7 @@ read-when: why a schema/migration/view/index/seed choice was made
 load-when: schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/game-engine.md
-updated: 2026-08-05
+updated: 2026-08-08
 -->
 
 | # | Source | Decision | Rationale |
@@ -28,3 +28,9 @@ Status: Accepted · Date: 2026-08-05
 Decision: `darts.location_x` / `darts.location_y` ship as `NUMERIC(6, 2)` millimetres, origin at the bull centre, y increasing downward to match `dartboard.svg` (migration `0017`). Both columns are nullable, but never independently: `chk_dart_location_pair` rejects one present without the other. `v_dart_locations` (migration `0018`) exposes them plus derived `radius_mm` / `angle_degrees`; miss margin needs a zone centroid, which stays out of SQL entirely and is computed in the application read layer (`app/src/lib/game/board/miss-margin.module.ts`) instead.
 Reason: A landing point is one fact, not two independently-optional columns — the CHECK constraint makes "half a coordinate" unrepresentable rather than a client-side convention. This is the shipped shape that replaces the deferral recorded in `06-Spec/04-Runtime-Layer.md` ("`location_x`/`location_y` board coordinates are deferred"), now that the visual board UI can capture them.
 Consequences: Migration `0017` also adds the two `player_settings` foreign keys (`fk_player_settings_capture_mode`, `fk_player_settings_input_mode`) that `06-Spec/03-Player-Layer.md` specified but `0003` never created — bundled because both were reviewed together and neither is separable from the other in that migration. No capability table ships alongside this pair; it is deferred to a later plan.
+
+### D192 — SQL that a migration can only fail on gets a real-database run, not a review
+Status: Accepted · Date: 2026-08-08
+Decision: `v_dart_locations`' angle expression casts to `NUMERIC` before `MOD()` (`MOD(DEGREES(ATAN2(x, -y))::NUMERIC + 360, 360)`), and `app/tests/db/migration-numeric-typing.test.ts` fails any migration whose `MOD()` argument reaches a double-precision function without an intervening `::NUMERIC`. Both derived columns are therefore `NUMERIC`, which Drizzle/node-postgres surface as strings.
+Reason: migration `0018` shipped with `MOD(DEGREES(...) + 360, 360)` and could never have applied — PostgreSQL has no `mod(double precision, integer)`, and the double→numeric cast is assignment-only so it is not considered during function resolution. Nothing caught it: `tsc` and the whole Vitest suite are blind to SQL, the structural gates lint file shape rather than semantics, and the plan's own verification was deferred to an operator checklist. The bug was found only by running the chain against a throwaway PostgreSQL 16 cluster.
+Consequences: `0018` is corrected in place rather than superseded — it had never applied to any database, so no environment carries the broken definition and the "never modify applied migrations" invariant (`0001`–`0016`) is untouched. Operator checklist steps 1 and 3–5 are now verified against a real cluster and marked as such; only the Neon-specific re-run remains. The read layer must parse `location_x`, `location_y`, `radius_mm` and `angle_degrees` from strings before handing them to `missMargin`, which takes numbers. A migration that only a live database can reject should be run against one before the branch claims verification.

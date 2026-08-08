@@ -241,6 +241,8 @@ Session id, player id, game type key, input mode key, stage id, turn sequence, t
 
 `radius_mm` and `angle_degrees` are plain arithmetic over the stored coordinate — no board geometry lives in this view. **Miss margin is deliberately not exposed here.** It needs a zone centroid, which is board geometry, and that geometry already lives once in `app/src/lib/game/board/board-geometry.module.ts` (`zoneCentroid`). Computing it a second time in SQL would drift from the classifier that produced the coordinate in the first place, so `missMargin` (`app/src/lib/game/board/miss-margin.module.ts`) is computed in the application read layer from this view's raw columns instead. <!-- 2026-08-05 -->
 
+Both derived columns are `NUMERIC`, not `double precision`. `MOD()` has no `double precision` overload and the cast from it is assignment-only, so `MOD(DEGREES(...) + 360, 360)` fails at `CREATE VIEW` — the angle is cast with `::NUMERIC` before the modulo. `app/tests/db/migration-numeric-typing.test.ts` guards the whole chain against the same shape. Consequence for the read layer: `NUMERIC` arrives as a **string** through Drizzle/node-postgres, so `location_x`, `location_y`, `radius_mm` and `angle_degrees` must be parsed to numbers before reaching `missMargin`, which takes numbers. <!-- 2026-08-08 -->
+
 ---
 
 # Read Model Layer Summary

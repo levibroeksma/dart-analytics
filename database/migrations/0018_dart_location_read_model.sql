@@ -38,7 +38,7 @@ SELECT es.id AS session_id,
     MOD(
         DEGREES(
             ATAN2(d.location_x, - d.location_y)
-        ) + 360,
+        )::NUMERIC + 360,
         360
     ) AS angle_degrees
 FROM darts d

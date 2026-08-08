@@ -1,9 +1,9 @@
 # Operator Checklist — Visual Board Capture Core (Plan 1)
 
-> **Date:** 2026-08-05
+> **Date:** 2026-08-05 · **Verified against real PostgreSQL 16:** 2026-08-08
 > **Branch:** `claude/visual-darts-input-28gjzh`
 > **Plan:** `docs/superpowers/plans/2026-08-05-visual-board-capture-core.md`
-> **State at handoff:** all 15 tasks implemented, tested (Vitest + `tsc --noEmit`) and documented in-branch. **No database in this environment** — migrations `0017`/`0018` and seeds `0005`/`0006` have never been applied or verified against real PostgreSQL. `app/src/db/schema.ts` was hand-edited to add `locationX`/`locationY`/`chk_dart_location_pair` (see `decisions/database.md` D188) because `drizzle-kit introspect` could not run here — it is un-regenerated. The steps below are the parts that require a **Neon-connected desktop** and must run, in order, before this plan is considered verified end to end.
+> **State:** all 15 tasks implemented, tested (Vitest + `tsc --noEmit`) and documented in-branch. Steps 1–5 below have now been **run end to end against a throwaway local PostgreSQL 16 cluster** — the full `0001`–`0018` chain, seeds `0001`–`0006`, `drizzle-kit introspect`, and every verification query. What that run found and fixed is recorded under "What the real-database run changed". What remains is the **Neon re-run**: Neon's PostgreSQL version and pooled connection are not this cluster, and the target database is the one that matters.
 
 ---
 
@@ -74,9 +74,27 @@ Expected: `total_score = 0` while `dart_scores` contains at least one non-zero v
 
 ---
 
-## Why these steps aren't done here
+## What the real-database run changed (2026-08-08)
 
-No database is reachable from this container: `db:migrate`, `db:seed`, `drizzle-kit introspect`, and every query above require a live Postgres connection. The SQL (`0017`, `0018`, seeds `0005`/`0006`), the hand-written `schema.ts` edit, and every document describing them were authored, reviewed, and unit-tested (`app/tests/**`, `vitest`) against the classifier and validator logic directly — but nothing here has touched a real database, so none of the above is independently confirmed. The repo owner approved shipping the SQL plus this checklist rather than blocking the branch on desktop access (`.superpowers/sdd/progress.md`, "Human decisions", 2026-08-05).
+The container turned out to carry a PostgreSQL 16 server binary, so the chain was run against a throwaway local cluster rather than left unverified.
+
+**Migration `0018` could never have applied.** Its angle expression was `MOD(DEGREES(ATAN2(x, -y)) + 360, 360)`, and PostgreSQL has no `mod(double precision, integer)` — the double→numeric cast is assignment-only, so it is not considered during function resolution. `CREATE VIEW` failed with `function mod(double precision, integer) does not exist`; `v_dart_locations` was never created and `0018` was never recorded. Fixed in place with a `::NUMERIC` cast (D192) — `0018` had applied to no database, so the "never modify applied migrations" invariant is untouched. `app/tests/db/migration-numeric-typing.test.ts` now fails any migration that repeats the shape.
+
+**Results of each step against the local cluster:**
+
+| Step | Result |
+| ---- | ------ |
+| 1. Migrate + seed | `0001`–`0018` applied; seeds `0001`–`0006` applied. `input_modes` = `QUICK_SCORE`/`DETAILED_DARTS`/`VISUAL_BOARD`; `dart_zones` ids 7/8 = `INNER_SINGLE`/`OUTER_SINGLE`. |
+| 2. Introspect | Ran against the live cluster. The hand-written `locationX`/`locationY` (`numeric`, precision 6, scale 2) and `chk_dart_location_pair` match generated output **exactly**; `v_dart_locations` is now registered as `vDartLocations`. The remaining churn is drizzle-kit's unstable per-index `.op()` operator classes, which reshuffle between runs and describe nothing the app reads. |
+| 3. `chk_dart_location_pair` | x-only → rejected; y-only → rejected; both NULL → accepted. |
+| 4. `v_dart_locations` angles | `(0,-100)` → `0°` (sector 20), `(100,0)` → `90°` (6), `(0,100)` → `180°` (3), `(-100,0)` → `270°` (11). All four match `SECTOR_ORDER` and the classifier's clockwise-from-up convention. Coordinate-less darts are correctly excluded. |
+| 5. Bust divergence | A visit with `total_score = 0` alongside a dart scoring 11 persists exactly that shape — counted zero against thrown non-zero, the fact D189 depends on. |
+
+Everything else in the branch was authored and unit-tested (`app/tests/**`, Vitest) against the classifier and validator logic directly. The repo owner approved shipping the SQL plus this checklist rather than blocking the branch on desktop access (`.superpowers/sdd/progress.md`, "Human decisions", 2026-08-05).
+
+## Still to do on Neon
+
+Re-run steps 1 and 3–5 against the Neon dev branch. The local cluster is PostgreSQL 16 on a direct connection; Neon differs in version and runs pooled, and it is the database this app actually writes to. Step 2's introspect is already committed from a real run — re-running it on Neon is only worth it if step 1 there produces a different schema.
 
 ---
 
@@ -90,4 +108,4 @@ No database is reachable from this container: `db:migrate`, `db:seed`, `drizzle-
 
 ## When ready to open the PR
 
-Base `main` ← `claude/visual-darts-input-28gjzh`. Run steps 1–5 above on a Neon-connected desktop first and commit any resulting `schema.ts` diff (step 2) into the same branch, so the PR carries a real introspect run rather than the hand-edit alone. Use the repo PR template.
+Base `main` ← `claude/visual-darts-input-28gjzh`. The branch already carries a real introspect run (step 2) and the `0018` fix that the local run surfaced. Run steps 1 and 3–5 against the Neon dev branch before merging, and commit any further `schema.ts` diff into the same branch. Use the repo PR template.
