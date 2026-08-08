@@ -1,4 +1,8 @@
 import type { EventsBatchRequestInput } from "@routes/types";
+import {
+  isVisualBoardCapture,
+  VISUAL_BOARD_MODES,
+} from "./visual-board.validator";
 import type { BatchValidationResult } from "./types";
 
 const QUICK_SCORE_CAPTURE_MODE = "RECREATIONAL";
@@ -9,8 +13,10 @@ export const QUICK_SCORE_MODES = `${QUICK_SCORE_CAPTURE_MODE} + ${QUICK_SCORE_IN
 
 /**
  * Whether a session captures whole visit totals rather than individual darts.
- * Score Training, 501 and TUOD all support exactly this one pair, so the pair
- * itself is named once here instead of in each of them.
+ * TUOD supports exactly this one pair. 501 and Score Training also support
+ * ANALYTICS + VISUAL_BOARD for a coordinate capture — see
+ * `isQuickScoreOrVisualBoardCapture` for the combined check those two use at
+ * session creation.
  */
 export function isQuickScoreCapture(
   captureModeKey: string,
@@ -19,6 +25,25 @@ export function isQuickScoreCapture(
   return (
     captureModeKey === QUICK_SCORE_CAPTURE_MODE &&
     inputModeKey === QUICK_SCORE_INPUT_MODE
+  );
+}
+
+/** The mode pairs a dual-capture ruleset (501, Score Training) names in its rejection message. */
+export const QUICK_SCORE_OR_VISUAL_BOARD_MODES = `${QUICK_SCORE_MODES} or ${VISUAL_BOARD_MODES}`;
+
+/**
+ * Whether a session's mode pair is one a dual-capture ruleset (501, Score
+ * Training) actually implements: RECREATIONAL + QUICK_SCORE for a visit-total
+ * capture, or ANALYTICS + VISUAL_BOARD for a coordinate capture. Named once
+ * here rather than duplicated in each validator's `validateConfig`.
+ */
+export function isQuickScoreOrVisualBoardCapture(
+  captureModeKey: string,
+  inputModeKey: string,
+): boolean {
+  return (
+    isQuickScoreCapture(captureModeKey, inputModeKey) ||
+    isVisualBoardCapture(captureModeKey, inputModeKey)
   );
 }
 

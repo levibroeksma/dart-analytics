@@ -7,7 +7,7 @@ const VISUAL_BOARD_CAPTURE_MODE = "ANALYTICS";
 const VISUAL_BOARD_INPUT_MODE = "VISUAL_BOARD";
 
 /** The mode pair every coordinate-capturing ruleset names in its rejection message. */
-const VISUAL_BOARD_MODES = `${VISUAL_BOARD_CAPTURE_MODE} + ${VISUAL_BOARD_INPUT_MODE}`;
+export const VISUAL_BOARD_MODES = `${VISUAL_BOARD_CAPTURE_MODE} + ${VISUAL_BOARD_INPUT_MODE}`;
 
 /** Whether a session captures individual darts with a landing coordinate. */
 export function isVisualBoardCapture(

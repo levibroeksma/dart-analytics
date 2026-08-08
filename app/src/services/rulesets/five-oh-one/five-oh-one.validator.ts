@@ -1,8 +1,9 @@
 import { FiveOhOneConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
 import {
-  QUICK_SCORE_MODES,
+  QUICK_SCORE_OR_VISUAL_BOARD_MODES,
   isQuickScoreCapture,
+  isQuickScoreOrVisualBoardCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
 import {
@@ -18,8 +19,11 @@ import type {
 const DEFAULT_MAX_VISIT_SCORE = 180;
 
 /**
- * 501 is RECREATIONAL + QUICK_SCORE: every turn is a visit total with no
- * dart rows, capped at the ruleset's own `max_visit_score`.
+ * 501 supports two mode pairs. Under RECREATIONAL + QUICK_SCORE every turn is
+ * a visit total with no dart rows, capped at the ruleset's own
+ * `max_visit_score`. Under ANALYTICS + VISUAL_BOARD every dart carries a
+ * landing coordinate, re-derived and cross-checked by
+ * `validateVisualBoardTurns`.
  */
 export const fiveOhOneValidator: RulesetValidator = {
   validateConfig({
@@ -27,10 +31,10 @@ export const fiveOhOneValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
       return {
         valid: false,
-        issues: [`501 V1 only supports ${QUICK_SCORE_MODES}`],
+        issues: [`501 V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
       };
     }
     const parsed = FiveOhOneConfig.safeParse(config);
