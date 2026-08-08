@@ -4,13 +4,14 @@ import {
   rulesetVersions,
   players,
   playerSettings,
+  captureModes,
+  inputModes,
   exerciseTemplates,
   routineTemplates,
   activities,
   gameStatuses,
   exerciseSessions,
-  captureModes,
-  inputModes,
+  rulesetVersionCapabilities,
   exerciseConfigurations,
   participants,
   participantTypes,
@@ -35,6 +36,7 @@ export const rulesetVersionsRelations = relations(
       references: [gameTypes.id],
     }),
     exerciseSessions: many(exerciseSessions),
+    rulesetVersionCapabilities: many(rulesetVersionCapabilities),
   }),
 );
 
@@ -51,6 +53,14 @@ export const playerSettingsRelations = relations(playerSettings, ({ one }) => ({
     fields: [playerSettings.playerId],
     references: [players.id],
   }),
+  captureMode: one(captureModes, {
+    fields: [playerSettings.defaultCaptureModeId],
+    references: [captureModes.id],
+  }),
+  inputMode: one(inputModes, {
+    fields: [playerSettings.defaultInputModeId],
+    references: [inputModes.id],
+  }),
 }));
 
 export const playersRelations = relations(players, ({ many }) => ({
@@ -60,6 +70,18 @@ export const playersRelations = relations(players, ({ many }) => ({
   exerciseSessions: many(exerciseSessions),
   participants: many(participants),
   configurationTemplates: many(configurationTemplates),
+}));
+
+export const captureModesRelations = relations(captureModes, ({ many }) => ({
+  playerSettings: many(playerSettings),
+  exerciseSessions: many(exerciseSessions),
+  rulesetVersionCapabilities: many(rulesetVersionCapabilities),
+}));
+
+export const inputModesRelations = relations(inputModes, ({ many }) => ({
+  playerSettings: many(playerSettings),
+  exerciseSessions: many(exerciseSessions),
+  rulesetVersionCapabilities: many(rulesetVersionCapabilities),
 }));
 
 export const exerciseTemplatesRelations = relations(
@@ -132,6 +154,10 @@ export const exerciseSessionsRelations = relations(
       fields: [exerciseSessions.rulesetVersionId],
       references: [rulesetVersions.id],
     }),
+    rulesetVersionCapability: one(rulesetVersionCapabilities, {
+      fields: [exerciseSessions.captureModeId],
+      references: [rulesetVersionCapabilities.rulesetVersionId],
+    }),
     exerciseConfigurations: many(exerciseConfigurations),
     participants: many(participants),
     exerciseStages: many(exerciseStages),
@@ -139,13 +165,24 @@ export const exerciseSessionsRelations = relations(
   }),
 );
 
-export const captureModesRelations = relations(captureModes, ({ many }) => ({
-  exerciseSessions: many(exerciseSessions),
-}));
-
-export const inputModesRelations = relations(inputModes, ({ many }) => ({
-  exerciseSessions: many(exerciseSessions),
-}));
+export const rulesetVersionCapabilitiesRelations = relations(
+  rulesetVersionCapabilities,
+  ({ one, many }) => ({
+    exerciseSessions: many(exerciseSessions),
+    rulesetVersion: one(rulesetVersions, {
+      fields: [rulesetVersionCapabilities.rulesetVersionId],
+      references: [rulesetVersions.id],
+    }),
+    captureMode: one(captureModes, {
+      fields: [rulesetVersionCapabilities.captureModeId],
+      references: [captureModes.id],
+    }),
+    inputMode: one(inputModes, {
+      fields: [rulesetVersionCapabilities.inputModeId],
+      references: [inputModes.id],
+    }),
+  }),
+);
 
 export const exerciseConfigurationsRelations = relations(
   exerciseConfigurations,
