@@ -1,4 +1,9 @@
-import type { BoardPointer, BoardCoordinate, ScreenToBoard } from "./types";
+import type {
+  BoardPointer,
+  ScreenToBoard,
+  Handedness,
+  MagnifierPlacement,
+} from "./types";
 
 /**
  * Builds a converter from viewport pixels to board millimetres for one SVG
@@ -21,4 +26,35 @@ export function screenToBoard(svg: SVGSVGElement): ScreenToBoard {
     const board = point.matrixTransform(matrix.inverse());
     return { x: board.x, y: board.y };
   };
+}
+
+const MAGNIFIER_GAP = 16;
+
+/**
+ * Places the magnifier away from the throwing hand and clear of the viewport
+ * edges. It sits above the pointer by default, because a fingertip covers what
+ * is directly beneath it, and drops below only when there is no room above.
+ */
+export function magnifierPlacement(
+  pointer: BoardPointer,
+  viewport: { width: number; height: number },
+  handedness: Handedness,
+  size: number,
+): MagnifierPlacement {
+  const reach = size / 2 + MAGNIFIER_GAP;
+  const preferLeft = handedness === "RIGHT";
+
+  let offsetX = preferLeft ? -reach : reach;
+  if (pointer.clientX + offsetX - size / 2 < 0) {
+    offsetX = reach;
+  } else if (pointer.clientX + offsetX + size / 2 > viewport.width) {
+    offsetX = -reach;
+  }
+
+  let offsetY = -reach;
+  if (pointer.clientY + offsetY - size / 2 < 0) {
+    offsetY = reach;
+  }
+
+  return { offsetX, offsetY };
 }

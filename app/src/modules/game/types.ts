@@ -212,3 +212,12 @@ export type BoardCoordinate = {
 };
 
 export type ScreenToBoard = (pointer: BoardPointer) => BoardCoordinate | null;
+
+/** Which hand throws, so the magnifier is never placed under the throwing thumb. */
+export type Handedness = "LEFT" | "RIGHT";
+
+/** Where to draw the magnifier, relative to the pointer, in viewport pixels. */
+export type MagnifierPlacement = {
+  offsetX: number;
+  offsetY: number;
+};
