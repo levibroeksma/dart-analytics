@@ -560,6 +560,42 @@ describe("scoreTrainingPlay", () => {
     });
   });
 
+  describe("session progress stats", () => {
+    function makePlay(
+      gameOverrides: Partial<GameStub> = {},
+    ): ScoreTrainingPlayContext {
+      return {
+        ...scoreTrainingPlay(),
+        $store: {
+          game: gameStub({
+            configSnapshot: rounds(20),
+            ...gameOverrides,
+          }),
+        },
+      };
+    }
+
+    it("computes darts thrown, three-dart average, and previous score for the session", async () => {
+      const play = makePlay({
+        turns: [turnFact("t1", 1, 60), turnFact("t2", 2, 45)],
+      });
+      await play.init.call(play);
+
+      expect(play.dartsThrownThisLeg.call(play)).toBe(6);
+      expect(play.threeDartAverage.call(play)).toBe("52.5");
+      expect(play.previousScoreThisLeg.call(play)).toBe("45");
+    });
+
+    it('shows "—" for previous score when the session has no turns yet', async () => {
+      const play = makePlay({ turns: [] });
+      await play.init.call(play);
+
+      expect(play.dartsThrownThisLeg.call(play)).toBe(0);
+      expect(play.threeDartAverage.call(play)).toBe("0.0");
+      expect(play.previousScoreThisLeg.call(play)).toBe("—");
+    });
+  });
+
   describe("Completion sequence", () => {
     function makePlay(
       gameOverrides: Partial<GameStub> = {},

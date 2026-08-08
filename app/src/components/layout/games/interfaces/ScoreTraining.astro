@@ -9,6 +9,7 @@ const { ...props }: Props = Astro.props;
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
 ---
 
 <div
@@ -19,7 +20,27 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
     isTarget={false}
     score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
     class="max-h-2/5"
-  />
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="3 dart avg."
+          value="threeDartAverage()"
+        />
+        <StatRow
+          label="Darts"
+          value="dartsThrownThisLeg()"
+        />
+        <StatRow
+          label="Previous"
+          value="previousScoreThisLeg()"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
   <div
     class="flex justify-center items-center gap-2 px-3"
     x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
