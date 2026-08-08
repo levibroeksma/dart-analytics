@@ -2,7 +2,7 @@
 status: canonical
 scope: database/player-layer
 read-when: adding/changing player identity or settings
-updated: 2026-07-13
+updated: 2026-08-08
 -->
 
 # Database Specification — Chapter 3: Player Layer
@@ -96,7 +96,7 @@ Mutable.
 
 Settings are **defaults only** — they are read at session start and copied onto the session. They never represent history.
 
-**v1 status:** deferred — no settings endpoints ship in v1; the client persists last-used capture/input modes locally and sends them on session creation (D60). The table remains for post-v1. <!-- 2026-07-13 -->
+**Status:** shipped (2026-08-08). `GET`/`PATCH /api/players/me/settings` read through `v_player_settings` (migration `0021`) and write the table. A player with no settings row reads as `RECREATIONAL` + `QUICK_SCORE`; the row is created lazily on first write, and no backfill runs. Settings remain **defaults only** — they are read at session start and copied onto the session, so changing one never rewrites history. This supersedes D60's deferral clause; the client no longer persists last-used modes locally. A pair no ruleset version declares in `ruleset_version_capabilities` is refused with `VALIDATION_FAILED`, so a player cannot be left in an app mode where no game can be started. <!-- 2026-08-08 -->
 
 ## Primary Key
 
@@ -117,8 +117,14 @@ Shared primary key:
 References:
 
 - players (CASCADE on delete)
-- capture_modes
-- input_modes
+- capture_modes (`fk_player_settings_capture_mode`)
+- input_modes (`fk_player_settings_input_mode`)
+
+Read through:
+
+- `v_player_settings` (migration `0021`) — the two mode ids exposed as `*_key`s
+
+The two mode foreign keys this section has always claimed were never created by migration `0003`; migration `0017` added them. <!-- 2026-08-08 -->
 
 ## Design Rationale
 

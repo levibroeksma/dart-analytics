@@ -14,7 +14,7 @@ Scope: SQL migrations, seeds and live-database verification scripts. Load the "N
 
 ## Validation Checklist
 
-- Migration numbering contiguous (`0001`–`0018` applied) and single-responsibility.
+- Migration numbering contiguous (`0001`–`0021` applied) and single-responsibility.
 - New constraints/indexes match documented access patterns (`04-Indexes.md`).
 - Any schema change is reflected in `06-Database-Specification.md` and its `06-Spec/` chapters.
 - Behaviour a migration can only prove against a real database (constraints firing, view expressions resolving) gets a `verification/` script, not checklist prose (D193). Scripts build their own fixture, resolve lookups by `implementation_key`, and end in `ROLLBACK`.

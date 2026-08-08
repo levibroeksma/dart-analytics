@@ -109,7 +109,10 @@ database/
 │   ├── 0015_time_semantics_constraints.sql
 │   ├── 0016_read_model_replay_and_presets.sql
 │   ├── 0017_dart_locations.sql
-│   └── 0018_dart_location_read_model.sql
+│   ├── 0018_dart_location_read_model.sql
+│   ├── 0019_ruleset_version_capabilities.sql
+│   ├── 0020_session_capability_fk.sql
+│   └── 0021_player_settings_read_model.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
@@ -117,7 +120,8 @@ database/
     ├── 0003_game_engine_reference.sql
     ├── 0004_score_training_minutes_preset.sql
     ├── 0005_visual_board_input_mode.sql
-    └── 0006_single_band_dart_zones.sql
+    ├── 0006_single_band_dart_zones.sql
+    └── 0007_ruleset_version_capabilities.sql
 ```
 
 ---
@@ -503,6 +507,65 @@ Contains:
 `radius_mm` and `angle_degrees` are plain arithmetic over the stored coordinate only — no board geometry lives in SQL. Miss margin needs a zone centroid, which is board geometry, so it stays out of this view and is derived in the application read layer (`app/src/lib/game/board/miss-margin.module.ts`) from the same `board-geometry.module.ts` the client and Worker classify darts with, so a second copy cannot drift from the classifier. `angle_degrees` is the clockwise bearing from the upward vertical (`0` straight up, `90` straight right), matching the classifier's sector convention.
 
 Never edits `0009`/`0013`/`0014`/`0016`.
+
+---
+
+## 0019_ruleset_version_capabilities.sql
+
+Purpose:
+
+Declare which capture/input mode combinations each ruleset version's engine actually implements. <!-- 2026-08-08 -->
+
+Contains:
+
+- new `ruleset_version_capabilities` (`ruleset_version_id`, `capture_mode_id`, `input_mode_id`, `created_at`)
+- `pk_ruleset_version_capabilities` — the composite primary key over all three reference columns, which is what makes `0020`'s composite foreign key referenceable
+- `fk_rvc_ruleset_version` / `fk_rvc_capture_mode` / `fk_rvc_input_mode`, all `ON DELETE RESTRICT`
+
+The table ships empty; `seeds/0007_ruleset_version_capabilities.sql` fills it, and `0020` adds the referencing constraint. The three-way split (table → seed → FK) is forced by the apply order — seeds run after migrations, so a single migration could not create the table, populate it, and reference it.
+
+Its `-- migrate:down` is a bare `DROP TABLE IF EXISTS`, which is sound under normal `dbmate rollback` ordering (`0020` unwinds first) but fails if `0019` is rolled back out of band while `fk_sessions_capability` still exists.
+
+---
+
+## 0020_session_capability_fk.sql
+
+Purpose:
+
+Make an undeclared capture/input mode combination physically unstorable. <!-- 2026-08-08 -->
+
+Contains:
+
+- `fk_sessions_capability` — composite foreign key from `exercise_sessions (ruleset_version_id, capture_mode_id, input_mode_id)` to the matching `ruleset_version_capabilities` columns, `ON DELETE RESTRICT`
+- a `-- migrate:down` that drops that constraint, so `0019`'s table drop is reachable after a normal rollback
+
+**Apply order — `seeds/0007` must run before this migration:**
+
+```
+db:migrate   # through 0019 — creates the empty capability table
+db:seed      # 0007 fills it
+db:migrate   # 0020 adds the composite FK
+```
+
+Applying `0020` against a populated database whose sessions use a combination `0007` does not declare fails on constraint validation. `database/verification/0007_capability_seed_checks.sql` check 3 (zero undeclared `exercise_sessions`) is the precondition to run first; read its `undeclared`/`total` detail rather than only the summary line, since an empty `exercise_sessions` passes it trivially.
+
+The database-side guarantee this constraint provides is the mirror of the code-side one in `app/src/lib/game/rulesets/capabilities.ts`; the two are kept in step by a parity test and by `database/verification/0007_capability_seed_checks.sql`.
+
+---
+
+## 0021_player_settings_read_model.sql
+
+Purpose:
+
+Expose player mode preferences as implementation keys rather than lookup ids. <!-- 2026-08-08 -->
+
+Contains:
+
+- new `v_player_settings` (`player_id`, `default_capture_mode_key`, `default_input_mode_key`, `updated_at`)
+
+Both lookup joins are `LEFT JOIN`: `player_settings.default_capture_mode_id` and `default_input_mode_id` are nullable, and an `INNER JOIN` would drop the row entirely instead of returning NULL keys. A player with no settings row has no row here at all — the service applies the `RECREATIONAL` + `QUICK_SCORE` defaults and creates the row lazily on first write. No backfill runs.
+
+Never edits `0009`/`0013`/`0014`/`0016`/`0018`.
 
 ---
 

@@ -7,7 +7,7 @@ updated: 2026-08-05
 
 # Architecture Documentation
 
-> **Version:** 1.5.2 (2026-08-05 — migration/seed ranges bumped to `0001`–`0018`/`0001`–`0006`; prior 1.5.1, 2026-08-03 — versioning note repointed at `decisions/**`, routed via `DECISIONS.md`; prior 1.5.0, 2026-07-14)
+> **Version:** 1.5.3 (2026-08-08 — migration/seed ranges bumped to `0001`–`0021`/`0001`–`0007`; prior 1.5.2, 2026-08-05 — ranges bumped to `0001`–`0018`/`0001`–`0006`; prior 1.5.1, 2026-08-03 — versioning note repointed at `decisions/**`, routed via `DECISIONS.md`; prior 1.5.0, 2026-07-14)
 >
 > This repository follows a strict architecture-first development philosophy. Every change to the application must be designed before it is implemented. The goal is to create a maintainable, scalable and extensible platform that can evolve for many years without accumulating technical debt.
 
@@ -67,7 +67,7 @@ docs/
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
-├── migrations/      # 0001–0018
+├── migrations/      # 0001–0021
 └── seeds/           # reference data, templates, presets
 ```
 
@@ -135,7 +135,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0018` and seeds `0001`–`0006` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0021` and seeds `0001`–`0007` implement it.
 
 ---
 
