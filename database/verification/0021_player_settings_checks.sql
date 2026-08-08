@@ -96,7 +96,11 @@ VALUES (
         now()
     ),
     (
-        -- Player B is deliberately absent from player_settings.
+        -- Player C: a settings row whose mode ids are both NULL.
+        -- Step 4 asserts the LEFT JOIN still yields a row for it,
+        -- with NULL keys. An INNER JOIN would drop it and pass
+        -- every other check in this file. Player B is the absent
+        -- case and deliberately gets no row here at all.
         '01990000-0000-7000-8000-00000000e003',
         NULL,
         NULL,
