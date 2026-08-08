@@ -60,8 +60,12 @@ set -a
 source .env.production
 set +a
 
-npm run db:migrate
+npm run db:migrate     # through 0019
+npm run db:seed        # 0007 fills the capability table
+npm run db:migrate     # 0020 adds the composite FK
 ```
+
+`0020` adds a composite foreign key from `exercise_sessions` to `ruleset_version_capabilities` and requires seed `0007` to have already run — applying `0020` before `0007` (or against a populated database whose sessions use a combination `0007` does not declare) fails on constraint validation.
 
 Verify:
 

@@ -31,12 +31,15 @@ From `app/`:
 
 ```sh
 npm run db:status
-npm run db:migrate
-npm run db:seed
-drizzle-kit introspect
+npm run db:migrate     # through 0019
+npm run db:seed        # 0007 fills the capability table
+npm run db:migrate     # 0020 adds the composite FK
+npm run db:introspect
 npx fallow
 astro check
 ```
+
+`0020` adds a composite foreign key from `exercise_sessions` to `ruleset_version_capabilities` and requires seed `0007` to have already run — applying `0020` before `0007` (or against a populated database whose sessions use a combination `0007` does not declare) fails on constraint validation.
 
 ## Seed Order
 
@@ -67,6 +70,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | ------ | ------ |
 | `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
 | `verification/0007_capability_seed_checks.sql` | `seeds/0007` row count, per-triple resolution, zero undeclared `exercise_sessions`, parity with `capabilities.ts` (12 checks) |
+| `verification/0020_capability_fk_checks.sql` | `fk_sessions_capability` exists over the exact composite columns, refuses an undeclared capture/input mode combination, permits a declared one (4 checks) |
 
 ## References
 
