@@ -1,9 +1,9 @@
 # Operator Checklist — Visual Board Capture Core (Plan 1)
 
-> **Date:** 2026-08-05 · **Verified against real PostgreSQL 16:** 2026-08-08
+> **Date:** 2026-08-05 · **Verified on Neon:** 2026-08-08
 > **Branch:** `claude/visual-darts-input-28gjzh`
 > **Plan:** `docs/superpowers/plans/2026-08-05-visual-board-capture-core.md`
-> **State:** all 15 tasks implemented, tested (Vitest + `tsc --noEmit`) and documented in-branch. Steps 1–5 below have now been **run end to end against a throwaway local PostgreSQL 16 cluster** — the full `0001`–`0018` chain, seeds `0001`–`0006`, `drizzle-kit introspect`, and every verification query. What that run found and fixed is recorded under "What the real-database run changed". Step 1 has since been run on Neon by the operator. What remains is the **step 3–5 script on Neon**: its PostgreSQL version and pooled connection are not this cluster, and the target database is the one that matters.
+> **State:** **Complete.** All 15 tasks implemented, tested (Vitest + `tsc --noEmit`) and documented in-branch. Every step below has been run against a throwaway local PostgreSQL 16 cluster *and* against the Neon dev branch — the full `0001`–`0018` chain, seeds `0001`–`0006`, `drizzle-kit introspect`, and all 11 verification checks. What the local run found and fixed is recorded under "What the real-database run changed"; the Neon results are under "Neon run". Nothing on this checklist is outstanding.
 
 ---
 
@@ -81,9 +81,11 @@ Everything else in the branch was authored and unit-tested (`app/tests/**`, Vite
 
 **Step 1 is done.** The operator ran `npm run db:migrate` and `npm run db:seed` against Neon. The first attempt predated the `0018` fix and failed with the identical error the local cluster produced — `pq: function mod(double precision, integer) does not exist` — independent confirmation that the defect was real on the actual target, not an artifact of the throwaway cluster. After pulling the `::NUMERIC` fix, migrations and all six seeds applied cleanly.
 
-**Still to do on Neon:** run the step 3–5 verification script. It has been executed only against the local cluster, where all 11 checks pass. Neon runs a different PostgreSQL build behind a pooler, and it is the database this app actually writes to.
+**Steps 3–5 are done.** `npm run db:verify` against the Neon dev branch returns `ALL 11 CHECKS PASSED` — every result identical to the local cluster: the constraint rejects both half-set pairs and accepts both-NULL, the four cardinals read `0/90/180/270°` at `radius_mm = 100`, the coordinate-less dart is excluded, `input_mode_key` is `VISUAL_BOARD` on all five rows, and the busted visit holds `total_score = 0` against a dart scoring 11. Neon's PostgreSQL build and its pooler agree with PostgreSQL 16 on all of it, including the `NUMERIC` angle arithmetic that `0018` originally got wrong.
 
 Step 2's introspect is already committed from a real run — re-running it on Neon is only worth it if step 1 there produces a different schema, and it did not.
+
+**Nothing on this checklist remains open.**
 
 ---
 
@@ -97,4 +99,4 @@ Step 2's introspect is already committed from a real run — re-running it on Ne
 
 ## When ready to open the PR
 
-Base `main` ← `claude/visual-darts-input-28gjzh`. The branch already carries a real introspect run (step 2) and the `0018` fix that the local run surfaced. Run steps 1 and 3–5 against the Neon dev branch before merging, and commit any further `schema.ts` diff into the same branch. Use the repo PR template.
+Base `main` ← `claude/visual-darts-input-28gjzh`. Every prerequisite is met: the branch carries a real introspect run (step 2), the `0018` fix the local run surfaced, and a Neon run of steps 1 and 3–5 that came back green. Use the repo PR template.
