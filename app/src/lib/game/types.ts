@@ -195,3 +195,25 @@ export type FiveOhOnePlayContext = {
   playAgain(this: FiveOhOnePlayContext): Promise<void>;
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };
+
+/**
+ * Games-page state. `activeRulesetKeys` holds every ACTIVE session's ruleset,
+ * not one: the single-active-session index keys on `(player_id, game_type_id)`,
+ * so one session per game type can be running at the same time.
+ */
+export type GamesIndexContext = {
+  activeRulesetKeys: string[];
+  $store: {
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: GamesIndexContext): Promise<void>;
+  isVisible(
+    this: GamesIndexContext,
+    rulesetVersionKey: RulesetVersionKey,
+  ): boolean;
+  analyticsMode(this: GamesIndexContext): boolean;
+  noneVisible(this: GamesIndexContext): boolean;
+};

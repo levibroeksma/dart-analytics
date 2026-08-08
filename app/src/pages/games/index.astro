@@ -3,20 +3,54 @@ export const prerender = true;
 
 import AppLayout from "@layouts/AppLayout.astro";
 import GameCard from "@components/layout/games/GameCard.astro";
+import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 ---
 
 <AppLayout title="Games">
-  <div class="p-4 space-y-4">
+  <div
+    class="p-4 space-y-4"
+    x-data="gamesIndex()"
+  >
     <h1 class="text-xl font-semibold text-foreground">Games</h1>
-    <GameCard
-      href="/games/score-training/setup"
-      title="Score training"
-      caption="Exercise your scoring abilities."
-    />
-    <GameCard
-      href="/games/501/setup"
-      title="501"
-      caption="Classic double-out darts."
-    />
+
+    <p
+      class="alert rounded-md border border-border px-4 py-3 text-sm text-muted-foreground"
+      x-show="analyticsMode()"
+      x-cloak
+    >
+      Analytics mode — only games that record every dart are shown.
+    </p>
+
+    {
+      GAME_CARDS.map((game) => (
+        <div
+          x-show={`isVisible('${game.rulesetVersionKey}')`}
+          x-cloak
+        >
+          <GameCard
+            href={game.href}
+            title={game.title}
+            caption={game.caption}
+          />
+        </div>
+      ))
+    }
+
+    <div
+      class="alert rounded-md border border-border px-4 py-3 space-y-2"
+      x-show="noneVisible()"
+      x-cloak
+    >
+      <p class="text-sm text-muted-foreground">
+        No game supports your current app mode, so there is nothing to start
+        here until you pick a mode one of them records.
+      </p>
+      <a
+        class="text-sm text-accent"
+        href="/profile"
+      >
+        Change your app mode on your profile
+      </a>
+    </div>
   </div>
 </AppLayout>

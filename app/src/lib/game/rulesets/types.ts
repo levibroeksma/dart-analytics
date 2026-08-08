@@ -248,3 +248,11 @@ export type ModePair = {
   captureModeKey: string;
   inputModeKey: string;
 };
+
+/** One game card on the games page, with the ruleset version that gates it. */
+export type GameCardDescriptor = {
+  rulesetVersionKey: RulesetVersionKey;
+  href: string;
+  title: string;
+  caption: string;
+};

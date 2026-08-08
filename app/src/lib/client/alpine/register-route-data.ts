@@ -4,9 +4,11 @@ import { scoreTrainingSetup } from "@lib/game/score-training-setup.data";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import { fiveOhOneSetup } from "@lib/game/five-oh-one-setup.data";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
+import { gamesIndex } from "@lib/game/games-index.data";
 
 export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);
+  Alpine.data("gamesIndex", gamesIndex);
   Alpine.data("scoreTrainingSetup", scoreTrainingSetup);
   Alpine.data("scoreTrainingPlay", scoreTrainingPlay);
   Alpine.data("fiveOhOneSetup", fiveOhOneSetup);
