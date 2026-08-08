@@ -57,8 +57,18 @@ const bobs27Config: Bobs27Snapshot = {
 function bobs27HitObservation(state: Bobs27State): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }
-    : { hitTargetNumber: target.number, hitZoneKey: "DOUBLE" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 /** Plays every NUMBER-double target (all hits, so score never busts) then one visit on BULL. */
@@ -69,7 +79,12 @@ function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
     engine.record(bobs27HitObservation(engine.state()));
     engine.record(bobs27HitObservation(engine.state()));
   }
-  engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+  engine.record({
+    hitTargetNumber: 1,
+    hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
+  });
   engine.record(bobs27HitObservation(engine.state()));
   return engine;
 }
@@ -82,8 +97,18 @@ const doublesConfig: DoublesTrainingSnapshot = {
 function doublesHitObservation(state: DoublesTrainingState): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }
-    : { hitTargetNumber: target.number, hitZoneKey: "DOUBLE" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 /** A hit closes a Doubles Training visit instantly, so 20 hits reach BULL. */
@@ -95,7 +120,12 @@ function playDoublesTrainingThroughBull(): GameEngine<
   for (let target = 0; target < 20; target++) {
     engine.record(doublesHitObservation(engine.state()));
   }
-  engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+  engine.record({
+    hitTargetNumber: 1,
+    hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
+  });
   engine.record(doublesHitObservation(engine.state()));
   return engine;
 }
@@ -122,9 +152,16 @@ function singlesObservationFor(
           : zone === "DOUBLE"
             ? "INNER_BULL"
             : "OUTER_BULL",
+      locationX: null,
+      locationY: null,
     };
   }
-  return { hitTargetNumber: target.number, hitZoneKey: zone };
+  return {
+    hitTargetNumber: target.number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  };
 }
 
 /** All-MISS visits on every NUMBER target (never resolves the session), then one visit on BULL. */

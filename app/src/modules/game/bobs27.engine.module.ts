@@ -1,4 +1,5 @@
 import type { Bobs27Snapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
   boardScore,
@@ -133,6 +134,8 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
         state = applyBobs27Dart(this.config, state, {
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneKey: dart.hitZoneKey,
+          locationX: dart.locationX,
+          locationY: dart.locationY,
         });
       }
     }
@@ -144,7 +147,7 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
     if (last && last.darts.length < 3) return last;
 
     const turn: TurnFact = {
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
       completedAt: null,
@@ -181,6 +184,8 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+      locationX: null,
+      locationY: null,
     };
 
     openTurn.darts.push(dart);

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-07-26
+updated: 2026-08-05
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -490,6 +490,11 @@ The maximum number of darts per turn is owned by the ruleset, not by a database 
 
 The application is the only writer and keeps `total_score` consistent with dart rows when they exist.
 
+One deliberate exception: a busted 501 visit stores `total_score = 0` while its
+dart rows keep their real board scores. Counted and thrown legitimately diverge
+there, and that divergence is what makes the bust visible.
+<!-- 2026-08-05 -->
+
 ---
 
 # darts
@@ -552,8 +557,11 @@ Capture depth follows the session's capture mode:
 - RECREATIONAL + QUICK_SCORE — dart rows omitted entirely (turn totals only)
 - RECREATIONAL + DETAILED_DARTS — hit-only dart rows (intention pair NULL) <!-- 2026-07-13 -->
 - ANALYTICS — every dart stores full intention and result
+- ANALYTICS + VISUAL_BOARD — hit target, hit zone, score and landing
+  coordinates on every dart; intention only where the ruleset declares one
+  <!-- 2026-08-05 -->
 
-### Known limitation — a 501 bust is indistinguishable from a scoreless visit
+### Known limitation — a QUICK_SCORE 501 bust is indistinguishable from a scoreless visit
 
 501 is RECREATIONAL + QUICK_SCORE, so a busted visit and a genuine zero-scoring visit both persist as `turns.total_score = 0` with no dart rows. **The persisted model cannot tell them apart.** Two consequences, stated plainly:
 
@@ -561,6 +569,13 @@ Capture depth follows the session's capture mode:
 - **Checkout percentage undercounts attempts** — a busted checkout attempt is indistinguishable from a visit in which nothing counted, so it never enters the denominator.
 
 Recovering either requires DETAILED_DARTS capture for 501, or a schema revision adding an attempted-score or void-visit fact. Both are open: the capture-mode question is on the deferred list in `DECISIONS.md`. No fix is designed here. <!-- 2026-07-26 -->
+
+**Retired for VISUAL_BOARD sessions (2026-08-05).** A visual 501 visit persists
+dart rows carrying their real board scores while `turns.total_score` is 0 for a
+bust. Counted zero against thrown non-zero is the fact that distinguishes the
+two cases, so bust rate and true checkout percentage are computable for these
+sessions. Sessions played under QUICK_SCORE remain unfixable — completed
+gameplay is immutable and no coordinate exists to recover.
 
 ## Design Rationale
 
@@ -572,7 +587,15 @@ The intention + result pair is the analytical core of the entire platform:
 
 There is **no multiplier column** — the multiplier is derived from the zone. Storing it would duplicate truth.
 
-`location_x` / `location_y` board coordinates are deferred: the current schema does not define these columns, and they may be added in a future schema revision when the UI can capture them.
+`location_x` / `location_y` store the dart's landing point in regulation
+millimetres, origin at the bull centre, y increasing downward to match
+`dartboard.svg`. They are written together or not at all
+(`chk_dart_location_pair`, migration `0017`). A dart with no coordinate in a
+VISUAL_BOARD session is a throw whose landing point was never seen — a
+bounce-out — and stores `MISS` with score 0. A miss always stores
+`hit_target_number` NULL, never the sector it landed in: that column means
+"this number was actually hit", and the sector stays recoverable from the
+coordinate. <!-- 2026-08-05 -->
 
 ---
 

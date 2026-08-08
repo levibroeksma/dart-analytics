@@ -22,15 +22,35 @@ const config: DoublesTrainingSnapshot = {
 function hitObservationFor(state: DoublesTrainingState): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }
-    : { hitTargetNumber: target.number, hitZoneKey: "DOUBLE" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 function missObservationFor(state: DoublesTrainingState): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "MISS" }
-    : { hitTargetNumber: target.number, hitZoneKey: "MISS" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 /**
@@ -215,6 +235,8 @@ describe("applyDoublesTrainingDart — terminal state guard", () => {
       applyDoublesTrainingDart(completeState, {
         hitTargetNumber: 25,
         hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
       }),
     ).toThrow();
   });
@@ -223,8 +245,18 @@ describe("applyDoublesTrainingDart — terminal state guard", () => {
 describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptance)", () => {
   it("ends the visit on a hit and records only the darts thrown", () => {
     const engine = doublesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const turn = engine.facts().turns[0];
     expect(turn.darts).toHaveLength(2);
@@ -234,8 +266,18 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
 
   it("derives which dart hit from the fact log", () => {
     const engine = doublesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.state().outcomes[0]).toEqual({
       targetIndex: 0,
@@ -246,9 +288,24 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
 
   it("records a full-miss visit as three darts and no hit", () => {
     const engine = doublesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 5, hitZoneKey: "SINGLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 5,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.facts().turns[0].darts).toHaveLength(3);
     expect(engine.state().outcomes[0]).toEqual({
@@ -261,7 +318,12 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
 
   it("records the intended DOUBLE target on every dart, and the dart's own board score", () => {
     const engine = doublesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 20, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.intendedTargetNumber).toBe(1);
@@ -271,14 +333,24 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
 
   it("records the actual board score of a miss that lands in a single, not a game-specific value", () => {
     const engine = doublesTrainingEngineFactory.create(config);
-    engine.record({ hitTargetNumber: 20, hitZoneKey: "SINGLE" });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.facts().turns[0].darts[0].score).toBe(20);
   });
 
   it("rehydrates the target and outcomes from persisted facts", () => {
     const first = doublesTrainingEngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = doublesTrainingEngineFactory.create(config, first.facts());
     expect(resumed.state().targetIndex).toBe(1);
@@ -290,7 +362,12 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
       config,
       facts20TargetsPlayed(),
     );
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "INNER_BULL" });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "INNER_BULL",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.isComplete()).toBe(true);
   });
 
@@ -299,9 +376,24 @@ describe("DoublesTrainingEngine — fact log and derived state (Task 8 acceptanc
       config,
       facts20TargetsPlayed(),
     );
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 25, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
     expect(engine.isComplete()).toBe(true);
     expect(engine.state().outcomes.at(-1)).toEqual({
       targetIndex: 20,
@@ -622,10 +714,20 @@ describe("DoublesTrainingEngine.undo", () => {
 
   it("rehydrates from persisted facts and continues to undo across the boundary", () => {
     const first = doublesTrainingEngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = doublesTrainingEngineFactory.create(config, first.facts());
-    resumed.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    resumed.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(resumed.state().targetIndex).toBe(1);
 
     expect(resumed.undo()).toBe(true);

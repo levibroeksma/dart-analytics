@@ -84,6 +84,8 @@ type RawDart = {
   hitTargetNumber: number | null;
   hitZoneKey: string;
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 };
 
 type RawTurn = {
@@ -130,6 +132,8 @@ function batchWithDart(overrides: DartOverrides): RawBatch {
                 hitTargetNumber: 20,
                 hitZoneKey: "SINGLE",
                 score: 20,
+                locationX: null,
+                locationY: null,
                 ...overrides,
               },
             ],

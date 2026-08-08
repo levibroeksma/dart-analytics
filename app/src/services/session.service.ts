@@ -502,6 +502,8 @@ function buildBatchInsertPayload(
         hitTargetNumber: dart.hitTargetNumber,
         hitZoneId: zoneIdMap.get(dart.hitZoneKey)!,
         score: dart.score,
+        locationX: dart.locationX,
+        locationY: dart.locationY,
       })),
     })),
   );
@@ -556,6 +558,8 @@ export async function appendBatch(
     config,
     batch,
     existingTurnCount,
+    captureModeKey: session.captureModeKey,
+    inputModeKey: session.inputModeKey,
   });
   if (!batchValidation.valid) {
     return {

@@ -161,6 +161,8 @@ describe("scoreTrainingValidator.validateBatch", () => {
       config,
       batch: batchWithTurns([45, 60]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
   });
@@ -175,12 +177,16 @@ describe("scoreTrainingValidator.validateBatch", () => {
         hitTargetNumber: 20,
         hitZoneKey: "SINGLE",
         score: 20,
+        locationX: null,
+        locationY: null,
       },
     ];
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch,
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -190,6 +196,8 @@ describe("scoreTrainingValidator.validateBatch", () => {
       config,
       batch: batchWithTurns([181]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -199,6 +207,8 @@ describe("scoreTrainingValidator.validateBatch", () => {
       config,
       batch: batchWithTurns([45]),
       existingTurnCount: 2,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -212,7 +222,79 @@ describe("scoreTrainingValidator.validateBatch", () => {
       },
       batch: batchWithTurns([45]),
       existingTurnCount: 999,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
+  });
+
+  it("validates a visual-board batch through the coordinate validator", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 60,
+              completedAt: "2026-08-05T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 20,
+                  hitZoneKey: "TREBLE",
+                  score: 60,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = scoreTrainingValidator.validateBatch({
+      config,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects dart rows in a quick-score batch", () => {
+    const batch = batchWithTurns([60]);
+    batch.stages[0].turns[0].darts = [
+      {
+        sequence: 1,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: null,
+        locationY: null,
+      },
+    ];
+
+    const result = scoreTrainingValidator.validateBatch({
+      config,
+      batch,
+      existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+
+    expect(result.valid).toBe(false);
   });
 });

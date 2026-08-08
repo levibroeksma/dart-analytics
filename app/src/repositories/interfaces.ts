@@ -19,6 +19,8 @@ export interface SessionRow {
   playerId: string;
   statusId: number;
   rulesetVersionKey: string;
+  captureModeKey: string;
+  inputModeKey: string;
 }
 
 export interface IdempotencyRecord {
@@ -57,6 +59,8 @@ export interface BatchInsertDart {
   hitTargetNumber: number | null;
   hitZoneId: number;
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 }
 
 export interface BatchInsertTurn {

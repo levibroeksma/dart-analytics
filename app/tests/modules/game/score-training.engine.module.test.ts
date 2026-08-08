@@ -266,3 +266,221 @@ describe("ScoreTrainingEngine.undo", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("visual board capture", () => {
+  const config = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+  } as never;
+
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: 0,
+    locationY: -180,
+  } as const;
+
+  it("opens a turn on the first dart and closes it on the third", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0]!.completedAt).toBeNull();
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const [turn] = engine.facts().turns;
+    expect(turn!.darts).toHaveLength(3);
+    expect(turn!.totalScore).toBe(180);
+    expect(turn!.completedAt).not.toBeNull();
+  });
+
+  it("stores each dart's landing coordinate", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+
+    expect(engine.facts().turns[0]!.darts[0]).toMatchObject({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      locationX: 0,
+      locationY: -102,
+    });
+  });
+
+  it("counts a miss as zero without a target number", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(miss);
+
+    expect(engine.facts().turns[0]!.darts[0]).toMatchObject({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      score: 0,
+    });
+    expect(engine.facts().turns[0]!.totalScore).toBe(0);
+  });
+
+  it("undoes one dart at a time and removes the turn it opened", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0]!.darts).toHaveLength(1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("rehydrates a part-thrown visit from persisted facts", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const revived = scoreTrainingEngineFactory.create(
+      config,
+      engine.facts(),
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    revived.record(trebleTwenty);
+
+    const [turn] = revived.facts().turns;
+    expect(turn!.darts).toHaveLength(3);
+    expect(turn!.totalScore).toBe(180);
+    expect(turn!.completedAt).not.toBeNull();
+  });
+
+  it("leaves quick-score behaviour unchanged", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+    ) as ScoreTrainingEngine;
+
+    engine.record(85);
+
+    const [turn] = engine.facts().turns;
+    expect(turn!.darts).toHaveLength(0);
+    expect(turn!.totalScore).toBe(85);
+  });
+
+  it("undoes the third dart of a closed visit back to two, clearing completedAt and totalScore", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      config,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    const [closed] = engine.facts().turns;
+    expect(closed!.completedAt).not.toBeNull();
+    expect(closed!.totalScore).toBe(180);
+
+    expect(engine.undo()).toBe(true);
+
+    const [reopened] = engine.facts().turns;
+    expect(reopened!.darts).toHaveLength(2);
+    expect(reopened!.completedAt).toBeNull();
+    expect(reopened!.totalScore).toBe(120);
+  });
+
+  describe("wouldComplete", () => {
+    const single = {
+      maxVisitScore: 180,
+      durationType: "ROUNDS",
+      durationValue: 1,
+    } as never;
+
+    it("is false before any dart is recorded (single round)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+    });
+
+    it("is false after the first dart and true after the second (single round)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(true);
+    });
+
+    it("is false on darts 1 and 2 of the second visit and true only on dart 3 (two rounds)", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        config,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      engine.record(trebleTwenty);
+      engine.record(trebleTwenty);
+
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(false);
+      engine.record(trebleTwenty);
+      expect(engine.wouldComplete(trebleTwenty)).toBe(true);
+    });
+
+    it("does not mutate the fact log", () => {
+      const engine = scoreTrainingEngineFactory.create(
+        single,
+        undefined,
+        "VISUAL_BOARD",
+      ) as ScoreTrainingEngine;
+
+      engine.record(trebleTwenty);
+      const factsBefore = structuredClone(engine.facts());
+
+      engine.wouldComplete(trebleTwenty);
+
+      expect(engine.facts().turns).toEqual(factsBefore.turns);
+    });
+  });
+});

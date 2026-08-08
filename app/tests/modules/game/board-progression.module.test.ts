@@ -37,34 +37,69 @@ describe("board progression", () => {
 
   it("recognises a hit on the required double", () => {
     const target = targetAt(doublesPath(), 0);
-    expect(isHitOn(target, { hitTargetNumber: 1, hitZoneKey: "DOUBLE" })).toBe(
-      true,
-    );
-    expect(isHitOn(target, { hitTargetNumber: 1, hitZoneKey: "SINGLE" })).toBe(
-      false,
-    );
-    expect(isHitOn(target, { hitTargetNumber: 2, hitZoneKey: "DOUBLE" })).toBe(
-      false,
-    );
+    expect(
+      isHitOn(target, {
+        hitTargetNumber: 1,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      }),
+    ).toBe(true);
+    expect(
+      isHitOn(target, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: null,
+        locationY: null,
+      }),
+    ).toBe(false);
+    expect(
+      isHitOn(target, {
+        hitTargetNumber: 2,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      }),
+    ).toBe(false);
   });
 
   it("counts any scoring ring as a hit on a NUMBER target", () => {
     const target = targetAt(numbersPath(), 4);
-    expect(isHitOn(target, { hitTargetNumber: 5, hitZoneKey: "TREBLE" })).toBe(
-      true,
-    );
-    expect(isHitOn(target, { hitTargetNumber: 5, hitZoneKey: "MISS" })).toBe(
-      false,
-    );
+    expect(
+      isHitOn(target, {
+        hitTargetNumber: 5,
+        hitZoneKey: "TREBLE",
+        locationX: null,
+        locationY: null,
+      }),
+    ).toBe(true);
+    expect(
+      isHitOn(target, {
+        hitTargetNumber: 5,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      }),
+    ).toBe(false);
   });
 
   it("treats inner bull as a hit on the bull target and outer bull as a miss", () => {
     const bull = targetAt(doublesPath(), 20);
     expect(
-      isHitOn(bull, { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }),
+      isHitOn(bull, {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      }),
     ).toBe(true);
     expect(
-      isHitOn(bull, { hitTargetNumber: 25, hitZoneKey: "OUTER_BULL" }),
+      isHitOn(bull, {
+        hitTargetNumber: 25,
+        hitZoneKey: "OUTER_BULL",
+        locationX: null,
+        locationY: null,
+      }),
     ).toBe(false);
   });
 });

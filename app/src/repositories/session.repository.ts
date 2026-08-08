@@ -34,6 +34,17 @@ import type {
 
 type Db = ReturnType<typeof getDb>;
 
+/**
+ * Converts a dart landing coordinate to the string form Drizzle's default
+ * `numeric` column type expects on write. Postgres `NUMERIC` round-trips
+ * through node-postgres as text, not a JS number, since a JS number cannot
+ * represent arbitrary-precision decimals; `null` is passed through rather
+ * than stringified to `"null"`.
+ */
+function toNumericString(value: number | null): string | null {
+  return value === null ? null : String(value);
+}
+
 export async function findGameTypeAndRuleset(
   db: Db,
   gameTypeKey: string,
@@ -163,12 +174,19 @@ export async function findSessionRow(
       playerId: exerciseSessions.playerId,
       statusId: exerciseSessions.statusId,
       rulesetVersionKey: rulesetVersions.implementationKey,
+      captureModeKey: captureModes.implementationKey,
+      inputModeKey: inputModes.implementationKey,
     })
     .from(exerciseSessions)
     .innerJoin(
       rulesetVersions,
       eq(rulesetVersions.id, exerciseSessions.rulesetVersionId),
     )
+    .innerJoin(
+      captureModes,
+      eq(captureModes.id, exerciseSessions.captureModeId),
+    )
+    .innerJoin(inputModes, eq(inputModes.id, exerciseSessions.inputModeId))
     .where(eq(exerciseSessions.id, sessionId))
     .limit(1);
   return row;
@@ -382,6 +400,8 @@ export async function insertBatchRecords(
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneId: dart.hitZoneId,
           score: dart.score,
+          locationX: toNumericString(dart.locationX),
+          locationY: toNumericString(dart.locationY),
           createdAt: now,
         })),
       );

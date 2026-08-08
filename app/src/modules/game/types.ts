@@ -57,6 +57,9 @@ export type FiveOhOneVisitInput = {
   finishedOnDouble?: boolean;
 };
 
+/** 501 accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
+export type FiveOhOneInput = FiveOhOneVisitInput | DartObservation;
+
 /**
  * What one visit did to the leg it was thrown in. `scored` is what the turn
  * records — 0 for a bust, so the attempted value is never persisted as a turn
@@ -111,8 +114,20 @@ export type TuodState = {
   timerExpired: boolean;
 };
 
+/**
+ * `SINGLE` is the unbanded value recorded by keypad capture, which has no
+ * coordinate and therefore cannot know its band; coordinate capture always
+ * resolves to `INNER_SINGLE` or `OUTER_SINGLE`.
+ */
 export type DartZoneKey =
-  "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";
+  | "SINGLE"
+  | "INNER_SINGLE"
+  | "OUTER_SINGLE"
+  | "DOUBLE"
+  | "TREBLE"
+  | "OUTER_BULL"
+  | "INNER_BULL"
+  | "MISS";
 
 export type StageTypeKey = "MATCH" | "SET" | "LEG" | "ROUND" | "EXERCISE_BLOCK";
 
@@ -121,13 +136,30 @@ export type BoardTarget =
   | { kind: "DOUBLE"; number: number }
   | { kind: "BULL" };
 
-/** What the player did, as observed at input time — the engine's only input. */
+/**
+ * What the player did, as observed at input time — the engine's only input.
+ * `locationX` / `locationY` are the landing point in regulation millimetres
+ * (origin bull centre, y increasing downward), present only for VISUAL_BOARD
+ * capture and null together when the landing point was never seen.
+ */
 export type DartObservation = {
   hitTargetNumber: number | null;
   hitZoneKey: DartZoneKey;
+  locationX: number | null;
+  locationY: number | null;
 };
 
-/** One row of `darts`. `score` is the actual board score, never a game-specific point value. */
+/** How a session feeds visits to an engine: a whole visit total, or one dart at a time. */
+export type EngineInputMode = "QUICK_SCORE" | "VISUAL_BOARD";
+
+/** Score Training accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
+export type ScoreTrainingInput = number | DartObservation;
+
+/**
+ * One row of `darts`. `score` is the actual board score, never a game-specific
+ * point value. The location pair is written together or not at all, mirroring
+ * `chk_dart_location_pair`.
+ */
 export type DartFact = {
   sequence: number;
   intendedTargetNumber: number | null;
@@ -135,6 +167,8 @@ export type DartFact = {
   hitTargetNumber: number | null;
   hitZoneKey: DartZoneKey;
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 };
 
 /**

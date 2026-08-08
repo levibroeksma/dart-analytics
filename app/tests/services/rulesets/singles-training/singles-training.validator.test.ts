@@ -17,6 +17,8 @@ const hitDart: DartFactInput = {
   hitTargetNumber: 1,
   hitZoneKey: "SINGLE",
   score: 1,
+  locationX: null,
+  locationY: null,
 };
 
 function batchWithTurns(darts: DartFactInput[][]) {

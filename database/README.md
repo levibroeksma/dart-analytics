@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-07-11
+updated: 2026-08-05
 -->
 
 # Database SQL Artifacts
@@ -13,8 +13,9 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/   # ordered schema migrations (0001–0016)
-└── seeds/        # controlled reference/system data
+├── migrations/     # ordered schema migrations (0001–0018)
+├── seeds/          # controlled reference/system data
+└── verification/   # rollback-safe checks run against a live database
 ```
 
 ## Execution Model
@@ -43,6 +44,27 @@ astro check
 2. `seeds/0002_default_templates.sql`
 3. `seeds/0003_game_engine_reference.sql`
 4. `seeds/0004_score_training_minutes_preset.sql`
+5. `seeds/0005_visual_board_input_mode.sql`
+6. `seeds/0006_single_band_dart_zones.sql`
+
+## Verification Scripts
+
+`verification/` holds SQL that asserts behaviour only a real database can show — constraints firing, view expressions resolving, derived columns reading correctly. Each script builds its own fixture inside one transaction, resolves every lookup row by `implementation_key` rather than by hardcoded id, prints a PASS/FAIL row per check, and ends in `ROLLBACK`. Nothing survives the run, so they are safe against a seeded dev database.
+
+From `app/`:
+
+```sh
+npm run db:verify              # every script
+npm run db:verify 0018         # only scripts whose filename matches
+```
+
+Expect `ALL n CHECKS PASSED`; the command exits non-zero if any check fails. It runs through `postgres.js` rather than `psql`, which is not installed locally — this project uses a Neon `dev` branch instead of a local PostgreSQL server (D24), so the client binaries are not there either. `psql "$DATABASE_URL" -f <file>` works identically if you do have it.
+
+These are not a substitute for the Vitest suite: they cover the SQL layer, which unit tests cannot reach. They are not part of `npm test` — they need a live `DATABASE_URL` and are run deliberately, per environment.
+
+| Script | Covers |
+| ------ | ------ |
+| `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
 
 ## References
 

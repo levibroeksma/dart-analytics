@@ -19,3 +19,6 @@ graphify-out/manifest.json
 graphify-out/.graphify_*
 graphify-out/.graphify_root
 .graphify_python
+
+# dbmate writes a schema dump next to the migrations run; the migration chain is the source of truth
+app/db/

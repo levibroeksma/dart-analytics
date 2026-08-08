@@ -76,6 +76,8 @@ describe("buildEventsBatch", () => {
       hitTargetNumber: 1,
       hitZoneKey: "DOUBLE" as const,
       score: 2,
+      locationX: null,
+      locationY: null,
     };
     const batch = buildEventsBatch("participant-1", {
       stages: [

@@ -1,8 +1,13 @@
 import type { ScoreTrainingSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
+import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
+  DartObservation,
   EngineFacts,
+  EngineInputMode,
+  ScoreTrainingInput,
   ScoreTrainingState,
   StageFact,
   TurnFact,
@@ -15,17 +20,21 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
+const DARTS_PER_VISIT = 3;
+
 function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
   return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
 /**
- * Quick-score training: every visit is one turn under a single exercise block,
- * captured as a total rather than as individual darts. The engine owns the
- * fact log; `game.store.ts` persists a snapshot of it.
+ * Score Training: every visit is one turn under a single exercise block.
+ * Under QUICK_SCORE it is captured as a whole-visit total; under
+ * VISUAL_BOARD it is captured one dart at a time, and the turn total is
+ * derived as the sum of the counted dart scores. The engine owns the fact
+ * log; `game.store.ts` persists a snapshot of it.
  */
 export class ScoreTrainingEngine implements GameEngine<
-  number,
+  ScoreTrainingInput,
   ScoreTrainingState
 > {
   readonly rulesetVersionKey = "SCORE_TRAINING_V1";
@@ -35,6 +44,7 @@ export class ScoreTrainingEngine implements GameEngine<
   constructor(
     private readonly config: ScoreTrainingSnapshot,
     prior?: EngineFacts,
+    private readonly inputMode: EngineInputMode = "QUICK_SCORE",
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
@@ -71,11 +81,19 @@ export class ScoreTrainingEngine implements GameEngine<
   }
 
   /**
-   * Appends one visit to the fact log.
-   * @throws when the visit score is not a whole number within the ruleset's
-   *   `0..maxVisitScore` range; the log is left untouched.
+   * Appends one visit total, or one dart, depending on the session's input
+   * mode.
+   * @throws when a quick-score visit is not a whole number within the
+   *   ruleset's `0..maxVisitScore` range; the log is left untouched.
    */
-  record(visitScore: number): ScoreTrainingState {
+  record(input: ScoreTrainingInput): ScoreTrainingState {
+    if (this.inputMode === "VISUAL_BOARD") {
+      return this.recordDart(input as DartObservation);
+    }
+    return this.recordVisitTotal(input as number);
+  }
+
+  private recordVisitTotal(visitScore: number): ScoreTrainingState {
     if (!this.isPlayable(visitScore)) {
       throw new Error(
         `Enter a score between 0 and ${this.config.maxVisitScore}.`,
@@ -83,7 +101,7 @@ export class ScoreTrainingEngine implements GameEngine<
     }
 
     this.turns.push({
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
@@ -93,13 +111,76 @@ export class ScoreTrainingEngine implements GameEngine<
     return this.state();
   }
 
+  /** The visit still being thrown, or null when the last one closed. */
+  private openTurn(): TurnFact | null {
+    const last = this.turns.at(-1);
+    if (!last || last.darts.length >= DARTS_PER_VISIT) return null;
+    return last;
+  }
+
+  private recordDart(observation: DartObservation): ScoreTrainingState {
+    const resolved =
+      observation.locationX === null || observation.locationY === null
+        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
+        : classify(observation.locationX, observation.locationY);
+
+    let turn = this.openTurn();
+    if (!turn) {
+      turn = {
+        clientKey: newClientKey(),
+        stageClientKey: STAGE.clientKey,
+        sequence: this.turns.length + 1,
+        completedAt: null,
+        totalScore: 0,
+        darts: [],
+      };
+      this.turns.push(turn);
+    }
+
+    turn.darts.push({
+      sequence: turn.darts.length + 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: resolved.targetNumber,
+      hitZoneKey: resolved.zoneKey,
+      score: resolved.score,
+      locationX: observation.locationX,
+      locationY: observation.locationY,
+    });
+
+    turn.totalScore = turn.darts.reduce((sum, dart) => sum + dart.score, 0);
+    if (turn.darts.length === DARTS_PER_VISIT) {
+      turn.completedAt = new Date().toISOString();
+    }
+
+    return this.state();
+  }
+
   /**
-   * Pops the last recorded visit, including one replayed from persisted facts.
-   * @returns true if a visit was removed; false if there was nothing to undo.
+   * Pops the last recorded unit — a whole visit under quick score, a single
+   * dart under visual capture, taking the turn with it when that dart was the
+   * only one in it.
+   * @returns true if something was removed; false if there was nothing to undo.
    */
   undo(): boolean {
     if (this.turns.length === 0) return false;
-    this.turns.pop();
+
+    if (this.inputMode !== "VISUAL_BOARD") {
+      this.turns.pop();
+      return true;
+    }
+
+    const turn = this.turns.at(-1);
+    if (!turn) return false;
+
+    turn.darts.pop();
+    if (turn.darts.length === 0) {
+      this.turns.pop();
+      return true;
+    }
+
+    turn.totalScore = turn.darts.reduce((sum, dart) => sum + dart.score, 0);
+    turn.completedAt = null;
     return true;
   }
 
@@ -108,19 +189,28 @@ export class ScoreTrainingEngine implements GameEngine<
    * is only ever recorded once, by `record()`, after the player confirms.
    * A score `record()` would reject never completes the session — the caller
    * falls through to `record()` and surfaces its range error instead.
+   * Under `VISUAL_BOARD`, only a dart that completes an already-open visit
+   * (one that already holds `DARTS_PER_VISIT - 1` darts) can complete the
+   * session — a dart that opens a new visit never can.
    */
-  wouldComplete(visitScore: number): boolean {
-    if (!this.isPlayable(visitScore)) return false;
-    return this.completesAt(this.turns.length + 1);
+  wouldComplete(input: ScoreTrainingInput): boolean {
+    if (this.inputMode === "VISUAL_BOARD") {
+      const turn = this.openTurn();
+      if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
+      return this.completesAt(this.state().turnCount + 1);
+    }
+
+    if (!this.isPlayable(input as number)) return false;
+    return this.completesAt(this.state().turnCount + 1);
   }
 
   isComplete(): boolean {
-    return this.completesAt(this.turns.length);
+    return this.completesAt(this.state().turnCount);
   }
 
   state(): ScoreTrainingState {
     return {
-      turnCount: this.turns.length,
+      turnCount: this.turns.filter((turn) => turn.completedAt !== null).length,
       timerExpired: this.timerExpired,
     };
   }
@@ -132,12 +222,16 @@ export class ScoreTrainingEngine implements GameEngine<
 
 export const scoreTrainingEngineFactory: GameEngineFactory<
   ScoreTrainingSnapshot,
-  number,
+  ScoreTrainingInput,
   ScoreTrainingState
 > = {
   rulesetVersionKey: "SCORE_TRAINING_V1",
-  create(config: ScoreTrainingSnapshot, prior?: EngineFacts) {
-    return new ScoreTrainingEngine(config, prior);
+  create(
+    config: ScoreTrainingSnapshot,
+    prior?: EngineFacts,
+    inputMode?: EngineInputMode,
+  ) {
+    return new ScoreTrainingEngine(config, prior, inputMode);
   },
 };
 

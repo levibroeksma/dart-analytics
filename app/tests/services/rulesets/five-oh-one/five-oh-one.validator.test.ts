@@ -86,6 +86,8 @@ describe("fiveOhOneValidator.validateBatch", () => {
         ],
       },
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -95,6 +97,8 @@ describe("fiveOhOneValidator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([45, 60]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
   });
@@ -109,13 +113,87 @@ describe("fiveOhOneValidator.validateBatch", () => {
         hitTargetNumber: 20,
         hitZoneKey: "SINGLE",
         score: 20,
+        locationX: null,
+        locationY: null,
       },
     ];
     const result = fiveOhOneValidator.validateBatch({
       config: validConfig,
       batch,
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
+    expect(result.valid).toBe(false);
+  });
+
+  it("validates a visual-board batch through the coordinate validator", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 60,
+              completedAt: "2026-08-05T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 20,
+                  hitZoneKey: "TREBLE",
+                  score: 60,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = fiveOhOneValidator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects dart rows in a quick-score batch", () => {
+    const batch = batchWithTurns([60]);
+    batch.stages[0].turns[0].darts = [
+      {
+        sequence: 1,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: null,
+        locationY: null,
+      },
+    ];
+
+    const result = fiveOhOneValidator.validateBatch({
+      config: validConfig,
+      batch,
+      existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+
     expect(result.valid).toBe(false);
   });
 });

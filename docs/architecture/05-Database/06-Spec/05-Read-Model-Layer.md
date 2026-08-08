@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-07-17
+updated: 2026-08-05
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -218,6 +218,33 @@ The only template-layer read model: presets must be discoverable before session 
 
 ---
 
+# v_dart_locations
+
+## Category
+
+Analytics View
+
+## Purpose
+
+Exposes dart landing coordinates in millimetres, with derived polar form, for spatial analysis of `VISUAL_BOARD` capture. Backs miss-direction and heat-map style reads. <!-- 2026-08-05 -->
+
+## Sources
+
+- darts → turns → exercise_stages → exercise_sessions → game_types, input_modes
+- dart_zones (intended and hit, LEFT JOIN)
+
+## Exposes
+
+Session id, player id, game type key, input mode key, stage id, turn sequence, turn total score, dart number, hit target + hit zone key, intended target + intended zone key, score, `location_x`, `location_y`, and two derived columns: `radius_mm` (plain distance from the bull centre) and `angle_degrees` (clockwise bearing from the upward vertical, `0` straight up and `90` straight right — matching the classifier's sector convention). Only darts with both coordinates present are returned (`WHERE location_x IS NOT NULL AND location_y IS NOT NULL`).
+
+## Design Rationale
+
+`radius_mm` and `angle_degrees` are plain arithmetic over the stored coordinate — no board geometry lives in this view. **Miss margin is deliberately not exposed here.** It needs a zone centroid, which is board geometry, and that geometry already lives once in `app/src/lib/game/board/board-geometry.module.ts` (`zoneCentroid`). Computing it a second time in SQL would drift from the classifier that produced the coordinate in the first place, so `missMargin` (`app/src/lib/game/board/miss-margin.module.ts`) is computed in the application read layer from this view's raw columns instead. <!-- 2026-08-05 -->
+
+Both derived columns are `NUMERIC`, not `double precision`. `MOD()` has no `double precision` overload and the cast from it is assignment-only, so `MOD(DEGREES(...) + 360, 360)` fails at `CREATE VIEW` — the angle is cast with `::NUMERIC` before the modulo. `app/tests/db/migration-numeric-typing.test.ts` guards the whole chain against the same shape. Consequence for the read layer: `NUMERIC` arrives as a **string** through Drizzle/node-postgres, so `location_x`, `location_y`, `radius_mm` and `angle_degrees` must be parsed to numbers before reaching `missMargin`, which takes numbers. <!-- 2026-08-08 -->
+
+---
+
 # Read Model Layer Summary
 
 The initial read models cover the three core read paths:
@@ -226,7 +253,7 @@ The initial read models cover the three core read paths:
 | ---- | ---- |
 | Resume | v_active_sessions |
 | History | v_session_overview, v_game_replay |
-| Analytics | v_dart_analytics |
+| Analytics | v_dart_analytics, v_dart_locations |
 | Routine execution | v_routine_execution |
 | Game setup | v_configuration_presets |
 

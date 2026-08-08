@@ -12,6 +12,7 @@ import type {
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
+export * from "./board/types";
 
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
 

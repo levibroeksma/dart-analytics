@@ -19,15 +19,35 @@ const config: Bobs27Snapshot = {
 function hitObservationFor(state: Bobs27State): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }
-    : { hitTargetNumber: target.number, hitZoneKey: "DOUBLE" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 function missObservationFor(state: Bobs27State): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
-    ? { hitTargetNumber: 25, hitZoneKey: "MISS" }
-    : { hitTargetNumber: target.number, hitZoneKey: "MISS" };
+    ? {
+        hitTargetNumber: 25,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      }
+    : {
+        hitTargetNumber: target.number,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      };
 }
 
 describe("bobs27EngineFactory", () => {
@@ -57,9 +77,24 @@ describe("initialBobs27State", () => {
 describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () => {
   it("derives the running score from the fact log", () => {
     const engine = bobs27EngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.state().score).toBe(28);
     expect(engine.facts().turns).toHaveLength(1);
@@ -69,9 +104,24 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
 
   it("never writes a negative turn total for a full-miss visit", () => {
     const engine = bobs27EngineFactory.create(config);
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.state().score).toBe(26);
     expect(engine.facts().turns[0].totalScore).toBe(0);
@@ -79,7 +129,12 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
 
   it("records the intended target on every dart", () => {
     const engine = bobs27EngineFactory.create(config);
-    engine.record({ hitTargetNumber: 20, hitZoneKey: "TREBLE" });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const dart = engine.facts().turns[0].darts[0];
     expect(dart.intendedTargetNumber).toBe(1);
@@ -89,9 +144,24 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
 
   it("rehydrates the derived score and target from persisted facts", () => {
     const first = bobs27EngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = bobs27EngineFactory.create(config, first.facts());
     expect(resumed.state().score).toBe(30);
@@ -100,9 +170,24 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
 
   it("loses when the score reaches zero or below", () => {
     const engine = bobs27EngineFactory.create({ ...config, startScore: 1 });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
-    engine.record({ hitTargetNumber: 1, hitZoneKey: "MISS" });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
 
     expect(engine.state().status).toBe("LOST");
     expect(engine.isComplete()).toBe(true);
@@ -556,11 +641,26 @@ describe("Bobs27Engine.undo", () => {
 
   it("rehydrates from persisted facts and continues to undo across the boundary", () => {
     const first = bobs27EngineFactory.create(config);
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
-    first.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    first.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
 
     const resumed = bobs27EngineFactory.create(config, first.facts());
-    resumed.record({ hitTargetNumber: 1, hitZoneKey: "DOUBLE" });
+    resumed.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
     expect(resumed.state().score).toBe(30);
 
     expect(resumed.undo()).toBe(true);

@@ -154,6 +154,8 @@ describe("tuodValidator.validateBatch", () => {
         hitTargetNumber: 20,
         hitZoneKey: "SINGLE",
         score: 20,
+        locationX: null,
+        locationY: null,
       },
     ];
     const result = tuodValidator.validateBatch({

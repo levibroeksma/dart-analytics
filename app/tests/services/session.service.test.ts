@@ -341,6 +341,8 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     vi.mocked(repo.findGameStatusId).mockResolvedValue(1);
     vi.mocked(repo.findIdempotencyRecord).mockResolvedValue(undefined);
@@ -407,6 +409,8 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 2,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     const result = await appendBatch(
       "player-1",
@@ -467,11 +471,73 @@ describe("appendBatch", () => {
             hitTargetNumber: 20,
             hitZoneKey: "SINGLE",
             score: 20,
+            locationX: null,
+            locationY: null,
           },
         ],
       }),
     );
     expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+  });
+
+  it("accepts dart rows for a visual-board session", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    vi.mocked(repo.findDartZoneIdMap).mockResolvedValue(
+      new Map([["TREBLE", 9]]),
+    );
+    const result = await appendBatch("player-1", "session-1", "idem-1", {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "t1",
+              participantRef: "participant-1",
+              sequence: 1,
+              totalScore: 60,
+              completedAt: null,
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 20,
+                  hitZoneKey: "TREBLE",
+                  score: 60,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(result).toMatchObject({ ok: true });
+    expect(vi.mocked(repo.insertBatchRecords)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        turns: [
+          expect.objectContaining({
+            darts: [
+              expect.objectContaining({
+                locationX: 0,
+                locationY: -102,
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
   });
 
   it("returns the stored result on idempotent retry with the same payload", async () => {
@@ -515,6 +581,8 @@ describe("updateSessionStatus", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     vi.mocked(repo.findGameStatusId).mockImplementation(
       async (_db, key) => ({ ACTIVE: 1, COMPLETED: 2, ABANDONED: 3 })[key],
@@ -569,6 +637,8 @@ describe("updateSessionStatus", () => {
       playerId: "player-1",
       statusId: 2,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     const result = await updateSessionStatus("player-1", "session-1", {
       status: "COMPLETED",

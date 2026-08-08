@@ -1,4 +1,5 @@
 import type { SinglesSnapshot } from "@lib/types";
+import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
   boardScore,
@@ -11,6 +12,7 @@ import type {
   BoardTarget,
   DartFact,
   DartObservation,
+  DartZoneKey,
   EngineFacts,
   SinglesTrainingState,
   StageFact,
@@ -36,6 +38,18 @@ export function initialSinglesTrainingState(): SinglesTrainingState {
   };
 }
 
+/**
+ * Every `DartZoneKey` a single ring can produce: the unbanded value keypad
+ * capture records, plus the two bands coordinate capture resolves to. Singles
+ * Training treats all three as equally valid single hits, differing only from
+ * DOUBLE and TREBLE in point value.
+ */
+const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
+  "SINGLE",
+  "INNER_SINGLE",
+  "OUTER_SINGLE",
+]);
+
 function trainingPointsFor(
   target: BoardTarget,
   config: SinglesSnapshot,
@@ -48,7 +62,7 @@ function trainingPointsFor(
     return 0;
   }
   if (observation.hitTargetNumber !== target.number) return 0;
-  if (observation.hitZoneKey === "SINGLE") return config.pointsSingle;
+  if (SINGLE_ZONE_KEYS.has(observation.hitZoneKey)) return config.pointsSingle;
   if (observation.hitZoneKey === "DOUBLE") return config.pointsDouble;
   if (observation.hitZoneKey === "TREBLE") return config.pointsTreble;
   return 0;
@@ -132,6 +146,8 @@ export class SinglesTrainingEngine implements GameEngine<
         state = applySinglesTrainingDart(this.config, state, {
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneKey: dart.hitZoneKey,
+          locationX: dart.locationX,
+          locationY: dart.locationY,
         });
       }
     }
@@ -143,7 +159,7 @@ export class SinglesTrainingEngine implements GameEngine<
     if (last && last.darts.length < 3) return last;
 
     const turn: TurnFact = {
-      clientKey: crypto.randomUUID(),
+      clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
       sequence: this.turns.length + 1,
       completedAt: null,
@@ -186,6 +202,8 @@ export class SinglesTrainingEngine implements GameEngine<
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+      locationX: null,
+      locationY: null,
     };
 
     openTurn.darts.push(dart);

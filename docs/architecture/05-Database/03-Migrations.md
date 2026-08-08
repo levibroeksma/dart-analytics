@@ -2,12 +2,12 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-07-15
+updated: 2026-08-05
 -->
 
 # Database Migration Strategy
 
-> **Version:** 1.5.0
+> **Version:** 1.6.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -107,11 +107,17 @@ database/
 │   ├── 0013_normalize_read_model_views.sql
 │   ├── 0014_dart_analytics_session_scope.sql
 │   ├── 0015_time_semantics_constraints.sql
-│   └── 0016_read_model_replay_and_presets.sql
+│   ├── 0016_read_model_replay_and_presets.sql
+│   ├── 0017_dart_locations.sql
+│   └── 0018_dart_location_read_model.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
-    └── 0002_default_templates.sql
+    ├── 0002_default_templates.sql
+    ├── 0003_game_engine_reference.sql
+    ├── 0004_score_training_minutes_preset.sql
+    ├── 0005_visual_board_input_mode.sql
+    └── 0006_single_band_dart_zones.sql
 ```
 
 ---
@@ -465,6 +471,38 @@ Contains:
 - new `v_configuration_presets` backing `GET /api/configuration-templates`
 
 Never edits `0009`/`0013`/`0014`.
+
+---
+
+## 0017_dart_locations.sql
+
+Purpose:
+
+Capture where a dart landed. <!-- 2026-08-05 -->
+
+Contains:
+
+- `darts.location_x` / `darts.location_y` (`NUMERIC(6, 2)` millimetres, nullable, origin at the bull centre, y increasing downward to match `dartboard.svg`)
+- `chk_dart_location_pair` — both coordinates present or both NULL, never one alone
+- `fk_player_settings_capture_mode` / `fk_player_settings_input_mode` — the two `player_settings` foreign keys `06-Spec/03-Player-Layer.md` specifies but migration `0003` never created
+
+A dart with no coordinate in a VISUAL_BOARD session is a bounce-out: the landing point was never seen, so it stores `MISS` at score 0 rather than a guessed location.
+
+---
+
+## 0018_dart_location_read_model.sql
+
+Purpose:
+
+Expose dart landing coordinates for spatial analysis. <!-- 2026-08-05 -->
+
+Contains:
+
+- new `v_dart_locations` (session/stage/turn/dart identity, hit + intended target/zone, score, `location_x`, `location_y`, and derived `radius_mm` / `angle_degrees`)
+
+`radius_mm` and `angle_degrees` are plain arithmetic over the stored coordinate only — no board geometry lives in SQL. Miss margin needs a zone centroid, which is board geometry, so it stays out of this view and is derived in the application read layer (`app/src/lib/game/board/miss-margin.module.ts`) from the same `board-geometry.module.ts` the client and Worker classify darts with, so a second copy cannot drift from the classifier. `angle_degrees` is the clockwise bearing from the upward vertical (`0` straight up, `90` straight right), matching the classifier's sector convention.
+
+Never edits `0009`/`0013`/`0014`/`0016`.
 
 ---
 
