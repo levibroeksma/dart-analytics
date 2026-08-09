@@ -5,7 +5,10 @@ import {
   initialFiveOhOneState,
 } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  engineInputMode,
+  resolveSessionModePair,
+} from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -38,17 +41,6 @@ import { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
-
-/**
- * The engine's own dispatch mode, derived from the settings store's
- * `inputModeKey`. Any value other than the literal `"VISUAL_BOARD"` resolves
- * to `QUICK_SCORE` — the engine's own default — rather than propagating an
- * unrecognised string into a field the engine trusts absolutely to pick which
- * shape `record()` expects.
- */
-function engineInputMode(inputModeKey: string): EngineInputMode {
-  return inputModeKey === "VISUAL_BOARD" ? "VISUAL_BOARD" : "QUICK_SCORE";
-}
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact

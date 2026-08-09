@@ -6,6 +6,7 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ScoreTrainingResults from "@components/layout/games/result-modals/ScoreTrainingResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
 <GameLayout
@@ -29,6 +30,13 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
       x-cloak
     />
 
+    {
+      /* Visual board — the accessible keypad above stays rendered for every
+      session; this is the pointer alternative for an ANALYTICS + VISUAL_BOARD
+      session only. */
+    }
+    <BoardInputPanel />
+
     {/* Finish confirm (before results) */}
     <div
       x-show="showFinishConfirm"
@@ -37,7 +45,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
       <ConfirmDialog
         titleId="finish-confirm-title"
         title="Finish session?"
-        description="This visit completes the session. Confirm to save, or cancel to adjust the score."
+        description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
         confirmLabel="Confirm"
         onCancel="cancelFinish()"
         onConfirm="confirmFinish()"

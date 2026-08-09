@@ -39,7 +39,12 @@ import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import type { ScoreTrainingPlayContext } from "@lib/types";
 import type { ScoreTrainingSnapshot } from "@lib/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 
 const BLOCK: StageFact = {
   clientKey: "block-1",
@@ -82,6 +87,15 @@ function minutes(durationValue: number): ScoreTrainingSnapshot {
 }
 
 type GameStub = ScoreTrainingPlayContext["$store"]["game"];
+type SettingsStub = ScoreTrainingPlayContext["$store"]["settings"];
+
+function settingsStub(overrides: Partial<SettingsStub> = {}): SettingsStub {
+  return {
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "QUICK_SCORE",
+    ...overrides,
+  };
+}
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
@@ -127,7 +141,10 @@ describe("scoreTrainingPlay", () => {
 
   it("records a visit and does not complete before durationValue visits", async () => {
     const store = gameStub();
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    const component = {
+      ...scoreTrainingPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
     component.scoreInput.setValue("45");
     await component.init.call(component);
     await component.submitVisit.call(component);
@@ -138,7 +155,10 @@ describe("scoreTrainingPlay", () => {
 
   it("syncs the store's stage list from the engine on init so uploads have a stage", async () => {
     const store = gameStub({ stages: [] });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    const component = {
+      ...scoreTrainingPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
     await component.init.call(component);
     expect(store.stages).toEqual([BLOCK]);
   });
@@ -153,7 +173,10 @@ describe("scoreTrainingPlay", () => {
       statusKey: "COMPLETED",
       completedAt: "now",
     });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    const component = {
+      ...scoreTrainingPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
     component.scoreInput.setValue("30");
     await component.init.call(component);
     await component.submitVisit.call(component); // visit 1
@@ -181,7 +204,10 @@ describe("scoreTrainingPlay", () => {
       statusKey: "COMPLETED",
       completedAt: "now",
     });
-    const component = { ...scoreTrainingPlay(), $store: { game: store } };
+    const component = {
+      ...scoreTrainingPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
     component.scoreInput.setValue("30");
     await component.init.call(component);
     await component.submitVisit.call(component);
@@ -206,7 +232,10 @@ describe("scoreTrainingPlay", () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([
         { ...ACTIVE_SESSION, sessionId: "match-id" },
       ]);
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(component.hasActiveSession).toBe(true);
@@ -224,7 +253,10 @@ describe("scoreTrainingPlay", () => {
         statusKey: "ABANDONED",
         completedAt: "2026-07-17T10:00:00Z",
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(completeSession).toHaveBeenCalledWith("server-id", "ABANDONED");
@@ -238,7 +270,10 @@ describe("scoreTrainingPlay", () => {
         { ...ACTIVE_SESSION, sessionId: "server-id" },
       ]);
       vi.mocked(completeSession).mockRejectedValue(new Error("Network error"));
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(component.reconciliationFailed).toBe(true);
@@ -255,7 +290,10 @@ describe("scoreTrainingPlay", () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([
         { ...ACTIVE_SESSION, sessionId: "match-id" },
       ]);
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(component.hasActiveSession).toBe(true);
@@ -265,7 +303,10 @@ describe("scoreTrainingPlay", () => {
 
     it("leaves the session unplayable when no engine is registered for the persisted ruleset", async () => {
       const store = gameStub({ rulesetVersionKey: "BOBS27_V1" });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(component.engine).toBeNull();
@@ -275,7 +316,10 @@ describe("scoreTrainingPlay", () => {
     it("D88: clears local state when the server has no matching active session", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([]);
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(store.reset).toHaveBeenCalledTimes(1);
       expect(component.hasActiveSession).toBe(false);
@@ -291,7 +335,10 @@ describe("scoreTrainingPlay", () => {
         completedAt: "now",
       });
       const store = gameStub({ sessionId: "s1" });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(completeSession).toHaveBeenCalledWith(
         "other-session",
@@ -308,7 +355,10 @@ describe("scoreTrainingPlay", () => {
         statusKey: "ABANDONED",
         completedAt: "now",
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
       expect(component.hasActiveSession).toBe(false);
@@ -317,7 +367,10 @@ describe("scoreTrainingPlay", () => {
     it("sets hasActiveSession to false and does not crash on submitVisit when no session matches", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([]);
       const store = gameStub({ sessionId: null, configSnapshot: null });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("45");
       await component.init.call(component);
       expect(component.hasActiveSession).toBe(false);
@@ -332,7 +385,10 @@ describe("scoreTrainingPlay", () => {
     it("ST5: submitVisit leaves loading false when it bails out with no engine", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([]);
       const store = gameStub({ sessionId: null, configSnapshot: null });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("45");
       await component.init.call(component);
 
@@ -344,7 +400,10 @@ describe("scoreTrainingPlay", () => {
 
     it("ST5: submitVisit leaves loading false when the finish confirm is open", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -363,7 +422,10 @@ describe("scoreTrainingPlay", () => {
         new Error("Network error"),
       );
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(component.loadingReconciliation).toBe(false);
@@ -376,7 +438,10 @@ describe("scoreTrainingPlay", () => {
         .mockRejectedValueOnce(new Error("Network error"))
         .mockResolvedValueOnce([{ ...ACTIVE_SESSION }]);
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(component.reconciliationFailed).toBe(true);
 
@@ -412,7 +477,10 @@ describe("scoreTrainingPlay", () => {
       registerEngineFactory(foreignFactory);
 
       const store = gameStub({ rulesetVersionKey: "BOBS27_V1" });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(foreignCreate).not.toHaveBeenCalled();
@@ -424,7 +492,10 @@ describe("scoreTrainingPlay", () => {
   describe("MINUTES duration mode timer wiring", () => {
     it("instantiates and starts a SegmentTimer whose onComplete sets store.timerExpired", async () => {
       const store = gameStub({ configSnapshot: minutes(15) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(SegmentTimer).toHaveBeenCalledTimes(1);
@@ -448,7 +519,10 @@ describe("scoreTrainingPlay", () => {
         statusKey: "COMPLETED",
         completedAt: "now",
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       component.scoreInput.setValue("40");
@@ -474,7 +548,10 @@ describe("scoreTrainingPlay", () => {
 
     it("updates store.timerRemainingMs from onTick (seconds -> ms)", async () => {
       const store = gameStub({ configSnapshot: minutes(15) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       const instance = segmentTimerInstances[0];
@@ -484,14 +561,20 @@ describe("scoreTrainingPlay", () => {
 
     it("does not instantiate a SegmentTimer in ROUNDS mode", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(SegmentTimer).not.toHaveBeenCalled();
     });
 
     it("destroy() stops the timer", async () => {
       const store = gameStub({ configSnapshot: minutes(15) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       const instance = segmentTimerInstances[0];
       component.destroy.call(component);
@@ -500,14 +583,20 @@ describe("scoreTrainingPlay", () => {
 
     it("destroy() does not throw when no timer was ever started (ROUNDS mode)", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       expect(() => component.destroy.call(component)).not.toThrow();
     });
 
     it("sets store.timerRemainingMs to the full duration synchronously on a fresh session, before any onTick fires", async () => {
       const store = gameStub({ configSnapshot: minutes(15) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       // No onTick invocation here — timerRemainingMs must already be correct.
@@ -520,7 +609,10 @@ describe("scoreTrainingPlay", () => {
         timerRemainingMs: 5 * 60 * 1000, // 5 minutes left from a prior session
         timerExpired: false,
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(SegmentTimer).toHaveBeenCalledTimes(1);
@@ -538,7 +630,10 @@ describe("scoreTrainingPlay", () => {
         timerRemainingMs: 0,
         timerExpired: true,
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       expect(SegmentTimer).not.toHaveBeenCalled();
@@ -551,7 +646,10 @@ describe("scoreTrainingPlay", () => {
         configSnapshot: rounds(3),
         turns: [turnFact("t1", 1, 45)],
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -571,6 +669,7 @@ describe("scoreTrainingPlay", () => {
             configSnapshot: rounds(20),
             ...gameOverrides,
           }),
+          settings: settingsStub(),
         },
       };
     }
@@ -610,6 +709,7 @@ describe("scoreTrainingPlay", () => {
             turns: [turnFact("t1", 1, 50)],
             ...gameOverrides,
           }),
+          settings: settingsStub(),
         },
       };
     }
@@ -912,7 +1012,10 @@ describe("scoreTrainingPlay", () => {
 
     it("submitVisit is a no-op when finished is already true", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       vi.mocked(appendBatch).mockResolvedValue({
         created: { stages: 1, turns: 2, darts: 0 },
@@ -939,7 +1042,10 @@ describe("scoreTrainingPlay", () => {
 
     it("sets finished and completionStatus pending on final visit before upload settles", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       let statusDuringUpload: string | null = null;
       vi.mocked(appendBatch).mockImplementation(async () => {
@@ -980,7 +1086,10 @@ describe("scoreTrainingPlay", () => {
         completedAt: "now",
       });
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1012,7 +1121,10 @@ describe("scoreTrainingPlay", () => {
         statusKey: "COMPLETED",
         completedAt: "now",
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component); // visit 1
@@ -1029,7 +1141,10 @@ describe("scoreTrainingPlay", () => {
 
     it("never records the finishing visit before it is confirmed, so no rollback is needed", async () => {
       const store = gameStub(); // durationValue: 2
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component); // visit 1
@@ -1046,7 +1161,10 @@ describe("scoreTrainingPlay", () => {
 
     it("surfaces the range error instead of opening the finish confirm on an invalid finishing visit", async () => {
       const store = gameStub({ configSnapshot: rounds(1) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       component.scoreInput.setValue("999");
@@ -1060,7 +1178,10 @@ describe("scoreTrainingPlay", () => {
 
     it("cancelFinish restores scoreInput and clears pending without committing", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1078,7 +1199,10 @@ describe("scoreTrainingPlay", () => {
 
     it("a cancelled finish leaves the engine log unchanged so the next visit is not double-counted", async () => {
       const store = gameStub({ configSnapshot: rounds(3) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
       component.scoreInput.setValue("30");
       await component.submitVisit.call(component);
@@ -1106,7 +1230,10 @@ describe("scoreTrainingPlay", () => {
         statusKey: "COMPLETED",
         completedAt: "now",
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1128,7 +1255,10 @@ describe("scoreTrainingPlay", () => {
 
     it("undoVisit is a no-op while finish confirm is open", async () => {
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("30");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1146,7 +1276,7 @@ describe("scoreTrainingPlay", () => {
     function makeAbandonPlay(gameOverrides: Partial<GameStub> = {}) {
       return {
         ...scoreTrainingPlay(),
-        $store: { game: gameStub(gameOverrides) },
+        $store: { game: gameStub(gameOverrides), settings: settingsStub() },
       };
     }
 
@@ -1253,7 +1383,7 @@ describe("scoreTrainingPlay", () => {
     it("scoreInput appends digits and rejects length > 3", () => {
       const component = {
         ...scoreTrainingPlay(),
-        $store: { game: gameStub() },
+        $store: { game: gameStub(), settings: settingsStub() },
       };
       component.scoreInput.appendDigit(1);
       vi.advanceTimersByTime(41);
@@ -1268,7 +1398,7 @@ describe("scoreTrainingPlay", () => {
     it('scoreInput replaces a lone "0" instead of prefixing', () => {
       const component = {
         ...scoreTrainingPlay(),
-        $store: { game: gameStub() },
+        $store: { game: gameStub(), settings: settingsStub() },
       };
       component.scoreInput.appendDigit(0);
       expect(component.scoreInput.value).toBe("0");
@@ -1280,7 +1410,7 @@ describe("scoreTrainingPlay", () => {
     it("scoreInput deleteLast / clear work for play composition", () => {
       const component = {
         ...scoreTrainingPlay(),
-        $store: { game: gameStub() },
+        $store: { game: gameStub(), settings: settingsStub() },
       };
       component.scoreInput.setValue("45");
       component.scoreInput.deleteLast({ detail: 1 });
@@ -1292,7 +1422,10 @@ describe("scoreTrainingPlay", () => {
     it("surfaces the engine's range rejection and does not clear scoreInput", async () => {
       vi.useRealTimers();
       const store = gameStub();
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("999");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1306,7 +1439,10 @@ describe("scoreTrainingPlay", () => {
   describe("undoVisit", () => {
     it("pops the engine log, mirrors it into the store and clears scoreInput", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("45");
       await component.init.call(component);
       await component.submitVisit.call(component);
@@ -1322,7 +1458,10 @@ describe("scoreTrainingPlay", () => {
 
     it("is a no-op when there are no turns", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       component.scoreInput.setValue("12");
       await component.init.call(component);
       const recordCallsAfterInit = vi.mocked(store.recordFacts).mock.calls
@@ -1341,7 +1480,10 @@ describe("scoreTrainingPlay", () => {
         configSnapshot: rounds(20),
         turns: [turnFact("t1", 1, 40), turnFact("t2", 2, 50)],
       });
-      const component = { ...scoreTrainingPlay(), $store: { game: store } };
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
       await component.init.call(component);
 
       component.undoVisit();
@@ -1353,5 +1495,233 @@ describe("scoreTrainingPlay", () => {
       expect(last.sequence).toBe(2);
       expect(last.totalScore).toBe(60);
     });
+  });
+});
+
+/**
+ * Board coordinates reused from `board-input.data.test.ts` and
+ * `five-oh-one-play.data.test.ts`: `(0, -50)` sits mid inner-single on sector
+ * 20, `(0, -102)` mid-treble on sector 20 — the same landmarks the
+ * input-controller tests already pin, so a location here means the same thing
+ * there.
+ */
+const SINGLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "INNER_SINGLE",
+  locationX: 0,
+  locationY: -50,
+};
+
+const TREBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "TREBLE",
+  locationX: 0,
+  locationY: -102,
+};
+
+function boardPlay(
+  gameOverrides: Partial<GameStub> = {},
+  settingsOverrides: Partial<SettingsStub> = {},
+): ScoreTrainingPlayContext {
+  return {
+    ...scoreTrainingPlay(),
+    $store: {
+      game: gameStub({ configSnapshot: rounds(20), ...gameOverrides }),
+      settings: settingsStub({
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+        ...settingsOverrides,
+      }),
+    },
+  };
+}
+
+describe("scoreTrainingPlay — visual board input", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+  });
+
+  it("builds the resumed engine with the settings store's input mode, not the factory default", async () => {
+    const play = boardPlay();
+    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
+
+    await play.init.call(play);
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "VISUAL_BOARD",
+    );
+
+    createSpy.mockRestore();
+  });
+
+  it("passes the dart observation itself to the engine, not a visit total", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+
+    play.recordDart.call(play, SINGLE_20);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].completedAt).toBeNull();
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts[0]).toMatchObject({
+      score: 20,
+      hitZoneKey: "INNER_SINGLE",
+      locationX: 0,
+      locationY: -50,
+    });
+  });
+
+  it("closes the visit on the third dart, with a total equal to the sum of its darts", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
+    expect(play.$store.game.turns[0].completedAt).toBeNull();
+
+    play.recordDart.call(play, SINGLE_20);
+
+    const turn = play.$store.game.turns[0];
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(turn.darts).toHaveLength(3);
+    expect(turn.completedAt).not.toBeNull();
+    expect(turn.totalScore).toBe(20 + 60 + 20);
+  });
+
+  it("undo removes one dart at a time, not the whole visit", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
+
+    play.undoVisit.call(play);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    expect(play.$store.game.turns[0].totalScore).toBe(20);
+  });
+
+  it("defers a session-completing dart to the finish confirm instead of uploading", async () => {
+    const play = boardPlay({ configSnapshot: rounds(1) });
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, SINGLE_20);
+
+    play.recordDart.call(play, SINGLE_20);
+
+    expect(play.showFinishConfirm).toBe(true);
+    expect(play.pendingDartObservation).toEqual(SINGLE_20);
+    expect(play.$store.game.turns[0].darts).toHaveLength(2);
+    expect(play.finished).toBe(false);
+    expect(appendBatch).not.toHaveBeenCalled();
+  });
+
+  it("confirmFinish records the deferred dart, then uploads and completes", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = boardPlay({ configSnapshot: rounds(1) });
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, SINGLE_20);
+
+    await play.confirmFinish.call(play);
+
+    expect(play.pendingDartObservation).toBeNull();
+    expect(play.$store.game.turns[0].darts).toHaveLength(3);
+    expect(play.$store.game.turns[0].totalScore).toBe(60);
+    expect(play.finished).toBe(true);
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
+
+  it("cancelFinish discards the deferred dart and leaves the session open", async () => {
+    const play = boardPlay({ configSnapshot: rounds(1) });
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, SINGLE_20);
+
+    play.cancelFinish.call(play);
+
+    expect(play.showFinishConfirm).toBe(false);
+    expect(play.pendingDartObservation).toBeNull();
+    expect(play.$store.game.turns[0].darts).toHaveLength(2);
+    expect(play.finished).toBe(false);
+    expect(play.scoreInput.value).toBe("");
+    expect(appendBatch).not.toHaveBeenCalled();
+  });
+
+  it("surfaces the engine's refusal when a keypad total is entered mid board visit", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+
+    play.scoreInput.setValue("60");
+    await play.submitVisit.call(play);
+
+    expect(play.error).toContain("Finish the open visit on the board");
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+  });
+});
+
+describe("scoreTrainingPlay — playAgain mode resolution", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as Awaited<ReturnType<typeof createSession>>);
+  });
+
+  it("sends the player's resolved mode pair to createSession, not a hardcoded quick-score pair", async () => {
+    const play = boardPlay();
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }),
+    );
+  });
+
+  it("constructs the replay engine with the resolved input mode, not the factory default", async () => {
+    const play = boardPlay();
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
+
+    await play.playAgain.call(play);
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      undefined,
+      "VISUAL_BOARD",
+    );
+
+    createSpy.mockRestore();
   });
 });

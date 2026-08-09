@@ -10,12 +10,22 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
+  engineInputMode,
+  resolveSessionModePair,
+} from "@lib/game/session-mode-resolution";
+import { boardInputData } from "@lib/game/board-input.data";
+import {
   dartsThrownCount,
   perVisitAverageDisplay,
   previousScoreDisplay,
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
-import type { EngineFacts, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  EngineInputMode,
+  TurnFact,
+} from "@modules/types";
 import type { ScoreTrainingPlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -58,15 +68,17 @@ function computeStats(turns: TurnFact[]): {
  */
 function resumeEngine(
   game: ScoreTrainingPlayContext["$store"]["game"],
+  inputMode: EngineInputMode,
 ): ScoreTrainingEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
   if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
   const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
+  const engine = factory.create(
+    configSnapshot,
+    { stages: game.stages, turns: game.turns },
+    inputMode,
+  );
   return engine instanceof ScoreTrainingEngine ? engine : null;
 }
 
@@ -121,7 +133,26 @@ function currentFacts(context: ScoreTrainingPlayContext): EngineFacts {
   );
 }
 
+/**
+ * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
+ * page's own `recordDart` with the live, reactive `this` Alpine binds to every
+ * directive-driven call (`@click="…"`, `init()`). `onCommit` is built once,
+ * synchronously, while this factory's returned object literal is still being
+ * constructed — at that point Alpine has not yet wrapped it in `reactive()`,
+ * so a callback written as `(observation) => this.recordDart(…)` right here
+ * would close over the wrong `this` (this factory's own call-time receiver,
+ * never the component) and silently stop updating the DOM for every local
+ * field `recordDart` touches (`showFinishConfirm`, `pendingDartObservation`,
+ * `error`) — the store mirror would still update, masking the bug in anything
+ * that only inspects `$store.game`. `init()` runs through Alpine's own
+ * evaluator after the wrap, so assigning `self = this` there captures the real
+ * reactive instance in time for the first possible board press, which cannot
+ * happen before `hasActiveSession` flips true. Mirrors
+ * `five-oh-one-play.data.ts`.
+ */
 export function scoreTrainingPlay() {
+  let self: ScoreTrainingPlayContext;
+
   return {
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     loading: false,
@@ -141,9 +172,11 @@ export function scoreTrainingPlay() {
       average: number;
     } | null,
     pendingFinishScore: null as number | null,
+    pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     remainingLabel(this: ScoreTrainingPlayContext): string {
       return formatRemaining(this.$store.game.timerRemainingMs);
@@ -173,6 +206,7 @@ export function scoreTrainingPlay() {
      * view rather than flipping to "no active session" as if it were cleaned.
      */
     async init(this: ScoreTrainingPlayContext) {
+      self = this;
       this.loadingReconciliation = true;
       try {
         const activeSessions = await fetchActiveSessions();
@@ -196,7 +230,10 @@ export function scoreTrainingPlay() {
         }
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
+        const engine = resumeEngine(
+          this.$store.game,
+          engineInputMode(this.$store.settings.inputModeKey),
+        );
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;
@@ -272,15 +309,59 @@ export function scoreTrainingPlay() {
       this.loading = false;
     },
 
+    /**
+     * The board's per-dart counterpart to `submitVisit`: every dart the player
+     * throws, including an unseen one, arrives here from `boardInputData`'s
+     * `onCommit`.
+     *
+     * A dart that would close the session's last visit is deferred to the same
+     * finish confirm a keypad total is, for the same reason: `confirmFinish`
+     * uploads the fact log and PATCHes the session COMPLETED, which is
+     * irreversible. Every other dart records immediately — Score Training has
+     * no double-out and no bust, so a dart's zone is never ambiguous the way
+     * 501's typed checkout total is, and there is nothing else to ask about.
+     *
+     * Completion is deliberately never inferred after recording, the way
+     * 501's `commitDart` infers it from `isComplete()`. A Score Training
+     * engine can already be complete before any input at all — MINUTES mode,
+     * once the countdown has fired — so a post-record `isComplete()` check
+     * would upload and finish on the first dart of a fresh visit, mid-visit.
+     * Only `wouldComplete`, which requires an open visit already holding two
+     * darts, may end the session, matching what `submitVisit` already does for
+     * the keypad.
+     */
+    recordDart(this: ScoreTrainingPlayContext, observation: DartObservation) {
+      if (!this.engine || this.finished || this.showFinishConfirm) return;
+
+      if (this.engine.wouldComplete(observation)) {
+        this.pendingDartObservation = observation;
+        this.showFinishConfirm = true;
+        return;
+      }
+
+      this.engine.record(observation);
+      this.error = "";
+      this.$store.game.recordFacts(this.engine.facts());
+    },
+
+    /**
+     * Records whichever input the player was deferred on — the board's dart
+     * (`recordDart`'s gate) or the keypad's total (`submitVisit`'s) — then
+     * finishes and uploads, so the record → mirror → complete sequence exists
+     * once for both input modes. `??` picks the dart first and still reads a
+     * `pendingFinishScore` of 0 correctly, since only null falls through.
+     */
     async confirmFinish(this: ScoreTrainingPlayContext) {
       if (!this.engine || this.finished || !this.showFinishConfirm) return;
-      if (this.pendingFinishScore == null) return;
 
-      const score = this.pendingFinishScore;
+      const input = this.pendingDartObservation ?? this.pendingFinishScore;
+      if (input === null) return;
+
+      this.pendingDartObservation = null;
       this.pendingFinishScore = null;
       this.showFinishConfirm = false;
 
-      this.engine.record(score);
+      this.engine.record(input);
       this.$store.game.recordFacts(this.engine.facts());
 
       this.finished = true;
@@ -288,8 +369,21 @@ export function scoreTrainingPlay() {
       await this.uploadAndCompleteSession();
     },
 
+    /**
+     * Cancel on the finish confirm. A deferred keypad total returns to the
+     * keypad so a mistyped entry is not lost; a deferred dart has no buffer to
+     * return to — the player simply throws again — so it is discarded.
+     */
     cancelFinish(this: ScoreTrainingPlayContext) {
-      if (!this.showFinishConfirm || this.pendingFinishScore == null) return;
+      if (!this.showFinishConfirm) return;
+
+      if (this.pendingDartObservation !== null) {
+        this.pendingDartObservation = null;
+        this.showFinishConfirm = false;
+        return;
+      }
+
+      if (this.pendingFinishScore == null) return;
       this.scoreInput.setValue(String(this.pendingFinishScore));
       this.pendingFinishScore = null;
       this.showFinishConfirm = false;
@@ -403,14 +497,19 @@ export function scoreTrainingPlay() {
       this.playAgainLoading = true;
       this.playAgainError = "";
 
+      const modePair = resolveSessionModePair(
+        RULESET_VERSION_KEY,
+        this.$store.settings,
+      );
+
       try {
         let session;
         try {
           session = await createSession({
             gameTypeKey: GAME_TYPE_KEY,
             rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: "RECREATIONAL",
-            inputModeKey: "QUICK_SCORE",
+            captureModeKey: modePair.captureModeKey,
+            inputModeKey: modePair.inputModeKey,
             config: {
               source: "template",
               templateRef,
@@ -433,11 +532,18 @@ export function scoreTrainingPlay() {
         this.completionStatus = "pending";
         this.completionError = "";
         this.resultsSnapshot = null;
+        this.pendingFinishScore = null;
+        this.pendingDartObservation = null;
+        this.showFinishConfirm = false;
         this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(
+          config,
+          undefined,
+          engineInputMode(modePair.inputModeKey),
+        );
         if (!(engine instanceof ScoreTrainingEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

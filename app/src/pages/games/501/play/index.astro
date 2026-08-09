@@ -7,8 +7,7 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import FiveOhOneResults from "@components/layout/games/result-modals/FiveOhOneResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
-import DartBoard from "@components/ui/DartBoard.astro";
-import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
 <GameLayout
@@ -37,32 +36,7 @@ import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
       session; this is the pointer alternative for an ANALYTICS + VISUAL_BOARD
       session only. */
     }
-    <div
-      x-show="!finished && hasActiveSession && $store.settings.inputModeKey === 'VISUAL_BOARD'"
-      x-cloak
-      class="mt-3 space-y-3"
-    >
-      <div
-        class="relative mx-auto w-[min(100%,60vh)] touch-none"
-        @pointerdown="onPointerDown($event)"
-        @pointermove="onPointerMove($event)"
-        @pointerup="onPointerUp()"
-        @pointercancel="onPointerCancel()"
-      >
-        <DartBoard boardRef="board" />
-        <template x-if="input !== null">
-          <BoardMagnifier />
-        </template>
-      </div>
-
-      <button
-        type="button"
-        class="w-full rounded-lg border border-border px-4 py-3 text-foreground"
-        @click="recordUnseen()"
-      >
-        Dart not seen
-      </button>
-    </div>
+    <BoardInputPanel />
 
     {
       /* Double-out confirm — 501 can only know a checkout from a bust by asking */
