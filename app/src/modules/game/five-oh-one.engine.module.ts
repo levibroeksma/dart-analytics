@@ -36,6 +36,18 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
   return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
+/**
+ * Discriminates `FiveOhOneInput` by shape, never by session mode: only
+ * `DartObservation` carries `hitZoneKey`, so its presence is a sound
+ * type guard regardless of what `inputMode` the engine was constructed
+ * with. `record()` and `wouldComplete()` both dispatch on this, not on
+ * `this.inputMode`, so a keypad-shaped input can never reach
+ * `resolveObservation` and get misclassified as a dart.
+ */
+function isDartObservation(input: FiveOhOneInput): input is DartObservation {
+  return "hitZoneKey" in input;
+}
+
 /** A visit score is playable only as a whole number in `0..maxVisitScore`. */
 function isPlayableVisitScore(
   scoreAttempted: number,
@@ -241,13 +253,26 @@ export class FiveOhOneEngine implements GameEngine<
    *   the fact log is left untouched.
    */
   record(input: FiveOhOneInput): FiveOhOneState {
-    if (this.inputMode === "VISUAL_BOARD") {
-      return this.recordDart(input as DartObservation);
+    if (isDartObservation(input)) {
+      return this.recordDart(input);
     }
-    return this.recordVisitTotal(input as FiveOhOneVisitInput);
+    return this.recordVisitTotal(input);
   }
 
+  /**
+   * @throws when a dart-based visit is still open — a whole-visit total and a
+   *   part-thrown board visit are not composable, so this refuses loudly
+   *   rather than guess how to merge them. A clean visit boundary (no open
+   *   board visit) always accepts a keypad total, so the keypad stays usable
+   *   as the accessible alternative from any resting state.
+   */
   private recordVisitTotal(input: FiveOhOneVisitInput): FiveOhOneState {
+    if (this.openVisit() !== null) {
+      throw new Error(
+        "Finish the open visit on the board before entering a keypad total.",
+      );
+    }
+
     const before = this.deriveState();
     const after = applyFiveOhOneVisit(before, input, this.config);
     const outcome = resolveFiveOhOneVisit(before.remainingScore, input);
@@ -444,16 +469,13 @@ export class FiveOhOneEngine implements GameEngine<
    * reject never completes it either.
    */
   wouldComplete(input: FiveOhOneInput): boolean {
-    if (this.inputMode === "VISUAL_BOARD") {
-      return this.wouldCompleteDart(input as DartObservation);
+    if (isDartObservation(input)) {
+      return this.wouldCompleteDart(input);
     }
 
-    const visitInput = input as FiveOhOneVisitInput;
+    if (this.openVisit() !== null) return false;
     if (
-      !isPlayableVisitScore(
-        visitInput.scoreAttempted,
-        this.config.maxVisitScore,
-      )
+      !isPlayableVisitScore(input.scoreAttempted, this.config.maxVisitScore)
     ) {
       return false;
     }
@@ -461,9 +483,7 @@ export class FiveOhOneEngine implements GameEngine<
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
 
-    return (
-      applyFiveOhOneVisit(before, visitInput, this.config).status === "WON"
-    );
+    return applyFiveOhOneVisit(before, input, this.config).status === "WON";
   }
 
   isComplete(): boolean {

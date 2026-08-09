@@ -943,3 +943,90 @@ describe("FiveOhOneEngine.undo — visual board", () => {
     expect(engine.facts().stages).toEqual(stagesBefore);
   });
 });
+
+describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-based dispatch)", () => {
+  const dartAt = (x: number, y: number) => ({
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: x,
+    locationY: y,
+  });
+  const trebleTwenty = dartAt(0, -102);
+
+  it("a keypad visit total on a VISUAL_BOARD engine produces the same fact-log result as the same input on a QUICK_SCORE engine", () => {
+    const visualEngine = fiveOhOneEngineFactory.create(
+      config(),
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    const quickEngine = fiveOhOneEngineFactory.create(
+      config(),
+    ) as FiveOhOneEngine;
+
+    visualEngine.record({ scoreAttempted: 100 });
+    quickEngine.record({ scoreAttempted: 100 });
+
+    const visualTurn = visualEngine.facts().turns.at(-1)!;
+    const quickTurn = quickEngine.facts().turns.at(-1)!;
+    expect(visualTurn.totalScore).toBe(100);
+    expect(visualTurn.darts).toEqual([]);
+    expect(visualTurn.totalScore).toBe(quickTurn.totalScore);
+    expect(visualTurn.darts).toEqual(quickTurn.darts);
+    expect(visualEngine.state().remainingScore).toBe(401);
+  });
+
+  it("accepts a keypad visit total from a clean VISUAL_BOARD engine — the keypad stays usable as the accessible alternative", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config(),
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    expect(() => engine.record({ scoreAttempted: 60 })).not.toThrow();
+
+    expect(engine.state().remainingScore).toBe(441);
+    const turn = engine.facts().turns.at(-1)!;
+    expect(turn.totalScore).toBe(60);
+    expect(turn.darts).toEqual([]);
+  });
+
+  it("rejects a keypad visit total while a board-recorded visit is still open, and leaves the fact log untouched", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config(),
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    engine.record(trebleTwenty);
+    const before = engine.facts();
+
+    expect(() => engine.record({ scoreAttempted: 60 })).toThrow();
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("wouldComplete also refuses a mid-visit keypad total rather than mis-dispatching it as a dart", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...config(), startingScore: 100 },
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    engine.record(trebleTwenty);
+
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(false);
+  });
+
+  it("undo removes a keypad-recorded visit as a whole unit even on a VISUAL_BOARD engine", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config(),
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().remainingScore).toBe(501);
+  });
+});

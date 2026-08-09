@@ -5,6 +5,7 @@ import {
   initialFiveOhOneState,
 } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -599,14 +600,19 @@ export function fiveOhOnePlay() {
       this.playAgainLoading = true;
       this.playAgainError = "";
 
+      const modePair = resolveSessionModePair(
+        RULESET_VERSION_KEY,
+        this.$store.settings,
+      );
+
       try {
         let session;
         try {
           session = await createSession({
             gameTypeKey: GAME_TYPE_KEY,
             rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: "RECREATIONAL",
-            inputModeKey: "QUICK_SCORE",
+            captureModeKey: modePair.captureModeKey,
+            inputModeKey: modePair.inputModeKey,
             config: {
               source: "template",
               templateRef,
