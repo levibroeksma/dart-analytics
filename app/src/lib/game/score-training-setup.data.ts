@@ -14,7 +14,10 @@ import {
 } from "@lib/game/score-training-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  resolveSessionModePair,
+  startSessionInput,
+} from "@lib/game/session-mode-resolution";
 import type {
   ScoreTrainingDurationType,
   ScoreTrainingSetupContext,
@@ -204,16 +207,16 @@ export function scoreTrainingSetup() {
             overrides: { duration_value: value },
           },
         });
-        this.$store.game.startSession({
-          gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey: RULESET_VERSION_KEY,
-          sessionId: session.sessionId,
-          participantRef: session.participants[0].ref,
-          templateRef: preset.configurationTemplateId,
-          configSnapshot,
-          captureModeKey: modePair.captureModeKey,
-          inputModeKey: modePair.inputModeKey,
-        });
+        this.$store.game.startSession(
+          startSessionInput({
+            gameTypeKey: GAME_TYPE_KEY,
+            rulesetVersionKey: RULESET_VERSION_KEY,
+            session,
+            templateRef: preset.configurationTemplateId,
+            configSnapshot,
+            modePair,
+          }),
+        );
         globalThis.location.href = "/games/score-training/play";
       } catch (err: unknown) {
         const code = (err as { code?: string }).code;
