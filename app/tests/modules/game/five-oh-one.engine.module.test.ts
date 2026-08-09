@@ -1066,7 +1066,14 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on in
     expect(engine.state().remainingScore).toBe(441);
   });
 
-  it("is an exact inverse across a mixed sequence — keypad visit, then board darts — for an engine tagged VISUAL_BOARD", () => {
+  /**
+   * A general correctness check, NOT a guard on the inputMode-dispatch
+   * regression: with the engine genuinely tagged VISUAL_BOARD the old
+   * inputMode-keyed undo() also passed, because pop() on an empty darts array
+   * is a no-op that falls into the same turns.pop() branch. The regression is
+   * guarded by the defaulted/mismatched-tag tests above.
+   */
+  it("unwinds a mixed keypad-then-board log one record() at a time", () => {
     const engine = fiveOhOneEngineFactory.create(
       config(),
       undefined,

@@ -168,6 +168,22 @@ Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.
 - Dialogs: Escape closes and backdrop click dismisses when `dismissible` — see `Modal.astro` / `ConfirmDialog.astro`.
 - Prefer declarative Alpine v3 shorthand bindings (`:class`, `:disabled`, `@click`) over imperative DOM manipulation — full rules in `03-Alpine-Patterns.md` / `05-Astro-Components.md`. Use `x-on:` / `x-bind:` only where Astro `{}` linter escape requires it (D100).
 
+## Pointer-tracked surfaces
+
+Any element that tracks a drag (`@pointermove`) must carry **`touch-none`**. Without it the browser claims the gesture as a scroll or pinch and stops delivering `pointermove` mid-drag, so the gesture dies halfway with no error. `DartBoard.astro` sets it on its own wrapper; `BoardInputPanel.astro` sets it again on the pointer surface, since that is the element the handlers are bound to.
+
+An overlay that follows the pointer is positioned **`fixed`**, not `absolute`: the anchor is `clientX`/`clientY`, and the placement maths clamps against the visual viewport, so both halves must be read in the same coordinate space. Under `absolute` the overlay is displaced by however far the nearest positioned ancestor sits from the viewport origin.
+
+**Magnifier placement rules** (`modules/game/board-input.module.ts`, `magnifierPlacement`):
+
+- above the pointer by default — a fingertip covers what is directly beneath it — dropping below only when there is no room above;
+- to the side away from the throwing hand (`handedness`), flipping to the opposite side when that overflows;
+- then each axis clamped independently so the box stays in the viewport. When the viewport is smaller than the magnifier itself the clamp pins the box to the near edge rather than letting it hang outside.
+
+An overlay that only duplicates information already announced elsewhere is `aria-hidden` on its outermost element, so a screen reader hears the live read once, not twice.
+
+**Alpine `:style` binding form is load-bearing, not taste.** The string form calls `setAttribute("style", …)` and replaces the *whole* attribute, wiping any static declaration on the same element — including CSS custom properties a child depends on. The object form (`:style="{ width: … }"`) writes through `style.setProperty` and merges. A static `style` attribute and a string-form `:style` on one element are mutually exclusive; when both are needed, the dynamic half must be the object form (D199).
+
 ---
 
 # Accessibility
@@ -177,6 +193,8 @@ Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.
 - Prefer semantic HTML (`button`, `a`, headings) over `div` + handlers.
 - No hover-only critical affordances on a touch target — anything essential must also work on tap/focus.
 - Focus-visible rings on `.control` use accent outline (`outline: 2px solid var(--accent)`).
+- A pointer-only capture surface is never the sole path to an action. The visual board's keypad stays rendered for every session and can complete a whole visit by keyboard alone; the board is an addition beside it, not a replacement for it (D199).
+- Decorative or duplicating SVG gets `aria-hidden`; an SVG carrying meaning gets `role="img"` and an `aria-label` that says what it depicts (`DartBoard.astro`).
 
 ---
 
