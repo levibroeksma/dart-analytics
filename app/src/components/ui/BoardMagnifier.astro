@@ -11,15 +11,15 @@
  * plain reactive properties, reachable by name from wherever this component
  * sits in the DOM:
  * - `input: BoardInputController` — reads `active`, `point`, `preview`,
- *   `placement`
+ *   `placement` and `magnifierSize`
  * - `pointerX` / `pointerY: number` — last pointer position, viewport px
- * - `magnifierSize: number` — the magnifier's rendered diameter in px; must
- *   be the exact value passed as `boardInput`'s `magnifierSize` option
- *   (`DEFAULT_MAGNIFIER_SIZE` is 120), or the controller's placement clamp
- *   and this component's rendered box disagree about how big the magnifier
- *   is
- * - `magnifierZoom: number` — board-millimetre-to-pixel zoom multiplier;
- *   purely visual, the controller does not consume it
+ *
+ * The rendered diameter is read from `input.magnifierSize` rather than passed
+ * in alongside it, so the size this component draws and the size the
+ * controller clamps its placement against are one value that cannot drift.
+ * Zoom is purely visual — the controller never consumes it — so it stays an
+ * Astro prop, applied through the `--mag-zoom` custom property and never
+ * entering Alpine's scope at all.
  *
  * Positioned `fixed`, not `absolute`: `pointerX`/`pointerY` are `clientX`/
  * `clientY`, and the controller clamps its placement against the visual
@@ -32,12 +32,13 @@
  * @param {string} [class] Extra classes on the visible magnifier circle
  */
 interface Props {
+  zoom?: number;
   class?: string;
   [key: string]: unknown;
 }
 
 // Props
-const { class: classNameProp, ...props }: Props = Astro.props;
+const { zoom = 4, class: classNameProp, ...props }: Props = Astro.props;
 
 // Components
 import DartBoard from "@components/ui/DartBoard.astro";
@@ -62,12 +63,13 @@ const circleClass = cn(
 >
   <div
     class={circleClass}
-    :style="`width: ${magnifierSize}px; height: ${magnifierSize}px`"
+    style={`--mag-zoom: ${zoom}`}
+    :style="`width: ${input.magnifierSize}px; height: ${input.magnifierSize}px`"
   >
     <div class="absolute inset-0 flex items-center justify-center">
       <div
         class="h-[440px] w-[440px] shrink-0"
-        :style="`transform: scale(${magnifierZoom}) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
+        :style="`transform: scale(var(--mag-zoom)) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
       >
         <DartBoard />
       </div>
@@ -85,7 +87,7 @@ const circleClass = cn(
 
   <p
     class="absolute left-0 -translate-x-1/2 whitespace-nowrap text-center text-sm font-semibold text-foreground"
-    :style="`top: ${magnifierSize + 8}px`"
+    :style="`top: ${input.magnifierSize + 8}px`"
     x-text="input.preview ? `${input.preview.zoneKey} ${input.preview.targetNumber ?? ''} · ${input.preview.score}` : ''"
   >
   </p>

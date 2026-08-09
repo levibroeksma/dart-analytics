@@ -133,6 +133,9 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
     get placement() {
       return placement;
     },
+    get magnifierSize() {
+      return magnifierSize;
+    },
 
     press(pointer) {
       active = track(pointer);

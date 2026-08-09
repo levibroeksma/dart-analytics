@@ -237,6 +237,13 @@ export type BoardInputController = {
   readonly preview: BoardHit | null;
   readonly point: BoardCoordinate | null;
   readonly placement: MagnifierPlacement | null;
+  /**
+   * The magnifier's diameter in pixels, as this controller clamps for. The view
+   * renders the magnifier at exactly this size — it is published here so the
+   * rendered box and the placement clamp cannot hold separate copies of the
+   * number and drift apart.
+   */
+  readonly magnifierSize: number;
   press(pointer: BoardPointer): void;
   move(pointer: BoardPointer): void;
   release(): void;
