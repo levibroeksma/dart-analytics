@@ -104,6 +104,8 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
     participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: rounds(2),
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "QUICK_SCORE",
     stages: [BLOCK],
     turns: [],
     timerRemainingMs: null,
@@ -111,6 +113,13 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
     timerExpired: false,
     idempotencyKey: null,
     loading: false,
+    setSessionModes: vi.fn(function (
+      this: GameStub,
+      modes: { captureModeKey: string; inputModeKey: string },
+    ) {
+      this.captureModeKey = modes.captureModeKey;
+      this.inputModeKey = modes.inputModeKey;
+    }),
     recordFacts: vi.fn(function (this: GameStub, facts: EngineFacts) {
       this.stages = [...facts.stages];
       this.turns = [...facts.turns];
@@ -1536,15 +1545,23 @@ function boardPlay(
   };
 }
 
+const VISUAL_ACTIVE_SESSION = {
+  ...ACTIVE_SESSION,
+  captureModeKey: "ANALYTICS",
+  inputModeKey: "VISUAL_BOARD",
+} as const;
+
 describe("scoreTrainingPlay — visual board input", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     segmentTimerInstances.length = 0;
-    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...VISUAL_ACTIVE_SESSION },
+    ]);
   });
 
-  it("builds the resumed engine with the settings store's input mode, not the factory default", async () => {
-    const play = boardPlay();
+  it("builds the resumed engine with the ACTIVE SESSION's input mode, not the settings store's", async () => {
+    const play = boardPlay({}, { inputModeKey: "QUICK_SCORE" });
     const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
 
     await play.init.call(play);
@@ -1554,6 +1571,32 @@ describe("scoreTrainingPlay — visual board input", () => {
       expect.anything(),
       "VISUAL_BOARD",
     );
+
+    createSpy.mockRestore();
+  });
+
+  it("adopts the active session's mode pair onto the game store, so the board gate reads it", async () => {
+    const play = boardPlay({}, { inputModeKey: "QUICK_SCORE" });
+
+    await play.init.call(play);
+
+    expect(play.$store.game.captureModeKey).toBe("ANALYTICS");
+    expect(play.$store.game.inputModeKey).toBe("VISUAL_BOARD");
+  });
+
+  it("builds a QUICK_SCORE engine when the session is quick score, whatever the settings store says", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+    const play = boardPlay({}, { inputModeKey: "VISUAL_BOARD" });
+    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
+
+    await play.init.call(play);
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "QUICK_SCORE",
+    );
+    expect(play.$store.game.inputModeKey).toBe("QUICK_SCORE");
 
     createSpy.mockRestore();
   });

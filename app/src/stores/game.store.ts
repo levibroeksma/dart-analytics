@@ -1,5 +1,5 @@
 import type { PersistFactory } from "@alpinejs/persist";
-import type { RulesetVersionKey } from "@lib/types";
+import type { ModePair, RulesetVersionKey } from "@lib/types";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 import type { ConfigSnapshot } from "./types";
 
@@ -41,6 +41,17 @@ export function gameStore(persist: PersistFactory) {
     ),
     sessionId: persist()<string | null>(null).as("game.sessionId"),
     participantRef: persist()<string | null>(null).as("game.participantRef"),
+    /**
+     * The ACTIVE session's own capture/input mode pair — the single authority
+     * every play-time consumer reads (which engine shape to build, whether the
+     * board renders). The `settings` store is the authority only for the mode a
+     * *new* session is created with: it can be changed mid-session from the
+     * settings screen, and reading it at play time renders the board over a
+     * QUICK_SCORE session, whose dart rows the server then refuses for the
+     * whole batch.
+     */
+    captureModeKey: persist()<string | null>(null).as("game.captureModeKey"),
+    inputModeKey: persist()<string | null>(null).as("game.inputModeKey"),
     configSnapshot: persist()<ConfigSnapshot | null>(null).as(
       "game.configSnapshot",
     ),
@@ -74,6 +85,8 @@ export function gameStore(persist: PersistFactory) {
       participantRef: string;
       templateRef: string | null;
       configSnapshot: ConfigSnapshot;
+      captureModeKey: string;
+      inputModeKey: string;
     }) {
       this.gameTypeKey = input.gameTypeKey;
       this.rulesetVersionKey = input.rulesetVersionKey;
@@ -81,12 +94,24 @@ export function gameStore(persist: PersistFactory) {
       this.participantRef = input.participantRef;
       this.configSnapshot = input.configSnapshot;
       this.templateRef = input.templateRef;
+      this.captureModeKey = input.captureModeKey;
+      this.inputModeKey = input.inputModeKey;
       this.stages = [];
       this.turns = [];
       this.timerRemainingMs = null;
       this.timerStartedAt = null;
       this.timerExpired = false;
       this.idempotencyKey = null;
+    },
+
+    /**
+     * Adopts the mode pair the server holds for the ACTIVE session, so a resumed
+     * session plays in the mode it was created with rather than whatever the
+     * settings screen was last set to.
+     */
+    setSessionModes(modes: ModePair) {
+      this.captureModeKey = modes.captureModeKey;
+      this.inputModeKey = modes.inputModeKey;
     },
 
     /** Mirrors the engine's whole fact log; never appends to the previous one. */
@@ -102,6 +127,8 @@ export function gameStore(persist: PersistFactory) {
       this.participantRef = null;
       this.configSnapshot = null;
       this.templateRef = null;
+      this.captureModeKey = null;
+      this.inputModeKey = null;
       this.stages = [];
       this.turns = [];
       this.timerRemainingMs = null;

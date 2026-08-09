@@ -40,16 +40,20 @@ export function resolveSessionModePair(
 }
 
 /**
- * The engine's own dispatch mode, derived from a stored `inputModeKey`. Any
- * value other than the literal `"VISUAL_BOARD"` resolves to `QUICK_SCORE` —
- * the engine's own default — rather than propagating an unrecognised string
- * into a field the engine trusts absolutely to pick which shape `record()`
- * expects.
+ * The engine's own dispatch mode, derived from the ACTIVE session's stored
+ * `inputModeKey` (`$store.game.inputModeKey` — never the settings store, which
+ * the player can change mid-session). Any value other than the literal
+ * `"VISUAL_BOARD"`, including the `null` a store holds before a session's mode
+ * is known, resolves to `QUICK_SCORE` — the engine's own default — rather than
+ * propagating an unrecognised value into a field the engine trusts absolutely
+ * to pick which shape `record()` expects.
  *
  * Lives beside `resolveSessionModePair` because both play pages need the same
  * mapping, and two independent copies of it could drift into two different
  * answers for the same stored key.
  */
-export function engineInputMode(inputModeKey: string): EngineInputMode {
+export function engineInputMode(
+  inputModeKey: string | null | undefined,
+): EngineInputMode {
   return inputModeKey === "VISUAL_BOARD" ? "VISUAL_BOARD" : "QUICK_SCORE";
 }

@@ -7,8 +7,13 @@
  * Declares no `x-data` of its own: it mounts inside the play page's own scope
  * and reads what `boardInputData()` contributes there (`input`, the pointer
  * handlers, `recordUnseen`) plus the page's `finished` / `hasActiveSession`
- * flags and the `settings` store's `inputModeKey`. Both play pages spread
+ * flags and the `game` store's `inputModeKey`. Both play pages spread
  * `boardInputData()` into their factory, so the contract holds for each.
+ *
+ * The gate reads the ACTIVE session's own mode off `$store.game`, never the
+ * `settings` store: app mode can be switched mid-session from the settings
+ * screen, and gating on it renders the board over a QUICK_SCORE session, whose
+ * dart rows the server refuses for the entire batch at completion.
  *
  * `<template x-if="input !== null">` around `<BoardMagnifier />` is
  * load-bearing, not defensive tidiness: the magnifier's bindings dereference
@@ -28,7 +33,7 @@ import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
 ---
 
 <div
-  x-show="!finished && hasActiveSession && $store.settings.inputModeKey === 'VISUAL_BOARD'"
+  x-show="!finished && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
   x-cloak
   class="mt-3 space-y-3"
 >

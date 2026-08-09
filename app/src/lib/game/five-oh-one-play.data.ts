@@ -196,7 +196,7 @@ export function fiveOhOnePlay() {
     dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
       const maxDartsPerTurn =
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return dartsThrownCount(this.turnsInCurrentLeg().length, maxDartsPerTurn);
+      return dartsThrownCount(this.turnsInCurrentLeg(), maxDartsPerTurn);
     },
 
     averageThisLeg(this: FiveOhOnePlayContext): string {
@@ -228,15 +228,17 @@ export function fiveOhOnePlay() {
         }
         this.reconciliationFailed = false;
 
-        if (result.action === "no_active") {
+        if (result.action === "no_active" || !result.activeSession) {
           this.hasActiveSession = false;
           return;
         }
 
+        this.$store.game.setSessionModes(result.activeSession);
+
         const config = this.$store.game.configSnapshot;
         const engine = resumeEngine(
           this.$store.game,
-          engineInputMode(this.$store.settings.inputModeKey),
+          engineInputMode(this.$store.game.inputModeKey),
         );
         if (!config || !engine) {
           this.hasActiveSession = false;
@@ -619,6 +621,7 @@ export function fiveOhOnePlay() {
         this.$store.game.sessionId = session.sessionId;
         this.$store.game.participantRef = session.participants[0].ref;
         this.$store.game.idempotencyKey = null;
+        this.$store.game.setSessionModes(modePair);
 
         this.finished = false;
         this.completionStatus = "pending";
