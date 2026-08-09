@@ -239,6 +239,46 @@ function controller(onCommit: (observation: DartObservation) => void) {
 }
 
 describe("boardInput", () => {
+  it("publishes the magnifier size it was configured with", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      viewport: { width: 400, height: 800 },
+      magnifierSize: 200,
+    });
+
+    expect(input.magnifierSize).toBe(200);
+  });
+
+  it("publishes the default magnifier size when none was configured", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      viewport: { width: 400, height: 800 },
+    });
+
+    expect(input.magnifierSize).toBe(120);
+  });
+
+  it("clamps placement against the same size it publishes", () => {
+    const size = 200;
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      handedness: "RIGHT",
+      viewport: { width: 400, height: 800 },
+      magnifierSize: size,
+    });
+
+    input.press({ clientX: 20, clientY: 400 });
+
+    const half = input.magnifierSize / 2;
+    const left = 20 + input.placement!.offsetX - half;
+
+    expect(input.magnifierSize).toBe(size);
+    expect(left).toBeGreaterThanOrEqual(0);
+  });
+
   it("activates on press and previews what is under the pointer", () => {
     const input = controller(() => {});
     input.press({ clientX: 0, clientY: -102 });
