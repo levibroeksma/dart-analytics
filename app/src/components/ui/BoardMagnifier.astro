@@ -10,18 +10,25 @@
  * That ancestor (`boardInputData()`) must expose these as plain reactive
  * properties, reachable by name from wherever this component sits in the
  * DOM:
- * - `board: BoardView` — reads `active`, `point`, `preview`, `placement`,
- *   `magnifierSize` and `pxPerMm`
- * - `pointerX` / `pointerY: number` — last pointer position, viewport px
+ * - `board.active: boolean` — whether a press is live
+ * - `magnifierAnchor()`, `magnifierBox()`, `magnifierBoard()`,
+ *   `magnifierLabel()`, `magnifierRead()` — every style and read this
+ *   component draws, computed in `board-input.data.ts`
  *
- * Every binding here reads `board`, never the controller behind it. The
- * controller publishes its state through getters over closure variables, which
- * Alpine cannot observe: bound directly, this whole component renders the
- * press position and never updates again for the rest of the drag.
+ * The bindings are calls rather than inline expressions on purpose: each one
+ * has to fall back for a `board` that is still idle, and five nullish-guarded
+ * template literals put this component over the complexity gate while being
+ * exactly the pure string-building the data layer can test directly.
  *
- * The rendered diameter is read from `board.magnifierSize` rather than passed
- * in alongside it, so the size this component draws and the size the
- * controller clamps its placement against are one value that cannot drift.
+ * Those helpers read `board`, never the controller behind it. The controller
+ * publishes its state through getters over closure variables, which Alpine
+ * cannot observe: bound directly, this whole component renders the press
+ * position and never updates again for the rest of the drag.
+ *
+ * The rendered diameter comes from `board.magnifierSize` via `magnifierBox()`
+ * rather than being passed in alongside it, so the size this component draws
+ * and the size the controller clamps its placement against are one value that
+ * cannot drift.
  * Zoom is purely visual — the controller never consumes it — so it stays an
  * Astro prop, applied through the `--mag-zoom` custom property and never
  * entering Alpine's scope at all.
@@ -35,10 +42,11 @@
  * factor; `board.pxPerMm` supplies the rest, so the two numbers are never
  * duplicated into one.
  *
- * The circle's `:style` binding is an OBJECT, not a template-literal string,
- * and this is load-bearing: Alpine's string-form style binding replaces the
- * whole `style` attribute (`setAttribute("style", value)`), which would wipe
- * the static `--mag-zoom` custom property the instant Alpine mounts. The
+ * The circle's `:style` binding is an OBJECT — `magnifierBox()` returns one —
+ * not a template-literal string, and this is load-bearing: Alpine's
+ * string-form style binding replaces the whole `style` attribute
+ * (`setAttribute("style", value)`), which would wipe the static `--mag-zoom`
+ * custom property the instant Alpine mounts. The
  * object form merges individual properties instead (`style.setProperty`) and
  * leaves the rest of the attribute — including `--mag-zoom` — intact, so the
  * child's `var(--mag-zoom)` still resolves. Confirmed with a real browser:
@@ -82,18 +90,18 @@ const circleClass = cn(
   aria-hidden="true"
   x-cloak
   x-show="board.active"
-  :style="`left: ${pointerX + (board.placement?.offsetX ?? 0)}px; top: ${pointerY + (board.placement?.offsetY ?? 0)}px`"
+  :style="magnifierAnchor()"
   {...props}
 >
   <div
     class={circleClass}
     style={`--mag-zoom: ${zoom}`}
-    :style="{ width: `${board.magnifierSize}px`, height: `${board.magnifierSize}px` }"
+    :style="magnifierBox()"
   >
     <div class="absolute inset-0 flex items-center justify-center">
       <div
         class="h-[440px] w-[440px] shrink-0"
-        :style="`transform: scale(calc(var(--mag-zoom) * ${board.pxPerMm})) translate(${-(board.point?.x ?? 0)}px, ${-(board.point?.y ?? 0)}px)`"
+        :style="magnifierBoard()"
       >
         <DartBoard />
       </div>
@@ -111,8 +119,8 @@ const circleClass = cn(
 
   <p
     class="absolute left-0 -translate-x-1/2 whitespace-nowrap text-center text-sm font-semibold text-foreground"
-    :style="`top: ${board.magnifierSize + 8}px`"
-    x-text="board.preview ? `${board.preview.zoneKey} ${board.preview.targetNumber ?? ''} · ${board.preview.score}` : ''"
+    :style="magnifierLabel()"
+    x-text="magnifierRead()"
   >
   </p>
 </div>
