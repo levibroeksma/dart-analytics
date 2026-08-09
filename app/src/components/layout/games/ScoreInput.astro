@@ -13,6 +13,7 @@ interface Props {
   undoClick?: string;
   undoDisabled?: string;
   class?: string;
+  [key: string]: unknown;
 }
 
 // Props
@@ -26,6 +27,7 @@ const {
   undoClick,
   undoDisabled = "true",
   class: classNameProp,
+  ...props
 }: Props = Astro.props;
 
 // Components
@@ -50,7 +52,10 @@ const numberRows = [
 const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
 ---
 
-<div class={rootClass}>
+<div
+  class={rootClass}
+  {...props}
+>
   <div class="flex items-center gap-3">
     <div
       class="border border-border bg-surface-overlay flex min-h-11 flex-1 items-center justify-center rounded-lg px-4 w-1/2"

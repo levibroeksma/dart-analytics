@@ -182,6 +182,10 @@ An overlay that follows the pointer is positioned **`fixed`**, not `absolute`: t
 
 An overlay that only duplicates information already announced elsewhere is `aria-hidden` on its outermost element, so a screen reader hears the live read once, not twice.
 
+A template bound to a pointer-tracked controller must read a **plain reactive mirror**, never the controller. A pure controller that publishes closure state through getters is invisible to Alpine's dependency tracking, so bindings render once at press and then freeze — with no error and every unit test still green. `boardInputData()`'s `board` field is the pattern: re-copied after every controller call, and the only thing views bind to (D202).
+
+**`x-for` cannot live inside `<svg>`.** The HTML parser puts a `<template>` written among SVG children into the SVG namespace, where it has no `.content` for Alpine to clone. Repeat markup over an SVG as an absolutely positioned HTML overlay instead, sized in percent of the same box the SVG's `viewBox` declares, so it scales with the drawing. `DartBoard.astro`'s slot exists for exactly this.
+
 **Alpine `:style` binding form is load-bearing, not taste.** The string form calls `setAttribute("style", …)` and replaces the *whole* attribute, wiping any static declaration on the same element — including CSS custom properties a child depends on. The object form (`:style="{ width: … }"`) writes through `style.setProperty` and merges. A static `style` attribute and a string-form `:style` on one element are mutually exclusive; when both are needed, the dynamic half must be the object form (D199).
 
 ---

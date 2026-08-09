@@ -5,6 +5,14 @@
  * because this component is also rendered a second time inside the
  * magnifier overlay (`BoardMagnifier.astro`) — only one instance may claim
  * a given `x-ref` name per Alpine scope, so the caller opts in per instance.
+ *
+ * The default slot renders as a sibling of the `<svg>` inside the wrapper, not
+ * inside the SVG itself, and overlays it. Dart markers go there. They are
+ * deliberately NOT SVG children: Alpine's `x-for` needs a real HTML
+ * `<template>`, and the HTML parser puts a `<template>` written inside
+ * `<svg>` into the SVG namespace, where it has no `.content` and `x-for`
+ * cannot clone it. An absolutely positioned overlay, positioned in percent of
+ * the wrapper, scales with the board without that trap.
  * @param {string} [boardRef] `x-ref` name for the root `<svg>`; omit on an
  *   instance that is not the controller's binding target
  * @param {string} [class] Extra wrapper classes
@@ -692,4 +700,6 @@ const refAttrs = boardRef ? { "x-ref": boardRef } : {};
       </g>
     </g>
   </svg>
+
+  <slot />
 </div>

@@ -67,5 +67,7 @@ import StatRow from "@components/layout/games/StatRow.astro";
     padDisabled="showDoubleConfirm || showMatchFinishConfirm || finished"
     undoClick="undoVisit()"
     undoDisabled="!$store.game.turns.length || showDoubleConfirm || showMatchFinishConfirm || finished"
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
   />
 </div>
