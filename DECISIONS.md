@@ -59,4 +59,4 @@ Supersedes: D86
 
 ## ID-gap note
 
-Ids are non-contiguous: 177 decisions exist (163 migrated rows plus D184–D197), the highest is `D197`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.
+Ids are non-contiguous: 182 decisions exist (163 migrated rows plus D184–D202), the highest is `D202`, and these 20 were never issued: `D18 D19 D29 D38 D39 D42 D43 D44 D45 D46 D47 D48 D49 D53 D54 D55 D56 D57 D58 D59`. These are numbering artifacts from the original distillation of the raw design history into this ledger (2026-07-11), not lost or deleted decisions. Do not renumber existing decisions or try to "fill" these ids.

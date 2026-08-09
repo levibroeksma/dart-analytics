@@ -10,24 +10,29 @@
  * That ancestor (`boardInputData()`) must expose these as plain reactive
  * properties, reachable by name from wherever this component sits in the
  * DOM:
- * - `input: BoardInputController` — reads `active`, `point`, `preview`,
- *   `placement`, `magnifierSize` and `pxPerMm`
+ * - `board: BoardView` — reads `active`, `point`, `preview`, `placement`,
+ *   `magnifierSize` and `pxPerMm`
  * - `pointerX` / `pointerY: number` — last pointer position, viewport px
  *
- * The rendered diameter is read from `input.magnifierSize` rather than passed
+ * Every binding here reads `board`, never the controller behind it. The
+ * controller publishes its state through getters over closure variables, which
+ * Alpine cannot observe: bound directly, this whole component renders the
+ * press position and never updates again for the rest of the drag.
+ *
+ * The rendered diameter is read from `board.magnifierSize` rather than passed
  * in alongside it, so the size this component draws and the size the
  * controller clamps its placement against are one value that cannot drift.
  * Zoom is purely visual — the controller never consumes it — so it stays an
  * Astro prop, applied through the `--mag-zoom` custom property and never
  * entering Alpine's scope at all.
  *
- * The inner board is scaled by `zoom * input.pxPerMm`, not `zoom` alone. The
+ * The inner board is scaled by `zoom * board.pxPerMm`, not `zoom` alone. The
  * board underneath is `w-full`, so its displayed scale ranges from ~0.65
  * px/mm on a small phone to ~3.2 px/mm on desktop; multiplying zoom by the
  * live px/mm reading keeps magnification a fixed multiple of the displayed
  * board (`zoom`×) across every viewport, rather than a fixed absolute scale
  * that is barely visible on a wide screen. `--mag-zoom` supplies the `zoom`
- * factor; `input.pxPerMm` supplies the rest, so the two numbers are never
+ * factor; `board.pxPerMm` supplies the rest, so the two numbers are never
  * duplicated into one.
  *
  * The circle's `:style` binding is an OBJECT, not a template-literal string,
@@ -76,19 +81,19 @@ const circleClass = cn(
   class="pointer-events-none fixed z-10"
   aria-hidden="true"
   x-cloak
-  x-show="input.active"
-  :style="`left: ${pointerX + (input.placement?.offsetX ?? 0)}px; top: ${pointerY + (input.placement?.offsetY ?? 0)}px`"
+  x-show="board.active"
+  :style="`left: ${pointerX + (board.placement?.offsetX ?? 0)}px; top: ${pointerY + (board.placement?.offsetY ?? 0)}px`"
   {...props}
 >
   <div
     class={circleClass}
     style={`--mag-zoom: ${zoom}`}
-    :style="{ width: `${input.magnifierSize}px`, height: `${input.magnifierSize}px` }"
+    :style="{ width: `${board.magnifierSize}px`, height: `${board.magnifierSize}px` }"
   >
     <div class="absolute inset-0 flex items-center justify-center">
       <div
         class="h-[440px] w-[440px] shrink-0"
-        :style="`transform: scale(calc(var(--mag-zoom) * ${input.pxPerMm})) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
+        :style="`transform: scale(calc(var(--mag-zoom) * ${board.pxPerMm})) translate(${-(board.point?.x ?? 0)}px, ${-(board.point?.y ?? 0)}px)`"
       >
         <DartBoard />
       </div>
@@ -106,8 +111,8 @@ const circleClass = cn(
 
   <p
     class="absolute left-0 -translate-x-1/2 whitespace-nowrap text-center text-sm font-semibold text-foreground"
-    :style="`top: ${input.magnifierSize + 8}px`"
-    x-text="input.preview ? `${input.preview.zoneKey} ${input.preview.targetNumber ?? ''} · ${input.preview.score}` : ''"
+    :style="`top: ${board.magnifierSize + 8}px`"
+    x-text="board.preview ? `${board.preview.zoneKey} ${board.preview.targetNumber ?? ''} · ${board.preview.score}` : ''"
   >
   </p>
 </div>

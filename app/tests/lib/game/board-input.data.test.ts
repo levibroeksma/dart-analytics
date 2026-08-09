@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { boardInputData } from "@lib/game/board-input.data";
-import type { DartObservation } from "@modules/types";
+import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import type { DartFact, DartObservation, TurnFact } from "@modules/types";
 
 function fakeBoard(): SVGSVGElement {
   const matrix = {
@@ -26,12 +26,43 @@ function fakeBoard(): SVGSVGElement {
 
 type Harness = ReturnType<typeof boardInputData> & {
   $refs: { board: SVGSVGElement };
+  $store: { game: { turns: TurnFact[] } };
 };
 
-function harness(onCommit: (observation: DartObservation) => void): Harness {
+function harness(
+  onCommit: (observation: DartObservation) => void,
+  turns: TurnFact[] = [],
+): Harness {
   return Object.assign(boardInputData(onCommit), {
     $refs: { board: fakeBoard() },
+    $store: { game: { turns } },
   });
+}
+
+function dart(overrides: Partial<DartFact> = {}): DartFact {
+  return {
+    sequence: 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    score: 60,
+    locationX: 0,
+    locationY: -102,
+    ...overrides,
+  };
+}
+
+function turn(overrides: Partial<TurnFact> = {}): TurnFact {
+  return {
+    clientKey: "t1",
+    stageClientKey: "block-1",
+    sequence: 1,
+    completedAt: null,
+    totalScore: 60,
+    darts: [dart()],
+    ...overrides,
+  };
 }
 
 describe("boardInputData", () => {
@@ -143,6 +174,67 @@ describe("boardInputData", () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * The controller keeps its state in closure variables published through
+   * getters, which Alpine's reactivity cannot observe. Binding the view at the
+   * controller therefore renders the press position and never updates again:
+   * the magnifier appears, then sits frozen for the whole drag. `board` is a
+   * plain snapshot re-copied after every controller call, which is what makes
+   * the readings change in a way Alpine can see.
+   *
+   * Reading `board.point` twice and comparing is the part that matters: if
+   * `syncBoard` ever hands out the controller itself (or anything else live),
+   * both reads return the same object and the two assertions cannot both hold.
+   */
+  it("refreshes the view snapshot on move, so the magnifier does not freeze at the press position", () => {
+    const data = harness(() => {});
+
+    data.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    const atPress = data.board.point;
+    const previewAtPress = data.board.preview;
+
+    data.onPointerMove({ clientX: 0, clientY: -166 } as never);
+    const atMove = data.board.point;
+
+    expect(atPress).toEqual({ x: 0, y: -102 });
+    expect(atMove).toEqual({ x: 0, y: -166 });
+    expect(previewAtPress?.zoneKey).toBe("TREBLE");
+    expect(data.board.preview?.zoneKey).toBe("DOUBLE");
+    expect(data.board).not.toBe(data.input);
+  });
+
+  it("marks the view active on press and idle again on release", () => {
+    const data = harness(() => {});
+
+    data.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    expect(data.board.active).toBe(true);
+
+    data.onPointerUp();
+    expect(data.board.active).toBe(false);
+    expect(data.board.point).toBeNull();
+  });
+
+  it("publishes the magnifier size and scale the controller clamps against", () => {
+    const data = harness(() => {});
+
+    data.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+
+    expect(data.board.magnifierSize).toBe(data.input!.magnifierSize);
+    expect(data.board.pxPerMm).toBe(data.input!.pxPerMm);
+  });
+
   it("re-reads the viewport on every press instead of caching it from the first one", () => {
     const data = harness(() => {});
     const originalWidth = globalThis.innerWidth;
@@ -193,5 +285,104 @@ describe("boardInputData", () => {
         value: originalHeight,
       });
     }
+  });
+
+  it("exposes the current visit's markers from the store", () => {
+    const data = harness(() => {}, [turn()]);
+
+    expect(data.visitMarkers()).toEqual([
+      { sequence: 1, leftPercent: 50, topPercent: (118 / 440) * 100 },
+    ]);
+  });
+});
+
+describe("markersForTurns", () => {
+  it("has nothing to draw before the first dart", () => {
+    expect(markersForTurns([])).toEqual([]);
+  });
+
+  it("places a dart's marker as a percentage of the board's own box", () => {
+    const markers = markersForTurns([
+      turn({ darts: [dart({ locationX: 220, locationY: -220 })] }),
+    ]);
+
+    expect(markers).toEqual([{ sequence: 1, leftPercent: 100, topPercent: 0 }]);
+  });
+
+  it("puts a dart in the bullseye at the centre", () => {
+    const markers = markersForTurns([
+      turn({ darts: [dart({ locationX: 0, locationY: 0 })] }),
+    ]);
+
+    expect(markers).toEqual([{ sequence: 1, leftPercent: 50, topPercent: 50 }]);
+  });
+
+  it("draws every dart of the visit so far", () => {
+    const markers = markersForTurns([
+      turn({
+        darts: [
+          dart({ sequence: 1 }),
+          dart({ sequence: 2, locationX: 0, locationY: -166 }),
+        ],
+      }),
+    ]);
+
+    expect(markers.map((marker) => marker.sequence)).toEqual([1, 2]);
+  });
+
+  /**
+   * A visit closes the instant its third dart lands, so markers keyed on an
+   * OPEN visit would vanish at exactly the moment the player wants to look at
+   * the grouping. Reading the last turn keeps them until the next visit's
+   * first dart replaces them.
+   */
+  it("keeps a completed visit's markers until the next visit opens", () => {
+    const completed = turn({
+      completedAt: "2026-08-09T12:00:00.000Z",
+      darts: [dart({ sequence: 1 }), dart({ sequence: 2 })],
+    });
+
+    expect(markersForTurns([completed])).toHaveLength(2);
+  });
+
+  it("replaces them with the next visit's darts once it opens", () => {
+    const completed = turn({
+      clientKey: "t1",
+      completedAt: "2026-08-09T12:00:00.000Z",
+      darts: [dart({ sequence: 1 }), dart({ sequence: 2 })],
+    });
+    const opened = turn({
+      clientKey: "t2",
+      sequence: 2,
+      darts: [dart({ sequence: 1, locationX: 0, locationY: -166 })],
+    });
+
+    expect(markersForTurns([completed, opened])).toEqual([
+      { sequence: 1, leftPercent: 50, topPercent: (54 / 440) * 100 },
+    ]);
+  });
+
+  it("skips an unseen dart, which has no position to draw", () => {
+    const markers = markersForTurns([
+      turn({
+        darts: [
+          dart({ sequence: 1 }),
+          dart({
+            sequence: 2,
+            hitTargetNumber: null,
+            hitZoneKey: "MISS",
+            score: 0,
+            locationX: null,
+            locationY: null,
+          }),
+        ],
+      }),
+    ]);
+
+    expect(markers.map((marker) => marker.sequence)).toEqual([1]);
+  });
+
+  it("draws nothing for a keypad visit, which has no darts at all", () => {
+    expect(markersForTurns([turn({ darts: [] })])).toEqual([]);
   });
 });

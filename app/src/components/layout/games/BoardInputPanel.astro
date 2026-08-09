@@ -1,24 +1,24 @@
 ---
 /**
- * Pointer-driven dartboard for a VISUAL_BOARD session, mounted *beside* a play
- * page's keypad rather than replacing it — the keypad stays rendered for every
- * session as the accessible alternative.
+ * Pointer-driven dartboard for a VISUAL_BOARD session, mounted in place of the
+ * keypad — a visual session enters every dart on the board, so the keypad is
+ * hidden while this is shown and this panel carries its own undo.
  *
  * Declares no `x-data` of its own: it mounts inside the play page's own scope
- * and reads what `boardInputData()` contributes there (`input`, the pointer
- * handlers, `recordUnseen`) plus the page's `finished` / `hasActiveSession`
- * flags and the `game` store's `inputModeKey`. Both play pages spread
- * `boardInputData()` into their factory, so the contract holds for each.
+ * and reads what `boardInputData()` contributes there (`board`, the pointer
+ * handlers, `recordUnseen`, `visitMarkers`) plus the page's `finished` /
+ * `hasActiveSession` flags, `undoVisit()` and the `game` store's
+ * `inputModeKey`. Both play pages spread `boardInputData()` into their
+ * factory, so the contract holds for each.
  *
  * The gate reads the ACTIVE session's own mode off `$store.game`, never the
  * `settings` store: app mode can be switched mid-session from the settings
  * screen, and gating on it renders the board over a QUICK_SCORE session, whose
  * dart rows the server refuses for the entire batch at completion.
  *
- * `<template x-if="input !== null">` around `<BoardMagnifier />` is
- * load-bearing, not defensive tidiness: the magnifier's bindings dereference
- * `input` unconditionally and throw while it is still null, which is its state
- * for the whole time between page load and the first press.
+ * Markers show the most recent visit's darts — see `markersForTurns` for why
+ * that is the last turn rather than only an open one. They are rendered into
+ * `<DartBoard />`'s slot, which overlays the SVG rather than living inside it.
  *
  * `touch-none` on the pointer surface stops the browser turning a drag across
  * the board into a scroll or a pinch, so `pointermove` keeps arriving for the
@@ -44,17 +44,42 @@ import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
     @pointerup="onPointerUp()"
     @pointercancel="onPointerCancel()"
   >
-    <DartBoard boardRef="board" />
-    <template x-if="input !== null">
-      <BoardMagnifier />
-    </template>
+    <DartBoard boardRef="board">
+      <div
+        class="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        <template
+          x-for="marker in visitMarkers()"
+          :key="marker.sequence"
+        >
+          <span
+            class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+            :style="`left: ${marker.leftPercent}%; top: ${marker.topPercent}%`"
+          >
+          </span>
+        </template>
+      </div>
+    </DartBoard>
+
+    <BoardMagnifier />
   </div>
 
-  <button
-    type="button"
-    class="w-full rounded-lg border border-border px-4 py-3 text-foreground"
-    @click="recordUnseen()"
-  >
-    Dart not seen
-  </button>
+  <div class="flex gap-3">
+    <button
+      type="button"
+      class="flex-1 rounded-lg border border-border px-4 py-3 text-foreground"
+      @click="recordUnseen()"
+    >
+      Dart not seen
+    </button>
+    <button
+      type="button"
+      class="flex-1 rounded-lg border border-border px-4 py-3 text-foreground disabled:opacity-50"
+      @click="undoVisit()"
+      :disabled="!$store.game.turns.length"
+    >
+      Undo dart
+    </button>
+  </div>
 </div>

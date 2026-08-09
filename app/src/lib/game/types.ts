@@ -4,11 +4,14 @@ import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type {
+  BoardCoordinate,
   DartObservation,
   EngineFacts,
+  MagnifierPlacement,
   StageFact,
   TurnFact,
 } from "@modules/types";
+import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   ModePair,
@@ -21,6 +24,34 @@ export * from "./rulesets/types";
 export * from "./board/types";
 
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
+
+/**
+ * Everything the magnifier draws, mirrored onto the Alpine component itself.
+ *
+ * The board-input controller is deliberately pure: it keeps `active`, `point`
+ * and `placement` in closure variables and publishes them through getters.
+ * Alpine's reactivity tracks property reads on ITS OWN proxies, so a getter
+ * that reads a closure variable is invisible to it — `move()` mutates state no
+ * effect can depend on, and every binding that dereferences the controller
+ * keeps rendering the values it had at press time. Copying the readings onto a
+ * reactive field after each call is what makes the magnifier follow the
+ * finger; binding straight at the controller silently freezes it.
+ */
+export type BoardView = {
+  active: boolean;
+  point: BoardCoordinate | null;
+  preview: BoardHit | null;
+  placement: MagnifierPlacement | null;
+  magnifierSize: number;
+  pxPerMm: number;
+};
+
+/** One landed dart, positioned as a percentage of the board's rendered box. */
+export type BoardMarker = {
+  sequence: number;
+  leftPercent: number;
+  topPercent: number;
+};
 
 /**
  * The `$store` shape every play page reads, parameterised by the game's own

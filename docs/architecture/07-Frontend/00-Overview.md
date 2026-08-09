@@ -100,9 +100,13 @@ Nothing commits on press because the treble ring is ~10 mm tall against a ~45 px
 
 **"Dart not seen"** commits a `MISS` with `locationX`/`locationY` null — the pair is written together or not at all (`chk_dart_location_pair`). This is the honest record of a dart whose landing point the player never observed; it is not a zero-score dart that landed somewhere.
 
-**The keypad is the accessible alternative and stays rendered for every session**, visual ones included — it is not swapped out for the board. A whole visit can be entered by keyboard alone. Both engines dispatch `record()`, `wouldComplete()` and `undo()` on the *shape* of the input (visit total vs `DartObservation`), never on the session's stored mode, so the two input paths coexist within one session and `undo()` stays an exact inverse of whichever one wrote the turn (D198).
+**Landed darts are drawn as markers on the board.** They show the most recent turn's located darts — still open, or just closed by its last dart — so a finished visit's grouping stays on the board until the next visit's first dart replaces it. An unseen dart has no coordinate and is not drawn.
 
-Pieces: `components/ui/DartBoard.astro` (presentational SVG, mm viewBox), `components/ui/BoardMagnifier.astro` (overlay), `components/layout/games/BoardInputPanel.astro` (the block both play pages mount), `modules/game/board-input.module.ts` (pure transform, placement and state machine), `lib/game/board-input.data.ts` (the Alpine/DOM bridge). <!-- 2026-08-09 -->
+**The board replaces the keypad while a visual session is being played** (D201, superseding D199's keypad clause): `ScoreInput.astro` is hidden and `BoardInputPanel.astro` carries its own `Undo dart` control. The server still accepts a dartless keypad visit inside a visual session, so the persistence path never assumes darts — only the UI is exclusive. Both engines dispatch `record()`, `wouldComplete()` and `undo()` on the *shape* of the input (visit total vs `DartObservation`), never on the session's stored mode, so the two input paths remain able to coexist within one session and `undo()` stays an exact inverse of whichever one wrote the turn (D198).
+
+**Views bind at `board`, never at `input`.** The controller keeps its state in closure variables behind getters, which Alpine's reactivity cannot observe; `boardInputData()` re-copies its readings onto a plain reactive `board` field after every call, and that mirror is what the magnifier and markers read (D202).
+
+Pieces: `components/ui/DartBoard.astro` (presentational SVG, mm viewBox, marker slot), `components/ui/BoardMagnifier.astro` (overlay), `components/layout/games/BoardInputPanel.astro` (the block both play pages mount), `modules/game/board-input.module.ts` (pure transform, placement and state machine), `lib/game/board-input.data.ts` (the Alpine/DOM bridge and the reactive mirror). <!-- 2026-08-09 -->
 
 ---
 
