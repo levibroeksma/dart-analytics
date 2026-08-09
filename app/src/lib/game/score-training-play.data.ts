@@ -189,7 +189,7 @@ export function scoreTrainingPlay() {
     dartsThrownThisLeg(this: ScoreTrainingPlayContext): number {
       const maxDartsPerTurn =
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return dartsThrownCount(this.$store.game.turns.length, maxDartsPerTurn);
+      return dartsThrownCount(this.$store.game.turns, maxDartsPerTurn);
     },
 
     previousScoreThisLeg(this: ScoreTrainingPlayContext): string {
@@ -224,15 +224,17 @@ export function scoreTrainingPlay() {
         }
         this.reconciliationFailed = false;
 
-        if (result.action === "no_active") {
+        if (result.action === "no_active" || !result.activeSession) {
           this.hasActiveSession = false;
           return;
         }
 
+        this.$store.game.setSessionModes(result.activeSession);
+
         const config = this.$store.game.configSnapshot;
         const engine = resumeEngine(
           this.$store.game,
-          engineInputMode(this.$store.settings.inputModeKey),
+          engineInputMode(this.$store.game.inputModeKey),
         );
         if (!config || !engine) {
           this.hasActiveSession = false;
@@ -524,6 +526,7 @@ export function scoreTrainingPlay() {
         this.$store.game.sessionId = session.sessionId;
         this.$store.game.participantRef = session.participants[0].ref;
         this.$store.game.idempotencyKey = null;
+        this.$store.game.setSessionModes(modePair);
         this.$store.game.timerRemainingMs = null;
         this.$store.game.timerStartedAt = null;
         this.$store.game.timerExpired = false;

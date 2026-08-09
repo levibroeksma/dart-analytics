@@ -211,6 +211,8 @@ export function scoreTrainingSetup() {
           participantRef: session.participants[0].ref,
           templateRef: preset.configurationTemplateId,
           configSnapshot,
+          captureModeKey: modePair.captureModeKey,
+          inputModeKey: modePair.inputModeKey,
         });
         globalThis.location.href = "/games/score-training/play";
       } catch (err: unknown) {

@@ -1,45 +1,78 @@
+type VisitLike = {
+  totalScore: number;
+  completedAt?: string | null;
+  darts?: unknown[];
+};
+
 /**
- * Last visit score for progress StatRows, or an em dash when the leg/session
- * has no turns yet.
+ * The visits that have actually resolved. A board session leaves the visit
+ * being thrown open (`completedAt === null`) until its third dart, and a turn
+ * that is still open carries a running total, not a result — folding it into a
+ * completed-visit statistic reports the middle of a visit as though it were the
+ * end of one. A quick-score turn is stamped complete when it is written, so
+ * this filter never removes anything from a quick-score session.
  */
-export function previousScoreDisplay(turns: { totalScore: number }[]): string {
+function completedVisits<T extends VisitLike>(turns: T[]): T[] {
+  return turns.filter((turn) => turn.completedAt !== null);
+}
+
+/** The visit still being thrown, or null when the last one resolved. */
+function openVisit<T extends VisitLike>(turns: T[]): T | null {
   const last = turns.at(-1);
+  return last && last.completedAt === null ? last : null;
+}
+
+/**
+ * Last *completed* visit score for progress StatRows, or an em dash when the
+ * leg/session has none yet. Deliberately not the open visit's running total,
+ * which would label the current visit as the previous one.
+ */
+export function previousScoreDisplay(turns: VisitLike[]): string {
+  const last = completedVisits(turns).at(-1);
   return last ? String(last.totalScore) : "—";
 }
 
 /**
- * Darts thrown for display, counted as visits × max darts per turn (not
- * actual dart rows). Matches the live 501 / Score Training StatRow rule.
+ * Darts thrown for display: `maxDartsPerTurn` for every resolved visit, plus
+ * the darts actually thrown so far in the visit still open. Under quick score
+ * no visit is ever open and every turn counts a full `maxDartsPerTurn`, which
+ * is the original rule — the count only becomes finer-grained when the session
+ * captures darts individually and the number is genuinely known.
  */
 export function dartsThrownCount(
-  turnCount: number,
+  turns: VisitLike[],
   maxDartsPerTurn: number,
 ): number {
-  return turnCount * maxDartsPerTurn;
+  const open = openVisit(turns);
+  return (
+    completedVisits(turns).length * maxDartsPerTurn + (open?.darts?.length ?? 0)
+  );
 }
 
 /**
  * Per-visit average as a one-decimal display string. Used by Score Training's
  * `threeDartAverage()` (full visits make this equal to 3-dart average).
  */
-export function perVisitAverageDisplay(
-  turns: { totalScore: number }[],
-): string {
-  if (turns.length === 0) return "0.0";
-  const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
-  return (total / turns.length).toFixed(1);
+export function perVisitAverageDisplay(turns: VisitLike[]): string {
+  const completed = completedVisits(turns);
+  if (completed.length === 0) return "0.0";
+  const total = completed.reduce((sum, turn) => sum + turn.totalScore, 0);
+  return (total / completed.length).toFixed(1);
 }
 
 /**
- * Classic 3-dart average as a one-decimal display string, using turn×max
- * dart counting. Used by 501's `averageThisLeg()`.
+ * Classic 3-dart average as a one-decimal display string, over resolved visits
+ * only. An open visit contributes neither its running total nor its darts:
+ * counting a 60 thrown with one dart against a whole visit's worth of darts
+ * reports a third of the real average.
  */
 export function threeDartAverageDisplay(
-  turns: { totalScore: number }[],
+  turns: VisitLike[],
   maxDartsPerTurn: number,
 ): string {
-  const dartsThrown = dartsThrownCount(turns.length, maxDartsPerTurn);
+  const completed = completedVisits(turns);
+  const dartsThrown = completed.length * maxDartsPerTurn;
   if (dartsThrown === 0) return "0.0";
-  const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
+  const total = completed.reduce((sum, turn) => sum + turn.totalScore, 0);
   return ((total / dartsThrown) * 3).toFixed(1);
 }

@@ -68,6 +68,8 @@ const SESSION_INPUT = {
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
   },
+  captureModeKey: "RECREATIONAL",
+  inputModeKey: "QUICK_SCORE",
 } as const;
 
 const FACTS: EngineFacts = {
@@ -318,13 +320,15 @@ describe("gameStore", () => {
     gameStore(factory);
     for (const init of pendingInits) init();
 
-    expect(factoryCalls).toBe(13);
+    expect(factoryCalls).toBe(15);
     expect(aliasesAtInit).toEqual([
       "game._v",
       "game.gameTypeKey",
       "game.rulesetVersionKey",
       "game.sessionId",
       "game.participantRef",
+      "game.captureModeKey",
+      "game.inputModeKey",
       "game.configSnapshot",
       "game.templateRef",
       "game.stages",

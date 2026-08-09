@@ -112,10 +112,19 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
     participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: quickPlayConfig(),
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "QUICK_SCORE",
     stages: [LEG_1],
     turns: [],
     idempotencyKey: null,
     loading: false,
+    setSessionModes: vi.fn(function (
+      this: GameStub,
+      modes: { captureModeKey: string; inputModeKey: string },
+    ) {
+      this.captureModeKey = modes.captureModeKey;
+      this.inputModeKey = modes.inputModeKey;
+    }),
     recordFacts: vi.fn(function (this: GameStub, facts: EngineFacts) {
       this.stages = [...facts.stages];
       this.turns = [...facts.turns];

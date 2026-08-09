@@ -11,6 +11,7 @@ import type {
 } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
+  ModePair,
   RulesetVersionKey,
   ScoreTrainingSnapshot,
   FiveOhOneSnapshot,
@@ -44,6 +45,8 @@ export type ScoreTrainingPlayContext = {
       participantRef: string | null;
       templateRef: string | null;
       configSnapshot: ScoreTrainingSnapshot | null;
+      captureModeKey: string | null;
+      inputModeKey: string | null;
       stages: StageFact[];
       turns: TurnFact[];
       timerRemainingMs?: number | null;
@@ -52,6 +55,7 @@ export type ScoreTrainingPlayContext = {
       idempotencyKey?: string | null;
       loading: boolean;
       recordFacts(facts: EngineFacts): void;
+      setSessionModes(modes: ModePair): void;
       reset(): void;
     };
     settings: {
@@ -184,11 +188,14 @@ export type FiveOhOnePlayContext = {
       participantRef: string | null;
       templateRef: string | null;
       configSnapshot: FiveOhOneSnapshot | null;
+      captureModeKey: string | null;
+      inputModeKey: string | null;
       stages: StageFact[];
       turns: TurnFact[];
       idempotencyKey?: string | null;
       loading: boolean;
       recordFacts(facts: EngineFacts): void;
+      setSessionModes(modes: ModePair): void;
       reset(): void;
     };
     settings: {
