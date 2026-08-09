@@ -90,6 +90,22 @@ The frontend sends gameplay-derived payloads. It does not send persistence UUIDs
 
 ---
 
+# Visual Board Input
+
+An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer on a drawn board, instead of a typed visit total. Only 501 and Score Training offer it; the mode pair is chosen at setup and resolved by `lib/game/session-mode-resolution.ts`.
+
+**The gesture is press-drag-release, never a bare tap.** On `pointerdown` a magnifier opens beside the fingertip showing the board under the crosshair plus the live resolved read (`TREBLE 20 · 60`). Dragging moves the point; nothing is committed until `pointerup`. `pointercancel` discards. A press that never moves still commits at its own position, so a confident throw costs one gesture.
+
+Nothing commits on press because the treble ring is ~10 mm tall against a ~45 px fingertip: the player must be able to see what is under the crosshair and correct before letting go. A misread tap is not a cosmetic error — it writes a wrong `hitZoneKey` and coordinate pair into the fact log, and completed gameplay is immutable (D199).
+
+**"Dart not seen"** commits a `MISS` with `locationX`/`locationY` null — the pair is written together or not at all (`chk_dart_location_pair`). This is the honest record of a dart whose landing point the player never observed; it is not a zero-score dart that landed somewhere.
+
+**The keypad is the accessible alternative and stays rendered for every session**, visual ones included — it is not swapped out for the board. A whole visit can be entered by keyboard alone. Both engines dispatch `record()`, `wouldComplete()` and `undo()` on the *shape* of the input (visit total vs `DartObservation`), never on the session's stored mode, so the two input paths coexist within one session and `undo()` stays an exact inverse of whichever one wrote the turn (D198).
+
+Pieces: `components/ui/DartBoard.astro` (presentational SVG, mm viewBox), `components/ui/BoardMagnifier.astro` (overlay), `components/layout/games/BoardInputPanel.astro` (the block both play pages mount), `modules/game/board-input.module.ts` (pure transform, placement and state machine), `lib/game/board-input.data.ts` (the Alpine/DOM bridge). <!-- 2026-08-09 -->
+
+---
+
 # Data Flow
 
 ## Write flow
