@@ -7,11 +7,11 @@
  * resolved read below it.
  *
  * Mounts inside an ancestor's `x-data` scope — it declares none of its own.
- * That ancestor (`boardInputData()`, wired in Task 6) must expose these as
- * plain reactive properties, reachable by name from wherever this component
- * sits in the DOM:
+ * That ancestor (`boardInputData()`) must expose these as plain reactive
+ * properties, reachable by name from wherever this component sits in the
+ * DOM:
  * - `input: BoardInputController` — reads `active`, `point`, `preview`,
- *   `placement` and `magnifierSize`
+ *   `placement`, `magnifierSize` and `pxPerMm`
  * - `pointerX` / `pointerY: number` — last pointer position, viewport px
  *
  * The rendered diameter is read from `input.magnifierSize` rather than passed
@@ -20,6 +20,25 @@
  * Zoom is purely visual — the controller never consumes it — so it stays an
  * Astro prop, applied through the `--mag-zoom` custom property and never
  * entering Alpine's scope at all.
+ *
+ * The inner board is scaled by `zoom * input.pxPerMm`, not `zoom` alone. The
+ * board underneath is `w-full`, so its displayed scale ranges from ~0.65
+ * px/mm on a small phone to ~3.2 px/mm on desktop; multiplying zoom by the
+ * live px/mm reading keeps magnification a fixed multiple of the displayed
+ * board (`zoom`×) across every viewport, rather than a fixed absolute scale
+ * that is barely visible on a wide screen. `--mag-zoom` supplies the `zoom`
+ * factor; `input.pxPerMm` supplies the rest, so the two numbers are never
+ * duplicated into one.
+ *
+ * The circle's `:style` binding is an OBJECT, not a template-literal string,
+ * and this is load-bearing: Alpine's string-form style binding replaces the
+ * whole `style` attribute (`setAttribute("style", value)`), which would wipe
+ * the static `--mag-zoom` custom property the instant Alpine mounts. The
+ * object form merges individual properties instead (`style.setProperty`) and
+ * leaves the rest of the attribute — including `--mag-zoom` — intact, so the
+ * child's `var(--mag-zoom)` still resolves. Confirmed with a real browser:
+ * the string form silently drops the whole `transform` declaration (invalid
+ * `var()`), which a hand-written Alpine stub never exercises.
  *
  * Positioned `fixed`, not `absolute`: `pointerX`/`pointerY` are `clientX`/
  * `clientY`, and the controller clamps its placement against the visual
@@ -64,12 +83,12 @@ const circleClass = cn(
   <div
     class={circleClass}
     style={`--mag-zoom: ${zoom}`}
-    :style="`width: ${input.magnifierSize}px; height: ${input.magnifierSize}px`"
+    :style="{ width: `${input.magnifierSize}px`, height: `${input.magnifierSize}px` }"
   >
     <div class="absolute inset-0 flex items-center justify-center">
       <div
         class="h-[440px] w-[440px] shrink-0"
-        :style="`transform: scale(var(--mag-zoom)) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
+        :style="`transform: scale(calc(var(--mag-zoom) * ${input.pxPerMm})) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
       >
         <DartBoard />
       </div>
