@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import {
+  boardInputData,
+  magnifierAnchorStyle,
+  magnifierBoardStyle,
+  magnifierRead,
+  markersForTurns,
+} from "@lib/game/board-input.data";
+import type { BoardView } from "@lib/types";
 import type { DartFact, DartObservation, TurnFact } from "@modules/types";
 
 function fakeBoard(): SVGSVGElement {
@@ -293,6 +300,75 @@ describe("boardInputData", () => {
     expect(data.visitMarkers()).toEqual([
       { sequence: 1, leftPercent: 50, topPercent: (118 / 440) * 100 },
     ]);
+  });
+});
+
+describe("magnifier styles", () => {
+  const idle: BoardView = {
+    active: false,
+    point: null,
+    preview: null,
+    placement: null,
+    magnifierSize: 0,
+    pxPerMm: 1,
+  };
+
+  it("anchors the magnifier at the pointer plus the clamped placement offset", () => {
+    expect(
+      magnifierAnchorStyle(
+        { ...idle, placement: { offsetX: -76, offsetY: -76 } },
+        200,
+        300,
+      ),
+    ).toBe("left: 124px; top: 224px");
+  });
+
+  /**
+   * `board` is idle for the whole time between page load and the first press,
+   * so every helper must render something valid then — an expression that
+   * dereferenced `placement` or `point` unguarded would throw inside Alpine's
+   * evaluator and leave the binding unset.
+   */
+  it("anchors at the bare pointer while no press has placed it yet", () => {
+    expect(magnifierAnchorStyle(idle, 10, 20)).toBe("left: 10px; top: 20px");
+  });
+
+  it("slides the pressed point under the crosshair at the board's live scale", () => {
+    expect(
+      magnifierBoardStyle({ ...idle, point: { x: 12, y: -34 }, pxPerMm: 1.4 }),
+    ).toBe(
+      "transform: scale(calc(var(--mag-zoom) * 1.4)) translate(-12px, 34px)",
+    );
+  });
+
+  it("keeps the zoom factor a CSS custom property rather than an Alpine value", () => {
+    expect(magnifierBoardStyle(idle)).toContain("var(--mag-zoom)");
+  });
+
+  it("centres the untranslated board while idle", () => {
+    expect(magnifierBoardStyle(idle)).toContain("translate(0px, 0px)");
+  });
+
+  it("prints the resolved zone, target and score", () => {
+    expect(
+      magnifierRead({
+        ...idle,
+        preview: { zoneKey: "TREBLE", targetNumber: 20, score: 60 },
+      }),
+    ).toBe("TREBLE 20 · 60");
+  });
+
+  it("prints no target for a zone that has none", () => {
+    expect(
+      magnifierRead({
+        ...idle,
+        preview: { zoneKey: "MISS", targetNumber: null, score: 0 },
+      }),
+    ).toBe("MISS  · 0");
+  });
+
+  it("prints nothing before the first press", () => {
+    expect(magnifierRead(idle)).toBe("");
   });
 });
 

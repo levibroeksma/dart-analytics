@@ -30,6 +30,44 @@ function idleView(): BoardView {
   };
 }
 
+/** Gap in pixels between the magnifier circle and the read printed under it. */
+const MAGNIFIER_LABEL_GAP = 8;
+
+/**
+ * The magnifier's own position, in viewport pixels, for one pointer position.
+ * The anchor is `clientX`/`clientY` and the placement offsets were clamped
+ * against the visual viewport, so the element this drives is `fixed`.
+ */
+export function magnifierAnchorStyle(
+  view: BoardView,
+  pointerX: number,
+  pointerY: number,
+): string {
+  const offsetX = view.placement ? view.placement.offsetX : 0;
+  const offsetY = view.placement ? view.placement.offsetY : 0;
+  return `left: ${pointerX + offsetX}px; top: ${pointerY + offsetY}px`;
+}
+
+/**
+ * The transform that slides the board point under the finger beneath the
+ * crosshair, at `--mag-zoom` times the board's CURRENT displayed scale. The
+ * zoom factor stays a CSS custom property so it never enters Alpine's scope;
+ * multiplying it here by the live `pxPerMm` keeps magnification a fixed
+ * multiple of the displayed board across every viewport.
+ */
+export function magnifierBoardStyle(view: BoardView): string {
+  const x = view.point ? view.point.x : 0;
+  const y = view.point ? view.point.y : 0;
+  return `transform: scale(calc(var(--mag-zoom) * ${view.pxPerMm})) translate(${-x}px, ${-y}px)`;
+}
+
+/** The resolved read printed under the magnifier, blank before the first press. */
+export function magnifierRead(view: BoardView): string {
+  if (!view.preview) return "";
+  const target = view.preview.targetNumber ?? "";
+  return `${view.preview.zoneKey} ${target} · ${view.preview.score}`;
+}
+
 type BoardInputDataContext = {
   input: BoardInputController | null;
   board: BoardView;
@@ -38,6 +76,11 @@ type BoardInputDataContext = {
   $refs: { board: SVGSVGElement };
   $store: { game: { turns: TurnFact[] } };
   syncBoard(this: BoardInputDataContext): void;
+  magnifierAnchor(this: BoardInputDataContext): string;
+  magnifierBox(this: BoardInputDataContext): Record<string, string>;
+  magnifierBoard(this: BoardInputDataContext): string;
+  magnifierLabel(this: BoardInputDataContext): string;
+  magnifierRead(this: BoardInputDataContext): string;
   onPointerDown(this: BoardInputDataContext, event: PointerEvent): void;
   onPointerMove(this: BoardInputDataContext, event: PointerEvent): void;
   onPointerUp(this: BoardInputDataContext): void;
@@ -134,6 +177,29 @@ export function boardInputData(
         magnifierSize: controller.magnifierSize,
         pxPerMm: controller.pxPerMm,
       };
+    },
+
+    magnifierAnchor(this: BoardInputDataContext): string {
+      return magnifierAnchorStyle(this.board, this.pointerX, this.pointerY);
+    },
+
+    magnifierBox(this: BoardInputDataContext): Record<string, string> {
+      return {
+        width: `${this.board.magnifierSize}px`,
+        height: `${this.board.magnifierSize}px`,
+      };
+    },
+
+    magnifierBoard(this: BoardInputDataContext): string {
+      return magnifierBoardStyle(this.board);
+    },
+
+    magnifierLabel(this: BoardInputDataContext): string {
+      return `top: ${this.board.magnifierSize + MAGNIFIER_LABEL_GAP}px`;
+    },
+
+    magnifierRead(this: BoardInputDataContext): string {
+      return magnifierRead(this.board);
     },
 
     onPointerDown(this: BoardInputDataContext, event: PointerEvent) {
