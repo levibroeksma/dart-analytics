@@ -193,18 +193,27 @@ export class ScoreTrainingEngine implements GameEngine<
    * Pops the last recorded unit — a whole visit under quick score, a single
    * dart under visual capture, taking the turn with it when that dart was the
    * only one in it.
+   *
+   * Dispatches on the shape of the last recorded turn, never on
+   * `this.inputMode`: `record()` already discriminates its input by shape
+   * rather than by the engine's own tag, so a board-shaped input can reach
+   * the fact log on an engine tagged `QUICK_SCORE` (and vice versa via the
+   * keypad fallback) — undo has no input to read a shape from, so it reads
+   * the shape of what `record()` actually wrote instead. A turn built from a
+   * keypad total always has `darts: []`; a turn built from a board dart
+   * always holds at least one dart from the moment it exists in the log
+   * (`recordDart` opens a turn and appends its first dart in the same call,
+   * so a zero-dart board turn is never observable outside that call).
    * @returns true if something was removed; false if there was nothing to undo.
    */
   undo(): boolean {
-    if (this.turns.length === 0) return false;
+    const turn = this.turns.at(-1);
+    if (!turn) return false;
 
-    if (this.inputMode !== "VISUAL_BOARD") {
+    if (turn.darts.length === 0) {
       this.turns.pop();
       return true;
     }
-
-    const turn = this.turns.at(-1);
-    if (!turn) return false;
 
     turn.darts.pop();
     if (turn.darts.length === 0) {

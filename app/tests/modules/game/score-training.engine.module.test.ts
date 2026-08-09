@@ -573,3 +573,55 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     expect(engine.facts().turns).toHaveLength(0);
   });
 });
+
+describe("ScoreTrainingEngine.undo — dispatches on the fact log's shape, not on inputMode", () => {
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  it("undoing a defaulted (QUICK_SCORE-tagged) engine after two board darts removes exactly one dart and leaves the first intact", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(2);
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(1);
+    expect(engine.facts().turns.at(-1)!.totalScore).toBe(60);
+  });
+
+  it("is an exact inverse across a mixed sequence for an engine tagged QUICK_SCORE (defaulted)", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.facts().turns).toHaveLength(1);
+
+    engine.record(41);
+    expect(engine.facts().turns).toHaveLength(2);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(2);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+
+    expect(engine.undo()).toBe(false);
+  });
+});

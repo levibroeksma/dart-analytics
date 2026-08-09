@@ -381,29 +381,38 @@ export class FiveOhOneEngine implements GameEngine<
    * and removes the leg stage that visit opened. The stage only goes when the
    * popped turn belonged to an earlier leg — that is exactly the case where
    * `record()` appended a stage — so undoing a visit played inside a new leg
-   * leaves that leg open. Under `VISUAL_BOARD`, one dart goes at a time:
-   * popping a visit's only dart pops the visit itself, by the same rule;
-   * popping one of several darts instead clears `completedAt` and recomputes
-   * `totalScore` from the darts left behind, reopening the visit.
+   * leaves that leg open.
+   *
+   * Dispatches on the shape of the last recorded turn, never on
+   * `this.inputMode`: `record()` and `wouldComplete()` already discriminate
+   * their input by shape rather than by the engine's own tag, so a
+   * board-shaped input can reach the fact log on an engine tagged
+   * `QUICK_SCORE` (and vice versa via the keypad fallback) — undo has no
+   * input to read a shape from, so it reads the shape of what `record()`
+   * actually wrote instead. A turn built from a keypad total always has
+   * `darts: []`; a turn built from a board dart always holds at least one
+   * dart from the moment it exists in the log (`recordDart` opens a visit and
+   * appends its first dart in the same call, so a zero-dart board turn is
+   * never observable outside that call). One dart goes at a time when the
+   * last turn holds darts: popping a visit's only dart pops the visit itself,
+   * by the same rule; popping one of several darts instead clears
+   * `completedAt` and recomputes `totalScore` from the darts left behind,
+   * reopening the visit.
    * @returns true if a dart or a visit was removed; false if there was
    *   nothing to undo.
    */
   undo(): boolean {
-    if (this.inputMode === "VISUAL_BOARD") {
-      return this.undoDart();
-    }
+    const last = this.turns.at(-1);
+    if (!last) return false;
 
+    return last.darts.length > 0 ? this.undoDart() : this.undoVisitTotal();
+  }
+
+  private undoVisitTotal(): boolean {
     const removed = this.turns.pop();
     if (!removed) return false;
 
-    const openLeg = this.stages.at(-1);
-    if (
-      this.stages.length > 1 &&
-      openLeg &&
-      openLeg.clientKey !== removed.stageClientKey
-    ) {
-      this.stages.pop();
-    }
+    this.popStageOpenedBy(removed.stageClientKey);
     return true;
   }
 
@@ -412,15 +421,7 @@ export class FiveOhOneEngine implements GameEngine<
     if (!visit) return false;
 
     visit.darts.pop();
-
-    const openLeg = this.stages.at(-1);
-    if (
-      this.stages.length > 1 &&
-      openLeg &&
-      openLeg.clientKey !== visit.stageClientKey
-    ) {
-      this.stages.pop();
-    }
+    this.popStageOpenedBy(visit.stageClientKey);
 
     if (visit.darts.length === 0) {
       this.turns.pop();
@@ -430,6 +431,21 @@ export class FiveOhOneEngine implements GameEngine<
     visit.totalScore = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
     visit.completedAt = null;
     return true;
+  }
+
+  /**
+   * Pops the open leg's stage when it was opened by the turn now being
+   * undone — the same stage `record()` would have appended for that turn.
+   */
+  private popStageOpenedBy(stageClientKey: string): void {
+    const openLeg = this.stages.at(-1);
+    if (
+      this.stages.length > 1 &&
+      openLeg &&
+      openLeg.clientKey !== stageClientKey
+    ) {
+      this.stages.pop();
+    }
   }
 
   /**
