@@ -25,7 +25,12 @@ import {
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
 import type { FiveOhOnePlayContext } from "@lib/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 import type { FiveOhOneSnapshot } from "@lib/types";
 
 const ACTIVE_SESSION = {
@@ -122,12 +127,51 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   };
 }
 
-function makePlay(gameOverrides: Partial<GameStub> = {}) {
+type SettingsStub = { inputModeKey: string };
+
+function settingsStub(overrides: Partial<SettingsStub> = {}): SettingsStub {
+  return { inputModeKey: "QUICK_SCORE", ...overrides };
+}
+
+function makePlay(
+  gameOverrides: Partial<GameStub> = {},
+  settingsOverrides: Partial<SettingsStub> = {},
+) {
   return {
     ...fiveOhOnePlay(),
-    $store: { game: gameStub(gameOverrides) },
+    $store: {
+      game: gameStub(gameOverrides),
+      settings: settingsStub(settingsOverrides),
+    },
   } as FiveOhOnePlayContext;
 }
+
+/**
+ * Board coordinates reused from `board-input.data.test.ts`: `(0, -102)` sits
+ * mid-treble on sector 20, `(0, -50)` mid inner-single on sector 20, `(0,
+ * -166)` mid-double on sector 20 — the same landmarks the input-controller
+ * tests already pin, so a location here means the same thing there.
+ */
+const TREBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "TREBLE",
+  locationX: 0,
+  locationY: -102,
+};
+
+const SINGLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "INNER_SINGLE",
+  locationX: 0,
+  locationY: -50,
+};
+
+const DOUBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "DOUBLE",
+  locationX: 0,
+  locationY: -166,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -703,5 +747,181 @@ describe("playAgain", () => {
         overrides: { legs_to_win: 3 },
       },
     });
+  });
+});
+
+describe("init — engine input mode", () => {
+  it("constructs a VISUAL_BOARD engine when the settings store says so", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, SINGLE_20);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts[0].score).toBe(20);
+  });
+});
+
+describe("recordDart — plain darts", () => {
+  it("opens a visit and records one dart without closing it", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, SINGLE_20);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].completedAt).toBeNull();
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    // remainingScore folds the still-open visit's running total, so the
+    // score drops after this one dart even though the visit has not closed —
+    // this is the "live read while dragging/after release" behaviour.
+    expect(play.remainingScore.call(play)).toBe(501 - 20);
+  });
+
+  it("closes the visit on the third dart and drops the remaining score", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].completedAt).not.toBeNull();
+    expect(play.$store.game.turns[0].darts).toHaveLength(3);
+    expect(play.remainingScore.call(play)).toBe(501 - 60);
+  });
+
+  it("undo removes one dart at a time, not the whole visit", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+
+    play.undoVisit.call(play);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts).toHaveLength(1);
+  });
+});
+
+describe("recordDart — checkout on a double vs. the same score on a treble", () => {
+  it("a double that reaches zero checks out the leg", async () => {
+    const play = makePlay(
+      { turns: turnsReaching(40), configSnapshot: bestOf5Config() },
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+
+    await play.recordDart.call(play, DOUBLE_20);
+
+    expect(play.$store.game.stages).toHaveLength(2);
+    expect(play.remainingScore.call(play)).toBe(501);
+    const closedVisit = play.$store.game.turns.at(-1)!;
+    expect(closedVisit.totalScore).toBe(40);
+  });
+
+  it("the same score reached on a treble busts instead of checking out", async () => {
+    const play = makePlay(
+      { turns: turnsReaching(60), configSnapshot: bestOf5Config() },
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+
+    await play.recordDart.call(play, TREBLE_20);
+
+    expect(play.$store.game.stages).toHaveLength(1);
+    expect(play.remainingScore.call(play)).toBe(60);
+    const bustedVisit = play.$store.game.turns.at(-1)!;
+    expect(bustedVisit.totalScore).toBe(0);
+    expect(bustedVisit.darts[0]!.score).toBe(60);
+  });
+});
+
+describe("recordDart — match-ending checkout defers to the confirm dialog", () => {
+  it("opens showMatchFinishConfirm instead of recording immediately", async () => {
+    const play = makePlay(
+      { turns: turnsReaching(40) }, // Quick Play: legsToWin 1
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    const turnCountBefore = play.$store.game.turns.length;
+
+    await play.recordDart.call(play, DOUBLE_20);
+
+    expect(play.showMatchFinishConfirm).toBe(true);
+    expect(play.pendingDartObservation).toEqual(DOUBLE_20);
+    expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+    expect(play.finished).toBe(false);
+  });
+
+  it("confirmMatchFinish records the deferred dart, finishes, and uploads", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 1 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay(
+      { turns: turnsReaching(40) },
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    await play.recordDart.call(play, DOUBLE_20);
+    expect(play.showMatchFinishConfirm).toBe(true);
+
+    await play.confirmMatchFinish.call(play);
+
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.pendingDartObservation).toBeNull();
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
+
+  it("cancelMatchFinish records nothing and leaves the match open", async () => {
+    const play = makePlay(
+      { turns: turnsReaching(40) },
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    const turnCountBefore = play.$store.game.turns.length;
+    await play.recordDart.call(play, DOUBLE_20);
+    expect(play.showMatchFinishConfirm).toBe(true);
+
+    play.cancelMatchFinish.call(play);
+
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.pendingDartObservation).toBeNull();
+    expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+    expect(play.finished).toBe(false);
+    expect(appendBatch).not.toHaveBeenCalled();
+  });
+});
+
+describe("recordDart — an unseen dart", () => {
+  it("records a zero-score MISS dart with no coordinates", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(play.$store.game.turns).toHaveLength(1);
+    expect(play.$store.game.turns[0].darts[0]).toMatchObject({
+      score: 0,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(play.remainingScore.call(play)).toBe(501);
   });
 });

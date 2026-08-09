@@ -3,7 +3,12 @@ import type { SessionActiveData } from "@client/api/types";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   RulesetVersionKey,
@@ -152,6 +157,7 @@ export type FiveOhOnePlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { total: number; legs: number; average: number } | null;
   pendingCheckoutScore: number | null;
+  pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
   $store: {
@@ -167,6 +173,9 @@ export type FiveOhOnePlayContext = {
       loading: boolean;
       recordFacts(facts: EngineFacts): void;
       reset(): void;
+    };
+    settings: {
+      inputModeKey: string;
     };
   };
   engine: FiveOhOneEngine | null;
@@ -188,6 +197,14 @@ export type FiveOhOnePlayContext = {
     this: FiveOhOnePlayContext,
     score: number,
     finishedOnDouble: boolean,
+  ): Promise<void>;
+  recordDart(
+    this: FiveOhOnePlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: FiveOhOnePlayContext,
+    observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: FiveOhOnePlayContext): void;
   uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
