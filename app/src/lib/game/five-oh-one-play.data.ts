@@ -639,7 +639,11 @@ export function fiveOhOnePlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(
+          config,
+          undefined,
+          engineInputMode(modePair.inputModeKey),
+        );
         if (!(engine instanceof FiveOhOneEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

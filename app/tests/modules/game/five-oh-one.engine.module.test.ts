@@ -1030,3 +1030,95 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     expect(engine.state().remainingScore).toBe(501);
   });
 });
+
+describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on inputMode", () => {
+  const dartAt = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  const trebleTwenty = dartAt(0, -102);
+
+  /**
+   * The Task 7d regression: `playAgain()` used to build the replay engine as
+   * `factory.create(config)` with no third argument, so a genuinely
+   * VISUAL_BOARD session's engine came back tagged `QUICK_SCORE` by the
+   * factory's own default — while `record()` (shape-driven) still let board
+   * darts through and recorded them correctly. The old `undo()` trusted
+   * `this.inputMode` instead of the fact log, so it popped the whole open
+   * visit — both darts — instead of the one dart the player asked to remove.
+   */
+  it("undoing a defaulted (QUICK_SCORE-tagged) engine after two board darts removes exactly one dart and leaves the first intact", () => {
+    const engine = fiveOhOneEngineFactory.create(config()) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingScore).toBe(381);
+
+    expect(engine.undo()).toBe(true);
+
+    const visit = engine.facts().turns.at(-1)!;
+    expect(visit.darts).toHaveLength(1);
+    expect(visit.darts[0].score).toBe(60);
+    expect(visit.completedAt).toBeNull();
+    expect(engine.state().remainingScore).toBe(441);
+  });
+
+  it("is an exact inverse across a mixed sequence — keypad visit, then board darts — for an engine tagged VISUAL_BOARD", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      config(),
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+
+    engine.record({ scoreAttempted: 60 });
+    expect(engine.state().remainingScore).toBe(441);
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingScore).toBe(321);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(1);
+    expect(engine.state().remainingScore).toBe(381);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state().remainingScore).toBe(441);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().remainingScore).toBe(501);
+
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("is an exact inverse across a mixed sequence for an engine tagged QUICK_SCORE (defaulted)", () => {
+    const engine = fiveOhOneEngineFactory.create(config()) as FiveOhOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingScore).toBe(321);
+
+    engine.record({ scoreAttempted: 60 });
+    expect(engine.state().remainingScore).toBe(261);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state().remainingScore).toBe(321);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(2);
+    expect(engine.state().remainingScore).toBe(381);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().remainingScore).toBe(501);
+
+    expect(engine.undo()).toBe(false);
+  });
+});
