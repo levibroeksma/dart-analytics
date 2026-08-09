@@ -90,6 +90,10 @@ export type ScoreTrainingSetupContext = {
       startSession(input: unknown): void;
       reset(): void;
     };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
   };
   $watch(
     key: "durationType",
@@ -129,6 +133,10 @@ export type FiveOhOneSetupContext = {
       sessionId: string | null;
       startSession(input: unknown): void;
       reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
     };
   };
   init(this: FiveOhOneSetupContext): Promise<void>;
