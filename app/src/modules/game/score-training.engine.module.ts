@@ -27,6 +27,19 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
 }
 
 /**
+ * Discriminates `ScoreTrainingInput` by shape, never by session mode: a
+ * keypad total is always a `number`, so anything else is a `DartObservation`
+ * regardless of what `inputMode` the engine was constructed with. `record()`
+ * and `wouldComplete()` both dispatch on this, not on `this.inputMode`, so a
+ * keypad-shaped input can never reach the dart-classification path.
+ */
+function isDartObservation(
+  input: ScoreTrainingInput,
+): input is DartObservation {
+  return typeof input !== "number";
+}
+
+/**
  * Score Training: every visit is one turn under a single exercise block.
  * Under QUICK_SCORE it is captured as a whole-visit total; under
  * VISUAL_BOARD it is captured one dart at a time, and the turn total is
@@ -87,13 +100,27 @@ export class ScoreTrainingEngine implements GameEngine<
    *   ruleset's `0..maxVisitScore` range; the log is left untouched.
    */
   record(input: ScoreTrainingInput): ScoreTrainingState {
-    if (this.inputMode === "VISUAL_BOARD") {
-      return this.recordDart(input as DartObservation);
+    if (isDartObservation(input)) {
+      return this.recordDart(input);
     }
-    return this.recordVisitTotal(input as number);
+    return this.recordVisitTotal(input);
   }
 
+  /**
+   * @throws when a dart-based turn is still open — a whole-visit total and a
+   *   part-thrown board visit are not composable, so this refuses loudly
+   *   rather than guess how to merge them. A clean visit boundary (no open
+   *   board turn) always accepts a keypad total, so the keypad stays usable
+   *   as the accessible alternative from any resting state.
+   * @throws when the total is not a whole number within the ruleset's
+   *   `0..maxVisitScore` range.
+   */
   private recordVisitTotal(visitScore: number): ScoreTrainingState {
+    if (this.openTurn() !== null) {
+      throw new Error(
+        "Finish the open visit on the board before entering a keypad total.",
+      );
+    }
     if (!this.isPlayable(visitScore)) {
       throw new Error(
         `Enter a score between 0 and ${this.config.maxVisitScore}.`,
@@ -111,10 +138,16 @@ export class ScoreTrainingEngine implements GameEngine<
     return this.state();
   }
 
-  /** The visit still being thrown, or null when the last one closed. */
+  /**
+   * The visit still being thrown, or null when the last one closed. Reads
+   * `completedAt`, not dart count — a keypad-recorded turn always has
+   * `darts: []` and is complete the instant it is pushed, so a dart-count
+   * check alone would wrongly treat it as still open and let `recordDart`
+   * append into it.
+   */
   private openTurn(): TurnFact | null {
     const last = this.turns.at(-1);
-    if (!last || last.darts.length >= DARTS_PER_VISIT) return null;
+    if (!last || last.completedAt !== null) return null;
     return last;
   }
 
@@ -194,13 +227,13 @@ export class ScoreTrainingEngine implements GameEngine<
    * session — a dart that opens a new visit never can.
    */
   wouldComplete(input: ScoreTrainingInput): boolean {
-    if (this.inputMode === "VISUAL_BOARD") {
+    if (isDartObservation(input)) {
       const turn = this.openTurn();
       if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
       return this.completesAt(this.state().turnCount + 1);
     }
 
-    if (!this.isPlayable(input as number)) return false;
+    if (!this.isPlayable(input) || this.openTurn() !== null) return false;
     return this.completesAt(this.state().turnCount + 1);
   }
 

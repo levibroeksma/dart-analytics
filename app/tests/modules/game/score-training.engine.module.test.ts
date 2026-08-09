@@ -484,3 +484,92 @@ describe("visual board capture", () => {
     });
   });
 });
+
+describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-based dispatch)", () => {
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  it("a keypad visit total on a VISUAL_BOARD engine produces the same fact-log result as the same input on a QUICK_SCORE engine", () => {
+    const visualEngine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    const quickEngine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+    ) as ScoreTrainingEngine;
+
+    visualEngine.record(85);
+    quickEngine.record(85);
+
+    const visualTurn = visualEngine.facts().turns.at(-1)!;
+    const quickTurn = quickEngine.facts().turns.at(-1)!;
+    expect(visualTurn.totalScore).toBe(85);
+    expect(visualTurn.darts).toEqual([]);
+    expect(visualTurn.totalScore).toBe(quickTurn.totalScore);
+    expect(visualTurn.darts).toEqual(quickTurn.darts);
+  });
+
+  it("accepts a keypad visit total from a clean VISUAL_BOARD engine, then opens a fresh board-driven turn afterward", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+
+    expect(() => engine.record(85)).not.toThrow();
+    engine.record(trebleTwenty);
+
+    expect(engine.facts().turns).toHaveLength(2);
+    expect(engine.facts().turns[0]!.totalScore).toBe(85);
+    expect(engine.facts().turns[0]!.darts).toEqual([]);
+    expect(engine.facts().turns[1]!.darts).toHaveLength(1);
+  });
+
+  it("rejects a keypad visit total while a board-recorded turn is still open, and leaves the fact log untouched", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    engine.record(trebleTwenty);
+    const before = engine.facts();
+
+    expect(() => engine.record(60)).toThrow();
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("wouldComplete also refuses a mid-visit keypad total rather than mis-dispatching it as a dart", () => {
+    const single = {
+      maxVisitScore: 180,
+      durationType: "ROUNDS",
+      durationValue: 1,
+    } as never;
+    const engine = scoreTrainingEngineFactory.create(
+      single,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+
+    expect(engine.wouldComplete(60)).toBe(false);
+  });
+
+  it("undo removes a keypad-recorded turn as a whole unit even on a VISUAL_BOARD engine", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      ROUNDS_10,
+      undefined,
+      "VISUAL_BOARD",
+    ) as ScoreTrainingEngine;
+    engine.record(85);
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+});

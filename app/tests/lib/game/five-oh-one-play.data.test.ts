@@ -127,10 +127,14 @@ function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   };
 }
 
-type SettingsStub = { inputModeKey: string };
+type SettingsStub = { captureModeKey: string; inputModeKey: string };
 
 function settingsStub(overrides: Partial<SettingsStub> = {}): SettingsStub {
-  return { inputModeKey: "QUICK_SCORE", ...overrides };
+  return {
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "QUICK_SCORE",
+    ...overrides,
+  };
 }
 
 function makePlay(
@@ -663,10 +667,16 @@ describe("abandonAndExit", () => {
 });
 
 describe("playAgain", () => {
-  it("replays the same template and starts a fresh engine at sequence 1", async () => {
-    const play = makePlay({
-      turns: [turnFact("t1", "leg-1", 1, 461), turnFact("t2", "leg-1", 2, 40)],
-    });
+  it("routes createSession through the player's current mode pair, not a hardcoded quick score — a finished visual session stays visual on replay", async () => {
+    const play = makePlay(
+      {
+        turns: [
+          turnFact("t1", "leg-1", 1, 461),
+          turnFact("t2", "leg-1", 2, 40),
+        ],
+      },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    );
     play.completionStatus = "succeeded";
     play.finished = true;
 
@@ -686,8 +696,8 @@ describe("playAgain", () => {
     expect(createSession).toHaveBeenCalledWith({
       gameTypeKey: "501",
       rulesetVersionKey: "501_V1",
-      captureModeKey: "RECREATIONAL",
-      inputModeKey: "QUICK_SCORE",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
       config: {
         source: "template",
         templateRef: "tpl-1",
@@ -705,6 +715,34 @@ describe("playAgain", () => {
     await play.submitVisit.call(play);
     expect(play.$store.game.turns).toHaveLength(1);
     expect(play.$store.game.turns[0].sequence).toBe(1);
+  });
+
+  it("falls back to quick score when no mode settings are available", async () => {
+    const play = makePlay({
+      turns: [turnFact("t1", "leg-1", 1, 461), turnFact("t2", "leg-1", 2, 40)],
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }),
+    );
   });
 
   it("sets playAgainError and leaves completionStatus untouched on failure", async () => {

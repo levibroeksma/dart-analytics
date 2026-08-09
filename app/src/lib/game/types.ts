@@ -183,6 +183,7 @@ export type FiveOhOnePlayContext = {
       reset(): void;
     };
     settings: {
+      captureModeKey: string;
       inputModeKey: string;
     };
   };
