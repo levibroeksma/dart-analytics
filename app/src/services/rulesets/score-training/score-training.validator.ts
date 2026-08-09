@@ -20,11 +20,33 @@ import type {
 const DEFAULT_MAX_VISIT_SCORE = 180;
 
 /**
+ * The ROUNDS cap, as one expression both mode pairs reach. A visit is a visit
+ * whichever way it was entered, so a session limited to N visits is limited to
+ * N visits on the board too — the cap belongs to the config, not to the
+ * capture mode.
+ */
+function roundsLimitRejection(
+  config: Record<string, unknown>,
+  batch: EventsBatchRequestInput,
+  existingTurnCount: number,
+): BatchValidationResult {
+  if (exceedsRoundsLimit(config, batch, existingTurnCount)) {
+    return {
+      valid: false,
+      code: "VALIDATION_FAILED",
+      issues: [`session is limited to ${config.duration_value} visits`],
+    };
+  }
+  return { valid: true };
+}
+
+/**
  * Score Training supports two mode pairs. Under RECREATIONAL + QUICK_SCORE
  * every turn is a visit total with no dart rows, capped at the ruleset's own
  * `max_visit_score`. Under ANALYTICS + VISUAL_BOARD every dart carries a
  * landing coordinate, re-derived and cross-checked by
- * `validateVisualBoardTurns`.
+ * `validateVisualBoardTurns`, and a dartless turn is a keypad visit bounded by
+ * the same `max_visit_score`. The ROUNDS cap applies to both.
  */
 export const scoreTrainingValidator: RulesetValidator = {
   validateConfig({
@@ -61,7 +83,14 @@ export const scoreTrainingValidator: RulesetValidator = {
     inputModeKey: string;
   }): BatchValidationResult {
     if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return validateVisualBoardTurns(batch);
+      const turns = validateVisualBoardTurns(
+        batch,
+        (config.max_visit_score as number | undefined) ??
+          DEFAULT_MAX_VISIT_SCORE,
+      );
+      if (!turns.valid) return turns;
+
+      return roundsLimitRejection(config, batch, existingTurnCount);
     }
 
     if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
@@ -78,14 +107,6 @@ export const scoreTrainingValidator: RulesetValidator = {
     const turns = validateQuickScoreTurns(batch, maxVisitScore);
     if (!turns.valid) return turns;
 
-    if (exceedsRoundsLimit(config, batch, existingTurnCount)) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`session is limited to ${config.duration_value} visits`],
-      };
-    }
-
-    return { valid: true };
+    return roundsLimitRejection(config, batch, existingTurnCount);
   },
 };

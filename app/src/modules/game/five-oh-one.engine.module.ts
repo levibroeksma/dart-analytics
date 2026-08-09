@@ -302,8 +302,20 @@ export class FiveOhOneEngine implements GameEngine<
    * `totalScore` goes to 0 — counted zero, thrown non-zero. That divergence is
    * the fact that makes bust rate computable, and it is why `totalScore` is
    * not simply the sum of the visit's darts here.
+   *
+   * Completion is checked before anything is written, mirroring
+   * `recordVisitTotal`: the fold that rejects a throw into a won session used
+   * to run after the dart was already pushed, so the refusal left the dart —
+   * and possibly a whole new visit — behind in the log it claimed not to have
+   * touched.
+   *
+   * @throws when the session is already complete; the fact log is left untouched.
    */
   private recordDart(observation: DartObservation): FiveOhOneState {
+    if (this.deriveState().status !== "IN_PROGRESS") {
+      throw new Error("Cannot record a visit once the session is complete");
+    }
+
     const resolved = this.resolveObservation(observation);
     const visit = this.openVisit() ?? this.openNewVisit();
 
