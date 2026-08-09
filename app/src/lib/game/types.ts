@@ -35,6 +35,7 @@ export type ScoreTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { total: number; visits: number; average: number } | null;
   pendingFinishScore: number | null;
+  pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   $store: {
     game: {
@@ -53,6 +54,10 @@ export type ScoreTrainingPlayContext = {
       recordFacts(facts: EngineFacts): void;
       reset(): void;
     };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
   };
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
@@ -65,6 +70,10 @@ export type ScoreTrainingPlayContext = {
   submitVisit(this: ScoreTrainingPlayContext): Promise<void>;
   confirmFinish(this: ScoreTrainingPlayContext): Promise<void>;
   cancelFinish(this: ScoreTrainingPlayContext): void;
+  recordDart(
+    this: ScoreTrainingPlayContext,
+    observation: DartObservation,
+  ): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   back(this: ScoreTrainingPlayContext): Promise<void>;
