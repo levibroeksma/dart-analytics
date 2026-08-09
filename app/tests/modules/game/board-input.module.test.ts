@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAGNIFIER_GAP,
   boardInput,
+  boardPxPerMm,
   magnifierPlacement,
   screenToBoard,
 } from "@modules/game/board-input.module";
@@ -76,6 +77,32 @@ describe("screenToBoard", () => {
     } as unknown as SVGSVGElement;
 
     expect(screenToBoard(detached)({ clientX: 0, clientY: 0 })).toBeNull();
+  });
+});
+
+describe("boardPxPerMm", () => {
+  it("reads the CTM's horizontal scale factor", () => {
+    const svg = {
+      getScreenCTM: () => ({ a: 3.2 }) as DOMMatrix,
+    } as unknown as SVGSVGElement;
+
+    expect(boardPxPerMm(svg)).toBe(3.2);
+  });
+
+  it("reads a different scale for a different displayed size", () => {
+    const svg = {
+      getScreenCTM: () => ({ a: 0.65 }) as DOMMatrix,
+    } as unknown as SVGSVGElement;
+
+    expect(boardPxPerMm(svg)).toBe(0.65);
+  });
+
+  it("falls back to 1 when the element has no screen CTM", () => {
+    const detached = {
+      getScreenCTM: () => null,
+    } as unknown as SVGSVGElement;
+
+    expect(boardPxPerMm(detached)).toBe(1);
   });
 });
 
@@ -258,6 +285,41 @@ describe("boardInput", () => {
     });
 
     expect(input.magnifierSize).toBe(120);
+  });
+
+  it("publishes the px-per-mm factor it was configured with", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      viewport: { width: 400, height: 800 },
+      pxPerMm: () => 3.2,
+    });
+
+    expect(input.pxPerMm).toBe(3.2);
+  });
+
+  it("publishes a default px-per-mm of 1 when none was configured", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      viewport: { width: 400, height: 800 },
+    });
+
+    expect(input.pxPerMm).toBe(1);
+  });
+
+  it("recomputes px-per-mm on every read rather than caching it at construction", () => {
+    let scale = 1;
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      viewport: { width: 400, height: 800 },
+      pxPerMm: () => scale,
+    });
+
+    expect(input.pxPerMm).toBe(1);
+    scale = 3.2;
+    expect(input.pxPerMm).toBe(3.2);
   });
 
   it("clamps placement against the same size it publishes", () => {

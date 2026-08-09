@@ -32,6 +32,23 @@ export function screenToBoard(svg: SVGSVGElement): ScreenToBoard {
   };
 }
 
+const DEFAULT_PX_PER_MM = 1;
+
+/**
+ * Pixels per board millimetre at the SVG's current displayed size, read from
+ * its screen CTM's horizontal scale factor. The board's viewBox is authored
+ * in millimetres, so this factor is exactly how many screen pixels one board
+ * millimetre currently occupies — the board is `w-full`, so it changes with
+ * viewport width and must be re-read rather than assumed constant.
+ *
+ * Falls back to 1 (no scaling) when the element has no screen CTM, which
+ * happens if a page teardown races the read.
+ */
+export function boardPxPerMm(svg: SVGSVGElement): number {
+  const matrix = svg.getScreenCTM();
+  return matrix ? matrix.a : DEFAULT_PX_PER_MM;
+}
+
 export const MAGNIFIER_GAP = 16;
 
 /**
@@ -135,6 +152,9 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
     },
     get magnifierSize() {
       return magnifierSize;
+    },
+    get pxPerMm() {
+      return options.pxPerMm ? options.pxPerMm() : DEFAULT_PX_PER_MM;
     },
 
     press(pointer) {

@@ -230,6 +230,13 @@ export type BoardInputOptions = {
   handedness?: Handedness;
   viewport?: { width: number; height: number };
   magnifierSize?: number;
+  /**
+   * Reads the board SVG's current screen scale, in pixels per board
+   * millimetre. Supplied as a closure (mirroring `toBoard`) rather than a
+   * plain number so the controller can re-read it on every access — the
+   * board is `w-full`, so this changes with viewport width.
+   */
+  pxPerMm?: () => number;
 };
 
 export type BoardInputController = {
@@ -244,6 +251,13 @@ export type BoardInputController = {
    * number and drift apart.
    */
   readonly magnifierSize: number;
+  /**
+   * Pixels per board millimetre at the board's current displayed size,
+   * recomputed on every read. The magnifier multiplies this by its own
+   * zoom factor so magnification stays a fixed multiple of the displayed
+   * board rather than a fixed absolute scale.
+   */
+  readonly pxPerMm: number;
   press(pointer: BoardPointer): void;
   move(pointer: BoardPointer): void;
   release(): void;
