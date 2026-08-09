@@ -92,7 +92,7 @@ The frontend sends gameplay-derived payloads. It does not send persistence UUIDs
 
 # Visual Board Input
 
-An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer on a drawn board, instead of a typed visit total. Only 501 and Score Training offer it; the mode pair is chosen at setup and resolved by `lib/game/session-mode-resolution.ts`.
+An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer on a drawn board, instead of a typed visit total. Only 501 and Score Training offer it. The mode pair is chosen in **Settings → App mode** (`AppModeForm.astro`), not on the game's setup screen; setup forwards the settings store through `resolveSessionModePair` (`lib/game/session-mode-resolution.ts`), which narrows the choice to what the ruleset's capability declaration actually supports. Once a session exists, the session's own stored pair — not the settings store — is the authority for how it is played and validated.
 
 **The gesture is press-drag-release, never a bare tap.** On `pointerdown` a magnifier opens beside the fingertip showing the board under the crosshair plus the live resolved read (`TREBLE 20 · 60`). Dragging moves the point; nothing is committed until `pointerup`. `pointercancel` discards. A press that never moves still commits at its own position, so a confident throw costs one gesture.
 

@@ -8,7 +8,11 @@ import {
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import type { GameEngine } from "@modules/interfaces";
-import type { FiveOhOneState, FiveOhOneVisitInput } from "@modules/types";
+import type {
+  DartZoneKey,
+  FiveOhOneState,
+  FiveOhOneVisitInput,
+} from "@modules/types";
 import type { FiveOhOneSnapshot } from "@lib/types";
 
 const config = () =>
@@ -700,15 +704,22 @@ describe("visual board capture", () => {
     legsToWin: 1,
   } as never;
 
-  const dartAt = (x: number, y: number) => ({
-    hitTargetNumber: null,
-    hitZoneKey: "MISS" as const,
-    locationX: x,
-    locationY: y,
-  });
+  /**
+   * A located dart. The engine re-classifies from the coordinate, so the
+   * claimed zone is never authoritative — but it is stated truthfully anyway,
+   * because a fixture claiming MISS while resolving to a treble reads like it
+   * covers the unseen-dart path. It does not: that path needs null
+   * coordinates, and is covered by its own tests.
+   */
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
 
-  const trebleTwenty = dartAt(0, -102);
-  const doubleTwenty = dartAt(0, -166);
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
+  const doubleTwenty = dartAt(0, -166, "DOUBLE", 20);
 
   it("deducts each dart from the remaining score as it lands", () => {
     const engine = fiveOhOneEngineFactory.create(
@@ -798,16 +809,23 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     legsToWin: 1,
   } as never;
 
-  const dartAt = (x: number, y: number) => ({
-    hitTargetNumber: null,
-    hitZoneKey: "MISS" as const,
-    locationX: x,
-    locationY: y,
-  });
+  /**
+   * A located dart. The engine re-classifies from the coordinate, so the
+   * claimed zone is never authoritative — but it is stated truthfully anyway,
+   * because a fixture claiming MISS while resolving to a treble reads like it
+   * covers the unseen-dart path. It does not: that path needs null
+   * coordinates, and is covered by its own tests.
+   */
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
 
-  const trebleTwenty = dartAt(0, -102);
-  const doubleTwenty = dartAt(0, -166);
-  const miss = dartAt(0, -190);
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
+  const doubleTwenty = dartAt(0, -166, "DOUBLE", 20);
+  const miss = dartAt(0, -190, "MISS", null);
 
   it("is false for a dart that merely opens a visit", () => {
     const engine = fiveOhOneEngineFactory.create(
@@ -868,15 +886,22 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
 });
 
 describe("FiveOhOneEngine.undo — visual board", () => {
-  const dartAt = (x: number, y: number) => ({
-    hitTargetNumber: null,
-    hitZoneKey: "MISS" as const,
-    locationX: x,
-    locationY: y,
-  });
+  /**
+   * A located dart. The engine re-classifies from the coordinate, so the
+   * claimed zone is never authoritative — but it is stated truthfully anyway,
+   * because a fixture claiming MISS while resolving to a treble reads like it
+   * covers the unseen-dart path. It does not: that path needs null
+   * coordinates, and is covered by its own tests.
+   */
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
 
-  const trebleTwenty = dartAt(0, -102);
-  const doubleTwenty = dartAt(0, -166);
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
+  const doubleTwenty = dartAt(0, -166, "DOUBLE", 20);
 
   it("undoes a checkout thrown on the second dart of a visit, popping the newly-opened leg and leaving the first dart in the earlier leg", () => {
     const config = {
@@ -945,13 +970,13 @@ describe("FiveOhOneEngine.undo — visual board", () => {
 });
 
 describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-based dispatch)", () => {
-  const dartAt = (x: number, y: number) => ({
-    hitTargetNumber: 20,
-    hitZoneKey: "TREBLE" as const,
-    locationX: x,
-    locationY: y,
-  });
-  const trebleTwenty = dartAt(0, -102);
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
 
   it("a keypad visit total on a VISUAL_BOARD engine produces the same fact-log result as the same input on a QUICK_SCORE engine", () => {
     const visualEngine = fiveOhOneEngineFactory.create(
@@ -1032,14 +1057,21 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
 });
 
 describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on inputMode", () => {
-  const dartAt = (x: number, y: number) => ({
-    hitTargetNumber: null,
-    hitZoneKey: "MISS" as const,
-    locationX: x,
-    locationY: y,
-  });
+  /**
+   * A located dart. The engine re-classifies from the coordinate, so the
+   * claimed zone is never authoritative — but it is stated truthfully anyway,
+   * because a fixture claiming MISS while resolving to a treble reads like it
+   * covers the unseen-dart path. It does not: that path needs null
+   * coordinates, and is covered by its own tests.
+   */
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
 
-  const trebleTwenty = dartAt(0, -102);
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
 
   /**
    * The Task 7d regression: `playAgain()` used to build the replay engine as
