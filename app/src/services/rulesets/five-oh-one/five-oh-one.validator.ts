@@ -57,7 +57,11 @@ export const fiveOhOneValidator: RulesetValidator = {
     inputModeKey: string;
   }): BatchValidationResult {
     if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return validateVisualBoardTurns(batch);
+      return validateVisualBoardTurns(
+        batch,
+        (config.max_visit_score as number | undefined) ??
+          DEFAULT_MAX_VISIT_SCORE,
+      );
     }
 
     if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {

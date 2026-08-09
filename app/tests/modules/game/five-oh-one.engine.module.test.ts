@@ -1129,3 +1129,60 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on in
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("FiveOhOneEngine.record — refusing a dart into a finished match", () => {
+  /**
+   * The refusal must leave the fact log untouched, which is the half that was
+   * broken: `recordDart` pushed the dart (and, at a visit boundary, a whole new
+   * turn) before the fold that rejects the throw ever ran, so a caught error
+   * left rows behind in a log the method's own contract says it did not touch.
+   * Reachable after an upload failure: the page's `finished` flag is not
+   * persisted, so a reload rebuilds a WON engine behind a live board.
+   */
+  const finishedEngine = () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...config(), startingScore: 40, legsToWin: 1 },
+      undefined,
+      "VISUAL_BOARD",
+    ) as FiveOhOneEngine;
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    return engine;
+  };
+
+  it("throws when a dart is recorded into a won match", () => {
+    const engine = finishedEngine();
+    expect(engine.state().status).toBe("WON");
+
+    expect(() =>
+      engine.record({
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      }),
+    ).toThrow(/complete/);
+  });
+
+  it("leaves the fact log untouched when it refuses", () => {
+    const engine = finishedEngine();
+    const before = JSON.stringify(engine.facts());
+
+    try {
+      engine.record({
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      });
+    } catch {
+      /* the throw is asserted above; this test is about the log */
+    }
+
+    expect(JSON.stringify(engine.facts())).toBe(before);
+  });
+});
