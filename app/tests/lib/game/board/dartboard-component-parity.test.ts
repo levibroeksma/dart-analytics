@@ -106,3 +106,32 @@ describe("DartBoard.astro matches dartboard.svg", () => {
     expect(textContentsIn(astroGroup)).toEqual(textContentsIn(svgGroup));
   });
 });
+
+describe("BoardMagnifier.astro agrees with the board's coordinate space", () => {
+  /**
+   * The magnifier renders a second board inside a fixed-size box and scales it
+   * by `zoom * pxPerMm`, with the pan expressed in raw px. That maths is only
+   * correct while the inner board is exactly 1 px per board millimetre — i.e.
+   * while its box matches the viewBox's extent. The parity test above pins the
+   * viewBox between the asset and the component, but knows nothing about the
+   * magnifier, so changing the viewBox would fail there, get the expected
+   * string updated, and leave the magnifier silently misaligned. This closes
+   * that gap: the third copy of the 440 mm extent is now pinned to the first.
+   */
+  const magnifier = readFileSync(
+    fileURLToPath(
+      new URL(
+        "../../../../src/components/ui/BoardMagnifier.astro",
+        import.meta.url,
+      ),
+    ),
+    "utf8",
+  );
+
+  it("sizes its inner board to the viewBox extent", () => {
+    const viewBox = astro.match(/<svg\s[^>]*viewBox="([^"]+)"/)?.[1];
+    const extent = viewBox!.split(",")[2];
+
+    expect(magnifier).toContain(`h-[${extent}px] w-[${extent}px]`);
+  });
+});
