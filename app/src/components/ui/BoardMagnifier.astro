@@ -1,0 +1,92 @@
+---
+/**
+ * Zoomed inset that follows the fingertip while a board press is active, so
+ * a 10 mm treble ring stays hittable on a phone. Renders a second, unlabelled
+ * `<DartBoard />` inside a clipped circle, transformed so the board point
+ * under the finger sits under the crosshair at the configured zoom, plus the
+ * resolved read below it.
+ *
+ * Mounts inside an ancestor's `x-data` scope — it declares none of its own.
+ * That ancestor (`boardInputData()`, wired in Task 6) must expose these as
+ * plain reactive properties, reachable by name from wherever this component
+ * sits in the DOM:
+ * - `input: BoardInputController` — reads `active`, `point`, `preview`,
+ *   `placement`
+ * - `pointerX` / `pointerY: number` — last pointer position, viewport px
+ * - `magnifierSize: number` — the magnifier's rendered diameter in px; must
+ *   be the exact value passed as `boardInput`'s `magnifierSize` option
+ *   (`DEFAULT_MAGNIFIER_SIZE` is 120), or the controller's placement clamp
+ *   and this component's rendered box disagree about how big the magnifier
+ *   is
+ * - `magnifierZoom: number` — board-millimetre-to-pixel zoom multiplier;
+ *   purely visual, the controller does not consume it
+ *
+ * Positioned `fixed`, not `absolute`: `pointerX`/`pointerY` are `clientX`/
+ * `clientY`, and the controller clamps its placement against the visual
+ * viewport, so both halves of the position must be read in viewport
+ * coordinates. Under `absolute` the magnifier would be displaced by however
+ * far the nearest positioned ancestor sits from the viewport origin.
+ *
+ * A visual aid duplicating the live announced read, so the whole subtree is
+ * `aria-hidden` rather than announced twice (Task 9 verifies this).
+ * @param {string} [class] Extra classes on the visible magnifier circle
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Components
+import DartBoard from "@components/ui/DartBoard.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const circleClass = cn(
+  "absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-accent bg-surface",
+  classNameProp,
+);
+---
+
+<div
+  class="pointer-events-none fixed z-10"
+  aria-hidden="true"
+  x-cloak
+  x-show="input.active"
+  :style="`left: ${pointerX + (input.placement?.offsetX ?? 0)}px; top: ${pointerY + (input.placement?.offsetY ?? 0)}px`"
+  {...props}
+>
+  <div
+    class={circleClass}
+    :style="`width: ${magnifierSize}px; height: ${magnifierSize}px`"
+  >
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div
+        class="h-[440px] w-[440px] shrink-0"
+        :style="`transform: scale(${magnifierZoom}) translate(${-(input.point?.x ?? 0)}px, ${-(input.point?.y ?? 0)}px)`"
+      >
+        <DartBoard />
+      </div>
+    </div>
+
+    <div
+      class="absolute left-1/2 top-1/2 h-4 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground"
+    >
+    </div>
+    <div
+      class="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-foreground"
+    >
+    </div>
+  </div>
+
+  <p
+    class="absolute left-0 -translate-x-1/2 whitespace-nowrap text-center text-sm font-semibold text-foreground"
+    :style="`top: ${magnifierSize + 8}px`"
+    x-text="input.preview ? `${input.preview.zoneKey} ${input.preview.targetNumber ?? ''} · ${input.preview.score}` : ''"
+  >
+  </p>
+</div>
