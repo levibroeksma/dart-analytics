@@ -44,6 +44,10 @@ describe("fiveOhOneSetup", () => {
         reset: vi.fn(),
         startSession: vi.fn(),
       },
+      settings: {
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      },
     };
   });
 
@@ -185,6 +189,96 @@ describe("fiveOhOneSetup", () => {
       }),
     );
     expect(locationSpy.href).toBe("/games/501/play");
+  });
+
+  it("sends the player's chosen supported pair from settings instead of a hardcoded one", async () => {
+    store.settings = {
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    };
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 5,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }),
+    );
+  });
+
+  it("falls back to quick score when settings holds a pair 501 does not declare", async () => {
+    store.settings = {
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    };
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 5,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }),
+    );
+  });
+
+  it("defaults to quick score when settings has not loaded", async () => {
+    store.settings = {} as any;
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 5,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }),
+    );
   });
 
   it("clamps an out-of-range legs value, sets the notice, and still creates", async () => {

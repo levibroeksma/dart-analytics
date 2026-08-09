@@ -10,6 +10,7 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import {
   clampFiveOhOneLegs,
   FIVE_OH_ONE_LEGS_MIN,
@@ -151,11 +152,15 @@ export function fiveOhOneSetup() {
           legs_to_win: value,
         };
         const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
+        const modePair = resolveSessionModePair(
+          RULESET_VERSION_KEY,
+          this.$store.settings,
+        );
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
+          captureModeKey: modePair.captureModeKey,
+          inputModeKey: modePair.inputModeKey,
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
