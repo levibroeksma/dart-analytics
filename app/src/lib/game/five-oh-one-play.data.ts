@@ -13,13 +13,20 @@ import {
 } from "@client/api/sessions";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { boardInputData } from "@lib/game/board-input.data";
 import {
   dartsThrownCount,
   previousScoreDisplay,
   threeDartAverageDisplay,
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
-import type { EngineFacts, FiveOhOneState, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  EngineInputMode,
+  FiveOhOneState,
+  TurnFact,
+} from "@modules/types";
 import type { FiveOhOnePlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -32,21 +39,34 @@ const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
 
 /**
+ * The engine's own dispatch mode, derived from the settings store's
+ * `inputModeKey`. Any value other than the literal `"VISUAL_BOARD"` resolves
+ * to `QUICK_SCORE` — the engine's own default — rather than propagating an
+ * unrecognised string into a field the engine trusts absolutely to pick which
+ * shape `record()` expects.
+ */
+function engineInputMode(inputModeKey: string): EngineInputMode {
+  return inputModeKey === "VISUAL_BOARD" ? "VISUAL_BOARD" : "QUICK_SCORE";
+}
+
+/**
  * Rebuilds the engine for the persisted session, replaying the store's fact
  * log so a reload restores the game exactly. Only this page's own ruleset is
  * ever resolved — mirrors `score-training-play.data.ts`'s `resumeEngine`.
  */
 function resumeEngine(
   game: FiveOhOnePlayContext["$store"]["game"],
+  inputMode: EngineInputMode,
 ): FiveOhOneEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
   if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
   const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
+  const engine = factory.create(
+    configSnapshot,
+    { stages: game.stages, turns: game.turns },
+    inputMode,
+  );
   return engine instanceof FiveOhOneEngine ? engine : null;
 }
 
@@ -117,7 +137,25 @@ function computeStats(
   };
 }
 
+/**
+ * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
+ * page's own `recordDart` with the live, reactive `this` Alpine binds to
+ * every directive-driven call (`@click="…"`, `init()`). `onCommit` is built
+ * once, synchronously, while this factory's returned object literal is still
+ * being constructed — at that point Alpine has not yet wrapped it in
+ * `reactive()`, so a callback written as `(observation) => this.recordDart(…)`
+ * right here would close over the wrong `this` (this factory's own call-time
+ * receiver, never the component) and silently stop updating the DOM for
+ * every local field `recordDart` touches (`finished`, `showMatchFinishConfirm`,
+ * `pendingDartObservation`, `error`) — the store mirror would still update,
+ * masking the bug in anything that only inspects `$store.game`. `init()` runs
+ * through Alpine's own evaluator after the wrap, so assigning `self = this`
+ * there captures the real reactive instance in time for the first possible
+ * board press, which cannot happen before `hasActiveSession` flips true.
+ */
 export function fiveOhOnePlay() {
+  let self: FiveOhOnePlayContext;
+
   return {
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     loading: false,
@@ -137,9 +175,11 @@ export function fiveOhOnePlay() {
       average: number;
     } | null,
     pendingCheckoutScore: null as number | null,
+    pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
     engine: null as FiveOhOneEngine | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
       const openLeg = this.$store.game.stages.at(-1);
@@ -177,6 +217,7 @@ export function fiveOhOnePlay() {
     },
 
     async init(this: FiveOhOnePlayContext) {
+      self = this;
       this.loadingReconciliation = true;
       try {
         const activeSessions = await fetchActiveSessions();
@@ -200,7 +241,10 @@ export function fiveOhOnePlay() {
         }
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
+        const engine = resumeEngine(
+          this.$store.game,
+          engineInputMode(this.$store.settings.inputModeKey),
+        );
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;
@@ -243,6 +287,57 @@ export function fiveOhOnePlay() {
       this.scoreInput.clear();
       this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
+
+      if (this.engine.isComplete()) {
+        this.finished = true;
+        this.completionStatus = "pending";
+        await this.uploadAndCompleteSession();
+      }
+    },
+
+    /**
+     * The board's per-dart counterpart to `recordVisit`: every dart the
+     * player throws, including an unseen one, arrives here from
+     * `boardInputData`'s `onCommit`. Unlike a quick-score visit, the board
+     * observation already carries the zone a dart actually landed in, so
+     * there is never a checkout that is ambiguous between a double and a
+     * bust the way `submitVisit`'s typed total is — `showDoubleConfirm`
+     * never opens for a dart. A dart that would complete the whole match is
+     * still gated behind `showMatchFinishConfirm`, because recording it
+     * uploads and completes the session immediately and that step is
+     * irreversible; a leg-only checkout or a bust commits straight away.
+     */
+    async recordDart(this: FiveOhOnePlayContext, observation: DartObservation) {
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showDoubleConfirm ||
+        this.showMatchFinishConfirm
+      )
+        return;
+
+      if (this.engine.wouldComplete(observation)) {
+        this.pendingDartObservation = observation;
+        this.showMatchFinishConfirm = true;
+        return;
+      }
+
+      await this.commitDart(observation);
+    },
+
+    /**
+     * Records one dart against the engine and refreshes displayed state
+     * exactly as `recordVisit` does for a whole visit — shared by the
+     * immediate path (`recordDart`) and the deferred match-finish confirm
+     * (`confirmMatchFinish`) so the record → mirror → complete sequence
+     * exists exactly once for board input, mirroring `recordVisit`'s own
+     * role for quick score.
+     */
+    async commitDart(this: FiveOhOnePlayContext, observation: DartObservation) {
+      if (!this.engine) return;
+      this.engine.record(observation);
+      this.error = "";
+      this.$store.game.recordFacts(this.engine.facts());
 
       if (this.engine.isComplete()) {
         this.finished = true;
@@ -349,12 +444,22 @@ export function fiveOhOnePlay() {
     },
 
     /**
-     * Confirm on the second, match-ending dialog: records the checkout that
-     * `confirmDouble` deferred, which drives `recordVisit`'s own completion
-     * check and upload.
+     * Confirm on the second, match-ending dialog: records whichever the
+     * player was deferred on — the board's dart (`recordDart`'s gate) or the
+     * keypad's checkout (`confirmDouble`'s deferral) — which drives
+     * `commitDart`'s or `recordVisit`'s own completion check and upload.
      */
     async confirmMatchFinish(this: FiveOhOnePlayContext) {
       if (!this.engine || this.finished || !this.showMatchFinishConfirm) return;
+
+      if (this.pendingDartObservation) {
+        const observation = this.pendingDartObservation;
+        this.pendingDartObservation = null;
+        this.showMatchFinishConfirm = false;
+        await this.commitDart(observation);
+        return;
+      }
+
       if (this.pendingCheckoutScore == null) return;
       const score = this.pendingCheckoutScore;
       this.pendingCheckoutScore = null;
@@ -364,12 +469,21 @@ export function fiveOhOnePlay() {
 
     /**
      * Cancel on the second, match-ending dialog. Same contract as
-     * `cancelCheckout`: nothing is recorded, and the score returns to the
-     * keypad rather than being lost.
+     * `cancelCheckout` for the keypad's deferred score: nothing is recorded,
+     * and the score returns to the keypad rather than being lost. A deferred
+     * dart has no keypad buffer to return to — the player simply throws
+     * again — so it is just discarded.
      */
     cancelMatchFinish(this: FiveOhOnePlayContext) {
-      if (!this.showMatchFinishConfirm || this.pendingCheckoutScore == null)
+      if (!this.showMatchFinishConfirm) return;
+
+      if (this.pendingDartObservation) {
+        this.pendingDartObservation = null;
+        this.showMatchFinishConfirm = false;
         return;
+      }
+
+      if (this.pendingCheckoutScore == null) return;
       this.scoreInput.setValue(String(this.pendingCheckoutScore));
       this.pendingCheckoutScore = null;
       this.showMatchFinishConfirm = false;

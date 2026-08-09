@@ -7,6 +7,8 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import FiveOhOneResults from "@components/layout/games/result-modals/FiveOhOneResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+import DartBoard from "@components/ui/DartBoard.astro";
+import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
 ---
 
 <GameLayout
@@ -31,6 +33,38 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
     />
 
     {
+      /* Visual board — the accessible keypad above stays rendered for every
+      session; this is the pointer alternative for an ANALYTICS + VISUAL_BOARD
+      session only. */
+    }
+    <div
+      x-show="!finished && hasActiveSession && $store.settings.inputModeKey === 'VISUAL_BOARD'"
+      x-cloak
+      class="mt-3 space-y-3"
+    >
+      <div
+        class="relative mx-auto w-[min(100%,60vh)] touch-none"
+        @pointerdown="onPointerDown($event)"
+        @pointermove="onPointerMove($event)"
+        @pointerup="onPointerUp()"
+        @pointercancel="onPointerCancel()"
+      >
+        <DartBoard boardRef="board" />
+        <template x-if="input !== null">
+          <BoardMagnifier />
+        </template>
+      </div>
+
+      <button
+        type="button"
+        class="w-full rounded-lg border border-border px-4 py-3 text-foreground"
+        @click="recordUnseen()"
+      >
+        Dart not seen
+      </button>
+    </div>
+
+    {
       /* Double-out confirm — 501 can only know a checkout from a bust by asking */
     }
     <div
@@ -50,7 +84,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
       <ConfirmDialog
         titleId="match-finish-confirm-title"
         title="Finish match?"
-        description="This checkout wins the match. Confirm to save and finish, or cancel to change the score."
+        description="This checkout wins the match. Confirm to save and finish, or cancel to reconsider."
         cancelLabel="Cancel"
         confirmLabel="Finish match"
         onCancel="cancelMatchFinish()"
