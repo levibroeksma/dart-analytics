@@ -22,6 +22,42 @@ export * from "./board/types";
 
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
 
+/**
+ * The `$store` shape every play page reads, parameterised by the game's own
+ * config snapshot. Written once rather than per game: the two copies had
+ * already drifted into near-identical 18-line blocks, and each new session
+ * field (most recently the mode pair) had to be added to both by hand or the
+ * pages disagreed about what the store holds.
+ *
+ * The timer fields are optional because only Score Training runs a countdown;
+ * 501 never reads them.
+ */
+export type PlayStoreContext<TConfig> = {
+  game: {
+    rulesetVersionKey: RulesetVersionKey | null;
+    sessionId: string | null;
+    participantRef: string | null;
+    templateRef: string | null;
+    configSnapshot: TConfig | null;
+    captureModeKey: string | null;
+    inputModeKey: string | null;
+    stages: StageFact[];
+    turns: TurnFact[];
+    timerRemainingMs?: number | null;
+    timerStartedAt?: string | null;
+    timerExpired?: boolean;
+    idempotencyKey?: string | null;
+    loading: boolean;
+    recordFacts(facts: EngineFacts): void;
+    setSessionModes(modes: ModePair): void;
+    reset(): void;
+  };
+  settings: {
+    captureModeKey: string;
+    inputModeKey: string;
+  };
+};
+
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
@@ -38,31 +74,7 @@ export type ScoreTrainingPlayContext = {
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
-  $store: {
-    game: {
-      rulesetVersionKey: RulesetVersionKey | null;
-      sessionId: string | null;
-      participantRef: string | null;
-      templateRef: string | null;
-      configSnapshot: ScoreTrainingSnapshot | null;
-      captureModeKey: string | null;
-      inputModeKey: string | null;
-      stages: StageFact[];
-      turns: TurnFact[];
-      timerRemainingMs?: number | null;
-      timerStartedAt?: string | null;
-      timerExpired?: boolean;
-      idempotencyKey?: string | null;
-      loading: boolean;
-      recordFacts(facts: EngineFacts): void;
-      setSessionModes(modes: ModePair): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
+  $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
   remainingLabel(this: ScoreTrainingPlayContext): string;
@@ -181,28 +193,7 @@ export type FiveOhOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
-  $store: {
-    game: {
-      rulesetVersionKey: RulesetVersionKey | null;
-      sessionId: string | null;
-      participantRef: string | null;
-      templateRef: string | null;
-      configSnapshot: FiveOhOneSnapshot | null;
-      captureModeKey: string | null;
-      inputModeKey: string | null;
-      stages: StageFact[];
-      turns: TurnFact[];
-      idempotencyKey?: string | null;
-      loading: boolean;
-      recordFacts(facts: EngineFacts): void;
-      setSessionModes(modes: ModePair): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
+  $store: PlayStoreContext<FiveOhOneSnapshot>;
   engine: FiveOhOneEngine | null;
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
   remainingScore(this: FiveOhOnePlayContext): number;

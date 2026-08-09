@@ -57,3 +57,30 @@ export function engineInputMode(
 ): EngineInputMode {
   return inputModeKey === "VISUAL_BOARD" ? "VISUAL_BOARD" : "QUICK_SCORE";
 }
+
+/**
+ * The store payload that starts a session, assembled once for both setup
+ * pages. They differ only in game type, ruleset and config snapshot; every
+ * other field is read off the same two objects, so a new session field (the
+ * mode pair was the most recent) is added here rather than in two places that
+ * must be kept in step by hand.
+ */
+export function startSessionInput(input: {
+  gameTypeKey: string;
+  rulesetVersionKey: RulesetVersionKey;
+  session: { sessionId: string; participants: { ref: string }[] };
+  templateRef: string;
+  configSnapshot: unknown;
+  modePair: ModePair;
+}) {
+  return {
+    gameTypeKey: input.gameTypeKey,
+    rulesetVersionKey: input.rulesetVersionKey,
+    sessionId: input.session.sessionId,
+    participantRef: input.session.participants[0].ref,
+    templateRef: input.templateRef,
+    configSnapshot: input.configSnapshot,
+    captureModeKey: input.modePair.captureModeKey,
+    inputModeKey: input.modePair.inputModeKey,
+  };
+}
