@@ -292,7 +292,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     engine.record(trebleTwenty);
@@ -312,7 +311,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     engine.record(trebleTwenty);
@@ -330,7 +328,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     engine.record(miss);
@@ -347,7 +344,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     engine.record(trebleTwenty);
@@ -366,7 +362,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
@@ -374,7 +369,6 @@ describe("visual board capture", () => {
     const revived = scoreTrainingEngineFactory.create(
       config,
       engine.facts(),
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     revived.record(trebleTwenty);
 
@@ -400,7 +394,6 @@ describe("visual board capture", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     engine.record(trebleTwenty);
@@ -430,7 +423,6 @@ describe("visual board capture", () => {
       const engine = scoreTrainingEngineFactory.create(
         single,
         undefined,
-        "VISUAL_BOARD",
       ) as ScoreTrainingEngine;
 
       expect(engine.wouldComplete(trebleTwenty)).toBe(false);
@@ -440,7 +432,6 @@ describe("visual board capture", () => {
       const engine = scoreTrainingEngineFactory.create(
         single,
         undefined,
-        "VISUAL_BOARD",
       ) as ScoreTrainingEngine;
 
       engine.record(trebleTwenty);
@@ -454,7 +445,6 @@ describe("visual board capture", () => {
       const engine = scoreTrainingEngineFactory.create(
         config,
         undefined,
-        "VISUAL_BOARD",
       ) as ScoreTrainingEngine;
 
       engine.record(trebleTwenty);
@@ -472,7 +462,6 @@ describe("visual board capture", () => {
       const engine = scoreTrainingEngineFactory.create(
         single,
         undefined,
-        "VISUAL_BOARD",
       ) as ScoreTrainingEngine;
 
       engine.record(trebleTwenty);
@@ -497,7 +486,6 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     const visualEngine = scoreTrainingEngineFactory.create(
       ROUNDS_10,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     const quickEngine = scoreTrainingEngineFactory.create(
       ROUNDS_10,
@@ -518,7 +506,6 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     const engine = scoreTrainingEngineFactory.create(
       ROUNDS_10,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
 
     expect(() => engine.record(85)).not.toThrow();
@@ -534,7 +521,6 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     const engine = scoreTrainingEngineFactory.create(
       ROUNDS_10,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     engine.record(trebleTwenty);
     const before = engine.facts();
@@ -552,7 +538,6 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     const engine = scoreTrainingEngineFactory.create(
       single,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
@@ -564,7 +549,6 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
     const engine = scoreTrainingEngineFactory.create(
       ROUNDS_10,
       undefined,
-      "VISUAL_BOARD",
     ) as ScoreTrainingEngine;
     engine.record(85);
 
@@ -574,7 +558,7 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
   });
 });
 
-describe("ScoreTrainingEngine.undo — dispatches on the fact log's shape, not on inputMode", () => {
+describe("ScoreTrainingEngine.undo — dispatches on the fact log's shape", () => {
   const trebleTwenty = {
     hitTargetNumber: 20,
     hitZoneKey: "TREBLE",

@@ -6,7 +6,6 @@ import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
   EngineFacts,
-  EngineInputMode,
   ScoreTrainingInput,
   ScoreTrainingState,
   StageFact,
@@ -29,9 +28,10 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
 /**
  * Discriminates `ScoreTrainingInput` by shape, never by session mode: a
  * keypad total is always a `number`, so anything else is a `DartObservation`
- * regardless of what `inputMode` the engine was constructed with. `record()`
- * and `wouldComplete()` both dispatch on this, not on `this.inputMode`, so a
- * keypad-shaped input can never reach the dart-classification path.
+ * no matter which mode the session was created in. `record()` and
+ * `wouldComplete()` both dispatch on this, so a keypad-shaped input can never
+ * reach the dart-classification path. The engine holds no mode of its own to
+ * disagree with the input it is handed.
  */
 function isDartObservation(
   input: ScoreTrainingInput,
@@ -57,7 +57,6 @@ export class ScoreTrainingEngine implements GameEngine<
   constructor(
     private readonly config: ScoreTrainingSnapshot,
     prior?: EngineFacts,
-    private readonly inputMode: EngineInputMode = "QUICK_SCORE",
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
@@ -194,11 +193,9 @@ export class ScoreTrainingEngine implements GameEngine<
    * dart under visual capture, taking the turn with it when that dart was the
    * only one in it.
    *
-   * Dispatches on the shape of the last recorded turn, never on
-   * `this.inputMode`: `record()` already discriminates its input by shape
-   * rather than by the engine's own tag, so a board-shaped input can reach
-   * the fact log on an engine tagged `QUICK_SCORE` (and vice versa via the
-   * keypad fallback) — undo has no input to read a shape from, so it reads
+   * Dispatches on the shape of the last recorded turn: `record()` already
+   * discriminates its input by shape, and both shapes can appear in one
+   * session's log, so undo — which has no input to read a shape from — reads
    * the shape of what `record()` actually wrote instead. A turn built from a
    * keypad total always has `darts: []`; a turn built from a board dart
    * always holds at least one dart from the moment it exists in the log
@@ -268,12 +265,8 @@ export const scoreTrainingEngineFactory: GameEngineFactory<
   ScoreTrainingState
 > = {
   rulesetVersionKey: "SCORE_TRAINING_V1",
-  create(
-    config: ScoreTrainingSnapshot,
-    prior?: EngineFacts,
-    inputMode?: EngineInputMode,
-  ) {
-    return new ScoreTrainingEngine(config, prior, inputMode);
+  create(config: ScoreTrainingSnapshot, prior?: EngineFacts) {
+    return new ScoreTrainingEngine(config, prior);
   },
 };
 

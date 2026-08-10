@@ -765,43 +765,6 @@ describe("playAgain", () => {
     expect(play.completionStatus).toBe("succeeded");
   });
 
-  it("constructs the replay engine with the resolved input mode, not the factory default", async () => {
-    const play = makePlay(
-      {
-        turns: [
-          turnFact("t1", "leg-1", 1, 461),
-          turnFact("t2", "leg-1", 2, 40),
-        ],
-      },
-      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
-    );
-    play.completionStatus = "succeeded";
-    play.finished = true;
-
-    vi.mocked(createSession).mockResolvedValue({
-      sessionId: "new-session",
-      participants: [
-        {
-          ref: "new-participant",
-          displayName: "Player",
-          participantTypeKey: "PLAYER",
-        },
-      ],
-    } as any);
-
-    const createSpy = vi.spyOn(fiveOhOneEngineFactory, "create");
-
-    await play.playAgain.call(play);
-
-    expect(createSpy).toHaveBeenCalledWith(
-      expect.anything(),
-      undefined,
-      "VISUAL_BOARD",
-    );
-
-    createSpy.mockRestore();
-  });
-
   it("threads the original legsToWin into the new session's config override, not the always-single-leg template's stored default", async () => {
     const play = makePlay({ configSnapshot: bestOf5Config() });
     play.completionStatus = "succeeded";

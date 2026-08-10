@@ -9,10 +9,7 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import {
-  engineInputMode,
-  resolveSessionModePair,
-} from "@lib/game/session-mode-resolution";
+import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   dartsThrownCount,
@@ -20,12 +17,7 @@ import {
   previousScoreDisplay,
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
-import type {
-  DartObservation,
-  EngineFacts,
-  EngineInputMode,
-  TurnFact,
-} from "@modules/types";
+import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
 import type { ScoreTrainingPlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -68,17 +60,15 @@ function computeStats(turns: TurnFact[]): {
  */
 function resumeEngine(
   game: ScoreTrainingPlayContext["$store"]["game"],
-  inputMode: EngineInputMode,
 ): ScoreTrainingEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
   if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
   const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
-  const engine = factory.create(
-    configSnapshot,
-    { stages: game.stages, turns: game.turns },
-    inputMode,
-  );
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
   return engine instanceof ScoreTrainingEngine ? engine : null;
 }
 
@@ -232,10 +222,7 @@ export function scoreTrainingPlay() {
         this.$store.game.setSessionModes(result.activeSession);
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(
-          this.$store.game,
-          engineInputMode(this.$store.game.inputModeKey),
-        );
+        const engine = resumeEngine(this.$store.game);
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;
@@ -542,11 +529,7 @@ export function scoreTrainingPlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(
-          config,
-          undefined,
-          engineInputMode(modePair.inputModeKey),
-        );
+        const engine = factory.create(config);
         if (!(engine instanceof ScoreTrainingEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
