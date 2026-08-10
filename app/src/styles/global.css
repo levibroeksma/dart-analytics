@@ -74,10 +74,10 @@
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
 
-  --dartboard-single-dark: oklch(100% 0 0 / 0.04);
-  --dartboard-single-light: oklch(68.5% 0.169 237.323 / 0.35);
-  --dartboard-wire-red: oklch(68.5% 0.169 237.323);
-  --dartboard-wire-green: oklch(100% 0 0 / 0.08);
+  --dartboard-single-dark: oklch(16% 0 0);
+  --dartboard-single-light: oklch(90% 0.045 90);
+  --dartboard-wire-red: oklch(50% 0.19 25);
+  --dartboard-wire-green: oklch(46% 0.14 150);
   --dartboard-label: #ffffff;
   --dartboard-segment-hover: color-mix(
     in oklab,
@@ -532,8 +532,7 @@
 
   /* Labels */
   .dartboard-group .segment text {
-    fill: var(--accent);
-    /* display: none; */
+    fill: var(--dartboard-label);
   }
   /* Bull */
   .dartboard-group .bullSegment .single {

@@ -4,7 +4,7 @@
  * a 10 mm treble ring stays hittable on a phone. Renders a second, unlabelled
  * `<DartBoard />` inside a clipped circle, transformed so the board point
  * under the finger sits under the crosshair at the configured zoom, plus the
- * resolved read below it.
+ * resolved read above it.
  *
  * Mounts inside an ancestor's `x-data` scope — it declares none of its own.
  * That ancestor (`boardInputData()`) must expose these as plain reactive
@@ -118,7 +118,7 @@ const circleClass = cn(
   </div>
 
   <p
-    class="absolute left-0 -translate-x-1/2 whitespace-nowrap text-center text-sm font-semibold text-foreground"
+    class="absolute left-0 -translate-x-1/2 -translate-y-full whitespace-nowrap text-center text-xs font-semibold text-foreground"
     :style="magnifierLabel()"
     x-text="magnifierRead()"
   >
