@@ -30,6 +30,9 @@
 // Components
 import DartBoard from "@components/ui/DartBoard.astro";
 import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
 ---
 
 <div
@@ -71,15 +74,16 @@ import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
       class="flex-1 rounded-lg border border-border px-4 py-3 text-foreground"
       @click="recordUnseen()"
     >
-      Dart not seen
+      Bounce out
     </button>
     <button
       type="button"
-      class="flex-1 rounded-lg border border-border px-4 py-3 text-foreground disabled:opacity-50"
+      aria-label="Undo dart"
+      class="flex w-14 shrink-0 items-center justify-center rounded-lg border border-border py-3 disabled:opacity-50"
       @click="undoVisit()"
       :disabled="!$store.game.turns.length"
     >
-      Undo dart
+      <UndoIcon class="size-6 text-muted" />
     </button>
   </div>
 </div>
