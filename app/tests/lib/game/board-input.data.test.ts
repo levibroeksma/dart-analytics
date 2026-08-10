@@ -3,6 +3,7 @@ import {
   boardInputData,
   magnifierAnchorStyle,
   magnifierBoardStyle,
+  magnifierLabelStyle,
   magnifierRead,
   markersForTurns,
 } from "@lib/game/board-input.data";
@@ -347,6 +348,22 @@ describe("magnifier styles", () => {
 
   it("centres the untranslated board while idle", () => {
     expect(magnifierBoardStyle(idle)).toContain("translate(0px, 0px)");
+  });
+
+  /**
+   * The circle is centred on the anchor origin, so its top edge sits at
+   * `-magnifierSize / 2`; the label prints `gap` px above that. The view
+   * pairs this with a `-translate-y-full` class so the computed `top` lands
+   * under the label's own bottom edge, not its top.
+   */
+  it("prints above the circle's top edge, gap-adjusted", () => {
+    expect(magnifierLabelStyle({ ...idle, magnifierSize: 120 })).toBe(
+      "top: -68px",
+    );
+  });
+
+  it("stays snug to the anchor origin before a press sets a real size", () => {
+    expect(magnifierLabelStyle(idle)).toBe("top: -8px");
   });
 
   it("prints the resolved zone, target and score", () => {
