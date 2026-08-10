@@ -6,7 +6,6 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ScoreTrainingResults from "@components/layout/games/result-modals/ScoreTrainingResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
 <GameLayout
@@ -30,11 +29,6 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
       x-cloak
     />
 
-    {
-      /* Visual board — shown instead of the keypad above for an
-      ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-    }
-    <BoardInputPanel />
 
     {/* Finish confirm (before results) */}
     <div
