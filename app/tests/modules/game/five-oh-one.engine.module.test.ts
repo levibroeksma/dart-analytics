@@ -725,7 +725,6 @@ describe("visual board capture", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -739,7 +738,6 @@ describe("visual board capture", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), startingScore: 70 } as never,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -755,7 +753,6 @@ describe("visual board capture", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), startingScore: 40 } as never,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(doubleTwenty);
@@ -770,7 +767,6 @@ describe("visual board capture", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), startingScore: 60 } as never,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -783,7 +779,6 @@ describe("visual board capture", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -831,7 +826,6 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     expect(engine.wouldComplete(trebleTwenty)).toBe(false);
@@ -841,7 +835,6 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     expect(engine.wouldComplete(doubleTwenty)).toBe(true);
@@ -851,7 +844,6 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), legsToWin: 2 } as never,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     expect(engine.wouldComplete(doubleTwenty)).toBe(false);
@@ -861,7 +853,6 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), startingScore: 501 } as never,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -874,7 +865,6 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     const before = engine.facts();
 
@@ -912,7 +902,6 @@ describe("FiveOhOneEngine.undo — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -956,7 +945,6 @@ describe("FiveOhOneEngine.undo — visual board", () => {
     const engine = fiveOhOneEngineFactory.create(
       config,
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
@@ -982,7 +970,6 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     const visualEngine = fiveOhOneEngineFactory.create(
       config(),
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     const quickEngine = fiveOhOneEngineFactory.create(
       config(),
@@ -1004,7 +991,6 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     const engine = fiveOhOneEngineFactory.create(
       config(),
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     expect(() => engine.record({ scoreAttempted: 60 })).not.toThrow();
@@ -1019,7 +1005,6 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     const engine = fiveOhOneEngineFactory.create(
       config(),
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     engine.record(trebleTwenty);
     const before = engine.facts();
@@ -1032,7 +1017,6 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     const engine = fiveOhOneEngineFactory.create(
       { ...config(), startingScore: 100 },
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     engine.record(trebleTwenty);
 
@@ -1045,7 +1029,6 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     const engine = fiveOhOneEngineFactory.create(
       config(),
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     engine.record({ scoreAttempted: 60 });
 
@@ -1056,7 +1039,7 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
   });
 });
 
-describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on inputMode", () => {
+describe("FiveOhOneEngine.undo — dispatches on the fact log's shape", () => {
   /**
    * A located dart. The engine re-classifies from the coordinate, so the
    * claimed zone is never authoritative — but it is stated truthfully anyway,
@@ -1074,13 +1057,15 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on in
   const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
 
   /**
-   * The Task 7d regression: `playAgain()` used to build the replay engine as
-   * `factory.create(config)` with no third argument, so a genuinely
-   * VISUAL_BOARD session's engine came back tagged `QUICK_SCORE` by the
-   * factory's own default — while `record()` (shape-driven) still let board
-   * darts through and recorded them correctly. The old `undo()` trusted
-   * `this.inputMode` instead of the fact log, so it popped the whole open
-   * visit — both darts — instead of the one dart the player asked to remove.
+   * The Task 7d regression, kept as a live guard now that the engine's
+   * `inputMode` field is gone: `undo()` once trusted that field instead of
+   * the fact log, so an engine tagged `QUICK_SCORE` (which `playAgain()`
+   * produced for a genuinely VISUAL_BOARD session, by passing no mode at all)
+   * popped the whole open visit — both darts — instead of the one dart the
+   * player asked to remove, while `record()` had already let those board
+   * darts through. Nothing can carry a mode tag any more, so this reads as a
+   * plain undo-depth check; it earns its place because the fact log's shape,
+   * which is what `undo()` must branch on, is exactly what it exercises.
    */
   it("undoing a defaulted (QUICK_SCORE-tagged) engine after two board darts removes exactly one dart and leaves the first intact", () => {
     const engine = fiveOhOneEngineFactory.create(config()) as FiveOhOneEngine;
@@ -1099,17 +1084,16 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape, not on in
   });
 
   /**
-   * A general correctness check, NOT a guard on the inputMode-dispatch
-   * regression: with the engine genuinely tagged VISUAL_BOARD the old
-   * inputMode-keyed undo() also passed, because pop() on an empty darts array
-   * is a no-op that falls into the same turns.pop() branch. The regression is
-   * guarded by the defaulted/mismatched-tag tests above.
+   * A general correctness check, never a regression guard: back when the
+   * engine still carried a mode tag, a genuinely VISUAL_BOARD-tagged engine
+   * passed this under the old mode-keyed undo() too, because pop() on an
+   * empty darts array is a no-op falling into the same turns.pop() branch.
+   * It covers the mixed-shape log, not the dispatch rule.
    */
   it("unwinds a mixed keypad-then-board log one record() at a time", () => {
     const engine = fiveOhOneEngineFactory.create(
       config(),
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
 
     engine.record({ scoreAttempted: 60 });
@@ -1175,7 +1159,6 @@ describe("FiveOhOneEngine.record — refusing a dart into a finished match", () 
     const engine = fiveOhOneEngineFactory.create(
       { ...config(), startingScore: 40, legsToWin: 1 },
       undefined,
-      "VISUAL_BOARD",
     ) as FiveOhOneEngine;
     engine.record({
       hitTargetNumber: 20,

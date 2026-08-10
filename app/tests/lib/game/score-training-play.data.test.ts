@@ -1560,21 +1560,6 @@ describe("scoreTrainingPlay — visual board input", () => {
     ]);
   });
 
-  it("builds the resumed engine with the ACTIVE SESSION's input mode, not the settings store's", async () => {
-    const play = boardPlay({}, { inputModeKey: "QUICK_SCORE" });
-    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
-
-    await play.init.call(play);
-
-    expect(createSpy).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      "VISUAL_BOARD",
-    );
-
-    createSpy.mockRestore();
-  });
-
   it("adopts the active session's mode pair onto the game store, so the board gate reads it", async () => {
     const play = boardPlay({}, { inputModeKey: "QUICK_SCORE" });
 
@@ -1582,23 +1567,6 @@ describe("scoreTrainingPlay — visual board input", () => {
 
     expect(play.$store.game.captureModeKey).toBe("ANALYTICS");
     expect(play.$store.game.inputModeKey).toBe("VISUAL_BOARD");
-  });
-
-  it("builds a QUICK_SCORE engine when the session is quick score, whatever the settings store says", async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
-    const play = boardPlay({}, { inputModeKey: "VISUAL_BOARD" });
-    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
-
-    await play.init.call(play);
-
-    expect(createSpy).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      "QUICK_SCORE",
-    );
-    expect(play.$store.game.inputModeKey).toBe("QUICK_SCORE");
-
-    createSpy.mockRestore();
   });
 
   it("passes the dart observation itself to the engine, not a visit total", async () => {
@@ -1749,22 +1717,5 @@ describe("scoreTrainingPlay — playAgain mode resolution", () => {
         inputModeKey: "VISUAL_BOARD",
       }),
     );
-  });
-
-  it("constructs the replay engine with the resolved input mode, not the factory default", async () => {
-    const play = boardPlay();
-    play.completionStatus = "succeeded";
-    play.finished = true;
-    const createSpy = vi.spyOn(scoreTrainingEngineFactory, "create");
-
-    await play.playAgain.call(play);
-
-    expect(createSpy).toHaveBeenCalledWith(
-      expect.anything(),
-      undefined,
-      "VISUAL_BOARD",
-    );
-
-    createSpy.mockRestore();
   });
 });

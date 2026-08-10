@@ -85,7 +85,6 @@ describe("501 engine output against the 501 validator", () => {
     const engine = fiveOhOneEngineFactory.create(
       FIVE_OH_ONE_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record({ scoreAttempted: 60 } as never);
 
@@ -98,7 +97,6 @@ describe("501 engine output against the 501 validator", () => {
     const engine = fiveOhOneEngineFactory.create(
       FIVE_OH_ONE_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(trebleTwenty as never);
     engine.record(unseen as never);
@@ -113,7 +111,6 @@ describe("501 engine output against the 501 validator", () => {
     const engine = fiveOhOneEngineFactory.create(
       FIVE_OH_ONE_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(trebleTwenty as never);
     engine.record(trebleTwenty as never);
@@ -129,7 +126,6 @@ describe("501 engine output against the 501 validator", () => {
     const engine = fiveOhOneEngineFactory.create(
       FIVE_OH_ONE_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record({ scoreAttempted: 180 } as never);
     const facts = engine.facts();
@@ -142,7 +138,6 @@ describe("501 engine output against the 501 validator", () => {
     const engine = fiveOhOneEngineFactory.create(
       FIVE_OH_ONE_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(trebleTwenty as never);
     const facts = engine.facts();
@@ -157,7 +152,6 @@ describe("Score Training engine output against the Score Training validator", ()
     const engine = scoreTrainingEngineFactory.create(
       SCORE_TRAINING_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(41 as never);
 
@@ -170,7 +164,6 @@ describe("Score Training engine output against the Score Training validator", ()
     const engine = scoreTrainingEngineFactory.create(
       SCORE_TRAINING_CONFIG as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(trebleTwenty as never);
     engine.record(unseen as never);
@@ -185,7 +178,6 @@ describe("Score Training engine output against the Score Training validator", ()
     const engine = scoreTrainingEngineFactory.create(
       { ...SCORE_TRAINING_CONFIG, durationValue: 1 } as never,
       undefined,
-      "VISUAL_BOARD",
     );
     engine.record(trebleTwenty as never);
     engine.record(trebleTwenty as never);

@@ -5,10 +5,7 @@ import {
   initialFiveOhOneState,
 } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import {
-  engineInputMode,
-  resolveSessionModePair,
-} from "@lib/game/session-mode-resolution";
+import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -27,7 +24,6 @@ import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
 import type {
   DartObservation,
   EngineFacts,
-  EngineInputMode,
   FiveOhOneState,
   TurnFact,
 } from "@modules/types";
@@ -49,17 +45,15 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
  */
 function resumeEngine(
   game: FiveOhOnePlayContext["$store"]["game"],
-  inputMode: EngineInputMode,
 ): FiveOhOneEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
   if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
   const factory = getEngineFactory(RULESET_VERSION_KEY);
   if (!factory) return null;
-  const engine = factory.create(
-    configSnapshot,
-    { stages: game.stages, turns: game.turns },
-    inputMode,
-  );
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
   return engine instanceof FiveOhOneEngine ? engine : null;
 }
 
@@ -236,10 +230,7 @@ export function fiveOhOnePlay() {
         this.$store.game.setSessionModes(result.activeSession);
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(
-          this.$store.game,
-          engineInputMode(this.$store.game.inputModeKey),
-        );
+        const engine = resumeEngine(this.$store.game);
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;
@@ -634,11 +625,7 @@ export function fiveOhOnePlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(
-          config,
-          undefined,
-          engineInputMode(modePair.inputModeKey),
-        );
+        const engine = factory.create(config);
         if (!(engine instanceof FiveOhOneEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

@@ -7,7 +7,6 @@ import type {
   DartObservation,
   DartZoneKey,
   EngineFacts,
-  EngineInputMode,
   FiveOhOneInput,
   FiveOhOneState,
   FiveOhOneVisitInput,
@@ -38,11 +37,11 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
 
 /**
  * Discriminates `FiveOhOneInput` by shape, never by session mode: only
- * `DartObservation` carries `hitZoneKey`, so its presence is a sound
- * type guard regardless of what `inputMode` the engine was constructed
- * with. `record()` and `wouldComplete()` both dispatch on this, not on
- * `this.inputMode`, so a keypad-shaped input can never reach
- * `resolveObservation` and get misclassified as a dart.
+ * `DartObservation` carries `hitZoneKey`, so its presence is a sound type
+ * guard no matter which mode the session was created in. `record()` and
+ * `wouldComplete()` both dispatch on this, so a keypad-shaped input can never
+ * reach `resolveObservation` and get misclassified as a dart. The engine
+ * holds no mode of its own to disagree with the input it is handed.
  */
 function isDartObservation(input: FiveOhOneInput): input is DartObservation {
   return "hitZoneKey" in input;
@@ -166,7 +165,6 @@ export class FiveOhOneEngine implements GameEngine<
   constructor(
     private readonly config: FiveOhOneSnapshot,
     prior?: EngineFacts,
-    private readonly inputMode: EngineInputMode = "QUICK_SCORE",
   ) {
     this.stages =
       prior && prior.stages.length > 0
@@ -395,12 +393,10 @@ export class FiveOhOneEngine implements GameEngine<
    * `record()` appended a stage — so undoing a visit played inside a new leg
    * leaves that leg open.
    *
-   * Dispatches on the shape of the last recorded turn, never on
-   * `this.inputMode`: `record()` and `wouldComplete()` already discriminate
-   * their input by shape rather than by the engine's own tag, so a
-   * board-shaped input can reach the fact log on an engine tagged
-   * `QUICK_SCORE` (and vice versa via the keypad fallback) — undo has no
-   * input to read a shape from, so it reads the shape of what `record()`
+   * Dispatches on the shape of the last recorded turn: `record()` and
+   * `wouldComplete()` already discriminate their input by shape, and both
+   * shapes can appear in one session's log, so undo — which has no input to
+   * read a shape from — reads the shape of what `record()`
    * actually wrote instead. A turn built from a keypad total always has
    * `darts: []`; a turn built from a board dart always holds at least one
    * dart from the moment it exists in the log (`recordDart` opens a visit and
@@ -536,12 +532,8 @@ export const fiveOhOneEngineFactory: GameEngineFactory<
   FiveOhOneState
 > = {
   rulesetVersionKey: "501_V1",
-  create(
-    config: FiveOhOneSnapshot,
-    prior?: EngineFacts,
-    inputMode?: EngineInputMode,
-  ) {
-    return new FiveOhOneEngine(config, prior, inputMode);
+  create(config: FiveOhOneSnapshot, prior?: EngineFacts) {
+    return new FiveOhOneEngine(config, prior);
   },
 };
 
