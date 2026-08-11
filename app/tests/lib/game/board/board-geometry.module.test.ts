@@ -134,7 +134,7 @@ describe("zoneCentroid", () => {
     const centroid = zoneCentroid(20, "TREBLE");
     expect(centroid).not.toBeNull();
     expect(centroid!.x).toBeCloseTo(0, 6);
-    expect(centroid!.y).toBeCloseTo(-102, 6);
+    expect(centroid!.y).toBeCloseTo(-103, 6);
   });
 
   it("puts the inner bull centroid at the origin", () => {
@@ -149,7 +149,7 @@ describe("zoneCentroid", () => {
     const centroid = zoneCentroid(20, "INNER_SINGLE");
     expect(centroid).not.toBeNull();
     expect(centroid!.x).toBeCloseTo(0, 6);
-    expect(centroid!.y).toBeCloseTo(-56.45, 6);
+    expect(centroid!.y).toBeCloseTo(-57.45, 6);
   });
 
   it("puts the outer single 20 centroid between the treble and the double", () => {

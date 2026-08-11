@@ -34,16 +34,20 @@ function fakeBoard(): SVGSVGElement {
 
 type Harness = ReturnType<typeof boardInputData> & {
   $refs: { board: SVGSVGElement };
-  $store: { game: { turns: TurnFact[] } };
+  $store: {
+    game: { turns: TurnFact[] };
+    boardInput: { handedness: "LEFT" | "RIGHT" };
+  };
 };
 
 function harness(
   onCommit: (observation: DartObservation) => void,
   turns: TurnFact[] = [],
+  handedness: "LEFT" | "RIGHT" = "RIGHT",
 ): Harness {
   return Object.assign(boardInputData(onCommit), {
     $refs: { board: fakeBoard() },
-    $store: { game: { turns } },
+    $store: { game: { turns }, boardInput: { handedness } },
   });
 }
 
@@ -283,6 +287,47 @@ describe("boardInputData", () => {
 
       expect(tallPlacement).toEqual({ offsetX: -76, offsetY: 76 });
       expect(shortPlacement).not.toEqual(tallPlacement);
+    } finally {
+      Object.defineProperty(globalThis, "innerWidth", {
+        configurable: true,
+        value: originalWidth,
+      });
+      Object.defineProperty(globalThis, "innerHeight", {
+        configurable: true,
+        value: originalHeight,
+      });
+    }
+  });
+
+  it("reads handedness from the boardInput store to choose which side the magnifier opens on", () => {
+    const originalWidth = globalThis.innerWidth;
+    const originalHeight = globalThis.innerHeight;
+
+    try {
+      Object.defineProperty(globalThis, "innerWidth", {
+        configurable: true,
+        value: 400,
+      });
+      Object.defineProperty(globalThis, "innerHeight", {
+        configurable: true,
+        value: 1000,
+      });
+
+      const right = harness(() => {}, [], "RIGHT");
+      right.onPointerDown({
+        clientX: 200,
+        clientY: 500,
+        preventDefault: vi.fn(),
+      } as never);
+      expect(right.input!.placement).toEqual({ offsetX: -76, offsetY: -76 });
+
+      const left = harness(() => {}, [], "LEFT");
+      left.onPointerDown({
+        clientX: 200,
+        clientY: 500,
+        preventDefault: vi.fn(),
+      } as never);
+      expect(left.input!.placement).toEqual({ offsetX: 76, offsetY: -76 });
     } finally {
       Object.defineProperty(globalThis, "innerWidth", {
         configurable: true,

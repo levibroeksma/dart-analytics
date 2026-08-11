@@ -71,19 +71,19 @@ import UndoIcon from "@icons/undo.svg";
   <div class="flex gap-3">
     <button
       type="button"
-      class="flex-1 rounded-lg border border-border px-4 py-3 text-foreground"
-      @click="recordUnseen()"
-    >
-      Bounce out
-    </button>
-    <button
-      type="button"
       aria-label="Undo dart"
-      class="flex w-14 shrink-0 items-center justify-center rounded-lg border border-border py-3 disabled:opacity-50"
+      class="flex flex-1 items-center justify-center rounded-lg border border-border py-3 disabled:opacity-50"
       @click="undoVisit()"
       :disabled="!$store.game.turns.length"
     >
       <UndoIcon class="size-6 text-muted" />
+    </button>
+    <button
+      type="button"
+      class="glass flex flex-1 items-center justify-center rounded-lg px-4 py-3 text-foreground"
+      @click="recordUnseen()"
+    >
+      Bounce out
     </button>
   </div>
 </div>

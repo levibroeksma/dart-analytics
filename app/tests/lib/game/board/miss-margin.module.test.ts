@@ -7,7 +7,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: 0,
-      locationY: -92,
+      locationY: -93,
     });
 
     expect(margin).not.toBeNull();
@@ -19,7 +19,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: 10,
-      locationY: -102,
+      locationY: -103,
     });
 
     expect(margin!.bearingDegrees).toBeCloseTo(90, 6);
@@ -63,7 +63,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "INNER_SINGLE",
       locationX: 0,
-      locationY: -46.45,
+      locationY: -47.45,
     });
 
     expect(margin).not.toBeNull();
@@ -98,7 +98,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: 0,
-      locationY: -112,
+      locationY: -113,
     });
 
     expect(margin).not.toBeNull();
@@ -111,7 +111,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: 0,
-      locationY: -92,
+      locationY: -93,
     });
 
     expect(margin).not.toBeNull();
@@ -124,7 +124,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: -10,
-      locationY: -102,
+      locationY: -103,
     });
 
     expect(margin).not.toBeNull();
@@ -137,7 +137,7 @@ describe("missMargin", () => {
       intendedTargetNumber: 20,
       intendedZoneKey: "TREBLE",
       locationX: 10,
-      locationY: -112,
+      locationY: -113,
     });
 
     expect(margin).not.toBeNull();

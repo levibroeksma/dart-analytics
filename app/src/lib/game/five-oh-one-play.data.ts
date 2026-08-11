@@ -193,14 +193,20 @@ export function fiveOhOnePlay() {
       return dartsThrownCount(this.turnsInCurrentLeg(), maxDartsPerTurn);
     },
 
-    averageThisLeg(this: FiveOhOnePlayContext): string {
+    /**
+     * Match-wide, not leg-scoped: unlike darts thrown, the average and the
+     * previous visit's score are a running read on the player across the
+     * whole match, so they must survive a leg boundary rather than reset to
+     * zero the instant a new leg's stage opens.
+     */
+    average(this: FiveOhOnePlayContext): string {
       const maxDartsPerTurn =
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return threeDartAverageDisplay(this.turnsInCurrentLeg(), maxDartsPerTurn);
+      return threeDartAverageDisplay(this.$store.game.turns, maxDartsPerTurn);
     },
 
-    previousScoreThisLeg(this: FiveOhOnePlayContext): string {
-      return previousScoreDisplay(this.turnsInCurrentLeg());
+    previousScore(this: FiveOhOnePlayContext): string {
+      return previousScoreDisplay(this.$store.game.turns);
     },
 
     async init(this: FiveOhOnePlayContext) {

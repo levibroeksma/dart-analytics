@@ -1,0 +1,110 @@
+---
+/**
+ * Throwing-hand picker, read by `boardInputData()` (`board-input.data.ts`) to
+ * keep the visual-board magnifier off the throwing hand's side. Writes
+ * directly to the `boardInput` Alpine store — a local `$persist` preference,
+ * never a `player_settings` round trip, since this is a per-device rendering
+ * choice rather than gameplay data. Roving-tabindex radiogroup, mirroring
+ * `AppModeForm`'s pattern.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import CheckIcon from "@icons/check.svg";
+
+// Styles
+const className = cn("space-y-4", classNameProp);
+const optionClass =
+  "w-full rounded-lg border px-4 py-3 text-left transition-colors duration-150";
+const checkClass =
+  "size-5 shrink-0 text-accent transition-opacity duration-150";
+---
+
+<section
+  class={className}
+  aria-labelledby="handedness-heading"
+  {...props}
+>
+  <div class="space-y-1">
+    <h2
+      id="handedness-heading"
+      class="text-lg font-semibold text-foreground"
+    >
+      Throwing hand
+    </h2>
+    <p class="text-sm text-muted-foreground">
+      Which hand you throw with. The board magnifier opens on the opposite side
+      so it never sits under your throwing hand.
+    </p>
+  </div>
+
+  <div
+    class="space-y-2"
+    role="radiogroup"
+    aria-labelledby="handedness-heading"
+    x-data="{
+      select(handedness, ref) {
+        $store.boardInput.handedness = handedness;
+        $nextTick(() => $refs[ref].focus());
+      },
+    }"
+  >
+    <button
+      type="button"
+      role="radio"
+      x-ref="rightOption"
+      class={optionClass}
+      :class="$store.boardInput.handedness === 'RIGHT' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.boardInput.handedness === 'RIGHT'"
+      :tabindex="$store.boardInput.handedness === 'LEFT' ? -1 : 0"
+      @click="select('RIGHT', 'rightOption')"
+      @keydown.arrow-left.prevent="select('LEFT', 'leftOption')"
+      @keydown.arrow-up.prevent="select('LEFT', 'leftOption')"
+      @keydown.arrow-right.prevent="select('LEFT', 'leftOption')"
+      @keydown.arrow-down.prevent="select('LEFT', 'leftOption')"
+    >
+      <span class="flex items-center justify-between gap-3">
+        <span class="block font-semibold text-foreground">Right-handed</span>
+        <CheckIcon
+          class={checkClass}
+          :class="$store.boardInput.handedness === 'RIGHT' ? 'opacity-100' : 'opacity-0'"
+          aria-hidden="true"
+        />
+      </span>
+    </button>
+
+    <button
+      type="button"
+      role="radio"
+      x-ref="leftOption"
+      class={optionClass}
+      :class="$store.boardInput.handedness === 'LEFT' ? 'border-accent bg-accent-muted' : 'border-border'"
+      :aria-checked="$store.boardInput.handedness === 'LEFT'"
+      :tabindex="$store.boardInput.handedness === 'LEFT' ? 0 : -1"
+      @click="select('LEFT', 'leftOption')"
+      @keydown.arrow-left.prevent="select('RIGHT', 'rightOption')"
+      @keydown.arrow-up.prevent="select('RIGHT', 'rightOption')"
+      @keydown.arrow-right.prevent="select('RIGHT', 'rightOption')"
+      @keydown.arrow-down.prevent="select('RIGHT', 'rightOption')"
+    >
+      <span class="flex items-center justify-between gap-3">
+        <span class="block font-semibold text-foreground">Left-handed</span>
+        <CheckIcon
+          class={checkClass}
+          :class="$store.boardInput.handedness === 'LEFT' ? 'opacity-100' : 'opacity-0'"
+          aria-hidden="true"
+        />
+      </span>
+    </button>
+  </div>
+</section>
