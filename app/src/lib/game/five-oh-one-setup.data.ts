@@ -19,10 +19,18 @@ import {
   FIVE_OH_ONE_LEGS_MIN,
   FIVE_OH_ONE_LEGS_NOTICE,
 } from "@lib/game/five-oh-one-legs";
-import type { FiveOhOneSetupContext } from "./types";
+import {
+  clampFiveOhOneStartingScore,
+  FIVE_OH_ONE_STARTING_SCORE_NOTICE,
+} from "@lib/game/five-oh-one-starting-score";
+import type {
+  FiveOhOneSetupContext,
+  FiveOhOneStartingScoreOption,
+} from "./types";
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY = "501_V1";
+const CUSTOM_STARTING_SCORE_DEFAULT = 101;
 
 /**
  * Reads `legs_to_win` off a preset's `configuration`, which the API types as
@@ -38,8 +46,11 @@ function presetLegsToWin(
 export function fiveOhOneSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
+    startingScoreOption: "501" as FiveOhOneStartingScoreOption,
+    startingScoreValue: CUSTOM_STARTING_SCORE_DEFAULT as number | string | null,
+    scoreClampNotice: "",
     legsToWin: FIVE_OH_ONE_LEGS_MIN as number | string | null,
-    clampNotice: "",
+    legsClampNotice: "",
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -57,7 +68,7 @@ export function fiveOhOneSetup() {
         this.presets = presets;
         this.legsToWin =
           presetLegsToWin(this.basePreset()) ?? FIVE_OH_ONE_LEGS_MIN;
-        this.clampNotice = "";
+        this.legsClampNotice = "";
         await this.reconcile(activeSessions);
       } catch {
         this.showActiveSessionModal = false;
@@ -69,11 +80,12 @@ export function fiveOhOneSetup() {
     },
 
     /**
-     * The template whose configuration is copied, with `legs_to_win`
-     * overridden by the player's chosen value. The single-leg preset is
-     * preferred so the override is the only difference from a seeded default;
-     * any preset will do when that one is absent, since every 501 preset
-     * shares the same locked V1 values for every other key.
+     * The template whose configuration is copied, with `legs_to_win` and
+     * `starting_score` overridden by the player's chosen values. The
+     * single-leg preset is preferred so the overrides are the only
+     * difference from a seeded default; any preset will do when that one is
+     * absent, since every 501 preset shares the same locked V1 values for
+     * every other key.
      */
     basePreset(this: FiveOhOneSetupContext) {
       return (
@@ -143,16 +155,33 @@ export function fiveOhOneSetup() {
         this.error = "Could not find a preset for 501.";
         return;
       }
-      const { value, clamped } = clampFiveOhOneLegs(this.legsToWin);
-      this.legsToWin = value;
-      this.clampNotice = clamped ? FIVE_OH_ONE_LEGS_NOTICE : "";
+      const { value: legsValue, clamped: legsClamped } = clampFiveOhOneLegs(
+        this.legsToWin,
+      );
+      this.legsToWin = legsValue;
+      this.legsClampNotice = legsClamped ? FIVE_OH_ONE_LEGS_NOTICE : "";
+
+      let startingScore: number;
+      if (this.startingScoreOption === "CUSTOM") {
+        const { value: scoreValue, clamped: scoreClamped } =
+          clampFiveOhOneStartingScore(this.startingScoreValue);
+        this.startingScoreValue = scoreValue;
+        this.scoreClampNotice = scoreClamped
+          ? FIVE_OH_ONE_STARTING_SCORE_NOTICE
+          : "";
+        startingScore = scoreValue;
+      } else {
+        startingScore = Number(this.startingScoreOption);
+        this.scoreClampNotice = "";
+      }
 
       this.loading = true;
       this.error = "";
       try {
         const wire = {
           ...(preset.configuration as Record<string, unknown>),
-          legs_to_win: value,
+          legs_to_win: legsValue,
+          starting_score: startingScore,
         };
         const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const modePair = resolveSessionModePair(
@@ -167,7 +196,10 @@ export function fiveOhOneSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
-            overrides: { legs_to_win: value },
+            overrides: {
+              legs_to_win: legsValue,
+              starting_score: startingScore,
+            },
           },
         });
         this.$store.game.startSession(

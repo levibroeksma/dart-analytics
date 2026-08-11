@@ -57,7 +57,7 @@ describe("fiveOhOneSetup", () => {
     return { ...fiveOhOneSetup(), $store: store, ...overrides };
   }
 
-  it("defaults legsToWin to the base preset's value and loads the presets", async () => {
+  it("defaults legsToWin and startingScoreOption, and loads the presets", async () => {
     const setup = createSetup();
     vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
       QUICK_PLAY_PRESET,
@@ -69,7 +69,9 @@ describe("fiveOhOneSetup", () => {
 
     expect(presetsApi.fetchConfigurationPresets).toHaveBeenCalledWith("501");
     expect(setup.legsToWin).toBe(1);
-    expect(setup.clampNotice).toBe("");
+    expect(setup.legsClampNotice).toBe("");
+    expect(setup.startingScoreOption).toBe("501");
+    expect(setup.startingScoreValue).toBe(101);
     expect(setup.presets).toHaveLength(2);
   });
 
@@ -144,10 +146,11 @@ describe("fiveOhOneSetup", () => {
     expect(setup.basePreset()).toBe(BEST_OF_5_PRESET);
   });
 
-  it("creates a session overriding legs_to_win with the chosen value and redirects", async () => {
+  it("creates a session overriding legs_to_win and starting_score with the chosen values and redirects", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
       legsToWin: 5,
+      startingScoreOption: "301",
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
       sessionId: "new-session-id",
@@ -172,7 +175,7 @@ describe("fiveOhOneSetup", () => {
       config: {
         source: "template",
         templateRef: "tmpl-quick",
-        overrides: { legs_to_win: 5 },
+        overrides: { legs_to_win: 5, starting_score: 301 },
       },
     });
     expect(store.game.startSession).toHaveBeenCalledWith(
@@ -181,7 +184,7 @@ describe("fiveOhOneSetup", () => {
         rulesetVersionKey: "501_V1",
         templateRef: "tmpl-quick",
         configSnapshot: expect.objectContaining({
-          startingScore: 501,
+          startingScore: 301,
           legsToWin: 5,
           checkIn: "STRAIGHT_IN",
           checkOut: "DOUBLE_OUT",
@@ -189,6 +192,100 @@ describe("fiveOhOneSetup", () => {
       }),
     );
     expect(locationSpy.href).toBe("/games/501/play");
+  });
+
+  it("uses the custom starting score value when the option is CUSTOM", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 1,
+      startingScoreOption: "CUSTOM",
+      startingScoreValue: 350,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: { legs_to_win: 1, starting_score: 350 },
+        }),
+      }),
+    );
+    expect(setup.scoreClampNotice).toBe("");
+  });
+
+  it("clamps an out-of-range custom starting score, sets the notice, and still creates", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 1,
+      startingScoreOption: "CUSTOM",
+      startingScoreValue: 5000,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(setup.startingScoreValue).toBe(999);
+    expect(setup.scoreClampNotice).toBe("Allowed range: 2–999");
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: { legs_to_win: 1, starting_score: 999 },
+        }),
+      }),
+    );
+  });
+
+  it("clamps a blank custom starting score to the default of 101", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 1,
+      startingScoreOption: "CUSTOM",
+      startingScoreValue: null,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(setup.startingScoreValue).toBe(101);
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: { legs_to_win: 1, starting_score: 101 },
+        }),
+      }),
+    );
   });
 
   it("sends the player's chosen supported pair from settings instead of a hardcoded one", async () => {
@@ -301,10 +398,12 @@ describe("fiveOhOneSetup", () => {
     await setup.start();
 
     expect(setup.legsToWin).toBe(20);
-    expect(setup.clampNotice).toBe("Allowed range: 1–20 legs");
+    expect(setup.legsClampNotice).toBe("Allowed range: 1–20 legs");
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: expect.objectContaining({ overrides: { legs_to_win: 20 } }),
+        config: expect.objectContaining({
+          overrides: { legs_to_win: 20, starting_score: 501 },
+        }),
       }),
     );
   });
@@ -331,7 +430,9 @@ describe("fiveOhOneSetup", () => {
     expect(setup.legsToWin).toBe(1);
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        config: expect.objectContaining({ overrides: { legs_to_win: 1 } }),
+        config: expect.objectContaining({
+          overrides: { legs_to_win: 1, starting_score: 501 },
+        }),
       }),
     );
   });
