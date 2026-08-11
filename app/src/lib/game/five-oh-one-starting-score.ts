@@ -3,7 +3,7 @@
  * `FiveOhOneConfig`'s `.min(2)` floor and the 301/501/701/Custom picker in
  * `docs/game-rules/rulesets/501.md`.
  */
-export const FIVE_OH_ONE_STARTING_SCORE_MIN = 2;
+const FIVE_OH_ONE_STARTING_SCORE_MIN = 2;
 const FIVE_OH_ONE_STARTING_SCORE_MAX = 999;
 const FIVE_OH_ONE_STARTING_SCORE_DEFAULT = 101;
 
