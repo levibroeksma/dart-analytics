@@ -62,7 +62,7 @@ export const MAGNIFIER_GAP = 16;
  * gesture (on press) and reuses the result for every following `move`, so
  * the magnifier never swaps sides mid-drag.
  */
-export function resolveMagnifierSide(
+function resolveMagnifierSide(
   pointer: BoardPointer,
   viewport: { width: number; height: number },
   handedness: Handedness,
@@ -100,7 +100,7 @@ export function resolveMagnifierSide(
  * is on — it only slides the box along with the pointer — so it is safe to
  * call on every `move` of a gesture without the magnifier jumping sides.
  */
-export function clampMagnifierPlacement(
+function clampMagnifierPlacement(
   pointer: BoardPointer,
   viewport: { width: number; height: number },
   side: MagnifierSide,
