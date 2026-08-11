@@ -7,6 +7,7 @@ import type {
   ScreenToBoard,
   Handedness,
   MagnifierPlacement,
+  MagnifierSide,
 } from "./types";
 
 /**
@@ -52,15 +53,82 @@ export function boardPxPerMm(svg: SVGSVGElement): number {
 export const MAGNIFIER_GAP = 16;
 
 /**
+ * Picks which side of the pointer the magnifier sits on, for the pointer
+ * position a gesture STARTS at. Handedness picks the preferred side on the X
+ * axis; it flips to the opposite side only if the preferred side would
+ * overflow the viewport at this starting position. The Y axis prefers above
+ * the pointer, dropping below only when there is no room above. This is a
+ * one-shot decision — see `boardInput`'s `track`, which calls it once per
+ * gesture (on press) and reuses the result for every following `move`, so
+ * the magnifier never swaps sides mid-drag.
+ */
+function resolveMagnifierSide(
+  pointer: BoardPointer,
+  viewport: { width: number; height: number },
+  handedness: Handedness,
+  size: number,
+): MagnifierSide {
+  const reach = size / 2 + MAGNIFIER_GAP;
+  const half = size / 2;
+
+  let x: "left" | "right" = handedness === "RIGHT" ? "left" : "right";
+  const offsetXFor = (side: "left" | "right") =>
+    side === "left" ? -reach : reach;
+  if (pointer.clientX + offsetXFor(x) - half < 0) {
+    x = "right";
+  } else if (pointer.clientX + offsetXFor(x) + half > viewport.width) {
+    x = "left";
+  }
+
+  let y: "above" | "below" = "above";
+  if (pointer.clientY - reach - half < 0) {
+    y = "below";
+  }
+
+  return { x, y };
+}
+
+/**
+ * Positions the magnifier `size` MAGNIFIER_GAP-clear of the pointer on the
+ * given, already-decided `side`, then clamps each axis independently so the
+ * magnifier's box stays within the viewport for the CURRENT pointer
+ * position. When the viewport is narrower (X) or shorter (Y) than the
+ * magnifier itself, the clamp pins the box to the viewport's near edge (left
+ * on X, top on Y) instead of leaving it hanging outside the viewport.
+ *
+ * Unlike `resolveMagnifierSide`, this never changes which side the magnifier
+ * is on — it only slides the box along with the pointer — so it is safe to
+ * call on every `move` of a gesture without the magnifier jumping sides.
+ */
+function clampMagnifierPlacement(
+  pointer: BoardPointer,
+  viewport: { width: number; height: number },
+  side: MagnifierSide,
+  size: number,
+): MagnifierPlacement {
+  const reach = size / 2 + MAGNIFIER_GAP;
+  const half = size / 2;
+
+  let offsetX = side.x === "left" ? -reach : reach;
+  const minOffsetX = half - pointer.clientX;
+  const maxOffsetX = viewport.width - pointer.clientX - half;
+  offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, offsetX));
+
+  let offsetY = side.y === "above" ? -reach : reach;
+  const minOffsetY = half - pointer.clientY;
+  const maxOffsetY = viewport.height - pointer.clientY - half;
+  offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, offsetY));
+
+  return { offsetX, offsetY };
+}
+
+/**
  * Places the magnifier away from the throwing hand and clear of the viewport
- * edges. It sits above the pointer by default, because a fingertip covers what
- * is directly beneath it, and drops below only when there is no room above.
- * Handedness picks the preferred side on the X axis, flipping to the opposite
- * side when that overflows. After the flip, each axis is independently
- * clamped so the magnifier's box stays within the viewport; when the viewport
- * is narrower (X) or shorter (Y) than the magnifier itself, the clamp pins
- * the box to the viewport's near edge (left on X, top on Y) instead of
- * leaving it hanging outside the viewport.
+ * edges, for a single pointer position. A thin wrapper over
+ * `resolveMagnifierSide` + `clampMagnifierPlacement`, kept for callers that
+ * only ever place the magnifier once (e.g. tests) — a live gesture must call
+ * the two steps separately so the side is resolved once and clamped on every
+ * move, rather than re-resolved every move (see `boardInput`).
  */
 export function magnifierPlacement(
   pointer: BoardPointer,
@@ -68,29 +136,8 @@ export function magnifierPlacement(
   handedness: Handedness,
   size: number,
 ): MagnifierPlacement {
-  const reach = size / 2 + MAGNIFIER_GAP;
-  const half = size / 2;
-  const preferLeft = handedness === "RIGHT";
-
-  let offsetX = preferLeft ? -reach : reach;
-  if (pointer.clientX + offsetX - half < 0) {
-    offsetX = reach;
-  } else if (pointer.clientX + offsetX + half > viewport.width) {
-    offsetX = -reach;
-  }
-  const minOffsetX = half - pointer.clientX;
-  const maxOffsetX = viewport.width - pointer.clientX - half;
-  offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, offsetX));
-
-  let offsetY = -reach;
-  if (pointer.clientY + offsetY - half < 0) {
-    offsetY = reach;
-  }
-  const minOffsetY = half - pointer.clientY;
-  const maxOffsetY = viewport.height - pointer.clientY - half;
-  offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, offsetY));
-
-  return { offsetX, offsetY };
+  const side = resolveMagnifierSide(pointer, viewport, handedness, size);
+  return clampMagnifierPlacement(pointer, viewport, side, size);
 }
 
 const DEFAULT_MAGNIFIER_SIZE = 120;
@@ -115,6 +162,7 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
 
   let point: BoardCoordinate | null = null;
   let placement: MagnifierPlacement | null = null;
+  let side: MagnifierSide | null = null;
   let active = false;
 
   function track(pointer: BoardPointer): boolean {
@@ -122,12 +170,11 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
     if (!board) return false;
 
     point = board;
-    placement = magnifierPlacement(
-      pointer,
-      options.viewport ?? { width: 0, height: 0 },
-      handedness,
-      magnifierSize,
-    );
+    const viewport = options.viewport ?? { width: 0, height: 0 };
+    if (!side) {
+      side = resolveMagnifierSide(pointer, viewport, handedness, magnifierSize);
+    }
+    placement = clampMagnifierPlacement(pointer, viewport, side, magnifierSize);
     return true;
   }
 
@@ -135,6 +182,7 @@ export function boardInput(options: BoardInputOptions): BoardInputController {
     active = false;
     point = null;
     placement = null;
+    side = null;
   }
 
   return {
