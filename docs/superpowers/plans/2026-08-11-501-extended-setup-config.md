@@ -1308,7 +1308,11 @@ Expected: `format:check` clean; commit any formatting diff produced by `format`.
 
 Invoke the `context-maintenance` skill. Expect it to:
 - Register the new file `app/src/lib/game/five-oh-one-starting-score.ts` and the moved `app/src/components/layout/games/setup/FiveOhOneSetupForm.astro` in `docs/architecture/00-Context-Map.md`'s File Inventory, bump the map version and changelog entry
-- Update `docs/game-rules/rulesets/501.md`'s Features table: flip "Alternate start scores (301, 701, …)" from `TBD` to `v1` (custom stays a config-screen input, not a listed sibling score)
+- Update `docs/game-rules/rulesets/501.md` in three places — flipping only the Features row leaves the other two internally contradicting it:
+  - Line 13, Features table: flip `Alternate start scores (301, 701, …)` from `TBD` to `v1`
+  - Line 35, Identity: replace `Sibling start scores (301, 701) and alternate in/out rules exist as later variants.` with `Sibling start scores (301, 701, or a custom 2–999 value) are selectable at setup; alternate in/out rules exist as later variants.`
+  - Line 49, Config & presets (V1) table: replace the `Start score | 501 | Shown, locked` row with `Start score | 501 default; 301 / 701 / custom (2–999) | Editable`
+  - Line 81, Later versions (V2+) → Variants: delete the `**Start score:** other X01 values such as **301** and **701** (same rules as 501, different starting total)` bullet — it now ships in V1, not V2+
 - Decide whether a `decisions/**` entry is warranted (e.g. component-reuse precedent for a second setup form) and append one if so, per `DECISIONS.md`'s routing table — never edit an existing block
 - Run `scripts/check-context-map.sh`, `scripts/check-doc-links.sh`, `scripts/check-context-budget.sh`, `scripts/check-decision-ids.sh` and confirm all pass
 
