@@ -1,0 +1,92 @@
+---
+// Components
+import Input from "@components/forms/Input.astro";
+import Toggle from "./Toggle.astro";
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const startingScoreOpts = [
+  { value: "301", label: "301" },
+  { value: "501", label: "501" },
+  { value: "701", label: "701" },
+  { value: "CUSTOM", label: "Custom" },
+];
+
+const infoSection = {
+  title: "501 rules",
+  description:
+    "Race from your starting score down to exactly zero. Open in, double out — the finishing dart must land on a double. First to the chosen number of legs wins the match.",
+};
+---
+
+<SetupShell title="501">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={startingScoreOpts}
+      x-model="startingScoreOption"
+      class="w-full"
+    />
+    <Input
+      id="startingScoreValue"
+      name="startingScoreValue"
+      type="text"
+      inputmode="numeric"
+      placeholder="Starting score"
+      x-model.number="startingScoreValue"
+      @input="scoreClampNotice = ''"
+      x-show="startingScoreOption === 'CUSTOM'"
+      x-cloak
+      class="glass border-tab-border rounded-full! mt-4"
+    />
+    <p
+      class="text-sm text-muted-foreground px-4 py-0"
+      role="status"
+      x-show="scoreClampNotice"
+      x-text="scoreClampNotice"
+      x-cloak
+    >
+    </p>
+    <Input
+      id="legsToWin"
+      name="legsToWin"
+      type="text"
+      inputmode="numeric"
+      placeholder="First to"
+      x-model.number="legsToWin"
+      @input="legsClampNotice = ''"
+      class="glass border-tab-border rounded-full! mt-4"
+    />
+    <label
+      for="legsToWin"
+      class="text-xs text-muted-foreground px-4 py-0 italic"
+    >
+      Legs
+    </label>
+    <p
+      class="text-sm text-muted-foreground px-4 py-0"
+      role="status"
+      x-show="legsClampNotice"
+      x-text="legsClampNotice"
+      x-cloak
+    >
+    </p>
+  </SettingSectionShell>
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>
