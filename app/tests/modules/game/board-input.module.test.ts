@@ -448,6 +448,59 @@ describe("boardInput", () => {
     expect(input.placement!.offsetX).toBeLessThan(0);
   });
 
+  it("keeps the magnifier on its starting side while dragging toward the opposite edge, unlike a fresh per-move decision", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      handedness: "RIGHT",
+      viewport: { width: 800, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 400, clientY: 400 });
+    expect(input.placement!.offsetX).toBeLessThan(0);
+
+    // At this position alone, a fresh decision would flip to the right
+    // (positive): 100 - reach(76) - half(60) < 0. The gesture must stay left.
+    input.move({ clientX: 100, clientY: 400 });
+
+    expect(input.placement!.offsetX).toBeLessThan(0);
+  });
+
+  it("picks up a flipped starting side from the press position, then keeps it for the rest of the gesture", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      handedness: "RIGHT",
+      viewport: { width: 800, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 10, clientY: 400 });
+    expect(input.placement!.offsetX).toBeGreaterThan(0);
+
+    input.move({ clientX: 700, clientY: 400 });
+
+    expect(input.placement!.offsetX).toBeGreaterThan(0);
+  });
+
+  it("re-resolves the starting side fresh on the next gesture", () => {
+    const input = boardInput({
+      toBoard: (pointer) => ({ x: pointer.clientX, y: pointer.clientY }),
+      onCommit: () => {},
+      handedness: "RIGHT",
+      viewport: { width: 400, height: 800 },
+      magnifierSize: 120,
+    });
+
+    input.press({ clientX: 10, clientY: 400 });
+    expect(input.placement!.offsetX).toBeGreaterThan(0);
+    input.release();
+
+    input.press({ clientX: 200, clientY: 400 });
+    expect(input.placement!.offsetX).toBeLessThan(0);
+  });
+
   it("ignores a release that follows no press", () => {
     const commits: DartObservation[] = [];
     const input = controller((observation) => commits.push(observation));

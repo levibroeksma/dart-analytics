@@ -16,6 +16,9 @@ interface Props {
 // Props
 const { class: classNameProp, ...props }: Props = Astro.props;
 
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+
 // Lib
 import { cn } from "@client/cn";
 
@@ -25,7 +28,7 @@ import CheckIcon from "@icons/check.svg";
 // Styles
 const className = cn("space-y-4", classNameProp);
 const optionClass =
-  "w-full rounded-lg border px-4 py-3 text-left transition-colors duration-150";
+  "flex-1 rounded-lg border px-4 py-3 text-left transition-colors duration-150";
 const checkClass =
   "size-5 shrink-0 text-accent transition-opacity duration-150";
 ---
@@ -35,21 +38,14 @@ const checkClass =
   aria-labelledby="handedness-heading"
   {...props}
 >
-  <div class="space-y-1">
-    <h2
-      id="handedness-heading"
-      class="text-lg font-semibold text-foreground"
-    >
-      Throwing hand
-    </h2>
-    <p class="text-sm text-muted-foreground">
-      Which hand you throw with. The board magnifier opens on the opposite side
-      so it never sits under your throwing hand.
-    </p>
-  </div>
+  <InfoSection
+    id="handedness-heading"
+    title="Throwing hand"
+    description="Which hand you throw with. The board magnifier opens on the opposite side so it never sits under your throwing hand."
+  />
 
   <div
-    class="space-y-2"
+    class="flex gap-2"
     role="radiogroup"
     aria-labelledby="handedness-heading"
     x-data="{

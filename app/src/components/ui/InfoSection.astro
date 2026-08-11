@@ -1,16 +1,20 @@
 ---
 /**
- * Collapsible rules panel for a game's setup page.
+ * Collapsible info panel: a heading that toggles a longer explanation below
+ * it. `title` is rendered verbatim — callers own any suffix (e.g. a setup
+ * form passes "Scoring Training rules").
  * @param {string} title
  * @param {string} description
+ * @param {string} [id] Id placed on the heading, for a caller's `aria-labelledby`
  */
 interface Props {
   title: string;
   description: string;
+  id?: string;
 }
 
 // Props
-const { title, description }: Props = Astro.props;
+const { title, description, id }: Props = Astro.props;
 
 // Icons
 import InfoIcon from "@icons/info.svg";
@@ -28,7 +32,12 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
   >
     <div class="flex items-center gap-2">
       <InfoIcon class="size-4 text-accent" />
-      <h4 class="text-center text-sm">{title} rules</h4>
+      <h4
+        id={id}
+        class="text-center text-sm"
+      >
+        {title}
+      </h4>
     </div>
     <ChevronDownIcon
       class="size-4 -rotate-90 transition-transform duration-300"

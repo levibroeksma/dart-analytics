@@ -221,6 +221,12 @@ export type MagnifierPlacement = {
   offsetY: number;
 };
 
+/** Which side of the pointer the magnifier sits on, decided once per gesture. */
+export type MagnifierSide = {
+  x: "left" | "right";
+  y: "above" | "below";
+};
+
 export type BoardInputOptions = {
   toBoard: ScreenToBoard;
   onCommit: (observation: DartObservation) => void;
