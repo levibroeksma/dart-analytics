@@ -419,28 +419,28 @@ describe("undoVisit", () => {
   });
 });
 
-describe("leg-scoped progress stats", () => {
-  it("computes darts thrown, average, and previous score for the current leg only", async () => {
+describe("progress stats", () => {
+  it("computes leg-scoped darts thrown and match-wide average/previous score", async () => {
     const play = makePlay({
       turns: [turnFact("t1", "leg-1", 1, 60), turnFact("t2", "leg-1", 2, 45)],
     });
     await play.init.call(play);
 
     expect(play.dartsThrownThisLeg.call(play)).toBe(6);
-    expect(play.averageThisLeg.call(play)).toBe("52.5");
-    expect(play.previousScoreThisLeg.call(play)).toBe("45");
+    expect(play.average.call(play)).toBe("52.5");
+    expect(play.previousScore.call(play)).toBe("45");
   });
 
-  it('shows "—" for previous score when the current leg has no turns yet', async () => {
+  it('shows "—" for previous score before the match has any turns', async () => {
     const play = makePlay();
     await play.init.call(play);
 
     expect(play.dartsThrownThisLeg.call(play)).toBe(0);
-    expect(play.averageThisLeg.call(play)).toBe("0.0");
-    expect(play.previousScoreThisLeg.call(play)).toBe("—");
+    expect(play.average.call(play)).toBe("0.0");
+    expect(play.previousScore.call(play)).toBe("—");
   });
 
-  it("resets to the new leg's turns only after a leg win", async () => {
+  it("resets darts thrown to the new leg but keeps average/previous score across the leg boundary", async () => {
     const play = makePlay({
       configSnapshot: bestOf5Config(),
       turns: turnsReaching(40), // remaining 40
@@ -450,8 +450,13 @@ describe("leg-scoped progress stats", () => {
     await play.submitVisit.call(play);
     await play.confirmDouble.call(play);
 
-    expect(play.previousScoreThisLeg.call(play)).toBe("—");
+    // Leg 1 won: a new leg's stage opens with no turns of its own yet.
     expect(play.dartsThrownThisLeg.call(play)).toBe(0);
+
+    // The match's own average and previous score are not leg-scoped, so the
+    // just-finished leg's turns (including its checkout) must still count.
+    expect(play.previousScore.call(play)).toBe("40");
+    expect(play.average.call(play)).not.toBe("0.0");
   });
 });
 

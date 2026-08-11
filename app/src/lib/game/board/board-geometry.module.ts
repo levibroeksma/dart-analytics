@@ -10,7 +10,7 @@ import type { BoardHit, BoardPoint } from "./types";
 export const BOARD_RADII_MM = {
   innerBull: 6.35,
   outerBull: 15.9,
-  trebleInner: 97,
+  trebleInner: 99,
   trebleOuter: 107,
   doubleInner: 162,
   doubleOuter: 170,

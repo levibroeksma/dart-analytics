@@ -5,7 +5,7 @@ read-when: why an Alpine store/persist/recovery choice was made
 load-when: Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery
 depends-on: decisions/architecture.md, decisions/frontend/architecture.md
 related: decisions/frontend/astro.md, decisions/api.md
-updated: 2026-08-07
+updated: 2026-08-11
 -->
 
 | # | Source | Decision | Rationale |
@@ -27,3 +27,9 @@ Status: Accepted · Date: 2026-08-07
 Decision: An Alpine factory that drives a `modules/ui/*` class keeps the instance in the factory closure, never on `this.*`. The registered `Alpine.data()` name matches the factory call in markup (`toggle`), and the factory file lives under `lib/<domain>/` (`lib/ui/toggle.data.ts`), not in `lib/client/alpine/` which holds only the entry factory and registrars.
 Reason: Alpine deep-proxies reactive state, and an ES private field throws when read through a Proxy, so `mount()` / `layout()` never ran and the Toggle pill stayed 0×0. A mismatched registration name fails the same way, silently.
 Consequences: `modules/ui` classes are unit-tested with an explicit Proxy guard that documents the hazard. `x-modelable` still exposes scalar reactive fields (`activeTab`), so parent `x-model` binding is unaffected. The Toggle's paired `.astro` deliberately sits in `components/layout/games/setup/` rather than `components/ui/` because it uses app `tab-*` tokens — the same one-directional reading of the pairing rule that `segment-timer.module.ts` already relies on.
+
+### D206 — Throwing-hand preference is a local `$persist` store, not `player_settings`
+Status: Accepted · Date: 2026-08-11
+Decision: The player's throwing hand (`Handedness`, already a `boardInput()` option per D199) is read from a new `boardInput` Alpine store (`stores/board-input.store.ts`, one `$persist` field, `PersistFactory` per D120) rather than added to the server-backed `player_settings`/`v_player_settings` pair. `board-input.data.ts`'s `freshController` now passes `$store.boardInput.handedness` into `boardInput()` instead of relying on its `"RIGHT"` default, and a new `HandednessForm.astro` on the profile page writes the store directly.
+Reason: Which side the magnifier opens on is a per-device rendering preference — it does not describe gameplay, need not sync across devices, and has no server read path today. Routing it through `player_settings` would mean a new migration, endpoint contract bump, service/repository change and view column for a value only the client ever consumes, for no behavioural gain over `$persist`.
+Consequences: Handedness does not follow a player across devices (matches D77/D86's `forms/`-as-substitute precedent for pre-`player_settings` local prefs). If a future need for cross-device sync emerges, migrating this one field into `player_settings` is a small, isolated change against an established pattern (`settings.store.ts`/`AppModeForm.astro`) — not a reason to default there now.

@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-07-22
+updated: 2026-08-11
 -->
 
 # Frontend Overview
 
-> **Version:** 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
+> **Version:** 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); prior 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -96,7 +96,7 @@ An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer
 
 **The gesture is press-drag-release, never a bare tap.** On `pointerdown` a magnifier opens beside the fingertip showing the board under the crosshair plus the live resolved read (`TREBLE 20 · 60`). Dragging moves the point; nothing is committed until `pointerup`. `pointercancel` discards. A press that never moves still commits at its own position, so a confident throw costs one gesture.
 
-Nothing commits on press because the treble ring is ~10 mm tall against a ~45 px fingertip: the player must be able to see what is under the crosshair and correct before letting go. A misread tap is not a cosmetic error — it writes a wrong `hitZoneKey` and coordinate pair into the fact log, and completed gameplay is immutable (D199).
+Nothing commits on press because the treble ring is ~8 mm tall against a ~45 px fingertip: the player must be able to see what is under the crosshair and correct before letting go. A misread tap is not a cosmetic error — it writes a wrong `hitZoneKey` and coordinate pair into the fact log, and completed gameplay is immutable (D199).
 
 **"Bounce out"** commits a `MISS` with `locationX`/`locationY` null — the pair is written together or not at all (`chk_dart_location_pair`). This is the honest record of a dart whose landing point the player never observed; it is not a zero-score dart that landed somewhere.
 

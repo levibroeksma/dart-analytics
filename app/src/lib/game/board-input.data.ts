@@ -7,6 +7,7 @@ import type {
   BoardInputController,
   DartFact,
   DartObservation,
+  Handedness,
   TurnFact,
 } from "@modules/types";
 import type { BoardMarker, BoardView } from "./types";
@@ -86,7 +87,10 @@ type BoardInputDataContext = {
   pointerX: number;
   pointerY: number;
   $refs: { board: SVGSVGElement };
-  $store: { game: { turns: TurnFact[] } };
+  $store: {
+    game: { turns: TurnFact[] };
+    boardInput: { handedness: Handedness };
+  };
   syncBoard(this: BoardInputDataContext): void;
   magnifierAnchor(this: BoardInputDataContext): string;
   magnifierBox(this: BoardInputDataContext): Record<string, string>;
@@ -111,11 +115,13 @@ type BoardInputDataContext = {
 function freshController(
   board: SVGSVGElement,
   onCommit: (observation: DartObservation) => void,
+  handedness: Handedness,
 ): BoardInputController {
   return boardInput({
     toBoard: screenToBoard(board),
     pxPerMm: () => boardPxPerMm(board),
     onCommit,
+    handedness,
     viewport: {
       width: globalThis.innerWidth ?? 0,
       height: globalThis.innerHeight ?? 0,
@@ -218,7 +224,11 @@ export function boardInputData(
       event.preventDefault();
       this.pointerX = event.clientX;
       this.pointerY = event.clientY;
-      const controller = freshController(this.$refs.board, onCommit);
+      const controller = freshController(
+        this.$refs.board,
+        onCommit,
+        this.$store.boardInput.handedness,
+      );
       this.input = controller;
       controller.press(event);
       this.syncBoard();
@@ -243,7 +253,12 @@ export function boardInputData(
 
     recordUnseen(this: BoardInputDataContext) {
       const controller =
-        this.input ?? freshController(this.$refs.board, onCommit);
+        this.input ??
+        freshController(
+          this.$refs.board,
+          onCommit,
+          this.$store.boardInput.handedness,
+        );
       this.input = controller;
       controller.commitUnseen();
       this.syncBoard();

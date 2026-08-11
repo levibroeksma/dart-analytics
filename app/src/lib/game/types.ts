@@ -230,8 +230,8 @@ export type FiveOhOnePlayContext = {
   remainingScore(this: FiveOhOnePlayContext): number;
   checkoutHint(this: FiveOhOnePlayContext): string;
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
-  averageThisLeg(this: FiveOhOnePlayContext): string;
-  previousScoreThisLeg(this: FiveOhOnePlayContext): string;
+  average(this: FiveOhOnePlayContext): string;
+  previousScore(this: FiveOhOnePlayContext): string;
   init(this: FiveOhOnePlayContext): Promise<void>;
   retryReconciliation(this: FiveOhOnePlayContext): Promise<void>;
   submitVisit(this: FiveOhOnePlayContext): Promise<void>;
