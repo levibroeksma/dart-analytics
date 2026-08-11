@@ -19,6 +19,9 @@ interface Props {
 // Props
 const { class: classNameProp, ...props }: Props = Astro.props;
 
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+
 // Lib
 import { cn } from "@client/cn";
 
@@ -38,21 +41,11 @@ const checkClass =
   aria-labelledby="app-mode-heading"
   {...props}
 >
-  <div class="space-y-1">
-    <h2
-      id="app-mode-heading"
-      class="text-lg font-semibold text-foreground"
-    >
-      App mode
-    </h2>
-    <p class="text-sm text-muted-foreground">
-      Your preferred way to score. Only games that support the mode you pick are
-      shown. Analytics captures each dart on a board, so you can see where your
-      throws land; recreational records a visit total. The keypad stays
-      available either way. Changing this affects new sessions — a game already
-      in progress keeps the mode it started in.
-    </p>
-  </div>
+  <InfoSection
+    id="app-mode-heading"
+    title="App mode"
+    description="Your preferred way to score. Only games that support the mode you pick are shown. Analytics captures each dart on a board, so you can see where your throws land; recreational records a visit total. The keypad stays available either way. Changing this affects new sessions — a game already in progress keeps the mode it started in."
+  />
 
   <div
     class="space-y-2"

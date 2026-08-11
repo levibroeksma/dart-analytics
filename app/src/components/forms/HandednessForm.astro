@@ -70,7 +70,9 @@ const checkClass =
       @keydown.arrow-down.prevent="select('LEFT', 'leftOption')"
     >
       <span class="flex items-center justify-between gap-3">
-        <span class="block font-semibold text-foreground">Right-handed</span>
+        <span class="block text-sm font-semibold text-foreground"
+          >Right-handed</span
+        >
         <CheckIcon
           class={checkClass}
           :class="$store.boardInput.handedness === 'RIGHT' ? 'opacity-100' : 'opacity-0'"
@@ -94,7 +96,9 @@ const checkClass =
       @keydown.arrow-down.prevent="select('RIGHT', 'rightOption')"
     >
       <span class="flex items-center justify-between gap-3">
-        <span class="block font-semibold text-foreground">Left-handed</span>
+        <span class="block text-sm font-semibold text-foreground"
+          >Left-handed</span
+        >
         <CheckIcon
           class={checkClass}
           :class="$store.boardInput.handedness === 'LEFT' ? 'opacity-100' : 'opacity-0'"
