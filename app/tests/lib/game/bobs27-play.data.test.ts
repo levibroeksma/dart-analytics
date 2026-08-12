@@ -464,7 +464,7 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     ]);
   });
 
-  it("never schedules a hide timer under RECREATIONAL", async () => {
+  it("hides the resolved visit's preview immediately under RECREATIONAL, with no timer", async () => {
     const play = makePlay({ inputModeKey: "DETAILED_DARTS" });
     await play.init.call(play);
 
@@ -472,8 +472,14 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     await play.recordTap.call(play, false);
     await play.recordTap.call(play, false);
 
-    vi.advanceTimersByTime(5000);
-    expect(play.hiddenTurnKey).toBeNull();
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.hiddenTimer).toBeNull();
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
   });
 
   it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {

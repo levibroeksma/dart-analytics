@@ -269,17 +269,19 @@ export function bobs27Play() {
       this.$store.game.recordFacts(facts);
 
       const resolvedTurn = facts.turns.at(-1);
-      if (
-        resolvedTurn?.completedAt &&
-        this.$store.game.inputModeKey === "VISUAL_BOARD"
-      ) {
+      if (resolvedTurn?.completedAt) {
         if (this.hiddenTimer) {
           clearTimeout(this.hiddenTimer);
+          this.hiddenTimer = null;
         }
-        const clientKey = resolvedTurn.clientKey;
-        this.hiddenTimer = setTimeout(() => {
-          this.hiddenTurnKey = clientKey;
-        }, 1500);
+        if (this.$store.game.inputModeKey === "VISUAL_BOARD") {
+          const clientKey = resolvedTurn.clientKey;
+          this.hiddenTimer = setTimeout(() => {
+            this.hiddenTurnKey = clientKey;
+          }, 1500);
+        } else {
+          this.hiddenTurnKey = resolvedTurn.clientKey;
+        }
       }
 
       if (this.engine.isComplete()) {
