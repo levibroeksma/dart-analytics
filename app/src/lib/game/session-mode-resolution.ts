@@ -1,41 +1,38 @@
-import { supportsMode } from "@lib/game/rulesets/capabilities";
+import {
+  RULESET_CAPABILITIES,
+  supportsMode,
+} from "@lib/game/rulesets/capabilities";
 import type { ModePair, RulesetVersionKey } from "@lib/types";
-
-const QUICK_SCORE: ModePair = {
-  captureModeKey: "RECREATIONAL",
-  inputModeKey: "QUICK_SCORE",
-};
 
 /**
  * The capture/input mode pair a setup page's `createSession` call should
  * send, given the player's chosen mode from the `settings` store.
  *
- * Both `five-oh-one-setup.data.ts` and `score-training-setup.data.ts` start
- * a `501_V1`/`SCORE_TRAINING_V1` session; both rulesets declare exactly the
- * same two pairs in `capabilities.ts` — quick score and visual board — so
- * `QUICK_SCORE` is always one of `RULESET_CAPABILITIES[rulesetVersionKey]`
- * for every caller this helper currently has. A future caller for a ruleset
- * that does not declare `QUICK_SCORE` (e.g. `SINGLES_V1`) would need its own
- * fallback; this helper does not attempt to guess one.
+ * The fallback is the ruleset's own first pair declared in
+ * `RULESET_CAPABILITIES`, not a hardcoded constant — a ruleset that never
+ * declares `RECREATIONAL + QUICK_SCORE` (e.g. `BOBS27_V1`, which declares
+ * `RECREATIONAL + DETAILED_DARTS` and `ANALYTICS + VISUAL_BOARD`) still
+ * starts a session under a pair it actually supports when `settings` hasn't
+ * finished loading, has no saved row for the player, or is absent in a test
+ * double.
  *
- * `settings` may be missing fields, or missing outright, when the `settings`
- * store has not finished loading, has no saved row for the player, or is
- * absent in a test double — `createSession` (`services/session.service.ts`)
- * rejects an undeclared pair via `supportsMode` before any write, and would
- * reject `undefined` outright, so this never forwards either.
+ * `createSession` (`services/session.service.ts`) rejects an undeclared pair
+ * via `supportsMode` before any write, and would reject `undefined` outright,
+ * so this never forwards either.
  */
 export function resolveSessionModePair(
   rulesetVersionKey: RulesetVersionKey,
   settings: Partial<ModePair> | null | undefined,
 ): ModePair {
-  const captureModeKey = settings?.captureModeKey ?? QUICK_SCORE.captureModeKey;
-  const inputModeKey = settings?.inputModeKey ?? QUICK_SCORE.inputModeKey;
+  const fallback = RULESET_CAPABILITIES[rulesetVersionKey][0];
+  const captureModeKey = settings?.captureModeKey ?? fallback.captureModeKey;
+  const inputModeKey = settings?.inputModeKey ?? fallback.inputModeKey;
 
   if (supportsMode(rulesetVersionKey, captureModeKey, inputModeKey)) {
     return { captureModeKey, inputModeKey };
   }
 
-  return QUICK_SCORE;
+  return fallback;
 }
 
 /**

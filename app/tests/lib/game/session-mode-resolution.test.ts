@@ -48,4 +48,32 @@ describe("resolveSessionModePair", () => {
       resolveSessionModePair("501_V1", { captureModeKey: "ANALYTICS" }),
     ).toEqual({ captureModeKey: "RECREATIONAL", inputModeKey: "QUICK_SCORE" });
   });
+
+  it("falls back to the ruleset's own first declared pair for a ruleset without QUICK_SCORE", () => {
+    expect(resolveSessionModePair("BOBS27_V1", undefined)).toEqual({
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+  });
+
+  it("falls back to the ruleset's own first declared pair when the chosen pair is undeclared", () => {
+    expect(
+      resolveSessionModePair("BOBS27_V1", {
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }),
+    ).toEqual({
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+  });
+
+  it("passes through Bob's 27's visual-board pair when chosen", () => {
+    expect(
+      resolveSessionModePair("BOBS27_V1", {
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }),
+    ).toEqual({ captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" });
+  });
 });
