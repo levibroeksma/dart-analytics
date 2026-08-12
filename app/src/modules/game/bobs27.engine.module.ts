@@ -41,7 +41,9 @@ export function initialBobs27State(config: Bobs27Snapshot): Bobs27State {
 }
 
 function pointValueOf(target: BoardTarget, config: Bobs27Snapshot): number {
-  return target.kind === "BULL" ? config.bullHitValue : target.number;
+  return target.kind === "BULL"
+    ? config.bullHitValue
+    : boardScore(target.number, "DOUBLE");
 }
 
 /**

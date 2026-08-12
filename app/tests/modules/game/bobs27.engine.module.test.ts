@@ -96,7 +96,7 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
       locationY: null,
     });
 
-    expect(engine.state().score).toBe(28);
+    expect(engine.state().score).toBe(29);
     expect(engine.facts().turns).toHaveLength(1);
     expect(engine.facts().turns[0].darts).toHaveLength(3);
     expect(engine.facts().turns[0].totalScore).toBe(2);
@@ -123,7 +123,7 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
       locationY: null,
     });
 
-    expect(engine.state().score).toBe(26);
+    expect(engine.state().score).toBe(25);
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
@@ -164,7 +164,7 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
     });
 
     const resumed = bobs27EngineFactory.create(config, first.facts());
-    expect(resumed.state().score).toBe(30);
+    expect(resumed.state().score).toBe(33);
     expect(resumed.state().targetIndex).toBe(1);
   });
 
@@ -265,7 +265,7 @@ describe("applyBobs27Dart — hit scoring", () => {
   it("adds the target's value immediately on a single hit and keeps the same target", () => {
     const state = initialBobs27State(config);
     const next = applyBobs27Dart(config, state, hitObservationFor(state));
-    expect(next.score).toBe(28);
+    expect(next.score).toBe(29);
     expect(next.targetIndex).toBe(0);
     expect(next.status).toBe("IN_PROGRESS");
   });
@@ -273,11 +273,11 @@ describe("applyBobs27Dart — hit scoring", () => {
   it("adds each hit as it happens across a 3-hit visit, then advances the target", () => {
     let state = initialBobs27State(config);
     state = applyBobs27Dart(config, state, hitObservationFor(state));
-    expect(state.score).toBe(28);
-    state = applyBobs27Dart(config, state, hitObservationFor(state));
     expect(state.score).toBe(29);
     state = applyBobs27Dart(config, state, hitObservationFor(state));
-    expect(state.score).toBe(30);
+    expect(state.score).toBe(31);
+    state = applyBobs27Dart(config, state, hitObservationFor(state));
+    expect(state.score).toBe(33);
     expect(state.targetIndex).toBe(1);
     expect(state.status).toBe("IN_PROGRESS");
   });
@@ -287,7 +287,7 @@ describe("applyBobs27Dart — hit scoring", () => {
     state = applyBobs27Dart(config, state, hitObservationFor(state));
     state = applyBobs27Dart(config, state, missObservationFor(state));
     state = applyBobs27Dart(config, state, hitObservationFor(state));
-    expect(state.score).toBe(29);
+    expect(state.score).toBe(31);
     expect(state.targetIndex).toBe(1);
   });
 });
@@ -300,12 +300,12 @@ describe("applyBobs27Dart — full-miss penalty", () => {
     state = applyBobs27Dart(config, state, missObservationFor(state));
     expect(state.score).toBe(27);
     state = applyBobs27Dart(config, state, missObservationFor(state));
-    expect(state.score).toBe(26);
+    expect(state.score).toBe(25);
     expect(state.targetIndex).toBe(1);
   });
 
   it("drives the score to exactly 0 and ends the game as LOST", () => {
-    let state = initialBobs27State({ ...config, startScore: 1 });
+    let state = initialBobs27State({ ...config, startScore: 2 });
     state = applyBobs27Dart(config, state, missObservationFor(state));
     state = applyBobs27Dart(config, state, missObservationFor(state));
     state = applyBobs27Dart(config, state, missObservationFor(state));
@@ -323,7 +323,7 @@ describe("applyBobs27Dart — path completion and win/loss", () => {
       state = applyBobs27Dart(config, state, hitObservationFor(state));
     }
     expect(state.status).toBe("WON");
-    expect(state.score).toBe(807);
+    expect(state.score).toBe(1437);
   });
 
   it("loses when a full-miss on the bull visit drops the score to 0 or below, even though it is the final visit", () => {
@@ -390,14 +390,14 @@ describe("Bobs27Engine", () => {
   it("delegates record to the reducer and exposes updated state via state()", () => {
     const engine = new Bobs27Engine(config);
     engine.record(hitObservationFor(engine.state()));
-    expect(engine.state().score).toBe(28);
+    expect(engine.state().score).toBe(29);
     expect(targetAt(doublesPath(), engine.state().targetIndex)).toEqual({
       kind: "DOUBLE",
       number: 1,
     });
     engine.record(hitObservationFor(engine.state()));
     engine.record(hitObservationFor(engine.state()));
-    expect(engine.state().score).toBe(30);
+    expect(engine.state().score).toBe(33);
     expect(targetAt(doublesPath(), engine.state().targetIndex)).toEqual({
       kind: "DOUBLE",
       number: 2,
@@ -422,7 +422,7 @@ describe("Bobs27Engine", () => {
     }
     expect(engine.isComplete()).toBe(true);
     expect(engine.state().status).toBe("WON");
-    expect(engine.state().score).toBe(807);
+    expect(engine.state().score).toBe(1437);
   });
 
   it("accepts a custom starting score", () => {
@@ -553,15 +553,15 @@ describe("Bobs27Engine.undo", () => {
       engine.record(hitObservationFor(engine.state()));
     }
     expect(engine.state().status).toBe("WON");
-    expect(engine.state().score).toBe(807);
+    expect(engine.state().score).toBe(1437);
 
     expect(() => engine.record(hitObservationFor(engine.state()))).toThrow();
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().score).toBe(757);
+    expect(engine.state().score).toBe(1387);
     expect(engine.undo()).toBe(true);
-    expect(engine.state().score).toBe(707);
+    expect(engine.state().score).toBe(1337);
   });
 
   it("reverts a single hit", () => {
@@ -576,7 +576,7 @@ describe("Bobs27Engine.undo", () => {
     engine.record(missObservationFor(engine.state()));
     engine.record(missObservationFor(engine.state()));
     engine.record(missObservationFor(engine.state()));
-    expect(engine.state().score).toBe(26);
+    expect(engine.state().score).toBe(25);
     expect(targetAt(doublesPath(), engine.state().targetIndex)).toEqual({
       kind: "DOUBLE",
       number: 2,
@@ -592,7 +592,7 @@ describe("Bobs27Engine.undo", () => {
 
     const afterRestoredDart = engine.record(missObservationFor(engine.state()));
     expect(afterRestoredDart.dartsThisVisit).toEqual([]);
-    expect(engine.state().score).toBe(26);
+    expect(engine.state().score).toBe(25);
   });
 
   it("reverts a game-ending dart, allowing play to continue afterward", () => {
@@ -608,7 +608,7 @@ describe("Bobs27Engine.undo", () => {
 
     engine.record(hitObservationFor(engine.state()));
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().score).toBe(2);
+    expect(engine.state().score).toBe(3);
     expect(targetAt(doublesPath(), engine.state().targetIndex)).toEqual({
       kind: "DOUBLE",
       number: 2,
@@ -621,7 +621,7 @@ describe("Bobs27Engine.undo", () => {
     engine.record(hitObservationFor(engine.state()));
     engine.record(hitObservationFor(engine.state()));
     engine.record(hitObservationFor(engine.state()));
-    expect(engine.state().score).toBe(32);
+    expect(engine.state().score).toBe(37);
     expect(targetAt(doublesPath(), engine.state().targetIndex)).toEqual({
       kind: "DOUBLE",
       number: 2,
@@ -661,10 +661,10 @@ describe("Bobs27Engine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(resumed.state().score).toBe(30);
+    expect(resumed.state().score).toBe(33);
 
     expect(resumed.undo()).toBe(true);
     expect(resumed.facts().turns[0].darts).toHaveLength(2);
-    expect(resumed.state().score).toBe(29);
+    expect(resumed.state().score).toBe(31);
   });
 });
