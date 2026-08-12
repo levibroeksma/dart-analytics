@@ -55,7 +55,10 @@ function previewSegmentsFor(
   return [0, 1, 2].map((i) => {
     const dart = lastTurn.darts[i];
     if (!dart) return { status: "empty" };
-    return { status: dart.hitZoneKey === "MISS" ? "miss" : "hit" };
+    const onTarget =
+      dart.hitTargetNumber === dart.intendedTargetNumber &&
+      dart.hitZoneKey === dart.intendedZoneKey;
+    return { status: onTarget ? "hit" : "miss" };
   });
 }
 
@@ -141,6 +144,11 @@ export function bobs27Play() {
       );
     },
 
+    currentScore(this: Bobs27PlayContext): string {
+      if (!this.engine) return "";
+      return String(this.engine.state().score);
+    },
+
     previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
       return previewSegmentsFor(this.$store.game.turns, this.hiddenTurnKey);
     },
@@ -191,6 +199,12 @@ export function bobs27Play() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
         this.hasActiveSession = true;
+
+        if (engine.isComplete()) {
+          this.finished = true;
+          this.completionStatus = "pending";
+          await this.uploadAndCompleteSession();
+        }
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
@@ -244,7 +258,12 @@ export function bobs27Play() {
      */
     async commitDart(this: Bobs27PlayContext, observation: DartObservation) {
       if (!this.engine) return;
-      this.engine.record(observation);
+      try {
+        this.engine.record(observation);
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
+        return;
+      }
       this.error = "";
       const facts = this.engine.facts();
       this.$store.game.recordFacts(facts);
@@ -254,6 +273,9 @@ export function bobs27Play() {
         resolvedTurn?.completedAt &&
         this.$store.game.inputModeKey === "VISUAL_BOARD"
       ) {
+        if (this.hiddenTimer) {
+          clearTimeout(this.hiddenTimer);
+        }
         const clientKey = resolvedTurn.clientKey;
         this.hiddenTimer = setTimeout(() => {
           this.hiddenTurnKey = clientKey;

@@ -322,6 +322,7 @@ export type Bobs27PlayContext = {
   engine: Bobs27Engine | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   currentTargetLabel(this: Bobs27PlayContext): string;
+  currentScore(this: Bobs27PlayContext): string;
   previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[];
   init(this: Bobs27PlayContext): Promise<void>;
   retryReconciliation(this: Bobs27PlayContext): Promise<void>;

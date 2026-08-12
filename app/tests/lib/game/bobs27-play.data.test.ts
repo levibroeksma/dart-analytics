@@ -187,6 +187,49 @@ describe("init", () => {
     expect(play.reconciliationFailed).toBe(true);
     expect(play.hasActiveSession).toBe(false);
   });
+
+  it("resuming an already-terminal engine finishes the session instead of leaving it silently playable", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const missDart = (sequence: number): DartFact => ({
+      sequence,
+      intendedTargetNumber: 1,
+      intendedZoneKey: "DOUBLE",
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      score: 0,
+      locationX: null,
+      locationY: null,
+    });
+    const lostTurn: TurnFact = {
+      clientKey: "prior-lost",
+      stageClientKey: "block-1",
+      sequence: 1,
+      completedAt: "2026-08-01T10:00:00.000Z",
+      totalScore: 0,
+      darts: [missDart(1), missDart(2), missDart(3)],
+    };
+    const play = makePlay({
+      turns: [lostTurn],
+      configSnapshot: {
+        startScore: 27,
+        bullHitValue: 50,
+        missPenaltyMultiplier: 20,
+      },
+    });
+
+    await play.init.call(play);
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
 });
 
 describe("currentTargetLabel", () => {
@@ -198,6 +241,17 @@ describe("currentTargetLabel", () => {
     const bullPlay = makePlay({ turns: priorTurnsThroughBull() });
     await bullPlay.init.call(bullPlay);
     expect(bullPlay.currentTargetLabel.call(bullPlay)).toBe("BULL");
+  });
+});
+
+describe("currentScore", () => {
+  it("reflects the engine's derived running score", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.currentScore.call(play)).toBe("27");
+
+    await play.recordTap.call(play, true);
+    expect(play.currentScore.call(play)).toBe("29");
   });
 });
 
@@ -356,6 +410,24 @@ describe("previewSegments", () => {
       { status: "empty" },
     ]);
   });
+
+  it("marks an off-target on-board dart as a miss even though its zone isn't literally MISS", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 10,
+      locationY: 20,
+    });
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "miss" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
 });
 
 describe("reveal-then-clear under VISUAL_BOARD", () => {
@@ -436,6 +508,31 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     play.undoVisit.call(play);
 
     expect(play.hiddenTurnKey).toBeNull();
+  });
+
+  it("clears a still-pending hide timer before scheduling a new one, so a fast second visit never leaks the first timer", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, hitAt(1));
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    const firstTimer = play.hiddenTimer;
+
+    vi.advanceTimersByTime(1400);
+
+    await play.recordDart.call(play, hitAt(2));
+    await play.recordDart.call(play, missAt(2));
+    await play.recordDart.call(play, missAt(2));
+
+    expect(play.hiddenTimer).not.toBe(firstTimer);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.hiddenTurnKey).toBe(play.$store.game.turns[1].clientKey);
   });
 });
 
