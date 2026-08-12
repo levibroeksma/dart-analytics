@@ -4,6 +4,7 @@ import { scoreTrainingSetup } from "@lib/game/score-training-setup.data";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import { fiveOhOneSetup } from "@lib/game/five-oh-one-setup.data";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
+import { bobs27Setup } from "@lib/game/bobs27-setup.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 
 export function registerRouteData(Alpine: Alpine) {
@@ -13,4 +14,5 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("scoreTrainingPlay", scoreTrainingPlay);
   Alpine.data("fiveOhOneSetup", fiveOhOneSetup);
   Alpine.data("fiveOhOnePlay", fiveOhOnePlay);
+  Alpine.data("bobs27Setup", bobs27Setup);
 }

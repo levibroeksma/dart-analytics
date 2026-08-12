@@ -212,6 +212,36 @@ export type FiveOhOneSetupContext = {
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
+export type Bobs27SetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: Bobs27SetupContext): Promise<void>;
+  reconcile(
+    this: Bobs27SetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: Bobs27SetupContext): Promise<void>;
+  continueSession(this: Bobs27SetupContext): void;
+  abandonSession(this: Bobs27SetupContext): Promise<void>;
+  start(this: Bobs27SetupContext): Promise<void>;
+};
+
 export type FiveOhOnePlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
