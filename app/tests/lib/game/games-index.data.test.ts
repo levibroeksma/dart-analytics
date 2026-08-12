@@ -32,13 +32,14 @@ describe("gamesIndex", () => {
     return { ...gamesIndex(), $store: store, ...overrides };
   }
 
-  it("shows both cards under quick score", async () => {
+  it("shows every card under recreational, including a ruleset with no QUICK_SCORE pair", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
     const page = createPage();
     await page.init();
 
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(true);
     expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("BOBS27_V1")).toBe(true);
     expect(page.noneVisible()).toBe(false);
     expect(page.analyticsMode()).toBe(false);
   });
@@ -50,22 +51,23 @@ describe("gamesIndex", () => {
     expect(createPage().analyticsMode()).toBe(true);
   });
 
-  it("hides every card under a mode no carded game supports", async () => {
+  it("hides every card under a capture mode no carded game supports", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
-    store.settings.inputModeKey = "UNKNOWN_INPUT_MODE";
+    store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
     expect(page.isVisible("501_V1")).toBe(false);
+    expect(page.isVisible("BOBS27_V1")).toBe(false);
     expect(page.noneVisible()).toBe(true);
   });
 
-  it("keeps a card whose session is active under an unsupported mode", async () => {
+  it("keeps a card whose session is active under an unsupported capture mode", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
       activeSession("501_V1"),
     ]);
-    store.settings.inputModeKey = "DETAILED_DARTS";
+    store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 
@@ -79,7 +81,7 @@ describe("gamesIndex", () => {
       activeSession("501_V1"),
       activeSession("SCORE_TRAINING_V1"),
     ]);
-    store.settings.inputModeKey = "DETAILED_DARTS";
+    store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 

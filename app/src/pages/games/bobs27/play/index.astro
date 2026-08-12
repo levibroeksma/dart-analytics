@@ -1,12 +1,9 @@
 ---
 export const prerender = true;
-import GameLayout from "@layouts/GameLayout.astro";
+import AppLayout from "@layouts/AppLayout.astro";
 ---
 
-<GameLayout
-  title="Bob's 27 — Play"
-  gameTitle="Bob's 27"
->
+<AppLayout title="Bob's 27 — Play">
   <div
     class="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
   >
@@ -18,4 +15,4 @@ import GameLayout from "@layouts/GameLayout.astro";
       update.
     </p>
   </div>
-</GameLayout>
+</AppLayout>

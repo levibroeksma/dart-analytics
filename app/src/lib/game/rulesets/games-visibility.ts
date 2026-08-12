@@ -1,5 +1,5 @@
 import type { RulesetVersionKey } from "@lib/types";
-import { supportsMode } from "./capabilities";
+import { supportsCaptureMode } from "./capabilities";
 import type { GameCardDescriptor } from "./types";
 
 /**
@@ -33,24 +33,34 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
 ];
 
 /**
- * Which game cards to show for a mode. A game with an active session is always
- * shown, whatever the mode: that session snapshotted its own modes at start and
- * is unaffected by a later preference change, but hiding its card would strand
- * it — the recovery flow is reachable only from here.
+ * Which game cards to show for a capture mode. A game with an active session
+ * is always shown, whatever the mode: that session snapshotted its own modes
+ * at start and is unaffected by a later preference change, but hiding its
+ * card would strand it — the recovery flow is reachable only from here.
  *
- * Filtering on `supportsMode` rather than on the engine registry is deliberate.
+ * Filtering on `supportsCaptureMode` rather than the exact declared pair is
+ * deliberate: the app's mode picker only ever sets one of two canonical
+ * pairs (`RECREATIONAL`+`QUICK_SCORE`, `ANALYTICS`+`VISUAL_BOARD`), never a
+ * ruleset-specific input mode like `DETAILED_DARTS`. A ruleset that pairs
+ * `RECREATIONAL` with `DETAILED_DARTS` instead of `QUICK_SCORE` (`BOBS27_V1`)
+ * would otherwise never show a card under `RECREATIONAL`, even though
+ * `resolveSessionModePair` already starts it correctly under that capture
+ * mode via its own-first-pair fallback. Exact-pair enforcement stays in
+ * `supportsMode` (session creation, `session.service.ts`) — this function
+ * only governs whether a card renders.
+ *
+ * Filtering on capability rather than on the engine registry is deliberate.
  * The registry is populated by `*.engine.module.ts` import side effects, and
  * this page imports no engine, so a registry-backed filter would hide every
  * card on the one page that never loads an engine.
  */
 export function visibleGames(
   captureModeKey: string,
-  inputModeKey: string,
   activeRulesetKey: RulesetVersionKey | null,
 ): readonly GameCardDescriptor[] {
   return GAME_CARDS.filter(
     (game) =>
-      supportsMode(game.rulesetVersionKey, captureModeKey, inputModeKey) ||
+      supportsCaptureMode(game.rulesetVersionKey, captureModeKey) ||
       game.rulesetVersionKey === activeRulesetKey,
   );
 }

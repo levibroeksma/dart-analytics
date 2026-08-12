@@ -3,6 +3,7 @@ import {
   RULESET_CAPABILITIES,
   capableRulesets,
   supportsMode,
+  supportsCaptureMode,
 } from "@lib/game/rulesets/capabilities";
 
 describe("RULESET_CAPABILITIES", () => {
@@ -69,6 +70,28 @@ describe("supportsMode", () => {
       ).toBe(false);
     },
   );
+});
+
+describe("supportsCaptureMode", () => {
+  it("accepts Bob's 27 under RECREATIONAL despite no QUICK_SCORE pair", () => {
+    expect(supportsCaptureMode("BOBS27_V1", "RECREATIONAL")).toBe(true);
+  });
+
+  it("accepts Bob's 27 under ANALYTICS via its VISUAL_BOARD pair", () => {
+    expect(supportsCaptureMode("BOBS27_V1", "ANALYTICS")).toBe(true);
+  });
+
+  it("rejects an unknown capture mode", () => {
+    expect(supportsCaptureMode("BOBS27_V1", "UNKNOWN_CAPTURE_MODE")).toBe(
+      false,
+    );
+  });
+
+  it("rejects an unknown ruleset", () => {
+    expect(
+      supportsCaptureMode("NOT_A_REAL_RULESET" as never, "RECREATIONAL"),
+    ).toBe(false);
+  });
 });
 
 describe("capableRulesets", () => {

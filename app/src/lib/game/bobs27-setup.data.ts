@@ -19,6 +19,7 @@ import type { Bobs27SetupContext } from "./types";
 const GAME_TYPE_KEY = "BOBS27";
 const RULESET_VERSION_KEY = "BOBS27_V1";
 
+/** V1 seeds exactly one configuration preset; index 0 is always that preset. */
 export function bobs27Setup() {
   return {
     presets: [] as ConfigurationPresetData[],
