@@ -40,6 +40,7 @@ FROM (
             ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS')
     ) AS declared(ruleset_key, capture_key, input_key)
     JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
