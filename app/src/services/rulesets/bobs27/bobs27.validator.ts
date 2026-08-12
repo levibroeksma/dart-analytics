@@ -47,6 +47,56 @@ function isDetailedDartsOrVisualBoardCapture(
 }
 
 /**
+ * Every Bob's 27 visit, under either capture mode, is exactly 3 darts — hits
+ * or misses, never an absence of darts. Returns the rejection, or `null` when
+ * every turn in the batch carries at least one dart row.
+ */
+function rejectDartlessTurn(
+  batch: EventsBatchRequestInput,
+): BatchValidationResult | null {
+  for (const stage of batch.stages) {
+    for (const turn of stage.turns) {
+      if (turn.darts.length === 0) {
+        return {
+          valid: false,
+          code: "VALIDATION_FAILED",
+          issues: [
+            `turn ${turn.clientKey} must carry dart rows — every Bob's 27 visit is exactly 3 darts, hit or miss, never a dartless total`,
+          ],
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Under RECREATIONAL + DETAILED_DARTS every dart's board score must be
+ * non-negative. Returns the rejection, or `null` when every dart in the batch
+ * clears that floor.
+ */
+function rejectNegativeDartScore(
+  batch: EventsBatchRequestInput,
+): BatchValidationResult | null {
+  for (const stage of batch.stages) {
+    for (const turn of stage.turns) {
+      for (const dart of turn.darts) {
+        if (dart.score < 0) {
+          return {
+            valid: false,
+            code: "VALIDATION_FAILED",
+            issues: [
+              `turn ${turn.clientKey} dart ${dart.sequence} score must be non-negative`,
+            ],
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Bob's 27 supports two mode pairs. Under RECREATIONAL + DETAILED_DARTS its
  * engine emits one dart row per throw, so every turn in a batch must carry at
  * least one and no dart's board score may be negative. Under
@@ -85,39 +135,15 @@ export const bobs27Validator: RulesetValidator = {
     captureModeKey: string;
     inputModeKey: string;
   }): BatchValidationResult {
-    for (const stage of batch.stages) {
-      for (const turn of stage.turns) {
-        if (turn.darts.length === 0) {
-          return {
-            valid: false,
-            code: "VALIDATION_FAILED",
-            issues: [
-              `turn ${turn.clientKey} must carry dart rows — every Bob's 27 visit is exactly 3 darts, hit or miss, never a dartless total`,
-            ],
-          };
-        }
-      }
-    }
+    const dartlessRejection = rejectDartlessTurn(batch);
+    if (dartlessRejection) return dartlessRejection;
 
     if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
       return validateVisualBoardTurns(batch, DEFAULT_MAX_TURN_SCORE);
     }
 
-    for (const stage of batch.stages) {
-      for (const turn of stage.turns) {
-        for (const dart of turn.darts) {
-          if (dart.score < 0) {
-            return {
-              valid: false,
-              code: "VALIDATION_FAILED",
-              issues: [
-                `turn ${turn.clientKey} dart ${dart.sequence} score must be non-negative`,
-              ],
-            };
-          }
-        }
-      }
-    }
+    const negativeScoreRejection = rejectNegativeDartScore(batch);
+    if (negativeScoreRejection) return negativeScoreRejection;
 
     return { valid: true };
   },
