@@ -1,0 +1,52 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Icons
+import CheckIcon from "@icons/check.svg";
+import DeleteIcon from "@icons/delete.svg";
+---
+
+<div
+  class="flex flex-col items-center gap-1"
+  {...props}
+>
+  <div
+    class="rounded-lg glass border border-border bg-surface-raised flex w-full divide-x divide-border"
+  >
+    <template
+      x-for="(segment, index) in previewSegments()"
+      :key="index"
+    >
+      <div class="flex h-12 flex-1 items-center justify-center">
+        <CheckIcon
+          class="size-5 text-success"
+          x-show="segment.status === 'hit'"
+          x-cloak
+        />
+        <DeleteIcon
+          class="size-5 text-error"
+          x-show="segment.status === 'miss'"
+          x-cloak
+        />
+        <span
+          class="size-2 rounded-full bg-border"
+          x-show="segment.status === 'empty'"
+          x-cloak
+        >
+        </span>
+      </div>
+    </template>
+  </div>
+  <div
+    class="flex w-full justify-around text-xs text-muted-foreground uppercase"
+  >
+    <span>D1</span>
+    <span>D2</span>
+    <span>D3</span>
+  </div>
+</div>

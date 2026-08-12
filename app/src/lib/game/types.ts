@@ -3,6 +3,7 @@ import type { SessionActiveData } from "@client/api/types";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
+import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -18,6 +19,7 @@ import type {
   RulesetVersionKey,
   ScoreTrainingSnapshot,
   FiveOhOneSnapshot,
+  Bobs27Snapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -293,6 +295,51 @@ export type FiveOhOnePlayContext = {
   back(this: FiveOhOnePlayContext): Promise<void>;
   playAgain(this: FiveOhOnePlayContext): Promise<void>;
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
+};
+
+/** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */
+export type Bobs27PreviewSegment = { status: "hit" | "miss" | "empty" };
+
+export type Bobs27PlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: {
+    status: "WON" | "LOST";
+    score: number;
+    darts: number;
+  } | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  $store: PlayStoreContext<Bobs27Snapshot>;
+  engine: Bobs27Engine | null;
+  visitMarkers(this: Bobs27PlayContext): BoardMarker[];
+  currentTargetLabel(this: Bobs27PlayContext): string;
+  currentScore(this: Bobs27PlayContext): string;
+  previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[];
+  init(this: Bobs27PlayContext): Promise<void>;
+  retryReconciliation(this: Bobs27PlayContext): Promise<void>;
+  recordTap(this: Bobs27PlayContext, hit: boolean): Promise<void>;
+  recordDart(
+    this: Bobs27PlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: Bobs27PlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: Bobs27PlayContext): void;
+  uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void>;
+  back(this: Bobs27PlayContext): Promise<void>;
+  playAgain(this: Bobs27PlayContext): Promise<void>;
+  abandonAndExit(this: Bobs27PlayContext): Promise<void>;
 };
 
 /**

@@ -1,0 +1,98 @@
+---
+import Button from "@components/forms/Button.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+import IsLoading from "@components/ui/IsLoading.astro";
+---
+
+<div
+  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
+  x-show="finished"
+  x-cloak
+>
+  <div
+    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+  >
+    <h2
+      class="font-display text-lg font-semibold text-foreground"
+      x-text="resultsSnapshot?.status === 'LOST' ? 'Lost' : 'Won'"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot"
+      x-cloak
+    >
+    </h2>
+    <h2
+      class="font-display text-lg font-semibold text-foreground"
+      x-show="!(completionStatus === 'succeeded' && resultsSnapshot)"
+      x-cloak
+    >
+      Match Summary
+    </h2>
+
+    {/* Stats: shown once the final score is known */}
+    <dl
+      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot"
+      x-cloak
+    >
+      <StatRow
+        label="Score"
+        value="resultsSnapshot?.score"
+      />
+      <StatRow
+        label="Darts"
+        value="resultsSnapshot?.darts"
+      />
+    </dl>
+
+    {/* Completion status */}
+    <div class="mt-4">
+      <IsLoading
+        title="Saving..."
+        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+        x-cloak
+      />
+      <div
+        x-show="completionStatus === 'failed'"
+        x-cloak
+      >
+        <p
+          class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+          role="alert"
+          x-text="completionError"
+        >
+        </p>
+        <Button
+          class="mt-2"
+          @click="uploadAndCompleteSession()"
+          title="Retry"
+        />
+      </div>
+    </div>
+
+    {
+      /* Play-again failure: separate from completion status, buttons stay enabled */
+    }
+    <p
+      class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+      role="alert"
+      x-text="playAgainError"
+      x-show="playAgainError"
+      x-cloak
+    >
+    </p>
+
+    {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
+    <div class="mt-6 flex justify-end gap-3">
+      <Button
+        variant="secondary"
+        @click="back()"
+        :disabled="completionStatus !== 'succeeded'"
+        title="Back to games"
+      />
+      <Button
+        @click="playAgain()"
+        :disabled="completionStatus !== 'succeeded' || playAgainLoading"
+        title="Play again"
+      />
+    </div>
+  </div>
+</div>

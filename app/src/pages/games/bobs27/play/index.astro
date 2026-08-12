@@ -1,18 +1,34 @@
 ---
 export const prerender = true;
-import AppLayout from "@layouts/AppLayout.astro";
+import GameLayout from "@layouts/GameLayout.astro";
+import Bobs27 from "@components/layout/games/interfaces/Bobs27.astro";
+import Bobs27Results from "@components/layout/games/result-modals/Bobs27Results.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
 ---
 
-<AppLayout title="Bob's 27 — Play">
+<GameLayout
+  title="Bob's 27 — Play"
+  gameTitle="BOB'S 27"
+>
   <div
-    class="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
+    class="flex flex-col flex-1 min-h-0 p-3"
+    x-data="bobs27Play()"
+    @confirm-exit.window="abandonAndExit()"
   >
-    <h2 class="text-foreground font-semibold">
-      Bob's 27 gameplay is coming soon
-    </h2>
-    <p class="text-muted-foreground text-sm">
-      Your session has been saved. This screen will support play in a future
-      update.
-    </p>
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/bobs27/setup" />
+
+    {/* Gameplay view */}
+    <Bobs27
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <Bobs27Results />
   </div>
-</AppLayout>
+</GameLayout>
