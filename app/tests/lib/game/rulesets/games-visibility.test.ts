@@ -2,47 +2,47 @@ import { describe, expect, it } from "vitest";
 import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 
 // Every card in GAME_CARDS is a ruleset that has a real setup route, so a key
-// asserted here is a card that can actually render. `RECREATIONAL` +
-// `DETAILED_DARTS` is the pair neither carded ruleset declares in
-// `capabilities.ts`, which makes it the mode that exercises both the empty
-// state and the active-session override.
+// asserted here is a card that can actually render. Visibility is keyed on
+// capture mode alone, not the exact declared pair (see `visibleGames`'s own
+// doc comment for why), so every carded ruleset — each declaring at least one
+// pair under both RECREATIONAL and ANALYTICS — is visible under both real
+// app modes.
 
 describe("visibleGames", () => {
-  it("shows every game under quick score", () => {
-    const keys = visibleGames("RECREATIONAL", "QUICK_SCORE", null).map(
+  it("shows every carded game under recreational", () => {
+    const keys = visibleGames("RECREATIONAL", null).map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys).toContain("501_V1");
-    expect(keys).toContain("SCORE_TRAINING_V1");
+    expect(keys).toEqual(["SCORE_TRAINING_V1", "501_V1", "BOBS27_V1"]);
   });
 
-  it("shows only visual-capable games under analytics", () => {
-    const keys = visibleGames("ANALYTICS", "VISUAL_BOARD", null)
+  it("shows every carded game under analytics", () => {
+    const keys = visibleGames("ANALYTICS", null)
       .map((game) => game.rulesetVersionKey)
       .sort();
-    expect(keys).toEqual(["501_V1", "SCORE_TRAINING_V1"]);
+    expect(keys).toEqual(["501_V1", "BOBS27_V1", "SCORE_TRAINING_V1"]);
   });
 
-  it("hides every game under a mode no carded ruleset supports", () => {
-    expect(visibleGames("RECREATIONAL", "DETAILED_DARTS", null)).toEqual([]);
+  it("hides every game under a capture mode no carded ruleset supports", () => {
+    expect(visibleGames("UNKNOWN_CAPTURE_MODE", null)).toEqual([]);
   });
 
   it("never hides a game with an active session", () => {
-    const keys = visibleGames("RECREATIONAL", "DETAILED_DARTS", "501_V1").map(
+    const keys = visibleGames("UNKNOWN_CAPTURE_MODE", "501_V1").map(
       (game) => game.rulesetVersionKey,
     );
     expect(keys).toEqual(["501_V1"]);
   });
 
   it("does not duplicate a capable game that is also active", () => {
-    const keys = visibleGames("ANALYTICS", "VISUAL_BOARD", "501_V1").map(
+    const keys = visibleGames("ANALYTICS", "501_V1").map(
       (game) => game.rulesetVersionKey,
     );
     expect(keys.filter((key) => key === "501_V1")).toHaveLength(1);
   });
 
   it("keeps the declared card order rather than the filter order", () => {
-    const keys = visibleGames("RECREATIONAL", "QUICK_SCORE", null).map(
+    const keys = visibleGames("RECREATIONAL", null).map(
       (game) => game.rulesetVersionKey,
     );
     expect(keys).toEqual(GAME_CARDS.map((game) => game.rulesetVersionKey));

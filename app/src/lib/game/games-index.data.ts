@@ -37,11 +37,9 @@ export function gamesIndex() {
       const activeKey = this.activeRulesetKeys.includes(rulesetVersionKey)
         ? rulesetVersionKey
         : null;
-      return visibleGames(
-        this.$store.settings.captureModeKey,
-        this.$store.settings.inputModeKey,
-        activeKey,
-      ).some((game) => game.rulesetVersionKey === rulesetVersionKey);
+      return visibleGames(this.$store.settings.captureModeKey, activeKey).some(
+        (game) => game.rulesetVersionKey === rulesetVersionKey,
+      );
     },
 
     analyticsMode(this: GamesIndexContext) {

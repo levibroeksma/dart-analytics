@@ -60,6 +60,27 @@ export function supportsMode(
   );
 }
 
+/**
+ * Whether this ruleset version's engine implements ANY mode pair under the
+ * given capture mode — used only for games-page card visibility
+ * (`games-visibility.ts`), where the two real app-mode settings
+ * (`RECREATIONAL`+`QUICK_SCORE`, `ANALYTICS`+`VISUAL_BOARD`) don't always
+ * match a ruleset's own declared input mode (e.g. `BOBS27_V1` declares
+ * `RECREATIONAL`+`DETAILED_DARTS`, never `QUICK_SCORE`). `resolveSessionModePair`
+ * already falls back to the ruleset's own first declared pair under an
+ * unsupported exact pair, so a card visible here is always actually
+ * startable. Exact-pair enforcement for session creation itself stays in
+ * `supportsMode` (`session.service.ts`), unaffected by this helper.
+ */
+export function supportsCaptureMode(
+  rulesetVersionKey: RulesetVersionKey,
+  captureModeKey: string,
+): boolean {
+  const pairs = RULESET_CAPABILITIES[rulesetVersionKey];
+  if (!pairs) return false;
+  return pairs.some((pair) => pair.captureModeKey === captureModeKey);
+}
+
 /** Every ruleset version playable under the given mode pair. */
 export function capableRulesets(
   captureModeKey: string,
