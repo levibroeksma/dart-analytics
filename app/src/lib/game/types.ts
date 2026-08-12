@@ -174,10 +174,15 @@ export type ScoreTrainingSetupContext = {
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
 
+export type FiveOhOneStartingScoreOption = "301" | "501" | "701" | "CUSTOM";
+
 export type FiveOhOneSetupContext = {
   presets: ConfigurationPresetData[];
+  startingScoreOption: FiveOhOneStartingScoreOption;
+  startingScoreValue: number | string | null;
+  scoreClampNotice: string;
   legsToWin: number | string | null;
-  clampNotice: string;
+  legsClampNotice: string;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
