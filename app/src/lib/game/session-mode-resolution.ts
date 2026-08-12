@@ -5,8 +5,9 @@ import {
 import type { ModePair, RulesetVersionKey } from "@lib/types";
 
 /**
- * The capture/input mode pair a setup page's `createSession` call should
- * send, given the player's chosen mode from the `settings` store.
+ * The capture/input mode pair a `createSession` call should send, given the
+ * player's chosen mode from the `settings` store. Called from both setup
+ * pages (starting a new session) and play pages (resuming/continuing one).
  *
  * The fallback is the ruleset's own first pair declared in
  * `RULESET_CAPABILITIES`, not a hardcoded constant — a ruleset that never

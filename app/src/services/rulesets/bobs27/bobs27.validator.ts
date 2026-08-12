@@ -85,10 +85,6 @@ export const bobs27Validator: RulesetValidator = {
     captureModeKey: string;
     inputModeKey: string;
   }): BatchValidationResult {
-    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return validateVisualBoardTurns(batch, DEFAULT_MAX_TURN_SCORE);
-    }
-
     for (const stage of batch.stages) {
       for (const turn of stage.turns) {
         if (turn.darts.length === 0) {
@@ -96,10 +92,19 @@ export const bobs27Validator: RulesetValidator = {
             valid: false,
             code: "VALIDATION_FAILED",
             issues: [
-              `turn ${turn.clientKey} must carry dart rows (${DETAILED_DARTS_MODES})`,
+              `turn ${turn.clientKey} must carry dart rows — every Bob's 27 visit is exactly 3 darts, hit or miss, never a dartless total`,
             ],
           };
         }
+      }
+    }
+
+    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
+      return validateVisualBoardTurns(batch, DEFAULT_MAX_TURN_SCORE);
+    }
+
+    for (const stage of batch.stages) {
+      for (const turn of stage.turns) {
         for (const dart of turn.darts) {
           if (dart.score < 0) {
             return {

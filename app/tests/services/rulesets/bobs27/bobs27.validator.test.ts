@@ -149,4 +149,15 @@ describe("bobs27Validator.validateBatch", () => {
 
     expect(result.valid).toBe(true);
   });
+
+  it("rejects a dartless turn under VISUAL_BOARD capture", () => {
+    const result = bobs27Validator.validateBatch({
+      config: validConfig,
+      batch: batchWithTurns([[]]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(false);
+  });
 });

@@ -12,7 +12,8 @@
 --
 -- Correction over the original task-2 brief: SINGLES_V1,
 -- BOBS27_V1 and DOUBLES_TRAINING_V1 are RECREATIONAL +
--- DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS — their
+-- DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS (BOBS27_V1
+-- separately also declares ANALYTICS + VISUAL_BOARD) — their
 -- validators (singles-training/bobs27/doubles-training
 -- .validator.ts) declare RECREATIONAL, and
 -- capabilities.ts's RULESET_CAPABILITIES agrees. See
