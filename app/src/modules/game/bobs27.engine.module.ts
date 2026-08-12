@@ -186,8 +186,8 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
       hitTargetNumber: observation.hitTargetNumber,
       hitZoneKey: observation.hitZoneKey,
       score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: null,
-      locationY: null,
+      locationX: observation.locationX,
+      locationY: observation.locationY,
     };
 
     openTurn.darts.push(dart);

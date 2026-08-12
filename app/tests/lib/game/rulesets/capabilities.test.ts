@@ -35,6 +35,16 @@ describe("supportsMode", () => {
     );
   });
 
+  it("accepts visual board for Bob's 27", () => {
+    expect(supportsMode("BOBS27_V1", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
+  });
+
+  it("keeps Bob's 27's original DETAILED_DARTS pair supported", () => {
+    expect(supportsMode("BOBS27_V1", "RECREATIONAL", "DETAILED_DARTS")).toBe(
+      true,
+    );
+  });
+
   it("rejects visual board for a game with no visual engine path", () => {
     expect(supportsMode("TUOD_V1", "ANALYTICS", "VISUAL_BOARD")).toBe(false);
   });
@@ -62,9 +72,10 @@ describe("supportsMode", () => {
 });
 
 describe("capableRulesets", () => {
-  it("lists only the two visual-capable rulesets", () => {
+  it("lists every visual-capable ruleset", () => {
     expect([...capableRulesets("ANALYTICS", "VISUAL_BOARD")].sort()).toEqual([
       "501_V1",
+      "BOBS27_V1",
       "SCORE_TRAINING_V1",
     ]);
   });

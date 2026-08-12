@@ -208,8 +208,15 @@ final whole-branch review. When you fill a reviewer template:
 - Every fix dispatch carries the implementer contract: the fix subagent
   re-runs the tests covering its change and reports the results. Name the
   covering test files in the dispatch — a one-line fix does not need the
-  whole suite. Before re-dispatching the reviewer, confirm the fix report
-  contains the covering tests, the command run, and the output; dispatch
+  whole suite. In a repo whose validation procedure names more than tests
+  alone (e.g. this repo's DB-independent set: `npm test`, `npm run check`,
+  `npx fallow`, `npm run format:check` — see `app/CLAUDE.md`'s Validation
+  Standard Procedure), the fix dispatch must ask for that full set, not
+  tests only: a complexity/duplication regression (`fallow`) or a type
+  error (`check`) can pass every test while still failing the merge gate,
+  and nothing catches it until a later, more expensive checkpoint re-runs
+  the full set. Before re-dispatching the reviewer, confirm the fix report
+  contains the covering tests, the command(s) run, and the output; dispatch
   the re-review once all three are present.
 - If the final whole-branch review returns findings, dispatch ONE fix
   subagent with the complete findings list — not one fixer per finding.

@@ -142,6 +142,34 @@ describe("Bobs27Engine — fact log and derived score (Task 6 acceptance)", () =
     expect(dart.score).toBe(60);
   });
 
+  it("carries the observed dart location onto the recorded fact", () => {
+    const engine = bobs27EngineFactory.create(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: 12.5,
+      locationY: -3.25,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBe(12.5);
+    expect(dart.locationY).toBe(-3.25);
+  });
+
+  it("carries a null location through for an unseen (bounce-out) dart", () => {
+    const engine = bobs27EngineFactory.create(config);
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBeNull();
+    expect(dart.locationY).toBeNull();
+  });
+
   it("rehydrates the derived score and target from persisted facts", () => {
     const first = bobs27EngineFactory.create(config);
     first.record({

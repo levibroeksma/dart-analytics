@@ -50,6 +50,15 @@ describe("bobs27Validator.validateConfig", () => {
     expect(result.valid).toBe(true);
   });
 
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid config", () => {
+    const result = bobs27Validator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
   it("rejects a capture/input mode combination the ruleset does not support", () => {
     const result = bobs27Validator.validateConfig({
       config: validConfig,
@@ -93,6 +102,61 @@ describe("bobs27Validator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([[{ ...hitDart, score: -1 }]]),
       existingTurnCount: 0,
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("validates a visual-board batch through the coordinate validator", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 60,
+              completedAt: "2026-08-05T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 20,
+                  hitZoneKey: "TREBLE",
+                  score: 60,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = bobs27Validator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a dartless turn under VISUAL_BOARD capture", () => {
+    const result = bobs27Validator.validateBatch({
+      config: validConfig,
+      batch: batchWithTurns([[]]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
     });
     expect(result.valid).toBe(false);
   });
