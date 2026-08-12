@@ -3,9 +3,10 @@
  * `FiveOhOneConfig`'s `.min(2)` floor and the 301/501/701/Custom picker in
  * `docs/game-rules/rulesets/501.md`.
  */
+// fallow-ignore-next-line unused-export -- plan-mandated public bound (mirrors FIVE_OH_ONE_LEGS_MIN); kept for a future consumer
 export const FIVE_OH_ONE_STARTING_SCORE_MIN = 2;
 const FIVE_OH_ONE_STARTING_SCORE_MAX = 999;
-const FIVE_OH_ONE_STARTING_SCORE_DEFAULT = 101;
+export const FIVE_OH_ONE_STARTING_SCORE_DEFAULT = 101;
 
 export const FIVE_OH_ONE_STARTING_SCORE_NOTICE = "Allowed range: 2–999";
 

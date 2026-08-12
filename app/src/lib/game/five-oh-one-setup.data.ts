@@ -21,6 +21,7 @@ import {
 } from "@lib/game/five-oh-one-legs";
 import {
   clampFiveOhOneStartingScore,
+  FIVE_OH_ONE_STARTING_SCORE_DEFAULT,
   FIVE_OH_ONE_STARTING_SCORE_NOTICE,
 } from "@lib/game/five-oh-one-starting-score";
 import type {
@@ -30,7 +31,6 @@ import type {
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY = "501_V1";
-const CUSTOM_STARTING_SCORE_DEFAULT = 101;
 
 /**
  * Reads `legs_to_win` off a preset's `configuration`, which the API types as
@@ -47,7 +47,8 @@ export function fiveOhOneSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
     startingScoreOption: "501" as FiveOhOneStartingScoreOption,
-    startingScoreValue: CUSTOM_STARTING_SCORE_DEFAULT as number | string | null,
+    startingScoreValue: FIVE_OH_ONE_STARTING_SCORE_DEFAULT as
+      number | string | null,
     scoreClampNotice: "",
     legsToWin: FIVE_OH_ONE_LEGS_MIN as number | string | null,
     legsClampNotice: "",
