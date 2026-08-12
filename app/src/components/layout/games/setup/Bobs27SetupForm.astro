@@ -1,0 +1,29 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+const infoSection = {
+  title: "Bob's 27 rules",
+  description:
+    "3 targets at the designated double, for each double hit, add the double's board value to your total. For each three darts missed, deduct the target double's board value from your total. E.g. miss all three darts at D18 → deduct 36; hit two D16 → add 2 × 32 = 64.",
+};
+---
+
+<SetupShell title="Bob's 27">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>
