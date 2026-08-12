@@ -52,7 +52,7 @@ describe("gamesIndex", () => {
 
   it("hides every card under a mode no carded game supports", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
-    store.settings.inputModeKey = "DETAILED_DARTS";
+    store.settings.inputModeKey = "UNKNOWN_INPUT_MODE";
     const page = createPage();
     await page.init();
 
