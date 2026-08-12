@@ -24,6 +24,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "501",
     caption: "Classic double-out darts.",
   },
+  {
+    rulesetVersionKey: "BOBS27_V1",
+    href: "/games/bobs27/setup",
+    title: "Bob's 27",
+    caption: "Running-score doubles training.",
+  },
 ];
 
 /**
