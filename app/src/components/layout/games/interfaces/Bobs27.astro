@@ -1,0 +1,46 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import Bobs27VisitPreview from "@components/layout/games/Bobs27VisitPreview.astro";
+import Bobs27RecreationalInput from "@components/layout/games/Bobs27RecreationalInput.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+---
+
+<div
+  class="flex flex-col flex-1 min-h-0 gap-3"
+  {...props}
+>
+  <SinglePlayerDisplay
+    isTarget={true}
+    target="currentTargetLabel()"
+    class="max-h-2/5 h-full"
+  />
+
+  <p
+    class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+
+  <Bobs27VisitPreview />
+
+  <Bobs27RecreationalInput
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
+  />
+  {
+    /* Visual board — shown instead of the tap row above for an
+    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
+  }
+  <BoardInputPanel />
+</div>
