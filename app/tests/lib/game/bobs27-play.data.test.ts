@@ -530,7 +530,10 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
 
     expect(play.hiddenTimer).not.toBe(firstTimer);
 
-    vi.advanceTimersByTime(1500);
+    vi.advanceTimersByTime(200); // past the leaked first timer's 1500ms deadline
+    expect(play.hiddenTurnKey).toBeNull();
+
+    vi.advanceTimersByTime(1300); // up to the second timer's own 1500ms deadline
 
     expect(play.hiddenTurnKey).toBe(play.$store.game.turns[1].clientKey);
   });
