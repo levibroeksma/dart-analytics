@@ -50,20 +50,20 @@ Three darts at the **current double**. A **miss** is anything that is not that d
 
 ### Scoring
 
-- Each **hit** on the double adds **that double’s face value** to the running score (e.g. D1 = +1 per hit, D20 = +20 per hit). Multiple hits in one visit each add that same face value — two hits at D20 add 40, three add 60. There is no bonus and no doubling for a multi-hit visit.
-- If **all three darts miss**, subtract **one times** the double’s value once (e.g. three misses at D1 → −1).
+- Each **hit** on the double adds **that double’s board value** (2× its number) to the running score (e.g. D1 = +2 per hit, D20 = +40 per hit). Multiple hits in one visit each add that same board value — two hits at D20 add 80, three add 120. There is no further bonus for a multi-hit visit.
+- If **all three darts miss**, subtract **one times** the double’s board value once (e.g. three misses at D1 → −2).
 
-Examples from the original notes:
+Examples:
 
 ```
 Start 27, target D1
-MISS, D1, MISS  →  27 + 1 = 28  (one hit)
+MISS, D1, MISS  →  27 + 2 = 29  (one hit)
 
 Start 27, target D1
-MISS, MISS, MISS  →  27 − 1 = 26
+MISS, MISS, MISS  →  27 − 2 = 25
 ```
 
-_(Original write-up used 29/25 with a slightly different example arithmetic; the rule is: sum hit values, or subtract 1× face value on a full-miss visit.)_
+_(Rule: sum hit board values, or subtract 1× board value on a full-miss visit.)_
 
 ### Progress
 
@@ -109,4 +109,6 @@ Player **cannot die**; score may go negative. Run still ends when the bull visit
 
 ## Open questions
 
-- None. Multi-hit math and bull scoring resolved 2026-07-26 (see Scoring and Progress).
+- None. Multi-hit math and bull scoring resolved 2026-07-26 (see Scoring and Progress); the
+  per-hit value formula corrected from face value to board value 2026-08-12 (D207,
+  `decisions/game-engine.md`).
