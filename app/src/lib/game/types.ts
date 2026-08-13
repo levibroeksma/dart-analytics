@@ -4,6 +4,7 @@ import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
+import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -20,6 +21,7 @@ import type {
   ScoreTrainingSnapshot,
   FiveOhOneSnapshot,
   Bobs27Snapshot,
+  SinglesSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -244,6 +246,36 @@ export type Bobs27SetupContext = {
   start(this: Bobs27SetupContext): Promise<void>;
 };
 
+export type SinglesTrainingSetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: SinglesTrainingSetupContext): Promise<void>;
+  reconcile(
+    this: SinglesTrainingSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: SinglesTrainingSetupContext): Promise<void>;
+  continueSession(this: SinglesTrainingSetupContext): void;
+  abandonSession(this: SinglesTrainingSetupContext): Promise<void>;
+  start(this: SinglesTrainingSetupContext): Promise<void>;
+};
+
 export type FiveOhOnePlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
@@ -340,6 +372,45 @@ export type Bobs27PlayContext = {
   back(this: Bobs27PlayContext): Promise<void>;
   playAgain(this: Bobs27PlayContext): Promise<void>;
   abandonAndExit(this: Bobs27PlayContext): Promise<void>;
+};
+
+/** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */
+export type SinglesPreviewSegment = { status: "hit" | "miss" | "empty" };
+
+export type SinglesTrainingPlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: { points: number } | null;
+  hiddenTurnKey: string | null;
+  $store: PlayStoreContext<SinglesSnapshot>;
+  engine: SinglesTrainingEngine | null;
+  currentTargetLabel(this: SinglesTrainingPlayContext): string;
+  currentPoints(this: SinglesTrainingPlayContext): string;
+  isBullVisit(this: SinglesTrainingPlayContext): boolean;
+  previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[];
+  init(this: SinglesTrainingPlayContext): Promise<void>;
+  retryReconciliation(this: SinglesTrainingPlayContext): Promise<void>;
+  recordTap(
+    this: SinglesTrainingPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ): Promise<void>;
+  commitDart(
+    this: SinglesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: SinglesTrainingPlayContext): void;
+  uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void>;
+  back(this: SinglesTrainingPlayContext): Promise<void>;
+  playAgain(this: SinglesTrainingPlayContext): Promise<void>;
+  abandonAndExit(this: SinglesTrainingPlayContext): Promise<void>;
 };
 
 /**
