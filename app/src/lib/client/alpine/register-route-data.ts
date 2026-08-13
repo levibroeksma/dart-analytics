@@ -9,6 +9,7 @@ import { bobs27Play } from "@lib/game/bobs27-play.data";
 import { singlesTrainingSetup } from "@lib/game/singles-training-setup.data";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
 import { doublesTrainingSetup } from "@lib/game/doubles-training-setup.data";
+import { doublesTrainingPlay } from "@lib/game/doubles-training-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 
 export function registerRouteData(Alpine: Alpine) {
@@ -23,4 +24,5 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("singlesTrainingSetup", singlesTrainingSetup);
   Alpine.data("singlesTrainingPlay", singlesTrainingPlay);
   Alpine.data("doublesTrainingSetup", doublesTrainingSetup);
+  Alpine.data("doublesTrainingPlay", doublesTrainingPlay);
 }
