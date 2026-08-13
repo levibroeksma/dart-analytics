@@ -153,6 +153,7 @@ export function singlesTrainingPlay() {
     },
 
     previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[] {
+      if (!this.engine) return [...EMPTY_SEGMENTS];
       return previewSegmentsFor(
         this.$store.game.turns,
         this.$store.game.configSnapshot,
@@ -218,6 +219,7 @@ export function singlesTrainingPlay() {
     ) {
       if (!this.engine || this.finished) return;
       const target = targetAt(numbersPath(), this.engine.state().targetIndex);
+      if (target.kind === "BULL" && ring === "TREBLE") return;
       const observation: DartObservation =
         ring === "MISS"
           ? {

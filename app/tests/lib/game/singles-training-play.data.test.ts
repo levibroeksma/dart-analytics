@@ -293,6 +293,16 @@ describe("recordTap on the BULL visit", () => {
     expect(dart.hitZoneKey).toBe("INNER_BULL");
   });
 
+  it("TREBLE is rejected as a no-op instead of silently recording INNER_BULL", async () => {
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "TREBLE");
+
+    expect(play.currentPoints.call(play)).toBe("60"); // unchanged
+    expect(play.$store.game.turns).toHaveLength(20); // no new turn opened
+  });
+
   it("the BULL visit's 3rd dart completes the session and captures the final points total", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 1, darts: 3 },
@@ -343,6 +353,20 @@ describe("undoVisit", () => {
 });
 
 describe("previewSegments", () => {
+  it("returns empty placeholders when the engine is null, instead of throwing", async () => {
+    // Stale/foreign fact log: more turns than the numbers path has targets
+    // for, so previewSegmentsFor's targetAt(numbersPath(), turns.length - 1)
+    // would throw "No target at index N" for N > 20 if not guarded.
+    const play = makePlay({ turns: priorTurnsThroughNumber(25) });
+    expect(play.engine).toBeNull();
+    expect(() => play.previewSegments.call(play)).not.toThrow();
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+
   it("returns empty placeholders before any dart is thrown this visit", async () => {
     const play = makePlay();
     await play.init.call(play);
