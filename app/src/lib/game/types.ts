@@ -5,6 +5,7 @@ import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.mo
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
+import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -22,6 +23,7 @@ import type {
   FiveOhOneSnapshot,
   Bobs27Snapshot,
   SinglesSnapshot,
+  DoublesTrainingSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -415,6 +417,72 @@ export type SinglesTrainingPlayContext = {
   back(this: SinglesTrainingPlayContext): Promise<void>;
   playAgain(this: SinglesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: SinglesTrainingPlayContext): Promise<void>;
+};
+
+/** One dart slot in Doubles Training's visit preview — a resolved hit/miss mark (against the visit's own intended double/bull), or a not-yet-thrown placeholder. */
+export type DoublesPreviewSegment = { status: "hit" | "miss" | "empty" };
+
+export type DoublesTrainingSetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: DoublesTrainingSetupContext): Promise<void>;
+  reconcile(
+    this: DoublesTrainingSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: DoublesTrainingSetupContext): Promise<void>;
+  continueSession(this: DoublesTrainingSetupContext): void;
+  abandonSession(this: DoublesTrainingSetupContext): Promise<void>;
+  start(this: DoublesTrainingSetupContext): Promise<void>;
+};
+
+export type DoublesTrainingPlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: { hits: number; misses: number } | null;
+  hiddenTurnKey: string | null;
+  $store: PlayStoreContext<DoublesTrainingSnapshot>;
+  engine: DoublesTrainingEngine | null;
+  currentTargetLabel(this: DoublesTrainingPlayContext): string;
+  hitCount(this: DoublesTrainingPlayContext): string;
+  missCount(this: DoublesTrainingPlayContext): string;
+  previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[];
+  init(this: DoublesTrainingPlayContext): Promise<void>;
+  retryReconciliation(this: DoublesTrainingPlayContext): Promise<void>;
+  recordTap(this: DoublesTrainingPlayContext, hit: boolean): Promise<void>;
+  commitDart(
+    this: DoublesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: DoublesTrainingPlayContext): void;
+  uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void>;
+  back(this: DoublesTrainingPlayContext): Promise<void>;
+  playAgain(this: DoublesTrainingPlayContext): Promise<void>;
+  abandonAndExit(this: DoublesTrainingPlayContext): Promise<void>;
 };
 
 /**
