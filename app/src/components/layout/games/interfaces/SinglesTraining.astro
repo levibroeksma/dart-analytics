@@ -31,6 +31,22 @@ import StatRow from "@components/layout/games/StatRow.astro";
           label="Target"
           value="currentTargetLabel()"
         />
+        <StatRow
+          label="Misses"
+          value="missCount()"
+        />
+        <StatRow
+          label="Singles"
+          value="singleCount()"
+        />
+        <StatRow
+          label="Doubles"
+          value="doubleCount()"
+        />
+        <StatRow
+          label="Trebles"
+          value="trebleCount()"
+        />
       </dl>
     </div>
   </SinglePlayerDisplay>

@@ -51,6 +51,32 @@ const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
   "OUTER_SINGLE",
 ]);
 
+const MISS_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set(["MISS"]);
+const SINGLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
+  "SINGLE",
+  "INNER_SINGLE",
+  "OUTER_SINGLE",
+  "OUTER_BULL",
+]);
+const DOUBLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
+  "DOUBLE",
+  "INNER_BULL",
+]);
+const TREBLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set(["TREBLE"]);
+
+function countZoneKey(
+  turns: readonly TurnFact[],
+  zoneKeys: ReadonlySet<DartZoneKey>,
+): number {
+  let count = 0;
+  for (const turn of turns) {
+    for (const dart of turn.darts) {
+      if (zoneKeys.has(dart.hitZoneKey)) count += 1;
+    }
+  }
+  return count;
+}
+
 function trainingPointsFor(
   target: BoardTarget,
   config: SinglesSnapshot,
@@ -158,6 +184,28 @@ export function singlesTrainingPlay() {
         this.$store.game.turns,
         this.$store.game.configSnapshot,
         this.hiddenTurnKey,
+      );
+    },
+
+    missCount(this: SinglesTrainingPlayContext): string {
+      return String(countZoneKey(this.$store.game.turns, MISS_COUNT_ZONE_KEYS));
+    },
+
+    singleCount(this: SinglesTrainingPlayContext): string {
+      return String(
+        countZoneKey(this.$store.game.turns, SINGLE_COUNT_ZONE_KEYS),
+      );
+    },
+
+    doubleCount(this: SinglesTrainingPlayContext): string {
+      return String(
+        countZoneKey(this.$store.game.turns, DOUBLE_COUNT_ZONE_KEYS),
+      );
+    },
+
+    trebleCount(this: SinglesTrainingPlayContext): string {
+      return String(
+        countZoneKey(this.$store.game.turns, TREBLE_COUNT_ZONE_KEYS),
       );
     },
 

@@ -426,6 +426,69 @@ describe("previewSegments", () => {
   });
 });
 
+describe("missCount / singleCount / doubleCount / trebleCount", () => {
+  it("counts zero for every category before any dart is thrown", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    expect(play.missCount.call(play)).toBe("0");
+    expect(play.singleCount.call(play)).toBe("0");
+    expect(play.doubleCount.call(play)).toBe("0");
+    expect(play.trebleCount.call(play)).toBe("0");
+  });
+
+  it("classifies number-target hits by zone and misses separately", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "DOUBLE");
+    await play.recordTap.call(play, "TREBLE");
+
+    expect(play.singleCount.call(play)).toBe("1");
+    expect(play.doubleCount.call(play)).toBe("1");
+    expect(play.trebleCount.call(play)).toBe("1");
+    expect(play.missCount.call(play)).toBe("0");
+  });
+
+  it("counts bull Bull/Bullseye hits toward singles/doubles, alongside 60 prior number-target singles", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "DOUBLE");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.singleCount.call(play)).toBe("61");
+    expect(play.doubleCount.call(play)).toBe("1");
+    expect(play.missCount.call(play)).toBe("1");
+    expect(play.trebleCount.call(play)).toBe("0");
+  });
+
+  it("sums the four counters to the total darts thrown so far", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "MISS");
+
+    const total =
+      Number(play.missCount.call(play)) +
+      Number(play.singleCount.call(play)) +
+      Number(play.doubleCount.call(play)) +
+      Number(play.trebleCount.call(play));
+    expect(total).toBe(2);
+  });
+});
+
 describe("completion", () => {
   it("marks completionStatus failed on a real upload error", async () => {
     vi.mocked(appendBatch).mockRejectedValue(new Error("network down"));

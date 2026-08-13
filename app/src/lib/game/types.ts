@@ -396,6 +396,10 @@ export type SinglesTrainingPlayContext = {
   currentPoints(this: SinglesTrainingPlayContext): string;
   isBullVisit(this: SinglesTrainingPlayContext): boolean;
   previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[];
+  missCount(this: SinglesTrainingPlayContext): string;
+  singleCount(this: SinglesTrainingPlayContext): string;
+  doubleCount(this: SinglesTrainingPlayContext): string;
+  trebleCount(this: SinglesTrainingPlayContext): string;
   init(this: SinglesTrainingPlayContext): Promise<void>;
   retryReconciliation(this: SinglesTrainingPlayContext): Promise<void>;
   recordTap(
