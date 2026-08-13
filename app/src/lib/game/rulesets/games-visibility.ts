@@ -36,6 +36,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Singles training",
     caption: "Section training, one target at a time.",
   },
+  {
+    rulesetVersionKey: "DOUBLES_TRAINING_V1",
+    href: "/games/doubles-training/setup",
+    title: "Doubles training",
+    caption: "Work every double, low to high, ending on the bull.",
+  },
 ];
 
 /**

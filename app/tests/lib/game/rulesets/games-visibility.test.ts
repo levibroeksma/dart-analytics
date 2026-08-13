@@ -19,6 +19,7 @@ describe("visibleGames", () => {
       "501_V1",
       "BOBS27_V1",
       "SINGLES_V1",
+      "DOUBLES_TRAINING_V1",
     ]);
   });
 
@@ -28,6 +29,7 @@ describe("visibleGames", () => {
       .sort();
     expect(keys).toEqual(["501_V1", "BOBS27_V1", "SCORE_TRAINING_V1"]);
     expect(keys).not.toContain("SINGLES_V1");
+    expect(keys).not.toContain("DOUBLES_TRAINING_V1");
   });
 
   it("hides every game under a capture mode no carded ruleset supports", () => {
