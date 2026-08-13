@@ -9,8 +9,7 @@ const { ...props }: Props = Astro.props;
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
-import Bobs27RecreationalInput from "@components/layout/games/Bobs27RecreationalInput.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 ---
 
@@ -20,7 +19,7 @@ import StatRow from "@components/layout/games/StatRow.astro";
 >
   <SinglePlayerDisplay
     isTarget={false}
-    score="currentScore()"
+    score="currentPoints()"
     class="max-h-2/5 h-full"
   >
     <div
@@ -47,13 +46,5 @@ import StatRow from "@components/layout/games/StatRow.astro";
 
   <VisitPreview />
 
-  <Bobs27RecreationalInput
-    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
-    x-cloak
-  />
-  {
-    /* Visual board — shown instead of the tap row above for an
-    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-  }
-  <BoardInputPanel />
+  <SinglesRecreationalInput />
 </div>
