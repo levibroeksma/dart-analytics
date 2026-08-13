@@ -1,0 +1,73 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import InputButton from "./InputButton.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
+---
+
+<div
+  class="rounded-lg glass border border-border bg-surface-raised flex flex-1 min-h-0 w-full divide-x divide-border"
+  {...props}
+>
+  <InputButton
+    aria-label="Undo last dart"
+    :disabled="!$store.game.turns.length || finished"
+    @click="undoVisit()"
+  >
+    <UndoIcon class="size-6 text-muted" />
+  </InputButton>
+  <template x-if="!isBullVisit()">
+    <InputButton
+      :disabled="finished"
+      @click="recordTap('SINGLE')"
+    >
+      S
+    </InputButton>
+  </template>
+  <template x-if="!isBullVisit()">
+    <InputButton
+      :disabled="finished"
+      @click="recordTap('DOUBLE')"
+    >
+      D
+    </InputButton>
+  </template>
+  <template x-if="!isBullVisit()">
+    <InputButton
+      :disabled="finished"
+      @click="recordTap('TREBLE')"
+    >
+      T
+    </InputButton>
+  </template>
+  <template x-if="isBullVisit()">
+    <InputButton
+      :disabled="finished"
+      @click="recordTap('SINGLE')"
+    >
+      Bull
+    </InputButton>
+  </template>
+  <template x-if="isBullVisit()">
+    <InputButton
+      :disabled="finished"
+      @click="recordTap('DOUBLE')"
+    >
+      Bullseye
+    </InputButton>
+  </template>
+  <InputButton
+    :disabled="finished"
+    @click="recordTap('MISS')"
+  >
+    Miss
+  </InputButton>
+</div>
