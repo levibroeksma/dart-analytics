@@ -30,6 +30,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Bob's 27",
     caption: "Running-score doubles training.",
   },
+  {
+    rulesetVersionKey: "SINGLES_V1",
+    href: "/games/singles-training/setup",
+    title: "Singles training",
+    caption: "Section training, one target at a time.",
+  },
 ];
 
 /**
