@@ -1,0 +1,30 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Doubles training rules",
+  description:
+    "Work through every double, D1 to D20, then the bull. Three darts per target — hit the double and move on immediately; miss all three and you still move on. On the bull, only the inner bull (double bull) counts.",
+};
+---
+
+<SetupShell title="Doubles training">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>
