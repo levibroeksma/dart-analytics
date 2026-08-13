@@ -8,18 +8,14 @@ import {
 } from "@client/api/sessions";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
-  BULL_TARGET_NUMBER,
-  doublesPath,
-  targetAt,
-} from "@modules/game/board-progression.module";
+  doublesPathObservation,
+  doublesPathPreviewSegments,
+  doublesPathTargetLabel,
+} from "@lib/game/doubles-path-play";
 import type { RulesetVersionKey } from "@lib/types";
-import type {
-  BoardTarget,
-  DartObservation,
-  EngineFacts,
-  TurnFact,
-} from "@modules/types";
+import type { DartObservation, EngineFacts } from "@modules/types";
 import type {
   DoublesPreviewSegment,
   DoublesTrainingPlayContext,
@@ -33,34 +29,6 @@ import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.mod
 
 const GAME_TYPE_KEY = "DOUBLES_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "DOUBLES_TRAINING_V1";
-
-function targetLabel(target: BoardTarget): string {
-  return target.kind === "BULL" ? "BULL" : `D${target.number}`;
-}
-
-const EMPTY_SEGMENTS: readonly DoublesPreviewSegment[] = [
-  { status: "empty" },
-  { status: "empty" },
-  { status: "empty" },
-];
-
-function previewSegmentsFor(
-  turns: readonly TurnFact[],
-  hiddenTurnKey: string | null,
-): DoublesPreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
-    return [...EMPTY_SEGMENTS];
-  }
-  return [0, 1, 2].map((i) => {
-    const dart = lastTurn.darts[i];
-    if (!dart) return { status: "empty" };
-    const onTarget =
-      dart.hitTargetNumber === dart.intendedTargetNumber &&
-      dart.hitZoneKey === dart.intendedZoneKey;
-    return { status: onTarget ? "hit" : "miss" };
-  });
-}
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
@@ -109,7 +77,7 @@ export function doublesTrainingPlay() {
 
     currentTargetLabel(this: DoublesTrainingPlayContext): string {
       if (!this.engine) return "";
-      return targetLabel(
+      return doublesPathTargetLabel(
         targetAt(doublesPath(), this.engine.state().targetIndex),
       );
     },
@@ -129,7 +97,10 @@ export function doublesTrainingPlay() {
     },
 
     previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[] {
-      return previewSegmentsFor(this.$store.game.turns, this.hiddenTurnKey);
+      return doublesPathPreviewSegments(
+        this.$store.game.turns,
+        this.hiddenTurnKey,
+      );
     },
 
     async init(this: DoublesTrainingPlayContext) {
@@ -190,21 +161,7 @@ export function doublesTrainingPlay() {
     async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
       if (!this.engine || this.finished) return;
       const target = targetAt(doublesPath(), this.engine.state().targetIndex);
-      const observation: DartObservation = hit
-        ? {
-            hitTargetNumber:
-              target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
-            hitZoneKey: target.kind === "BULL" ? "INNER_BULL" : "DOUBLE",
-            locationX: null,
-            locationY: null,
-          }
-        : {
-            hitTargetNumber: null,
-            hitZoneKey: "MISS",
-            locationX: null,
-            locationY: null,
-          };
-      await this.commitDart(observation);
+      await this.commitDart(doublesPathObservation(target, hit));
     },
 
     async commitDart(

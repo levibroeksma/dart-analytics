@@ -9,7 +9,7 @@ const { ...props }: Props = Astro.props;
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
-import Bobs27RecreationalInput from "@components/layout/games/Bobs27RecreationalInput.astro";
+import DoublesPathRecreationalInput from "@components/layout/games/DoublesPathRecreationalInput.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 ---
@@ -47,7 +47,7 @@ import StatRow from "@components/layout/games/StatRow.astro";
 
   <VisitPreview />
 
-  <Bobs27RecreationalInput
+  <DoublesPathRecreationalInput
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
   />
