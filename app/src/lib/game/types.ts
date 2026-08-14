@@ -16,6 +16,7 @@ import type {
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
+import type { GameEngine } from "@modules/interfaces";
 import type {
   ModePair,
   RulesetVersionKey,
@@ -93,6 +94,39 @@ export type PlayStoreContext<TConfig> = {
     captureModeKey: string;
     inputModeKey: string;
   };
+};
+
+/**
+ * The play-page lifecycle shape shared by every ruleset whose game loop is a
+ * plain record → mirror → complete cycle with no board input and no
+ * reveal-then-clear timer (currently Doubles Training and Singles Training —
+ * Bob's 27's board/timer branch and 501/Score Training's `ScoreInputBuffer`
+ * shape are different enough to stay out of this module, D208/D209).
+ * `init`/`uploadAndCompleteSession` are declared here because the shared
+ * functions in `play-lifecycle.ts` call back into whichever concrete
+ * wrapper a page assigns to those keys.
+ */
+export type PlayLifecycleContext<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+> = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: TResults | null;
+  hiddenTurnKey: string | null;
+  $store: PlayStoreContext<TConfig>;
+  engine: TEngine | null;
+  init(): Promise<void>;
+  uploadAndCompleteSession(): Promise<void>;
 };
 
 export type ScoreTrainingPlayContext = {
