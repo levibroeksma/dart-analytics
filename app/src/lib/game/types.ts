@@ -299,6 +299,7 @@ export type Bobs27SetupContext = {
 
 export type SinglesTrainingSetupContext = {
   presets: ConfigurationPresetData[];
+  orderMode: TargetOrderMode;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -473,6 +474,7 @@ export type DoublesPreviewSegment = { status: "hit" | "miss" | "empty" };
 
 export type DoublesTrainingSetupContext = {
   presets: ConfigurationPresetData[];
+  orderMode: TargetOrderMode;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;

@@ -2,14 +2,22 @@
 // Components
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 
 // Data
 const infoSection = {
   title: "Doubles training rules",
   description:
-    "Work through every double, D1 to D20, then the bull. Three darts per target — hit the double and move on immediately; miss all three and you still move on. On the bull, only the inner bull (double bull) counts.",
+    "Work through every double and the bull, in the order you choose below. Three darts per target — hit the double and move on immediately; miss all three and you still move on. On the bull, only the inner bull (double bull) counts.",
 };
+
+const orderModeOpts = [
+  { value: "LOW_TO_HIGH", label: "Low → High" },
+  { value: "HIGH_TO_LOW", label: "High → Low" },
+  { value: "RANDOM", label: "Random" },
+];
 ---
 
 <SetupShell title="Doubles training">
@@ -18,6 +26,14 @@ const infoSection = {
     title={infoSection.title}
     description={infoSection.description}
   />
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={orderModeOpts}
+      x-model="orderMode"
+      class="w-full"
+    />
+  </SettingSectionShell>
 
   <p
     class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"

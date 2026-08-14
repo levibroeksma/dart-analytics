@@ -165,7 +165,7 @@ describe("doublesTrainingSetup", () => {
   });
 
   describe("start", () => {
-    it("creates a session from the seeded preset with no overrides and redirects", async () => {
+    it("creates a session with the default order mode override and redirects", async () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -182,6 +182,10 @@ describe("doublesTrainingSetup", () => {
 
       await setup.start();
 
+      const ascending = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        25,
+      ];
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "DOUBLES_TRAINING",
         rulesetVersionKey: "DOUBLES_TRAINING_V1",
@@ -190,6 +194,7 @@ describe("doublesTrainingSetup", () => {
         config: {
           source: "template",
           templateRef: "tmpl-doubles-standard",
+          overrides: { order_mode: "LOW_TO_HIGH", target_order: ascending },
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
@@ -198,10 +203,43 @@ describe("doublesTrainingSetup", () => {
           configSnapshot: expect.objectContaining({
             mode: "EASY",
             orderMode: "LOW_TO_HIGH",
+            targetOrder: ascending,
           }),
         }),
       );
       expect(locationSpy.href).toBe("/games/doubles-training/play");
+    });
+
+    it("sends the selected order mode and its resolved target order", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        orderMode: "HIGH_TO_LOW",
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      const descending = [
+        25, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
+        1,
+      ];
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            overrides: { order_mode: "HIGH_TO_LOW", target_order: descending },
+          }),
+        }),
+      );
     });
 
     it("falls back to Doubles Training's declared pair when settings holds a pair it does not declare", async () => {
