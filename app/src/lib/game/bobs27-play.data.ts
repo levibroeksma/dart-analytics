@@ -41,7 +41,7 @@ function computeStats(
   status: "WON" | "LOST";
   score: number;
   darts: number;
-  doubleHitRatio: string;
+  doubleHitRate: string;
   highestNumberReached: string;
 } {
   const darts = turns.reduce((sum, turn) => sum + turn.darts.length, 0);
@@ -59,7 +59,7 @@ function computeStats(
     status: state.status === "WON" ? "WON" : "LOST",
     score: state.score,
     darts,
-    doubleHitRatio: `${hits}/${darts}`,
+    doubleHitRate: darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
     highestNumberReached: doublesPathTargetLabel(
       targetAt(doublesPath(), state.targetIndex),
     ),
@@ -123,7 +123,7 @@ export function bobs27Play() {
       status: "WON" | "LOST";
       score: number;
       darts: number;
-      doubleHitRatio: string;
+      doubleHitRate: string;
       highestNumberReached: string;
     } | null,
     hiddenTurnKey: null as string | null,
