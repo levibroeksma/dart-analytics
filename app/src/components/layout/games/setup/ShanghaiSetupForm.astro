@@ -1,0 +1,30 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Shanghai rules",
+  description:
+    "Twenty rounds, three darts each: round 1 targets the number 1, round 2 targets 2, and so on through 20. Only hits on the round's own number score — single is face value, double is 2x, treble is 3x. Anything else scores 0. Hit single, double and treble of the round's number in one visit, in any order, for a Shanghai — an instant win. Otherwise the session ends after round 20 with your total score.",
+};
+---
+
+<SetupShell title="Shanghai">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>
