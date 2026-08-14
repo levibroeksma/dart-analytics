@@ -14,7 +14,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
   >
     <h2
       class="font-display text-lg font-semibold text-foreground"
-      x-text="resultsSnapshot?.status === 'LOST' ? 'Lost' : 'Won'"
+      x-text="resultsSnapshot?.status === 'LOST' ? 'Game over!' : 'Winner!'"
       x-show="completionStatus === 'succeeded' && resultsSnapshot"
       x-cloak
     >
@@ -40,6 +40,14 @@ import IsLoading from "@components/ui/IsLoading.astro";
       <StatRow
         label="Darts"
         value="resultsSnapshot?.darts"
+      />
+      <StatRow
+        label="Double hit ratio"
+        value="resultsSnapshot?.doubleHitRatio"
+      />
+      <StatRow
+        label="Highest number reached"
+        value="resultsSnapshot?.highestNumberReached"
       />
     </dl>
 
