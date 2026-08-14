@@ -6,6 +6,7 @@ import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
+import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -25,6 +26,7 @@ import type {
   Bobs27Snapshot,
   SinglesSnapshot,
   DoublesTrainingSnapshot,
+  ShanghaiSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -505,6 +507,36 @@ export type DoublesTrainingSetupContext = {
   start(this: DoublesTrainingSetupContext): Promise<void>;
 };
 
+export type ShanghaiSetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: ShanghaiSetupContext): Promise<void>;
+  reconcile(
+    this: ShanghaiSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: ShanghaiSetupContext): Promise<void>;
+  continueSession(this: ShanghaiSetupContext): void;
+  abandonSession(this: ShanghaiSetupContext): Promise<void>;
+  start(this: ShanghaiSetupContext): Promise<void>;
+};
+
 export type DoublesTrainingPlayContext = {
   loading: boolean;
   error: string;
@@ -536,6 +568,53 @@ export type DoublesTrainingPlayContext = {
   back(this: DoublesTrainingPlayContext): Promise<void>;
   playAgain(this: DoublesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: DoublesTrainingPlayContext): Promise<void>;
+};
+
+/** One dart slot in Shanghai's visit preview — a resolved hit/miss mark (against the round's own number), or a not-yet-thrown placeholder. */
+export type ShanghaiPreviewSegment = { status: "hit" | "miss" | "empty" };
+
+/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE` session, the round the Shanghai landed on for a `SHANGHAI` one. */
+export type ShanghaiResultsSnapshot = {
+  score: number;
+  status: "SHANGHAI" | "COMPLETE";
+  round: number;
+};
+
+export type ShanghaiPlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: ShanghaiResultsSnapshot | null;
+  hiddenTurnKey: string | null;
+  $store: PlayStoreContext<ShanghaiSnapshot>;
+  engine: ShanghaiEngine | null;
+  currentTargetLabel(this: ShanghaiPlayContext): string;
+  roundLabel(this: ShanghaiPlayContext): string;
+  currentScore(this: ShanghaiPlayContext): string;
+  isBullVisit(this: ShanghaiPlayContext): boolean;
+  previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[];
+  init(this: ShanghaiPlayContext): Promise<void>;
+  retryReconciliation(this: ShanghaiPlayContext): Promise<void>;
+  recordTap(
+    this: ShanghaiPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ): Promise<void>;
+  commitDart(
+    this: ShanghaiPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: ShanghaiPlayContext): void;
+  uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void>;
+  back(this: ShanghaiPlayContext): Promise<void>;
+  playAgain(this: ShanghaiPlayContext): Promise<void>;
+  abandonAndExit(this: ShanghaiPlayContext): Promise<void>;
 };
 
 /**

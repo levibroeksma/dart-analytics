@@ -42,6 +42,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Doubles training",
     caption: "Trebles for show, doubles for dough!",
   },
+  {
+    rulesetVersionKey: "SHANGHAI_V1",
+    href: "/games/shanghai/setup",
+    title: "Shanghai",
+    caption: "Chase the highest total, or win instantly with a Shanghai.",
+  },
 ];
 
 /**

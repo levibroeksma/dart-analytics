@@ -35,6 +35,19 @@ export type SinglesTrainingState = {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
+/**
+ * `dartsThisVisit` is the raw zone each of this visit's darts hit on the
+ * round's own number, or `null` for a miss/off-target dart — not a
+ * pre-computed single/double/treble flag, so a Shanghai is derived from it
+ * on the visit's 3rd dart rather than tracked as it happens.
+ */
+export type ShanghaiState = {
+  targetIndex: number;
+  totalScore: number;
+  dartsThisVisit: (DartZoneKey | null)[];
+  status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE";
+};
+
 export type DoublesVisitOutcome = {
   targetIndex: number;
   hit: boolean;
