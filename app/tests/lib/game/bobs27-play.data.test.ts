@@ -229,6 +229,13 @@ describe("init", () => {
     expect(play.finished).toBe(true);
     expect(play.completionStatus).toBe("succeeded");
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+    expect(play.resultsSnapshot).toEqual({
+      status: "LOST",
+      score: -13,
+      darts: 3,
+      doubleHitRatio: "0/3",
+      highestNumberReached: "D1",
+    });
   });
 });
 
@@ -324,6 +331,8 @@ describe("completion", () => {
       status: "WON",
       score: 1437,
       darts: 63,
+      doubleHitRatio: "63/63",
+      highestNumberReached: "BULL",
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -355,6 +364,8 @@ describe("completion", () => {
       status: "LOST",
       score: -13,
       darts: 3,
+      doubleHitRatio: "0/3",
+      highestNumberReached: "D1",
     });
   });
 

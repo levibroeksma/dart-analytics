@@ -399,6 +399,8 @@ export type Bobs27PlayContext = {
     status: "WON" | "LOST";
     score: number;
     darts: number;
+    doubleHitRatio: string;
+    highestNumberReached: string;
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
