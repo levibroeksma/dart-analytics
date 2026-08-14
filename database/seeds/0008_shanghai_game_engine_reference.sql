@@ -30,11 +30,14 @@
 -- configuration_templates preset currently reads exercise_templates
 -- at runtime.
 --
--- Capability: SHANGHAI_V1 declares RECREATIONAL + DETAILED_DARTS
--- only (no VISUAL_BOARD pair in v1), mirroring
--- app/src/lib/game/rulesets/capabilities.ts's SHANGHAI_V1 entry —
--- a parity test (capability-validator-parity.test.ts) and this
--- file's own verification script prove the declarations agree.
+-- Capability: SHANGHAI_V1 + RECREATIONAL + DETAILED_DARTS is
+-- declared in seeds/0007_ruleset_version_capabilities.sql, not
+-- here — 0007 is the single running ledger every ruleset's
+-- capability rows are appended to (see its own git history,
+-- e.g. the Bob's 27 ANALYTICS + VISUAL_BOARD addition), mirroring
+-- app/src/lib/game/rulesets/capabilities.ts's SHANGHAI_V1 entry.
+-- verification/0008_shanghai_capability_checks.sql still asserts
+-- the resulting row, whichever seed created it.
 -- ============================================================
 BEGIN;
 -- ============================================================
@@ -102,21 +105,4 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
--- ============================================================
--- Capability: SHANGHAI_V1 + RECREATIONAL + DETAILED_DARTS
--- ============================================================
-INSERT INTO ruleset_version_capabilities (
-        ruleset_version_id,
-        capture_mode_id,
-        input_mode_id,
-        created_at
-    )
-SELECT rv.id,
-    cm.id,
-    im.id,
-    now()
-FROM ruleset_versions rv
-    JOIN capture_modes cm ON cm.implementation_key = 'RECREATIONAL'
-    JOIN input_modes im ON im.implementation_key = 'DETAILED_DARTS'
-WHERE rv.implementation_key = 'SHANGHAI_V1' ON CONFLICT DO NOTHING;
 COMMIT;

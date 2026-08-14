@@ -2,11 +2,12 @@
 -- Verification: 0008_shanghai_capability_checks.sql
 --
 -- Mirrors 0007_capability_seed_checks.sql's shape, re-scoped for
--- the additive SHANGHAI_V1 row this seed adds on top of 0007's
--- original 9. No PostgreSQL server exists in the container that
--- authored seeds/0008_shanghai_game_engine_reference.sql (D193),
--- so this script asserts against a real Neon database before
--- merge:
+-- the additive SHANGHAI_V1 row appended to 0007_ruleset_version_
+-- capabilities.sql's own VALUES list on top of its original 9
+-- (0007 is the single running ledger every ruleset's capability
+-- rows are appended to). No PostgreSQL server exists in the
+-- container that authored this file (D193), so it asserts
+-- against a real Neon database before merge:
 --
 --   1. SHANGHAI_V1 + RECREATIONAL + DETAILED_DARTS resolved
 --      through the implementation_key joins
