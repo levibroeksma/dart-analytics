@@ -178,6 +178,21 @@ describe("currentTargetLabel", () => {
     await play.init.call(play);
     expect(play.currentTargetLabel.call(play)).toBe("BULL");
   });
+
+  it("shows BULL first under a HIGH_TO_LOW order, not D1", async () => {
+    const play = makePlay({
+      configSnapshot: {
+        ...defaultConfig(),
+        orderMode: "HIGH_TO_LOW",
+        targetOrder: [
+          25, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3,
+          2, 1,
+        ],
+      },
+    });
+    await play.init.call(play);
+    expect(play.currentTargetLabel.call(play)).toBe("BULL");
+  });
 });
 
 describe("recordTap on a double target", () => {
