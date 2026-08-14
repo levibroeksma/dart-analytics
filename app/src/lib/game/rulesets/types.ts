@@ -39,22 +39,74 @@ export const Bobs27Config = z
   })
   .strict();
 
+/**
+ * `target_order` is the concrete, already-resolved 21-target sequence a
+ * Singles/Doubles Training session actually plays — a permutation of the 20
+ * numbered targets (1..20) and BULL (25, the same sentinel
+ * `board-progression.module.ts` uses for the bull target). `order_mode`
+ * only describes how it was produced (ascending, descending, or shuffled);
+ * the array is what the engine reads. Resolved once client-side at session
+ * creation (`lib/game/target-order.ts`) and copied into the immutable
+ * config snapshot, so undo/resume can never reshuffle mid-session.
+ *
+ * The `.superRefine` validating it is declared inline on each exported
+ * config schema, not factored into a shared sub-schema — mechanically
+ * required, not a style choice: `scripts/check-refinement-coverage.sh`
+ * attributes a `.superRefine(`/`.refine(` call to the nearest preceding
+ * `export const NAME =`, so a refinement living on a non-exported helper
+ * const would be silently misattributed to whatever export happens to
+ * precede it in the file.
+ */
+const TARGET_ORDER_VALUES = new Set<number>([
+  ...Array.from({ length: 20 }, (_, i) => i + 1),
+  25,
+]);
+
+function isValidTargetOrder(value: number[]): boolean {
+  if (value.length !== 21) return false;
+  const seen = new Set(value);
+  if (seen.size !== 21) return false;
+  return value.every((n) => TARGET_ORDER_VALUES.has(n));
+}
+
 export const SinglesConfig = z
   .object({
-    order_mode: z.enum(["LOW_TO_HIGH"]),
+    order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
+    target_order: z.array(z.number().int()).length(21),
     difficulty: z.enum(["EASY"]),
     points_single: z.number().int().default(1),
     points_double: z.number().int().default(2),
     points_treble: z.number().int().default(3),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    if (!isValidTargetOrder(val.target_order)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["target_order"],
+        message:
+          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
+      });
+    }
+  });
 
 export const DoublesTrainingConfig = z
   .object({
     mode: z.enum(["EASY"]),
-    order_mode: z.enum(["LOW_TO_HIGH"]),
+    order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
+    target_order: z.array(z.number().int()).length(21),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    if (!isValidTargetOrder(val.target_order)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["target_order"],
+        message:
+          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
+      });
+    }
+  });
 
 /**
  * `starting_score` has a floor of 2 — the minimum a double-out leg can ever
@@ -141,6 +193,7 @@ export type Bobs27Snapshot = {
 
 export type SinglesSnapshot = {
   orderMode: SinglesConfigData["order_mode"];
+  targetOrder: SinglesConfigData["target_order"];
   difficulty: SinglesConfigData["difficulty"];
   pointsSingle: SinglesConfigData["points_single"];
   pointsDouble: SinglesConfigData["points_double"];
@@ -150,6 +203,7 @@ export type SinglesSnapshot = {
 export type DoublesTrainingSnapshot = {
   mode: DoublesTrainingConfigData["mode"];
   orderMode: DoublesTrainingConfigData["order_mode"];
+  targetOrder: DoublesTrainingConfigData["target_order"];
 };
 
 export type FiveOhOneSnapshot = {
