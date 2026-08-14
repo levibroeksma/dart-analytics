@@ -45,9 +45,9 @@ describe("config codec", () => {
     ).toThrow();
   });
 
-  it("rejects V2+ values the V1 rulesets do not support", () => {
+  it("rejects values no V1 ruleset supports", () => {
     expect(() =>
-      toSnapshot("SINGLES_V1", { order_mode: "RANDOM", difficulty: "HARD" }),
+      toSnapshot("SINGLES_V1", { order_mode: "SIDEWAYS", difficulty: "HARD" }),
     ).toThrow();
   });
 

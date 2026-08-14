@@ -4,6 +4,9 @@ import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
   order_mode: "LOW_TO_HIGH",
+  target_order: [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+  ],
   difficulty: "EASY",
   points_single: 1,
   points_double: 2,
@@ -63,7 +66,7 @@ describe("singlesTrainingValidator.validateConfig", () => {
 
   it("rejects an invalid config shape", () => {
     const result = singlesTrainingValidator.validateConfig({
-      config: { ...validConfig, order_mode: "RANDOM" },
+      config: { ...validConfig, order_mode: "SIDEWAYS" },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "DETAILED_DARTS",
     });

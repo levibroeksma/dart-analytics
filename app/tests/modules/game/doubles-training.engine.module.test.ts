@@ -17,6 +17,9 @@ import type { DoublesTrainingSnapshot } from "@lib/types";
 const config: DoublesTrainingSnapshot = {
   mode: "EASY",
   orderMode: "LOW_TO_HIGH",
+  targetOrder: [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+  ],
 };
 
 function hitObservationFor(state: DoublesTrainingState): DartObservation {

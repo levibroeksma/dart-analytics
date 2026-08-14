@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { ScoreTrainingConfig } from "./types";
+import {
+  DoublesTrainingConfig,
+  ScoreTrainingConfig,
+  SinglesConfig,
+} from "./types";
 import type { SchemaRefinementContract } from "./types";
 
 type ScoreTrainingInput = z.input<typeof ScoreTrainingConfig>;
@@ -93,6 +97,112 @@ const scoreTrainingContract: SchemaRefinementContract<ScoreTrainingInput> = {
   ],
 };
 
+type SinglesInput = z.input<typeof SinglesConfig>;
+type DoublesTrainingInput = z.input<typeof DoublesTrainingConfig>;
+
+const ASCENDING_TARGET_ORDER = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+];
+
+const singlesBase = {
+  order_mode: "LOW_TO_HIGH",
+  difficulty: "EASY",
+  points_single: 1,
+  points_double: 2,
+  points_treble: 3,
+} satisfies Omit<SinglesInput, "target_order">;
+
+/**
+ * The "wrong length" reject probe is not superRefine-exclusive — the
+ * field-level `.length(21)` already rejects it on its own, same blind spot
+ * `scoreTrainingContract`'s own comment documents for its ROUNDS floor. The
+ * "duplicate value" probe is the load-bearing one: it is exactly length 21,
+ * so only the superRefine's uniqueness check can reject it.
+ */
+const singlesTrainingContract: SchemaRefinementContract<SinglesInput> = {
+  schemaName: "SinglesConfig",
+  schema: SinglesConfig,
+  fields: [
+    {
+      field: "target_order",
+      accept: [
+        {
+          label: "a valid permutation of 1..20 and 25",
+          config: { ...singlesBase, target_order: ASCENDING_TARGET_ORDER },
+        },
+      ],
+      reject: [
+        {
+          label:
+            "a duplicate value (two 1s, missing 2) — load-bearing, length stays 21",
+          config: {
+            ...singlesBase,
+            target_order: [
+              1, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 25,
+            ],
+          },
+        },
+        {
+          label: "wrong length (20 entries, missing BULL)",
+          config: {
+            ...singlesBase,
+            target_order: [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20,
+            ],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+const doublesBase = {
+  mode: "EASY",
+  order_mode: "LOW_TO_HIGH",
+} satisfies Omit<DoublesTrainingInput, "target_order">;
+
+const doublesTrainingContract: SchemaRefinementContract<DoublesTrainingInput> =
+  {
+    schemaName: "DoublesTrainingConfig",
+    schema: DoublesTrainingConfig,
+    fields: [
+      {
+        field: "target_order",
+        accept: [
+          {
+            label: "a valid permutation of 1..20 and 25",
+            config: { ...doublesBase, target_order: ASCENDING_TARGET_ORDER },
+          },
+        ],
+        reject: [
+          {
+            label:
+              "a duplicate value (two 1s, missing 2) — load-bearing, length stays 21",
+            config: {
+              ...doublesBase,
+              target_order: [
+                1, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                19, 20, 25,
+              ],
+            },
+          },
+          {
+            label: "wrong length (20 entries, missing BULL)",
+            config: {
+              ...doublesBase,
+              target_order: [
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                19, 20,
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  };
+
 /**
  * Every schema in `types.ts` that carries a `.superRefine(`/`.refine(`, with
  * the boundaries each refined field must accept and reject. Adding a
@@ -101,4 +211,6 @@ const scoreTrainingContract: SchemaRefinementContract<ScoreTrainingInput> = {
  */
 export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   scoreTrainingContract,
+  singlesTrainingContract,
+  doublesTrainingContract,
 ];
