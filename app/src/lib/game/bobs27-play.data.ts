@@ -37,12 +37,32 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
 function computeStats(
   state: Bobs27State,
   turns: readonly TurnFact[],
-): { status: "WON" | "LOST"; score: number; darts: number } {
+): {
+  status: "WON" | "LOST";
+  score: number;
+  darts: number;
+  doubleHitRatio: string;
+  highestNumberReached: string;
+} {
   const darts = turns.reduce((sum, turn) => sum + turn.darts.length, 0);
+  const hits = turns.reduce(
+    (sum, turn) =>
+      sum +
+      turn.darts.filter(
+        (dart) =>
+          dart.hitTargetNumber === dart.intendedTargetNumber &&
+          dart.hitZoneKey === dart.intendedZoneKey,
+      ).length,
+    0,
+  );
   return {
     status: state.status === "WON" ? "WON" : "LOST",
     score: state.score,
     darts,
+    doubleHitRatio: `${hits}/${darts}`,
+    highestNumberReached: doublesPathTargetLabel(
+      targetAt(doublesPath(), state.targetIndex),
+    ),
   };
 }
 
@@ -103,6 +123,8 @@ export function bobs27Play() {
       status: "WON" | "LOST";
       score: number;
       darts: number;
+      doubleHitRatio: string;
+      highestNumberReached: string;
     } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
