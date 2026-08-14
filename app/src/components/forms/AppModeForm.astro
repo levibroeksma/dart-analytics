@@ -48,76 +48,99 @@ const checkClass =
   />
 
   <div
-    class="space-y-2"
-    role="radiogroup"
-    aria-labelledby="app-mode-heading"
-    x-data="{
-      async selectOther(captureModeKey, inputModeKey, ref) {
-        if ($store.settings.loading) return;
-        await $store.settings.save(captureModeKey, inputModeKey);
-        $nextTick(() => $refs[ref].focus());
-      },
-    }"
+    x-show="!$store.settings.loading"
+    x-cloak
   >
-    <button
-      type="button"
-      role="radio"
-      x-ref="quickScoreOption"
-      class={optionClass}
-      :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
-      :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
-      :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
-      :disabled="$store.settings.loading"
-      @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
-      @keydown.arrow-left.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
-      @keydown.arrow-up.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
-      @keydown.arrow-right.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
-      @keydown.arrow-down.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+    <div
+      class="space-y-2"
+      role="radiogroup"
+      aria-labelledby="app-mode-heading"
+      x-data="{
+        async selectOther(captureModeKey, inputModeKey, ref) {
+          if ($store.settings.loading) return;
+          await $store.settings.save(captureModeKey, inputModeKey);
+          $nextTick(() => $refs[ref].focus());
+        },
+      }"
     >
-      <span class="flex items-center justify-between gap-3">
-        <span class="block">
-          <span class="block font-semibold text-foreground"> Quick score </span>
-          <span class="block text-sm text-muted-foreground">
-            Enter a visit total each turn.
+      <button
+        type="button"
+        role="radio"
+        x-ref="quickScoreOption"
+        class={optionClass}
+        :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
+        :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
+        :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
+        :disabled="$store.settings.loading"
+        @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
+        @keydown.arrow-left.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+        @keydown.arrow-up.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+        @keydown.arrow-right.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+        @keydown.arrow-down.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
+      >
+        <span class="flex items-center justify-between gap-3">
+          <span class="block">
+            <span class="block font-semibold text-foreground">
+              Quick score
+            </span>
+            <span class="block text-sm text-muted-foreground">
+              Enter a visit total each turn.
+            </span>
           </span>
+          <CheckIcon
+            class={checkClass}
+            :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'opacity-100' : 'opacity-0'"
+            aria-hidden="true"
+          />
         </span>
-        <CheckIcon
-          class={checkClass}
-          :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'opacity-100' : 'opacity-0'"
-          aria-hidden="true"
-        />
-      </span>
-    </button>
+      </button>
 
-    <button
-      type="button"
-      role="radio"
-      x-ref="analyticsOption"
-      class={optionClass}
-      :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'border-accent bg-accent-muted' : 'border-border'"
-      :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
-      :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 0 : -1"
-      :disabled="$store.settings.loading"
-      @click="$store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
-      @keydown.arrow-left.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
-      @keydown.arrow-up.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
-      @keydown.arrow-right.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
-      @keydown.arrow-down.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
-    >
-      <span class="flex items-center justify-between gap-3">
-        <span class="block">
-          <span class="block font-semibold text-foreground">Analytics</span>
-          <span class="block text-sm text-muted-foreground">
-            For per-dart tracking, once the board is built.
+      <button
+        type="button"
+        role="radio"
+        x-ref="analyticsOption"
+        class={optionClass}
+        :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'border-accent bg-accent-muted' : 'border-border'"
+        :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
+        :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 0 : -1"
+        :disabled="$store.settings.loading"
+        @click="$store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
+        @keydown.arrow-left.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+        @keydown.arrow-up.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+        @keydown.arrow-right.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+        @keydown.arrow-down.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
+      >
+        <span class="flex items-center justify-between gap-3">
+          <span class="block">
+            <span class="block font-semibold text-foreground">Analytics</span>
+            <span class="block text-sm text-muted-foreground">
+              For per-dart tracking, once the board is built.
+            </span>
           </span>
+          <CheckIcon
+            class={checkClass}
+            :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'opacity-100' : 'opacity-0'"
+            aria-hidden="true"
+          />
         </span>
-        <CheckIcon
-          class={checkClass}
-          :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'opacity-100' : 'opacity-0'"
-          aria-hidden="true"
-        />
-      </span>
-    </button>
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="space-y-2"
+    x-show="$store.settings.loading"
+    x-cloak
+    aria-hidden="true"
+  >
+    <div class="w-full animate-pulse rounded-lg border border-border px-4 py-3">
+      <div class="h-4 w-24 rounded bg-surface-raised"></div>
+      <div class="mt-2 h-3 w-40 rounded bg-surface-raised"></div>
+    </div>
+    <div class="w-full animate-pulse rounded-lg border border-border px-4 py-3">
+      <div class="h-4 w-20 rounded bg-surface-raised"></div>
+      <div class="mt-2 h-3 w-48 rounded bg-surface-raised"></div>
+    </div>
   </div>
 
   <p
