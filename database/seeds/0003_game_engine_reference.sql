@@ -132,21 +132,44 @@ VALUES (
         TRUE,
         now(),
         now()
-    ),
-    (
+    ) ON CONFLICT (id) DO NOTHING;
+-- Doubles Training's preset uses DO UPDATE, not DO NOTHING: its
+-- configuration shape changed (target_order added below) after this row
+-- may already exist in a seeded database, and Singles Training's own
+-- preset above already established DO UPDATE as the correct pattern for
+-- exactly this situation. Split into its own statement so Bob's 27's row
+-- above keeps its original DO NOTHING behavior unchanged.
+INSERT INTO configuration_templates (
+        id,
+        game_type_id,
+        player_id,
+        name,
+        description,
+        configuration,
+        is_system_template,
+        created_at,
+        updated_at
+    )
+VALUES (
         '0198f300-0000-7000-8000-000000000010',
         '0198f000-0000-7000-8000-000000000006',
         NULL,
         'Doubles Training — Easy, Low to High',
-        'Easy mode, doubles low to high ending on the bull.',
+        'Easy mode, doubles low to high, ending on the bull unless the player later switches this preset''s order mode at setup.',
         '{
             "mode": "EASY",
-            "order_mode": "LOW_TO_HIGH"
+            "order_mode": "LOW_TO_HIGH",
+            "target_order": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25]
         }'::jsonb,
         TRUE,
         now(),
         now()
-    ) ON CONFLICT (id) DO NOTHING;
+    )
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    configuration = EXCLUDED.configuration,
+    updated_at = now();
 -- ============================================================
 -- Correction: stale SINGLES_TRAINING game_type_features mapping
 -- (carried in from the Task 11 review)
