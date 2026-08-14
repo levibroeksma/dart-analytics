@@ -9,14 +9,14 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
-  BULL_TARGET_NUMBER,
-  doublesPath,
-  targetAt,
-} from "@modules/game/board-progression.module";
+  doublesPathObservation,
+  doublesPathPreviewSegments,
+  doublesPathTargetLabel,
+} from "@lib/game/doubles-path-play";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
-  BoardTarget,
   Bobs27State,
   DartObservation,
   EngineFacts,
@@ -33,34 +33,6 @@ import { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 
 const GAME_TYPE_KEY = "BOBS27";
 const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
-
-function targetLabel(target: BoardTarget): string {
-  return target.kind === "BULL" ? "BULL" : `D${target.number}`;
-}
-
-const EMPTY_SEGMENTS: readonly Bobs27PreviewSegment[] = [
-  { status: "empty" },
-  { status: "empty" },
-  { status: "empty" },
-];
-
-function previewSegmentsFor(
-  turns: readonly TurnFact[],
-  hiddenTurnKey: string | null,
-): Bobs27PreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
-    return [...EMPTY_SEGMENTS];
-  }
-  return [0, 1, 2].map((i) => {
-    const dart = lastTurn.darts[i];
-    if (!dart) return { status: "empty" };
-    const onTarget =
-      dart.hitTargetNumber === dart.intendedTargetNumber &&
-      dart.hitZoneKey === dart.intendedZoneKey;
-    return { status: onTarget ? "hit" : "miss" };
-  });
-}
 
 function computeStats(
   state: Bobs27State,
@@ -139,7 +111,7 @@ export function bobs27Play() {
 
     currentTargetLabel(this: Bobs27PlayContext): string {
       if (!this.engine) return "";
-      return targetLabel(
+      return doublesPathTargetLabel(
         targetAt(doublesPath(), this.engine.state().targetIndex),
       );
     },
@@ -150,7 +122,10 @@ export function bobs27Play() {
     },
 
     previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
-      return previewSegmentsFor(this.$store.game.turns, this.hiddenTurnKey);
+      return doublesPathPreviewSegments(
+        this.$store.game.turns,
+        this.hiddenTurnKey,
+      );
     },
 
     /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
@@ -223,21 +198,7 @@ export function bobs27Play() {
     async recordTap(this: Bobs27PlayContext, hit: boolean) {
       if (!this.engine || this.finished) return;
       const target = targetAt(doublesPath(), this.engine.state().targetIndex);
-      const observation: DartObservation = hit
-        ? {
-            hitTargetNumber:
-              target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
-            hitZoneKey: target.kind === "BULL" ? "INNER_BULL" : "DOUBLE",
-            locationX: null,
-            locationY: null,
-          }
-        : {
-            hitTargetNumber: null,
-            hitZoneKey: "MISS",
-            locationX: null,
-            locationY: null,
-          };
-      await this.commitDart(observation);
+      await this.commitDart(doublesPathObservation(target, hit));
     },
 
     async recordDart(this: Bobs27PlayContext, observation: DartObservation) {

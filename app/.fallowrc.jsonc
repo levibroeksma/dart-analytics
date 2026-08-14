@@ -27,6 +27,23 @@
   "duplicates": {
     "ignore": ["src/db/schema.ts"],
   },
+  "ignoreExports": [
+    // Intentional two-barrel API (D103/D115/D156): the Worker route's type is
+    // canonically re-exported once through @client/api/types, and again by
+    // each leaf module so a caller can import fetch fn + type from one path.
+    {
+      "file": "src/lib/client/api/configuration-templates.ts",
+      "exports": ["ConfigurationPresetData"],
+    },
+    {
+      "file": "src/lib/client/api/sessions.ts",
+      "exports": ["SessionActiveData"],
+    },
+    {
+      "file": "src/lib/client/api/types.ts",
+      "exports": ["ConfigurationPresetData", "SessionActiveData"],
+    },
+  ],
   "health": {
     "ignore": ["src/middleware.ts", "src/lib/auth/verify-jwt.ts"],
     "thresholdOverrides": [
