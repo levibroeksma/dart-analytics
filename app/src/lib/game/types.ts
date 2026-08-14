@@ -32,6 +32,8 @@ export * from "./board/types";
 
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
 
+export type TargetOrderMode = "LOW_TO_HIGH" | "HIGH_TO_LOW" | "RANDOM";
+
 /**
  * Everything the magnifier draws, mirrored onto the Alpine component itself.
  *
