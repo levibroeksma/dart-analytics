@@ -12,7 +12,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Config screen (presets shown)                 | v1      |
 | Order: low → high (1…20, bull)                | v1      |
 | Order: high → low (bull…1)                    | v1      |
-| Order: randomized (each target once)          | TBD     |
+| Order: randomized (each target once)          | v1      |
 | Points: S=1, D=2, T=3 per dart on target      | v1      |
 | Easy: score whatever you hit (misses allowed) | v1      |
 | Hard: at least 1 dart must hit the target     | TBD     |
@@ -38,7 +38,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 | Setting    | V1 preset                                                       | On config screen (V1) |
 | ---------- | --------------------------------------------------------------- | --------------------- |
 | Players    | Single player                                                   | Shown, locked         |
-| Order      | Low → high (1…20, then bull)                                    | Shown, locked         |
+| Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
 | Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 
@@ -74,7 +74,6 @@ N/A.
 
 ### Variants
 
-- Order: **high → low**, **randomized** (every target once, shuffled each session)
 - **Hard:** at least 1 dart must hit the target each visit
 - **Extreme:** at least 2 darts must hit
 - **Professional:** all 3 darts must hit
@@ -89,8 +88,8 @@ N/A.
 | ------------------- | ------- | ------------------------------------------------------------------------------- |
 | **Training points** | V1      | S/D/T quality score on the current section (1/2/3), not face-value X01 scoring. On the bull: outer 1, inner 2. |
 | **Low → high**      | V1      | 1, 2, … 20, bull.                                                               |
-| **High → low**      | V2+     | Bull, 20, 19, … 1.                                                              |
-| **Random**          | V2+     | All targets once, shuffled per session.                                         |
+| **High → low**      | V1      | Bull, 20, 19, … 1.                                                              |
+| **Random**          | V1      | All 21 targets (1–20 and bull) shuffled together per session; bull can land anywhere. |
 
 ## Capture
 
