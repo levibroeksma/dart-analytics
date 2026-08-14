@@ -68,9 +68,13 @@ export function doublesTrainingPlay() {
     engine: null as DoublesTrainingEngine | null,
 
     currentTargetLabel(this: DoublesTrainingPlayContext): string {
-      if (!this.engine) return "";
+      const config = this.$store.game.configSnapshot;
+      if (!this.engine || !config) return "";
       return doublesPathTargetLabel(
-        targetAt(doublesPath(), this.engine.state().targetIndex),
+        targetAt(
+          doublesPath(config.targetOrder),
+          this.engine.state().targetIndex,
+        ),
       );
     },
 
@@ -107,8 +111,12 @@ export function doublesTrainingPlay() {
      * for a hit or miss on the current target and funnels it through
      * `commitDart`. */
     async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
-      if (!this.engine || this.finished) return;
-      const target = targetAt(doublesPath(), this.engine.state().targetIndex);
+      const config = this.$store.game.configSnapshot;
+      if (!this.engine || !config || this.finished) return;
+      const target = targetAt(
+        doublesPath(config.targetOrder),
+        this.engine.state().targetIndex,
+      );
       await this.commitDart(doublesPathObservation(target, hit));
     },
 
