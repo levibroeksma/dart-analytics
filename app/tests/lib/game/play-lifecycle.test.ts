@@ -538,4 +538,45 @@ describe("runPlayAgain", () => {
     );
     expect(context.finished).toBe(true);
   });
+
+  it("sends overrides and adopts the new snapshot when buildOverrides is supplied", async () => {
+    const context = makeContext({
+      finished: true,
+      completionStatus: "succeeded",
+    });
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await runPlayAgain(
+      context,
+      GAME_TYPE_KEY,
+      RULESET_VERSION_KEY,
+      (engine) => (engine instanceof FakeEngine ? engine : null),
+      () => ({
+        snapshot: { label: "fresh" },
+        wire: { some_key: "value" },
+      }),
+    );
+
+    expect(createSession).toHaveBeenCalledWith({
+      gameTypeKey: GAME_TYPE_KEY,
+      rulesetVersionKey: RULESET_VERSION_KEY,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+      config: {
+        source: "template",
+        templateRef: "tpl-1",
+        overrides: { some_key: "value" },
+      },
+    });
+    expect(context.$store.game.configSnapshot).toEqual({ label: "fresh" });
+  });
 });
