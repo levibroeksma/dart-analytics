@@ -23,7 +23,7 @@ const { value, label, ...props }: Props = Astro.props;
 >
   <button
     type="button"
-    class="w-full h-full p-2 font-semibold text-center cursor-pointer"
+    class="w-full h-full p-2 font-semibold text-center text-xs truncate cursor-pointer"
     @click={`select('${value}')`}
   >
     {label}
