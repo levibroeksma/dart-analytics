@@ -18,12 +18,27 @@ const NUMBERS_PATH: readonly BoardTarget[] = [
   { kind: "BULL" },
 ];
 
-export function doublesPath(): readonly BoardTarget[] {
-  return DOUBLES_PATH;
+/**
+ * Builds a 21-target path from an explicit order array (a permutation of
+ * 1..20 and `BULL_TARGET_NUMBER`) — used when a session's `target_order`
+ * config differs from the default ascending order (Singles/Doubles
+ * Training's High→Low and Random order modes).
+ */
+function pathFromOrder(
+  order: readonly number[],
+  kind: "NUMBER" | "DOUBLE",
+): readonly BoardTarget[] {
+  return order.map((n): BoardTarget =>
+    n === BULL_TARGET_NUMBER ? { kind: "BULL" } : { kind, number: n },
+  );
 }
 
-export function numbersPath(): readonly BoardTarget[] {
-  return NUMBERS_PATH;
+export function doublesPath(order?: readonly number[]): readonly BoardTarget[] {
+  return order ? pathFromOrder(order, "DOUBLE") : DOUBLES_PATH;
+}
+
+export function numbersPath(order?: readonly number[]): readonly BoardTarget[] {
+  return order ? pathFromOrder(order, "NUMBER") : NUMBERS_PATH;
 }
 
 export function targetAt(
