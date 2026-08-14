@@ -110,7 +110,7 @@ function previewSegmentsFor(
   if (!lastTurn || lastTurn.clientKey === hiddenTurnKey || !config) {
     return [...EMPTY_SEGMENTS];
   }
-  const target = targetAt(numbersPath(), turns.length - 1);
+  const target = targetAt(numbersPath(config.targetOrder), turns.length - 1);
   return [0, 1, 2].map((i) => {
     const dart = lastTurn.darts[i];
     if (!dart) return { status: "empty" };
@@ -152,8 +152,12 @@ export function singlesTrainingPlay() {
     engine: null as SinglesTrainingEngine | null,
 
     currentTargetLabel(this: SinglesTrainingPlayContext): string {
-      if (!this.engine) return "";
-      const target = targetAt(numbersPath(), this.engine.state().targetIndex);
+      const config = this.$store.game.configSnapshot;
+      if (!this.engine || !config) return "";
+      const target = targetAt(
+        numbersPath(config.targetOrder),
+        this.engine.state().targetIndex,
+      );
       return target.kind === "BULL" ? "BULL" : String(target.number);
     },
 
@@ -163,9 +167,13 @@ export function singlesTrainingPlay() {
     },
 
     isBullVisit(this: SinglesTrainingPlayContext): boolean {
-      if (!this.engine) return false;
+      const config = this.$store.game.configSnapshot;
+      if (!this.engine || !config) return false;
       return (
-        targetAt(numbersPath(), this.engine.state().targetIndex).kind === "BULL"
+        targetAt(
+          numbersPath(config.targetOrder),
+          this.engine.state().targetIndex,
+        ).kind === "BULL"
       );
     },
 
@@ -212,8 +220,12 @@ export function singlesTrainingPlay() {
       this: SinglesTrainingPlayContext,
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
-      if (!this.engine || this.finished) return;
-      const target = targetAt(numbersPath(), this.engine.state().targetIndex);
+      const config = this.$store.game.configSnapshot;
+      if (!this.engine || !config || this.finished) return;
+      const target = targetAt(
+        numbersPath(config.targetOrder),
+        this.engine.state().targetIndex,
+      );
       if (target.kind === "BULL" && ring === "TREBLE") return;
       const observation: DartObservation =
         ring === "MISS"
