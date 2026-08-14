@@ -14,6 +14,7 @@ import {
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
+import { targetOrderFor } from "@lib/game/target-order";
 import type { SinglesTrainingSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "SINGLES_TRAINING";
@@ -23,6 +24,7 @@ const RULESET_VERSION_KEY = "SINGLES_V1";
 export function singlesTrainingSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
+    orderMode: "LOW_TO_HIGH" as SinglesTrainingSetupContext["orderMode"],
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -110,13 +112,17 @@ export function singlesTrainingSetup() {
         return;
       }
 
+      const targetOrder = targetOrderFor(this.orderMode);
+
       this.loading = true;
       this.error = "";
       try {
-        const configSnapshot = toSnapshot(
-          RULESET_VERSION_KEY,
-          preset.configuration,
-        );
+        const wire = {
+          ...(preset.configuration as Record<string, unknown>),
+          order_mode: this.orderMode,
+          target_order: targetOrder,
+        };
+        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const modePair = resolveSessionModePair(
           RULESET_VERSION_KEY,
           this.$store.settings,
@@ -129,6 +135,10 @@ export function singlesTrainingSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
+            overrides: {
+              order_mode: this.orderMode,
+              target_order: targetOrder,
+            },
           },
         });
         this.$store.game.startSession(
