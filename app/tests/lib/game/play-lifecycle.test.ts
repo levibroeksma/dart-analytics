@@ -304,6 +304,7 @@ describe("playCommitDart", () => {
     });
 
     expect(context.error).toBe("Session already complete");
+    expect(context.$store.game.turns).toHaveLength(0);
   });
 
   it("triggers completion when the hit finishes the session", async () => {
