@@ -103,3 +103,31 @@ describe("board progression", () => {
     ).toBe(false);
   });
 });
+
+describe("numbersPath / doublesPath with an explicit order", () => {
+  it("builds a NUMBER path from a given order, BULL wherever the sentinel sits", () => {
+    const path = numbersPath([25, 3, 1]);
+    expect(path).toEqual([
+      { kind: "BULL" },
+      { kind: "NUMBER", number: 3 },
+      { kind: "NUMBER", number: 1 },
+    ]);
+  });
+
+  it("builds a DOUBLE path from a given order, BULL wherever the sentinel sits", () => {
+    const path = doublesPath([3, 25, 1]);
+    expect(path).toEqual([
+      { kind: "DOUBLE", number: 3 },
+      { kind: "BULL" },
+      { kind: "DOUBLE", number: 1 },
+    ]);
+  });
+
+  it("falls back to the fixed ascending path when no order is given", () => {
+    const ascending = [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ];
+    expect(numbersPath()).toEqual(numbersPath(ascending));
+    expect(doublesPath()).toEqual(doublesPath(ascending));
+  });
+});
