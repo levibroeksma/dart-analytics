@@ -154,13 +154,22 @@ export const TuodConfig = z
   })
   .strict();
 
+/**
+ * Shanghai v1 locks every rule (round range, scoring, Shanghai instant-win)
+ * with nothing left to configure — a genuinely empty `.strict()` object, not
+ * a placeholder. A future version that adds a round-range or instant-win
+ * toggle widens this schema then.
+ */
+export const ShanghaiConfig = z.object({}).strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
   | "SINGLES_V1"
   | "DOUBLES_TRAINING_V1"
   | "501_V1"
-  | "TUOD_V1";
+  | "TUOD_V1"
+  | "SHANGHAI_V1";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
@@ -169,6 +178,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   DOUBLES_TRAINING_V1: DoublesTrainingConfig,
   "501_V1": FiveOhOneConfig,
   TUOD_V1: TuodConfig,
+  SHANGHAI_V1: ShanghaiConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -177,6 +187,7 @@ export type SinglesConfigData = z.infer<typeof SinglesConfig>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
+export type ShanghaiConfigData = z.infer<typeof ShanghaiConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -224,6 +235,9 @@ export type TuodSnapshot = {
   maxDartsPerTurn: TuodConfigData["max_darts_per_turn"];
 };
 
+/** Shanghai v1 has nothing to configure — no fields to carry. */
+export type ShanghaiSnapshot = Record<string, never>;
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -235,7 +249,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
           ? DoublesTrainingSnapshot
           : K extends "501_V1"
             ? FiveOhOneSnapshot
-            : TuodSnapshot;
+            : K extends "TUOD_V1"
+              ? TuodSnapshot
+              : ShanghaiSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

@@ -43,6 +43,7 @@ export const RULESET_CAPABILITIES: Readonly<
   SINGLES_V1: [DETAILED_DARTS],
   BOBS27_V1: [DETAILED_DARTS, VISUAL_BOARD],
   DOUBLES_TRAINING_V1: [DETAILED_DARTS],
+  SHANGHAI_V1: [DETAILED_DARTS],
 };
 
 /** Whether this ruleset version's engine implements the given mode pair. */

@@ -13,6 +13,7 @@ describe("RULESET_CAPABILITIES", () => {
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
+      "SHANGHAI_V1",
       "SINGLES_V1",
       "TUOD_V1",
     ]);
@@ -59,7 +60,12 @@ describe("supportsMode", () => {
     expect(supportsMode("501_V1", "ANALYTICS", "DETAILED_DARTS")).toBe(false);
   });
 
-  it.each(["SINGLES_V1", "BOBS27_V1", "DOUBLES_TRAINING_V1"] as const)(
+  it.each([
+    "SINGLES_V1",
+    "BOBS27_V1",
+    "DOUBLES_TRAINING_V1",
+    "SHANGHAI_V1",
+  ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
       expect(
