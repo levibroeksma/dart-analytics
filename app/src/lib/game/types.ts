@@ -131,6 +131,19 @@ export type PlayLifecycleContext<
   uploadAndCompleteSession(): Promise<void>;
 };
 
+/**
+ * What `runPlayAgain`'s optional `buildOverrides` callback returns: the
+ * locally-merged config snapshot for the new session (config-shaped,
+ * camelCase) plus the wire-shaped (snake_case) `overrides` sent to
+ * `POST /api/sessions`. Both are ruleset-specific, so the caller — not
+ * `play-lifecycle.ts` — builds them; this keeps `runPlayAgain` itself
+ * generic over `TConfig`.
+ */
+export type PlayAgainOverrides<TConfig> = {
+  snapshot: TConfig;
+  wire: Record<string, unknown>;
+};
+
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;

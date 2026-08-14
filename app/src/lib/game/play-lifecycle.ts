@@ -11,7 +11,11 @@ import { reconcileActiveSession } from "@lib/game/session-recovery";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type { GameEngine } from "@modules/interfaces";
-import type { PlayLifecycleContext, PlayStoreContext } from "./types";
+import type {
+  PlayAgainOverrides,
+  PlayLifecycleContext,
+  PlayStoreContext,
+} from "./types";
 
 function currentFacts<
   TConfig,
@@ -248,6 +252,7 @@ export async function runPlayAgain<
   gameTypeKey: string,
   rulesetVersionKey: RulesetVersionKey,
   narrowEngine: (engine: GameEngine<unknown, unknown>) => TEngine | null,
+  buildOverrides?: (priorConfig: TConfig) => PlayAgainOverrides<TConfig>,
 ): Promise<void> {
   const config = context.$store.game.configSnapshot;
   const templateRef = context.$store.game.templateRef;
@@ -262,6 +267,8 @@ export async function runPlayAgain<
     rulesetVersionKey,
     context.$store.settings,
   );
+  const overrides = buildOverrides ? buildOverrides(config) : null;
+  const nextConfigSnapshot = overrides ? overrides.snapshot : config;
 
   try {
     let session;
@@ -271,7 +278,9 @@ export async function runPlayAgain<
         rulesetVersionKey,
         captureModeKey: modePair.captureModeKey,
         inputModeKey: modePair.inputModeKey,
-        config: { source: "template", templateRef },
+        config: overrides
+          ? { source: "template", templateRef, overrides: overrides.wire }
+          : { source: "template", templateRef },
       });
     } catch {
       context.playAgainError = "Could not start a new session. Try again.";
@@ -281,6 +290,7 @@ export async function runPlayAgain<
     context.$store.game.sessionId = session.sessionId;
     context.$store.game.participantRef = session.participants[0].ref;
     context.$store.game.idempotencyKey = null;
+    context.$store.game.configSnapshot = nextConfigSnapshot;
     context.$store.game.setSessionModes(modePair);
 
     context.finished = false;
@@ -291,7 +301,7 @@ export async function runPlayAgain<
     context.error = "";
     context.hasActiveSession = true;
 
-    const engine = narrowEngine(factory.create(config));
+    const engine = narrowEngine(factory.create(nextConfigSnapshot));
     if (!engine) return;
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
