@@ -40,7 +40,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     rulesetVersionKey: "DOUBLES_TRAINING_V1",
     href: "/games/doubles-training/setup",
     title: "Doubles training",
-    caption: "Work every double, low to high, ending on the bull.",
+    caption: "Trebles for show, doubles for dough!",
   },
 ];
 
