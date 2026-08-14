@@ -13,44 +13,68 @@ import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
   >
     <h1 class="text-xl font-semibold text-foreground">Games</h1>
 
-    <p
-      class="alert rounded-md border border-border px-4 py-3 text-sm text-muted-foreground"
-      x-show="analyticsMode()"
+    <div
+      x-show="!$store.settings.loading"
       x-cloak
     >
-      Analytics mode — only games that support it are shown.
-    </p>
+      <p
+        class="alert rounded-md border border-border px-4 py-3 text-sm text-muted-foreground"
+        x-show="analyticsMode()"
+        x-cloak
+      >
+        Analytics mode — only games that support it are shown.
+      </p>
 
-    {
-      GAME_CARDS.map((game) => (
-        <div
-          x-show={`isVisible('${game.rulesetVersionKey}')`}
-          x-cloak
+      {
+        GAME_CARDS.map((game) => (
+          <div
+            x-show={`isVisible('${game.rulesetVersionKey}')`}
+            x-cloak
+          >
+            <GameCard
+              href={game.href}
+              title={game.title}
+              caption={game.caption}
+            />
+          </div>
+        ))
+      }
+
+      <div
+        class="alert rounded-md border border-border px-4 py-3 space-y-2"
+        x-show="noneVisible()"
+        x-cloak
+      >
+        <p class="text-sm text-muted-foreground">
+          No game supports your current app mode, so there is nothing to start
+          here until you pick a mode one of them records.
+        </p>
+        <a
+          class="text-sm text-accent"
+          href="/profile"
         >
-          <GameCard
-            href={game.href}
-            title={game.title}
-            caption={game.caption}
-          />
-        </div>
-      ))
-    }
+          Change your app mode on your profile
+        </a>
+      </div>
+    </div>
 
     <div
-      class="alert rounded-md border border-border px-4 py-3 space-y-2"
-      x-show="noneVisible()"
+      class="space-y-4"
+      x-show="$store.settings.loading"
       x-cloak
+      aria-hidden="true"
     >
-      <p class="text-sm text-muted-foreground">
-        No game supports your current app mode, so there is nothing to start
-        here until you pick a mode one of them records.
-      </p>
-      <a
-        class="text-sm text-accent"
-        href="/profile"
-      >
-        Change your app mode on your profile
-      </a>
+      {
+        [0, 1, 2].map(() => (
+          <div class="card-wrapper glass flex-row! items-center justify-between gap-3 rounded-2xl p-5 animate-pulse">
+            <div class="flex flex-col gap-2">
+              <div class="h-4 w-32 rounded bg-surface-raised" />
+              <div class="h-3 w-48 rounded bg-surface-raised" />
+            </div>
+            <div class="size-8 shrink-0 rounded-full bg-surface-raised" />
+          </div>
+        ))
+      }
     </div>
   </div>
 </AppLayout>
