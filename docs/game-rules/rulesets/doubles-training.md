@@ -13,8 +13,8 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Hard mode (stay until hit)                                   | TBD     |
 | Challenge mode (miss all 3 → step back; D1 miss → game over) | TBD     |
 | Order: low → high (ending on bull)                           | v1      |
-| Order: high → low (ending on bull)                           | TBD     |
-| Order: randomized                                            | TBD     |
+| Order: high → low (bull leads)                                | v1      |
+| Order: randomized                                            | v1      |
 | 3 darts per double                                           | v1      |
 | Hit ends visit early                                         | v1      |
 | Track overall hit/miss ratio                                 | v1      |
@@ -39,7 +39,7 @@ Before play, a **config screen** shows the session presets.
 | ------- | --------------------------- | --------------------- |
 | Players | Single player               | Shown, locked         |
 | Mode    | Easy                        | Shown, locked         |
-| Order   | Low → high (ending on bull) | Shown, locked         |
+| Order   | Low → high, high → low, or randomized — player's choice | Editable |
 
 ## How to play (V1) — Easy mode
 
@@ -55,7 +55,11 @@ If all three miss, still **move on** to the next double.
 
 ### Progress
 
-Order: **D1 → D2 → … → D20 → bull**. Complete the path once.
+Order: **D1 → D2 → … → D20 → bull** by default (low → high). High → low
+reverses it with bull leading — **bull → D20 → … → D1** — matching Singles
+Training's convention rather than "ending on bull." Randomized shuffles all
+21 targets (the 20 doubles and bull) together; bull can land anywhere.
+Complete the path once, in whichever order the player chose at setup.
 
 ### Finishing
 
@@ -75,9 +79,9 @@ Same three darts per target and early end on hit, but the player **stays on the 
 
 Same as hard for hits, but if the player **misses with all three darts**, they **move back** one double. On **D1**, missing all three is **game over**.
 
-### Config (all modes, when unlocked)
+### Config
 
-- Order: low → high (end bull), high → low (end bull), randomized
+- Order (v1): low → high, high → low (bull leads), randomized (bull shuffled in with the 20 doubles)
 
 ### Other — Tracks
 
@@ -93,6 +97,9 @@ Same as hard for hits, but if the player **misses with all three darts**, they *
 | **Hard**      | V2+     | Remain on a double until hit.                          |
 | **Challenge** | V2+     | Three misses → previous double; D1 wipe → game over.   |
 | **Hit**       | V1      | Dart in the required double; on the bull target, the inner bull only. |
+| **Low → high**  | V1    | D1, D2, … D20, bull.                                   |
+| **High → low**  | V1    | Bull, D20, D19, … D1.                                  |
+| **Random**      | V1    | All 21 targets (the 20 doubles and bull) shuffled together per session; bull can land anywhere. |
 
 ## Capture
 
