@@ -227,7 +227,8 @@ VALUES (
         'All targets from 1 up to 20 then bull, easy difficulty.',
         '{
             "order_mode": "LOW_TO_HIGH",
-            "difficulty": "EASY"
+            "difficulty": "EASY",
+            "target_order": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25]
         }'::jsonb,
         TRUE,
         now(),
