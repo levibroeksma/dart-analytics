@@ -474,7 +474,7 @@ describe("abandonAndExit", () => {
 });
 
 describe("playAgain", () => {
-  it("starts a fresh session under the player's current mode pair with no overrides", async () => {
+  it("starts a fresh session with the same order mode's resolved target order", async () => {
     const play = makePlay({ turns: priorHitTurnsThroughDouble(20) });
     play.completionStatus = "succeeded";
     play.finished = true;
@@ -492,12 +492,19 @@ describe("playAgain", () => {
 
     await play.playAgain.call(play);
 
+    const ascending = [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ];
     expect(createSession).toHaveBeenCalledWith({
       gameTypeKey: "DOUBLES_TRAINING",
       rulesetVersionKey: "DOUBLES_TRAINING_V1",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "DETAILED_DARTS",
-      config: { source: "template", templateRef: "tpl-1" },
+      config: {
+        source: "template",
+        templateRef: "tpl-1",
+        overrides: { order_mode: "LOW_TO_HIGH", target_order: ascending },
+      },
     });
     expect(play.$store.game.sessionId).toBe("new-session");
     expect(play.$store.game.turns).toEqual([]);
@@ -505,6 +512,46 @@ describe("playAgain", () => {
     expect(play.completionStatus).toBe("pending");
     expect(play.resultsSnapshot).toBeNull();
     expect(play.hasActiveSession).toBe(true);
+  });
+
+  it("mints a fresh shuffle for a RANDOM order mode, not the just-finished session's order", async () => {
+    const play = makePlay({
+      turns: priorHitTurnsThroughDouble(20),
+      configSnapshot: {
+        ...defaultConfig(),
+        orderMode: "RANDOM",
+        targetOrder: [
+          25, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+          20,
+        ],
+      },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    const call = vi.mocked(createSession).mock.calls[0][0] as {
+      config: { overrides: Record<string, unknown> };
+    };
+    expect(call.config.overrides.order_mode).toBe("RANDOM");
+    const sentOrder = call.config.overrides.target_order as number[];
+    expect(new Set(sentOrder)).toEqual(
+      new Set([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        25,
+      ]),
+    );
   });
 
   it("surfaces an error and leaves the modal open when session creation fails", async () => {

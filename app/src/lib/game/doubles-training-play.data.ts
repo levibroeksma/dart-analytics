@@ -15,6 +15,7 @@ import {
   playUploadAndCompleteSession,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { targetOrderFor } from "@lib/game/target-order";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import type {
@@ -144,8 +145,21 @@ export function doublesTrainingPlay() {
     },
 
     playAgain(this: DoublesTrainingPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
-        engine instanceof DoublesTrainingEngine ? engine : null,
+      return runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        RULESET_VERSION_KEY,
+        (engine) => (engine instanceof DoublesTrainingEngine ? engine : null),
+        (priorConfig) => {
+          const targetOrder = targetOrderFor(priorConfig.orderMode);
+          return {
+            snapshot: { ...priorConfig, targetOrder },
+            wire: {
+              order_mode: priorConfig.orderMode,
+              target_order: targetOrder,
+            },
+          };
+        },
       );
     },
   };

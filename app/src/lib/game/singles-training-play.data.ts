@@ -14,6 +14,7 @@ import {
   playUploadAndCompleteSession,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { targetOrderFor } from "@lib/game/target-order";
 import type { RulesetVersionKey, SinglesSnapshot } from "@lib/types";
 import type {
   BoardTarget,
@@ -274,8 +275,21 @@ export function singlesTrainingPlay() {
     },
 
     playAgain(this: SinglesTrainingPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
-        engine instanceof SinglesTrainingEngine ? engine : null,
+      return runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        RULESET_VERSION_KEY,
+        (engine) => (engine instanceof SinglesTrainingEngine ? engine : null),
+        (priorConfig) => {
+          const targetOrder = targetOrderFor(priorConfig.orderMode);
+          return {
+            snapshot: { ...priorConfig, targetOrder },
+            wire: {
+              order_mode: priorConfig.orderMode,
+              target_order: targetOrder,
+            },
+          };
+        },
       );
     },
   };
