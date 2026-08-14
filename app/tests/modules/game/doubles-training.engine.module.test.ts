@@ -99,7 +99,11 @@ describe("initialDoublesTrainingState", () => {
 describe("applyDoublesTrainingDart — visit resolution on hit", () => {
   it("ends the visit immediately on a dart-1 hit and advances the target", () => {
     const state = initialDoublesTrainingState();
-    const next = applyDoublesTrainingDart(state, hitObservationFor(state));
+    const next = applyDoublesTrainingDart(
+      config,
+      state,
+      hitObservationFor(state),
+    );
     expect(next.targetIndex).toBe(1);
     expect(next.dartsThisVisit).toBe(0);
     expect(next.outcomes).toEqual([
@@ -110,8 +114,8 @@ describe("applyDoublesTrainingDart — visit resolution on hit", () => {
 
   it("ends the visit on a dart-2 hit after a dart-1 miss", () => {
     let state = initialDoublesTrainingState();
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
-    state = applyDoublesTrainingDart(state, hitObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, hitObservationFor(state));
     expect(state.targetIndex).toBe(1);
     expect(state.outcomes).toEqual([
       { targetIndex: 0, hit: true, hitDartNumber: 2 },
@@ -120,9 +124,9 @@ describe("applyDoublesTrainingDart — visit resolution on hit", () => {
 
   it("resolves naturally on a dart-3 hit after two misses", () => {
     let state = initialDoublesTrainingState();
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
-    state = applyDoublesTrainingDart(state, hitObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, hitObservationFor(state));
     expect(state.targetIndex).toBe(1);
     expect(state.outcomes).toEqual([
       { targetIndex: 0, hit: true, hitDartNumber: 3 },
@@ -133,9 +137,9 @@ describe("applyDoublesTrainingDart — visit resolution on hit", () => {
 describe("applyDoublesTrainingDart — visit resolution on full miss", () => {
   it("still advances after all 3 darts miss", () => {
     let state = initialDoublesTrainingState();
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
-    state = applyDoublesTrainingDart(state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
     expect(state.targetIndex).toBe(1);
     expect(state.outcomes).toEqual([
       { targetIndex: 0, hit: false, hitDartNumber: null },
@@ -144,7 +148,11 @@ describe("applyDoublesTrainingDart — visit resolution on full miss", () => {
 
   it("does not resolve the visit or record an outcome after only 1 miss", () => {
     const state = initialDoublesTrainingState();
-    const next = applyDoublesTrainingDart(state, missObservationFor(state));
+    const next = applyDoublesTrainingDart(
+      config,
+      state,
+      missObservationFor(state),
+    );
     expect(next.targetIndex).toBe(0);
     expect(next.dartsThisVisit).toBe(1);
     expect(next.outcomes).toEqual([]);
@@ -155,7 +163,7 @@ describe("applyDoublesTrainingDart — path completion", () => {
   it("completes after a dart-1 hit on every one of the 21 targets", () => {
     let state = initialDoublesTrainingState();
     for (let visit = 0; visit < 21; visit++) {
-      state = applyDoublesTrainingDart(state, hitObservationFor(state));
+      state = applyDoublesTrainingDart(config, state, hitObservationFor(state));
     }
     expect(state.status).toBe("COMPLETE");
     expect(state.outcomes).toHaveLength(21);
@@ -169,18 +177,54 @@ describe("applyDoublesTrainingDart — path completion", () => {
     for (let visit = 0; visit < 21; visit++) {
       const pattern = visit % 4;
       if (pattern === 0) {
-        state = applyDoublesTrainingDart(state, hitObservationFor(state));
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          hitObservationFor(state),
+        );
       } else if (pattern === 1) {
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
-        state = applyDoublesTrainingDart(state, hitObservationFor(state));
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          hitObservationFor(state),
+        );
       } else if (pattern === 2) {
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
-        state = applyDoublesTrainingDart(state, hitObservationFor(state));
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          hitObservationFor(state),
+        );
       } else {
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
-        state = applyDoublesTrainingDart(state, missObservationFor(state));
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
+        state = applyDoublesTrainingDart(
+          config,
+          state,
+          missObservationFor(state),
+        );
       }
     }
     expect(state.status).toBe("COMPLETE");
@@ -199,6 +243,7 @@ describe("applyDoublesTrainingDart — BULL visit completion", () => {
       status: "IN_PROGRESS",
     };
     const next = applyDoublesTrainingDart(
+      config,
       bullState,
       hitObservationFor(bullState),
     );
@@ -216,6 +261,7 @@ describe("applyDoublesTrainingDart — BULL visit completion", () => {
       status: "IN_PROGRESS",
     };
     const next = applyDoublesTrainingDart(
+      config,
       bullState,
       missObservationFor(bullState),
     );
@@ -235,7 +281,7 @@ describe("applyDoublesTrainingDart — terminal state guard", () => {
       status: "COMPLETE",
     };
     expect(() =>
-      applyDoublesTrainingDart(completeState, {
+      applyDoublesTrainingDart(config, completeState, {
         hitTargetNumber: 25,
         hitZoneKey: "INNER_BULL",
         locationX: null,
@@ -737,5 +783,51 @@ describe("DoublesTrainingEngine.undo", () => {
     expect(resumed.facts().turns[0].darts).toHaveLength(1);
     expect(resumed.state().targetIndex).toBe(0);
     expect(resumed.state().dartsThisVisit).toBe(1);
+  });
+});
+
+describe("applyDoublesTrainingDart — order-dependent completion", () => {
+  it("does not complete on the first (bull) visit under a HIGH_TO_LOW order", () => {
+    const highToLowConfig: DoublesTrainingSnapshot = {
+      ...config,
+      orderMode: "HIGH_TO_LOW",
+      targetOrder: [
+        25, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
+        1,
+      ],
+    };
+    const state = initialDoublesTrainingState();
+    const next = applyDoublesTrainingDart(highToLowConfig, state, {
+      hitTargetNumber: 25,
+      hitZoneKey: "INNER_BULL",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.status).toBe("IN_PROGRESS");
+    expect(next.targetIndex).toBe(1);
+  });
+
+  it("completes on the last target of a RANDOM order even though it is not BULL", () => {
+    const randomConfig: DoublesTrainingSnapshot = {
+      ...config,
+      orderMode: "RANDOM",
+      targetOrder: [
+        25, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20,
+      ],
+    };
+    const state: DoublesTrainingState = {
+      targetIndex: 20,
+      dartsThisVisit: 0,
+      outcomes: [],
+      status: "IN_PROGRESS",
+    };
+    const next = applyDoublesTrainingDart(randomConfig, state, {
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.status).toBe("COMPLETE");
   });
 });

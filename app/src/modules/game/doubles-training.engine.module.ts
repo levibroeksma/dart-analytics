@@ -69,15 +69,16 @@ function resolveVisit(
  * dart hits its double (or `INNER_BULL` on the final target) — the 2nd and
  * 3rd darts are never thrown in that case. A full miss still resolves on the
  * 3rd dart. Either way the visit's outcome is folded into `outcomes` and the
- * path advances; the final (BULL) target's resolution completes the session.
- * Doubles Training's `mode`/`orderMode` snapshot has no effect on this
- * reducer today — both fields carry exactly one valid value in
- * `DOUBLES_TRAINING_V1` — so it is threaded through the engine's constructor
- * for factory-contract parity and future config-driven variations, not into
- * this pure function.
+ * path advances; resolving the 21st (last) target in `config.targetOrder`
+ * completes the session — not necessarily a BULL visit, since High→Low and
+ * Random order modes can put BULL anywhere in the path.
+ * `config.mode` still carries exactly one valid value in
+ * `DOUBLES_TRAINING_V1` and has no effect on this reducer; only
+ * `config.targetOrder` (derived from `order_mode` at session creation) does.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applyDoublesTrainingDart(
+  config: DoublesTrainingSnapshot,
   state: DoublesTrainingState,
   observation: DartObservation,
 ): DoublesTrainingState {
@@ -87,7 +88,7 @@ export function applyDoublesTrainingDart(
     );
   }
 
-  const target = targetAt(doublesPath(), state.targetIndex);
+  const target = targetAt(doublesPath(config.targetOrder), state.targetIndex);
   const hit = isHitOn(target, observation);
   const dartsThisVisit = state.dartsThisVisit + 1;
 
@@ -144,13 +145,13 @@ function isVisitOpen(turn: TurnFact): boolean {
 }
 
 /**
- * Doubles Training: a fixed path of 21 targets (D1..D20, then BULL), each
- * visit ending the instant a dart hits its double — the 2nd and 3rd darts of
- * that visit are never thrown — or after 3 misses. The engine owns the fact
- * log — `state()` derives the current target, in-visit dart count and
- * completion by folding `facts()` through `applyDoublesTrainingDart`; the
- * per-visit `outcomes` (which dart hit, or none) are likewise derived, never
- * stored.
+ * Doubles Training: a 21-target path (the 20 doubles and BULL, in the
+ * session's configured `target_order`), each visit ending the instant a dart
+ * hits its double — the 2nd and 3rd darts are never thrown — or after 3
+ * misses. The engine owns the fact log — `state()` derives the
+ * current target, in-visit dart count and completion by folding `facts()`
+ * through `applyDoublesTrainingDart`; the per-visit `outcomes` (which dart
+ * hit, or none) are likewise derived, never stored.
  */
 export class DoublesTrainingEngine implements GameEngine<
   DartObservation,
@@ -159,19 +160,10 @@ export class DoublesTrainingEngine implements GameEngine<
   readonly rulesetVersionKey = "DOUBLES_TRAINING_V1";
   private readonly turns: TurnFact[];
 
-  /**
-   * The config snapshot is accepted positionally for `GameEngineFactory`
-   * parity, so a future `DOUBLES_TRAINING_V1` mode/order variant can drive
-   * behavior without a signature change. It is deliberately not retained as
-   * a field: `DoublesTrainingConfig` locks `mode` to `EASY` and `order_mode`
-   * to `LOW_TO_HIGH` (single-value `.strict()` enums in
-   * `lib/game/rulesets/types.ts`), so Zod already guarantees the only values
-   * V1 can carry and nothing here would read them. Storing it instead left
-   * an unread private property — `ts(6138)` in `astro check`, and a false
-   * claim that this engine is config-driven when the other five genuinely
-   * are.
-   */
-  constructor(_config: DoublesTrainingSnapshot, prior?: EngineFacts) {
+  constructor(
+    private readonly config: DoublesTrainingSnapshot,
+    prior?: EngineFacts,
+  ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
@@ -179,7 +171,7 @@ export class DoublesTrainingEngine implements GameEngine<
     let state = initialDoublesTrainingState();
     for (const turn of this.turns) {
       for (const dart of turn.darts) {
-        state = applyDoublesTrainingDart(state, {
+        state = applyDoublesTrainingDart(this.config, state, {
           hitTargetNumber: dart.hitTargetNumber,
           hitZoneKey: dart.hitZoneKey,
           locationX: dart.locationX,
@@ -219,8 +211,11 @@ export class DoublesTrainingEngine implements GameEngine<
    */
   record(observation: DartObservation): DoublesTrainingState {
     const before = this.deriveState();
-    const target = targetAt(doublesPath(), before.targetIndex);
-    const after = applyDoublesTrainingDart(before, observation);
+    const target = targetAt(
+      doublesPath(this.config.targetOrder),
+      before.targetIndex,
+    );
+    const after = applyDoublesTrainingDart(this.config, before, observation);
 
     const openTurn = this.openOrCreateTurn();
     const intendedZoneKey: DartZoneKey =
@@ -280,7 +275,7 @@ export class DoublesTrainingEngine implements GameEngine<
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
 
-    const after = applyDoublesTrainingDart(before, observation);
+    const after = applyDoublesTrainingDart(this.config, before, observation);
     return after.status !== "IN_PROGRESS";
   }
 
