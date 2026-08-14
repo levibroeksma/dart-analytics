@@ -73,8 +73,10 @@ function trainingPointsFor(
  * Training points are ring quality relative to the current target — a hit
  * on any other number scores zero regardless of ring, and BULL only ever
  * awards its single/double points, never treble. A visit resolves on its
- * 3rd dart: BULL completes the session, any other target advances to the
- * next one on the path.
+ * 3rd dart: resolving the 21st (last) target in `config.targetOrder`
+ * completes the session — not necessarily a BULL visit, since High→Low and
+ * Random order modes can put BULL anywhere in the path; any other target
+ * advances to the next one in the order.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applySinglesTrainingDart(
@@ -88,7 +90,7 @@ export function applySinglesTrainingDart(
     );
   }
 
-  const target = targetAt(numbersPath(), state.targetIndex);
+  const target = targetAt(numbersPath(config.targetOrder), state.targetIndex);
   const totalPoints =
     state.totalPoints + trainingPointsFor(target, config, observation);
   const dartsThisVisit = state.dartsThisVisit + 1;
@@ -97,7 +99,7 @@ export function applySinglesTrainingDart(
     return { ...state, totalPoints, dartsThisVisit };
   }
 
-  if (target.kind === "BULL") {
+  if (state.targetIndex === 20) {
     return { ...state, totalPoints, dartsThisVisit: 0, status: "COMPLETE" };
   }
   return {

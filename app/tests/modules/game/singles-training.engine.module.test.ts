@@ -865,3 +865,51 @@ describe("SinglesTrainingEngine.undo", () => {
     expect(resumed.state().totalPoints).toBe(2);
   });
 });
+
+describe("applySinglesTrainingDart — order-dependent completion", () => {
+  it("does not complete on the first (bull) visit under a HIGH_TO_LOW order", () => {
+    const highToLowConfig: SinglesSnapshot = {
+      ...config,
+      orderMode: "HIGH_TO_LOW",
+      targetOrder: [
+        25, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
+        1,
+      ],
+    };
+    let state = initialSinglesTrainingState();
+    for (let dart = 0; dart < 3; dart++) {
+      state = applySinglesTrainingDart(highToLowConfig, state, {
+        hitTargetNumber: 25,
+        hitZoneKey: "OUTER_BULL",
+        locationX: null,
+        locationY: null,
+      });
+    }
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.targetIndex).toBe(1);
+  });
+
+  it("completes on the last target of a RANDOM order even though it is not BULL", () => {
+    const randomConfig: SinglesSnapshot = {
+      ...config,
+      orderMode: "RANDOM",
+      targetOrder: [
+        25, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20,
+      ],
+    };
+    const twoDartsIn: SinglesTrainingState = {
+      targetIndex: 20,
+      totalPoints: 0,
+      dartsThisVisit: 2,
+      status: "IN_PROGRESS",
+    };
+    const next = applySinglesTrainingDart(randomConfig, twoDartsIn, {
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.status).toBe("COMPLETE");
+  });
+});
