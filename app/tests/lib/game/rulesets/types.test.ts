@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AroundTheClockConfig,
   FiveOhOneConfig,
   RULESET_CONFIGS,
   ScoreTrainingConfig,
@@ -181,5 +182,23 @@ describe("RULESET_CONFIGS strictness", () => {
       max_darts_per_turn: 3,
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("AroundTheClockConfig", () => {
+  it("accepts an empty object", () => {
+    const result = AroundTheClockConfig.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects any key (the schema is .strict())", () => {
+    const result = AroundTheClockConfig.safeParse({ rounds: 20 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("RULESET_CONFIGS", () => {
+  it("registers AROUND_THE_CLOCK_V1", () => {
+    expect(RULESET_CONFIGS.AROUND_THE_CLOCK_V1).toBe(AroundTheClockConfig);
   });
 });
