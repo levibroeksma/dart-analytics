@@ -620,6 +620,36 @@ export type OneTwentyOneSetupContext = {
   start(this: OneTwentyOneSetupContext): Promise<void>;
 };
 
+export type AroundTheClockSetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: AroundTheClockSetupContext): Promise<void>;
+  reconcile(
+    this: AroundTheClockSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: AroundTheClockSetupContext): Promise<void>;
+  continueSession(this: AroundTheClockSetupContext): void;
+  abandonSession(this: AroundTheClockSetupContext): Promise<void>;
+  start(this: AroundTheClockSetupContext): Promise<void>;
+};
+
 export type DoublesTrainingPlayContext = {
   loading: boolean;
   error: string;

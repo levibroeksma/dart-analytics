@@ -1,0 +1,30 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Around the Clock rules",
+  description:
+    "Hit every number from 1 through 20 in order, then finish on the bull. Any single, double, or treble of the current number counts — a hit advances immediately, so a great turn can clear several numbers in three darts. The bull needs one hit, outer or inner, and ends the session the moment it lands.",
+};
+---
+
+<SetupShell title="Around the Clock">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>

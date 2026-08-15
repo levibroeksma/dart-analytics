@@ -54,6 +54,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "121",
     caption: "Climb the checkout ladder from 121 to 170.",
   },
+  {
+    rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+    href: "/games/around-the-clock/setup",
+    title: "Around the Clock",
+    caption: "Hit every number in order, then the bull, to finish.",
+  },
 ];
 
 /**
