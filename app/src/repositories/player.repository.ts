@@ -1,7 +1,11 @@
-import { sql } from "drizzle-orm";
-import { players } from "@db/schema";
+import { eq, sql } from "drizzle-orm";
+import { players, vPlayerProfile } from "@db/schema";
 import type { getDb } from "@db/client";
-import type { ProvisionedPlayer } from "./interfaces";
+import type {
+  PlayerProfileInput,
+  PlayerProfileRow,
+  ProvisionedPlayer,
+} from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -43,4 +47,59 @@ export async function upsertPlayerByAuthUserId(
     authUserId: row.authUserId,
     created: row.xmax === "0",
   };
+}
+
+/**
+ * Reads the player's display name and darts equipment through
+ * `v_player_profile`. Every valid player id has exactly one row (a plain
+ * projection over `players`, not a LEFT JOIN) — a missing row means the
+ * caller passed an id that does not resolve to a provisioned player.
+ */
+export async function findPlayerProfile(
+  db: Db,
+  playerId: string,
+): Promise<PlayerProfileRow> {
+  const [row] = await db
+    .select({
+      displayName: vPlayerProfile.displayName,
+      dartsDescription: vPlayerProfile.dartsDescription,
+      dartsWeightGrams: vPlayerProfile.dartsWeightGrams,
+    })
+    .from(vPlayerProfile)
+    .where(eq(vPlayerProfile.playerId, playerId))
+    .limit(1);
+
+  if (!row) {
+    throw new Error(`no v_player_profile row for player ${playerId}`);
+  }
+
+  return row;
+}
+
+/**
+ * Replaces the player's display name and darts equipment in one UPDATE.
+ * Darts fields are nullable, so passing null clears them.
+ */
+export async function updatePlayerProfile(
+  db: Db,
+  playerId: string,
+  next: PlayerProfileInput,
+): Promise<PlayerProfileRow> {
+  const now = new Date().toISOString();
+  const [row] = await db
+    .update(players)
+    .set({
+      displayName: next.displayName,
+      dartsDescription: next.dartsDescription,
+      dartsWeightGrams: next.dartsWeightGrams,
+      updatedAt: now,
+    })
+    .where(eq(players.id, playerId))
+    .returning({
+      displayName: players.displayName,
+      dartsDescription: players.dartsDescription,
+      dartsWeightGrams: players.dartsWeightGrams,
+    });
+
+  return row;
 }
