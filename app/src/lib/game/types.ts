@@ -7,6 +7,7 @@ import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
+import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -27,6 +28,7 @@ import type {
   SinglesSnapshot,
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
+  OneTwentyOneSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -381,6 +383,57 @@ export type FiveOhOnePlayContext = {
   back(this: FiveOhOnePlayContext): Promise<void>;
   playAgain(this: FiveOhOnePlayContext): Promise<void>;
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
+};
+
+/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. */
+export type OneTwentyOneResultsSnapshot = {
+  target: number;
+  visits: number;
+  average: number;
+};
+
+export type OneTwentyOnePlayContext = {
+  scoreInput: ScoreInputBuffer;
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: OneTwentyOneResultsSnapshot | null;
+  pendingCheckoutScore: number | null;
+  showDoubleConfirm: boolean;
+  showSessionFinishConfirm: boolean;
+  $store: PlayStoreContext<OneTwentyOneSnapshot>;
+  engine: OneTwentyOneEngine | null;
+  turnsInCurrentRound(this: OneTwentyOnePlayContext): TurnFact[];
+  remainingInAttempt(this: OneTwentyOnePlayContext): number;
+  currentTargetLabel(this: OneTwentyOnePlayContext): string;
+  checkoutHint(this: OneTwentyOnePlayContext): string;
+  visitsThisAttempt(this: OneTwentyOnePlayContext): number;
+  dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
+  init(this: OneTwentyOnePlayContext): Promise<void>;
+  retryReconciliation(this: OneTwentyOnePlayContext): Promise<void>;
+  submitVisit(this: OneTwentyOnePlayContext): Promise<void>;
+  confirmDouble(this: OneTwentyOnePlayContext): Promise<void>;
+  denyDouble(this: OneTwentyOnePlayContext): Promise<void>;
+  cancelCheckout(this: OneTwentyOnePlayContext): void;
+  confirmSessionFinish(this: OneTwentyOnePlayContext): Promise<void>;
+  cancelSessionFinish(this: OneTwentyOnePlayContext): void;
+  recordVisit(
+    this: OneTwentyOnePlayContext,
+    score: number,
+    finishedOnDouble: boolean,
+  ): Promise<void>;
+  undoVisit(this: OneTwentyOnePlayContext): void;
+  uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
+  back(this: OneTwentyOnePlayContext): Promise<void>;
+  playAgain(this: OneTwentyOnePlayContext): Promise<void>;
+  abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;
 };
 
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */
