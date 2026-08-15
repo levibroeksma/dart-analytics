@@ -101,3 +101,17 @@ export interface PlayerSettingsInput {
   defaultCaptureModeKey: string;
   defaultInputModeKey: string;
 }
+
+/** A `v_player_profile` row. */
+export interface PlayerProfileRow {
+  displayName: string;
+  dartsDescription: string | null;
+  dartsWeightGrams: number | null;
+}
+
+/** Profile fields to store on a player's row. */
+export interface PlayerProfileInput {
+  displayName: string;
+  dartsDescription: string | null;
+  dartsWeightGrams: number | null;
+}
