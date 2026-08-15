@@ -10,6 +10,7 @@ const { ...props }: Props = Astro.props;
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 ---
 
@@ -62,5 +63,13 @@ import StatRow from "@components/layout/games/StatRow.astro";
 
   <VisitPreview />
 
-  <SinglesRecreationalInput />
+  <SinglesRecreationalInput
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
+  />
+  {
+    /* Visual board — shown instead of the tap row above for an
+    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
+  }
+  <BoardInputPanel />
 </div>
