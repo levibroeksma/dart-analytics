@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -683,5 +683,132 @@ describe("playAgain", () => {
       "Could not start a new session. Try again.",
     );
     expect(play.finished).toBe(true);
+  });
+});
+
+describe("recordDart (board input)", () => {
+  it("records a dart via the board path and mirrors it into the store", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: 5,
+      locationY: -10,
+    });
+
+    const dart = play.$store.game.turns[0].darts[0];
+    expect(dart.locationX).toBe(5);
+    expect(dart.locationY).toBe(-10);
+    expect(play.currentPoints.call(play)).toBe("3");
+  });
+
+  it("does nothing once finished", async () => {
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    await play.init.call(play);
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    expect(play.finished).toBe(true);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 25,
+      hitZoneKey: "OUTER_BULL",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    expect(play.$store.game.turns).toHaveLength(21);
+  });
+});
+
+describe("reveal-then-clear under VISUAL_BOARD", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("hides the resolved visit's markers 1.5s after the 3rd dart", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.visitMarkers.call(play)).not.toEqual([]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.visitMarkers.call(play)).toEqual([]);
+  });
+
+  it("hides the resolved visit's preview immediately under DETAILED_DARTS, with no timer", async () => {
+    const play = makePlay({ inputModeKey: "DETAILED_DARTS" });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.hiddenTimer).toBeNull();
+  });
+
+  it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    vi.advanceTimersByTime(1000);
+    play.undoVisit.call(play);
+    vi.advanceTimersByTime(1000);
+
+    expect(play.hiddenTurnKey).toBeNull();
   });
 });

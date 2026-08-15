@@ -131,6 +131,7 @@ export type PlayLifecycleContext<
   playAgainLoading: boolean;
   resultsSnapshot: TResults | null;
   hiddenTurnKey: string | null;
+  hiddenTimer?: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<TConfig>;
   engine: TEngine | null;
   init(): Promise<void>;
@@ -501,8 +502,14 @@ export type SinglesTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { points: number } | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot>;
   engine: SinglesTrainingEngine | null;
+  visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
+  recordDart(
+    this: SinglesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: SinglesTrainingPlayContext): string;
   currentPoints(this: SinglesTrainingPlayContext): string;
   isBullVisit(this: SinglesTrainingPlayContext): boolean;
@@ -665,8 +672,14 @@ export type DoublesTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { hits: number; misses: number } | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
   engine: DoublesTrainingEngine | null;
+  visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
+  recordDart(
+    this: DoublesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: DoublesTrainingPlayContext): string;
   hitCount(this: DoublesTrainingPlayContext): string;
   missCount(this: DoublesTrainingPlayContext): string;

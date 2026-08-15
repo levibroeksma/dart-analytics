@@ -532,6 +532,36 @@ describe("DoublesTrainingEngine.facts", () => {
   });
 });
 
+describe("DoublesTrainingEngine — dart location facts", () => {
+  it("carries the observation's locationX/locationY onto the dart fact", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: 5,
+      locationY: -132,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBe(5);
+    expect(dart.locationY).toBe(-132);
+  });
+
+  it("keeps the dart's location null for a keypad-entered dart", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBeNull();
+    expect(dart.locationY).toBeNull();
+  });
+});
+
 describe("DoublesTrainingEngine", () => {
   it("starts on target DOUBLE 1, no darts this visit, empty outcomes, not complete", () => {
     const engine = new DoublesTrainingEngine(config);

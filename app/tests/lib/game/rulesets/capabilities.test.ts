@@ -108,7 +108,9 @@ describe("capableRulesets", () => {
     expect([...capableRulesets("ANALYTICS", "VISUAL_BOARD")].sort()).toEqual([
       "501_V1",
       "BOBS27_V1",
+      "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
+      "SINGLES_V1",
     ]);
   });
 

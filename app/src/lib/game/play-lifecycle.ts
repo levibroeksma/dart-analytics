@@ -8,10 +8,12 @@ import {
 } from "@client/api/sessions";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { markersForTurns } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type { GameEngine } from "@modules/interfaces";
 import type {
+  BoardMarker,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
@@ -115,7 +117,18 @@ export async function playCommitDart<
 
   const resolvedTurn = facts.turns.at(-1);
   if (resolvedTurn?.completedAt) {
-    context.hiddenTurnKey = resolvedTurn.clientKey;
+    if (context.hiddenTimer) {
+      clearTimeout(context.hiddenTimer);
+      context.hiddenTimer = null;
+    }
+    if (context.$store.game.inputModeKey === "VISUAL_BOARD") {
+      const clientKey = resolvedTurn.clientKey;
+      context.hiddenTimer = setTimeout(() => {
+        context.hiddenTurnKey = clientKey;
+      }, 1500);
+    } else {
+      context.hiddenTurnKey = resolvedTurn.clientKey;
+    }
   }
 
   if (context.engine.isComplete()) {
@@ -132,9 +145,31 @@ export function playUndoVisit<
 >(context: PlayLifecycleContext<TConfig, TEngine, TResults>): void {
   if (context.finished) return;
   if (!context.engine || !context.engine.undo()) return;
+  if (context.hiddenTimer) {
+    clearTimeout(context.hiddenTimer);
+    context.hiddenTimer = null;
+  }
   context.hiddenTurnKey = null;
   context.$store.game.recordFacts(context.engine.facts());
   context.error = "";
+}
+
+/**
+ * The darts a VISUAL_BOARD session's board should currently show stuck in
+ * it: the last turn's located darts, or none once that turn's own
+ * reveal-then-clear timer (`playCommitDart`) has fired. Extracted from Bob's
+ * 27's own `visitMarkers` override so Singles/Doubles Training can reuse it
+ * instead of hand-rolling the same hidden-turn check.
+ */
+export function playVisitMarkers<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(context: PlayLifecycleContext<TConfig, TEngine, TResults>): BoardMarker[] {
+  if (context.$store.game.turns.at(-1)?.clientKey === context.hiddenTurnKey) {
+    return [];
+  }
+  return markersForTurns(context.$store.game.turns);
 }
 
 /**
@@ -297,6 +332,10 @@ export async function runPlayAgain<
     context.completionStatus = "pending";
     context.completionError = "";
     context.resultsSnapshot = null;
+    if (context.hiddenTimer) {
+      clearTimeout(context.hiddenTimer);
+      context.hiddenTimer = null;
+    }
     context.hiddenTurnKey = null;
     context.error = "";
     context.hasActiveSession = true;

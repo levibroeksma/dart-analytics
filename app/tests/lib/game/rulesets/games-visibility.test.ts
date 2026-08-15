@@ -4,10 +4,9 @@ import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 // Every card in GAME_CARDS is a ruleset that has a real setup route, so a key
 // asserted here is a card that can actually render. Visibility is keyed on
 // capture mode alone, not the exact declared pair (see `visibleGames`'s own
-// doc comment for why). Most carded rulesets declare a pair under both
-// RECREATIONAL and ANALYTICS and so are visible under both real app modes —
-// SINGLES_V1 is the first exception, declaring only RECREATIONAL +
-// DETAILED_DARTS, so its card is RECREATIONAL-only.
+// doc comment for why). Every carded ruleset now declares a pair under both
+// RECREATIONAL and ANALYTICS, so every card is visible under both real app
+// modes.
 
 describe("visibleGames", () => {
   it("shows every carded game under recreational", () => {
@@ -30,9 +29,13 @@ describe("visibleGames", () => {
     const keys = visibleGames("ANALYTICS", null)
       .map((game) => game.rulesetVersionKey)
       .sort();
-    expect(keys).toEqual(["501_V1", "BOBS27_V1", "SCORE_TRAINING_V1"]);
-    expect(keys).not.toContain("SINGLES_V1");
-    expect(keys).not.toContain("DOUBLES_TRAINING_V1");
+    expect(keys).toEqual([
+      "501_V1",
+      "BOBS27_V1",
+      "DOUBLES_TRAINING_V1",
+      "SCORE_TRAINING_V1",
+      "SINGLES_V1",
+    ]);
     expect(keys).not.toContain("SHANGHAI_V1");
     expect(keys).not.toContain("121_V1");
     expect(keys).not.toContain("AROUND_THE_CLOCK_V1");
