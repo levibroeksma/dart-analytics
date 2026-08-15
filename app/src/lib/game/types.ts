@@ -502,8 +502,14 @@ export type SinglesTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { points: number } | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot>;
   engine: SinglesTrainingEngine | null;
+  visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
+  recordDart(
+    this: SinglesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: SinglesTrainingPlayContext): string;
   currentPoints(this: SinglesTrainingPlayContext): string;
   isBullVisit(this: SinglesTrainingPlayContext): boolean;

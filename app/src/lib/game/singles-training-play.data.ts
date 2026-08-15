@@ -4,6 +4,7 @@ import {
   numbersPath,
   targetAt,
 } from "@modules/game/board-progression.module";
+import { boardInputData } from "@lib/game/board-input.data";
 import {
   playAbandonAndExit,
   playBack,
@@ -12,6 +13,7 @@ import {
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
+  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
@@ -24,6 +26,7 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
+  BoardMarker,
   SinglesPreviewSegment,
   SinglesTrainingPlayContext,
 } from "./types";
@@ -136,6 +139,8 @@ function resumeEngine(
 }
 
 export function singlesTrainingPlay() {
+  let self: SinglesTrainingPlayContext;
+
   return {
     loading: false,
     error: "",
@@ -150,7 +155,9 @@ export function singlesTrainingPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as { points: number } | null,
     hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as SinglesTrainingEngine | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     currentTargetLabel(this: SinglesTrainingPlayContext): string {
       const config = this.$store.game.configSnapshot;
@@ -210,6 +217,7 @@ export function singlesTrainingPlay() {
     },
 
     init(this: SinglesTrainingPlayContext) {
+      self = this;
       return playInit(this, GAME_TYPE_KEY, resumeEngine);
     },
 
@@ -254,6 +262,21 @@ export function singlesTrainingPlay() {
 
     commitDart(this: SinglesTrainingPlayContext, observation: DartObservation) {
       return playCommitDart(this, observation);
+    },
+
+    async recordDart(
+      this: SinglesTrainingPlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.engine || this.finished) return;
+      await this.commitDart(observation);
+    },
+
+    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
+     * order means this later definition wins, so the shared module needs no
+     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
+    visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
     },
 
     undoVisit(this: SinglesTrainingPlayContext) {
