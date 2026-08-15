@@ -36,4 +36,7 @@ export {
   UpdatePlayerSettingsRequest,
   type UpdatePlayerSettingsInput,
   type PlayerSettingsResponseData,
+  UpdatePlayerProfileRequest,
+  type UpdatePlayerProfileInput,
+  type PlayerProfileResponseData,
 } from "@routes/types";
