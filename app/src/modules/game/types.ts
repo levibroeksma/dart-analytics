@@ -138,6 +138,22 @@ export type OneTwentyOneState = {
 };
 
 /**
+ * Around the Clock session state. `targetIndex` is the active target (0..19
+ * = numbers 1..20, 20 = BULL) and can advance more than once within a single
+ * visit — unlike every other engine, a visit's remaining darts aim at
+ * whatever target is now active, not the one the visit started on.
+ * `dartsThisVisit` counts darts thrown in the open visit (0..2); it resets
+ * to 0 both when a visit closes normally at 3 darts and when a BULL hit
+ * completes the session early. Both fields are folds over the fact log,
+ * never accumulated.
+ */
+export type AroundTheClockState = {
+  targetIndex: number;
+  dartsThisVisit: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
  * One Ten Up One Down attempt as the player reports it. An attempt is a single
  * visit at the current target, so the input describes the whole visit rather
  * than three darts. `checkedOut` alone never wins: the finishing dart must land

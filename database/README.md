@@ -54,6 +54,7 @@ astro check
 7. `seeds/0007_ruleset_version_capabilities.sql`
 8. `seeds/0008_shanghai_game_engine_reference.sql`
 9. `seeds/0009_121_game_engine_reference.sql`
+10. `seeds/0010_around_the_clock_game_engine_reference.sql`
 
 ## Verification Scripts
 
@@ -78,6 +79,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0021_player_settings_checks.sql` | `v_player_settings` exists with the exact expected columns, translates known mode ids to implementation keys, omits a row for a player with no settings, and preserves the `LEFT JOIN` (NULL mode ids still yield a row with NULL keys) (7 checks) |
 | `verification/0008_shanghai_capability_checks.sql` | `seeds/0008`+`0007` combined: `SHANGHAI_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, the table holds exactly the 10 declared triples, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0009_121_capability_checks.sql` | `seeds/0009`+`0007` combined: `121_V1`/`RECREATIONAL`/`QUICK_SCORE` resolves, the table holds exactly the 11 declared triples, zero undeclared `exercise_sessions` (3 checks) |
+| `verification/0010_around_the_clock_capability_checks.sql` | `seeds/0010`+`0007` combined: `AROUND_THE_CLOCK_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, the table holds exactly the 12 declared triples, zero undeclared `exercise_sessions` (3 checks) |
 
 ## References
 

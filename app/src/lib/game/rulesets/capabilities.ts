@@ -45,6 +45,7 @@ export const RULESET_CAPABILITIES: Readonly<
   DOUBLES_TRAINING_V1: [DETAILED_DARTS],
   SHANGHAI_V1: [DETAILED_DARTS],
   "121_V1": [QUICK_SCORE],
+  AROUND_THE_CLOCK_V1: [DETAILED_DARTS],
 };
 
 /** Whether this ruleset version's engine implements the given mode pair. */

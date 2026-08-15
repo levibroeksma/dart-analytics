@@ -170,6 +170,15 @@ export const ShanghaiConfig = z.object({}).strict();
  */
 export const OneTwentyOneConfig = z.object({}).strict();
 
+/**
+ * Around the Clock v1 locks every rule (path 1..20 then BULL, any segment
+ * advances, mid-visit advancement, BULL ends the session immediately) with
+ * nothing left to configure — a genuinely empty `.strict()` object, exactly
+ * like `ShanghaiConfig`/`OneTwentyOneConfig`. A future version that adds a
+ * direction, segment-lock, or difficulty toggle widens this schema then.
+ */
+export const AroundTheClockConfig = z.object({}).strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -178,7 +187,8 @@ export type RulesetVersionKey =
   | "501_V1"
   | "TUOD_V1"
   | "SHANGHAI_V1"
-  | "121_V1";
+  | "121_V1"
+  | "AROUND_THE_CLOCK_V1";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
@@ -189,6 +199,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
   "121_V1": OneTwentyOneConfig,
+  AROUND_THE_CLOCK_V1: AroundTheClockConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -250,6 +261,9 @@ export type ShanghaiSnapshot = Record<string, never>;
 /** 121 v1 has nothing to configure — no fields to carry. */
 export type OneTwentyOneSnapshot = Record<string, never>;
 
+/** Around the Clock v1 has nothing to configure — no fields to carry. */
+export type AroundTheClockSnapshot = Record<string, never>;
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -265,7 +279,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
               ? TuodSnapshot
               : K extends "SHANGHAI_V1"
                 ? ShanghaiSnapshot
-                : OneTwentyOneSnapshot;
+                : K extends "121_V1"
+                  ? OneTwentyOneSnapshot
+                  : AroundTheClockSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

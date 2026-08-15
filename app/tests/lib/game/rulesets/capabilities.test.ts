@@ -11,6 +11,7 @@ describe("RULESET_CAPABILITIES", () => {
     expect(Object.keys(RULESET_CAPABILITIES).sort()).toEqual([
       "121_V1",
       "501_V1",
+      "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
@@ -66,6 +67,7 @@ describe("supportsMode", () => {
     "BOBS27_V1",
     "DOUBLES_TRAINING_V1",
     "SHANGHAI_V1",
+    "AROUND_THE_CLOCK_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
