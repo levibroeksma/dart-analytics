@@ -409,6 +409,7 @@ export type OneTwentyOnePlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: OneTwentyOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
+  pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
@@ -431,6 +432,14 @@ export type OneTwentyOnePlayContext = {
     this: OneTwentyOnePlayContext,
     score: number,
     finishedOnDouble: boolean,
+  ): Promise<void>;
+  recordDart(
+    this: OneTwentyOnePlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: OneTwentyOnePlayContext,
+    observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
