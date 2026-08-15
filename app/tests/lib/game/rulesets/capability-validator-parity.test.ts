@@ -78,7 +78,7 @@ function undeclaredPairs(rulesetVersionKey: RulesetVersionKey): string[] {
  */
 describe("capability constant and ruleset validators agree", () => {
   it("covers every ruleset", () => {
-    expect(rulesetKeys.length).toBe(7);
+    expect(rulesetKeys.length).toBe(8);
   });
 
   it.each(rulesetKeys)("%s accepts every pair it declares", (rulesetKey) => {
