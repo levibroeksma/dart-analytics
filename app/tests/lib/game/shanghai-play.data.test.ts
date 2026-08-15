@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -548,5 +548,84 @@ describe("playAgain", () => {
       "Could not start a new session. Try again.",
     );
     expect(play.finished).toBe(true);
+  });
+});
+
+describe("recordDart (board input)", () => {
+  it("records a dart via the board path and mirrors it into the store", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 5,
+      locationY: -10,
+    });
+
+    const dart = play.$store.game.turns[0].darts[0];
+    expect(dart.locationX).toBe(5);
+    expect(dart.locationY).toBe(-10);
+    expect(play.currentScore.call(play)).toBe("1");
+  });
+
+  it("does nothing once finished", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+    play.finished = true;
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 5,
+      locationY: -10,
+    });
+
+    expect(play.$store.game.turns).toHaveLength(0);
+  });
+});
+
+describe("reveal-then-clear under VISUAL_BOARD", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("hides the resolved visit's markers 1.5s after the 3rd dart", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.visitMarkers.call(play)).not.toEqual([]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.visitMarkers.call(play)).toEqual([]);
   });
 });

@@ -721,8 +721,14 @@ export type ShanghaiPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: ShanghaiResultsSnapshot | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<ShanghaiSnapshot>;
   engine: ShanghaiEngine | null;
+  visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
+  recordDart(
+    this: ShanghaiPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: ShanghaiPlayContext): string;
   roundLabel(this: ShanghaiPlayContext): string;
   currentScore(this: ShanghaiPlayContext): string;
