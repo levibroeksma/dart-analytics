@@ -1,3 +1,4 @@
+import { aroundTheClockValidator } from "./around-the-clock/around-the-clock.validator";
 import { bobs27Validator } from "./bobs27/bobs27.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
 import { fiveOhOneValidator } from "./five-oh-one/five-oh-one.validator";
@@ -17,6 +18,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   TUOD_V1: tuodValidator,
   SHANGHAI_V1: shanghaiValidator,
   "121_V1": oneTwentyOneValidator,
+  AROUND_THE_CLOCK_V1: aroundTheClockValidator,
 };
 
 export function getRulesetValidator(
