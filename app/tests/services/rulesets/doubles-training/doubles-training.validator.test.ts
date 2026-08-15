@@ -99,3 +99,115 @@ describe("doublesTrainingValidator.validateBatch", () => {
     expect(result.valid).toBe(false);
   });
 });
+
+describe("doublesTrainingValidator.validateConfig — visual board", () => {
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid config", () => {
+    const result = doublesTrainingValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+});
+
+describe("doublesTrainingValidator.validateBatch — visual board", () => {
+  it("validates a visual-board batch through the coordinate validator", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 60,
+              completedAt: "2026-08-15T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: 20,
+                  intendedZoneKey: "DOUBLE",
+                  hitTargetNumber: 20,
+                  hitZoneKey: "TREBLE",
+                  score: 60,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = doublesTrainingValidator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a dartless turn under VISUAL_BOARD capture", () => {
+    const result = doublesTrainingValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithTurns([[]]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a dart whose claimed zone disagrees with its location", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 20,
+              completedAt: "2026-08-15T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: 20,
+                  intendedZoneKey: "DOUBLE",
+                  hitTargetNumber: 20,
+                  hitZoneKey: "SINGLE",
+                  score: 20,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = doublesTrainingValidator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(false);
+  });
+});
