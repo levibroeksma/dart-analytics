@@ -48,6 +48,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Shanghai",
     caption: "Chase the highest total, or win instantly with a Shanghai.",
   },
+  {
+    rulesetVersionKey: "121_V1",
+    href: "/games/121/setup",
+    title: "121",
+    caption: "Climb the checkout ladder from 121 to 170.",
+  },
 ];
 
 /**
