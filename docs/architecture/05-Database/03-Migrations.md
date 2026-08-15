@@ -2,12 +2,12 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-08-05
+updated: 2026-08-15
 -->
 
 # Database Migration Strategy
 
-> **Version:** 1.6.0
+> **Version:** 1.7.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -112,7 +112,8 @@ database/
 │   ├── 0018_dart_location_read_model.sql
 │   ├── 0019_ruleset_version_capabilities.sql
 │   ├── 0020_session_capability_fk.sql
-│   └── 0021_player_settings_read_model.sql
+│   ├── 0021_player_settings_read_model.sql
+│   └── 0022_player_profile_read_model.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
@@ -568,6 +569,24 @@ Contains:
 Both lookup joins are `LEFT JOIN`: `player_settings.default_capture_mode_id` and `default_input_mode_id` are nullable, and an `INNER JOIN` would drop the row entirely instead of returning NULL keys. A player with no settings row has no row here at all — the service applies the `RECREATIONAL` + `QUICK_SCORE` defaults and creates the row lazily on first write. No backfill runs.
 
 Never edits `0009`/`0013`/`0014`/`0016`/`0018`.
+
+---
+
+## 0022_player_profile_read_model.sql
+
+Purpose:
+
+Let a player configure their display name and darts equipment; expose both as a read model. <!-- 2026-08-15 -->
+
+Contains:
+
+- `players.darts_description` (`TEXT`, nullable) and `players.darts_weight_grams` (`SMALLINT`, nullable)
+- `chk_players_darts_description_not_empty` / `chk_players_darts_weight_grams_range` (1-100)
+- new `v_player_profile` (`player_id`, `display_name`, `darts_description`, `darts_weight_grams`, `updated_at`)
+
+`display_name` already existed (migration `0003`); this migration only adds its write path (`GET`/`PATCH /api/players/me`) at the application layer — no column change to `display_name` itself.
+
+Never edits `0003`/`0009`/`0013`/`0014`/`0016`/`0018`/`0021`.
 
 ---
 

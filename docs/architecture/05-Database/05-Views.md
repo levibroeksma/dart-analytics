@@ -2,12 +2,12 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-08-08
+updated: 2026-08-15
 -->
 
 # Database View Strategy
 
-> **Version:** 1.2.0
+> **Version:** 1.3.0
 >
 > This document defines the strategy and rules for PostgreSQL views.
 >
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0021)
+# Implemented Views (migrations 0009–0022)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -150,6 +150,7 @@ The name should describe the returned data, not the underlying tables.
 | `v_configuration_presets` | API Read Model | Preset discovery for game setup (2026-07-13) |
 | `v_dart_locations` | Analytics | Dart landing coordinates + derived radius/angle for `VISUAL_BOARD` capture; miss margin lives outside SQL (2026-08-05) |
 | `v_player_settings` | API Read Model | Player default capture/input mode as `*_key`s; absent row means the service defaults apply (2026-08-08) |
+| `v_player_profile` | API Read Model | Player display name + darts equipment (2026-08-15) |
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 

@@ -203,6 +203,8 @@ export const players = pgTable(
     id: uuid().primaryKey().notNull(),
     authUserId: text("auth_user_id").notNull(),
     displayName: text("display_name").notNull(),
+    dartsDescription: text("darts_description"),
+    dartsWeightGrams: smallint("darts_weight_grams"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -217,6 +219,14 @@ export const players = pgTable(
     check(
       "chk_players_display_name_not_empty",
       sql`length(TRIM(BOTH FROM display_name)) > 0`,
+    ),
+    check(
+      "chk_players_darts_description_not_empty",
+      sql`darts_description IS NULL OR length(TRIM(BOTH FROM darts_description)) > 0`,
+    ),
+    check(
+      "chk_players_darts_weight_grams_range",
+      sql`darts_weight_grams IS NULL OR (darts_weight_grams > 0 AND darts_weight_grams <= 100)`,
     ),
   ],
 );
@@ -1017,6 +1027,16 @@ export const vPlayerSettings = pgView("v_player_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
 }).as(
   sql`SELECT ps.player_id, cm.implementation_key AS default_capture_mode_key, im.implementation_key AS default_input_mode_key, ps.updated_at FROM player_settings ps LEFT JOIN capture_modes cm ON cm.id = ps.default_capture_mode_id LEFT JOIN input_modes im ON im.id = ps.default_input_mode_id`,
+);
+
+export const vPlayerProfile = pgView("v_player_profile", {
+  playerId: uuid("player_id"),
+  displayName: text("display_name"),
+  dartsDescription: text("darts_description"),
+  dartsWeightGrams: smallint("darts_weight_grams"),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
+}).as(
+  sql`SELECT id AS player_id, display_name, darts_description, darts_weight_grams, updated_at FROM players`,
 );
 
 export const vRoutineExecution = pgView("v_routine_execution", {

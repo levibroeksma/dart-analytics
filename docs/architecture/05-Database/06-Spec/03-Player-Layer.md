@@ -2,7 +2,7 @@
 status: canonical
 scope: database/player-layer
 read-when: adding/changing player identity or settings
-updated: 2026-08-08
+updated: 2026-08-15
 -->
 
 # Database Specification — Chapter 3: Player Layer
@@ -52,6 +52,8 @@ UUIDv7
 - id
 - auth_user_id (unique — external identity reference)
 - display_name (NOT NULL; set at provisioning: request displayName → JWT name claim → 'Player')
+- darts_description (nullable — free-text darts the player uses, e.g. "Winmau Pro-Series 23g")
+- darts_weight_grams (nullable SMALLINT, 1-100)
 - created_at
 - updated_at
 
@@ -65,11 +67,17 @@ Referenced by:
 - participants
 - routine_templates
 
+Read through:
+
+- `v_player_profile` (migration `0022`) — display name and darts equipment
+
 ## Design Rationale
 
 `display_name` is a configurable nickname (for example "The Power"). It is intentionally **not unique** — it represents persona, not identity.
 
-Initial value comes from POST /api/players/provision; a rename endpoint is deferred post-v1. <!-- 2026-07-13 -->
+Initial value comes from POST /api/players/provision. `GET`/`PATCH /api/players/me` (shipped 2026-08-15) is the rename/darts-config endpoint deferred by the note above. <!-- 2026-07-13; rename endpoint shipped 2026-08-15 -->
+
+`darts_description`/`darts_weight_grams` are nullable — a player may never configure equipment — and are edited through the same endpoint as `display_name`, replacing all three fields together (no partial update), matching `PATCH /api/players/me/settings`'s convention. <!-- 2026-08-15 -->
 
 `auth_user_id` is the only link to the authentication system. Swapping the auth provider would only affect this column.
 

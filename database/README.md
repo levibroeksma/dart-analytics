@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0021)
+├── migrations/     # ordered schema migrations (0001–0022)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -77,6 +77,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
 | `verification/0020_capability_fk_checks.sql` | `fk_sessions_capability` exists over the exact composite columns, refuses an undeclared capture/input mode combination, permits a declared one (4 checks) |
 | `verification/0021_player_settings_checks.sql` | `v_player_settings` exists with the exact expected columns, translates known mode ids to implementation keys, omits a row for a player with no settings, and preserves the `LEFT JOIN` (NULL mode ids still yield a row with NULL keys) (7 checks) |
+| `verification/0022_player_profile_checks.sql` | `v_player_profile` exists with the exact expected columns, resolves configured and unconfigured players correctly, `chk_players_darts_description_not_empty`/`chk_players_darts_weight_grams_range` fire on invalid input and accept valid/NULL input (11 checks) |
 | `verification/0008_shanghai_capability_checks.sql` | `seeds/0008`+`0007` combined: `SHANGHAI_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, the table holds exactly the 10 declared triples, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0009_121_capability_checks.sql` | `seeds/0009`+`0007` combined: `121_V1`/`RECREATIONAL`/`QUICK_SCORE` resolves, the table holds exactly the 11 declared triples, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0010_around_the_clock_capability_checks.sql` | `seeds/0010`+`0007` combined: `AROUND_THE_CLOCK_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, the table holds exactly the 12 declared triples, zero undeclared `exercise_sessions` (3 checks) |
