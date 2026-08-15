@@ -537,6 +537,36 @@ export type ShanghaiSetupContext = {
   start(this: ShanghaiSetupContext): Promise<void>;
 };
 
+export type OneTwentyOneSetupContext = {
+  presets: ConfigurationPresetData[];
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: OneTwentyOneSetupContext): Promise<void>;
+  reconcile(
+    this: OneTwentyOneSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: OneTwentyOneSetupContext): Promise<void>;
+  continueSession(this: OneTwentyOneSetupContext): void;
+  abandonSession(this: OneTwentyOneSetupContext): Promise<void>;
+  start(this: OneTwentyOneSetupContext): Promise<void>;
+};
+
 export type DoublesTrainingPlayContext = {
   loading: boolean;
   error: string;
