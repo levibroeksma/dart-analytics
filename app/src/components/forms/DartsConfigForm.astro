@@ -1,0 +1,95 @@
+---
+/**
+ * Darts equipment editor: free-text darts description and weight in grams.
+ * Reads/writes `$store.profile.dartsDescription`/`dartsWeightGrams`; Save
+ * PATCHes the full profile (display name travels along unchanged), the same
+ * "replace, no partial update" contract `/api/players/me/settings` uses.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import Input from "@components/forms/Input.astro";
+import Button from "@components/forms/Button.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("space-y-4", classNameProp);
+const labelClass = "text-xs text-muted-foreground px-4 py-0 italic";
+---
+
+<section
+  class={className}
+  aria-labelledby="darts-config-heading"
+  {...props}
+>
+  <InfoSection
+    id="darts-config-heading"
+    title="Darts"
+    description="The darts you play with and their weight, in grams."
+  />
+
+  <form
+    class="space-y-3"
+    @submit.prevent="$store.profile.save()"
+  >
+    <div>
+      <label
+        for="dartsDescription"
+        class={labelClass}
+      >
+        Darts
+      </label>
+      <Input
+        id="dartsDescription"
+        name="dartsDescription"
+        type="text"
+        placeholder="e.g. Winmau Pro-Series 23g"
+        x-model="$store.profile.dartsDescription"
+        :disabled="$store.profile.loading"
+      />
+    </div>
+    <div>
+      <label
+        for="dartsWeightGrams"
+        class={labelClass}
+      >
+        Weight (g)
+      </label>
+      <Input
+        id="dartsWeightGrams"
+        name="dartsWeightGrams"
+        type="text"
+        inputmode="numeric"
+        placeholder="Weight in grams"
+        x-model.number="$store.profile.dartsWeightGrams"
+        :disabled="$store.profile.loading"
+      />
+    </div>
+    <Button
+      type="submit"
+      :disabled="$store.profile.loading"
+      loadingExpr="$store.profile.loading"
+    >
+      Save
+    </Button>
+  </form>
+
+  <p
+    class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="$store.profile.error"
+    x-text="$store.profile.error"
+    x-cloak
+  >
+  </p>
+</section>

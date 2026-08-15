@@ -54,6 +54,9 @@ export async function upsertPlayerByAuthUserId(
  * `v_player_profile`. Every valid player id has exactly one row (a plain
  * projection over `players`, not a LEFT JOIN) — a missing row means the
  * caller passed an id that does not resolve to a provisioned player.
+ * `displayName` is cast to `string`: view columns carry no NOT NULL
+ * metadata in Drizzle, but the underlying `players.display_name` is
+ * `chk_players_display_name_not_empty`-guaranteed non-null.
  */
 export async function findPlayerProfile(
   db: Db,
@@ -73,7 +76,7 @@ export async function findPlayerProfile(
     throw new Error(`no v_player_profile row for player ${playerId}`);
   }
 
-  return row;
+  return row as PlayerProfileRow;
 }
 
 /**
