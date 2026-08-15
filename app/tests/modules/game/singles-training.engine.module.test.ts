@@ -529,6 +529,36 @@ describe("SinglesTrainingEngine.facts", () => {
   });
 });
 
+describe("SinglesTrainingEngine — dart location facts", () => {
+  it("carries the observation's locationX/locationY onto the dart fact", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: 12.5,
+      locationY: -40.25,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBe(12.5);
+    expect(dart.locationY).toBe(-40.25);
+  });
+
+  it("keeps the dart's location null for a keypad-entered dart", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.locationX).toBeNull();
+    expect(dart.locationY).toBeNull();
+  });
+});
+
 describe("SinglesTrainingEngine", () => {
   it("starts at 0 points on target NUMBER 1, not complete", () => {
     const engine = new SinglesTrainingEngine(config);
