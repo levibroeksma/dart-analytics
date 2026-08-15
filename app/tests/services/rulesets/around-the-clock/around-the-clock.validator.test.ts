@@ -50,7 +50,7 @@ describe("aroundTheClockValidator.validateConfig", () => {
     const result = aroundTheClockValidator.validateConfig({
       config: validConfig,
       captureModeKey: "ANALYTICS",
-      inputModeKey: "VISUAL_BOARD",
+      inputModeKey: "DETAILED_DARTS",
     });
     expect(result.valid).toBe(false);
   });
@@ -108,6 +108,118 @@ describe("aroundTheClockValidator.validateBatch", () => {
       batch: batchWithTurns([[{ ...hitDart, score: -1 }]]),
       existingTurnCount: 0,
     });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("aroundTheClockValidator.validateConfig — visual board", () => {
+  it("accepts ANALYTICS + VISUAL_BOARD with the empty config", () => {
+    const result = aroundTheClockValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+});
+
+describe("aroundTheClockValidator.validateBatch — visual board", () => {
+  it("validates a visual-board batch through the coordinate validator", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 25,
+              completedAt: "2026-08-15T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 25,
+                  hitZoneKey: "OUTER_BULL",
+                  score: 25,
+                  locationX: 0,
+                  locationY: -12,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = aroundTheClockValidator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a dartless turn under VISUAL_BOARD capture", () => {
+    const result = aroundTheClockValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithTurns([[]]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a dart whose claimed zone disagrees with its location", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "turn-1",
+              participantRef: "p1",
+              sequence: 1,
+              totalScore: 20,
+              completedAt: "2026-08-15T12:00:00.000Z",
+              darts: [
+                {
+                  sequence: 1,
+                  intendedTargetNumber: null,
+                  intendedZoneKey: null,
+                  hitTargetNumber: 20,
+                  hitZoneKey: "SINGLE",
+                  score: 20,
+                  locationX: 0,
+                  locationY: -102,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = aroundTheClockValidator.validateBatch({
+      config: validConfig,
+      batch: batch as never,
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+
     expect(result.valid).toBe(false);
   });
 });
