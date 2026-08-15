@@ -1,0 +1,64 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
+import DoubleCheckoutConfirm from "@components/layout/games/DoubleCheckoutConfirm.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import OneTwentyOneResults from "@components/layout/games/result-modals/OneTwentyOneResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="121 — Play"
+  gameTitle="121"
+>
+  <div
+    class="flex flex-col flex-1 min-h-0 p-3"
+    x-data="oneTwentyOnePlay()"
+    @confirm-exit.window="abandonAndExit()"
+  >
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/121/setup" />
+
+    {/* Gameplay view */}
+    <OneTwentyOne
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {
+      /* Double-out confirm — 121 can only know a checkout from a bust by asking */
+    }
+    <div
+      x-show="showDoubleConfirm"
+      x-cloak
+    >
+      <DoubleCheckoutConfirm />
+    </div>
+
+    {
+      /* Session-finish confirm — a "Yes" here uploads and completes the whole session, so it gets its own irreversible-action confirm rather than recording straight from the first dialog */
+    }
+    <div
+      x-show="showSessionFinishConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="session-finish-confirm-title"
+        title="Check out 170?"
+        description="This checkout wins the session. Confirm to save and finish, or cancel to reconsider."
+        cancelLabel="Cancel"
+        onCancel="cancelSessionFinish()"
+        onConfirm="confirmSessionFinish()"
+        dismissible={false}
+      />
+    </div>
+
+    {/* Results modal (overlay) */}
+    <OneTwentyOneResults />
+  </div>
+</GameLayout>

@@ -1,0 +1,69 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+const { ...props }: Props = Astro.props;
+
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+---
+
+<div
+  class="flex flex-col flex-1 min-h-0 gap-3"
+  {...props}
+>
+  <SinglePlayerDisplay
+    isTarget={true}
+    target="remainingInAttempt()"
+    class="max-h-2/5 h-full"
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <p
+        class="text-sm font-mono font-semibold text-accent"
+        x-show="checkoutHint()"
+        x-text="checkoutHint()"
+        x-cloak
+      >
+      </p>
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="Target"
+          value="currentTargetLabel()"
+        />
+        <StatRow
+          label="Visit"
+          value="(visitsThisAttempt() + 1) + ' / 3'"
+        />
+        <StatRow
+          label="Darts"
+          value="dartsThrownThisSession()"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
+
+  <p
+    class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+
+  <ScoreInput
+    value="scoreInput.value"
+    digitHandler="scoreInput.appendDigit"
+    onDelete="scoreInput.deleteLast($event)"
+    onSubmit="submitVisit()"
+    submitDisabled="!scoreInput.value || showDoubleConfirm || showSessionFinishConfirm || finished"
+    padDisabled="showDoubleConfirm || showSessionFinishConfirm || finished"
+    undoClick="undoVisit()"
+    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showSessionFinishConfirm || finished"
+  />
+</div>
