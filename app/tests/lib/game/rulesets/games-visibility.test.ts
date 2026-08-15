@@ -6,8 +6,8 @@ import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 // capture mode alone, not the exact declared pair (see `visibleGames`'s own
 // doc comment for why). Most carded rulesets declare a pair under both
 // RECREATIONAL and ANALYTICS and so are visible under both real app modes —
-// SINGLES_V1 is the first exception, declaring only RECREATIONAL +
-// DETAILED_DARTS, so its card is RECREATIONAL-only.
+// DOUBLES_TRAINING_V1 is the remaining exception, declaring only
+// RECREATIONAL + DETAILED_DARTS, so its card is RECREATIONAL-only.
 
 describe("visibleGames", () => {
   it("shows every carded game under recreational", () => {
@@ -30,8 +30,12 @@ describe("visibleGames", () => {
     const keys = visibleGames("ANALYTICS", null)
       .map((game) => game.rulesetVersionKey)
       .sort();
-    expect(keys).toEqual(["501_V1", "BOBS27_V1", "SCORE_TRAINING_V1"]);
-    expect(keys).not.toContain("SINGLES_V1");
+    expect(keys).toEqual([
+      "501_V1",
+      "BOBS27_V1",
+      "SCORE_TRAINING_V1",
+      "SINGLES_V1",
+    ]);
     expect(keys).not.toContain("DOUBLES_TRAINING_V1");
     expect(keys).not.toContain("SHANGHAI_V1");
     expect(keys).not.toContain("121_V1");

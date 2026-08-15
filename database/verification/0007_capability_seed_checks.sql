@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 9 declared rows',
+    'seed inserted exactly the 10 declared rows',
     CASE
-        WHEN count(*) = 9 THEN 'PASS'
+        WHEN count(*) = 10 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 9, found %s', count(*))
+    format('expected 10, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -94,6 +94,7 @@ FROM (
             ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS')
@@ -109,12 +110,12 @@ FROM (
 -- VALUES list above was edited down — guard it anyway per house style.
 INSERT INTO verification_results
 SELECT '2',
-    'all 9 declared triples were actually checked',
+    'all 10 declared triples were actually checked',
     CASE
-        WHEN count(*) = 9 THEN 'PASS'
+        WHEN count(*) = 10 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 9 triple checks ran', count(*))
+    format('%s of 10 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -181,6 +182,7 @@ WHERE NOT EXISTS (
                     ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS')

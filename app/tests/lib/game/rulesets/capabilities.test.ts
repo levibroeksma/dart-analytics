@@ -109,6 +109,7 @@ describe("capableRulesets", () => {
       "501_V1",
       "BOBS27_V1",
       "SCORE_TRAINING_V1",
+      "SINGLES_V1",
     ]);
   });
 
