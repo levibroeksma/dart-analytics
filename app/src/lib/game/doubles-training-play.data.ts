@@ -5,6 +5,7 @@ import {
   doublesPathPreviewSegments,
   doublesPathTargetLabel,
 } from "@lib/game/doubles-path-play";
+import { boardInputData } from "@lib/game/board-input.data";
 import {
   playAbandonAndExit,
   playBack,
@@ -13,12 +14,14 @@ import {
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
+  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import type {
+  BoardMarker,
   DoublesPreviewSegment,
   DoublesTrainingPlayContext,
 } from "./types";
@@ -52,6 +55,8 @@ function resumeEngine(
 }
 
 export function doublesTrainingPlay() {
+  let self: DoublesTrainingPlayContext;
+
   return {
     loading: false,
     error: "",
@@ -66,7 +71,9 @@ export function doublesTrainingPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as { hits: number; misses: number } | null,
     hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as DoublesTrainingEngine | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     currentTargetLabel(this: DoublesTrainingPlayContext): string {
       const config = this.$store.game.configSnapshot;
@@ -101,6 +108,7 @@ export function doublesTrainingPlay() {
     },
 
     init(this: DoublesTrainingPlayContext) {
+      self = this;
       return playInit(this, GAME_TYPE_KEY, resumeEngine);
     },
 
@@ -123,6 +131,21 @@ export function doublesTrainingPlay() {
 
     commitDart(this: DoublesTrainingPlayContext, observation: DartObservation) {
       return playCommitDart(this, observation);
+    },
+
+    async recordDart(
+      this: DoublesTrainingPlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.engine || this.finished) return;
+      await this.commitDart(observation);
+    },
+
+    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
+     * order means this later definition wins, so the shared module needs no
+     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
+    visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
     },
 
     undoVisit(this: DoublesTrainingPlayContext) {

@@ -672,8 +672,14 @@ export type DoublesTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { hits: number; misses: number } | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
   engine: DoublesTrainingEngine | null;
+  visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
+  recordDart(
+    this: DoublesTrainingPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: DoublesTrainingPlayContext): string;
   hitCount(this: DoublesTrainingPlayContext): string;
   missCount(this: DoublesTrainingPlayContext): string;
