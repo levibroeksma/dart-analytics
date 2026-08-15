@@ -368,3 +368,60 @@ describe("playAgain", () => {
     expect(play.hasActiveSession).toBe(true);
   });
 });
+
+describe("recordDart (board input)", () => {
+  it("records a dart via the board path and mirrors it into the store", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 5,
+      locationY: -10,
+    });
+
+    const dart = play.$store.game.turns[0].darts[0];
+    expect(dart.locationX).toBe(5);
+    expect(dart.locationY).toBe(-10);
+  });
+
+  it("does nothing once finished", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+    play.finished = true;
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 5,
+      locationY: -10,
+    });
+
+    expect(play.$store.game.turns).toHaveLength(0);
+  });
+
+  it("a BULL hit ends the session immediately, even mid-visit", async () => {
+    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    for (let number = 1; number <= 20; number += 1) {
+      await play.recordDart.call(play, {
+        hitTargetNumber: number,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+    }
+    expect(play.isBullVisit.call(play)).toBe(true);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 25,
+      hitZoneKey: "OUTER_BULL",
+      locationX: 0,
+      locationY: -12,
+    });
+
+    expect(play.finished).toBe(true);
+  });
+});

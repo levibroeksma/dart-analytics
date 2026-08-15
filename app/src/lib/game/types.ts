@@ -776,8 +776,14 @@ export type AroundTheClockPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: AroundTheClockResultsSnapshot | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<AroundTheClockSnapshot>;
   engine: AroundTheClockEngine | null;
+  visitMarkers(this: AroundTheClockPlayContext): BoardMarker[];
+  recordDart(
+    this: AroundTheClockPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: AroundTheClockPlayContext): string;
   turnsSoFar(this: AroundTheClockPlayContext): string;
   isBullVisit(this: AroundTheClockPlayContext): boolean;
