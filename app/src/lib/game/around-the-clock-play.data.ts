@@ -105,6 +105,7 @@ export function aroundTheClockPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as AroundTheClockPlayContext["resultsSnapshot"],
     hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as AroundTheClockEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
