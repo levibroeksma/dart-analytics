@@ -25,20 +25,22 @@ describe("visibleGames", () => {
     ]);
   });
 
-  it("shows every carded game that declares an analytics pair, and no others, under analytics", () => {
+  it("shows every carded game under analytics — every carded ruleset now declares an analytics pair", () => {
     const keys = visibleGames("ANALYTICS", null)
       .map((game) => game.rulesetVersionKey)
       .sort();
-    expect(keys).toEqual([
-      "501_V1",
-      "BOBS27_V1",
-      "DOUBLES_TRAINING_V1",
-      "SCORE_TRAINING_V1",
-      "SINGLES_V1",
-    ]);
-    expect(keys).not.toContain("SHANGHAI_V1");
-    expect(keys).not.toContain("121_V1");
-    expect(keys).not.toContain("AROUND_THE_CLOCK_V1");
+    expect(keys).toEqual(
+      [
+        "SCORE_TRAINING_V1",
+        "501_V1",
+        "BOBS27_V1",
+        "SINGLES_V1",
+        "DOUBLES_TRAINING_V1",
+        "SHANGHAI_V1",
+        "121_V1",
+        "AROUND_THE_CLOCK_V1",
+      ].sort(),
+    );
   });
 
   it("hides every game under a capture mode no carded ruleset supports", () => {

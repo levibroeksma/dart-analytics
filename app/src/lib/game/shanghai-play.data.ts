@@ -8,11 +8,17 @@ import {
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
+  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation, TurnFact } from "@modules/types";
-import type { ShanghaiPlayContext, ShanghaiPreviewSegment } from "./types";
+import type {
+  BoardMarker,
+  ShanghaiPlayContext,
+  ShanghaiPreviewSegment,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -79,6 +85,8 @@ function resumeEngine(
 }
 
 export function shanghaiPlay() {
+  let self: ShanghaiPlayContext;
+
   return {
     loading: false,
     error: "",
@@ -93,7 +101,9 @@ export function shanghaiPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as ShanghaiPlayContext["resultsSnapshot"],
     hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as ShanghaiEngine | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     currentTargetLabel(this: ShanghaiPlayContext): string {
       if (!this.engine) return "";
@@ -119,6 +129,7 @@ export function shanghaiPlay() {
     },
 
     init(this: ShanghaiPlayContext) {
+      self = this;
       return playInit(this, GAME_TYPE_KEY, resumeEngine);
     },
 
@@ -150,6 +161,20 @@ export function shanghaiPlay() {
 
     commitDart(this: ShanghaiPlayContext, observation: DartObservation) {
       return playCommitDart(this, observation);
+    },
+
+    async recordDart(this: ShanghaiPlayContext, observation: DartObservation) {
+      if (!this.engine || this.finished) return;
+      await this.commitDart(observation);
+    },
+
+    /**
+     * Overrides `boardInputData`'s own `visitMarkers` — object-literal key
+     * order means this later definition wins, so the shared module needs no
+     * change. Delegates to `play-lifecycle.ts`'s shared implementation.
+     */
+    visitMarkers(this: ShanghaiPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
     },
 
     undoVisit(this: ShanghaiPlayContext) {

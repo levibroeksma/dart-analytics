@@ -409,6 +409,7 @@ export type OneTwentyOnePlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: OneTwentyOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
+  pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
@@ -431,6 +432,14 @@ export type OneTwentyOnePlayContext = {
     this: OneTwentyOnePlayContext,
     score: number,
     finishedOnDouble: boolean,
+  ): Promise<void>;
+  recordDart(
+    this: OneTwentyOnePlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: OneTwentyOnePlayContext,
+    observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
@@ -721,8 +730,14 @@ export type ShanghaiPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: ShanghaiResultsSnapshot | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<ShanghaiSnapshot>;
   engine: ShanghaiEngine | null;
+  visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
+  recordDart(
+    this: ShanghaiPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: ShanghaiPlayContext): string;
   roundLabel(this: ShanghaiPlayContext): string;
   currentScore(this: ShanghaiPlayContext): string;
@@ -770,8 +785,14 @@ export type AroundTheClockPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: AroundTheClockResultsSnapshot | null;
   hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<AroundTheClockSnapshot>;
   engine: AroundTheClockEngine | null;
+  visitMarkers(this: AroundTheClockPlayContext): BoardMarker[];
+  recordDart(
+    this: AroundTheClockPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   currentTargetLabel(this: AroundTheClockPlayContext): string;
   turnsSoFar(this: AroundTheClockPlayContext): string;
   isBullVisit(this: AroundTheClockPlayContext): boolean;

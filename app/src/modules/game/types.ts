@@ -101,13 +101,15 @@ export type FiveOhOneState = {
 
 /**
  * One 121 visit as the player reports it — a visit total plus whether the
- * finishing dart landed in a double, exactly like `FiveOhOneVisitInput`. 121
- * is quick-score only in v1, so there is no dart-observation variant.
+ * finishing dart landed in a double, exactly like `FiveOhOneVisitInput`.
  */
 export type OneTwentyOneVisitInput = {
   scoreAttempted: number;
   finishedOnDouble?: boolean;
 };
+
+/** 121 accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
+export type OneTwentyOneInput = OneTwentyOneVisitInput | DartObservation;
 
 /**
  * What one visit did to the attempt it was thrown in. `scored` is what the

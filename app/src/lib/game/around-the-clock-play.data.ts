@@ -12,13 +12,16 @@ import {
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
+  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation, TurnFact } from "@modules/types";
 import type {
   AroundTheClockPlayContext,
   AroundTheClockPreviewSegment,
+  BoardMarker,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -86,6 +89,8 @@ function resumeEngine(
 }
 
 export function aroundTheClockPlay() {
+  let self: AroundTheClockPlayContext;
+
   return {
     loading: false,
     error: "",
@@ -100,7 +105,9 @@ export function aroundTheClockPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as AroundTheClockPlayContext["resultsSnapshot"],
     hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as AroundTheClockEngine | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     currentTargetLabel(this: AroundTheClockPlayContext): string {
       if (!this.engine) return "";
@@ -126,6 +133,7 @@ export function aroundTheClockPlay() {
     },
 
     init(this: AroundTheClockPlayContext) {
+      self = this;
       return playInit(this, GAME_TYPE_KEY, resumeEngine);
     },
 
@@ -166,6 +174,23 @@ export function aroundTheClockPlay() {
 
     commitDart(this: AroundTheClockPlayContext, observation: DartObservation) {
       return playCommitDart(this, observation);
+    },
+
+    async recordDart(
+      this: AroundTheClockPlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.engine || this.finished) return;
+      await this.commitDart(observation);
+    },
+
+    /**
+     * Overrides `boardInputData`'s own `visitMarkers` — object-literal key
+     * order means this later definition wins, so the shared module needs no
+     * change. Delegates to `play-lifecycle.ts`'s shared implementation.
+     */
+    visitMarkers(this: AroundTheClockPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
     },
 
     undoVisit(this: AroundTheClockPlayContext) {

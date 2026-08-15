@@ -1,10 +1,16 @@
 import { OneTwentyOneConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
 import {
-  QUICK_SCORE_MODES,
+  QUICK_SCORE_OR_VISUAL_BOARD_MODES,
   isQuickScoreCapture,
+  isQuickScoreOrVisualBoardCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
+import {
+  isVisualBoardCapture,
+  validateVisualBoardTurns,
+} from "../visual-board.validator";
+import type { EventsBatchRequestInput } from "@routes/types";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
@@ -14,9 +20,11 @@ import type {
 const MAX_VISIT_SCORE = 180;
 
 /**
- * 121 is RECREATIONAL + QUICK_SCORE: one visit per turn, carrying the visit's
- * scored total or 0 on a bust, with no dart rows — same shape as 501 and
- * TUOD.
+ * 121 supports two mode pairs. Under RECREATIONAL + QUICK_SCORE every turn is
+ * a visit total with no dart rows, capped at 180. Under
+ * ANALYTICS + VISUAL_BOARD every dart carries a landing coordinate,
+ * re-derived and cross-checked by `validateVisualBoardTurns` — mirrors
+ * `five-oh-one.validator.ts`.
  */
 export const oneTwentyOneValidator: RulesetValidator = {
   validateConfig({
@@ -24,10 +32,10 @@ export const oneTwentyOneValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
       return {
         valid: false,
-        issues: [`121 V1 only supports ${QUICK_SCORE_MODES}`],
+        issues: [`121 V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
       };
     }
     const parsed = OneTwentyOneConfig.safeParse(config);
@@ -37,7 +45,29 @@ export const oneTwentyOneValidator: RulesetValidator = {
     return { valid: true, config: parsed.data };
   },
 
-  validateBatch({ batch }): BatchValidationResult {
+  validateBatch({
+    batch,
+    captureModeKey,
+    inputModeKey,
+  }: {
+    config: Record<string, unknown>;
+    batch: EventsBatchRequestInput;
+    existingTurnCount: number;
+    captureModeKey: string;
+    inputModeKey: string;
+  }): BatchValidationResult {
+    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
+      return validateVisualBoardTurns(batch, MAX_VISIT_SCORE);
+    }
+
+    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+      return {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
+      };
+    }
+
     return validateQuickScoreTurns(batch, MAX_VISIT_SCORE);
   },
 };

@@ -8,7 +8,12 @@ import {
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import type { GameEngine } from "@modules/interfaces";
-import type { OneTwentyOneState, OneTwentyOneVisitInput } from "@modules/types";
+import type {
+  DartObservation,
+  DartZoneKey,
+  OneTwentyOneState,
+  OneTwentyOneVisitInput,
+} from "@modules/types";
 import type { OneTwentyOneSnapshot } from "@lib/types";
 
 const config = () => ({}) satisfies OneTwentyOneSnapshot;
@@ -407,5 +412,215 @@ describe("OneTwentyOneEngine.undo", () => {
     expect(batch.stages).toHaveLength(2);
     expect(batch.stages[0].turns).toHaveLength(2);
     expect(batch.stages[1].turns).toHaveLength(1);
+  });
+});
+
+describe("visual board capture", () => {
+  /**
+   * A located dart. The engine re-classifies from the coordinate, so the
+   * claimed zone is never authoritative — but it is stated truthfully anyway.
+   */
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: x,
+    locationY: y,
+  });
+
+  const trebleTwenty = dartAt(0, -102, "TREBLE", 20);
+  // Treble 19 (score 57) — lands cleanly in the treble ring at sector 19, per
+  // this board's sector layout (`SECTOR_ORDER` in `board-geometry.module.ts`).
+  // Used instead of a second/third `trebleTwenty` in these fixtures because
+  // two T20s back to back leave a live remaining of exactly 1 (121 - 60 -
+  // 60), which `settleVisit` correctly treats as an immediate bust — the
+  // same rule `five-oh-one.engine.module.ts` already applies. That is real
+  // dart-rule behaviour, not a bug, so these fixtures avoid triggering it
+  // where the test means to show a still-open, not-yet-busted visit.
+  const trebleNineteen = dartAt(-32, 98, "TREBLE", 19);
+  const doubleTwenty = dartAt(0, -166, "DOUBLE", 20);
+
+  it("deducts each dart from the remaining live total as it lands", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+
+    engine.record(trebleTwenty);
+    expect(engine.state().remainingInAttempt).toBe(61);
+
+    engine.record(trebleNineteen);
+    expect(engine.state().remainingInAttempt).toBe(4);
+  });
+
+  it("does not prematurely advance the visit counter while a visit is still open", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+
+    engine.record(trebleTwenty);
+
+    expect(engine.state().visitsThisAttempt).toBe(0);
+  });
+
+  it("keeps dart rows with real scores when a visit busts", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleNineteen);
+    engine.record(trebleTwenty);
+
+    const busted = engine.facts().turns.at(-1)!;
+    expect(busted.totalScore).toBe(0);
+    expect(busted.darts.map((dart) => dart.score)).toEqual([60, 57, 60]);
+    expect(engine.state().remainingInAttempt).toBe(121);
+    expect(engine.state().visitsThisAttempt).toBe(1);
+  });
+
+  it("checks out on a double and climbs the ladder", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    engine.record({ scoreAttempted: 41, finishedOnDouble: false });
+
+    engine.record(doubleTwenty);
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+
+    expect(engine.state()).toEqual({
+      currentTarget: 122,
+      remainingInAttempt: 122,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+    });
+  });
+
+  it("wins the session on a checkout at the 170 cap target", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    for (let target = 121; target < 170; target += 1) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+    expect(engine.state().currentTarget).toBe(170);
+
+    // Only a genuine DOUBLE dart checks a board visit out — matches
+    // `five-oh-one.engine.module.ts`'s own `settleVisit`, which never treats
+    // a bull hit as a double. A keypad visit first brings the remaining
+    // total down to 80, then two D20 darts (40 + 40) finish it exactly.
+    engine.record({ scoreAttempted: 90 });
+    engine.record(doubleTwenty);
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.state().status).toBe("WON");
+  });
+
+  it("leaves keypad behaviour unchanged", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.state().remainingInAttempt).toBe(61);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
+  });
+});
+
+describe("OneTwentyOneEngine.wouldComplete — visual board", () => {
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: x,
+    locationY: y,
+  });
+
+  it("is false for a dart that merely opens a visit", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    expect(engine.wouldComplete(dartAt(0, -102, "TREBLE", 20))).toBe(false);
+  });
+
+  it("is true for the checkout dart at the cap target", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    for (let target = 121; target < 170; target += 1) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+    engine.record({ scoreAttempted: 90 });
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+
+    expect(engine.wouldComplete(dartAt(0, -166, "DOUBLE", 20))).toBe(true);
+  });
+
+  it("is false for the same checkout short of the cap target", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    expect(engine.wouldComplete(dartAt(0, -166, "DOUBLE", 20))).toBe(false);
+  });
+
+  it("does not mutate the fact log", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const before = engine.facts();
+
+    engine.wouldComplete(dartAt(0, -102, "TREBLE", 20));
+
+    expect(engine.facts()).toEqual(before);
+  });
+});
+
+describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () => {
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: x,
+    locationY: y,
+  });
+
+  it("undoes one dart at a time, reopening the visit", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    engine.record(dartAt(0, -102, "TREBLE", 20));
+    engine.record(dartAt(0, -102, "TREBLE", 20));
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.state().remainingInAttempt).toBe(61);
+  });
+
+  it("removes the whole turn once its last dart is undone", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    engine.record(dartAt(0, -102, "TREBLE", 20));
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().remainingInAttempt).toBe(121);
+  });
+
+  it("undoes a checkout that opened a new round, popping the round stage and reopening the checkout visit", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    engine.record({ scoreAttempted: 41, finishedOnDouble: false });
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+    expect(engine.facts().stages).toHaveLength(2);
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().stages).toHaveLength(1);
+    const reopened = engine.facts().turns.at(-1)!;
+    expect(reopened.darts).toHaveLength(1);
+    expect(reopened.completedAt).toBeNull();
+    expect(engine.state().currentTarget).toBe(121);
+  });
+
+  it("a keypad-recorded turn still undoes as a whole visit, not a dart", () => {
+    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts().turns).toHaveLength(0);
   });
 });

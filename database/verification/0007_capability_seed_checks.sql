@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 11 declared rows',
+    'seed inserted exactly the 14 declared rows',
     CASE
-        WHEN count(*) = 11 THEN 'PASS'
+        WHEN count(*) = 14 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 11, found %s', count(*))
+    format('expected 14, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -98,7 +98,13 @@ FROM (
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     LEFT JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     LEFT JOIN capture_modes cm ON cm.implementation_key = declared.capture_key
@@ -111,12 +117,12 @@ FROM (
 -- VALUES list above was edited down — guard it anyway per house style.
 INSERT INTO verification_results
 SELECT '2',
-    'all 11 declared triples were actually checked',
+    'all 14 declared triples were actually checked',
     CASE
-        WHEN count(*) = 11 THEN 'PASS'
+        WHEN count(*) = 14 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 11 triple checks ran', count(*))
+    format('%s of 14 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -187,7 +193,13 @@ WHERE NOT EXISTS (
                     ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD')
+                    ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
+                    ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD')
             ) AS declared(ruleset_key, capture_key, input_key)
         WHERE declared.ruleset_key = rv.implementation_key
             AND declared.capture_key = cm.implementation_key

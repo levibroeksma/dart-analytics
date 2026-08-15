@@ -8,6 +8,7 @@ const { ...props }: Props = Astro.props;
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
 <div
@@ -65,5 +66,12 @@ import StatRow from "@components/layout/games/StatRow.astro";
     padDisabled="showDoubleConfirm || showSessionFinishConfirm || finished"
     undoClick="undoVisit()"
     undoDisabled="!$store.game.turns.length || showDoubleConfirm || showSessionFinishConfirm || finished"
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
   />
+  {
+    /* Visual board — shown instead of the keypad above for an
+    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
+  }
+  <BoardInputPanel />
 </div>

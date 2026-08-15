@@ -170,4 +170,172 @@ describe("oneTwentyOnePlay", () => {
       expect(play.resultsSnapshot?.target).toBe(170);
     });
   });
+
+  describe("recordDart (board input)", () => {
+    it("opens a visit and records one dart without closing it", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      });
+
+      expect(play.$store.game.turns).toHaveLength(1);
+      expect(play.$store.game.turns[0].completedAt).toBeNull();
+      expect(play.remainingInAttempt.call(play)).toBe(61);
+    });
+
+    it("closes the visit on the third dart", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+
+      expect(play.$store.game.turns[0].completedAt).not.toBeNull();
+      expect(play.$store.game.turns[0].darts).toHaveLength(3);
+    });
+
+    it("undo removes one dart at a time, not the whole visit", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+
+      play.undoVisit.call(play);
+
+      expect(play.$store.game.turns).toHaveLength(1);
+      expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    });
+  });
+
+  describe("recordDart — session-ending checkout defers to the confirm dialog", () => {
+    it("opens showSessionFinishConfirm instead of recording immediately", async () => {
+      const play = createPlay();
+      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      for (let target = 121; target < 170; target += 1) {
+        engine.record({ scoreAttempted: target, finishedOnDouble: true });
+      }
+      // Only a genuine DOUBLE dart checks a board visit out (matches
+      // `five-oh-one.engine.module.ts`'s own rule), and the max reachable
+      // via 3 darts ending on a double is 160 — so this keypad visit brings
+      // the remaining total from 170 down to 40 first, leaving exactly one
+      // D20 (40) to finish it.
+      engine.record({ scoreAttempted: 130 });
+      play.engine = engine;
+      play.$store.game.recordFacts(engine.facts());
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        locationX: 0,
+        locationY: -166,
+      });
+
+      expect(play.showSessionFinishConfirm).toBe(true);
+      expect(play.pendingDartObservation).toEqual({
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        locationX: 0,
+        locationY: -166,
+      });
+      expect(play.finished).toBe(false);
+    });
+
+    it("confirmSessionFinish records the deferred dart and finishes", async () => {
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 1, darts: 1 },
+      } as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      } as any);
+
+      const play = createPlay();
+      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      for (let target = 121; target < 170; target += 1) {
+        engine.record({ scoreAttempted: target, finishedOnDouble: true });
+      }
+      // Only a genuine DOUBLE dart checks a board visit out (matches
+      // `five-oh-one.engine.module.ts`'s own rule), and the max reachable
+      // via 3 darts ending on a double is 160 — so this keypad visit brings
+      // the remaining total from 170 down to 40 first, leaving exactly one
+      // D20 (40) to finish it.
+      engine.record({ scoreAttempted: 130 });
+      play.engine = engine;
+      play.$store.game.recordFacts(engine.facts());
+      await play.recordDart.call(play, {
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        locationX: 0,
+        locationY: -166,
+      });
+
+      await play.confirmSessionFinish.call(play);
+
+      expect(play.showSessionFinishConfirm).toBe(false);
+      expect(play.pendingDartObservation).toBeNull();
+      expect(play.finished).toBe(true);
+    });
+
+    it("cancelSessionFinish records nothing", async () => {
+      const play = createPlay();
+      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      for (let target = 121; target < 170; target += 1) {
+        engine.record({ scoreAttempted: target, finishedOnDouble: true });
+      }
+      // Only a genuine DOUBLE dart checks a board visit out (matches
+      // `five-oh-one.engine.module.ts`'s own rule), and the max reachable
+      // via 3 darts ending on a double is 160 — so this keypad visit brings
+      // the remaining total from 170 down to 40 first, leaving exactly one
+      // D20 (40) to finish it.
+      engine.record({ scoreAttempted: 130 });
+      play.engine = engine;
+      play.$store.game.recordFacts(engine.facts());
+      const turnCountBefore = play.$store.game.turns.length;
+      await play.recordDart.call(play, {
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        locationX: 0,
+        locationY: -166,
+      });
+
+      play.cancelSessionFinish.call(play);
+
+      expect(play.showSessionFinishConfirm).toBe(false);
+      expect(play.pendingDartObservation).toBeNull();
+      expect(play.$store.game.turns).toHaveLength(turnCountBefore);
+      expect(play.finished).toBe(false);
+    });
+  });
 });
