@@ -1,16 +1,37 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import BottomNav from "@components/layout/BottomNav.astro";
+import Button from "@components/forms/Button.astro";
+import ChevronDownIcon from "@icons/chevron-down.svg";
 
 interface Props {
   title?: string;
+  showBackButton?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, showBackButton = false } = Astro.props;
 ---
 
 <BaseLayout title={title}>
   <div class="mx-auto flex h-full max-w-lg flex-col">
+    {
+      showBackButton ? (
+        <header class="flex items-center pt-3">
+          <Button
+            type="button"
+            variant="ghost"
+            icon
+            ariaLabel="Back to games"
+            @click="globalThis.location.href = '/games'"
+          >
+            <ChevronDownIcon
+              class="size-6 text-muted rotate-90"
+              slot="iconBefore"
+            />
+          </Button>
+        </header>
+      ) : null
+    }
     <main
       class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
     >

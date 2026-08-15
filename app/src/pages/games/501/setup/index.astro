@@ -7,7 +7,10 @@ import FiveOhOneSetupForm from "@components/layout/games/setup/FiveOhOneSetupFor
 import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout title="501 — Setup">
+<AppLayout
+  title="501 — Setup"
+  showBackButton
+>
   <div
     class="p-4"
     x-data="fiveOhOneSetup()"

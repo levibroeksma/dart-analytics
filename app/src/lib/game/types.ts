@@ -509,7 +509,14 @@ export type SinglesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { points: number } | null;
+  resultsSnapshot: {
+    points: number;
+    misses: number;
+    singles: number;
+    doubles: number;
+    trebles: number;
+    hitPercentage: string;
+  } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot>;

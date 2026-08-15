@@ -26,6 +26,26 @@ import IsLoading from "@components/ui/IsLoading.astro";
         label="Total points"
         value="resultsSnapshot?.points"
       />
+      <StatRow
+        label="Darts missed"
+        value="resultsSnapshot?.misses"
+      />
+      <StatRow
+        label="Singles hit"
+        value="resultsSnapshot?.singles"
+      />
+      <StatRow
+        label="Doubles hit"
+        value="resultsSnapshot?.doubles"
+      />
+      <StatRow
+        label="Trebles hit"
+        value="resultsSnapshot?.trebles"
+      />
+      <StatRow
+        label="Hit percentage"
+        value="resultsSnapshot?.hitPercentage"
+      />
     </dl>
 
     {/* Completion status */}

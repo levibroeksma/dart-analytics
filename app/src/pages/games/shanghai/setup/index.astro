@@ -7,7 +7,10 @@ import ShanghaiSetupForm from "@components/layout/games/setup/ShanghaiSetupForm.
 import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout title="Shanghai — Setup">
+<AppLayout
+  title="Shanghai — Setup"
+  showBackButton
+>
   <div
     class="p-4"
     x-data="shanghaiSetup()"

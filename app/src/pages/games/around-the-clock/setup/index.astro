@@ -7,7 +7,10 @@ import AroundTheClockSetupForm from "@components/layout/games/setup/AroundTheClo
 import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout title="Around the Clock — Setup">
+<AppLayout
+  title="Around the Clock — Setup"
+  showBackButton
+>
   <div
     class="p-4"
     x-data="aroundTheClockSetup()"

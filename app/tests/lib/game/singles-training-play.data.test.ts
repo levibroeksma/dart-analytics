@@ -340,7 +340,14 @@ describe("recordTap on the BULL visit", () => {
 
     expect(play.finished).toBe(true);
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
-    expect(play.resultsSnapshot).toEqual({ points: 63 }); // 60 + 1 + 2 + 0
+    expect(play.resultsSnapshot).toEqual({
+      points: 63, // 60 + 1 + 2 + 0
+      misses: 1,
+      singles: 61, // 60 prior number-target singles + 1 OUTER_BULL
+      doubles: 1, // 1 INNER_BULL
+      trebles: 0,
+      hitPercentage: "98%", // round(62/63 * 100)
+    });
     expect(play.completionStatus).toBe("succeeded");
   });
 });
@@ -535,6 +542,30 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.completionStatus).toBe("succeeded");
+  });
+
+  it("captures a zero-darts session as a 0% hit percentage, not NaN or division by zero", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 0, turns: 0, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot).toEqual({
+      points: 0,
+      misses: 0,
+      singles: 0,
+      doubles: 0,
+      trebles: 0,
+      hitPercentage: "0%",
+    });
   });
 });
 

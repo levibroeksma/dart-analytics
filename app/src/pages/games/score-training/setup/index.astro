@@ -7,7 +7,10 @@ import IsLoading from "@components/ui/IsLoading.astro";
 import ScoreTrainingSetupForm from "@components/layout/games/setup/ScoreTrainingSetupForm.astro";
 ---
 
-<AppLayout title="Score Training — Setup">
+<AppLayout
+  title="Score Training — Setup"
+  showBackButton
+>
   <div
     class="p-4"
     x-data="scoreTrainingSetup()"
