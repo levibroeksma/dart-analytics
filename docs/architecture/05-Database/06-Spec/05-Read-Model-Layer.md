@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-08-08
+updated: 2026-08-15
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -273,6 +273,30 @@ A player with no settings row produces **no row here**. That is deliberate: the 
 
 ---
 
+# v_player_profile
+
+## Category
+
+API Read Model
+
+## Purpose
+
+Exposes a player's display name and darts equipment. Backs `GET /api/players/me` and the read half of `PATCH`. <!-- 2026-08-15 -->
+
+## Sources
+
+- players
+
+## Exposes
+
+`player_id`, `display_name`, `darts_description`, `darts_weight_grams`, `updated_at`.
+
+## Design Rationale
+
+A plain projection over `players` — no joins, since `darts_description`/`darts_weight_grams` are not FK-backed. Reads still go through this view rather than the raw table, per the view-backed-reads rule. `darts_description` and `darts_weight_grams` are NULL for a player who never configured equipment; the view does not invent defaults.
+
+---
+
 # Read Model Layer Summary
 
 The initial read models cover the three core read paths:
@@ -285,6 +309,7 @@ The initial read models cover the three core read paths:
 | Routine execution | v_routine_execution |
 | Game setup | v_configuration_presets |
 | Player preferences | v_player_settings |
+| Player profile | v_player_profile |
 
 New statistics are delivered as new views — never as stored aggregates.
 
