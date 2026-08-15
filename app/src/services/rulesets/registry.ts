@@ -2,6 +2,7 @@ import { bobs27Validator } from "./bobs27/bobs27.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
 import { fiveOhOneValidator } from "./five-oh-one/five-oh-one.validator";
 import type { RulesetValidator } from "./interfaces";
+import { oneTwentyOneValidator } from "./one-twenty-one/one-twenty-one.validator";
 import { scoreTrainingValidator } from "./score-training/score-training.validator";
 import { shanghaiValidator } from "./shanghai/shanghai.validator";
 import { singlesTrainingValidator } from "./singles-training/singles-training.validator";
@@ -15,6 +16,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   "501_V1": fiveOhOneValidator,
   TUOD_V1: tuodValidator,
   SHANGHAI_V1: shanghaiValidator,
+  "121_V1": oneTwentyOneValidator,
 };
 
 export function getRulesetValidator(

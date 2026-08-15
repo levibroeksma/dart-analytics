@@ -100,6 +100,44 @@ export type FiveOhOneState = {
 };
 
 /**
+ * One 121 visit as the player reports it — a visit total plus whether the
+ * finishing dart landed in a double, exactly like `FiveOhOneVisitInput`. 121
+ * is quick-score only in v1, so there is no dart-observation variant.
+ */
+export type OneTwentyOneVisitInput = {
+  scoreAttempted: number;
+  finishedOnDouble?: boolean;
+};
+
+/**
+ * What one visit did to the attempt it was thrown in. `scored` is what the
+ * turn records — 0 for a bust, so the attempted value is never persisted as a
+ * turn total and a bust can never move `remainingInAttempt`.
+ */
+export type OneTwentyOneVisitOutcome = {
+  isBust: boolean;
+  scored: number;
+  checkedOut: boolean;
+  remainingAfter: number;
+};
+
+/**
+ * 121 session state. `currentTarget` is the ladder position (121..170).
+ * `remainingInAttempt` is the live countdown within the open attempt — reset
+ * to `currentTarget` whenever a new attempt starts, exactly like
+ * `FiveOhOneState.remainingScore` resets to `startingScore` per leg.
+ * `visitsThisAttempt` counts visits used in the open attempt (0..2 while
+ * in progress — it resets the instant the 3rd resolves). All three are folds
+ * over the fact log, never accumulated fields.
+ */
+export type OneTwentyOneState = {
+  currentTarget: number;
+  remainingInAttempt: number;
+  visitsThisAttempt: number;
+  status: "IN_PROGRESS" | "WON";
+};
+
+/**
  * One Ten Up One Down attempt as the player reports it. An attempt is a single
  * visit at the current target, so the input describes the whole visit rather
  * than three darts. `checkedOut` alone never wins: the finishing dart must land

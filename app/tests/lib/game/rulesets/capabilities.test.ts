@@ -9,6 +9,7 @@ import {
 describe("RULESET_CAPABILITIES", () => {
   it("declares a pair for every ruleset version", () => {
     expect(Object.keys(RULESET_CAPABILITIES).sort()).toEqual([
+      "121_V1",
       "501_V1",
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",
