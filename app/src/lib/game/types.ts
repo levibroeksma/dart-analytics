@@ -8,6 +8,7 @@ import type { SinglesTrainingEngine } from "@modules/game/singles-training.engin
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
 import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
+import type { AroundTheClockEngine } from "@modules/game/around-the-clock.engine.module";
 import type {
   BoardCoordinate,
   DartObservation,
@@ -29,6 +30,7 @@ import type {
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
   OneTwentyOneSnapshot,
+  AroundTheClockSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
@@ -728,6 +730,56 @@ export type ShanghaiPlayContext = {
   back(this: ShanghaiPlayContext): Promise<void>;
   playAgain(this: ShanghaiPlayContext): Promise<void>;
   abandonAndExit(this: ShanghaiPlayContext): Promise<void>;
+};
+
+/** One dart slot in Around the Clock's visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. Unlike Shanghai's preview, hit/miss needs no target-number comparison: every tap this game's input renders is already relative to whatever target was active the instant it was thrown, so a non-MISS dart is always a hit. */
+export type AroundTheClockPreviewSegment = {
+  status: "hit" | "miss" | "empty";
+};
+
+/** `turns` is the number of visits the session took to complete. `hits`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. */
+export type AroundTheClockResultsSnapshot = {
+  turns: number;
+  hits: number;
+  totalDarts: number;
+};
+
+export type AroundTheClockPlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: AroundTheClockResultsSnapshot | null;
+  hiddenTurnKey: string | null;
+  $store: PlayStoreContext<AroundTheClockSnapshot>;
+  engine: AroundTheClockEngine | null;
+  currentTargetLabel(this: AroundTheClockPlayContext): string;
+  turnsSoFar(this: AroundTheClockPlayContext): string;
+  isBullVisit(this: AroundTheClockPlayContext): boolean;
+  previewSegments(
+    this: AroundTheClockPlayContext,
+  ): AroundTheClockPreviewSegment[];
+  init(this: AroundTheClockPlayContext): Promise<void>;
+  retryReconciliation(this: AroundTheClockPlayContext): Promise<void>;
+  recordTap(
+    this: AroundTheClockPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ): Promise<void>;
+  commitDart(
+    this: AroundTheClockPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: AroundTheClockPlayContext): void;
+  uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void>;
+  back(this: AroundTheClockPlayContext): Promise<void>;
+  playAgain(this: AroundTheClockPlayContext): Promise<void>;
+  abandonAndExit(this: AroundTheClockPlayContext): Promise<void>;
 };
 
 /**
