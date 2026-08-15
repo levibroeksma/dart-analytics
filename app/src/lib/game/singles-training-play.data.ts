@@ -153,7 +153,14 @@ export function singlesTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as { points: number } | null,
+    resultsSnapshot: null as {
+      points: number;
+      misses: number;
+      singles: number;
+      doubles: number;
+      trebles: number;
+      hitPercentage: string;
+    } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as SinglesTrainingEngine | null,
@@ -284,9 +291,24 @@ export function singlesTrainingPlay() {
     },
 
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        points: finalState.totalPoints,
-      }));
+      return playUploadAndCompleteSession(this, (finalState) => {
+        const turns = this.$store.game.turns;
+        const misses = countZoneKey(turns, MISS_COUNT_ZONE_KEYS);
+        const singles = countZoneKey(turns, SINGLE_COUNT_ZONE_KEYS);
+        const doubles = countZoneKey(turns, DOUBLE_COUNT_ZONE_KEYS);
+        const trebles = countZoneKey(turns, TREBLE_COUNT_ZONE_KEYS);
+        const hits = singles + doubles + trebles;
+        const darts = hits + misses;
+        return {
+          points: finalState.totalPoints,
+          misses,
+          singles,
+          doubles,
+          trebles,
+          hitPercentage:
+            darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
+        };
+      });
     },
 
     back(this: SinglesTrainingPlayContext) {
