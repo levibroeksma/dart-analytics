@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-08-08
+updated: 2026-08-15
 -->
 
 # API Overview
 
-> **Version:** 1.6.0 (`GET`/`PATCH /api/players/me/settings` routed, 2026-08-08; prior 1.5.0 — same-origin `/api/auth/*` proxy for Neon Auth traffic, D172, 2026-07-29)
+> **Version:** 1.7.0 (`GET`/`PATCH /api/players/me` routed, 2026-08-15; prior 1.6.0 — `GET`/`PATCH /api/players/me/settings` routed, 2026-08-08)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -90,8 +90,10 @@ v1 captures the dart/turn/session facts statistics are derived from; the aggrega
 - `POST /api/players/provision` <!-- 2026-07-10 -->
 - `GET /api/players/me/settings` <!-- 2026-08-08 -->
 - `PATCH /api/players/me/settings` <!-- 2026-08-08 -->
+- `GET /api/players/me` <!-- 2026-08-15 -->
+- `PATCH /api/players/me` <!-- 2026-08-15 -->
 
-Provision is idempotent; it creates the `players` row for a JWT-valid user. The settings pair reads through `v_player_settings` and writes `player_settings`, carrying the caller's default capture/input mode; `PATCH` refuses a mode pair no ruleset version declares (`VALIDATION_FAILED`). Full contracts in `04-Endpoint-Contracts.md`.
+Provision is idempotent; it creates the `players` row for a JWT-valid user. The settings pair reads through `v_player_settings` and writes `player_settings`, carrying the caller's default capture/input mode; `PATCH` refuses a mode pair no ruleset version declares (`VALIDATION_FAILED`). `GET`/`PATCH /api/players/me` reads through `v_player_profile` and writes `players`, carrying display name and darts equipment; `PATCH` replaces all three fields, no partial update. Full contracts in `04-Endpoint-Contracts.md`.
 
 ### Auth Proxy
 
@@ -160,6 +162,7 @@ Reads are view-backed and player-scoped.
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` |
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
+| `GET /api/players/me`                    | `v_player_profile`    |
 
 Policy:
 
@@ -168,7 +171,7 @@ Policy:
 - `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
 - `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
 
-> **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
+> **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08; `GET`/`PATCH /api/players/me` were added 2026-08-15. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
 
 ---
 

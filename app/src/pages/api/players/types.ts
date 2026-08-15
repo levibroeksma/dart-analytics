@@ -33,3 +33,21 @@ export type ProvisionPlayerRequestInput = z.infer<
 export type ProvisionPlayerResponseData = z.infer<
   typeof ProvisionPlayerResponse
 >;
+
+/** Frozen contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Player Profile. */
+export const UpdatePlayerProfileRequest = z.object({
+  displayName: z.string().min(1),
+  dartsDescription: z.string().min(1).nullable(),
+  dartsWeightGrams: z.number().int().min(1).max(100).nullable(),
+});
+
+export const PlayerProfileResponse = z.object({
+  displayName: z.string(),
+  dartsDescription: z.string().nullable(),
+  dartsWeightGrams: z.number().nullable(),
+});
+
+export type UpdatePlayerProfileInput = z.infer<
+  typeof UpdatePlayerProfileRequest
+>;
+export type PlayerProfileResponseData = z.infer<typeof PlayerProfileResponse>;

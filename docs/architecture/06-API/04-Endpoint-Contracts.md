@@ -7,7 +7,7 @@ updated: 2026-08-08
 
 # API Endpoint Contracts
 
-> **Version:** 1.3.0 (`GET`/`PATCH /api/players/me/settings`, 2026-08-08; prior 1.2.0 — `SESSION_ALREADY_ACTIVE` on `POST /api/sessions`, 2026-07-22)
+> **Version:** 1.4.0 (`GET`/`PATCH /api/players/me`, 2026-08-15; prior 1.3.0 — `GET`/`PATCH /api/players/me/settings`, 2026-08-08)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -229,6 +229,46 @@ type PlayerSettingsResponse = z.infer<typeof PlayerSettingsResponse>;
 
 ---
 
+## Player Profile — `GET` / `PATCH /api/players/me`
+
+The caller's display name and darts equipment (free-text darts description + weight in grams). Shipped 2026-08-15, closing the rename-endpoint gap `03-Player-Layer.md` flagged as deferred when `display_name` shipped. <!-- 2026-08-15 -->
+
+**Auth:** standard protected route class — JWT-verified, player resolved by middleware. `me` is always the authenticated player; no player id travels in the path.
+
+### `GET /api/players/me`
+
+Read-only, backed by `v_player_profile` (migration `0022`). Every provisioned player has exactly one row — this is a plain projection over `players`, not a sparse join.
+
+Success → `200` with the standard `ok()` envelope carrying `PlayerProfileResponse`.
+
+### `PATCH /api/players/me`
+
+Replaces all three fields; there is no partial update, matching `/me/settings`'s convention.
+
+- A blank `displayName`, or `dartsWeightGrams` outside `1`-`100` → `422 VALIDATION_FAILED` from the shared request-parsing helper (the schema mirrors `chk_players_display_name_not_empty`/`chk_players_darts_description_not_empty`/`chk_players_darts_weight_grams_range`).
+- Success → `200` with the standard `ok()` envelope carrying the stored `PlayerProfileResponse` (the request echoed back).
+
+No new error codes are introduced; `VALIDATION_FAILED` is reused from the registry in `03-Shared-Conventions.md`.
+
+```typescript
+const UpdatePlayerProfileRequest = z.object({
+  displayName: z.string().min(1),
+  dartsDescription: z.string().min(1).nullable(),   // NULL clears it
+  dartsWeightGrams: z.number().int().min(1).max(100).nullable(), // NULL clears it
+});
+type UpdatePlayerProfileRequest = z.infer<typeof UpdatePlayerProfileRequest>;
+
+const PlayerProfileResponse = z.object({   // v_player_profile — GET and PATCH result
+  displayName: z.string(),
+  dartsDescription: z.string().nullable(),
+  dartsWeightGrams: z.number().nullable(),
+});
+```
+
+`player_id` and `updated_at` are view columns and are deliberately not echoed: the caller is `me`, and no client reads the timestamp.
+
+---
+
 ## Configuration Presets — `GET /api/configuration-templates?gameType=<key>`
 
 Lists the configuration presets available to the caller for one game type: system presets plus the caller's own. Backed 1:1 by `v_configuration_presets` (migration `0016`), player-scoped in the repository (`player_id IS NULL OR player_id = caller`). The returned `configurationTemplateId` is what `POST /api/sessions` accepts as `templateRef`. Preset CRUD is deferred post-v1; v1 presets are the read-only system seeds. <!-- 2026-07-13 -->
@@ -264,6 +304,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines/:routineId/execution` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
+| `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
 
 **Deferred (post-v1):** `GET /api/statistics/overview`, `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. Statistics endpoints do not ship in v1; when built they must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`) per the view-backed-reads rule. v1 stores all dart/turn/session facts these derive from. <!-- 2026-07-12 -->
 
