@@ -21,6 +21,13 @@ export type PlayerSettings = {
   defaultInputModeKey: string;
 };
 
+/** A player's display name and darts equipment. */
+export type PlayerProfile = {
+  displayName: string;
+  dartsDescription: string | null;
+  dartsWeightGrams: number | null;
+};
+
 export type AppendBatchResult = {
   created: { stages: number; turns: number; darts: number };
 };
