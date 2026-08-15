@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -25,6 +25,7 @@ import {
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
+  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
@@ -578,5 +579,177 @@ describe("runPlayAgain", () => {
       },
     });
     expect(context.$store.game.configSnapshot).toEqual({ label: "fresh" });
+  });
+});
+
+describe("playCommitDart — reveal-then-clear under VISUAL_BOARD", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("schedules hiddenTurnKey 1.5s after a resolving dart when inputModeKey is VISUAL_BOARD", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    await playCommitDart(context, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.hiddenTimer).not.toBeNull();
+
+    vi.advanceTimersByTime(1500);
+
+    expect(context.hiddenTurnKey).toBe("t1");
+  });
+
+  it("sets hiddenTurnKey immediately, with no timer, when inputModeKey is not VISUAL_BOARD", async () => {
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    await playCommitDart(context, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(context.hiddenTurnKey).toBe("t1");
+    expect(context.hiddenTimer).toBeUndefined();
+  });
+
+  it("clears a still-pending hide timer before scheduling a new one", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    await playCommitDart(context, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    const firstTimer = context.hiddenTimer;
+
+    vi.advanceTimersByTime(1400);
+    await playCommitDart(context, {
+      hitTargetNumber: 2,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(context.hiddenTimer).not.toBe(firstTimer);
+
+    vi.advanceTimersByTime(200);
+    expect(context.hiddenTurnKey).toBeNull();
+
+    vi.advanceTimersByTime(1300);
+    expect(context.hiddenTurnKey).toBe("t2");
+  });
+});
+
+describe("playUndoVisit — cancels a pending hide timer", () => {
+  it("clears hiddenTimer so a reopened visit stays visible", async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    await playCommitDart(context, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    vi.advanceTimersByTime(1000);
+    playUndoVisit(context);
+    vi.advanceTimersByTime(1000);
+
+    expect(context.hiddenTurnKey).toBeNull();
+    vi.useRealTimers();
+  });
+});
+
+describe("playVisitMarkers", () => {
+  it("returns the last turn's located darts when not hidden", () => {
+    const turns: TurnFact[] = [
+      {
+        clientKey: "t1",
+        stageClientKey: "block-1",
+        sequence: 1,
+        completedAt: "2026-08-15T00:00:00.000Z",
+        totalScore: 60,
+        darts: [
+          {
+            sequence: 1,
+            intendedTargetNumber: null,
+            intendedZoneKey: null,
+            hitTargetNumber: 20,
+            hitZoneKey: "TREBLE",
+            score: 60,
+            locationX: 0,
+            locationY: -102,
+          },
+        ],
+      },
+    ];
+    const context = makeContext({
+      hiddenTurnKey: null,
+      $store: {
+        ...makeContext().$store,
+        game: { ...makeContext().$store.game, turns },
+      },
+    });
+
+    const markers = playVisitMarkers(context);
+    expect(markers).toHaveLength(1);
+    expect(markers[0].sequence).toBe(1);
+  });
+
+  it("returns empty once the last turn's key matches hiddenTurnKey", () => {
+    const turns: TurnFact[] = [
+      {
+        clientKey: "t1",
+        stageClientKey: "block-1",
+        sequence: 1,
+        completedAt: "2026-08-15T00:00:00.000Z",
+        totalScore: 60,
+        darts: [
+          {
+            sequence: 1,
+            intendedTargetNumber: null,
+            intendedZoneKey: null,
+            hitTargetNumber: 20,
+            hitZoneKey: "TREBLE",
+            score: 60,
+            locationX: 0,
+            locationY: -102,
+          },
+        ],
+      },
+    ];
+    const context = makeContext({
+      hiddenTurnKey: "t1",
+      $store: {
+        ...makeContext().$store,
+        game: { ...makeContext().$store.game, turns },
+      },
+    });
+
+    expect(playVisitMarkers(context)).toEqual([]);
   });
 });

@@ -131,6 +131,7 @@ export type PlayLifecycleContext<
   playAgainLoading: boolean;
   resultsSnapshot: TResults | null;
   hiddenTurnKey: string | null;
+  hiddenTimer?: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<TConfig>;
   engine: TEngine | null;
   init(): Promise<void>;

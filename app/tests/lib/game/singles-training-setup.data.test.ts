@@ -247,8 +247,8 @@ describe("singlesTrainingSetup", () => {
 
     it("falls back to Singles Training's declared pair when settings holds a pair it does not declare", async () => {
       store.settings = {
-        captureModeKey: "ANALYTICS",
-        inputModeKey: "VISUAL_BOARD",
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
       };
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
