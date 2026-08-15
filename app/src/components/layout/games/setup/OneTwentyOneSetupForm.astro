@@ -1,0 +1,28 @@
+---
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+const infoSection = {
+  title: "121 rules",
+  description:
+    "Start at 121 and check out to exactly zero on a double, using up to 3 visits (9 darts). Check out and the target climbs by one — 122, 123, and so on. Miss all 3 visits and you try the same target again. Check out 170 to win.",
+};
+---
+
+<SetupShell title="121">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>

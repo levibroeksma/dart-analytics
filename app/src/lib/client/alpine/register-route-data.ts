@@ -12,6 +12,7 @@ import { doublesTrainingSetup } from "@lib/game/doubles-training-setup.data";
 import { doublesTrainingPlay } from "@lib/game/doubles-training-play.data";
 import { shanghaiSetup } from "@lib/game/shanghai-setup.data";
 import { shanghaiPlay } from "@lib/game/shanghai-play.data";
+import { oneTwentyOneSetup } from "@lib/game/one-twenty-one-setup.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 
 export function registerRouteData(Alpine: Alpine) {
@@ -29,4 +30,5 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("doublesTrainingPlay", doublesTrainingPlay);
   Alpine.data("shanghaiSetup", shanghaiSetup);
   Alpine.data("shanghaiPlay", shanghaiPlay);
+  Alpine.data("oneTwentyOneSetup", oneTwentyOneSetup);
 }
