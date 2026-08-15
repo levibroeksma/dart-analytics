@@ -162,6 +162,14 @@ export const TuodConfig = z
  */
 export const ShanghaiConfig = z.object({}).strict();
 
+/**
+ * 121 v1 locks every rule (start target, cap, dart budget, fail rule) with
+ * nothing left to configure — a genuinely empty `.strict()` object, exactly
+ * like `ShanghaiConfig`. A future version that adds a selectable dart budget
+ * or fail-rule severity widens this schema then.
+ */
+export const OneTwentyOneConfig = z.object({}).strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -169,7 +177,8 @@ export type RulesetVersionKey =
   | "DOUBLES_TRAINING_V1"
   | "501_V1"
   | "TUOD_V1"
-  | "SHANGHAI_V1";
+  | "SHANGHAI_V1"
+  | "121_V1";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
@@ -179,6 +188,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   "501_V1": FiveOhOneConfig,
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
+  "121_V1": OneTwentyOneConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -237,6 +247,9 @@ export type TuodSnapshot = {
 /** Shanghai v1 has nothing to configure — no fields to carry. */
 export type ShanghaiSnapshot = Record<string, never>;
 
+/** 121 v1 has nothing to configure — no fields to carry. */
+export type OneTwentyOneSnapshot = Record<string, never>;
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -250,7 +263,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
             ? FiveOhOneSnapshot
             : K extends "TUOD_V1"
               ? TuodSnapshot
-              : ShanghaiSnapshot;
+              : K extends "SHANGHAI_V1"
+                ? ShanghaiSnapshot
+                : OneTwentyOneSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
