@@ -208,7 +208,6 @@ export type SinglesConfigData = z.infer<typeof SinglesConfig>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
-export type AroundTheClockConfigData = z.infer<typeof AroundTheClockConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
