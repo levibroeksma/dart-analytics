@@ -5,7 +5,7 @@ read-when: why a schema/migration/view/index/seed choice was made
 load-when: schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/game-engine.md
-updated: 2026-08-08
+updated: 2026-08-15
 -->
 
 | # | Source | Decision | Rationale |
@@ -40,3 +40,9 @@ Status: Accepted · Date: 2026-08-08
 Decision: behaviour only a real database can demonstrate — a CHECK constraint firing, a view expression resolving, a derived column reading correctly — is asserted by a script under `database/verification/`, named for the migration it covers (`0018_visual_board_checks.sql`). Each script builds its own fixture inside one transaction, resolves every seeded lookup row by `implementation_key` rather than by hardcoded id, emits one PASS/FAIL row per check with the observed value in a `detail` column, and ends in `ROLLBACK`. Operator handoffs invoke the script instead of restating the SQL.
 Reason: the original checklist told the operator to find "a real `turn_id` from a test session" and hand-type inserts against it. That is the shape of a step that gets skipped, and D192's `0018` defect is what skipping it costs. A script removes both the setup burden and the transcription risk, and it is re-runnable — the same checks that passed on the local PostgreSQL 16 cluster can be pointed at Neon, or at any future environment, without rewriting anything. Ending in `ROLLBACK` is what makes it safe to run against a seeded dev database rather than a scratch one.
 Consequences: a join-driven check reports a vacuous pass when its source view is empty, so each script must separately assert that the expected number of checks ran — `0018_visual_board_checks.sql` does. Scripts must be proved non-vacuous before they are trusted: this one was, by swapping the view's angle expression to `ATAN2(y, x)` and confirming 4 of 11 checks went red. These scripts are not part of `npm test` — they need a live `DATABASE_URL` and are run deliberately, per environment. `database/CLAUDE.md`'s validation checklist carries the rule.
+
+### D212 — Darts equipment lives on `players`, not `player_settings` or a new table
+Status: Accepted · Date: 2026-08-15
+Decision: `darts_description` (nullable `TEXT`) and `darts_weight_grams` (nullable `SMALLINT`, 1–100) are added to `players` (migration `0022`), read through a new `v_player_profile` view alongside `display_name`, and written by `PATCH /api/players/me` — replacing all three fields together, no partial update, the same convention `PATCH /api/players/me/settings` established.
+Reason: two alternatives were weighed and rejected during design. `player_settings` was rejected because its semantics are gameplay-mode defaults copied onto a session at start — equipment is not a game-start default and copying it onto sessions would misrepresent it as one. A new `player_equipment` table was rejected as premature: the ask is one current dart set, not a collection, and a dedicated table for a single scalar pair is YAGNI until multiple dart sets are actually needed.
+Consequences: `03-Player-Layer.md`'s "rename endpoint deferred post-v1" note is resolved — `GET`/`PATCH /api/players/me` is that endpoint, now also carrying darts equipment. `v_player_profile` is a plain projection over `players` with no joins, since neither new column is FK-backed. If multiple dart sets are ever needed, this shape is superseded, not extended in place.

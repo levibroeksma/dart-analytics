@@ -35,7 +35,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~5.7k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Actual per-task total varies with domain (router + testing.md, the smallest, runs ~2.3k; router + game-engine.md, the largest, runs ~5.8k) — the single figure in the last column below prices only the router + the one example file named above. | ~3.7k |
-| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0021`; never patch applied files | ~4.3k |
+| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0022`; never patch applied files | ~4.3k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
 
@@ -54,7 +54,7 @@ When documents conflict, higher wins; correct the lower one:
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
 7. `03-Engineering-Workflow.md`
-8. SQL migrations `0001`–`0021` and seeds
+8. SQL migrations `0001`–`0022` and seeds
 9. Application code in `app/`
 
 If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
@@ -82,13 +82,13 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~2.3k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0021`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08) | canonical | ~4.3k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0022`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15) | canonical | ~4.3k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
-| `05-Views.md` | View categories and replay rules; eight implemented views through `0021` (2026-08-08) | canonical | ~2.2k |
+| `05-Views.md` | View categories and replay rules; nine implemented views through `0022` (2026-08-15) | canonical | ~2.2k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08) | canonical | ~2.1k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
-| `06-Spec/03-Player-Layer.md` | players, player_settings — settings shipped, read through `v_player_settings`, capture/input mode FKs added by `0017` (2026-08-08) | canonical | ~0.8k |
+| `06-Spec/03-Player-Layer.md` | players, player_settings — settings shipped, read through `v_player_settings`, capture/input mode FKs added by `0017`; profile (darts equipment) shipped, read through `v_player_profile` (2026-08-15) | canonical | ~1.1k |
 | `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics, `location_x`/`location_y` shipped, VISUAL_BOARD capture depth, QUICK_SCORE-scoped 501 bust limitation + `total_score` bust carve-out (2026-08-05) | canonical | ~3.9k |
 | `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`), incl. `v_dart_locations` (2026-08-05) and `v_player_settings` (2026-08-08) | canonical | ~2.3k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
@@ -122,7 +122,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0021` | Applied schema chain — never modify | canonical (applied) |
+| `migrations/0001`–`0022` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
 | `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |
@@ -133,6 +133,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `database/verification/0007_capability_seed_checks.sql` | Seed `0007` row count, per-triple resolution, zero undeclared `exercise_sessions` (the `0020` precondition — read its `undeclared`/`total` detail, an empty table passes trivially), parity with `capabilities.ts` (12 checks) (D196, 2026-08-08) | canonical |
 | `database/verification/0020_capability_fk_checks.sql` | `fk_sessions_capability` exists over the exact composite columns, refuses an undeclared mode combination, permits a declared one (4 checks) (D196, 2026-08-08) | canonical |
 | `database/verification/0021_player_settings_checks.sql` | `v_player_settings` column set, id→key translation, no row for a player with no settings, `LEFT JOIN` preserved under NULL mode ids (7 checks) (D195, 2026-08-08) | canonical |
+| `database/verification/0022_player_profile_checks.sql` | `v_player_profile` column set, configured/unconfigured player resolution, `chk_players_darts_description_not_empty`/`chk_players_darts_weight_grams_range` fire correctly (11 checks) (2026-08-15) | canonical |
 
 ## Game engine code + mechanical guards
 
