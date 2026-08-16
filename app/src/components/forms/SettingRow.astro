@@ -1,0 +1,129 @@
+---
+/**
+ * Label + text-or-input row with a pencil edit button. View mode shows
+ * `valueExpr` as text (falling back to `emptyText` when empty); clicking the
+ * pencil swaps to an input bound to `modelExpr`, which runs `saveExpr` and
+ * flips back to view mode on blur or Enter.
+ * @param {string} id
+ * @param {string} label
+ * @param {string} valueExpr Alpine expression for the displayed value
+ * @param {string} modelExpr Alpine `x-model` target for the input
+ * @param {string} saveExpr Alpine call fired on blur/Enter
+ * @param {string} [placeholder]
+ * @param {string} [emptyText] Shown in place of an empty `valueExpr`
+ * @param {boolean} [numeric] Use `x-model.number` instead of `x-model`
+ * @param {"numeric"} [inputmode] Passed through to the input
+ * @param {boolean} [required]
+ * @param {string} [disabledExpr] Alpine expression; defaults to `"false"`
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  id: string;
+  label: string;
+  valueExpr: string;
+  modelExpr: string;
+  saveExpr: string;
+  placeholder?: string;
+  emptyText?: string;
+  numeric?: boolean;
+  inputmode?: "numeric";
+  required?: boolean;
+  disabledExpr?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  id,
+  label,
+  valueExpr,
+  modelExpr,
+  saveExpr,
+  placeholder,
+  emptyText,
+  numeric = false,
+  inputmode,
+  required = false,
+  disabledExpr = "false",
+  class: classNameProp = "",
+  ...props
+}: Props = Astro.props;
+
+// Components
+import Input from "@components/forms/Input.astro";
+import Button from "@components/forms/Button.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import PencilIcon from "@icons/pencil.svg";
+
+// Styles
+const className = cn(
+  "flex items-center justify-between gap-3 py-2",
+  classNameProp,
+);
+const labelClass = "text-xs text-muted-foreground italic";
+const displayExpr = emptyText
+  ? `(${valueExpr}) || ${JSON.stringify(emptyText)}`
+  : valueExpr;
+const commitExpr = `${saveExpr}; editing = false`;
+const modelDirective = numeric
+  ? { "x-model.number": modelExpr }
+  : { "x-model": modelExpr };
+---
+
+<div
+  x-data="{ editing: false }"
+  class={className}
+  {...props}
+>
+  <div class="min-w-0 flex-1">
+    <label
+      for={id}
+      class={labelClass}
+    >
+      {label}
+    </label>
+    <div>
+      <span
+        x-show="!editing"
+        x-cloak
+        x-text={displayExpr}
+        class="block truncate text-sm text-foreground"
+      ></span>
+      <Input
+        id={id}
+        name={id}
+        type="text"
+        inputmode={inputmode}
+        placeholder={placeholder}
+        required={required}
+        x-show="editing"
+        x-cloak
+        x-ref="input"
+        {...modelDirective}
+        :disabled={disabledExpr}
+        @blur={commitExpr}
+        @keydown.enter.prevent={commitExpr}
+      />
+    </div>
+  </div>
+  <Button
+    icon
+    variant="ghost"
+    ariaLabel={`Edit ${label}`}
+    x-show="!editing"
+    x-cloak
+    :disabled={disabledExpr}
+    @click="editing = true; $nextTick(() => $refs.input.focus())"
+  >
+    <PencilIcon
+      slot="iconBefore"
+      x-cloak
+      class="size-4"
+    />
+  </Button>
+</div>
