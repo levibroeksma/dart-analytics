@@ -1,0 +1,88 @@
+---
+/**
+ * Player settings list: display name, darts, weight, and throwing hand in
+ * one bordered card. Reuses `InfoSection`'s own card classes directly (not
+ * the component) — this card has no collapsible heading of its own, only
+ * rows.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp = "", ...props }: Props = Astro.props;
+
+// Components
+import SettingRow from "@components/forms/SettingRow.astro";
+import HandednessForm from "@components/forms/HandednessForm.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "bg-tab-card border-tab-border rounded-3xl border p-3",
+  classNameProp,
+);
+const handedLabelClass = "text-xs text-muted-foreground italic";
+---
+
+<div
+  class={className}
+  {...props}
+>
+  <div class="divide-tab-border divide-y">
+    <SettingRow
+      id="displayName"
+      label="Display name"
+      valueExpr="$store.profile.displayName"
+      modelExpr="$store.profile.displayName"
+      saveExpr="$store.profile.save()"
+      placeholder="Display name"
+      required
+      disabledExpr="$store.profile.loading"
+    />
+    <SettingRow
+      id="dartsDescription"
+      label="Darts"
+      valueExpr="$store.profile.dartsDescription"
+      modelExpr="$store.profile.dartsDescription"
+      saveExpr="$store.profile.save()"
+      placeholder="e.g. Winmau Pro-Series 23g"
+      emptyText="Not set"
+      disabledExpr="$store.profile.loading"
+    />
+    <SettingRow
+      id="dartsWeightGrams"
+      label="Weight (g)"
+      valueExpr="$store.profile.dartsWeightGrams"
+      modelExpr="$store.profile.dartsWeightGrams"
+      saveExpr="$store.profile.save()"
+      placeholder="Weight in grams"
+      emptyText="Not set"
+      numeric
+      inputmode="numeric"
+      disabledExpr="$store.profile.loading"
+    />
+    <div class="py-2">
+      <span
+        id="handedness-label"
+        class={handedLabelClass}
+      >
+        Handed
+      </span>
+      <HandednessForm class="mt-1" />
+    </div>
+  </div>
+
+  <p
+    class="alert alert-error mt-3 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="$store.profile.error"
+    x-text="$store.profile.error"
+    x-cloak
+  >
+  </p>
+</div>
