@@ -69,14 +69,36 @@ const labelClass = "text-xs text-muted-foreground italic";
 const displayExpr = emptyText
   ? `(${valueExpr}) || ${JSON.stringify(emptyText)}`
   : valueExpr;
-const commitExpr = `${saveExpr}; editing = false`;
 const modelDirective = numeric
   ? { "x-model.number": modelExpr }
   : { "x-model": modelExpr };
+const requiredEmptyExpr = required
+  ? `(!${modelExpr} || ${modelExpr}.trim() === "")`
+  : "false";
+/**
+ * Blur/Enter never blindly saves: `$store.profile.save()` round-trips every
+ * profile field together, so a stray blur on one row would otherwise
+ * re-validate and resubmit the other two. Unchanged values are a no-op; a
+ * required field left empty reverts to the value present when editing
+ * started instead of attempting an invalid save.
+ */
+const dataExpr = `{
+  editing: false,
+  openValue: null,
+  commit() {
+    if (${requiredEmptyExpr}) {
+      ${modelExpr} = this.openValue;
+    } else if (${modelExpr} !== this.openValue) {
+      ${saveExpr};
+    }
+    this.editing = false;
+  },
+}`;
+const openExpr = `editing = true; openValue = ${modelExpr}; $nextTick(() => $refs.input.focus())`;
 ---
 
 <div
-  x-data="{ editing: false }"
+  x-data={dataExpr}
   class={className}
   {...props}
 >
@@ -106,8 +128,8 @@ const modelDirective = numeric
         x-ref="input"
         {...modelDirective}
         :disabled={disabledExpr}
-        @blur={commitExpr}
-        @keydown.enter.prevent={commitExpr}
+        @blur="commit()"
+        @keydown.enter.prevent="commit()"
       />
     </div>
   </div>
@@ -118,7 +140,7 @@ const modelDirective = numeric
     x-show="!editing"
     x-cloak
     :disabled={disabledExpr}
-    @click="editing = true; $nextTick(() => $refs.input.focus())"
+    @click={openExpr}
   >
     <PencilIcon
       slot="iconBefore"
