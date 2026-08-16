@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/documentation-philosophy
 read-when: understanding doc hierarchy and philosophy
-updated: 2026-08-05
+updated: 2026-08-15
 -->
 
 # Architecture Documentation
@@ -67,7 +67,7 @@ docs/
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
-├── migrations/      # 0001–0021
+├── migrations/      # 0001–0022
 └── seeds/           # reference data, templates, presets
 ```
 
