@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import AppLayout from "@layouts/AppLayout.astro";
+import Badge from "@components/ui/Badge.astro";
 import GameCard from "@components/layout/games/GameCard.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 ---
@@ -11,21 +12,22 @@ import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
     class="p-4 space-y-4"
     x-data="gamesIndex()"
   >
-    <h1 class="text-xl font-semibold text-foreground">Games</h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-semibold text-foreground">Games</h1>
+      <Badge
+        class="text-xs"
+        x-show="analyticsMode()"
+        x-cloak
+      >
+        analytics
+      </Badge>
+    </div>
 
     <div
       class="space-y-4"
       x-show="!$store.settings.loading"
       x-cloak
     >
-      <p
-        class="alert rounded-md border border-border px-4 py-3 text-sm text-muted-foreground"
-        x-show="analyticsMode()"
-        x-cloak
-      >
-        Analytics mode — only games that support it are shown.
-      </p>
-
       {
         GAME_CARDS.map((game) => (
           <div
