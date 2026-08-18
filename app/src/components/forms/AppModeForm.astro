@@ -19,9 +19,6 @@ interface Props {
 // Props
 const { class: classNameProp, ...props }: Props = Astro.props;
 
-// Components
-import InfoSection from "@components/ui/InfoSection.astro";
-
 // Lib
 import { cn } from "@client/cn";
 
@@ -29,7 +26,10 @@ import { cn } from "@client/cn";
 import CheckIcon from "@icons/check.svg";
 
 // Styles
-const className = cn("space-y-4", classNameProp);
+const className = cn(
+  "bg-tab-card border-tab-border rounded-3xl border p-3 space-y-4",
+  classNameProp,
+);
 const optionClass =
   "w-full rounded-lg border px-4 py-3 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
 const checkClass =
@@ -41,11 +41,18 @@ const checkClass =
   aria-labelledby="app-mode-heading"
   {...props}
 >
-  <InfoSection
-    id="app-mode-heading"
-    title="App mode"
-    description="Your preferred way to score. Only games that support the mode you pick are shown. Analytics captures each dart on a board, so you can see where your throws land; recreational records a visit total. The keypad stays available either way. Changing this affects new sessions — a game already in progress keeps the mode it started in."
-  />
+  <div>
+    <h2
+      id="app-mode-heading"
+      class="text-lg font-semibold text-foreground"
+    >
+      App mode
+    </h2>
+    <p class="mt-1.5 text-xs text-muted-foreground italic">
+      Analytics tracks every dart for in-depth statistics and focused
+      improvements to your game. Recreational just logs a visit total.
+    </p>
+  </div>
 
   <div
     x-show="!$store.settings.loading"
