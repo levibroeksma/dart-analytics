@@ -7,10 +7,15 @@
 interface Props {
   variant?: "accent" | "error" | "neutral";
   class?: string;
+  [key: string]: unknown;
 }
 
 // Props
-const { variant = "accent", class: classNameProp }: Props = Astro.props;
+const {
+  variant = "accent",
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
@@ -29,4 +34,8 @@ const className = cn(
 );
 ---
 
-<span class={className}><slot /></span>
+<span
+  class={className}
+  {...props}
+  ><slot /></span
+>
