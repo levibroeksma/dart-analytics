@@ -45,7 +45,7 @@ const variantClasses = {
 }[variant];
 
 const className = cn(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+  "inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold",
   variantClasses,
   classNameProp,
 );
@@ -54,7 +54,7 @@ const className = cn(
 <span class={className}><slot /></span>
 ```
 
-Deviations from a hand-rolled one-off: `cn()` instead of `class:list` (mechanically enforced by `scripts/check-astro-class-composition.sh`); `font-semibold` instead of `font-medium` (forbidden token, `07-Style-Guide.md`); no `"badge"` literal class token — no such primitive exists in `global.css` to key off, and this is the first consumer.
+Deviations from a hand-rolled one-off: `cn()` instead of `class:list` (mechanically enforced by `scripts/check-astro-class-composition.sh`); `font-semibold` instead of `font-medium` (forbidden token, `07-Style-Guide.md`); no `"badge"` literal class token — no such primitive exists in `global.css` to key off, and this is the first consumer. Text size is deliberately not baked into the base classes — a badge's size varies by context (inline with a page title vs. inline with body text), so it's left to the caller's `class` prop, merged last via `cn()`.
 
 Default `variant="accent"` renders the sky/blue treatment the issue asks for ("UI blue"), so the games-index call site passes no `variant` prop.
 
@@ -79,7 +79,13 @@ Replace the standalone `<h1>` with a flex row pairing it against the badge:
 ```astro
 <div class="flex items-center justify-between">
   <h1 class="text-xl font-semibold text-foreground">Games</h1>
-  <Badge x-show="analyticsMode()" x-cloak>analytics</Badge>
+  <Badge
+    class="text-xs"
+    x-show="analyticsMode()"
+    x-cloak
+  >
+    analytics
+  </Badge>
 </div>
 ```
 
