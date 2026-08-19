@@ -22,9 +22,11 @@
  *
  * `touch-none` on the pointer surface stops the browser turning a drag across
  * the board into a scroll or a pinch, so `pointermove` keeps arriving for the
- * length of the gesture; `w-[min(100%,60vh)]` caps the board's width by
- * viewport height, so a landscape phone or a desktop window cannot render a
- * board taller than the screen it has to fit in.
+ * length of the gesture. The board's own square (`aspect-square`) is a
+ * `flex-1 min-h-0` item of this panel's column, capped at `max-h-[60vh]` —
+ * it sizes off whatever height the play screen's flex layout actually leaves
+ * it, rather than a viewport-relative width, so it shrinks first (never the
+ * score/target section above it) on a screen too short to fit both (#131).
  */
 
 // Components
@@ -39,10 +41,10 @@ import UndoIcon from "@icons/undo.svg";
 <div
   x-show="!finished && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
   x-cloak
-  class="mt-3 space-y-3"
+  class="mt-3 flex min-h-0 flex-col items-center gap-3"
 >
   <div
-    class="relative mx-auto w-[min(100%,60vh)] touch-none"
+    class="relative min-h-0 max-h-[60vh] max-w-full flex-1 aspect-square touch-none"
     @pointerdown="onPointerDown($event)"
     @pointermove="onPointerMove($event)"
     @pointerup="onPointerUp()"
@@ -69,7 +71,7 @@ import UndoIcon from "@icons/undo.svg";
     <BoardMagnifier />
   </div>
 
-  <div class="flex gap-3">
+  <div class="flex w-full shrink-0 gap-3">
     <Button
       type="button"
       variant="secondary"
