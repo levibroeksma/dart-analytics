@@ -22,7 +22,13 @@ import CrossIcon from "@icons/cross.svg";
       x-for="(segment, index) in previewSegments()"
       :key="index"
     >
-      <div class="flex h-12 flex-1 items-center justify-center">
+      <div class="relative flex h-12 flex-1 items-center justify-center">
+        <span
+          class="pointer-events-none absolute inset-x-0 text-center text-muted-foreground uppercase transition-all duration-150"
+          :class="segment.status === 'empty' ? 'top-1/2 -translate-y-1/2 text-xs' : 'top-1 text-[10px]'"
+          x-text="'Dart ' + (index + 1)"
+        >
+        </span>
         <CheckIcon
           class="size-5 text-success"
           x-show="segment.status === 'hit'"
@@ -33,20 +39,7 @@ import CrossIcon from "@icons/cross.svg";
           x-show="segment.status === 'miss'"
           x-cloak
         />
-        <span
-          class="size-2 rounded-full bg-border"
-          x-show="segment.status === 'empty'"
-          x-cloak
-        >
-        </span>
       </div>
     </template>
-  </div>
-  <div
-    class="flex w-full justify-around text-xs text-muted-foreground uppercase"
-  >
-    <span>D1</span>
-    <span>D2</span>
-    <span>D3</span>
   </div>
 </div>
