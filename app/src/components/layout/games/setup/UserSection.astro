@@ -11,5 +11,8 @@ import UserIconDisplay from "./UserIconDisplay.astro";
   class="bg-tab-card border-tab-border rounded-3xl p-4 border flex flex-col items-start justify-start gap-4"
 >
   <h2 class="text-base text-center w-full">Players</h2>
-  <UserIconDisplay name="User" />
+  <UserIconDisplay
+    name="User"
+    nameExpr="$store.profile.displayName || 'User'"
+  />
 </div>
