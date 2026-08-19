@@ -8,7 +8,7 @@ description: Use before claiming any Dart Analytics task done — runs the manda
 Before claiming any task done on this repository:
 
 1. **CLAUDE.md sync.** Update the `CLAUDE.md` nearest to what you changed if your change adds, alters, or invalidates a rule in it. `AGENT.md` files are pointer stubs, not mirrors — never copy rules into them; `scripts/check-agent-mirrors.sh` rejects any `AGENT.md` that carries content.
-2. **Context map.** Register new, moved, renamed, or deleted docs in `docs/architecture/00-Context-Map.md` in the same change.
+2. **Context map.** Register new, moved, renamed, or deleted docs in `docs/architecture/00-File-Inventory.md` in the same change, and append the version entry to `docs/architecture/00-Context-Map-History.md` — never to `00-Context-Map.md`, which is the router and stays small.
 3. **Decision ledger.** `DECISIONS.md` is a router, not a record — never add a decision row there. Follow `DECISIONS.md`'s own "How to add a decision" section verbatim (domain-file routing, next-id derivation, block format, `Supersedes:`, new-file⇒routing-table registration). Run `scripts/check-decision-ids.sh` and confirm it passes before claiming the task done.
 4. **Dates.** Add an ISO date (`YYYY-MM-DD`) to every newly added or changed docs row entry.
 5. **Gate scripts.** Invoke the `run-all-gates` skill and confirm every script it runs passes.
