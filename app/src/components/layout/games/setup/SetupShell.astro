@@ -1,6 +1,12 @@
 ---
 /**
- * Setup page shell: titled card wrapping a form that submits via `start()`.
+ * Setup page shell: back button and centered title on one row (flex thirds,
+ * matching `GameLayout`'s header — no absolute positioning needed to keep
+ * the title centered while the button sits left), wrapping a form that
+ * submits via `start()`. Every setup page's own `x-data` factory exposes
+ * `loadingReconciliation` (active-session/preset lookup), which disables
+ * submit alongside `loading` (the in-flight `start()` call) so a player
+ * can't start before defaults have loaded.
  * @param {string} title
  */
 interface Props {
@@ -13,14 +19,37 @@ const { title, ...props }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
+
+// Icons
+import ChevronDownIcon from "@icons/chevron-down.svg";
 ---
 
 <div {...props}>
+  <header class="flex items-center pt-3">
+    <div class="w-1/8">
+      <Button
+        type="button"
+        variant="ghost"
+        icon
+        ariaLabel="Back to games"
+        @click="globalThis.location.href = '/games'"
+      >
+        <ChevronDownIcon
+          class="size-6 text-muted rotate-90"
+          slot="iconBefore"
+        />
+      </Button>
+    </div>
+    <div class="w-6/8">
+      <h2 class="text-accent text-center text-xl">{title}</h2>
+    </div>
+    <div class="w-1/8"></div>
+  </header>
+
   <form
-    class="flex flex-col gap-3 max-w-sm"
+    class="mt-3 flex flex-col gap-3 max-w-sm"
     @submit.prevent="start()"
   >
-    <h2 class="text-accent text-center text-xl">{title}</h2>
     <slot />
 
     <Button
@@ -28,7 +57,7 @@ import Button from "@components/forms/Button.astro";
       class="rounded-full! w-full bg-accent! text-white! border-tab-border!"
       variant="primary"
       title="Start Game"
-      :disabled="loading"
+      :disabled="loading || loadingReconciliation"
     />
   </form>
 </div>

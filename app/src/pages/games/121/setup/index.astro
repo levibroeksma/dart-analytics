@@ -4,13 +4,9 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
 import OneTwentyOneSetupForm from "@components/layout/games/setup/OneTwentyOneSetupForm.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout
-  title="121 — Setup"
-  showBackButton
->
+<AppLayout title="121 — Setup">
   <div
     class="p-4"
     x-data="oneTwentyOneSetup()"
@@ -33,14 +29,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
       </div>
     </template>
 
-    <template
-      x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
-    >
+    <template x-if="!showActiveSessionModal && !reconciliationFailed">
       <OneTwentyOneSetupForm />
-    </template>
-
-    <template x-if="loadingReconciliation">
-      <IsLoading title="Configuring your session..." />
     </template>
   </div>
 </AppLayout>

@@ -4,13 +4,9 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
 import SinglesTrainingSetupForm from "@components/layout/games/setup/SinglesTrainingSetupForm.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout
-  title="Singles Training — Setup"
-  showBackButton
->
+<AppLayout title="Singles Training — Setup">
   <div
     class="p-4"
     x-data="singlesTrainingSetup()"
@@ -33,14 +29,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
       </div>
     </template>
 
-    <template
-      x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
-    >
+    <template x-if="!showActiveSessionModal && !reconciliationFailed">
       <SinglesTrainingSetupForm />
-    </template>
-
-    <template x-if="loadingReconciliation">
-      <IsLoading title="Configuring your session..." />
     </template>
   </div>
 </AppLayout>

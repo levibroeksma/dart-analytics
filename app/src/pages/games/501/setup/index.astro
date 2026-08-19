@@ -4,13 +4,9 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
 import FiveOhOneSetupForm from "@components/layout/games/setup/FiveOhOneSetupForm.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<AppLayout
-  title="501 — Setup"
-  showBackButton
->
+<AppLayout title="501 — Setup">
   <div
     class="p-4"
     x-data="fiveOhOneSetup()"
@@ -33,14 +29,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
       </div>
     </template>
 
-    <template
-      x-if="!showActiveSessionModal && !reconciliationFailed && !loadingReconciliation"
-    >
+    <template x-if="!showActiveSessionModal && !reconciliationFailed">
       <FiveOhOneSetupForm />
-    </template>
-
-    <template x-if="loadingReconciliation">
-      <IsLoading title="Configuring your session..." />
     </template>
   </div>
 </AppLayout>
