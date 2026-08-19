@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-19
-highest-issued: F6
+highest-issued: F8
 -->
 
 # Findings
@@ -80,3 +80,17 @@ Claim: `docs/architecture/00-File-Inventory.md` describes `scripts/check-agent-m
 Evidence: `docs/architecture/00-File-Inventory.md` — both rows, against D213 in `decisions/context-system.md`, which reduced all six `AGENT.md` files to pointer stubs and inverted the gate to assert the stub
 Impact: an agent following the inventory copies rules into an `AGENT.md` and the inverted gate rejects the commit; the stale row says to do the exact thing the gate now forbids
 Proposed: restate both rows against the stub behaviour D213 actually shipped
+
+### F7 — Per-game capability verification scripts each assert the complete capability set
+Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
+Claim: `database/verification/0010_around_the_clock_capability_checks.sql` is scoped to the one additive `AROUND_THE_CLOCK_V1` row, but its check 2 asserts "the table now holds exactly the 12 triples", i.e. every earlier game's rows too
+Evidence: `database/verification/0010_around_the_clock_capability_checks.sql` header check 2, and the same shape in `database/verification/0009_121_capability_checks.sql`
+Impact: game ten's seed makes both scripts fail on their exact-count assertion, so adding a game means either editing every earlier per-game verification script or knowingly leaving them stale — neither is what a per-game, additive script implies
+Proposed: keep the exact-count parity assertion in the one shared `0007_capability_seed_checks.sql` and narrow the per-game scripts to their own rows
+
+### F8 — One of the six preset setup files lost its shared doc line
+Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
+Claim: five of the six preset-driven setup data modules carry the JSDoc line "V1 seeds exactly one configuration preset; index 0 is always that preset"; `doubles-training-setup.data.ts` carries none
+Evidence: `app/src/lib/game/doubles-training-setup.data.ts` against its five siblings, e.g. `app/src/lib/game/bobs27-setup.data.ts`
+Impact: cosmetic only — the fact is now stated once on `createPresetSetupController` itself, so the per-file line is arguably redundant in all six rather than missing in one
+Proposed: decide once — either drop the line from all six now that the factory documents it, or add it to the sixth
