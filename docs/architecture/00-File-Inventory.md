@@ -68,6 +68,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — suffix `!important`, arbitrary negatives (D175, 2026-07-31); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
 | `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup (2026-08-19) | canonical | ~1.2k |
+| `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the two setup-controller opt-outs (2026-08-19) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
 ## SQL (`database/`)
@@ -119,6 +120,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/lib/game/board-input.data.ts` | Alpine/DOM bridge for the board: pointer events → controller, a fresh controller per press so a resize or rotation between gestures is picked up; reads `$store.boardInput.handedness` into each fresh controller (D206, 2026-08-11) | canonical |
 | `app/src/stores/board-input.store.ts` | `boardInput` Alpine store: one `$persist` `handedness` field, local-only rather than routed through `player_settings` (D206, 2026-08-11) | canonical |
 | `app/src/lib/game/session-mode-resolution.ts` | `resolveSessionModePair` (player settings + ruleset capability → the pair a new session is created with) and `startSessionInput` (the store payload both setup pages send), shared by both play pages (2026-08-10) | canonical |
+| `app/src/lib/game/setup-controller.ts` | `createPresetSetupController` — the preset setup skeleton six games share; one seam (`configOverrides`) for the two training games' target order; 501 and Score Training deliberately opt out (2026-08-19) | canonical |
 | `app/src/lib/game/five-oh-one-starting-score.ts` | `FIVE_OH_ONE_STARTING_SCORE_NOTICE` + `clampFiveOhOneStartingScore` — floors and clamps the custom 501 starting-score input to the inclusive 2–999 bound; a non-finite/blank input clamps to the custom field's stated default of 101, not the bare minimum of 2; mirrors `five-oh-one-legs.ts`'s clamp shape (2026-08-11) | canonical |
 | `app/src/components/ui/DartBoard.astro` | Presentational dartboard SVG, millimetre `viewBox`, `role="img"` + `aria-label`; optional `boardRef` opts one instance into the controller's `x-ref` (2026-08-09) | canonical |
 | `app/src/components/ui/BoardMagnifier.astro` | Zoomed inset following the fingertip: a second clipped `DartBoard`, crosshair, live resolved read with a `glass` background for legibility; `aria-hidden`, `fixed`, zoom scaled to the displayed board (D199, 2026-08-09; glass label 2026-08-11) | canonical |
@@ -129,7 +131,9 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/services/rulesets/quick-score.validator.ts` | Shared RECREATIONAL + QUICK_SCORE batch rules (no dart rows, turn-total bound, ROUNDS attempt cap) (2026-07-26) | canonical |
 | `app/src/services/rulesets/tuod/tuod.validator.ts` | `TUOD_V1` config + batch validation, ladder-derived turn-total bound (2026-07-26) | canonical |
 | `app/src/services/rulesets/visual-board.validator.ts` | Re-derives every ANALYTICS + VISUAL_BOARD dart from its coordinate via `classify()`, refuses a batch that disagrees; `isVisualBoardCapture` predicate shared with the engines (2026-08-05) | canonical |
+| `app/src/services/rulesets/three-dart.validator.ts` | `createThreeDartValidator` — the mode-pair, dartless-turn, negative-score and visual-board assertions five three-dart validators share; `label`, `configSchema` and `dartlessIssue` stay per-game (2026-08-19) | canonical |
 | `scripts/check-game-engines.sh` | Guard: every engine exports a factory, registers it, and has a validator | canonical |
+| `scripts/check-game-wiring.sh` | Guard: every `registry.ts` key has a validator, a capability declaration, and — unless engine-only — data files, pages and Alpine registrations; engine-only derived from `games-visibility.ts`, both slugs derived, blind spots documented in its header (2026-08-19) | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 | `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel **type** import deeper than the importing file's own folder or the area root (value imports exempt, D156); blind spots documented in its header (2026-07-26) | canonical |
 
