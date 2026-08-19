@@ -53,13 +53,6 @@ Evidence: `.claude/settings.json:20` — `command -v gh` finds nothing in the se
 Impact: an agent reading the allowlist as a capability inventory tries `gh pr diff`, gets a shell error, and spends a round discovering the MCP tools it should have used first
 Proposed: drop the three `gh` entries, or keep them and note in the settings file that they cover a locally-installed `gh` only
 
-### F2 — Root `CLAUDE.md` mandates a knowledge-graph CLI that is not installed
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `CLAUDE.md:48` — "Consult before broad grep/exploration: `graphify query`, `graphify path`, `graphify explain`"
-Evidence: `CLAUDE.md:48` — `command -v graphify` finds nothing in the session container; D213's own Consequences paragraph records this rule as "knowingly left standing for a later change"
-Impact: the rule is unfollowable as written, and an unfollowable rule in the always-loaded file teaches that the always-loaded file is advisory
-Proposed: reword to consult the committed `graphify-out/graph.json` directly (it is in the repo and readable without the CLI), and make the CLI an optional convenience — this is Spec 3's subject and is deliberately not fixed here
-
 ### F3 — `DECISIONS.md` states a stale maximum decision id
 Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
 Claim: "How to add a decision" names `D198` as the current maximum
