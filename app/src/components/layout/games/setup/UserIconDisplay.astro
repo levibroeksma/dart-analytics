@@ -1,14 +1,16 @@
 ---
 /**
  * Circular player avatar with the player's name underneath.
- * @param {string} name
+ * @param {string} name Static fallback, rendered until `nameExpr` hydrates
+ * @param {string} [nameExpr] Alpine expression overriding `name` once ready
  */
 interface Props {
   name: string;
+  nameExpr?: string;
 }
 
 // Props
-const { name }: Props = Astro.props;
+const { name, nameExpr }: Props = Astro.props;
 
 // Icons
 import UserIcon from "@icons/user.svg";
@@ -22,5 +24,10 @@ import UserIcon from "@icons/user.svg";
       class="size-8 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
     />
   </div>
-  <span class="text-sm text-accent font-semibold">{name}</span>
+  <span
+    class="text-sm text-accent font-semibold"
+    x-text={nameExpr}
+  >
+    {name}
+  </span>
 </div>
