@@ -274,7 +274,25 @@ export type FiveOhOneSetupContext = {
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
-export type Bobs27SetupContext = {
+/**
+ * The setup-page contract every preset-driven game shares. Six games declare
+ * exactly this shape (Bob's 27, Shanghai, 121, Around the Clock, and — plus
+ * an `orderMode` field — Singles and Doubles Training), which is why
+ * `createPresetSetupController` can serve all six from one implementation.
+ *
+ * `501` and Score Training deliberately keep hand-written contexts: both
+ * replace `start` wholesale (preset selection, leg counts, a clamped custom
+ * starting score), so routing them through the factory would need one hook
+ * per branch. See `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
+ *
+ * The `this` parameters name this base type rather than a self-type
+ * parameter: `type X = PresetSetupContext<X>` is rejected by TypeScript
+ * (TS2456, circular type alias), and the `interface X extends …` form that
+ * would compile may not live in `types.ts` (D103 — interfaces raise through
+ * the parallel `interfaces.ts` chain). No method body needs the concrete
+ * type; only `configOverrides` does, and it takes it as a generic parameter.
+ */
+export type PresetSetupContext = {
   presets: ConfigurationPresetData[];
   loading: boolean;
   error: string;
@@ -293,46 +311,39 @@ export type Bobs27SetupContext = {
       inputModeKey: string;
     };
   };
-  init(this: Bobs27SetupContext): Promise<void>;
+  init(this: PresetSetupContext): Promise<void>;
   reconcile(
-    this: Bobs27SetupContext,
+    this: PresetSetupContext,
     activeSessions: SessionActiveData[],
   ): Promise<void>;
-  retryReconciliation(this: Bobs27SetupContext): Promise<void>;
-  continueSession(this: Bobs27SetupContext): void;
-  abandonSession(this: Bobs27SetupContext): Promise<void>;
-  start(this: Bobs27SetupContext): Promise<void>;
+  retryReconciliation(this: PresetSetupContext): Promise<void>;
+  continueSession(this: PresetSetupContext): void;
+  abandonSession(this: PresetSetupContext): Promise<void>;
+  start(this: PresetSetupContext): Promise<void>;
 };
 
-export type SinglesTrainingSetupContext = {
-  presets: ConfigurationPresetData[];
+/**
+ * What `createPresetSetupController` needs to know about one game. Everything
+ * here is a fact about the game and nothing here is a behaviour switch — the
+ * single exception, `configOverrides`, exists because Singles and Doubles
+ * Training inject their chosen target order into both the config snapshot and
+ * the create-session overrides, and nothing else in the six deviates at all.
+ *
+ * `label` is not derived from a key. The shipped copy reads `Bob's 27`, not
+ * `BOBS27`, and a derivation would silently reword a user-visible message.
+ */
+export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
+  gameTypeKey: string;
+  rulesetVersionKey: RulesetVersionKey;
+  playHref: string;
+  label: string;
+  configOverrides?: (ctx: Ctx) => Record<string, unknown>;
+};
+
+export type Bobs27SetupContext = PresetSetupContext;
+
+export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
-  init(this: SinglesTrainingSetupContext): Promise<void>;
-  reconcile(
-    this: SinglesTrainingSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: SinglesTrainingSetupContext): Promise<void>;
-  continueSession(this: SinglesTrainingSetupContext): void;
-  abandonSession(this: SinglesTrainingSetupContext): Promise<void>;
-  start(this: SinglesTrainingSetupContext): Promise<void>;
 };
 
 export type FiveOhOnePlayContext = {
@@ -553,126 +564,15 @@ export type SinglesTrainingPlayContext = {
 /** One dart slot in Doubles Training's visit preview — a resolved hit/miss mark (against the visit's own intended double/bull), or a not-yet-thrown placeholder. */
 export type DoublesPreviewSegment = { status: "hit" | "miss" | "empty" };
 
-export type DoublesTrainingSetupContext = {
-  presets: ConfigurationPresetData[];
+export type DoublesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
-  init(this: DoublesTrainingSetupContext): Promise<void>;
-  reconcile(
-    this: DoublesTrainingSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: DoublesTrainingSetupContext): Promise<void>;
-  continueSession(this: DoublesTrainingSetupContext): void;
-  abandonSession(this: DoublesTrainingSetupContext): Promise<void>;
-  start(this: DoublesTrainingSetupContext): Promise<void>;
 };
 
-export type ShanghaiSetupContext = {
-  presets: ConfigurationPresetData[];
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
-  init(this: ShanghaiSetupContext): Promise<void>;
-  reconcile(
-    this: ShanghaiSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: ShanghaiSetupContext): Promise<void>;
-  continueSession(this: ShanghaiSetupContext): void;
-  abandonSession(this: ShanghaiSetupContext): Promise<void>;
-  start(this: ShanghaiSetupContext): Promise<void>;
-};
+export type ShanghaiSetupContext = PresetSetupContext;
 
-export type OneTwentyOneSetupContext = {
-  presets: ConfigurationPresetData[];
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
-  init(this: OneTwentyOneSetupContext): Promise<void>;
-  reconcile(
-    this: OneTwentyOneSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: OneTwentyOneSetupContext): Promise<void>;
-  continueSession(this: OneTwentyOneSetupContext): void;
-  abandonSession(this: OneTwentyOneSetupContext): Promise<void>;
-  start(this: OneTwentyOneSetupContext): Promise<void>;
-};
+export type OneTwentyOneSetupContext = PresetSetupContext;
 
-export type AroundTheClockSetupContext = {
-  presets: ConfigurationPresetData[];
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
-  init(this: AroundTheClockSetupContext): Promise<void>;
-  reconcile(
-    this: AroundTheClockSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: AroundTheClockSetupContext): Promise<void>;
-  continueSession(this: AroundTheClockSetupContext): void;
-  abandonSession(this: AroundTheClockSetupContext): Promise<void>;
-  start(this: AroundTheClockSetupContext): Promise<void>;
-};
+export type AroundTheClockSetupContext = PresetSetupContext;
 
 export type DoublesTrainingPlayContext = {
   loading: boolean;
