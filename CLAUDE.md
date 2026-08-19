@@ -66,6 +66,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - No git worktrees: check out task branches directly in the main working copy (`git checkout -b <branch>`), never under `.worktrees/`. Declared preference — skills that offer worktree isolation should skip it without asking.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
 - When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety. (2026-07-26)
+- A finding is not a work item. Anything you notice that the task did not ask you to change — a bug, a stale doc, a contradicting rule, a dead file — is logged in `FINDINGS.md` and raised in the completion report; it is never fixed in the same pass. Acting on a finding requires explicit user permission, always. This governs *incidental* discovery only: work a task step names, including adjacent edits that work genuinely requires, proceeds as normal. (2026-08-19)
 
 ---
 
@@ -96,6 +97,7 @@ Decisions are append-only and domain-scoped: never edit or delete an existing bl
 | Context packs, authority order | `docs/architecture/00-Context-Map.md` |
 | File inventory (escalation only) | `docs/architecture/00-File-Inventory.md` |
 | Why a decision was made | `DECISIONS.md` (router); domain files live in `decisions/**` |
+| Something noticed but not fixed | `FINDINGS.md` (open findings; delete on resolution) |
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
 | Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |
 | Raw, pre-spec game/routine/trivia rule notes (non-canonical) | `docs/game-rules/README.md` |
