@@ -1,6 +1,6 @@
 # Game Rules — Raw Source Material
 
-This tree holds **non-canonical, pre-spec, human-authored** descriptions of dartboard games, training routines, and standalone practice tools. Nothing here has `status:` front-matter and nothing here is registered in `docs/architecture/00-Context-Map.md` — `scripts/check-context-map.sh` deliberately does not scan this folder, since it only enforces the canonical rules for `docs/architecture/` and `database/`.
+This tree holds **non-canonical, pre-spec, human-authored** descriptions of dartboard games, training routines, and standalone practice tools. Nothing here has `status:` front-matter and nothing here is registered in `docs/architecture/00-File-Inventory.md` — `scripts/check-context-map.sh` deliberately does not scan this folder, since it only enforces the canonical rules for `docs/architecture/` and `database/`.
 
 | Subfolder | Contents | Lands in |
 | --- | --- | --- |

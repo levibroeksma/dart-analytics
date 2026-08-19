@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(".").resolve()
 MAP = Path("docs/architecture/00-Context-Map.md")
+INVENTORY = Path("docs/architecture/00-File-Inventory.md")
 ARCH = Path("docs/architecture")
 FAIL = 0
 
@@ -87,7 +88,7 @@ def resolve_pack_md(ref: str) -> Path | None:
 def check_files(text: str) -> None:
     # Only scan File Inventory section (after "# File Inventory")
     if "# File Inventory" not in text:
-        err("00-Context-Map.md missing # File Inventory heading")
+        err("00-File-Inventory.md missing # File Inventory heading")
         return
     inv = text.split("# File Inventory", 1)[1]
     # stop before Non-Canonical / later sections that lack ~Tokens
@@ -151,9 +152,11 @@ def main() -> int:
     if not MAP.is_file():
         err(f"missing {MAP}")
         return 1
-    text = MAP.read_text(encoding="utf-8")
-    check_files(text)
-    check_packs(text)
+    if not INVENTORY.is_file():
+        err(f"missing {INVENTORY}")
+        return 1
+    check_files(INVENTORY.read_text(encoding="utf-8"))
+    check_packs(MAP.read_text(encoding="utf-8"))
     if FAIL:
         return 1
     print("OK: context-map per-file and per-pack token budgets within tolerance.")

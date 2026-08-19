@@ -162,6 +162,7 @@ def check_file(path: Path) -> None:
     # but still run the markdown-link pass — decisions carry none today, but
     # a real [text](path) cross-reference added later should still resolve.
     is_decision = path.parts[0] == "decisions"
+    is_historical = bool(re.search(r"^status:\s*historical", text, re.MULTILINE))
     # 1) markdown links
     for m in MD_LINK.finditer(text):
         target = m.group(2).strip()
@@ -173,7 +174,9 @@ def check_file(path: Path) -> None:
             continue
         if not resolves(local, path):
             err(f"{path}: unresolved markdown link ({m.group(1)}) -> {target}")
-    if is_decision:
+    # A record of history is not required to track current file layout — the
+    # same carve-out decisions/** already has, for the same reason (D213).
+    if is_decision or is_historical:
         return
     # 2) path-like backticks
     for m in PATH_LIKE.finditer(text):
