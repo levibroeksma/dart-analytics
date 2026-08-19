@@ -101,23 +101,3 @@ Decisions are append-only and domain-scoped: never edit or delete an existing bl
 | Raw, pre-spec game/routine/trivia rule notes (non-canonical) | `docs/game-rules/README.md` |
 
 ---
-
-# Tool Allowances & Restrictions (2026-07-23)
-
-This file is a router and gatekeeper. Work following it involves context discovery, validation, and maintenance — not implementation.
-
-## Allow
-
-- **Read** — load context map, read docs, check subdirectory CLAUDE.md/AGENT.md files
-- **Grep** — verify conventions, cross-reference rules, check doc links
-- **Glob** — find files by pattern when validating file location rules
-- **Bash** — run validation scripts (`scripts/check-*.sh`, `scripts/refresh-graph.sh`) and git commands
-- **Edit** — update CLAUDE.md, AGENT.md, DECISIONS.md, `decisions/**`, context map entries
-
-## Restrict
-
-Bounds this file's own routing/maintenance work — **not** tasks a skill delegates through it. Repo-workflow skills use restricted tools as designed: `subagent-driven-development` / `writing-plans` / `executing-plans` spawn agents; `finishing-a-development-branch` uses GitHub MCP for push/PR.
-
-- GitHub MCP tools (mcp__github__*) — context routing doesn't involve PR/issue management; that's delegated per-task
-- WebFetch, WebSearch — no external data needed for context guidance
-- Agent spawning (Agent tool) — this file directs people to specific files, doesn't answer questions via delegation

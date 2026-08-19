@@ -16,4 +16,6 @@ Before claiming any task done on this repository:
 7. **Branch/PR.** Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
 8. **Self-learning gate.** If this task surfaced a rule that was ambiguous, missing, unenforced, or contradicted by the real code/config — beyond what step 1 already requires for the change itself — propose the specific `CLAUDE.md`/`AGENT.md` sharpening in chat and get the user's explicit approval before writing it. Never apply a rule change unilaterally. If the user declines, leave the rule as-is and move on; the gate exists to keep rule evolution deliberate, not to force a change.
 
+9. **Component inventory.** If this task added, renamed, or removed a shared component under `app/src/components/ui/`, `components/forms/`, or the shared (non-per-game) part of `components/layout/games/`, update `docs/architecture/07-Frontend/08-Component-Inventory.md` in the same change. Per-game components (`interfaces/`, `result-modals/`, `*SetupForm.astro`) are out of scope.
+
 A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works.
