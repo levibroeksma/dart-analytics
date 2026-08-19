@@ -92,6 +92,20 @@ describe("oneTwentyOnePlay", () => {
       expect(play.showSessionFinishConfirm).toBe(false);
     });
 
+    it("resets the active score to the new target's full value after a checkout, not the stale start target (#128)", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine!.record({ scoreAttempted: 81 });
+      play.pendingCheckoutScore = 40;
+      play.showDoubleConfirm = true;
+
+      await play.confirmDouble();
+
+      expect(play.currentTargetLabel.call(play)).toBe("122");
+      expect(play.remainingInAttempt.call(play)).toBe(122);
+      expect(play.visitsThisAttempt.call(play)).toBe(0);
+    });
+
     it("confirmDouble defers to the session-finish confirm for a checkout at the cap target", async () => {
       const play = createPlay();
       play.engine = oneTwentyOneEngineFactory.create({}) as any;

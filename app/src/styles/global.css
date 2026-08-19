@@ -541,16 +541,18 @@
   .dartboard-group .bullSegment .double {
     fill: var(--dartboard-wire-red);
   }
-  /* Hover — target children; <g> itself does not paint fill */
+  /* Hover — each ring highlights only itself; :hover on the parent <g>
+     would fire for any child, lighting up every ring in the segment
+     (e.g. the treble) even though only the inner single was under the
+     pointer. */
   .dartboard-group .segment {
     cursor: pointer;
   }
-  .dartboard-group .segment:hover .single,
-  .dartboard-group .segment:hover .multiplier {
+  .dartboard-group .segment .single:hover,
+  .dartboard-group .segment .multiplier:hover {
     fill: var(--dartboard-segment-hover);
   }
-  /* Or brighten without losing identity: */
-  .dartboard-group .segment:hover path {
+  .dartboard-group .segment path:hover {
     filter: brightness(1.25);
   }
 }
