@@ -276,7 +276,7 @@ describe("session completion on BULL", () => {
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
       turns: 21,
-      hits: 21,
+      accuracy: "34.43%",
       totalDarts: 61,
     });
     expect(play.completionStatus).toBe("succeeded");
@@ -318,6 +318,99 @@ describe("previewSegments", () => {
       { status: "miss" },
       { status: "empty" },
     ]);
+  });
+
+  it("a VISUAL_BOARD dart on the wrong number is a miss even though it hit the board (#130, #132)", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    // Target starts at number 1. Landing on 9 hits the board but not the
+    // active target, so the target must not advance and the preview must
+    // read "miss", not "hit".
+    await play.recordDart.call(play, {
+      hitTargetNumber: 9,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    expect(play.currentTargetLabel.call(play)).toBe("1");
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "miss" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("tracks hit/miss per dart as the target advances mid-visit (#132)", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    // Dart 1: wrong number (miss, target stays at 1).
+    await play.recordDart.call(play, {
+      hitTargetNumber: 9,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    // Dart 2: correct number (hit, target advances to 2).
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    // Dart 3: now aimed at 2, but lands on 15 (miss).
+    await play.recordDart.call(play, {
+      hitTargetNumber: 15,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    expect(play.currentTargetLabel.call(play)).toBe("2");
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "miss" },
+      { status: "hit" },
+      { status: "miss" },
+    ]);
+  });
+});
+
+describe("accuracy", () => {
+  it("is 0% before any dart is thrown", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.accuracy.call(play)).toBe("0%");
+  });
+
+  it("reflects genuine target hits over darts thrown, not just darts that hit the board", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordDart.call(play, {
+      hitTargetNumber: 9,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+    await play.recordDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    expect(play.accuracy.call(play)).toBe("50.00%");
   });
 });
 
