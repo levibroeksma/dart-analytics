@@ -38,6 +38,8 @@ jobs:
         run: bash scripts/check-no-inline-comments.sh
       - name: Style-tokens gate
         run: bash scripts/check-style-tokens.sh
+      - name: Findings-log gate
+        run: bash scripts/check-findings-log.sh
 
   app:
     runs-on: ubuntu-latest

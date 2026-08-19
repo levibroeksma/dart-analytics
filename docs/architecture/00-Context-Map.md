@@ -13,6 +13,8 @@ updated: 2026-08-19
 > - Why was something decided? `DECISIONS.md` routes to `decisions/**`.
 > - Provenance and version history? `00-Context-Map-History.md` (never
 >   loaded by a task).
+> - Noticed something the task didn't ask you to change? Log it in
+>   `FINDINGS.md`; never fix it in the same pass.
 
 ---
 
