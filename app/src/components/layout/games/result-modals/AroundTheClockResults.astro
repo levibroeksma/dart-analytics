@@ -27,8 +27,8 @@ import IsLoading from "@components/ui/IsLoading.astro";
         value="resultsSnapshot?.turns"
       />
       <StatRow
-        label="Hits"
-        value="resultsSnapshot?.hits"
+        label="Accuracy"
+        value="resultsSnapshot?.accuracy"
       />
       <StatRow
         label="Darts thrown"
@@ -84,6 +84,7 @@ import IsLoading from "@components/ui/IsLoading.astro";
       <Button
         @click="playAgain()"
         :disabled="completionStatus !== 'succeeded' || playAgainLoading"
+        loadingExpr="playAgainLoading"
         title="Play again"
       />
     </div>

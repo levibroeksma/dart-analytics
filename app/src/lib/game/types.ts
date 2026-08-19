@@ -767,15 +767,15 @@ export type ShanghaiPlayContext = {
   abandonAndExit(this: ShanghaiPlayContext): Promise<void>;
 };
 
-/** One dart slot in Around the Clock's visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. Unlike Shanghai's preview, hit/miss needs no target-number comparison: every tap this game's input renders is already relative to whatever target was active the instant it was thrown, so a non-MISS dart is always a hit. */
+/** One dart slot in Around the Clock's visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. Every tap this game's recreational input renders is relative to whatever target was active the instant it was thrown, so a non-MISS tap is always a hit — but a VISUAL_BOARD dart can land on any number, so hit/miss is resolved by replaying the target-progression rules (`isAroundTheClockHit`), the same way Shanghai's preview does. */
 export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `hits`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. */
+/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. */
 export type AroundTheClockResultsSnapshot = {
   turns: number;
-  hits: number;
+  accuracy: string;
   totalDarts: number;
 };
 
@@ -802,6 +802,7 @@ export type AroundTheClockPlayContext = {
   ): Promise<void>;
   currentTargetLabel(this: AroundTheClockPlayContext): string;
   turnsSoFar(this: AroundTheClockPlayContext): string;
+  accuracy(this: AroundTheClockPlayContext): string;
   isBullVisit(this: AroundTheClockPlayContext): boolean;
   previewSegments(
     this: AroundTheClockPlayContext,
