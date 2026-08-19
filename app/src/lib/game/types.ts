@@ -414,7 +414,6 @@ export type OneTwentyOnePlayContext = {
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
   engine: OneTwentyOneEngine | null;
-  turnsInCurrentRound(this: OneTwentyOnePlayContext): TurnFact[];
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
   currentTargetLabel(this: OneTwentyOnePlayContext): string;
   checkoutHint(this: OneTwentyOnePlayContext): string;

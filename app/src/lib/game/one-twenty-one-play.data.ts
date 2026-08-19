@@ -151,23 +151,21 @@ export function oneTwentyOnePlay() {
     engine: null as OneTwentyOneEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    turnsInCurrentRound(this: OneTwentyOnePlayContext): TurnFact[] {
-      const openRound = this.$store.game.stages.at(-1);
-      if (!openRound) return [];
-      return this.$store.game.turns.filter(
-        (turn) => turn.stageClientKey === openRound.clientKey,
-      );
-    },
-
+    /**
+     * Folded over the *whole* session's turns, not just the open round —
+     * `applyOneTwentyOneVisit` already resets `remainingInAttempt` to the new
+     * target on every checkout, so scoping to the open round's (possibly
+     * still-empty) turns would lose that reset and read back the initial
+     * state's stale 121 instead (#128).
+     */
     remainingInAttempt(this: OneTwentyOnePlayContext): number {
-      return foldRoundState(this.turnsInCurrentRound()).remainingInAttempt;
+      return foldRoundState(this.$store.game.turns).remainingInAttempt;
     },
 
     /**
-     * The ladder position, folded over the *whole* session's turns (not just
-     * the open round, unlike `remainingInAttempt`) — `currentTarget` only
-     * moves on a checkout, so it cannot be read off a single round's turns
-     * once an earlier round has already climbed it.
+     * The ladder position, folded over the *whole* session's turns —
+     * `currentTarget` only moves on a checkout, so it cannot be read off a
+     * single round's turns once an earlier round has already climbed it.
      */
     currentTargetLabel(this: OneTwentyOnePlayContext): string {
       return String(foldRoundState(this.$store.game.turns).currentTarget);
@@ -179,7 +177,7 @@ export function oneTwentyOnePlay() {
     },
 
     visitsThisAttempt(this: OneTwentyOnePlayContext): number {
-      return foldRoundState(this.turnsInCurrentRound()).visitsThisAttempt;
+      return foldRoundState(this.$store.game.turns).visitsThisAttempt;
     },
 
     dartsThrownThisSession(this: OneTwentyOnePlayContext): number {
