@@ -11,4 +11,5 @@ cd .. && bash scripts/check-file-locations.sh \
        && bash scripts/check-alias-sync.sh \
        && bash scripts/check-constraint-mirror.sh \
        && bash scripts/check-no-inline-comments.sh \
-       && bash scripts/check-style-tokens.sh
+       && bash scripts/check-style-tokens.sh \
+       && bash scripts/check-findings-log.sh
