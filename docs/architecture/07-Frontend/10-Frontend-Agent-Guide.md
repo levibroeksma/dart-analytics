@@ -152,7 +152,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`
 - [ ] Recovery text consistent with `00-Overview.md` (auto-cleanup)
-- [ ] Context Maintenance: `00-Context-Map.md` updated if docs added/moved
+- [ ] Context Maintenance: `00-File-Inventory.md` updated if docs added/moved
 - [ ] `scripts/check-context-map.sh` passes
 - [ ] Template comments are `{/* */}` only (no `<!-- -->`)
 - [ ] `npm run format:check` clean when touching `app/` markup/TS

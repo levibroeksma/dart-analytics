@@ -177,6 +177,6 @@ Architecture documents use semantic versioning. Major changes require a version 
 
 # Document Index
 
-The per-file inventory (what each document answers, status, token budget) lives in **`00-Context-Map.md`** and is maintained under the Context Maintenance protocol. This README deliberately does not duplicate it — one registry, one place to go stale.
+The per-file inventory (what each document answers, status, token budget) lives in **`00-File-Inventory.md`** and is maintained under the Context Maintenance protocol. This README deliberately does not duplicate it — one registry, one place to go stale.
 
 Every migration, view, API endpoint, and frontend component should be explainable by referring back to these documents.

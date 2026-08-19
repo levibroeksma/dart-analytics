@@ -4,7 +4,7 @@ Scope: all documentation under `docs/` (foundation docs, database handbook, API/
 
 ## Editing Workflow
 
-1. Identify the canonical target doc for the change (use the context-map inventory).
+1. Identify the canonical target doc for the change (use `docs/architecture/00-File-Inventory.md`).
 2. Apply a minimal diff in the canonical doc first; align secondary docs to it.
 3. Propagate only required consistency edits.
 

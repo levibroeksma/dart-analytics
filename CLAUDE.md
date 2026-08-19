@@ -33,9 +33,9 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 # Context Loading Protocol
 
-1. Open `docs/architecture/00-Context-Map.md`.
+1. Open `docs/architecture/00-Context-Map.md` — the router.
 2. Find your task type in its Context Packs table and load exactly those files.
-3. Do not preload anything else. Escalate to additional files only when the pack demonstrably lacks the answer.
+3. Do not preload anything else. Escalate to `docs/architecture/00-File-Inventory.md` only when the pack demonstrably lacks the answer.
 
 The authority order for conflicts is defined once, in the context map. Docs win over code.
 
@@ -93,7 +93,8 @@ Decisions are append-only and domain-scoped: never edit or delete an existing bl
 
 | Need | File |
 | ---- | ---- |
-| Context packs, file inventory, authority order | `docs/architecture/00-Context-Map.md` |
+| Context packs, authority order | `docs/architecture/00-Context-Map.md` |
+| File inventory (escalation only) | `docs/architecture/00-File-Inventory.md` |
 | Why a decision was made | `DECISIONS.md` (router); domain files live in `decisions/**` |
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
 | Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |

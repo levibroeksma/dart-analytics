@@ -29,6 +29,7 @@ else
 fi
 
 MAP="docs/architecture/00-Context-Map.md"
+INVENTORY="docs/architecture/00-File-Inventory.md"
 FAIL=0
 err() { echo "FAIL: $*" >&2; FAIL=1; }
 
@@ -72,10 +73,12 @@ for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.m
     || err "$f lacks status front-matter header"
 done
 
-# --- 4. Map registration ----------------------------------------------------
+# --- 4. Inventory registration ----------------------------------------------
+# Registration moved out of the map when it was split into router / inventory /
+# history (D213): the router is deliberately small and no longer lists files.
 for f in $(git ls-files 'docs/architecture/*.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
   base=$(basename "$f")
-  grep -q "$base" "$MAP" || err "$f is not registered in $MAP"
+  grep -q "$base" "$INVENTORY" || err "$f is not registered in $INVENTORY"
 done
 
 if [ $FAIL -eq 0 ]; then
