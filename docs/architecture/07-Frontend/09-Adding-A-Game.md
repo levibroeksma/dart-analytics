@@ -139,10 +139,13 @@ the preset configuration before `toSnapshot` **and** sent as `createSession`'s
 
 `label` is copy, not a key — it reads `Bob's 27`, not `BOBS27`.
 
-**Opted out: `501` and Score Training.** Both replace `start` wholesale —
-preset selection, leg counts, a custom starting score with clamping. Routing
-them through the factory would need one hook per branch, which is the factory
-dissolving into its callers. They keep hand-written controllers and
+**Opted out: `501`, Score Training, and TUOD.** `501` and Score Training
+replace `start` wholesale — preset selection, leg counts, a custom starting
+score with clamping. Routing them through the factory would need one hook per
+branch, which is the factory dissolving into its callers. TUOD opts out for a
+different reason: the factory assumes exactly one seeded preset per game
+(`this.presets[0]`), and TUOD seeds two — 10 Rounds and 10 Minutes — the
+player must pick between. All three keep hand-written controllers and
 hand-written `*SetupContext` types. This is a decision, not an oversight: do
 not migrate them, and do not conclude from them that the factory is optional
 for a new preset-driven game.

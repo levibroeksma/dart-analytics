@@ -17,7 +17,6 @@ import type {
   MagnifierPlacement,
   StageFact,
   TurnFact,
-  TuodAttemptInput,
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
