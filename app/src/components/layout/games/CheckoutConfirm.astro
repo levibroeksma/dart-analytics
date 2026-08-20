@@ -9,12 +9,13 @@
  * to what the checkout chart allows for the score being finished, so a route
  * with only one possible answer renders one button rather than three.
  *
- * Three-action footer (Confirm / Bust-miss / Cancel) on the `Modal` shell:
- * `ConfirmDialog` only supports two actions, and a mistyped score needs a way
- * out that is neither a win nor a bust.
+ * Two actions on the `Modal` shell rather than `ConfirmDialog`'s pair: the
+ * dialog carries option rows above the footer, which `ConfirmDialog` has no
+ * slot for. There is no bust action — the typed total already says what
+ * happened, since the dialog only opens on a total that finishes exactly.
  *
  * Page scope must provide `checkoutDartOptions()`, `dartsToFinish`,
- * `dartsAtDouble`, `confirmDouble()`, `denyDouble()` and `cancelCheckout()`.
+ * `dartsAtDouble`, `confirmDouble()` and `cancelCheckout()`.
  */
 
 // Components
@@ -57,8 +58,7 @@ const optionClass =
     id="checkout-confirm-desc"
     class="mt-2 text-sm text-muted-foreground"
   >
-    Confirm the last dart landed in a double, or the visit is recorded as a
-    bust.
+    Confirm the last dart landed in a double, then say how the visit was thrown.
   </p>
 
   {
@@ -105,19 +105,10 @@ const optionClass =
       @click="confirmDouble()"
       :disabled="dartsAtDouble === null || dartsToFinish === null"
     />
-    <div class="flex gap-3">
-      <Button
-        variant="secondary"
-        class="flex-1"
-        title="Bust / miss"
-        @click="denyDouble()"
-      />
-      <Button
-        variant="ghost"
-        class="flex-1"
-        title="Cancel"
-        @click="cancelCheckout()"
-      />
-    </div>
+    <Button
+      variant="ghost"
+      title="Cancel"
+      @click="cancelCheckout()"
+    />
   </div>
 </Modal>

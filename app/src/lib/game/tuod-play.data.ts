@@ -294,17 +294,6 @@ export function tuodPlay() {
     },
 
     /**
-     * "Bust / miss" on the checkout dialog. A bust is reported exactly as any
-     * other failed attempt: one visit per attempt, so a voided visit ends it.
-     */
-    async denyDouble(this: TuodPlayContext): Promise<void> {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordAttempt({ checkedOut: false });
-    },
-
-    /**
      * Cancel on the checkout dialog: nothing is recorded and the typed total
      * goes back into the keypad, so a mistyped entry is not lost.
      */
@@ -319,8 +308,8 @@ export function tuodPlay() {
 
     /**
      * Folds one resolved attempt into the engine's fact log. Shared by the
-     * plain-failure path (`submitVisit`) and both checkout resolutions
-     * (`confirmDouble`/`denyDouble`) so the record → mirror sequence exists
+     * plain-failure path (`submitVisit`) and the checkout confirm
+     * (`confirmDouble`) so the record → mirror sequence exists
      * exactly once. `wouldComplete` defers a session-ending attempt to the
      * finish confirm exactly as every other quick-score game does.
      */

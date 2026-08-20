@@ -154,18 +154,6 @@ describe("oneTwentyOnePlay", () => {
       expect(store.game.turns.at(-1)?.stageClientKey).not.toBeUndefined();
     });
 
-    it("denyDouble records the visit as a bust", async () => {
-      const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
-      play.engine!.record({ scoreAttempted: 81 });
-      play.pendingCheckoutScore = 40;
-      play.showDoubleConfirm = true;
-
-      await play.denyDouble();
-
-      expect(store.game.turns.at(-1)?.totalScore).toBe(0);
-    });
-
     it("cancelCheckout restores the score to the keypad without recording", () => {
       const play = createPlay({
         pendingCheckoutScore: 40,

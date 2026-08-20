@@ -250,7 +250,7 @@ export function oneTwentyOnePlay() {
     /**
      * Folds one visit into the engine's fact log, then checks for a session
      * win. Shared by the plain-reduction path (`submitVisit`) and both
-     * double-confirm resolutions (`confirmDouble`/`denyDouble`) so the
+     * checkout confirm (`confirmDouble`) so the
      * record → mirror → complete sequence exists exactly once.
      */
     async recordVisit(
@@ -414,14 +414,6 @@ export function oneTwentyOnePlay() {
       this.pendingCheckoutScore = null;
       this.showDoubleConfirm = false;
       await this.recordVisit(score, true);
-    },
-
-    async denyDouble(this: OneTwentyOnePlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordVisit(score, false);
     },
 
     cancelCheckout(this: OneTwentyOnePlayContext) {

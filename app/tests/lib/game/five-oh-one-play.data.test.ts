@@ -254,22 +254,6 @@ describe("submitVisit — exact-zero opens the double confirm", () => {
     expect(play.error).toBe("Enter a score between 0 and 180.");
   });
 
-  it("denyDouble records a bust — score 0, remaining unchanged", async () => {
-    const priorTurns = turnsReaching(40);
-    const play = makePlay({ turns: priorTurns }); // remaining 40
-    await play.init.call(play);
-    play.scoreInput.setValue("40");
-    await play.submitVisit.call(play);
-
-    await play.denyDouble.call(play);
-
-    expect(play.showDoubleConfirm).toBe(false);
-    expect(play.$store.game.turns).toHaveLength(priorTurns.length + 1);
-    expect(play.$store.game.turns[priorTurns.length].totalScore).toBe(0);
-    expect(play.remainingScore.call(play)).toBe(40); // unchanged by the bust
-    expect(play.finished).toBe(false);
-  });
-
   it("a leg win that does not complete the match leaves finished false and opens the next leg", async () => {
     const play = makePlay({
       configSnapshot: bestOf5Config(),

@@ -866,18 +866,6 @@ describe("tuodPlay", () => {
       expect(component.dartsAtDouble).toBeNull();
     });
 
-    it("denyDouble records the same entry as a failed attempt", async () => {
-      const { store, component } = await playing();
-      component.scoreInput.setValue("41");
-      await component.submitVisit.call(component);
-
-      await component.denyDouble.call(component);
-
-      expect(store.turns).toHaveLength(1);
-      expect(store.turns[0].totalScore).toBe(0);
-      expect(component.showDoubleConfirm).toBe(false);
-    });
-
     it("cancelCheckout records nothing and returns the total to the keypad", async () => {
       const { store, component } = await playing();
       component.scoreInput.setValue("41");
