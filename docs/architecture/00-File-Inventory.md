@@ -190,11 +190,11 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20) | canonical | ~2.2k |
+| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20) | canonical | ~3k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 15 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~2k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |
-| `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~7.3k |
+| `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~9.4k |
 | `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 18 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.0k |
