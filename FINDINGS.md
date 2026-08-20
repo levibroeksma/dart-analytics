@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-20
-highest-issued: F10
+highest-issued: F11
 -->
 
 # Findings
@@ -108,3 +108,10 @@ Claim: `applyTuodAttempt` floors the target at 2 on a miss but has no ceiling on
 Evidence: `app/src/modules/game/tuod.engine.module.ts` — `MIN_FINISHABLE_TARGET` is applied only to the failure branch, while the success branch is `state.currentTarget + config.finishBonus` with no bound; `checkoutPathFor` returns null for every one of those targets
 Impact: once the ladder reaches such a target the session can only ever record failures — `submitVisit` skips the checkout dialog when the chart has no route (matching 501's bogey-number behaviour, D217), so the target drops by `missPenalty` each attempt until it re-enters the chart. Reaching 171 needs 13 consecutive checkouts inside 10 rounds or 10 minutes, so it is unreachable in practice today; it becomes reachable the moment `duration_value` or `finish_bonus` is made editable
 Proposed: decide whether the ladder caps at 170 (the chart's ceiling), skips unfinishable targets on the way up, or is left unbounded on the grounds that the duration ends the session first — and record it, since the current behaviour is unstated rather than chosen
+
+### F11 — A capability-seed verification script's row-count assertions had already drifted stale
+Status: Open · Found: 2026-08-20 · Task: claude/tuod-analytics-plan-os3v5f
+Claim: `database/verification/0007_capability_seed_checks.sql` asserted `ruleset_version_capabilities` held exactly 14 rows, with a VALUES list of 14 declared triples to match
+Evidence: `database/verification/0007_capability_seed_checks.sql` (before this task's fix) vs `database/seeds/0007_ruleset_version_capabilities.sql`, which already held 17 rows at the start of this task — three other rulesets' own `ANALYTICS + VISUAL_BOARD` additions had updated the seed without a matching update to this verification script. This task corrected the count to the real 17 → 18 (after adding TUOD's own row) rather than the originally-planned 14 → 15, but left one descriptive comment ("Driven by a fixed 9-row VALUES list, so this can only be short if the VALUES list above was edited down") unchanged — it was already inaccurate before this task (the list has always had far more than 9 rows) and remains so
+Impact: an agent trusting the row-count text (or the "9-row" comment) as ground truth for how many capability pairs exist would undercount before this fix, and the leftover comment can still mislead about the VALUES list's actual size after it
+Proposed: reword or remove the "9-row" comment near `database/verification/0007_capability_seed_checks.sql`'s Step 2 count-check to state what it actually guards (that the checked-triple count matches the declared VALUES list, whatever its current length), rather than naming a specific row count
