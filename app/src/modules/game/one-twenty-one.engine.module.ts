@@ -1,5 +1,6 @@
 import type { OneTwentyOneSnapshot } from "@lib/types";
 import { newClientKey } from "./client-key.module";
+import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -102,6 +103,25 @@ function resolveOneTwentyOneVisit(
 }
 
 /**
+ * Why the reported dart counts are impossible for the visit being recorded, or
+ * null when they fit it. Mirrors 501's guard: only a claimed checkout is
+ * checked against the chart, and the counts are never persisted — a 121 visit
+ * carries no dart rows under quick score.
+ */
+function checkoutDartsRejectionFor(
+  state: OneTwentyOneState,
+  input: OneTwentyOneVisitInput,
+): string | null {
+  if (input.finishedOnDouble !== true) return null;
+  return checkoutDartsRejection(
+    state.remainingInAttempt,
+    input.dartsUsed,
+    input.dartsAtDouble,
+    DARTS_PER_VISIT,
+  );
+}
+
+/**
  * Pure reducer: folds one FINISHED visit onto a `OneTwentyOneState`. A
  * checkout at the cap target (170) wins the session; any other checkout
  * climbs the target by one and opens a fresh 3-visit budget. A visit that
@@ -124,6 +144,10 @@ export function applyOneTwentyOneVisit(
 ): OneTwentyOneState {
   if (!isPlayableVisitScore(input.scoreAttempted)) {
     throw new Error(`Enter a score between 0 and ${MAX_VISIT_SCORE}.`);
+  }
+  const dartsRejection = checkoutDartsRejectionFor(state, input);
+  if (dartsRejection) {
+    throw new Error(dartsRejection);
   }
   if (state.status !== "IN_PROGRESS") {
     throw new Error(
@@ -491,6 +515,7 @@ export class OneTwentyOneEngine implements GameEngine<
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
     if (!isPlayableVisitScore(input.scoreAttempted)) return false;
+    if (checkoutDartsRejectionFor(before, input) !== null) return false;
 
     return applyOneTwentyOneVisit(before, input).status === "WON";
   }

@@ -1,0 +1,123 @@
+---
+/**
+ * Presentational — parent play page owns `showDoubleConfirm` (x-show).
+ *
+ * One dialog for every quick-score checkout: it confirms the finishing dart
+ * landed in a double and, in the same step, collects the visit's shape — how
+ * many darts it took and how many of those were thrown at a double. The
+ * option rows come from the page's `checkoutDartOptions()`, which narrows them
+ * to what the checkout chart allows for the score being finished, so a route
+ * with only one possible answer renders one button rather than three.
+ *
+ * Three-action footer (Confirm / Bust-miss / Cancel) on the `Modal` shell:
+ * `ConfirmDialog` only supports two actions, and a mistyped score needs a way
+ * out that is neither a win nor a bust.
+ *
+ * Page scope must provide `checkoutDartOptions()`, `dartsToFinish`,
+ * `dartsAtDouble`, `confirmDouble()`, `denyDouble()` and `cancelCheckout()`.
+ */
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Button from "@components/forms/Button.astro";
+
+// Data
+const groups = [
+  {
+    id: "darts-at-double",
+    label: "Darts at a double",
+    optionsExpr: "checkoutDartOptions().atDouble",
+    model: "dartsAtDouble",
+  },
+  {
+    id: "darts-to-finish",
+    label: "Darts to finish",
+    optionsExpr: "checkoutDartOptions().toFinish",
+    model: "dartsToFinish",
+  },
+];
+
+// Styles
+const optionClass =
+  "btn btn-secondary w-full rounded-md border px-4 py-3 text-2xl font-bold tabular-nums transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
+---
+
+<Modal
+  titleId="checkout-confirm-title"
+  descriptionId="checkout-confirm-desc"
+  dismissible={false}
+>
+  <h2
+    id="checkout-confirm-title"
+    class="text-lg font-semibold text-foreground"
+  >
+    Finished on a double?
+  </h2>
+  <p
+    id="checkout-confirm-desc"
+    class="mt-2 text-sm text-muted-foreground"
+  >
+    Confirm the last dart landed in a double, or the visit is recorded as a
+    bust.
+  </p>
+
+  {
+    groups.map((group) => (
+      <div class="mt-5">
+        <p
+          id={`${group.id}-label`}
+          class="text-center text-xs font-bold uppercase tracking-wide text-muted-foreground"
+        >
+          {group.label}
+        </p>
+        <div
+          class="mt-2 flex gap-3"
+          role="radiogroup"
+          aria-labelledby={`${group.id}-label`}
+        >
+          <template x-for={`count in ${group.optionsExpr}`}>
+            <button
+              type="button"
+              role="radio"
+              class={optionClass}
+              {...{
+                ":class": `${group.model} === count ? 'border-accent bg-accent-muted text-foreground' : 'border-border'`,
+                ":aria-checked": `${group.model} === count`,
+                ":tabindex": `${group.model} === count ? 0 : -1`,
+                ":aria-label": `count + ' ${group.label.toLowerCase()}'`,
+                "x-text": "count",
+                "x-on:click": `${group.model} = count`,
+              }}
+            />
+          </template>
+        </div>
+      </div>
+    ))
+  }
+
+  <div
+    slot="footer"
+    class="mt-6 flex flex-col gap-3"
+  >
+    <Button
+      variant="primary"
+      title="Confirm"
+      @click="confirmDouble()"
+      :disabled="dartsAtDouble === null || dartsToFinish === null"
+    />
+    <div class="flex gap-3">
+      <Button
+        variant="secondary"
+        class="flex-1"
+        title="Bust / miss"
+        @click="denyDouble()"
+      />
+      <Button
+        variant="ghost"
+        class="flex-1"
+        title="Cancel"
+        @click="cancelCheckout()"
+      />
+    </div>
+  </div>
+</Modal>

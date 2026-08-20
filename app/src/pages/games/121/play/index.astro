@@ -2,7 +2,7 @@
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
-import DoubleCheckoutConfirm from "@components/layout/games/DoubleCheckoutConfirm.astro";
+import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import OneTwentyOneResults from "@components/layout/games/result-modals/OneTwentyOneResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
@@ -37,7 +37,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
       x-show="showDoubleConfirm"
       x-cloak
     >
-      <DoubleCheckoutConfirm />
+      <CheckoutConfirm />
     </div>
 
     {

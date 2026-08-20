@@ -12,10 +12,13 @@ import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.mod
 import type { AroundTheClockEngine } from "@modules/game/around-the-clock.engine.module";
 import type {
   BoardCoordinate,
+  CheckoutDartOptions,
+  DartCount,
   DartObservation,
   EngineFacts,
   MagnifierPlacement,
   StageFact,
+  TuodAttemptInput,
   TurnFact,
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
@@ -238,6 +241,7 @@ export type TuodResultsSnapshot = {
 };
 
 export type TuodPlayContext = {
+  scoreInput: ScoreInputBuffer;
   loading: boolean;
   error: string;
   finished: boolean;
@@ -249,7 +253,11 @@ export type TuodPlayContext = {
   playAgainError: string;
   playAgainLoading: boolean;
   resultsSnapshot: TuodResultsSnapshot | null;
-  pendingAttempt: boolean | null;
+  pendingAttempt: TuodAttemptInput | null;
+  pendingCheckoutScore: number | null;
+  dartsAtDouble: DartCount | null;
+  dartsToFinish: DartCount | null;
+  showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
   $store: PlayStoreContext<TuodSnapshot>;
   engine: TuodEngine | null;
@@ -258,7 +266,12 @@ export type TuodPlayContext = {
   remainingLabel(this: TuodPlayContext): string;
   init(this: TuodPlayContext): Promise<void>;
   retryReconciliation(this: TuodPlayContext): Promise<void>;
-  recordAttempt(this: TuodPlayContext, checkedOut: boolean): Promise<void>;
+  checkoutDartOptions(this: TuodPlayContext): CheckoutDartOptions;
+  submitVisit(this: TuodPlayContext): Promise<void>;
+  confirmDouble(this: TuodPlayContext): Promise<void>;
+  denyDouble(this: TuodPlayContext): Promise<void>;
+  cancelCheckout(this: TuodPlayContext): void;
+  recordAttempt(this: TuodPlayContext, input: TuodAttemptInput): Promise<void>;
   confirmFinish(this: TuodPlayContext): Promise<void>;
   cancelFinish(this: TuodPlayContext): void;
   undoAttempt(this: TuodPlayContext): void;
@@ -438,6 +451,8 @@ export type FiveOhOnePlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: { total: number; legs: number; average: number } | null;
   pendingCheckoutScore: number | null;
+  dartsAtDouble: DartCount | null;
+  dartsToFinish: DartCount | null;
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
@@ -449,6 +464,7 @@ export type FiveOhOnePlayContext = {
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
   average(this: FiveOhOnePlayContext): string;
   previousScore(this: FiveOhOnePlayContext): string;
+  checkoutDartOptions(this: FiveOhOnePlayContext): CheckoutDartOptions;
   init(this: FiveOhOnePlayContext): Promise<void>;
   retryReconciliation(this: FiveOhOnePlayContext): Promise<void>;
   submitVisit(this: FiveOhOnePlayContext): Promise<void>;
@@ -498,6 +514,8 @@ export type OneTwentyOnePlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: OneTwentyOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
+  dartsAtDouble: DartCount | null;
+  dartsToFinish: DartCount | null;
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
@@ -516,6 +534,7 @@ export type OneTwentyOnePlayContext = {
   cancelCheckout(this: OneTwentyOnePlayContext): void;
   confirmSessionFinish(this: OneTwentyOnePlayContext): Promise<void>;
   cancelSessionFinish(this: OneTwentyOnePlayContext): void;
+  checkoutDartOptions(this: OneTwentyOnePlayContext): CheckoutDartOptions;
   recordVisit(
     this: OneTwentyOnePlayContext,
     score: number,

@@ -1,4 +1,5 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
+import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
   applyFiveOhOneVisit,
@@ -22,6 +23,8 @@ import {
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
 import type {
+  CheckoutDartOptions,
+  DartCount,
   DartObservation,
   EngineFacts,
   FiveOhOneState,
@@ -162,6 +165,8 @@ export function fiveOhOnePlay() {
       average: number;
     } | null,
     pendingCheckoutScore: null as number | null,
+    dartsAtDouble: null as DartCount | null,
+    dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
@@ -207,6 +212,22 @@ export function fiveOhOnePlay() {
 
     previousScore(this: FiveOhOnePlayContext): string {
       return previousScoreDisplay(this.$store.game.turns);
+    },
+
+    /**
+     * Which dart counts the checkout confirm may offer. The remaining score
+     * the visit finished is exactly `pendingCheckoutScore` — `submitVisit`
+     * only defers a visit that takes the leg to zero — so the options are read
+     * off the deferred score rather than off `remainingScore()`, which the
+     * dialog is open precisely to avoid moving yet.
+     */
+    checkoutDartOptions(this: FiveOhOnePlayContext): CheckoutDartOptions {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return checkoutDartOptions(
+        this.pendingCheckoutScore ?? 0,
+        maxDartsPerTurn,
+      );
     },
 
     async init(this: FiveOhOnePlayContext) {
@@ -268,8 +289,18 @@ export function fiveOhOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine) return;
+      const darts = finishedOnDouble
+        ? {
+            dartsUsed: this.dartsToFinish ?? undefined,
+            dartsAtDouble: this.dartsAtDouble ?? undefined,
+          }
+        : {};
       try {
-        this.engine.record({ scoreAttempted: score, finishedOnDouble });
+        this.engine.record({
+          scoreAttempted: score,
+          finishedOnDouble,
+          ...darts,
+        });
       } catch (err: unknown) {
         this.error = (err as Error).message;
         this.loading = false;
@@ -277,6 +308,8 @@ export function fiveOhOnePlay() {
       }
       this.error = "";
       this.scoreInput.clear();
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
 
@@ -376,6 +409,9 @@ export function fiveOhOnePlay() {
         this.error = "";
         this.pendingCheckoutScore = score;
         this.scoreInput.clear();
+        const options = this.checkoutDartOptions();
+        this.dartsAtDouble = options.atDouble[0];
+        this.dartsToFinish = options.toFinish[0];
         this.showDoubleConfirm = true;
         this.loading = false;
         return;
@@ -403,6 +439,8 @@ export function fiveOhOnePlay() {
         this.engine.wouldComplete({
           scoreAttempted: score,
           finishedOnDouble: true,
+          dartsUsed: this.dartsToFinish ?? undefined,
+          dartsAtDouble: this.dartsAtDouble ?? undefined,
         })
       ) {
         this.showDoubleConfirm = false;
@@ -432,6 +470,8 @@ export function fiveOhOnePlay() {
       if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
       this.scoreInput.setValue(String(this.pendingCheckoutScore));
       this.pendingCheckoutScore = null;
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.showDoubleConfirm = false;
     },
 
@@ -478,6 +518,8 @@ export function fiveOhOnePlay() {
       if (this.pendingCheckoutScore == null) return;
       this.scoreInput.setValue(String(this.pendingCheckoutScore));
       this.pendingCheckoutScore = null;
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.showMatchFinishConfirm = false;
     },
 

@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-07-31
+updated: 2026-08-20
 -->
 
 # Frontend Agent Guide
@@ -148,6 +148,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix `!utility`; no `-prop-[…]` arbitrary negatives
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] Every `x-show` element also has `x-cloak`
+- [ ] Undo renders as `UndoIcon` + `aria-label`, never a titled text button (`07-Style-Guide.md`)
 - [ ] `bash scripts/check-astro-conventions.sh` passes when touching `.astro` markup
 - [ ] New route classified in `01-Rendering-Strategy.md`
 - [ ] No `@client/api` import in `modules/`

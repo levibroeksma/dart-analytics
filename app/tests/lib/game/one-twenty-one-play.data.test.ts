@@ -78,6 +78,38 @@ describe("oneTwentyOnePlay", () => {
       expect(store.game.turns).toHaveLength(1);
     });
 
+    it("offers the counts the finished score's route allows, preselecting the shortest", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine!.record({ scoreAttempted: 80 });
+      store.game.recordFacts(play.engine!.facts());
+      play.scoreInput.setValue("41");
+
+      await play.submitVisit();
+
+      expect(play.checkoutDartOptions.call(play)).toEqual({
+        toFinish: [2, 3],
+        atDouble: [1, 2],
+      });
+      expect(play.dartsToFinish).toBe(2);
+      expect(play.dartsAtDouble).toBe(1);
+    });
+
+    it("surfaces the engine's rejection when the counts cannot be true", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine!.record({ scoreAttempted: 80 });
+      store.game.recordFacts(play.engine!.facts());
+      play.scoreInput.setValue("41");
+      await play.submitVisit();
+      play.dartsToFinish = 1;
+
+      await play.confirmDouble();
+
+      expect(store.game.turns).toHaveLength(1);
+      expect(play.error).toMatch(/at least 2 darts/);
+    });
+
     it("confirmDouble records a checkout that only climbs the ladder immediately", async () => {
       const play = createPlay();
       play.engine = oneTwentyOneEngineFactory.create({}) as any;

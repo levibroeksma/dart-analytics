@@ -3,6 +3,7 @@ export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import TenUpOneDownResults from "@components/layout/games/result-modals/TenUpOneDownResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
@@ -28,6 +29,18 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
       x-show="!finished && hasActiveSession"
       x-cloak
     />
+
+    {
+      /* Checkout confirm — a typed total that matches the target is only a
+      success when the finishing dart landed in a double, which the number
+      alone cannot say */
+    }
+    <div
+      x-show="showDoubleConfirm"
+      x-cloak
+    >
+      <CheckoutConfirm />
+    </div>
 
     {/* Finish confirm (before results) */}
     <div

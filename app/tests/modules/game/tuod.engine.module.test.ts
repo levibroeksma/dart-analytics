@@ -454,3 +454,74 @@ describe("TuodEngine completion", () => {
     expect(engine.isComplete()).toBe(false);
   });
 });
+
+describe("TUOD checkout dart counts", () => {
+  it("rejects a checkout claiming fewer darts than the target's route needs", () => {
+    const engine = tuodEngineFactory.create(config());
+    expect(() =>
+      engine.record({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: 1,
+      }),
+    ).toThrow(/at least 2 darts/);
+  });
+
+  it("rejects more darts at a double than the attempt used", () => {
+    const engine = tuodEngineFactory.create(config());
+    expect(() =>
+      engine.record({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: 2,
+        dartsAtDouble: 3,
+      }),
+    ).toThrow(/at a double/);
+  });
+
+  it("rejects more darts than the ruleset allows", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      maxDartsPerTurn: 2,
+    });
+    expect(() =>
+      engine.record({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: 3,
+      }),
+    ).toThrow(/at most 2 darts/);
+  });
+
+  it("leaves the fact log untouched when a claim is rejected", () => {
+    const engine = tuodEngineFactory.create(config());
+    expect(() =>
+      engine.record({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: 1,
+      }),
+    ).toThrow();
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("checks the counts against the target the attempt is thrown at", () => {
+    const engine = tuodEngineFactory.create(config());
+    engine.record(CHECKOUT);
+    expect(engine.state().currentTarget).toBe(51);
+    expect(() =>
+      engine.record({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: 1,
+      }),
+    ).toThrow(/Checking out 51/);
+  });
+
+  it("never checks the counts on a failed attempt", () => {
+    const engine = tuodEngineFactory.create(config());
+    expect(() =>
+      engine.record({ checkedOut: false, dartsUsed: 1 }),
+    ).not.toThrow();
+  });
+});

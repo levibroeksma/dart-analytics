@@ -1,5 +1,6 @@
 import type { FiveOhOneSnapshot } from "@lib/types";
 import { newClientKey } from "./client-key.module";
+import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -105,6 +106,26 @@ function resolveFiveOhOneVisit(
 }
 
 /**
+ * Why the reported dart counts are impossible for the visit that is being
+ * recorded, or null when they are consistent with it. Only a claimed checkout
+ * is checked: on any other visit the counts describe nothing the checkout
+ * chart can contradict, so they are carried without comment.
+ */
+function checkoutDartsRejectionFor(
+  state: FiveOhOneState,
+  input: FiveOhOneVisitInput,
+  config: FiveOhOneSnapshot,
+): string | null {
+  if (input.finishedOnDouble !== true) return null;
+  return checkoutDartsRejection(
+    state.remainingScore,
+    input.dartsUsed,
+    input.dartsAtDouble,
+    config.maxDartsPerTurn,
+  );
+}
+
+/**
  * Pure reducer: folds one visit onto a `FiveOhOneState`. A won leg increments
  * `legsWon` and restarts the next leg at `config.startingScore`; the session
  * only reaches `WON` once `legsWon` reaches `config.legsToWin`.
@@ -122,6 +143,10 @@ export function applyFiveOhOneVisit(
 ): FiveOhOneState {
   if (!isPlayableVisitScore(input.scoreAttempted, config.maxVisitScore)) {
     throw new Error(`Enter a score between 0 and ${config.maxVisitScore}.`);
+  }
+  const dartsRejection = checkoutDartsRejectionFor(state, input, config);
+  if (dartsRejection) {
+    throw new Error(dartsRejection);
   }
   if (state.status !== "IN_PROGRESS") {
     throw new Error(
@@ -490,7 +515,8 @@ export class FiveOhOneEngine implements GameEngine<
    * Answers the finish-confirm gate without touching the fact log. Only the
    * checkout that takes `legsWon` to `legsToWin` completes the session — a
    * checkout that merely wins a leg does not — and a visit `record()` would
-   * reject never completes it either.
+   * reject never completes it either, dart counts the checkout chart
+   * contradicts included: this predicate answers, it never throws.
    */
   wouldComplete(input: FiveOhOneInput): boolean {
     if (isDartObservation(input)) {
@@ -506,6 +532,9 @@ export class FiveOhOneEngine implements GameEngine<
 
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
+    if (checkoutDartsRejectionFor(before, input, this.config) !== null) {
+      return false;
+    }
 
     return applyFiveOhOneVisit(before, input, this.config).status === "WON";
   }

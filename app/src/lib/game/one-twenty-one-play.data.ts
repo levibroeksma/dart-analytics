@@ -5,6 +5,7 @@ import {
   initialOneTwentyOneState,
 } from "@modules/game/one-twenty-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
@@ -18,6 +19,8 @@ import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
+  CheckoutDartOptions,
+  DartCount,
   DartObservation,
   EngineFacts,
   OneTwentyOneState,
@@ -145,6 +148,8 @@ export function oneTwentyOnePlay() {
       average: number;
     } | null,
     pendingCheckoutScore: null as number | null,
+    dartsAtDouble: null as DartCount | null,
+    dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
@@ -232,6 +237,17 @@ export function oneTwentyOnePlay() {
     },
 
     /**
+     * Which dart counts the checkout confirm may offer. The remaining score
+     * the visit finished is exactly `pendingCheckoutScore` — `submitVisit`
+     * only defers a visit that takes the attempt to zero — so the options are
+     * read off the deferred score rather than off `remainingInAttempt()`,
+     * which the dialog is open precisely to avoid moving yet.
+     */
+    checkoutDartOptions(this: OneTwentyOnePlayContext): CheckoutDartOptions {
+      return checkoutDartOptions(this.pendingCheckoutScore ?? 0, 3);
+    },
+
+    /**
      * Folds one visit into the engine's fact log, then checks for a session
      * win. Shared by the plain-reduction path (`submitVisit`) and both
      * double-confirm resolutions (`confirmDouble`/`denyDouble`) so the
@@ -243,8 +259,18 @@ export function oneTwentyOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine) return;
+      const darts = finishedOnDouble
+        ? {
+            dartsUsed: this.dartsToFinish ?? undefined,
+            dartsAtDouble: this.dartsAtDouble ?? undefined,
+          }
+        : {};
       try {
-        this.engine.record({ scoreAttempted: score, finishedOnDouble });
+        this.engine.record({
+          scoreAttempted: score,
+          finishedOnDouble,
+          ...darts,
+        });
       } catch (err: unknown) {
         this.error = (err as Error).message;
         this.loading = false;
@@ -252,6 +278,8 @@ export function oneTwentyOnePlay() {
       }
       this.error = "";
       this.scoreInput.clear();
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
 
@@ -346,6 +374,9 @@ export function oneTwentyOnePlay() {
         this.error = "";
         this.pendingCheckoutScore = score;
         this.scoreInput.clear();
+        const options = this.checkoutDartOptions();
+        this.dartsAtDouble = options.atDouble[0];
+        this.dartsToFinish = options.toFinish[0];
         this.showDoubleConfirm = true;
         this.loading = false;
         return;
@@ -371,6 +402,8 @@ export function oneTwentyOnePlay() {
         this.engine.wouldComplete({
           scoreAttempted: score,
           finishedOnDouble: true,
+          dartsUsed: this.dartsToFinish ?? undefined,
+          dartsAtDouble: this.dartsAtDouble ?? undefined,
         })
       ) {
         this.showDoubleConfirm = false;
@@ -395,6 +428,8 @@ export function oneTwentyOnePlay() {
       if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
       this.scoreInput.setValue(String(this.pendingCheckoutScore));
       this.pendingCheckoutScore = null;
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.showDoubleConfirm = false;
     },
 
@@ -441,6 +476,8 @@ export function oneTwentyOnePlay() {
       if (this.pendingCheckoutScore == null) return;
       this.scoreInput.setValue(String(this.pendingCheckoutScore));
       this.pendingCheckoutScore = null;
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.showSessionFinishConfirm = false;
     },
 
