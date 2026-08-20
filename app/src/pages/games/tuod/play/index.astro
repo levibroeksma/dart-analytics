@@ -1,0 +1,51 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import TenUpOneDownResults from "@components/layout/games/result-modals/TenUpOneDownResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Ten Up One Down — Play"
+  gameTitle="Ten Up One Down"
+>
+  <div
+    class="flex flex-col flex-1 min-h-0 p-3"
+    x-data="tuodPlay()"
+    @confirm-exit.window="abandonAndExit()"
+  >
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/tuod/setup" />
+
+    {/* Gameplay view */}
+    <TenUpOneDown
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Finish confirm (before results) */}
+    <div
+      x-show="showFinishConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="finish-confirm-title"
+        title="Finish session?"
+        description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
+        confirmLabel="Confirm"
+        onCancel="cancelFinish()"
+        onConfirm="confirmFinish()"
+        dismissible={false}
+      />
+    </div>
+
+    {/* Results modal (overlay) */}
+    <TenUpOneDownResults />
+  </div>
+</GameLayout>

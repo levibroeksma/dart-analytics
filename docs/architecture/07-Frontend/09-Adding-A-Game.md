@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-08-19
+updated: 2026-08-20
 -->
 
 # Adding a Game
@@ -35,7 +35,7 @@ The ruleset version key follows the route slug, quoted where it must be:
 
 Rows marked **shared** are files that already exist and that every game edits.
 Rows marked *engine-only skips* are the ones a ruleset with an engine but no
-page (`TUOD_V1`) legitimately has none of.
+page legitimately has none of.
 
 ### `app/src/lib/game/`
 
@@ -51,7 +51,7 @@ page (`TUOD_V1`) legitimately has none of.
 | ---- | --------------- |
 | `types.ts` | **shared** — the game's Zod config schema |
 | `capabilities.ts` | **shared** — the ruleset key and its capture/input mode pairs |
-| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves, which is why TUOD is absent despite declaring capabilities. |
+| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves. |
 
 ### `app/src/modules/game/`
 
@@ -139,10 +139,13 @@ the preset configuration before `toSnapshot` **and** sent as `createSession`'s
 
 `label` is copy, not a key — it reads `Bob's 27`, not `BOBS27`.
 
-**Opted out: `501` and Score Training.** Both replace `start` wholesale —
-preset selection, leg counts, a custom starting score with clamping. Routing
-them through the factory would need one hook per branch, which is the factory
-dissolving into its callers. They keep hand-written controllers and
+**Opted out: `501`, Score Training, and TUOD.** `501` and Score Training
+replace `start` wholesale — preset selection, leg counts, a custom starting
+score with clamping. Routing them through the factory would need one hook per
+branch, which is the factory dissolving into its callers. TUOD opts out for a
+different reason: the factory assumes exactly one seeded preset per game
+(`this.presets[0]`), and TUOD seeds two — 10 Rounds and 10 Minutes — the
+player must pick between. All three keep hand-written controllers and
 hand-written `*SetupContext` types. This is a decision, not an oversight: do
 not migrate them, and do not conclude from them that the factory is optional
 for a new preset-driven game.

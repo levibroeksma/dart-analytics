@@ -1,0 +1,45 @@
+---
+// Components
+import Toggle from "./Toggle.astro";
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const durationOpts = [
+  { value: "ROUNDS", label: "10 Rounds" },
+  { value: "MINUTES", label: "10 Minutes" },
+];
+
+const infoSection = {
+  title: "Ten Up One Down rules",
+  description:
+    "Start at 41. One visit (3 darts) to check out on a double. Check out and the next target climbs +10; miss and it drops -1, floored at 2 — the lowest target any double can finish.",
+};
+---
+
+<SetupShell title="Ten Up One Down">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={durationOpts}
+      x-model="durationType"
+      class="w-full"
+    />
+  </SettingSectionShell>
+
+  <p
+    class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+</SetupShell>
