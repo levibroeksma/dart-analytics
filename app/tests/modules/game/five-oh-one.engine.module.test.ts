@@ -1201,3 +1201,45 @@ describe("FiveOhOneEngine.record — refusing a dart into a finished match", () 
     expect(JSON.stringify(engine.facts())).toBe(before);
   });
 });
+
+describe("501 checkout dart counts", () => {
+  it("rejects a checkout claiming fewer darts than the route needs", () => {
+    const engine = fiveOhOneEngineFactory.create({
+      ...config(),
+      startingScore: 41,
+    });
+    expect(() =>
+      engine.record({
+        scoreAttempted: 41,
+        finishedOnDouble: true,
+        dartsUsed: 1,
+      }),
+    ).toThrow(/at least 2 darts/);
+  });
+
+  it("accepts a checkout whose dart counts fit the route", () => {
+    const engine = fiveOhOneEngineFactory.create({
+      ...config(),
+      startingScore: 41,
+    });
+    expect(() =>
+      engine.record({
+        scoreAttempted: 41,
+        finishedOnDouble: true,
+        dartsUsed: 2,
+        dartsAtDouble: 1,
+      }),
+    ).not.toThrow();
+  });
+
+  it("ignores dart counts on a visit that did not check out", () => {
+    const engine = fiveOhOneEngineFactory.create(config());
+    expect(() =>
+      engine.record({
+        scoreAttempted: 60,
+        finishedOnDouble: false,
+        dartsUsed: 1,
+      }),
+    ).not.toThrow();
+  });
+});

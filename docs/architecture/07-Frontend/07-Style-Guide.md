@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-07-31
+updated: 2026-08-20
 -->
 
 # Frontend Style Guide
@@ -123,6 +123,7 @@ Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical
 - Destructive: `btn btn-error`
 - Always set `type="button"` unless the button submits a form — `Button.astro` defaults `type` to `"button"`
 - Icon-only buttons need `aria-label`; icons typically `size-6 text-muted-foreground`
+- **Undo is always the icon, never a text label.** Every undo control renders `UndoIcon` with an `aria-label` saying what it undoes (`Undo last visit`, `Undo dart`) — `ScoreInput.astro`, `BoardInputPanel.astro`, `SinglesRecreationalInput.astro`, `DoublesPathRecreationalInput.astro`. A game whose play screen wants undo reaches for the input component that already carries it rather than adding a titled `Button` beside it; a bare `title="Undo"` button is the drift this rule exists to catch.
 - Disabled: `.btn:disabled` applies `opacity-40` + `cursor-not-allowed`
 - Never `rounded-full` on a primary button — `.btn`'s `rounded-md` is the ceiling
 

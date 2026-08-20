@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-20
-highest-issued: F9
+highest-issued: F10
 -->
 
 # Findings
@@ -101,3 +101,10 @@ Claim: `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list, and a p
 Evidence: `scripts/check-game-wiring.sh`'s "3a"/"3b" checks require a ruleset to be fully wired (both setup/play data modules, both pages, both Alpine registrations, and its games-visibility card) or fully absent — "half a row is a failure whichever half it fell on" — in the state of every commit, not just the final one; TUOD's frontend plan (`docs/superpowers/plans/2026-08-20-tuod-frontend.md`) called for one commit per task, and the first task's commit (setup controller alone) failed the pre-commit `game-wiring` hook because `app/src/lib/game/tuod-setup.data.ts` existed while `app/src/lib/game/rulesets/games-visibility.ts` still had no `TUOD_V1` card
 Impact: an agent following either the doc's task breakdown or a plan written from it hits a rejected pre-commit hook on the first task, discovers the constraint only by trial, and must fall back to committing the whole frontend fan-out in one commit instead of the plan's intended per-task history
 Proposed: note the atomicity requirement in `09-Adding-A-Game.md` (e.g., "land all six trees in one commit, or hold every task's changes uncommitted until wiring lands") so a future plan is written commit-shape-aware from the start
+
+### F10 — TUOD's ladder can climb onto a target no double can finish
+Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
+Claim: `applyTuodAttempt` floors the target at 2 on a miss but has no ceiling on a success, so a run of checkouts walks the ladder past 170 and onto bogey numbers on the way (41, 51, … 161, 171; a penalty can land it on 159, 162, 163, 165, 166, 168, 169)
+Evidence: `app/src/modules/game/tuod.engine.module.ts` — `MIN_FINISHABLE_TARGET` is applied only to the failure branch, while the success branch is `state.currentTarget + config.finishBonus` with no bound; `checkoutPathFor` returns null for every one of those targets
+Impact: once the ladder reaches such a target the session can only ever record failures — `submitVisit` skips the checkout dialog when the chart has no route (matching 501's bogey-number behaviour, D217), so the target drops by `missPenalty` each attempt until it re-enters the chart. Reaching 171 needs 13 consecutive checkouts inside 10 rounds or 10 minutes, so it is unreachable in practice today; it becomes reachable the moment `duration_value` or `finish_bonus` is made editable
+Proposed: decide whether the ladder caps at 170 (the chart's ceiling), skips unfinishable targets on the way up, or is left unbounded on the grounds that the duration ends the session first — and record it, since the current behaviour is unstated rather than chosen

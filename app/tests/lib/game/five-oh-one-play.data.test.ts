@@ -977,3 +977,62 @@ describe("recordDart — an unseen dart", () => {
     expect(play.remainingScore.call(play)).toBe(501);
   });
 });
+
+describe("checkout dart counts", () => {
+  it("offers the counts the finished score's route allows, preselecting the shortest", async () => {
+    const play = makePlay({ turns: turnsReaching(41) });
+    await play.init.call(play);
+    play.scoreInput.setValue("41");
+
+    await play.submitVisit.call(play);
+
+    expect(play.checkoutDartOptions.call(play)).toEqual({
+      toFinish: [2, 3],
+      atDouble: [1, 2],
+    });
+    expect(play.dartsToFinish).toBe(2);
+    expect(play.dartsAtDouble).toBe(1);
+  });
+
+  it("clears the counts once the checkout is recorded", async () => {
+    const play = makePlay({
+      configSnapshot: bestOf5Config(),
+      turns: turnsReaching(40),
+    });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+
+    await play.confirmDouble.call(play);
+
+    expect(play.dartsToFinish).toBeNull();
+    expect(play.dartsAtDouble).toBeNull();
+  });
+
+  it("surfaces the engine's rejection when the counts cannot be true", async () => {
+    const priorTurns = turnsReaching(41);
+    const play = makePlay({ turns: priorTurns });
+    await play.init.call(play);
+    play.scoreInput.setValue("41");
+    await play.submitVisit.call(play);
+    play.dartsToFinish = 1;
+
+    await play.confirmDouble.call(play);
+
+    expect(play.$store.game.turns).toHaveLength(priorTurns.length);
+    expect(play.error).toMatch(/at least 2 darts/);
+  });
+
+  it("cancelCheckout clears the counts along with the pending score", async () => {
+    const play = makePlay({ turns: turnsReaching(40) });
+    await play.init.call(play);
+    play.scoreInput.setValue("40");
+    await play.submitVisit.call(play);
+
+    play.cancelCheckout.call(play);
+
+    expect(play.dartsToFinish).toBeNull();
+    expect(play.dartsAtDouble).toBeNull();
+    expect(play.scoreInput.value).toBe("40");
+  });
+});

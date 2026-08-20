@@ -624,3 +624,28 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
     expect(engine.facts().turns).toHaveLength(0);
   });
 });
+
+describe("121 checkout dart counts", () => {
+  it("rejects a checkout claiming fewer darts than the route needs", () => {
+    const engine = oneTwentyOneEngineFactory.create({});
+    expect(() =>
+      engine.record({
+        scoreAttempted: 121,
+        finishedOnDouble: true,
+        dartsUsed: 2,
+      }),
+    ).toThrow(/at least 3 darts/);
+  });
+
+  it("accepts a checkout whose dart counts fit the route", () => {
+    const engine = oneTwentyOneEngineFactory.create({});
+    expect(() =>
+      engine.record({
+        scoreAttempted: 121,
+        finishedOnDouble: true,
+        dartsUsed: 3,
+        dartsAtDouble: 1,
+      }),
+    ).not.toThrow();
+  });
+});

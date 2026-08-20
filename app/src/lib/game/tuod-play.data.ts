@@ -1,4 +1,7 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
+import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
@@ -10,7 +13,13 @@ import {
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
 import type { RulesetVersionKey } from "@lib/types";
-import type { EngineFacts, TuodAttemptInput, TurnFact } from "@modules/types";
+import type {
+  CheckoutDartOptions,
+  DartCount,
+  EngineFacts,
+  TuodAttemptInput,
+  TurnFact,
+} from "@modules/types";
 import type { TuodPlayContext, TuodResultsSnapshot } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -135,7 +144,12 @@ export function tuodPlay() {
     playAgainError: "",
     playAgainLoading: false,
     resultsSnapshot: null as TuodResultsSnapshot | null,
-    pendingAttempt: null as boolean | null,
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    pendingAttempt: null as TuodAttemptInput | null,
+    pendingCheckoutScore: null as number | null,
+    dartsAtDouble: null as DartCount | null,
+    dartsToFinish: null as DartCount | null,
+    showDoubleConfirm: false,
     showFinishConfirm: false,
     engine: null as TuodEngine | null,
     timer: null as SegmentTimer | null,
@@ -146,6 +160,22 @@ export function tuodPlay() {
 
     remainingLabel(this: TuodPlayContext): string {
       return formatRemaining(this.$store.game.timerRemainingMs);
+    },
+
+    /**
+     * Which dart counts the checkout confirm may offer. The score being
+     * finished is the target the attempt was thrown at, held in
+     * `pendingCheckoutScore` while the dialog is open — the ladder has not
+     * moved yet, so reading it back off the engine would give the same
+     * number, but only until the attempt is recorded.
+     */
+    checkoutDartOptions(this: TuodPlayContext): CheckoutDartOptions {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return checkoutDartOptions(
+        this.pendingCheckoutScore ?? 0,
+        maxDartsPerTurn,
+      );
     },
 
     /**
@@ -217,23 +247,92 @@ export function tuodPlay() {
     },
 
     /**
-     * Records one attempt directly — there is no typed score to confirm, so
-     * the only gate is `wouldComplete`, which defers a session-ending attempt
-     * to the finish confirm exactly as every other quick-score game does.
+     * Submits the typed visit total. TUOD's only meaningful total is the
+     * target itself — that is what a checkout scores — so an entry that
+     * matches the target opens the checkout confirm and every other entry is
+     * a failed attempt, recorded straight away. A target the checkout chart
+     * has no route for can never be checked out, so it skips the dialog the
+     * same way 501 skips it for a bogey number.
+     */
+    async submitVisit(this: TuodPlayContext): Promise<void> {
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showDoubleConfirm ||
+        this.showFinishConfirm
+      )
+        return;
+
+      const score = Number(this.scoreInput.value);
+      const target = this.engine.state().currentTarget;
+
+      if (score === target && checkoutPathFor(target) !== null) {
+        this.error = "";
+        this.pendingCheckoutScore = score;
+        this.scoreInput.clear();
+        const options = this.checkoutDartOptions();
+        this.dartsAtDouble = options.atDouble[0];
+        this.dartsToFinish = options.toFinish[0];
+        this.showDoubleConfirm = true;
+        return;
+      }
+
+      await this.recordAttempt({ checkedOut: false });
+    },
+
+    /** "Confirm" on the checkout dialog: a checkout finished on a double. */
+    async confirmDouble(this: TuodPlayContext): Promise<void> {
+      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
+      this.pendingCheckoutScore = null;
+      this.showDoubleConfirm = false;
+      await this.recordAttempt({
+        checkedOut: true,
+        finishedOnDouble: true,
+        dartsUsed: this.dartsToFinish ?? undefined,
+        dartsAtDouble: this.dartsAtDouble ?? undefined,
+      });
+    },
+
+    /**
+     * "Bust / miss" on the checkout dialog. A bust is reported exactly as any
+     * other failed attempt: one visit per attempt, so a voided visit ends it.
+     */
+    async denyDouble(this: TuodPlayContext): Promise<void> {
+      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
+      this.pendingCheckoutScore = null;
+      this.showDoubleConfirm = false;
+      await this.recordAttempt({ checkedOut: false });
+    },
+
+    /**
+     * Cancel on the checkout dialog: nothing is recorded and the typed total
+     * goes back into the keypad, so a mistyped entry is not lost.
+     */
+    cancelCheckout(this: TuodPlayContext) {
+      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
+      this.scoreInput.setValue(String(this.pendingCheckoutScore));
+      this.pendingCheckoutScore = null;
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
+      this.showDoubleConfirm = false;
+    },
+
+    /**
+     * Folds one resolved attempt into the engine's fact log. Shared by the
+     * plain-failure path (`submitVisit`) and both checkout resolutions
+     * (`confirmDouble`/`denyDouble`) so the record → mirror sequence exists
+     * exactly once. `wouldComplete` defers a session-ending attempt to the
+     * finish confirm exactly as every other quick-score game does.
      */
     async recordAttempt(
       this: TuodPlayContext,
-      checkedOut: boolean,
+      input: TuodAttemptInput,
     ): Promise<void> {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
-      const input: TuodAttemptInput = {
-        checkedOut,
-        finishedOnDouble: checkedOut,
-      };
 
       if (this.engine.wouldComplete(input)) {
         this.error = "";
-        this.pendingAttempt = checkedOut;
+        this.pendingAttempt = input;
         this.showFinishConfirm = true;
         return;
       }
@@ -246,6 +345,9 @@ export function tuodPlay() {
       }
 
       this.error = "";
+      this.scoreInput.clear();
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.$store.game.recordFacts(this.engine.facts());
     },
 
@@ -253,14 +355,14 @@ export function tuodPlay() {
       if (!this.engine || this.finished || !this.showFinishConfirm) return;
       if (this.pendingAttempt === null) return;
 
-      const input: TuodAttemptInput = {
-        checkedOut: this.pendingAttempt,
-        finishedOnDouble: this.pendingAttempt,
-      };
+      const input = this.pendingAttempt;
       this.pendingAttempt = null;
       this.showFinishConfirm = false;
 
       this.engine.record(input);
+      this.scoreInput.clear();
+      this.dartsAtDouble = null;
+      this.dartsToFinish = null;
       this.$store.game.recordFacts(this.engine.facts());
 
       this.finished = true;
@@ -275,10 +377,12 @@ export function tuodPlay() {
     },
 
     undoAttempt(this: TuodPlayContext) {
-      if (this.finished || this.showFinishConfirm) return;
+      if (this.finished || this.showDoubleConfirm || this.showFinishConfirm)
+        return;
       if (!this.engine || !this.engine.undo()) return;
 
       this.$store.game.recordFacts(this.engine.facts());
+      this.scoreInput.clear();
       this.error = "";
     },
 

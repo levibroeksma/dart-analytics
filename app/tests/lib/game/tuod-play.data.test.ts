@@ -38,7 +38,22 @@ import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot } from "@lib/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import type {
+  EngineFacts,
+  StageFact,
+  TuodAttemptInput,
+  TurnFact,
+} from "@modules/types";
+
+/** A checkout the ladder's opening target (41) can actually be finished in. */
+const CHECKOUT: TuodAttemptInput = {
+  checkedOut: true,
+  finishedOnDouble: true,
+  dartsUsed: 2,
+  dartsAtDouble: 1,
+};
+
+const MISS: TuodAttemptInput = { checkedOut: false };
 
 const BLOCK: StageFact = {
   clientKey: "block-1",
@@ -153,7 +168,7 @@ describe("tuodPlay", () => {
       $store: { game: store, settings: settingsStub() },
     };
     await component.init.call(component);
-    await component.recordAttempt.call(component, true);
+    await component.recordAttempt.call(component, CHECKOUT);
 
     expect(store.turns).toHaveLength(1);
     expect(store.turns[0].totalScore).toBe(41);
@@ -166,7 +181,7 @@ describe("tuodPlay", () => {
       $store: { game: store, settings: settingsStub() },
     };
     await component.init.call(component);
-    await component.recordAttempt.call(component, false);
+    await component.recordAttempt.call(component, MISS);
 
     expect(store.turns).toHaveLength(1);
     expect(store.turns[0].totalScore).toBe(0);
@@ -181,7 +196,7 @@ describe("tuodPlay", () => {
     await component.init.call(component);
     expect(component.currentTargetLabel.call(component)).toBe("41");
 
-    await component.recordAttempt.call(component, true);
+    await component.recordAttempt.call(component, CHECKOUT);
 
     expect(component.currentTargetLabel.call(component)).toBe("51");
   });
@@ -201,8 +216,8 @@ describe("tuodPlay", () => {
       $store: { game: store, settings: settingsStub() },
     };
     await component.init.call(component);
-    await component.recordAttempt.call(component, true); // attempt 1
-    await component.recordAttempt.call(component, false); // would complete
+    await component.recordAttempt.call(component, CHECKOUT); // attempt 1
+    await component.recordAttempt.call(component, MISS); // would complete
 
     expect(component.showFinishConfirm).toBe(true);
     expect(appendBatch).not.toHaveBeenCalled();
@@ -225,11 +240,11 @@ describe("tuodPlay", () => {
       };
       await component.init.call(component);
 
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
 
       expect(store.turns).toHaveLength(0);
       expect(component.showFinishConfirm).toBe(true);
-      expect(component.pendingAttempt).toBe(true);
+      expect(component.pendingAttempt).toEqual(CHECKOUT);
       expect(component.finished).toBe(false);
       expect(appendBatch).not.toHaveBeenCalled();
     });
@@ -241,7 +256,7 @@ describe("tuodPlay", () => {
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
 
       component.cancelFinish();
 
@@ -266,7 +281,7 @@ describe("tuodPlay", () => {
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
 
       await component.confirmFinish.call(component);
 
@@ -423,7 +438,7 @@ describe("tuodPlay", () => {
 
       (segmentTimerInstances[0].options.onComplete as () => void)();
 
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
 
       expect(component.showFinishConfirm).toBe(true);
 
@@ -474,7 +489,7 @@ describe("tuodPlay", () => {
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
       expect(store.turns).toHaveLength(1);
 
       component.undoAttempt();
@@ -507,7 +522,7 @@ describe("tuodPlay", () => {
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      await component.recordAttempt.call(component, true);
+      await component.recordAttempt.call(component, CHECKOUT);
       expect(component.showFinishConfirm).toBe(true);
 
       component.undoAttempt();
@@ -783,6 +798,120 @@ describe("tuodPlay", () => {
       expect(completeSession).not.toHaveBeenCalled();
       expect(play.$store.game.reset).toHaveBeenCalled();
       expect(locationSpy.href).toBe("/games");
+    });
+  });
+
+  describe("quick score entry", () => {
+    async function playing(config = rounds(5)) {
+      const store = gameStub({ configSnapshot: config });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      return { store, component };
+    }
+
+    it("opens the checkout confirm when the typed total matches the target", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("41");
+
+      await component.submitVisit.call(component);
+
+      expect(component.showDoubleConfirm).toBe(true);
+      expect(component.pendingCheckoutScore).toBe(41);
+      expect(component.scoreInput.value).toBe("");
+      expect(store.turns).toHaveLength(0);
+    });
+
+    it("preselects the shortest route's dart counts", async () => {
+      const { component } = await playing();
+      component.scoreInput.setValue("41");
+
+      await component.submitVisit.call(component);
+
+      expect(component.checkoutDartOptions.call(component)).toEqual({
+        toFinish: [2, 3],
+        atDouble: [1, 2],
+      });
+      expect(component.dartsToFinish).toBe(2);
+      expect(component.dartsAtDouble).toBe(1);
+    });
+
+    it("records any other total as a failed attempt without asking", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("26");
+
+      await component.submitVisit.call(component);
+
+      expect(component.showDoubleConfirm).toBe(false);
+      expect(store.turns).toHaveLength(1);
+      expect(store.turns[0].totalScore).toBe(0);
+      expect(component.scoreInput.value).toBe("");
+    });
+
+    it("confirmDouble records the checkout with the chosen dart counts", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("41");
+      await component.submitVisit.call(component);
+      component.dartsToFinish = 3;
+      component.dartsAtDouble = 2;
+
+      await component.confirmDouble.call(component);
+
+      expect(store.turns).toHaveLength(1);
+      expect(store.turns[0].totalScore).toBe(41);
+      expect(component.showDoubleConfirm).toBe(false);
+      expect(component.dartsToFinish).toBeNull();
+      expect(component.dartsAtDouble).toBeNull();
+    });
+
+    it("denyDouble records the same entry as a failed attempt", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("41");
+      await component.submitVisit.call(component);
+
+      await component.denyDouble.call(component);
+
+      expect(store.turns).toHaveLength(1);
+      expect(store.turns[0].totalScore).toBe(0);
+      expect(component.showDoubleConfirm).toBe(false);
+    });
+
+    it("cancelCheckout records nothing and returns the total to the keypad", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("41");
+      await component.submitVisit.call(component);
+
+      component.cancelCheckout.call(component);
+
+      expect(store.turns).toHaveLength(0);
+      expect(component.showDoubleConfirm).toBe(false);
+      expect(component.scoreInput.value).toBe("41");
+      expect(component.dartsToFinish).toBeNull();
+    });
+
+    it("surfaces the engine's rejection when the dart counts cannot be true", async () => {
+      const { store, component } = await playing();
+      component.scoreInput.setValue("41");
+      await component.submitVisit.call(component);
+      component.dartsToFinish = 1;
+
+      await component.confirmDouble.call(component);
+
+      expect(store.turns).toHaveLength(0);
+      expect(component.error).toMatch(/at least 2 darts/);
+    });
+
+    it("undo clears a half-typed total along with the last attempt", async () => {
+      const { store, component } = await playing();
+      await component.recordAttempt.call(component, MISS);
+      component.scoreInput.setValue("12");
+
+      component.undoAttempt.call(component);
+
+      expect(store.turns).toHaveLength(0);
+      expect(component.scoreInput.value).toBe("");
     });
   });
 });

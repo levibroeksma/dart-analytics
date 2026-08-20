@@ -6,8 +6,8 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
-import Button from "@components/forms/Button.astro";
 ---
 
 <div
@@ -61,27 +61,15 @@ import Button from "@components/forms/Button.astro";
   >
   </p>
 
-  <div class="flex gap-3 px-3">
-    <Button
-      variant="primary"
-      class="flex-1"
-      title="Checked out"
-      @click="recordAttempt(true)"
-      :disabled="showFinishConfirm || finished"
-    />
-    <Button
-      variant="secondary"
-      class="flex-1"
-      title="Missed"
-      @click="recordAttempt(false)"
-      :disabled="showFinishConfirm || finished"
-    />
-  </div>
-  <Button
-    variant="ghost"
-    class="mx-3"
-    title="Undo"
-    @click="undoAttempt()"
-    :disabled="!$store.game.turns.length || showFinishConfirm || finished"
+  <ScoreInput
+    value="scoreInput.value"
+    digitHandler="scoreInput.appendDigit"
+    onDelete="scoreInput.deleteLast($event)"
+    onSubmit="submitVisit()"
+    submitDisabled="!scoreInput.value || showDoubleConfirm || showFinishConfirm || finished"
+    padDisabled="showDoubleConfirm || showFinishConfirm || finished"
+    undoClick="undoAttempt()"
+    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showFinishConfirm || finished"
+    class="px-3"
   />
 </div>

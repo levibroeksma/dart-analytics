@@ -61,15 +61,31 @@ export type DoublesTrainingState = {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
+/** How many darts of one visit a reported checkout used, or threw at a double. */
+export type DartCount = 1 | 2 | 3;
+
+/**
+ * The answers a player may give for one checkout: how many darts the visit
+ * took, and how many of them were thrown at a double.
+ */
+export type CheckoutDartOptions = {
+  toFinish: DartCount[];
+  atDouble: DartCount[];
+};
+
 /**
  * One 501 visit as the player reports it. 501 is a quick-score game, so the
  * input is a visit total rather than three darts. `finishedOnDouble` is the
  * only field that can win a leg: it says the dart that took the score to
- * exactly zero landed in a double.
+ * exactly zero landed in a double. `dartsUsed` and `dartsAtDouble` describe
+ * that winning visit's shape; they are validated against the checkout chart
+ * and never persisted, because a turn under quick score carries no dart rows.
  */
 export type FiveOhOneVisitInput = {
   scoreAttempted: number;
   finishedOnDouble?: boolean;
+  dartsUsed?: DartCount;
+  dartsAtDouble?: DartCount;
 };
 
 /** 501 accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
@@ -106,6 +122,8 @@ export type FiveOhOneState = {
 export type OneTwentyOneVisitInput = {
   scoreAttempted: number;
   finishedOnDouble?: boolean;
+  dartsUsed?: DartCount;
+  dartsAtDouble?: DartCount;
 };
 
 /** 121 accepts a visit total under QUICK_SCORE, one dart under VISUAL_BOARD. */
@@ -165,7 +183,8 @@ export type AroundTheClockState = {
  */
 export type TuodAttemptInput = {
   checkedOut: boolean;
-  dartsUsed?: 1 | 2 | 3;
+  dartsUsed?: DartCount;
+  dartsAtDouble?: DartCount;
   finishedOnDouble?: boolean;
 };
 

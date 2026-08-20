@@ -1,4 +1,5 @@
 import type { TuodSnapshot } from "@lib/types";
+import { checkoutDartsRejection } from "./checkout-darts.module";
 import { newClientKey } from "./client-key.module";
 import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -143,19 +144,22 @@ export class TuodEngine implements GameEngine<TuodAttemptInput, TuodState> {
    * predicate and the mutating call in agreement about what is playable. The
    * ladder floor keeps `currentTarget` at or above the double-out minimum on
    * every fold, so there is no below-minimum-checkout case left to reject
-   * here.
+   * here. Dart counts are only checked on a claimed checkout — a failed
+   * attempt reports no route the chart could contradict.
    */
   private rejectionReason(input: TuodAttemptInput): string | null {
     if (this.isComplete()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
-    if (
-      input.dartsUsed !== undefined &&
-      input.dartsUsed > this.config.maxDartsPerTurn
-    ) {
-      return `An attempt is at most ${this.config.maxDartsPerTurn} darts.`;
+    if (!isTuodSuccess(input)) {
+      return null;
     }
-    return null;
+    return checkoutDartsRejection(
+      this.deriveState().currentTarget,
+      input.dartsUsed,
+      input.dartsAtDouble,
+      this.config.maxDartsPerTurn,
+    );
   }
 
   /**

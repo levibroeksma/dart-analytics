@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-08-19
+updated: 2026-08-20
 -->
 
 # Component Inventory
@@ -51,8 +51,8 @@ evaluated in the page's own Alpine scope.
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `BoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row; shown instead of the keypad for `ANALYTICS` + `VISUAL_BOARD` | none (reads `boardInputData()` from the page scope) |
+| `CheckoutConfirm.astro` | Double-out confirmation gate; also collects the checkout's darts-to-finish and darts-at-a-double | none (reads `checkoutDartOptions()`, `dartsToFinish`, `dartsAtDouble` from the page scope) |
 | `ContinueSessionModal.astro` | Resume-or-discard prompt for an unfinished session | `gameTitle` |
-| `DoubleCheckoutConfirm.astro` | Double-out confirmation gate | none |
 | `DoublesPathRecreationalInput.astro` | Doubles-path tap input row | none |
 | `ExitModal.astro` | Leave-session confirmation | none |
 | `GameCard.astro` | Games-index entry | `href`, `title`, `caption` |

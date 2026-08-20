@@ -112,6 +112,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/board-progression.module.ts` | Shared board paths and dartboard arithmetic | canonical |
 | `app/src/modules/game/client-key.module.ts` | `newClientKey()` — transient batch correlation token, explicitly not an entity id (D190) (2026-08-05) | canonical |
 | `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
+| `app/src/modules/game/checkout-darts.module.ts` | Which darts-to-finish / darts-at-a-double answers a checkout may claim, read off the chart, plus the rejection all three quick-score engines share (D217) (2026-08-20) | canonical |
 | `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
 | `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
 | `app/src/lib/game/board/board-geometry.module.ts` | Regulation board radii, clockwise sector order, `classify(x, y)` → `BoardHit` (target/zone/score), `zoneCentroid`; `trebleInner` corrected 97→99mm so the treble ring is 8mm wide like the double ring (2026-08-05; radius fix 2026-08-11) | canonical |
@@ -198,7 +199,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 18 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.0k |
 | `decisions/frontend/alpine.md` | 13 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.5k |
-| `decisions/frontend/style.md` | 9 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area | canonical | ~1.3k |
+| `decisions/frontend/style.md` | 10 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance | canonical | ~1.6k |
 | `decisions/context-system.md` | 31 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~5.1k |
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
