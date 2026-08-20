@@ -6,6 +6,7 @@ import { registerEngineFactory } from "./engine.registry";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
+  DartZoneKey,
   EngineFacts,
   StageFact,
   TuodAttemptInput,
@@ -58,6 +59,25 @@ function isTuodSuccess(input: TuodAttemptInput): boolean {
  */
 function isDartObservation(input: TuodInput): input is DartObservation {
   return "hitZoneKey" in input;
+}
+
+/**
+ * Whether a visit that has `remainingAfter` points left once its last dart
+ * landed in `lastZoneKey` has checked out or busted. Shared by `settleVisit`
+ * (which stamps the resolved fact) and `wouldCompleteDart` (which only asks
+ * whether it would resolve) so the bust/checkout rule — overshoot, exactly 1
+ * left, or reaching 0 without a double — is written once.
+ */
+function visitOutcome(
+  remainingAfter: number,
+  lastZoneKey: DartZoneKey,
+): { checkedOut: boolean; busted: boolean } {
+  const checkedOut = remainingAfter === 0 && lastZoneKey === "DOUBLE";
+  const busted =
+    remainingAfter < 0 ||
+    remainingAfter === 1 ||
+    (remainingAfter === 0 && !checkedOut);
+  return { checkedOut, busted };
 }
 
 /** The ladder as it stands before any attempt: on the configured start target. */
@@ -271,11 +291,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
     const remainingAfter = this.targetBeforeVisit(visit) - thrown;
     const lastDart = visit.darts.at(-1)!;
-    const checkedOut = remainingAfter === 0 && lastDart.hitZoneKey === "DOUBLE";
-    const busted =
-      remainingAfter < 0 ||
-      remainingAfter === 1 ||
-      (remainingAfter === 0 && !checkedOut);
+    const { checkedOut, busted } = visitOutcome(
+      remainingAfter,
+      lastDart.hitZoneKey,
+    );
 
     if (busted) {
       visit.totalScore = 0;
@@ -423,11 +442,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const thrown =
       priorDarts.reduce((sum, dart) => sum + dart.score, 0) + resolved.score;
     const remainingAfter = target - thrown;
-    const checkedOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
-    const busted =
-      remainingAfter < 0 ||
-      remainingAfter === 1 ||
-      (remainingAfter === 0 && !checkedOut);
+    const { checkedOut, busted } = visitOutcome(
+      remainingAfter,
+      resolved.zoneKey,
+    );
     const dartCount = priorDarts.length + 1;
     const visitResolves =
       checkedOut || busted || dartCount === this.config.maxDartsPerTurn;
