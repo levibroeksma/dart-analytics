@@ -52,7 +52,9 @@ describe("registeredRulesetsFor", () => {
       create: () => ({}) as never,
     });
 
-    expect(registeredRulesetsFor("ANALYTICS", "VISUAL_BOARD")).toEqual([]);
+    // TUOD_V1 declares RECREATIONAL + QUICK_SCORE and ANALYTICS +
+    // VISUAL_BOARD only — never DETAILED_DARTS.
+    expect(registeredRulesetsFor("RECREATIONAL", "DETAILED_DARTS")).toEqual([]);
   });
 
   it("excludes a capable ruleset whose engine is not registered", () => {

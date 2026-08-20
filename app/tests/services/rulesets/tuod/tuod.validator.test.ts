@@ -78,6 +78,8 @@ describe("tuodValidator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([41, 0, 51]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
   });
@@ -87,6 +89,8 @@ describe("tuodValidator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([131]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
   });
@@ -96,6 +100,8 @@ describe("tuodValidator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([132]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -106,6 +112,8 @@ describe("tuodValidator.validateBatch", () => {
         config: minutesConfig,
         batch: batchWithTurns([170]),
         existingTurnCount: 0,
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
       }).valid,
     ).toBe(true);
     expect(
@@ -113,6 +121,8 @@ describe("tuodValidator.validateBatch", () => {
         config: minutesConfig,
         batch: batchWithTurns([171]),
         existingTurnCount: 0,
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
       }).valid,
     ).toBe(false);
   });
@@ -122,6 +132,8 @@ describe("tuodValidator.validateBatch", () => {
       config: { ...validConfig, duration_value: 2 },
       batch: batchWithTurns([0, 0]),
       existingTurnCount: 1,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -131,6 +143,8 @@ describe("tuodValidator.validateBatch", () => {
       config: { ...minutesConfig, duration_value: 2 },
       batch: batchWithTurns([0, 0]),
       existingTurnCount: 5,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(true);
   });
@@ -140,6 +154,8 @@ describe("tuodValidator.validateBatch", () => {
       config: validConfig,
       batch: batchWithTurns([-1]),
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });
@@ -162,6 +178,143 @@ describe("tuodValidator.validateBatch", () => {
       config: validConfig,
       batch,
       existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+});
+
+function batchWithDarts(
+  turns: Array<{
+    totalScore: number;
+    darts: Array<{
+      hitTargetNumber: number | null;
+      hitZoneKey: string;
+      score: number;
+      locationX: number | null;
+      locationY: number | null;
+    }>;
+  }>,
+) {
+  return {
+    stages: [
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+        turns: turns.map((turn, i) => ({
+          clientKey: `t${i + 1}`,
+          participantRef: "p1",
+          sequence: i + 1,
+          totalScore: turn.totalScore,
+          completedAt: "2026-08-20T10:00:00.000Z",
+          darts: turn.darts.map((dart, j) => ({
+            sequence: j + 1,
+            intendedTargetNumber: null,
+            intendedZoneKey: null,
+            hitTargetNumber: dart.hitTargetNumber,
+            hitZoneKey: dart.hitZoneKey,
+            score: dart.score,
+            locationX: dart.locationX,
+            locationY: dart.locationY,
+          })),
+        })),
+      },
+    ],
+  };
+}
+
+describe("tuodValidator.validateConfig — VISUAL_BOARD", () => {
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid config", () => {
+    const result = tuodValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects a mode pair neither capture half supports", () => {
+    const result = tuodValidator.validateConfig({
+      config: validConfig,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
+  it("accepts a checkout dart re-deriving to the target's double", () => {
+    // D20 at (0, -166) — the same coordinate one-twenty-one.validator.test.ts
+    // and one-twenty-one.engine.module.test.ts use for D20.
+    const result = tuodValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithDarts([
+        {
+          totalScore: 40,
+          darts: [
+            {
+              hitTargetNumber: 20,
+              hitZoneKey: "DOUBLE",
+              score: 40,
+              locationX: 0,
+              locationY: -166,
+            },
+          ],
+        },
+      ]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a dart whose claimed score disagrees with its coordinate", () => {
+    const result = tuodValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithDarts([
+        {
+          totalScore: 40,
+          darts: [
+            {
+              hitTargetNumber: 20,
+              hitZoneKey: "DOUBLE",
+              score: 999,
+              locationX: 0,
+              locationY: -166,
+            },
+          ],
+        },
+      ]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts a dartless keypad turn inside a VISUAL_BOARD session", () => {
+    const result = tuodValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithDarts([{ totalScore: 41, darts: [] }]),
+      existingTurnCount: 0,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("still enforces the quick-score path when the session is RECREATIONAL", () => {
+    const result = tuodValidator.validateBatch({
+      config: validConfig,
+      batch: batchWithTurns([132]),
+      existingTurnCount: 0,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
     });
     expect(result.valid).toBe(false);
   });

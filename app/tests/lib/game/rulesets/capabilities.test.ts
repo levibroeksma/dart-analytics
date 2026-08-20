@@ -49,8 +49,8 @@ describe("supportsMode", () => {
     );
   });
 
-  it("rejects visual board for a game with no visual engine path", () => {
-    expect(supportsMode("TUOD_V1", "ANALYTICS", "VISUAL_BOARD")).toBe(false);
+  it("accepts visual board for TUOD now that it has a board engine path", () => {
+    expect(supportsMode("TUOD_V1", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
   });
 
   it("keeps every ruleset's original pair supported", () => {
@@ -114,6 +114,7 @@ describe("capableRulesets", () => {
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SINGLES_V1",
+      "TUOD_V1",
     ]);
   });
 

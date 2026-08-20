@@ -525,3 +525,217 @@ describe("TUOD checkout dart counts", () => {
     ).not.toThrow();
   });
 });
+
+import type { DartObservation } from "@modules/types";
+
+const boardConfig = () =>
+  ({ ...config(), startingTarget: 40 }) satisfies TuodSnapshot;
+
+/** D20 — 20 doubled, the board's own coordinate for it (see one-twenty-one.engine.module.test.ts). */
+const DOUBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "DOUBLE",
+  locationX: 0,
+  locationY: -166,
+};
+
+/** T20 — 60, an overshoot against a target of 40. */
+const TREBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "TREBLE",
+  locationX: 0,
+  locationY: -102,
+};
+
+/** S1 — 1, leaves 39 remaining: neither a bust nor a finish, just a thrown dart. */
+const SINGLE_1: DartObservation = {
+  hitTargetNumber: 1,
+  hitZoneKey: "SINGLE",
+  locationX: 15,
+  locationY: -46,
+};
+
+/** An unseen dart: no coordinate, scores 0, changes nothing. */
+const UNSEEN: DartObservation = {
+  hitTargetNumber: null,
+  hitZoneKey: "MISS",
+  locationX: null,
+  locationY: null,
+};
+
+describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
+  it("checks out on a single dart landing exactly on the target's double", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    const state = engine.record(DOUBLE_20);
+
+    expect(state.currentTarget).toBe(50);
+    expect(state.successes).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.totalScore).toBe(40);
+    expect(turn.completedAt).not.toBeNull();
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.darts[0]).toMatchObject({
+      hitZoneKey: "DOUBLE",
+      hitTargetNumber: 20,
+      score: 40,
+      locationX: 0,
+      locationY: -166,
+    });
+  });
+
+  it("busts on a single dart that overshoots the target", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    const state = engine.record(TREBLE_20);
+
+    expect(state.currentTarget).toBe(39);
+    expect(state.failures).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.totalScore).toBe(0);
+    expect(turn.darts[0].score).toBe(60);
+  });
+
+  it("builds a visit dart-by-dart across multiple record() calls, closing on checkout", () => {
+    // Uses the default config() (startingTarget 41, odd) rather than
+    // boardConfig() (40, even): a SINGLE_1 (odd) followed by a DOUBLE_20
+    // (even) can only reach exactly 0 remaining from an odd target — 41 - 1
+    // - 40 = 0 — since a single double dart always contributes an even
+    // score.
+    const engine = tuodEngineFactory.create(config());
+    engine.record(SINGLE_1);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+
+    const state = engine.record(DOUBLE_20);
+    expect(state.currentTarget).toBe(51);
+    const turn = engine.facts().turns[0];
+    expect(turn.completedAt).not.toBeNull();
+    expect(turn.darts).toHaveLength(2);
+    expect(turn.totalScore).toBe(41);
+  });
+
+  it("records a miss when the visit runs out of darts without checking out", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+    const state = engine.record(SINGLE_1);
+
+    expect(state.currentTarget).toBe(39);
+    expect(state.failures).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.totalScore).toBe(0);
+    expect(turn.darts).toHaveLength(3);
+  });
+
+  it("records an unseen dart as a scoreless, real dart row", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(UNSEEN);
+
+    const turn = engine.facts().turns[0];
+    expect(turn.darts[0]).toMatchObject({
+      hitZoneKey: "MISS",
+      hitTargetNumber: null,
+      score: 0,
+      locationX: null,
+      locationY: null,
+    });
+  });
+
+  it("refuses a keypad total while a board visit is open", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(SINGLE_1);
+    expect(() => engine.record(MISS)).toThrow(/open (visit|attempt)/);
+  });
+
+  it("refuses to record a dart once the session is complete", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 1,
+    });
+    engine.record(DOUBLE_20);
+    expect(engine.isComplete()).toBe(true);
+    expect(() => engine.record(DOUBLE_20)).toThrow();
+  });
+});
+
+describe("TuodEngine.undo — dart-shaped turns", () => {
+  it("pops one dart, reopening the visit, without discarding the whole attempt", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(SINGLE_1);
+    engine.record(DOUBLE_20);
+
+    expect(engine.undo()).toBe(true);
+    const turn = engine.facts().turns[0];
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.completedAt).toBeNull();
+    expect(turn.totalScore).toBe(1);
+  });
+
+  it("pops the whole turn once its last dart is undone", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(SINGLE_1);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("restores facts() byte for byte after recording and undoing a dart", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    engine.record(DOUBLE_20);
+
+    const beforeFacts = engine.facts();
+    const beforeState = engine.state();
+
+    engine.record(SINGLE_1);
+    expect(engine.undo()).toBe(true);
+
+    expect(engine.facts()).toEqual(beforeFacts);
+    expect(engine.state()).toEqual(beforeState);
+  });
+});
+
+describe("TuodEngine.wouldComplete — dart path, pure", () => {
+  it("is true for a dart that checks out the last permitted attempt", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 1,
+    });
+    expect(engine.wouldComplete(DOUBLE_20)).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("is true for a dart that busts the last permitted attempt", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 1,
+    });
+    expect(engine.wouldComplete(TREBLE_20)).toBe(true);
+  });
+
+  it("is false for a dart that neither resolves the visit nor is the last permitted attempt", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 2,
+    });
+    expect(engine.wouldComplete(SINGLE_1)).toBe(false);
+  });
+
+  it("is true for the 3rd dart of the last permitted attempt even without a checkout", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 1,
+    });
+    engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+    expect(engine.wouldComplete(SINGLE_1)).toBe(true);
+  });
+
+  it("does not mutate the fact log", () => {
+    const engine = tuodEngineFactory.create({
+      ...boardConfig(),
+      durationValue: 1,
+    });
+    const before = engine.facts();
+    engine.wouldComplete(DOUBLE_20);
+    expect(engine.facts()).toEqual(before);
+  });
+});

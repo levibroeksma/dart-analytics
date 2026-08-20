@@ -255,6 +255,7 @@ export type TuodPlayContext = {
   resultsSnapshot: TuodResultsSnapshot | null;
   pendingAttempt: TuodAttemptInput | null;
   pendingCheckoutScore: number | null;
+  pendingDartObservation: DartObservation | null;
   dartsAtDouble: DartCount | null;
   dartsToFinish: DartCount | null;
   showDoubleConfirm: boolean;
@@ -271,6 +272,14 @@ export type TuodPlayContext = {
   confirmDouble(this: TuodPlayContext): Promise<void>;
   cancelCheckout(this: TuodPlayContext): void;
   recordAttempt(this: TuodPlayContext, input: TuodAttemptInput): Promise<void>;
+  recordDart(
+    this: TuodPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: TuodPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
   confirmFinish(this: TuodPlayContext): Promise<void>;
   cancelFinish(this: TuodPlayContext): void;
   undoAttempt(this: TuodPlayContext): void;

@@ -903,3 +903,119 @@ describe("tuodPlay", () => {
     });
   });
 });
+
+import type { DartObservation } from "@modules/types";
+
+/** D20 — the same board coordinate used across every other engine/play test for D20. */
+const DOUBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "DOUBLE",
+  locationX: 0,
+  locationY: -166,
+};
+
+/** T20 — an overshoot against a target of 40. */
+const TREBLE_20: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "TREBLE",
+  locationX: 0,
+  locationY: -102,
+};
+
+describe("recordDart (board input)", () => {
+  it("records a checkout dart and mirrors it into the store", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(10), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    await component.recordDart.call(component, DOUBLE_20);
+
+    expect(store.turns).toHaveLength(1);
+    expect(store.turns[0].totalScore).toBe(40);
+    expect(store.turns[0].darts[0].hitZoneKey).toBe("DOUBLE");
+    expect(component.error).toBe("");
+  });
+
+  it("records a busted dart the same way, scoring the turn 0", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(10), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    await component.recordDart.call(component, TREBLE_20);
+
+    expect(store.turns[0].totalScore).toBe(0);
+    expect(store.turns[0].darts[0].score).toBe(60);
+  });
+
+  it("defers a dart that would end the session to the finish confirm", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(1), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    await component.recordDart.call(component, DOUBLE_20);
+
+    expect(component.showFinishConfirm).toBe(true);
+    expect(component.pendingDartObservation).toEqual(DOUBLE_20);
+    expect(store.turns).toHaveLength(0);
+  });
+
+  it("confirmFinish commits a pending dart and completes the session", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(1), startingTarget: 40 },
+    });
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 1 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    await component.recordDart.call(component, DOUBLE_20);
+    await component.confirmFinish.call(component);
+
+    expect(component.pendingDartObservation).toBeNull();
+    expect(component.showFinishConfirm).toBe(false);
+    expect(component.finished).toBe(true);
+  });
+
+  it("cancelFinish discards a pending dart without recording it", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(1), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+    await component.recordDart.call(component, DOUBLE_20);
+    expect(component.showFinishConfirm).toBe(true);
+
+    component.cancelFinish.call(component);
+
+    expect(component.pendingDartObservation).toBeNull();
+    expect(component.showFinishConfirm).toBe(false);
+    expect(store.turns).toHaveLength(0);
+  });
+});

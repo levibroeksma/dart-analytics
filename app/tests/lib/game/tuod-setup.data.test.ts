@@ -307,12 +307,10 @@ describe("tuodSetup", () => {
 
       await setup.start();
 
-      // TUOD_V1 only declares QUICK_SCORE, so resolveSessionModePair falls
-      // back to it even though settings holds an ANALYTICS pair.
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          captureModeKey: "RECREATIONAL",
-          inputModeKey: "QUICK_SCORE",
+          captureModeKey: "ANALYTICS",
+          inputModeKey: "VISUAL_BOARD",
         }),
       );
     });

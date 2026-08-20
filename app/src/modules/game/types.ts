@@ -189,6 +189,13 @@ export type TuodAttemptInput = {
 };
 
 /**
+ * Every input `TuodEngine.record()` accepts. A `TuodAttemptInput` is a whole
+ * visit reported by the keypad; a `DartObservation` is one board-tapped dart,
+ * discriminated by the presence of `hitZoneKey` — mirrors `OneTwentyOneInput`.
+ */
+export type TuodInput = TuodAttemptInput | DartObservation;
+
+/**
  * Ten Up One Down session state. `currentTarget`, `attempts`, `successes` and
  * `failures` are folded from the fact log on every read — the ladder position
  * is never accumulated. `timerExpired` is the one field the log cannot derive:

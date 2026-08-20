@@ -8,8 +8,13 @@ import type { BatchValidationResult } from "./types";
 const QUICK_SCORE_CAPTURE_MODE = "RECREATIONAL";
 const QUICK_SCORE_INPUT_MODE = "QUICK_SCORE";
 
-/** The mode pair every visit-total ruleset names in its rejection message. */
-export const QUICK_SCORE_MODES = `${QUICK_SCORE_CAPTURE_MODE} + ${QUICK_SCORE_INPUT_MODE}`;
+/**
+ * The mode pair every visit-total ruleset names in its rejection message.
+ * Every visit-total ruleset now also supports `VISUAL_BOARD`
+ * (`QUICK_SCORE_OR_VISUAL_BOARD_MODES` below), so nothing outside this
+ * module names this pair alone anymore.
+ */
+const QUICK_SCORE_MODES = `${QUICK_SCORE_CAPTURE_MODE} + ${QUICK_SCORE_INPUT_MODE}`;
 
 /**
  * Whether a session captures whole visit totals rather than individual darts.

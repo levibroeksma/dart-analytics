@@ -1,11 +1,17 @@
 import { TuodConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
 import {
-  QUICK_SCORE_MODES,
+  QUICK_SCORE_OR_VISUAL_BOARD_MODES,
   exceedsRoundsLimit,
   isQuickScoreCapture,
+  isQuickScoreOrVisualBoardCapture,
   validateQuickScoreTurns,
 } from "../quick-score.validator";
+import {
+  isVisualBoardCapture,
+  validateVisualBoardTurns,
+} from "../visual-board.validator";
+import type { EventsBatchRequestInput } from "@routes/types";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
@@ -15,10 +21,11 @@ import type {
 const MAX_THREE_DART_CHECKOUT = 170;
 
 /**
- * The highest total one TUOD turn can legitimately carry. A failed attempt
- * scores 0 and a successful one scores exactly the target it was thrown at, so
- * the bound is the highest target the ladder can ever present — capped by the
- * fact that no checkout above 170 exists at all.
+ * The highest total one TUOD turn can legitimately carry, under either
+ * capture mode. A failed attempt scores 0 and a successful one scores exactly
+ * the target it was thrown at, so the bound is the highest target the ladder
+ * can ever present — capped by the fact that no checkout above 170 exists at
+ * all.
  *
  * A ROUNDS session caps the attempt count at `duration_value`, and the ladder
  * climbs at most `finish_bonus` per attempt from `starting_target`, so even an
@@ -40,9 +47,10 @@ function maxTurnScore(config: Record<string, unknown>): number {
 }
 
 /**
- * TUOD is RECREATIONAL + QUICK_SCORE: one attempt per turn, carrying the
- * checked-out target or 0, with no dart rows — the ladder depends only on
- * whether the attempt succeeded, so V1 captures no per-dart facts.
+ * TUOD supports two mode pairs. Under RECREATIONAL + QUICK_SCORE every turn
+ * is a whole attempt with no dart rows. Under ANALYTICS + VISUAL_BOARD every
+ * dart carries a landing coordinate, re-derived and cross-checked by
+ * `validateVisualBoardTurns` — mirrors `one-twenty-one.validator.ts`.
  */
 export const tuodValidator: RulesetValidator = {
   validateConfig({
@@ -50,10 +58,10 @@ export const tuodValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
       return {
         valid: false,
-        issues: [`TUOD V1 only supports ${QUICK_SCORE_MODES}`],
+        issues: [`TUOD V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
       };
     }
     const parsed = TuodConfig.safeParse(config);
@@ -63,7 +71,31 @@ export const tuodValidator: RulesetValidator = {
     return { valid: true, config: parsed.data };
   },
 
-  validateBatch({ config, batch, existingTurnCount }): BatchValidationResult {
+  validateBatch({
+    config,
+    batch,
+    existingTurnCount,
+    captureModeKey,
+    inputModeKey,
+  }: {
+    config: Record<string, unknown>;
+    batch: EventsBatchRequestInput;
+    existingTurnCount: number;
+    captureModeKey: string;
+    inputModeKey: string;
+  }): BatchValidationResult {
+    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
+      return validateVisualBoardTurns(batch, maxTurnScore(config));
+    }
+
+    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+      return {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
+      };
+    }
+
     const turns = validateQuickScoreTurns(batch, maxTurnScore(config));
     if (!turns.valid) return turns;
 

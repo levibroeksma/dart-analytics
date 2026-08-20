@@ -12,10 +12,12 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
+  DartObservation,
   EngineFacts,
   TuodAttemptInput,
   TurnFact,
@@ -130,7 +132,15 @@ function startCountdown(
   return timer;
 }
 
+/**
+ * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
+ * page's own `recordDart` with the live, reactive `this` Alpine binds to every
+ * directive-driven call — mirrors `one-twenty-one-play.data.ts`'s own `self`
+ * pattern.
+ */
 export function tuodPlay() {
+  let self: TuodPlayContext;
+
   return {
     loading: false,
     error: "",
@@ -147,12 +157,14 @@ export function tuodPlay() {
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     pendingAttempt: null as TuodAttemptInput | null,
     pendingCheckoutScore: null as number | null,
+    pendingDartObservation: null as DartObservation | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
     showDoubleConfirm: false,
     showFinishConfirm: false,
     engine: null as TuodEngine | null,
     timer: null as SegmentTimer | null,
+    ...boardInputData((observation) => self.recordDart(observation)),
 
     currentTargetLabel(this: TuodPlayContext): string {
       return String(this.engine?.state().currentTarget ?? "");
@@ -184,6 +196,7 @@ export function tuodPlay() {
      * store is written back from `engine.facts()` immediately.
      */
     async init(this: TuodPlayContext) {
+      self = this;
       this.loadingReconciliation = true;
       try {
         const activeSessions = await fetchActiveSessions();
@@ -340,10 +353,72 @@ export function tuodPlay() {
       this.$store.game.recordFacts(this.engine.facts());
     },
 
+    /**
+     * The board's per-dart counterpart to `recordAttempt`: every dart the
+     * player throws arrives here from `boardInputData`'s `onCommit`. A dart
+     * that would end the session is gated behind `showFinishConfirm` — the
+     * same dialog the keypad path defers to — because recording it uploads
+     * and completes the session immediately and that step is irreversible;
+     * any other dart commits straight away. Mirrors
+     * `one-twenty-one-play.data.ts`'s `recordDart`.
+     */
+    async recordDart(
+      this: TuodPlayContext,
+      observation: DartObservation,
+    ): Promise<void> {
+      if (!this.engine || this.finished || this.showFinishConfirm) return;
+
+      if (this.engine.wouldComplete(observation)) {
+        this.error = "";
+        this.pendingDartObservation = observation;
+        this.showFinishConfirm = true;
+        return;
+      }
+
+      await this.commitDart(observation);
+    },
+
+    /**
+     * Records one dart against the engine and refreshes displayed state,
+     * exactly as `recordAttempt` does for a whole visit — shared by the
+     * immediate path (`recordDart`) and the deferred finish confirm
+     * (`confirmFinish`).
+     */
+    async commitDart(
+      this: TuodPlayContext,
+      observation: DartObservation,
+    ): Promise<void> {
+      if (!this.engine) return;
+
+      try {
+        this.engine.record(observation);
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
+        return;
+      }
+
+      this.error = "";
+      this.$store.game.recordFacts(this.engine.facts());
+
+      if (this.engine.isComplete()) {
+        this.finished = true;
+        this.completionStatus = "pending";
+        await this.uploadAndCompleteSession();
+      }
+    },
+
     async confirmFinish(this: TuodPlayContext): Promise<void> {
       if (!this.engine || this.finished || !this.showFinishConfirm) return;
-      if (this.pendingAttempt === null) return;
 
+      if (this.pendingDartObservation) {
+        const observation = this.pendingDartObservation;
+        this.pendingDartObservation = null;
+        this.showFinishConfirm = false;
+        await this.commitDart(observation);
+        return;
+      }
+
+      if (this.pendingAttempt === null) return;
       const input = this.pendingAttempt;
       this.pendingAttempt = null;
       this.showFinishConfirm = false;
@@ -362,6 +437,7 @@ export function tuodPlay() {
     cancelFinish(this: TuodPlayContext) {
       if (!this.showFinishConfirm) return;
       this.pendingAttempt = null;
+      this.pendingDartObservation = null;
       this.showFinishConfirm = false;
     },
 
@@ -501,6 +577,7 @@ export function tuodPlay() {
         this.completionError = "";
         this.resultsSnapshot = null;
         this.pendingAttempt = null;
+        this.pendingDartObservation = null;
         this.showFinishConfirm = false;
         this.error = "";
         this.hasActiveSession = true;
