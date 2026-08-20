@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 14 declared rows',
+    'seed inserted exactly the 18 declared rows',
     CASE
-        WHEN count(*) = 14 THEN 'PASS'
+        WHEN count(*) = 18 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 14, found %s', count(*))
+    format('expected 18, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -93,6 +93,7 @@ FROM (
             ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('TUOD_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
@@ -117,12 +118,12 @@ FROM (
 -- VALUES list above was edited down — guard it anyway per house style.
 INSERT INTO verification_results
 SELECT '2',
-    'all 14 declared triples were actually checked',
+    'all 18 declared triples were actually checked',
     CASE
-        WHEN count(*) = 14 THEN 'PASS'
+        WHEN count(*) = 18 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 14 triple checks ran', count(*))
+    format('%s of 18 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -188,6 +189,7 @@ WHERE NOT EXISTS (
                     ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
+                    ('TUOD_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
