@@ -80,7 +80,9 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 ## Known limitations
 
-**A bust cannot be told apart from a scoreless attempt**, for the same reason 501 cannot: both persist as a turn total of `0` with no dart rows. Bust rate is therefore not computable, and checkout percentage undercounts attempts. Recovering either requires DETAILED_DARTS capture or a schema revision adding an attempted-score / void-visit fact; both are on the deferred list in `DECISIONS.md`. <!-- 2026-07-26 -->
+**Under RECREATIONAL + QUICK_SCORE, a bust cannot be told apart from a scoreless attempt**: both persist as a turn total of `0` with no dart rows. Bust rate is therefore not computable under this capture mode, and checkout percentage undercounts attempts. Recovering either requires DETAILED_DARTS/VISUAL_BOARD capture or a schema revision adding an attempted-score / void-visit fact for QUICK_SCORE itself; QUICK_SCORE sessions remain unfixable, since completed gameplay is immutable and no per-dart fact exists to recover from. <!-- 2026-07-26 -->
+
+**Retired for ANALYTICS + VISUAL_BOARD sessions.** Every dart carries a real landing coordinate and score, so a bust and a plain miss are distinguishable by the pattern in the persisted darts: a bust's darts show an overshoot, a remaining score of exactly 1, or reaching 0 without the last dart in a double; a miss's three darts land short of the target with none of those patterns. No `v_*` view yet queries this distinction — the fact log supports it, and building the view is future work. <!-- 2026-08-20 -->
 
 ## Later versions (V2+)
 
