@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-08-19
+updated: 2026-08-20
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -21,7 +21,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
 | `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19) | canonical | ~1.7k |
-| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-08-19) | canonical | ~8.3k |
+| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-08-20) | canonical | ~8.3k |
 | `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~28.1k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
@@ -68,7 +68,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — suffix `!important`, arbitrary negatives (D175, 2026-07-31); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
 | `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup (2026-08-19) | canonical | ~1.2k |
-| `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the two setup-controller opt-outs (2026-08-19) | canonical | ~2.1k |
+| `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
 ## SQL (`database/`)
@@ -189,7 +189,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-19) | canonical | ~1.6k |
+| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20) | canonical | ~2.2k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 15 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~2k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |

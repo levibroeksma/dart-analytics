@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-08-19
+updated: 2026-08-20
 -->
 
 # Adding a Game
@@ -35,7 +35,7 @@ The ruleset version key follows the route slug, quoted where it must be:
 
 Rows marked **shared** are files that already exist and that every game edits.
 Rows marked *engine-only skips* are the ones a ruleset with an engine but no
-page (`TUOD_V1`) legitimately has none of.
+page legitimately has none of.
 
 ### `app/src/lib/game/`
 
@@ -51,7 +51,7 @@ page (`TUOD_V1`) legitimately has none of.
 | ---- | --------------- |
 | `types.ts` | **shared** — the game's Zod config schema |
 | `capabilities.ts` | **shared** — the ruleset key and its capture/input mode pairs |
-| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves, which is why TUOD is absent despite declaring capabilities. |
+| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves. |
 
 ### `app/src/modules/game/`
 
