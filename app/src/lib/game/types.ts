@@ -269,7 +269,6 @@ export type TuodPlayContext = {
   checkoutDartOptions(this: TuodPlayContext): CheckoutDartOptions;
   submitVisit(this: TuodPlayContext): Promise<void>;
   confirmDouble(this: TuodPlayContext): Promise<void>;
-  denyDouble(this: TuodPlayContext): Promise<void>;
   cancelCheckout(this: TuodPlayContext): void;
   recordAttempt(this: TuodPlayContext, input: TuodAttemptInput): Promise<void>;
   confirmFinish(this: TuodPlayContext): Promise<void>;
@@ -469,7 +468,6 @@ export type FiveOhOnePlayContext = {
   retryReconciliation(this: FiveOhOnePlayContext): Promise<void>;
   submitVisit(this: FiveOhOnePlayContext): Promise<void>;
   confirmDouble(this: FiveOhOnePlayContext): Promise<void>;
-  denyDouble(this: FiveOhOnePlayContext): Promise<void>;
   cancelCheckout(this: FiveOhOnePlayContext): void;
   confirmMatchFinish(this: FiveOhOnePlayContext): Promise<void>;
   cancelMatchFinish(this: FiveOhOnePlayContext): void;
@@ -530,7 +528,6 @@ export type OneTwentyOnePlayContext = {
   retryReconciliation(this: OneTwentyOnePlayContext): Promise<void>;
   submitVisit(this: OneTwentyOnePlayContext): Promise<void>;
   confirmDouble(this: OneTwentyOnePlayContext): Promise<void>;
-  denyDouble(this: OneTwentyOnePlayContext): Promise<void>;
   cancelCheckout(this: OneTwentyOnePlayContext): void;
   confirmSessionFinish(this: OneTwentyOnePlayContext): Promise<void>;
   cancelSessionFinish(this: OneTwentyOnePlayContext): void;
