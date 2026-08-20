@@ -6,7 +6,7 @@ import type { GameCardDescriptor } from "./types";
  * The games the page can offer, in display order, independent of mode. Every
  * entry needs a real setup route: a card the filter keeps but the router cannot
  * serve is worse than no card at all, so a ruleset joins this list only once
- * `href` resolves. That is why TUOD is absent despite declaring capabilities.
+ * `href` resolves.
  *
  * The games page renders straight from this list, so a game added here appears
  * without a second edit to the template.
@@ -59,6 +59,12 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     href: "/games/around-the-clock/setup",
     title: "Around the Clock",
     caption: "Hit every number in order, then the bull, to finish.",
+  },
+  {
+    rulesetVersionKey: "TUOD_V1",
+    href: "/games/tuod/setup",
+    title: "Ten Up One Down",
+    caption: "Climb the checkout ladder — +10 on a finish, −1 on a miss.",
   },
 ];
 

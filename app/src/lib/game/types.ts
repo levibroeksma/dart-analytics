@@ -2,6 +2,7 @@ import type { ConfigurationPresetData } from "@client/api/configuration-template
 import type { SessionActiveData } from "@client/api/types";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
+import type { TuodEngine } from "@modules/game/tuod.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
@@ -16,6 +17,7 @@ import type {
   MagnifierPlacement,
   StageFact,
   TurnFact,
+  TuodAttemptInput,
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
@@ -31,12 +33,50 @@ import type {
   ShanghaiSnapshot,
   OneTwentyOneSnapshot,
   AroundTheClockSnapshot,
+  TuodSnapshot,
 } from "./rulesets/types";
 
 export * from "./rulesets/types";
 export * from "./board/types";
 
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
+
+export type TuodDurationType = "ROUNDS" | "MINUTES";
+
+export type TuodSetupContext = {
+  presets: ConfigurationPresetData[];
+  durationType: TuodDurationType;
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  init(this: TuodSetupContext): Promise<void>;
+  reconcile(
+    this: TuodSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: TuodSetupContext): Promise<void>;
+  continueSession(this: TuodSetupContext): void;
+  abandonSession(this: TuodSetupContext): Promise<void>;
+  presetForMode(
+    this: TuodSetupContext,
+    type: TuodDurationType,
+  ): ConfigurationPresetData | undefined;
+  start(this: TuodSetupContext): Promise<void>;
+};
 
 export type TargetOrderMode = "LOW_TO_HIGH" | "HIGH_TO_LOW" | "RANDOM";
 
@@ -189,6 +229,45 @@ export type ScoreTrainingPlayContext = {
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   abandonAndExit(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
+};
+
+export type TuodResultsSnapshot = {
+  target: number;
+  attempts: number;
+  successes: number;
+  failures: number;
+};
+
+export type TuodPlayContext = {
+  loading: boolean;
+  error: string;
+  finished: boolean;
+  hasActiveSession: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
+  playAgainError: string;
+  playAgainLoading: boolean;
+  resultsSnapshot: TuodResultsSnapshot | null;
+  pendingAttempt: boolean | null;
+  showFinishConfirm: boolean;
+  $store: PlayStoreContext<TuodSnapshot>;
+  engine: TuodEngine | null;
+  timer: SegmentTimer | null;
+  currentTargetLabel(this: TuodPlayContext): string;
+  remainingLabel(this: TuodPlayContext): string;
+  init(this: TuodPlayContext): Promise<void>;
+  retryReconciliation(this: TuodPlayContext): Promise<void>;
+  recordAttempt(this: TuodPlayContext, checkedOut: boolean): Promise<void>;
+  confirmFinish(this: TuodPlayContext): Promise<void>;
+  cancelFinish(this: TuodPlayContext): void;
+  undoAttempt(this: TuodPlayContext): void;
+  uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
+  back(this: TuodPlayContext): Promise<void>;
+  playAgain(this: TuodPlayContext): Promise<void>;
+  abandonAndExit(this: TuodPlayContext): Promise<void>;
+  destroy(this: TuodPlayContext): void;
 };
 
 export type ScoreTrainingSetupContext = {

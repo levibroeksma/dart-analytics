@@ -1,0 +1,87 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+const { ...props }: Props = Astro.props;
+
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<div
+  class="flex flex-col flex-1 min-h-0 gap-3"
+  {...props}
+>
+  <SinglePlayerDisplay
+    isTarget={true}
+    target="currentTargetLabel()"
+    class="max-h-2/5 h-full"
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="Attempts"
+          value="$store.game.turns.length"
+        />
+        <StatRow
+          label="Successes"
+          value="$store.game.turns.filter((t) => t.totalScore > 0).length"
+        />
+        <StatRow
+          label="Failures"
+          value="$store.game.turns.filter((t) => t.totalScore === 0).length"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
+
+  <div
+    class="flex justify-center items-center gap-2 px-3"
+    x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
+    x-cloak
+  >
+    <p
+      class="text-lg font-bold font-mono text-muted-foreground"
+      x-text="remainingLabel()"
+    >
+    </p>
+  </div>
+
+  <p
+    class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"
+    role="alert"
+    x-show="error"
+    x-text="error"
+    x-cloak
+  >
+  </p>
+
+  <div class="flex gap-3 px-3">
+    <Button
+      variant="primary"
+      class="flex-1"
+      title="Checked out"
+      @click="recordAttempt(true)"
+      :disabled="showFinishConfirm || finished"
+    />
+    <Button
+      variant="secondary"
+      class="flex-1"
+      title="Missed"
+      @click="recordAttempt(false)"
+      :disabled="showFinishConfirm || finished"
+    />
+  </div>
+  <Button
+    variant="ghost"
+    class="mx-3"
+    title="Undo"
+    @click="undoAttempt()"
+    :disabled="!$store.game.turns.length || showFinishConfirm || finished"
+  />
+</div>
