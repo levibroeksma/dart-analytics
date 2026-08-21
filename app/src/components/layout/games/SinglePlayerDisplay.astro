@@ -38,7 +38,8 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
 <div class={className}>
   <div
     class={cn(
-      "rounded-lg border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center",
+      "rounded-lg border bg-surface-raised h-full mx-auto flex flex-col items-center justify-center",
+      size === "sm" ? "p-2" : "p-3",
       activeExpr ? "" : "border-border",
     )}
     {...activeExpr
