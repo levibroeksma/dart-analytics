@@ -1,0 +1,33 @@
+---
+// Components
+import Button from "@components/forms/Button.astro";
+
+// Icons
+import PlusIcon from "@icons/plus.svg";
+---
+
+<div
+  class="flex flex-col gap-1 items-center justify-center"
+  x-show="guests.length < 3"
+  x-cloak
+>
+  <Button
+    type="button"
+    variant="ghost"
+    icon
+    ariaLabel="Add guest"
+    @click="showAddGuestModal = true"
+    class="w-fit! p-3! rounded-full! border-2! border-dashed! border-tab-border!"
+  >
+    <PlusIcon
+      class="size-8 text-muted-foreground"
+      slot="iconBefore"
+    />
+  </Button>
+  <span
+    class="text-sm invisible"
+    aria-hidden="true"
+  >
+    &nbsp;
+  </span>
+</div>
