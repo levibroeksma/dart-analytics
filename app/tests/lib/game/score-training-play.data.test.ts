@@ -38,13 +38,22 @@ import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import type { ScoreTrainingPlayContext } from "@lib/types";
-import type { ScoreTrainingSnapshot } from "@lib/types";
+import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 import type {
   DartObservation,
   EngineFacts,
   StageFact,
   TurnFact,
 } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const BLOCK: StageFact = {
   clientKey: "block-1",
@@ -61,6 +70,7 @@ function turnFact(
   return {
     clientKey,
     stageClientKey: BLOCK.clientKey,
+    participantRef: "participant-1",
     sequence,
     completedAt: "2026-07-17T10:00:00.000Z",
     totalScore,
@@ -68,21 +78,23 @@ function turnFact(
   };
 }
 
-function rounds(durationValue: number): ScoreTrainingSnapshot {
+function rounds(durationValue: number): Seated<ScoreTrainingSnapshot> {
   return {
     durationType: "ROUNDS",
     durationValue,
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
+    seats: SEATS,
   };
 }
 
-function minutes(durationValue: number): ScoreTrainingSnapshot {
+function minutes(durationValue: number): Seated<ScoreTrainingSnapshot> {
   return {
     durationType: "MINUTES",
     durationValue,
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
+    seats: SEATS,
   };
 }
 
@@ -99,9 +111,11 @@ function settingsStub(overrides: Partial<SettingsStub> = {}): SettingsStub {
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "SCORE_TRAINING_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: rounds(2),
     captureModeKey: "RECREATIONAL",
@@ -228,7 +242,9 @@ describe("scoreTrainingPlay", () => {
     expect(batch.stages).toHaveLength(1);
     expect(batch.stages[0].stageTypeKey).toBe("EXERCISE_BLOCK");
     expect(batch.stages[0].turns.map((t) => t.totalScore)).toEqual([30, 55]);
-    expect(batch.stages[0].turns[0].participantRef).toBe("p1");
+    expect(batch.stages[0].turns[0].participantRef).toBe(
+      SEATS[0].participantRef,
+    );
     expect(batch.stages[0].turns[0].darts).toEqual([]);
   });
 
@@ -471,6 +487,7 @@ describe("scoreTrainingPlay", () => {
     it("refuses to build an engine for a ruleset this page does not own", async () => {
       const foreignEngine: GameEngine<unknown, unknown> = {
         rulesetVersionKey: "BOBS27_V1",
+        stageOwnership: "PER_SEAT",
         record: () => ({}),
         undo: () => false,
         wouldComplete: () => false,
@@ -481,6 +498,7 @@ describe("scoreTrainingPlay", () => {
       const foreignCreate = vi.fn(() => foreignEngine);
       const foreignFactory: GameEngineFactory<unknown, unknown, unknown> = {
         rulesetVersionKey: "BOBS27_V1",
+        stageOwnership: "PER_SEAT",
         create: foreignCreate,
       };
       registerEngineFactory(foreignFactory);
@@ -713,7 +731,6 @@ describe("scoreTrainingPlay", () => {
         $store: {
           game: gameStub({
             sessionId: "session-1",
-            participantRef: "participant-1",
             configSnapshot: rounds(20),
             turns: [turnFact("t1", 1, 50)],
             ...gameOverrides,
@@ -865,7 +882,8 @@ describe("scoreTrainingPlay", () => {
       play.finished = true;
       play.resultsSnapshot = { total: 50, visits: 1, average: 50 };
       play.playAgainError = "stale";
-      const priorConfig = play.$store.game.configSnapshot;
+      const { seats: _priorSeats, ...priorRulesetConfig } =
+        play.$store.game.configSnapshot!;
 
       vi.mocked(createSession).mockResolvedValue({
         sessionId: "new-session",
@@ -892,13 +910,15 @@ describe("scoreTrainingPlay", () => {
         },
       });
       expect(play.$store.game.sessionId).toBe("new-session");
-      expect(play.$store.game.participantRef).toBe("new-participant");
+      expect(play.$store.game.seats[0].participantRef).toBe("new-participant");
       expect(play.$store.game.turns).toEqual([]);
       expect(play.$store.game.stages).toEqual([BLOCK]);
       expect(play.$store.game.idempotencyKey).toBeNull();
       expect(play.$store.game.timerRemainingMs).toBeNull();
       expect(play.$store.game.timerExpired).toBe(false);
-      expect(play.$store.game.configSnapshot).toBe(priorConfig);
+      const { seats: _nextSeats, ...nextRulesetConfig } =
+        play.$store.game.configSnapshot!;
+      expect(nextRulesetConfig).toEqual(priorRulesetConfig);
       expect(play.finished).toBe(false);
       expect(play.completionStatus).toBe("pending");
       expect(play.completionError).toBe("");

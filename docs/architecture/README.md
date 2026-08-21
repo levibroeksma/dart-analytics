@@ -67,7 +67,7 @@ docs/
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
-├── migrations/      # 0001–0022
+├── migrations/      # 0001–0023
 └── seeds/           # reference data, templates, presets
 ```
 

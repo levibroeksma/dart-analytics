@@ -28,19 +28,29 @@ export interface IdempotencyRecord {
   result: unknown;
 }
 
+/**
+ * One session's rows, written in a single transaction.
+ *
+ * `participants` is every seat's participant row, in seat order. One entry
+ * reproduces the single-PLAYER session this used to take four separate fields
+ * for; several are what lets one session hold a guest alongside its owner.
+ */
 export interface CreateSessionRecordsInput {
   activityId: string;
   sessionId: string;
   configurationId: string;
-  participantId: string;
+  participants: {
+    id: string;
+    participantTypeId: number;
+    playerId: string | null;
+    displayName: string;
+  }[];
   playerId: string;
   gameTypeId: string;
   rulesetVersionId: string;
   captureModeId: number;
   inputModeId: number;
   activeStatusId: number;
-  playerParticipantTypeId: number;
-  displayName: string;
   configuration: Record<string, unknown>;
 }
 

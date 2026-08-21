@@ -111,7 +111,7 @@ Check `08-Component-Inventory.md` before hand-rolling markup — `SetupShell`,
 | `seeds/0007_ruleset_version_capabilities.sql` | **shared** — the capability rows |
 | `verification/0007_capability_seed_checks.sql` | **shared** |
 
-New schema means a new numbered migration; applied migrations (`0001`–`0022`)
+New schema means a new numbered migration; applied migrations (`0001`–`0023`)
 are never edited. Full procedure: `05-Database/10-Database-Agent-Guide.md`
 §"Add a new game type".
 

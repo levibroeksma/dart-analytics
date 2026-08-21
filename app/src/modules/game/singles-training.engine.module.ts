@@ -1,4 +1,4 @@
-import type { SinglesSnapshot } from "@lib/types";
+import type { SinglesSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
@@ -132,10 +132,11 @@ export class SinglesTrainingEngine implements GameEngine<
   SinglesTrainingState
 > {
   readonly rulesetVersionKey = "SINGLES_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: SinglesSnapshot,
+    private readonly config: Seated<SinglesSnapshot>,
     prior?: EngineFacts,
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
@@ -163,6 +164,7 @@ export class SinglesTrainingEngine implements GameEngine<
     const turn: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -266,12 +268,13 @@ export class SinglesTrainingEngine implements GameEngine<
 }
 
 export const singlesTrainingEngineFactory: GameEngineFactory<
-  SinglesSnapshot,
+  Seated<SinglesSnapshot>,
   DartObservation,
   SinglesTrainingState
 > = {
   rulesetVersionKey: "SINGLES_V1",
-  create(config: SinglesSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<SinglesSnapshot>, prior?: EngineFacts) {
     return new SinglesTrainingEngine(config, prior);
   },
 };

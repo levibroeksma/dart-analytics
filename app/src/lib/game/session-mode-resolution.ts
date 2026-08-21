@@ -2,7 +2,7 @@ import {
   RULESET_CAPABILITIES,
   supportsMode,
 } from "@lib/game/rulesets/capabilities";
-import type { ModePair, RulesetVersionKey } from "@lib/types";
+import type { ModePair, RulesetVersionKey, SeatFact, Seated } from "@lib/types";
 
 /**
  * The capture/input mode pair a `createSession` call should send, given the
@@ -37,28 +37,85 @@ export function resolveSessionModePair(
 }
 
 /**
+ * Turns the participants the server minted into the session's seat list. The
+ * response array's order IS seat order — the setup screen decides who throws
+ * first in leg 1 by the order it sends. V1 gives each seat its own side
+ * (`A`, `B`, …); a future 2v2 assigns two seats to one side, which every X01
+ * win condition already folds for.
+ */
+export function seatsFromParticipants(
+  participants: {
+    ref: string;
+    participantTypeKey: string;
+    displayName: string;
+  }[],
+): SeatFact[] {
+  return participants.map((participant, index) => ({
+    participantRef: participant.ref,
+    displayName: participant.displayName,
+    sideKey: String.fromCharCode(65 + index),
+    participantTypeKey:
+      participant.participantTypeKey === "GUEST" ? "GUEST" : "PLAYER",
+  }));
+}
+
+/**
  * The store payload that starts a session, assembled once for both setup
  * pages. They differ only in game type, ruleset and config snapshot; every
  * other field is read off the same two objects, so a new session field (the
  * mode pair was the most recent) is added here rather than in two places that
  * must be kept in step by hand.
+ *
+ * Seats are composed INTO the snapshot rather than stored beside it: the
+ * snapshot is what the engine is constructed from, and a second copy of the
+ * seat list is a second thing that can drift from it.
  */
-export function startSessionInput(input: {
+export function startSessionInput<TConfig extends object>(input: {
   gameTypeKey: string;
   rulesetVersionKey: RulesetVersionKey;
-  session: { sessionId: string; participants: { ref: string }[] };
+  session: {
+    sessionId: string;
+    participants: {
+      ref: string;
+      participantTypeKey: string;
+      displayName: string;
+    }[];
+  };
   templateRef: string;
-  configSnapshot: unknown;
+  configSnapshot: TConfig;
   modePair: ModePair;
 }) {
   return {
     gameTypeKey: input.gameTypeKey,
     rulesetVersionKey: input.rulesetVersionKey,
     sessionId: input.session.sessionId,
-    participantRef: input.session.participants[0].ref,
     templateRef: input.templateRef,
-    configSnapshot: input.configSnapshot,
+    configSnapshot: {
+      ...input.configSnapshot,
+      seats: seatsFromParticipants(input.session.participants),
+    } as Seated<TConfig>,
     captureModeKey: input.modePair.captureModeKey,
     inputModeKey: input.modePair.inputModeKey,
   };
+}
+
+/**
+ * Re-seats a config snapshot onto the participants a freshly-created session
+ * minted. Play Again keeps the ruleset config but gets new participant rows,
+ * so the seats inside the snapshot must be replaced rather than carried over —
+ * a stale ref would attribute the new session's turns to a participant that
+ * belongs to the finished one.
+ */
+export function reseatSnapshot<TConfig extends object>(
+  configSnapshot: TConfig,
+  participants: {
+    ref: string;
+    participantTypeKey: string;
+    displayName: string;
+  }[],
+): Seated<TConfig> {
+  return {
+    ...configSnapshot,
+    seats: seatsFromParticipants(participants),
+  } as Seated<TConfig>;
 }

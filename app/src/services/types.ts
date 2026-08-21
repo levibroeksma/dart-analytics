@@ -31,3 +31,16 @@ export type PlayerProfile = {
 export type AppendBatchResult = {
   created: { stages: number; turns: number; darts: number };
 };
+
+/**
+ * One seat as it will be persisted: the participant row to insert plus the
+ * side it plays for. Built before the write so participants and the
+ * configuration snapshot are composed from the same ids in one transaction.
+ */
+export type SeatPlan = {
+  participantId: string;
+  participantTypeId: number;
+  playerId: string | null;
+  displayName: string;
+  sideKey: string;
+};

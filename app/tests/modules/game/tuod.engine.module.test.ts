@@ -8,7 +8,16 @@ import {
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type { GameEngine } from "@modules/interfaces";
 import type { TuodAttemptInput, TuodState } from "@modules/types";
-import type { TuodSnapshot } from "@lib/types";
+import type { TuodSnapshot, Seated } from "@lib/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const config = () =>
   ({
@@ -18,14 +27,15 @@ const config = () =>
     durationType: "ROUNDS",
     durationValue: 10,
     maxDartsPerTurn: 3,
-  }) satisfies TuodSnapshot;
+    seats: SEATS,
+  }) satisfies Seated<TuodSnapshot>;
 
 const minutesConfig = () =>
   ({
     ...config(),
     durationType: "MINUTES",
     durationValue: 10,
-  }) satisfies TuodSnapshot;
+  }) satisfies Seated<TuodSnapshot>;
 
 type TuodGameEngine = GameEngine<TuodAttemptInput, TuodState>;
 
@@ -193,7 +203,7 @@ describe("TuodEngine — ladder floor", () => {
       ...config(),
       startingTarget: 3,
       durationValue: 50,
-    }) satisfies TuodSnapshot;
+    }) satisfies Seated<TuodSnapshot>;
 
   it("floors a miss at target 3 to 2", () => {
     const engine = tuodEngineFactory.create(floorConfig());
@@ -529,7 +539,7 @@ describe("TUOD checkout dart counts", () => {
 import type { DartObservation } from "@modules/types";
 
 const boardConfig = () =>
-  ({ ...config(), startingTarget: 40 }) satisfies TuodSnapshot;
+  ({ ...config(), startingTarget: 40 }) satisfies Seated<TuodSnapshot>;
 
 /** D20 — 20 doubled, the board's own coordinate for it (see one-twenty-one.engine.module.test.ts). */
 const DOUBLE_20: DartObservation = {

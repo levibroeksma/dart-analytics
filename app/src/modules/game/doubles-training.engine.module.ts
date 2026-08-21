@@ -1,4 +1,4 @@
-import type { DoublesTrainingSnapshot } from "@lib/types";
+import type { DoublesTrainingSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
@@ -158,10 +158,11 @@ export class DoublesTrainingEngine implements GameEngine<
   DoublesTrainingState
 > {
   readonly rulesetVersionKey = "DOUBLES_TRAINING_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: DoublesTrainingSnapshot,
+    private readonly config: Seated<DoublesTrainingSnapshot>,
     prior?: EngineFacts,
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
@@ -189,6 +190,7 @@ export class DoublesTrainingEngine implements GameEngine<
     const turn: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -293,12 +295,13 @@ export class DoublesTrainingEngine implements GameEngine<
 }
 
 export const doublesTrainingEngineFactory: GameEngineFactory<
-  DoublesTrainingSnapshot,
+  Seated<DoublesTrainingSnapshot>,
   DartObservation,
   DoublesTrainingState
 > = {
   rulesetVersionKey: "DOUBLES_TRAINING_V1",
-  create(config: DoublesTrainingSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<DoublesTrainingSnapshot>, prior?: EngineFacts) {
     return new DoublesTrainingEngine(config, prior);
   },
 };

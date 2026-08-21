@@ -1,12 +1,12 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import {
-  applyFiveOhOneVisit,
-  initialFiveOhOneState,
-} from "@modules/game/five-oh-one.engine.module";
+import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  resolveSessionModePair,
+  reseatSnapshot,
+} from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -21,7 +21,7 @@ import {
   previousScoreDisplay,
   threeDartAverageDisplay,
 } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -61,32 +61,6 @@ function resumeEngine(
 }
 
 /**
- * Folds a leg's turns into a `FiveOhOneState`, exactly like the engine's own
- * private replay, but reading only from the reactive `$store.game` fields —
- * never `engine.state()` — so every Alpine display expression that calls
- * this (directly or through `remainingScore`/`checkoutHint`/the stat
- * methods) re-renders when `recordFacts` writes a new turn. `engine` is a
- * plain class instance; its own internal mutations carry no Alpine
- * reactivity, so display must never depend on them (see
- * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention, already
- * followed by `ScoreTrainingResults.astro`).
- */
-function foldLegState(
-  turns: TurnFact[],
-  config: FiveOhOneSnapshot,
-): FiveOhOneState {
-  return turns.reduce(
-    (state, turn) =>
-      applyFiveOhOneVisit(
-        state,
-        { scoreAttempted: turn.totalScore, finishedOnDouble: true },
-        config,
-      ),
-    initialFiveOhOneState(config),
-  );
-}
-
-/**
  * The engine owns the fact log while a session is live; the store mirrors
  * it. Upload paths that can run without a live engine (a completion retry
  * driven straight from the results modal) fall back to the persisted
@@ -115,6 +89,18 @@ function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
  * than three darts, which this slightly under-weights. Recovering it needs
  * per-dart capture, which 501 does not have (`06-Spec/04-Runtime-Layer.md`).
  */
+/**
+ * The seat the session belongs to — the one PLAYER participant. Guest visits
+ * land in the same fact log, so a results summary that sums every turn mixes
+ * two throwers into one average.
+ */
+function ownerRef(seats: readonly SeatFact[]): string | null {
+  return (
+    seats.find((seat) => seat.participantTypeKey === "PLAYER")
+      ?.participantRef ?? null
+  );
+}
+
 function computeStats(
   turns: TurnFact[],
   legsWon: number,
@@ -181,10 +167,29 @@ export function fiveOhOnePlay() {
       );
     },
 
-    remainingScore(this: FiveOhOnePlayContext): number {
+    /**
+     * Folds the store's own fact log — never `engine.state()` — so every
+     * Alpine display expression that calls this re-renders when
+     * `recordFacts` writes a new turn. The engine is a plain class instance;
+     * its internal mutations carry no Alpine reactivity (see
+     * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention).
+     */
+    state(this: FiveOhOnePlayContext): FiveOhOneState | null {
       const config = this.$store.game.configSnapshot;
-      if (!config) return 0;
-      return foldLegState(this.turnsInCurrentLeg(), config).remainingScore;
+      if (!config) return null;
+      return foldFiveOhOneState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
+    },
+
+    remainingScore(this: FiveOhOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      const seat = state.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      return seat?.remainingScore ?? 0;
     },
 
     checkoutHint(this: FiveOhOnePlayContext): string {
@@ -547,10 +552,7 @@ export function fiveOhOnePlay() {
       this.completionError = "";
 
       try {
-        const batch = buildEventsBatch(
-          this.$store.game.participantRef!,
-          currentFacts(this),
-        );
+        const batch = buildEventsBatch(currentFacts(this));
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
       } catch (err: unknown) {
@@ -566,8 +568,13 @@ export function fiveOhOnePlay() {
         }
       }
 
+      const owner = ownerRef(this.$store.game.seats);
       this.resultsSnapshot = computeStats(
-        this.$store.game.turns,
+        owner === null
+          ? this.$store.game.turns
+          : this.$store.game.turns.filter(
+              (turn) => turn.participantRef === owner,
+            ),
         this.$store.game.configSnapshot!.legsToWin,
       );
       this.completionStatus = "succeeded";
@@ -594,10 +601,7 @@ export function fiveOhOnePlay() {
           if (!this.$store.game.idempotencyKey) {
             this.$store.game.idempotencyKey = crypto.randomUUID();
           }
-          const batch = buildEventsBatch(
-            this.$store.game.participantRef!,
-            facts,
-          );
+          const batch = buildEventsBatch(facts);
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
@@ -650,7 +654,9 @@ export function fiveOhOnePlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.participantRef = session.participants[0].ref;
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

@@ -22,8 +22,18 @@ import { doublesTrainingPlay } from "@lib/game/doubles-training-play.data";
 import type {
   DoublesTrainingPlayContext,
   DoublesTrainingSnapshot,
+  Seated,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -42,13 +52,14 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-function defaultConfig(): DoublesTrainingSnapshot {
+function defaultConfig(): Seated<DoublesTrainingSnapshot> {
   return {
     mode: "EASY",
     orderMode: "LOW_TO_HIGH",
     targetOrder: [
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
     ],
+    seats: SEATS,
   };
 }
 
@@ -71,6 +82,7 @@ function priorHitTurnsThroughDouble(n: number): TurnFact[] {
     turns.push({
       clientKey: `prior-${number}`,
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: number,
       completedAt: "2026-08-01T10:00:00.000Z",
       totalScore: dart.score,
@@ -84,9 +96,11 @@ type GameStub = DoublesTrainingPlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "DOUBLES_TRAINING_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: defaultConfig(),
     captureModeKey: "RECREATIONAL",

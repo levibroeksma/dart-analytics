@@ -242,6 +242,28 @@ The structure of the JSONB is defined per game type by the ruleset version. The 
 
 JSONB was chosen over typed per-game child tables because the configuration is written once, read for replay, and never queried relationally. This resolves the earlier typed-vs-JSONB tension in favour of JSONB for snapshots.
 
+## Seats
+
+The snapshot also carries the session's `seats`: an ordered array of
+`{ participantRef, displayName, sideKey, participantTypeKey }`, one entry per
+participant, written in the same transaction as the participant rows so both
+are composed from the same minted ids. <!-- 2026-08-21 -->
+
+Seat ORDER is gameplay-relevant and therefore stored — it decides who throws
+first in leg 1, and the starting seat rotates over seats each leg. The ACTIVE
+seat is never stored: it is derived from the fact log by
+`app/src/modules/game/seat-rota.module.ts`, so a page refresh mid-leg restores
+whose throw it is with nothing persisted.
+
+`sideKey` groups seats. V1 writes exactly one seat per side; a future 2v2
+writes two seats to one side, which every X01 win condition already folds
+for, so no state shape changes.
+
+Seat entries stay camelCase inside the otherwise snake_case configuration
+document. The client's key mapper (`app/src/lib/game/rulesets/config-codec.ts`)
+is shallow, so a snake_case seat array would survive `toSnapshot()`
+unconverted and silently mismatch the client's `SeatFact`.
+
 ---
 
 # participants

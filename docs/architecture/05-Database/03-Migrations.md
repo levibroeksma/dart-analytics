@@ -590,6 +590,24 @@ Never edits `0003`/`0009`/`0013`/`0014`/`0016`/`0018`/`0021`.
 
 ---
 
+## 0023_owner_scoped_dart_views.sql
+
+Purpose:
+
+Restrict the two dart analytics views to the session owner's own participant. <!-- 2026-08-21 -->
+
+Contains:
+
+- rewritten `v_dart_analytics` and `v_dart_locations`: each gains `JOIN participants p ON p.id = t.participant_id` and `AND p.player_id = es.player_id`
+
+Guest participants throw into the same `turns`/`darts` tables as the owning player, and both views project `es.player_id`. Without the filter a guest's darts counted as the owner's in every accuracy read. Behaviour-preserving for every existing session: a single-participant session has exactly one participant, the PLAYER whose `player_id` equals `es.player_id`.
+
+`v_game_replay` is deliberately NOT filtered — it exists to replay a session as it was played, every participant included.
+
+Never edits `0009`/`0013`/`0014`/`0018`.
+
+---
+
 # Schema Changes
 
 

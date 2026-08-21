@@ -1,5 +1,5 @@
 import type { RulesetVersionKey } from "@lib/types";
-import type { EngineFacts } from "./types";
+import type { EngineFacts, StageOwnership } from "./types";
 
 /**
  * Contract every game engine implements, regardless of ruleset. `TInput` is
@@ -8,6 +8,13 @@ import type { EngineFacts } from "./types";
  */
 export interface GameEngine<TInput, TState> {
   readonly rulesetVersionKey: RulesetVersionKey;
+  /**
+   * Which stage shape this engine has, so the shared seat rota can derive the
+   * active seat without knowing the ruleset. Static, not derived: a one-seat
+   * session behaves identically under either value, so an engine not yet
+   * wired for multiple seats declares the shape it WILL have.
+   */
+  readonly stageOwnership: StageOwnership;
   record(input: TInput): TState;
   undo(): boolean;
   /**
@@ -29,5 +36,12 @@ export interface GameEngine<TInput, TState> {
  */
 export interface GameEngineFactory<TConfig, TInput, TState> {
   readonly rulesetVersionKey: RulesetVersionKey;
+  /**
+   * Which stage shape this engine has, so the shared seat rota can derive the
+   * active seat without knowing the ruleset. Static, not derived: a one-seat
+   * session behaves identically under either value, so an engine not yet
+   * wired for multiple seats declares the shape it WILL have.
+   */
+  readonly stageOwnership: StageOwnership;
   create(config: TConfig, prior?: EngineFacts): GameEngine<TInput, TState>;
 }

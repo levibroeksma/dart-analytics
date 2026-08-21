@@ -9,14 +9,16 @@ import type { EngineFacts, TurnFact } from "./types";
  * pass and ordered by `sequence` so replay order is deterministic regardless
  * of the order turns were appended to the fact log.
  *
+ * Each turn carries its own `participantRef`, minted by the engine, so refs
+ * vary within one batch when several seats played the session. This used to
+ * take one ref and stamp it onto every turn, which is why a session's whole
+ * log necessarily belonged to one identity.
+ *
  * Every turn must belong to a stage present in `facts.stages` — an orphan
  * turn is silent gameplay-data loss on upload, so it throws rather than
  * being dropped.
  */
-export function buildEventsBatch(
-  participantRef: string,
-  facts: EngineFacts,
-): EventsBatchRequestInput {
+export function buildEventsBatch(facts: EngineFacts): EventsBatchRequestInput {
   const stageKeys = new Set(facts.stages.map((stage) => stage.clientKey));
   const turnsByStage = new Map<string, TurnFact[]>();
   for (const turn of facts.turns) {
@@ -44,7 +46,7 @@ export function buildEventsBatch(
         .sort((a, b) => a.sequence - b.sequence)
         .map((turn) => ({
           clientKey: turn.clientKey,
-          participantRef,
+          participantRef: turn.participantRef,
           sequence: turn.sequence,
           totalScore: turn.totalScore,
           completedAt: turn.completedAt,

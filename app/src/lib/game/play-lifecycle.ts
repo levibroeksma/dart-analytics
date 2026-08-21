@@ -1,5 +1,8 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  reseatSnapshot,
+  resolveSessionModePair,
+} from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -9,7 +12,7 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, Seated } from "@lib/types";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type { GameEngine } from "@modules/interfaces";
 import type {
@@ -200,10 +203,7 @@ export async function playUploadAndCompleteSession<
   const finalState = context.engine?.state() ?? null;
 
   try {
-    const batch = buildEventsBatch(
-      context.$store.game.participantRef!,
-      currentFacts(context),
-    );
+    const batch = buildEventsBatch(currentFacts(context));
     await appendBatch(sessionId, idempotencyKey, batch);
     await completeSession(sessionId, "COMPLETED");
   } catch (err: unknown) {
@@ -256,10 +256,7 @@ export async function playAbandonAndExit<
       if (!context.$store.game.idempotencyKey) {
         context.$store.game.idempotencyKey = crypto.randomUUID();
       }
-      const batch = buildEventsBatch(
-        context.$store.game.participantRef!,
-        facts,
-      );
+      const batch = buildEventsBatch(facts);
       await appendBatch(sessionId, context.$store.game.idempotencyKey, batch);
     }
     await completeSession(sessionId, "ABANDONED");
@@ -279,7 +276,7 @@ export async function playAbandonAndExit<
  * `GameEngine<unknown, unknown>`.
  */
 export async function runPlayAgain<
-  TConfig,
+  TConfig extends object,
   TEngine extends GameEngine<DartObservation, unknown>,
   TResults,
 >(
@@ -287,7 +284,9 @@ export async function runPlayAgain<
   gameTypeKey: string,
   rulesetVersionKey: RulesetVersionKey,
   narrowEngine: (engine: GameEngine<unknown, unknown>) => TEngine | null,
-  buildOverrides?: (priorConfig: TConfig) => PlayAgainOverrides<TConfig>,
+  buildOverrides?: (
+    priorConfig: Seated<TConfig>,
+  ) => PlayAgainOverrides<TConfig>,
 ): Promise<void> {
   const config = context.$store.game.configSnapshot;
   const templateRef = context.$store.game.templateRef;
@@ -323,9 +322,11 @@ export async function runPlayAgain<
     }
 
     context.$store.game.sessionId = session.sessionId;
-    context.$store.game.participantRef = session.participants[0].ref;
     context.$store.game.idempotencyKey = null;
-    context.$store.game.configSnapshot = nextConfigSnapshot;
+    context.$store.game.configSnapshot = reseatSnapshot(
+      nextConfigSnapshot,
+      session.participants,
+    ) as Seated<TConfig>;
     context.$store.game.setSessionModes(modePair);
 
     context.finished = false;

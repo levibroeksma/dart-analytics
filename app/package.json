@@ -11,7 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
-    "check": "rm -rf .astro && astro check",
+    "check": "rm -rf .astro && astro check --minimumFailingSeverity hint",
     "env:mirror": "tsx scripts/mirror-public-auth.ts",
     "env:dev": "neon checkout dev && npm run env:mirror -- --file .env",
     "env:prod": "neon env pull --branch main --file .env.production && npm run env:mirror -- --file .env.production",

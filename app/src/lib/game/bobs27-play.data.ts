@@ -1,5 +1,8 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  resolveSessionModePair,
+  reseatSnapshot,
+} from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
   completeSession,
@@ -307,10 +310,7 @@ export function bobs27Play() {
       const finalState = this.engine?.state() ?? null;
 
       try {
-        const batch = buildEventsBatch(
-          this.$store.game.participantRef!,
-          currentFacts(this),
-        );
+        const batch = buildEventsBatch(currentFacts(this));
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
       } catch (err: unknown) {
@@ -353,10 +353,7 @@ export function bobs27Play() {
           if (!this.$store.game.idempotencyKey) {
             this.$store.game.idempotencyKey = crypto.randomUUID();
           }
-          const batch = buildEventsBatch(
-            this.$store.game.participantRef!,
-            facts,
-          );
+          const batch = buildEventsBatch(facts);
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
@@ -404,7 +401,9 @@ export function bobs27Play() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.participantRef = session.participants[0].ref;
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

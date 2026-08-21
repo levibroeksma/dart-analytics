@@ -9,12 +9,30 @@ export const ConfigInput = z.discriminatedUnion("source", [
   z.object({ source: z.literal("inline"), config: z.record(z.unknown()) }),
 ]);
 
+/**
+ * One requested seat. Array order IS seat order, so the setup screen decides
+ * who throws first in leg 1 by the order it sends. `displayName` is required
+ * for a GUEST and ignored for the PLAYER, whose name is copied server-side
+ * from `players.display_name` — migration `0005`'s CHECK requires exactly
+ * that, so a client-supplied value is never trusted. Cross-field agreement
+ * (one PLAYER, one seat per side, seat count, ruleset support) is asserted
+ * once in `session-seats.service.ts` rather than here, because it depends on
+ * the ruleset being created.
+ */
+export const ParticipantInput = z.object({
+  participantTypeKey: z.enum(["PLAYER", "GUEST"]),
+  displayName: z.string().optional(),
+  sideKey: z.string().min(1),
+});
+export type ParticipantInputData = z.infer<typeof ParticipantInput>;
+
 export const CreateSessionRequest = z.object({
   gameTypeKey: z.string(),
   rulesetVersionKey: z.string(),
   captureModeKey: z.string(),
   inputModeKey: z.string(),
   config: ConfigInput,
+  participants: z.array(ParticipantInput).optional(),
 });
 export type CreateSessionRequestInput = z.infer<typeof CreateSessionRequest>;
 

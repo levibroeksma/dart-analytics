@@ -63,6 +63,23 @@ const inlineRequest = {
   },
 };
 
+const fiveOhOneRequest = {
+  gameTypeKey: "501",
+  rulesetVersionKey: "501_V1",
+  captureModeKey: "RECREATIONAL",
+  inputModeKey: "QUICK_SCORE",
+  config: {
+    source: "inline" as const,
+    config: {
+      starting_score: 501,
+      legs_to_win: 1,
+      check_in: "STRAIGHT_IN",
+      check_out: "DOUBLE_OUT",
+      max_darts_per_turn: 3,
+    },
+  },
+};
+
 describe("createSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,11 +90,12 @@ describe("createSession", () => {
     vi.mocked(repo.findCaptureModeId).mockResolvedValue(1);
     vi.mocked(repo.findInputModeId).mockResolvedValue(1);
     vi.mocked(repo.findGameStatusId).mockResolvedValue(1);
-    vi.mocked(repo.findParticipantTypeId).mockResolvedValue(1);
+    vi.mocked(repo.findParticipantTypeId).mockImplementation(
+      async (_db: unknown, key: string) => (key === "PLAYER" ? 1 : 2),
+    );
     vi.mocked(repo.findPlayerDisplayName).mockResolvedValue("Levi");
     vi.mocked(repo.insertSessionRecords).mockResolvedValue({
       sessionId: "generated-id",
-      participantId: "generated-id",
     });
     vi.mocked(repo.findActiveSessionForGameType).mockResolvedValue(undefined);
   });
@@ -95,6 +113,86 @@ describe("createSession", () => {
         },
       ]);
     }
+  });
+
+  it("mints one PLAYER participant when participants is omitted", async () => {
+    const result = await createSession("player-1", inlineRequest);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.participants).toHaveLength(1);
+    expect(result.data.participants[0].participantTypeKey).toBe("PLAYER");
+  });
+
+  it("mints one participant per requested seat and returns them in order", async () => {
+    const result = await createSession("player-1", {
+      ...fiveOhOneRequest,
+      participants: [
+        { participantTypeKey: "PLAYER", sideKey: "A" },
+        { participantTypeKey: "GUEST", displayName: "Dad", sideKey: "B" },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(
+      result.data.participants.map((p) => [
+        p.participantTypeKey,
+        p.displayName,
+      ]),
+    ).toEqual([
+      ["PLAYER", "Levi"],
+      ["GUEST", "Dad"],
+    ]);
+  });
+
+  it("copies the PLAYER display name from the player row, ignoring the request", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      participants: [
+        { participantTypeKey: "PLAYER", displayName: "Spoofed", sideKey: "A" },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.participants[0].displayName).toBe("Levi");
+  });
+
+  it("writes the seats into the configuration snapshot, matching the minted ids", async () => {
+    const result = await createSession("player-1", {
+      ...fiveOhOneRequest,
+      participants: [
+        { participantTypeKey: "PLAYER", sideKey: "A" },
+        { participantTypeKey: "GUEST", displayName: "Dad", sideKey: "B" },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const written = vi.mocked(repo.insertSessionRecords).mock.calls[0][0];
+    expect(written.configuration.seats).toEqual(
+      result.data.participants.map((participant, index) => ({
+        participantRef: participant.ref,
+        displayName: participant.displayName,
+        sideKey: index === 0 ? "A" : "B",
+        participantTypeKey: participant.participantTypeKey,
+      })),
+    );
+  });
+
+  it("rejects a seat request the seat rules refuse, without writing anything", async () => {
+    const result = await createSession("player-1", {
+      ...inlineRequest,
+      participants: [
+        { participantTypeKey: "GUEST", displayName: "Dad", sideKey: "A" },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.insertSessionRecords).not.toHaveBeenCalled();
   });
 
   it("rejects an unknown gameTypeKey/rulesetVersionKey combination", async () => {

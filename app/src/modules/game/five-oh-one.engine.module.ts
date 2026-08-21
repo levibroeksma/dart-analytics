@@ -1,5 +1,6 @@
-import type { FiveOhOneSnapshot } from "@lib/types";
+import type { FiveOhOneSnapshot, SeatFact, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
+import { activeSeat, seatOf } from "./seat-rota.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
@@ -9,6 +10,7 @@ import type {
   DartZoneKey,
   EngineFacts,
   FiveOhOneInput,
+  FiveOhOneSeatState,
   FiveOhOneState,
   FiveOhOneVisitInput,
   FiveOhOneVisitOutcome,
@@ -61,13 +63,24 @@ function isPlayableVisitScore(
 }
 
 export function initialFiveOhOneState(
-  config: FiveOhOneSnapshot,
+  config: Seated<FiveOhOneSnapshot>,
 ): FiveOhOneState {
   return {
-    remainingScore: config.startingScore,
-    legsWon: 0,
+    activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
+    winningSideKey: null,
+    sides: sidesOf(config.seats).map((sideKey) => ({ sideKey, legsWon: 0 })),
+    seats: config.seats.map((seat) => ({
+      participantRef: seat.participantRef,
+      sideKey: seat.sideKey,
+      remainingScore: config.startingScore,
+    })),
   };
+}
+
+/** Every distinct side in the session, in first-seat order. */
+function sidesOf(seats: readonly SeatFact[]): string[] {
+  return [...new Set(seats.map((seat) => seat.sideKey))];
 }
 
 /**
@@ -77,7 +90,7 @@ export function initialFiveOhOneState(
  * unless the visit declares `finishedOnDouble`. A bust scores 0 and leaves the
  * remaining score untouched.
  */
-function resolveFiveOhOneVisit(
+export function resolveFiveOhOneVisit(
   remainingScore: number,
   input: FiveOhOneVisitInput,
 ): FiveOhOneVisitOutcome {
@@ -112,13 +125,13 @@ function resolveFiveOhOneVisit(
  * chart can contradict, so they are carried without comment.
  */
 function checkoutDartsRejectionFor(
-  state: FiveOhOneState,
+  remainingScore: number,
   input: FiveOhOneVisitInput,
   config: FiveOhOneSnapshot,
 ): string | null {
   if (input.finishedOnDouble !== true) return null;
   return checkoutDartsRejection(
-    state.remainingScore,
+    remainingScore,
     input.dartsUsed,
     input.dartsAtDouble,
     config.maxDartsPerTurn,
@@ -126,47 +139,105 @@ function checkoutDartsRejectionFor(
 }
 
 /**
- * Pure reducer: folds one visit onto a `FiveOhOneState`. A won leg increments
- * `legsWon` and restarts the next leg at `config.startingScore`; the session
- * only reaches `WON` once `legsWon` reaches `config.legsToWin`.
- * `config.checkIn` and `config.checkOut` each carry exactly one value in
- * `501_V1` (`STRAIGHT_IN` / `DOUBLE_OUT`), so the straight-in start and
- * double-out finish are applied directly rather than branched on.
- * @throws when the session is already complete, or when `scoreAttempted` is
- *   not a whole number within `0..config.maxVisitScore`; the caller's state is
- *   left untouched either way.
+ * One leg's visits, in the order they were thrown. Turn `sequence` is the
+ * order of record within the stage, so sorting on it replays the leg exactly
+ * as it was played, whatever order the fact log happens to hold.
  */
-export function applyFiveOhOneVisit(
-  state: FiveOhOneState,
-  input: FiveOhOneVisitInput,
-  config: FiveOhOneSnapshot,
+function legVisitsOf(
+  facts: EngineFacts,
+  stage: StageFact,
+): readonly TurnFact[] {
+  return facts.turns
+    .filter((turn) => turn.stageClientKey === stage.clientKey)
+    .slice()
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+/**
+ * Replays one leg into `remaining`, which every seat re-enters at
+ * `startingScore` because a seat's remaining score is folded from that leg's
+ * own turns and a fresh leg has none. Answers the seat that checked out, or
+ * null while the leg is still open. A turn's `totalScore` is what actually
+ * counted, so a bust replays as a scoreless visit and only a genuine checkout
+ * can take a seat to zero — which is why a zeroing visit is safe to treat as
+ * a checkout on replay.
+ */
+function foldLeg(
+  visits: readonly TurnFact[],
+  config: Seated<FiveOhOneSnapshot>,
+  remaining: Map<string, number>,
+): SeatFact | null {
+  for (const seat of config.seats) {
+    remaining.set(seat.participantRef, config.startingScore);
+  }
+
+  for (const visit of visits) {
+    const seat = seatOf(visit, config.seats);
+    const before = remaining.get(seat.participantRef) ?? config.startingScore;
+    const after = before - visit.totalScore;
+    remaining.set(seat.participantRef, after);
+    if (after === 0) return seat;
+  }
+
+  return null;
+}
+
+/**
+ * Projects the folded leg into each seat's reported score. Once a side has
+ * won the match every seat on it reports zero: the match ended on that side's
+ * checkout, and the fold stops before any later leg could move it.
+ */
+function seatStatesOf(
+  config: Seated<FiveOhOneSnapshot>,
+  remaining: ReadonlyMap<string, number>,
+  winningSideKey: string | null,
+): readonly FiveOhOneSeatState[] {
+  return config.seats.map((seat) => ({
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    remainingScore:
+      seat.sideKey === winningSideKey
+        ? 0
+        : (remaining.get(seat.participantRef) ?? config.startingScore),
+  }));
+}
+
+/**
+ * Folds the whole fact log into the session's state.
+ *
+ * A leg is SHARED: one stage holds every seat's interleaved visits, and the
+ * checkout that ends it resets every seat. The session reaches `WON` only
+ * when a SIDE reaches `legsToWin`, so legs are counted per side and the fold
+ * stops at the leg that decides the match.
+ */
+export function foldFiveOhOneState(
+  facts: EngineFacts,
+  config: Seated<FiveOhOneSnapshot>,
 ): FiveOhOneState {
-  if (!isPlayableVisitScore(input.scoreAttempted, config.maxVisitScore)) {
-    throw new Error(`Enter a score between 0 and ${config.maxVisitScore}.`);
-  }
-  const dartsRejection = checkoutDartsRejectionFor(state, input, config);
-  if (dartsRejection) {
-    throw new Error(dartsRejection);
-  }
-  if (state.status !== "IN_PROGRESS") {
-    throw new Error(
-      "Cannot record a visit once the session is complete; undo first to correct it.",
-    );
+  const legsWon = new Map(sidesOf(config.seats).map((side) => [side, 0]));
+  const remaining = new Map(
+    config.seats.map((seat) => [seat.participantRef, config.startingScore]),
+  );
+  let winningSideKey: string | null = null;
+
+  for (const stage of facts.stages) {
+    if (winningSideKey !== null) break;
+
+    const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
+    if (winner === null) continue;
+
+    const won = (legsWon.get(winner.sideKey) ?? 0) + 1;
+    legsWon.set(winner.sideKey, won);
+    if (won >= config.legsToWin) winningSideKey = winner.sideKey;
   }
 
-  const outcome = resolveFiveOhOneVisit(state.remainingScore, input);
-  if (!outcome.wonLeg) {
-    return { ...state, remainingScore: outcome.remainingAfter };
-  }
-
-  const legsWon = state.legsWon + 1;
-  if (legsWon >= config.legsToWin) {
-    return { remainingScore: 0, legsWon, status: "WON" };
-  }
   return {
-    remainingScore: config.startingScore,
-    legsWon,
-    status: "IN_PROGRESS",
+    activeParticipantRef: activeSeat(facts, config.seats, "SHARED")
+      .participantRef,
+    status: winningSideKey === null ? "IN_PROGRESS" : "WON",
+    winningSideKey,
+    sides: [...legsWon].map(([sideKey, won]) => ({ sideKey, legsWon: won })),
+    seats: seatStatesOf(config, remaining, winningSideKey),
   };
 }
 
@@ -174,21 +245,22 @@ export function applyFiveOhOneVisit(
  * 501: a match of `legsToWin` legs, each started at `startingScore` and won by
  * a visit whose final dart lands in a double. The engine owns the fact log —
  * one `LEG` stage per leg and one turn per visit, carrying the visit total
- * with no dart rows because 501 is a quick-score game. `remainingScore` and
- * `legsWon` are derived by folding those turns through `applyFiveOhOneVisit`,
- * never accumulated: a bust turn stores `totalScore: 0`, so replaying the log
- * reproduces the leg exactly.
+ * with no dart rows because 501 is a quick-score game. Every seat's
+ * `remainingScore` and every side's `legsWon` are derived by folding those
+ * turns through `foldFiveOhOneState`, never accumulated: a bust turn stores
+ * `totalScore: 0`, so replaying the log reproduces the leg exactly.
  */
 export class FiveOhOneEngine implements GameEngine<
   FiveOhOneInput,
   FiveOhOneState
 > {
   readonly rulesetVersionKey = "501_V1";
+  readonly stageOwnership = "SHARED" as const;
   private readonly stages: StageFact[];
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: FiveOhOneSnapshot,
+    private readonly config: Seated<FiveOhOneSnapshot>,
     prior?: EngineFacts,
   ) {
     this.stages =
@@ -199,21 +271,26 @@ export class FiveOhOneEngine implements GameEngine<
   }
 
   /**
-   * Replays every recorded turn as the visit that produced it. A turn's
-   * `totalScore` is what actually counted, so a bust replays as a scoreless
-   * visit and only a genuine checkout can take a leg to zero — which is why
-   * `finishedOnDouble` is safe to assert on replay.
+   * The whole session's state, folded from the fact log by the same function
+   * the play page reads, so the engine and the scoreboard can never disagree
+   * about whose throw it is or what any seat has left.
    */
   private deriveState(): FiveOhOneState {
-    let state = initialFiveOhOneState(this.config);
-    for (const turn of this.turns) {
-      state = applyFiveOhOneVisit(
-        state,
-        { scoreAttempted: turn.totalScore, finishedOnDouble: true },
-        this.config,
-      );
-    }
-    return state;
+    return foldFiveOhOneState(
+      { stages: this.stages, turns: this.turns },
+      this.config,
+    );
+  }
+
+  /**
+   * The remaining score of the seat about to throw — what a keypad total or
+   * the next dart is resolved against.
+   */
+  private activeRemaining(state: FiveOhOneState): number {
+    const seat = state.seats.find(
+      (candidate) => candidate.participantRef === state.activeParticipantRef,
+    );
+    return seat?.remainingScore ?? this.config.startingScore;
   }
 
   /**
@@ -254,14 +331,16 @@ export class FiveOhOneEngine implements GameEngine<
 
   /**
    * The leg's starting score minus the counted total of every earlier turn in
-   * the same leg — the score `visit` opened against, before any of its own
-   * darts were thrown.
+   * the same leg THAT SEAT threw — the score `visit` opened against, before
+   * any of its own darts. Other seats' visits in the same shared leg never
+   * move this seat's score.
    */
   private remainingBeforeVisit(visit: TurnFact): number {
     const scoredBefore = this.turns
       .filter(
         (turn) =>
           turn.stageClientKey === visit.stageClientKey &&
+          turn.participantRef === visit.participantRef &&
           turn.sequence < visit.sequence,
       )
       .reduce((sum, turn) => sum + turn.totalScore, 0);
@@ -295,26 +374,45 @@ export class FiveOhOneEngine implements GameEngine<
         "Finish the open visit on the board before entering a keypad total.",
       );
     }
+    if (
+      !isPlayableVisitScore(input.scoreAttempted, this.config.maxVisitScore)
+    ) {
+      throw new Error(
+        `Enter a score between 0 and ${this.config.maxVisitScore}.`,
+      );
+    }
 
     const before = this.deriveState();
-    const after = applyFiveOhOneVisit(before, input, this.config);
-    const outcome = resolveFiveOhOneVisit(before.remainingScore, input);
+    const remaining = this.activeRemaining(before);
+    const dartsRejection = checkoutDartsRejectionFor(
+      remaining,
+      input,
+      this.config,
+    );
+    if (dartsRejection) throw new Error(dartsRejection);
+    if (before.status !== "IN_PROGRESS") {
+      throw new Error(
+        "Cannot record a visit once the session is complete; undo first to correct it.",
+      );
+    }
 
+    const outcome = resolveFiveOhOneVisit(remaining, input);
     const leg = this.openLeg();
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: leg.clientKey,
+      participantRef: before.activeParticipantRef,
       sequence: this.turnCountIn(leg.clientKey) + 1,
       completedAt: new Date().toISOString(),
       totalScore: outcome.scored,
       darts: [],
     });
 
-    if (outcome.wonLeg && after.status === "IN_PROGRESS") {
-      this.stages.push(legStage(this.stages.length + 1));
-    }
+    const settled = this.deriveState();
+    if (!outcome.wonLeg || settled.status !== "IN_PROGRESS") return settled;
 
-    return after;
+    this.stages.push(legStage(this.stages.length + 1));
+    return this.deriveState();
   }
 
   /**
@@ -355,12 +453,11 @@ export class FiveOhOneEngine implements GameEngine<
 
     const checkedOut = this.settleVisit(visit, resolved.zoneKey);
 
-    const after = this.deriveState();
-    if (checkedOut && after.status !== "WON") {
-      this.stages.push(legStage(this.stages.length + 1));
-    }
+    const settled = this.deriveState();
+    if (!checkedOut || settled.status === "WON") return settled;
 
-    return after;
+    this.stages.push(legStage(this.stages.length + 1));
+    return this.deriveState();
   }
 
   /** Appends an empty visit to the open leg and returns it. */
@@ -369,6 +466,7 @@ export class FiveOhOneEngine implements GameEngine<
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: leg.clientKey,
+      participantRef: this.deriveState().activeParticipantRef,
       sequence: this.turnCountIn(leg.clientKey) + 1,
       completedAt: null,
       totalScore: 0,
@@ -492,9 +590,17 @@ export class FiveOhOneEngine implements GameEngine<
   ): boolean {
     const resolved = this.resolveObservation(observation);
 
-    const remainingAfter = before.remainingScore - resolved.score;
+    const remainingAfter = this.activeRemaining(before) - resolved.score;
     const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
-    return checksOut && before.legsWon + 1 >= this.config.legsToWin;
+    if (!checksOut) return false;
+
+    const seat = before.seats.find(
+      (candidate) => candidate.participantRef === before.activeParticipantRef,
+    );
+    const side = before.sides.find(
+      (candidate) => candidate.sideKey === seat?.sideKey,
+    );
+    return (side?.legsWon ?? 0) + 1 >= this.config.legsToWin;
   }
 
   /**
@@ -532,11 +638,22 @@ export class FiveOhOneEngine implements GameEngine<
 
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
-    if (checkoutDartsRejectionFor(before, input, this.config) !== null) {
+
+    const remaining = this.activeRemaining(before);
+    if (checkoutDartsRejectionFor(remaining, input, this.config) !== null) {
       return false;
     }
 
-    return applyFiveOhOneVisit(before, input, this.config).status === "WON";
+    const outcome = resolveFiveOhOneVisit(remaining, input);
+    if (!outcome.wonLeg) return false;
+
+    const seat = before.seats.find(
+      (candidate) => candidate.participantRef === before.activeParticipantRef,
+    );
+    const side = before.sides.find(
+      (candidate) => candidate.sideKey === seat?.sideKey,
+    );
+    return (side?.legsWon ?? 0) + 1 >= this.config.legsToWin;
   }
 
   isComplete(): boolean {
@@ -556,12 +673,13 @@ export class FiveOhOneEngine implements GameEngine<
 }
 
 export const fiveOhOneEngineFactory: GameEngineFactory<
-  FiveOhOneSnapshot,
+  Seated<FiveOhOneSnapshot>,
   FiveOhOneInput,
   FiveOhOneState
 > = {
   rulesetVersionKey: "501_V1",
-  create(config: FiveOhOneSnapshot, prior?: EngineFacts) {
+  stageOwnership: "SHARED",
+  create(config: Seated<FiveOhOneSnapshot>, prior?: EngineFacts) {
     return new FiveOhOneEngine(config, prior);
   },
 };

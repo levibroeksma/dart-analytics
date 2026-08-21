@@ -1,4 +1,4 @@
-import type { ScoreTrainingSnapshot } from "@lib/types";
+import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
@@ -51,11 +51,12 @@ export class ScoreTrainingEngine implements GameEngine<
   ScoreTrainingState
 > {
   readonly rulesetVersionKey = "SCORE_TRAINING_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
   private timerExpired = false;
 
   constructor(
-    private readonly config: ScoreTrainingSnapshot,
+    private readonly config: Seated<ScoreTrainingSnapshot>,
     prior?: EngineFacts,
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
@@ -129,6 +130,7 @@ export class ScoreTrainingEngine implements GameEngine<
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
       totalScore: visitScore,
@@ -161,6 +163,7 @@ export class ScoreTrainingEngine implements GameEngine<
       turn = {
         clientKey: newClientKey(),
         stageClientKey: STAGE.clientKey,
+        participantRef: this.config.seats[0].participantRef,
         sequence: this.turns.length + 1,
         completedAt: null,
         totalScore: 0,
@@ -260,12 +263,13 @@ export class ScoreTrainingEngine implements GameEngine<
 }
 
 export const scoreTrainingEngineFactory: GameEngineFactory<
-  ScoreTrainingSnapshot,
+  Seated<ScoreTrainingSnapshot>,
   ScoreTrainingInput,
   ScoreTrainingState
 > = {
   rulesetVersionKey: "SCORE_TRAINING_V1",
-  create(config: ScoreTrainingSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<ScoreTrainingSnapshot>, prior?: EngineFacts) {
     return new ScoreTrainingEngine(config, prior);
   },
 };

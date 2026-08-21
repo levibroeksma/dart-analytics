@@ -34,15 +34,15 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~2.3k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0022`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15) | canonical | ~4.3k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0023`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15), `0023` owner-scoped dart views (2026-08-21) | canonical | ~4.3k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
-| `05-Views.md` | View categories and replay rules; nine implemented views through `0022` (2026-08-15) | canonical | ~2.2k |
+| `05-Views.md` | View categories and replay rules; nine implemented views through `0023` (2026-08-21) | canonical | ~2.2k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08) | canonical | ~2.1k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
 | `06-Spec/03-Player-Layer.md` | players, player_settings — settings shipped, read through `v_player_settings`, capture/input mode FKs added by `0017`; profile (darts equipment) shipped, read through `v_player_profile` (2026-08-15) | canonical | ~1.1k |
 | `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics, `location_x`/`location_y` shipped, VISUAL_BOARD capture depth, QUICK_SCORE-scoped 501 bust limitation + `total_score` bust carve-out (2026-08-05) | canonical | ~3.9k |
-| `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`), incl. `v_dart_locations` (2026-08-05) and `v_player_settings` (2026-08-08) | canonical | ~2.3k |
+| `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`), incl. `v_dart_locations` (2026-08-05), `v_player_settings` (2026-08-08) and the owner-scoping both dart views gained in `0023` (2026-08-21) | canonical | ~2.9k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.3k |
 | `08-Physical-Schema-Mapping.md` | Design-gate record | historical | ~2.2k |
@@ -76,7 +76,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0022` | Applied schema chain — never modify | canonical (applied) |
+| `migrations/0001`–`0023` | Applied schema chain — never modify; `0023` scopes the two dart analytics views to the owning participant (D222, 2026-08-21) | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
 | `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |
@@ -113,14 +113,15 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `app/src/modules/game/client-key.module.ts` | `newClientKey()` — transient batch correlation token, explicitly not an entity id (D190) (2026-08-05) | canonical |
 | `app/src/modules/game/checkout-path.module.ts` | Standard 2-170 double-out checkout chart; `null` for bogey numbers (2026-08-01) | canonical |
 | `app/src/modules/game/checkout-darts.module.ts` | Which darts-to-finish / darts-at-a-double answers a checkout may claim, read off the chart, plus the rejection all three quick-score engines share (D217) (2026-08-20) | canonical |
-| `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game | canonical |
+| `app/src/modules/game/events.payload.module.ts` | The one `buildEventsBatch` for every game; reads each turn's own `participantRef` so refs vary within one batch (D220, 2026-08-21) | canonical |
+| `app/src/modules/game/seat-rota.module.ts` | Pure seat derivation shared by every engine: `activeSeat` (from the fact log, never stored), `startingSeatFor`, `seatOf`; serves both `SHARED` and `PER_SEAT` stage shapes (D220, 2026-08-21) | canonical |
 | `app/src/modules/game/tuod.engine.module.ts` | Ten Up One Down: the checkout ladder folded from attempt turns (2026-07-26) | canonical |
 | `app/src/lib/game/board/board-geometry.module.ts` | Regulation board radii, clockwise sector order, `classify(x, y)` → `BoardHit` (target/zone/score), `zoneCentroid`; `trebleInner` corrected 97→99mm so the treble ring is 8mm wide like the double ring (2026-08-05; radius fix 2026-08-11) | canonical |
 | `app/src/lib/game/board/miss-margin.module.ts` | Distance + bearing from a dart's landing point to its declared zone's centroid; deliberately outside SQL — see `v_dart_locations` (2026-08-05) | canonical |
 | `app/src/modules/game/board-input.module.ts` | Visual board input, pure: `screenToBoard` (viewport px → board mm via the SVG's inverse screen CTM), `boardPxPerMm`, `resolveMagnifierSide`/`clampMagnifierPlacement` (handedness+edge-flip side resolved once per gesture on press, clamped per move so it never swaps sides mid-drag — #83, 2026-08-11), `magnifierPlacement` (single-call wrapper of both, D199, 2026-08-09), `boardInput` press-drag-release state machine | canonical |
 | `app/src/lib/game/board-input.data.ts` | Alpine/DOM bridge for the board: pointer events → controller, a fresh controller per press so a resize or rotation between gestures is picked up; reads `$store.boardInput.handedness` into each fresh controller (D206, 2026-08-11) | canonical |
 | `app/src/stores/board-input.store.ts` | `boardInput` Alpine store: one `$persist` `handedness` field, local-only rather than routed through `player_settings` (D206, 2026-08-11) | canonical |
-| `app/src/lib/game/session-mode-resolution.ts` | `resolveSessionModePair` (player settings + ruleset capability → the pair a new session is created with) and `startSessionInput` (the store payload both setup pages send), shared by both play pages (2026-08-10) | canonical |
+| `app/src/lib/game/session-mode-resolution.ts` | `resolveSessionModePair` (player settings + ruleset capability → the pair a new session is created with), `seatsFromParticipants`, and `startSessionInput` (the store payload both setup pages send, seats composed into the snapshot), shared by both play pages (2026-08-10; seats 2026-08-21) | canonical |
 | `app/src/lib/game/setup-controller.ts` | `createPresetSetupController` — the preset setup skeleton six games share; one seam (`configOverrides`) for the two training games' target order; 501 and Score Training deliberately opt out (2026-08-19) | canonical |
 | `app/src/lib/game/five-oh-one-starting-score.ts` | `FIVE_OH_ONE_STARTING_SCORE_NOTICE` + `clampFiveOhOneStartingScore` — floors and clamps the custom 501 starting-score input to the inclusive 2–999 bound; a non-finite/blank input clamps to the custom field's stated default of 101, not the bare minimum of 2; mirrors `five-oh-one-legs.ts`'s clamp shape (2026-08-11) | canonical |
 | `app/src/components/ui/DartBoard.astro` | Presentational dartboard SVG, millimetre `viewBox`, `role="img"` + `aria-label`; optional `boardRef` opts one instance into the controller's `x-ref` (2026-08-09) | canonical |
@@ -144,6 +145,7 @@ Registered for discoverability, not as reading material — the contract lives i
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
+| `app/src/services/session-seats.service.ts` | The single place seat/participant agreement is asserted (seat count, one PLAYER, guest names, one seat per side, ruleset support) plus `composeSeatFacts` (D221, 2026-08-21) | canonical |
 | `app/src/services/settings.service.ts` | `readSettings` / `writeSettings` — quick-score fallback for a player with no row, and the `capableRulesets` guard that refuses an uncapable mode pair; returns `ServiceResult`, never throws (D195) | canonical |
 | `app/src/repositories/settings.repository.ts` | `findSettings` reads `v_player_settings`; `upsertSettings` writes `player_settings`, resolving mode keys to ids and creating the row lazily (D195) | canonical |
 | `app/src/pages/api/players/me/settings.ts` | `GET`/`PATCH` route handlers over that service, in the frozen `ok`/`fail` envelope (D195) | canonical |
@@ -192,10 +194,10 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
 | `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20) | canonical | ~3k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
-| `decisions/database.md` | 15 decisions — schema, migration, table, column, constraint, index, view, Neon, seed | canonical | ~2k |
+| `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |
 | `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~9.4k |
-| `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
+| `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 18 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.0k |
 | `decisions/frontend/alpine.md` | 13 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.5k |

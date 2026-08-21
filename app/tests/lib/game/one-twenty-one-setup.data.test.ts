@@ -189,7 +189,16 @@ describe("oneTwentyOneSetup", () => {
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
           templateRef: "tmpl-121-standard",
-          configSnapshot: {},
+          configSnapshot: {
+            seats: [
+              {
+                participantRef: "participant-1",
+                displayName: "Player",
+                sideKey: "A",
+                participantTypeKey: "PLAYER",
+              },
+            ],
+          },
         }),
       );
       expect(locationSpy.href).toBe("/games/121/play");

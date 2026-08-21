@@ -356,3 +356,36 @@ export type GameCardDescriptor = {
   title: string;
   caption: string;
 };
+
+/**
+ * One ordered position in a session's throw rota, as written into the
+ * session's configuration snapshot at create time. `sideKey` groups seats:
+ * v1 writes exactly one seat per side, and a future 2v2 writes two. Seat
+ * order is gameplay-relevant and therefore stored; the ACTIVE seat is derived
+ * from the fact log and never stored.
+ *
+ * `participantTypeKey` is carried so read-time statistics can restrict
+ * themselves to the owning player's own turns — a guest's visits land in the
+ * same `turns` table.
+ */
+export type SeatFact = {
+  participantRef: string;
+  displayName: string;
+  sideKey: string;
+  participantTypeKey: "PLAYER" | "GUEST";
+};
+
+/**
+ * A ruleset config snapshot plus the seats playing it. Seats are composed in
+ * after the ruleset's own Zod schema has parsed the config, so no ruleset
+ * schema needs a `seats` key it could never receive from a seeded template.
+ *
+ * The conditional branch is what a ruleset with nothing to configure needs:
+ * those snapshots are `Record<string, never>`, and intersecting one with a
+ * seat array narrows `seats` to `never` — a type no value can inhabit. The
+ * branch drops the empty record instead of intersecting with it.
+ */
+export type Seated<TConfig> =
+  TConfig extends Record<string, never>
+    ? { seats: readonly SeatFact[] }
+    : TConfig & { seats: readonly SeatFact[] };

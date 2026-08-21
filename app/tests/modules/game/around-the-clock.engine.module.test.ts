@@ -8,14 +8,19 @@ import {
 } from "@modules/game/around-the-clock.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import type {
-  AroundTheClockState,
-  DartObservation,
-  EngineFacts,
-} from "@modules/types";
-import type { AroundTheClockSnapshot } from "@lib/types";
+import type { AroundTheClockState, DartObservation } from "@modules/types";
+import type { AroundTheClockSnapshot, Seated } from "@lib/types";
 
-const config: AroundTheClockSnapshot = {};
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<AroundTheClockSnapshot> = { seats: SEATS };
 
 function numberHit(
   number: number,

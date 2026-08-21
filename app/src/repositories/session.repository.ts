@@ -313,7 +313,7 @@ export async function findConfigurationPresets(
 
 export async function insertSessionRecords(
   input: CreateSessionRecordsInput,
-): Promise<{ sessionId: string; participantId: string }> {
+): Promise<{ sessionId: string }> {
   return withTransaction(async (tx) => {
     const now = new Date().toISOString();
     await tx.insert(activities).values({
@@ -341,15 +341,17 @@ export async function insertSessionRecords(
       configuration: input.configuration,
       createdAt: now,
     });
-    await tx.insert(participants).values({
-      id: input.participantId,
-      exerciseSessionId: input.sessionId,
-      participantTypeId: input.playerParticipantTypeId,
-      playerId: input.playerId,
-      displayName: input.displayName,
-      createdAt: now,
-    });
-    return { sessionId: input.sessionId, participantId: input.participantId };
+    await tx.insert(participants).values(
+      input.participants.map((participant) => ({
+        id: participant.id,
+        exerciseSessionId: input.sessionId,
+        participantTypeId: participant.participantTypeId,
+        playerId: participant.playerId,
+        displayName: participant.displayName,
+        createdAt: now,
+      })),
+    );
+    return { sessionId: input.sessionId };
   });
 }
 

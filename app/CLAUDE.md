@@ -53,7 +53,7 @@ Full documentation: https://docs.astro.build
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes.
 - `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
-- **Game engines.** Every `*.engine.module.ts` implements the `GameEngine` contract (`docs/architecture/04-Architecture-patterns.md` Pattern 18): constructed from a validated config snapshot bound to a `rulesetVersionKey`, owns its `EngineFacts` log, mints `clientKey`/`sequence`/`completedAt`, rehydrates from persisted facts via `create(config, prior)`, and exposes a pure `wouldComplete(input)`. `undo()` must be an exact inverse of `record()` over `facts()`, including any stage the record opened; undo depth is unbounded. `completedAt` is stamped when a visit resolves, never when it opens, and cleared when `undo()` reopens one. `state()` and `facts()` return derived copies — never a live field or a shared module constant. Anything a caller must change goes through a named method, not a write to a returned object. Never store a value the fact log can derive — no accumulated score, points, ratio or average fields. `bash scripts/check-game-engines.sh` must pass. (2026-07-26) A new engine's `rulesetVersionKey` and its server-side validator (`services/rulesets/registry.ts`) must land in the same commit — `scripts/check-game-engines.sh` runs pre-commit and rejects one without the other, so a plan that splits them into separate tasks/commits cannot land as drafted; combine them at commit time. (2026-08-14)
+- **Game engines.** Every `*.engine.module.ts` implements the `GameEngine` contract (`docs/architecture/04-Architecture-patterns.md` Pattern 18): constructed from a validated config snapshot bound to a `rulesetVersionKey`, owns its `EngineFacts` log, mints `clientKey`/`sequence`/`completedAt`/`participantRef`, rehydrates from persisted facts via `create(config, prior)`, and exposes a pure `wouldComplete(input)`. Every engine also declares a static `stageOwnership` (`SHARED` | `PER_SEAT`) so the shared `modules/game/seat-rota.module.ts` can derive the active seat from the fact log; `record()` takes no seat — it applies to the derived active seat, and the active seat is never stored. (2026-08-21) `undo()` must be an exact inverse of `record()` over `facts()`, including any stage the record opened; undo depth is unbounded. `completedAt` is stamped when a visit resolves, never when it opens, and cleared when `undo()` reopens one. `state()` and `facts()` return derived copies — never a live field or a shared module constant. Anything a caller must change goes through a named method, not a write to a returned object. Never store a value the fact log can derive — no accumulated score, points, ratio or average fields. `bash scripts/check-game-engines.sh` must pass. (2026-07-26) A new engine's `rulesetVersionKey` and its server-side validator (`services/rulesets/registry.ts`) must land in the same commit — `scripts/check-game-engines.sh` runs pre-commit and rejects one without the other, so a plan that splits them into separate tasks/commits cannot land as drafted; combine them at commit time. (2026-08-14)
 
 ## TypeScript comments (`app/src/**/*.ts`)
 
@@ -67,7 +67,7 @@ Full documentation: https://docs.astro.build
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
-- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then all 13 structural gates (file-locations, agent-mirrors, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens, findings-log, game-wiring) run from repo root under `set -e`. Hooks install via `npm install` (`prepare` → repo-root `.husky/`). (2026-07-28)
+- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then all 14 structural gates (file-locations, agent-mirrors, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens, findings-log, game-wiring, test-coverage) run from repo root under `set -e`. Hooks install via `npm install` (`prepare` → repo-root `.husky/`). (2026-07-28; test-coverage added 2026-08-21)
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate. (2026-07-24)
 
 ## Test-Driven Development (mandatory)
@@ -92,7 +92,11 @@ Run for `app/` changes before claiming completion — full procedure and mid-tas
 npm run validate:app
 ```
 
-(2026-07-22; procedure moved to `.claude/skills/validate-app/SKILL.md`, 2026-07-28)
+Done means every step of that chain exits zero, `npx fallow` included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
+
+A source edit with no test edit is not a completed task: `scripts/check-test-coverage.sh` fails any change set that touches a runtime `.ts` file under `app/src/` or `app/scripts/` without also touching a test that imports it. Type-only edits, pure re-export barrels and `drizzle-kit` output are exempt, derived rather than listed. There is no per-file silencer — if a changed file has no covering test, write one. (D224, 2026-08-21)
+
+(2026-07-22; procedure moved to `.claude/skills/validate-app/SKILL.md`, 2026-07-28; zero-hint bar added 2026-08-21)
 
 ## Forbidden
 

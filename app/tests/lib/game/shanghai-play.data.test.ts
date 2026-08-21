@@ -19,8 +19,17 @@ import {
 } from "@modules/game/engine.registry";
 import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
 import { shanghaiPlay } from "@lib/game/shanghai-play.data";
-import type { ShanghaiSnapshot, ShanghaiPlayContext } from "@lib/types";
+import type { ShanghaiSnapshot, Seated, ShanghaiPlayContext } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -39,8 +48,8 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-function defaultConfig(): ShanghaiSnapshot {
-  return {};
+function defaultConfig(): Seated<ShanghaiSnapshot> {
+  return { seats: SEATS };
 }
 
 /** `n` prior rounds (numbers 1..n), each 3 SINGLE hits, so a fresh engine
@@ -62,6 +71,7 @@ function priorRoundsThroughNumber(n: number): TurnFact[] {
     turns.push({
       clientKey: `prior-${number}`,
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: number,
       completedAt: "2026-08-14T10:00:00.000Z",
       totalScore: darts.reduce((sum, d) => sum + d.score, 0),
@@ -75,9 +85,11 @@ type GameStub = ShanghaiPlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "SHANGHAI_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: defaultConfig(),
     captureModeKey: "RECREATIONAL",
@@ -185,6 +197,7 @@ describe("init", () => {
       {
         clientKey: "prior-20",
         stageClientKey: "block-1",
+        participantRef: "participant-1",
         sequence: 20,
         completedAt: "2026-08-14T10:00:00.000Z",
         totalScore: 0,

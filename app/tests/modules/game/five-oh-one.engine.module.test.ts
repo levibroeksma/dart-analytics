@@ -1,19 +1,31 @@
 import { describe, it, expect } from "vitest";
 import {
-  applyFiveOhOneVisit,
   FiveOhOneEngine,
   fiveOhOneEngineFactory,
+  foldFiveOhOneState,
   initialFiveOhOneState,
+  resolveFiveOhOneVisit,
 } from "@modules/game/five-oh-one.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import type { GameEngine } from "@modules/interfaces";
 import type {
   DartZoneKey,
+  EngineFacts,
   FiveOhOneState,
   FiveOhOneVisitInput,
+  MultiSeatState,
 } from "@modules/types";
-import type { FiveOhOneSnapshot } from "@lib/types";
+import type { FiveOhOneSnapshot, Seated } from "@lib/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const config = () =>
   ({
@@ -23,7 +35,8 @@ const config = () =>
     checkOut: "DOUBLE_OUT",
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
-  }) satisfies FiveOhOneSnapshot;
+    seats: SEATS,
+  }) satisfies Seated<FiveOhOneSnapshot>;
 
 type FiveOhOneGameEngine = GameEngine<FiveOhOneVisitInput, FiveOhOneState>;
 
@@ -51,217 +64,225 @@ describe("fiveOhOneEngineFactory", () => {
   });
 });
 
+function factsOf(scores: number[]): EngineFacts {
+  return {
+    stages: [
+      {
+        clientKey: "leg-1",
+        stageTypeKey: "LEG",
+        parentClientKey: null,
+        sequence: 1,
+      },
+    ],
+    turns: scores.map((totalScore, index) => ({
+      clientKey: `t${index + 1}`,
+      stageClientKey: "leg-1",
+      participantRef: "participant-1",
+      sequence: index + 1,
+      completedAt: "2026-08-20T10:00:00.000Z",
+      totalScore,
+      darts: [],
+    })),
+  };
+}
+
 describe("initialFiveOhOneState", () => {
-  it("starts at the configured starting score with no legs won", () => {
+  it("starts every seat at the configured starting score with no legs won", () => {
     expect(initialFiveOhOneState(config())).toEqual({
-      remainingScore: 501,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 501,
+        },
+      ],
     });
   });
 
   it("honours a non-default starting score", () => {
     expect(
-      initialFiveOhOneState({ ...config(), startingScore: 301 }).remainingScore,
+      initialFiveOhOneState({ ...config(), startingScore: 301 }).seats[0]
+        .remainingScore,
     ).toBe(301);
   });
 });
 
-describe("applyFiveOhOneVisit — legal reduction", () => {
-  it("subtracts the visit score and stays in progress", () => {
-    const next = applyFiveOhOneVisit(
-      initialFiveOhOneState(config()),
-      { scoreAttempted: 45 },
-      config(),
-    );
-    expect(next.remainingScore).toBe(456);
-    expect(next.legsWon).toBe(0);
-    expect(next.status).toBe("IN_PROGRESS");
+describe("foldFiveOhOneState", () => {
+  it("subtracts each counted visit from the seat that threw it", () => {
+    const state = foldFiveOhOneState(factsOf([180, 60]), config());
+    expect(state.seats[0].remainingScore).toBe(261);
+    expect(state.status).toBe("IN_PROGRESS");
   });
 
-  it("ignores a finish flag on a visit that does not reach zero", () => {
-    const state: FiveOhOneState = {
-      remainingScore: 100,
-      legsWon: 0,
-      status: "IN_PROGRESS",
-    };
-    const next = applyFiveOhOneVisit(
-      state,
-      { scoreAttempted: 60, finishedOnDouble: true },
-      config(),
+  it("treats a scoreless turn as the bust it was recorded as", () => {
+    const state = foldFiveOhOneState(factsOf([180, 0]), config());
+    expect(state.seats[0].remainingScore).toBe(321);
+  });
+
+  it("wins the match for the seat's side when the last leg checks out", () => {
+    const state = foldFiveOhOneState(factsOf([180, 180, 101, 40]), config());
+    expect(state.status).toBe("WON");
+    expect(state.winningSideKey).toBe("A");
+    expect(state.sides[0].legsWon).toBe(1);
+  });
+
+  it("conforms to MultiSeatState so a generic scoreboard can read it", () => {
+    const state: MultiSeatState = foldFiveOhOneState(factsOf([60]), config());
+    expect(state.activeParticipantRef).toBe("participant-1");
+    expect(state.seats[0].sideKey).toBe("A");
+  });
+
+  it("resets every seat at a leg boundary and keeps the side's leg count", () => {
+    const state = foldFiveOhOneState(
+      {
+        stages: [
+          {
+            clientKey: "leg-1",
+            stageTypeKey: "LEG",
+            parentClientKey: null,
+            sequence: 1,
+          },
+          {
+            clientKey: "leg-2",
+            stageTypeKey: "LEG",
+            parentClientKey: null,
+            sequence: 2,
+          },
+        ],
+        turns: [180, 180, 101, 40].map((totalScore, index) => ({
+          clientKey: `t${index + 1}`,
+          stageClientKey: "leg-1",
+          participantRef: "participant-1",
+          sequence: index + 1,
+          completedAt: "2026-08-20T10:00:00.000Z",
+          totalScore,
+          darts: [],
+        })),
+      },
+      { ...config(), legsToWin: 3 },
     );
-    expect(next.remainingScore).toBe(40);
-    expect(next.status).toBe("IN_PROGRESS");
+
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.sides[0].legsWon).toBe(1);
+    expect(state.seats[0].remainingScore).toBe(501);
   });
 });
 
-describe("applyFiveOhOneVisit — score cap", () => {
-  it("throws on a negative score rather than inflating the remaining total", () => {
-    expect(() =>
-      applyFiveOhOneVisit(
-        initialFiveOhOneState(config()),
-        { scoreAttempted: -100 },
-        config(),
-      ),
-    ).toThrow(/0 and 180/);
-  });
-
-  it("throws above the ruleset's maximum visit score", () => {
-    expect(() =>
-      applyFiveOhOneVisit(
-        initialFiveOhOneState(config()),
-        { scoreAttempted: 181 },
-        config(),
-      ),
-    ).toThrow(/0 and 180/);
-  });
-
-  it("throws on a score that is not a whole number", () => {
-    expect(() =>
-      applyFiveOhOneVisit(
-        initialFiveOhOneState(config()),
-        { scoreAttempted: 60.5 },
-        config(),
-      ),
-    ).toThrow(/0 and 180/);
-  });
-
-  it("accepts a scoreless visit of 0", () => {
-    const next = applyFiveOhOneVisit(
-      initialFiveOhOneState(config()),
-      { scoreAttempted: 0 },
-      config(),
-    );
-    expect(next.remainingScore).toBe(501);
-    expect(next.status).toBe("IN_PROGRESS");
-  });
-});
-
-describe("applyFiveOhOneVisit — bust matrix", () => {
-  const at = (remainingScore: number): FiveOhOneState => ({
-    remainingScore,
-    legsWon: 0,
-    status: "IN_PROGRESS",
-  });
-
+describe("resolveFiveOhOneVisit — bust matrix", () => {
   it("busts on an overshoot and leaves the remaining score unchanged", () => {
-    const next = applyFiveOhOneVisit(at(40), { scoreAttempted: 50 }, config());
-    expect(next.remainingScore).toBe(40);
-    expect(next.status).toBe("IN_PROGRESS");
+    const outcome = resolveFiveOhOneVisit(40, { scoreAttempted: 50 });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.scored).toBe(0);
+    expect(outcome.remainingAfter).toBe(40);
   });
 
   it("busts when the visit would leave exactly 1, which cannot be finished on a double", () => {
-    const next = applyFiveOhOneVisit(at(41), { scoreAttempted: 40 }, config());
-    expect(next.remainingScore).toBe(41);
+    const outcome = resolveFiveOhOneVisit(41, { scoreAttempted: 40 });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.remainingAfter).toBe(41);
   });
 
   it("treats a visit that would leave exactly 2 as a legal reduction, since 2 is finishable as D1", () => {
-    const next = applyFiveOhOneVisit(at(42), { scoreAttempted: 40 }, config());
-    expect(next.remainingScore).toBe(2);
-    expect(next.status).toBe("IN_PROGRESS");
+    const outcome = resolveFiveOhOneVisit(42, { scoreAttempted: 40 });
+    expect(outcome.isBust).toBe(false);
+    expect(outcome.remainingAfter).toBe(2);
   });
 
   it("ignores a finish flag on an overshoot bust", () => {
-    const next = applyFiveOhOneVisit(
-      at(40),
-      { scoreAttempted: 50, finishedOnDouble: true },
-      config(),
-    );
-    expect(next.remainingScore).toBe(40);
-    expect(next.status).toBe("IN_PROGRESS");
+    const outcome = resolveFiveOhOneVisit(40, {
+      scoreAttempted: 50,
+      finishedOnDouble: true,
+    });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.remainingAfter).toBe(40);
   });
 
   it("ignores a finish flag on a leaves-exactly-1 bust", () => {
-    const next = applyFiveOhOneVisit(
-      at(41),
-      { scoreAttempted: 40, finishedOnDouble: true },
-      config(),
-    );
-    expect(next.remainingScore).toBe(41);
-    expect(next.status).toBe("IN_PROGRESS");
+    const outcome = resolveFiveOhOneVisit(41, {
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+    });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.remainingAfter).toBe(41);
   });
 
   it("busts when the visit reaches zero but no finish was declared", () => {
-    const next = applyFiveOhOneVisit(at(40), { scoreAttempted: 40 }, config());
-    expect(next.remainingScore).toBe(40);
-    expect(next.status).toBe("IN_PROGRESS");
+    const outcome = resolveFiveOhOneVisit(40, { scoreAttempted: 40 });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.wonLeg).toBe(false);
+    expect(outcome.remainingAfter).toBe(40);
+  });
+
+  it("ignores a finish flag on a visit that does not reach zero", () => {
+    const outcome = resolveFiveOhOneVisit(100, {
+      scoreAttempted: 60,
+      finishedOnDouble: true,
+    });
+    expect(outcome.isBust).toBe(false);
+    expect(outcome.wonLeg).toBe(false);
+    expect(outcome.remainingAfter).toBe(40);
   });
 });
 
-describe("applyFiveOhOneVisit — double out", () => {
-  const at = (remainingScore: number): FiveOhOneState => ({
-    remainingScore,
-    legsWon: 0,
-    status: "IN_PROGRESS",
-  });
-
+describe("resolveFiveOhOneVisit — double out", () => {
   it("wins the leg when the dart that reached zero was a double", () => {
-    const next = applyFiveOhOneVisit(
-      at(40),
-      { scoreAttempted: 40, finishedOnDouble: true },
-      config(),
-    );
-    expect(next.remainingScore).toBe(0);
-    expect(next.legsWon).toBe(1);
-    expect(next.status).toBe("WON");
+    const outcome = resolveFiveOhOneVisit(40, {
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+    });
+    expect(outcome.wonLeg).toBe(true);
+    expect(outcome.remainingAfter).toBe(0);
   });
 
   it("busts when the finishing dart was not a double", () => {
-    const next = applyFiveOhOneVisit(
-      at(40),
-      { scoreAttempted: 40, finishedOnDouble: false },
-      config(),
-    );
-    expect(next.remainingScore).toBe(40);
-    expect(next.legsWon).toBe(0);
-    expect(next.status).toBe("IN_PROGRESS");
-  });
-});
-
-describe("applyFiveOhOneVisit — legs", () => {
-  it("resets the remaining score and stays in progress while legs are left to win", () => {
-    const state: FiveOhOneState = {
-      remainingScore: 40,
-      legsWon: 0,
-      status: "IN_PROGRESS",
-    };
-    const next = applyFiveOhOneVisit(
-      state,
-      { scoreAttempted: 40, finishedOnDouble: true },
-      { ...config(), legsToWin: 3 },
-    );
-    expect(next).toEqual({
-      remainingScore: 501,
-      legsWon: 1,
-      status: "IN_PROGRESS",
+    const outcome = resolveFiveOhOneVisit(40, {
+      scoreAttempted: 40,
+      finishedOnDouble: false,
     });
-  });
-
-  it("completes the session once legs won reaches legsToWin", () => {
-    const state: FiveOhOneState = {
-      remainingScore: 40,
-      legsWon: 1,
-      status: "IN_PROGRESS",
-    };
-    const next = applyFiveOhOneVisit(
-      state,
-      { scoreAttempted: 40, finishedOnDouble: true },
-      { ...config(), legsToWin: 2 },
-    );
-    expect(next).toEqual({ remainingScore: 0, legsWon: 2, status: "WON" });
+    expect(outcome.isBust).toBe(true);
+    expect(outcome.wonLeg).toBe(false);
+    expect(outcome.remainingAfter).toBe(40);
   });
 });
 
-describe("applyFiveOhOneVisit — terminal state guard", () => {
-  it("throws when called on a state that is already WON", () => {
-    const wonState: FiveOhOneState = {
-      remainingScore: 0,
-      legsWon: 1,
-      status: "WON",
-    };
-    expect(() =>
-      applyFiveOhOneVisit(wonState, { scoreAttempted: 20 }, config()),
-    ).toThrow();
+describe("FiveOhOneEngine — visit score cap", () => {
+  it("throws on a negative score rather than inflating the remaining total", () => {
+    const engine = new FiveOhOneEngine(config());
+    expect(() => engine.record({ scoreAttempted: -100 })).toThrow(/0 and 180/);
+  });
+
+  it("throws above the ruleset's maximum visit score", () => {
+    const engine = new FiveOhOneEngine(config());
+    expect(() => engine.record({ scoreAttempted: 181 })).toThrow(/0 and 180/);
+  });
+
+  it("throws on a score that is not a whole number", () => {
+    const engine = new FiveOhOneEngine(config());
+    expect(() => engine.record({ scoreAttempted: 60.5 })).toThrow(/0 and 180/);
+  });
+
+  it("accepts a scoreless visit of 0", () => {
+    const engine = new FiveOhOneEngine(config());
+    const state = engine.record({ scoreAttempted: 0 });
+    expect(state.seats[0].remainingScore).toBe(501);
+    expect(state.status).toBe("IN_PROGRESS");
+  });
+});
+
+describe("FiveOhOneEngine — terminal state guard", () => {
+  it("throws when recording a visit into a session that is already WON", () => {
+    const engine = new FiveOhOneEngine(config());
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+
+    expect(engine.state().status).toBe("WON");
+    expect(() => engine.record({ scoreAttempted: 20 })).toThrow();
   });
 });
 
@@ -270,7 +291,7 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     const engine = fiveOhOneEngineFactory.create(config());
     expect(() => engine.record({ scoreAttempted: -100 })).toThrow(/0 and 180/);
     expect(() => engine.record({ scoreAttempted: 181 })).toThrow(/0 and 180/);
-    expect(engine.state().remainingScore).toBe(501);
+    expect(engine.state().seats[0].remainingScore).toBe(501);
     expect(engine.facts().turns).toHaveLength(0);
   });
 
@@ -285,7 +306,7 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     });
 
     expect(busted.status).toBe("IN_PROGRESS");
-    expect(engine.state().remainingScore).toBe(40);
+    expect(engine.state().seats[0].remainingScore).toBe(40);
     expect(engine.facts().turns.at(-1)?.totalScore).toBe(0);
   });
 
@@ -308,7 +329,7 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     engine.record({ scoreAttempted: 180 });
     engine.record({ scoreAttempted: 180 });
     engine.record({ scoreAttempted: 140 });
-    expect(engine.state().remainingScore).toBe(141);
+    expect(engine.state().seats[0].remainingScore).toBe(141);
     expect(engine.facts().turns.at(-1)?.totalScore).toBe(0);
   });
 
@@ -319,7 +340,7 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     });
     winOneLeg(engine);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().remainingScore).toBe(501);
+    expect(engine.state().seats[0].remainingScore).toBe(501);
     expect(engine.facts().stages).toHaveLength(2);
     expect(engine.facts().stages[1].stageTypeKey).toBe("LEG");
     winOneLeg(engine);
@@ -330,7 +351,7 @@ describe("FiveOhOneEngine — Task 9 acceptance", () => {
     const first = fiveOhOneEngineFactory.create(config());
     first.record({ scoreAttempted: 100 });
     const resumed = fiveOhOneEngineFactory.create(config(), first.facts());
-    expect(resumed.state().remainingScore).toBe(401);
+    expect(resumed.state().seats[0].remainingScore).toBe(401);
   });
 });
 
@@ -338,9 +359,17 @@ describe("FiveOhOneEngine — state", () => {
   it("starts at the starting score with no turns and is not complete", () => {
     const engine = new FiveOhOneEngine(config());
     expect(engine.state()).toEqual({
-      remainingScore: 501,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 501,
+        },
+      ],
     });
     expect(engine.facts().turns).toEqual([]);
     expect(engine.isComplete()).toBe(false);
@@ -349,16 +378,16 @@ describe("FiveOhOneEngine — state", () => {
   it("folds successive visits into the remaining score", () => {
     const engine = new FiveOhOneEngine(config());
     engine.record({ scoreAttempted: 60 });
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
     engine.record({ scoreAttempted: 100 });
-    expect(engine.state().remainingScore).toBe(341);
+    expect(engine.state().seats[0].remainingScore).toBe(341);
     expect(engine.facts().turns).toHaveLength(2);
     expect(engine.isComplete()).toBe(false);
   });
 
   it("accepts a custom starting score", () => {
     const engine = new FiveOhOneEngine({ ...config(), startingScore: 301 });
-    expect(engine.state().remainingScore).toBe(301);
+    expect(engine.state().seats[0].remainingScore).toBe(301);
   });
 
   it("refuses another visit once the session is complete", () => {
@@ -399,7 +428,7 @@ describe("FiveOhOneEngine.facts", () => {
     const engine = new FiveOhOneEngine({ ...config(), startingScore: 40 });
     engine.record({ scoreAttempted: 50 });
     expect(engine.facts().turns[0].totalScore).toBe(0);
-    expect(engine.state().remainingScore).toBe(40);
+    expect(engine.state().seats[0].remainingScore).toBe(40);
   });
 
   it("mints a unique clientKey per turn", () => {
@@ -437,7 +466,7 @@ describe("FiveOhOneEngine.facts", () => {
     winOneLeg(engine);
     engine.record({ scoreAttempted: 60 });
 
-    const batch = buildEventsBatch("participant-1", engine.facts());
+    const batch = buildEventsBatch(engine.facts());
     expect(batch.stages).toHaveLength(2);
     expect(batch.stages[0].turns).toHaveLength(4);
     expect(batch.stages[1].turns).toHaveLength(1);
@@ -531,7 +560,7 @@ describe("FiveOhOneEngine.undo", () => {
     engine.record({ scoreAttempted: 100 });
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
   });
 
   it("is an exact inverse of record over facts() for the visit that won a leg and opened the next", () => {
@@ -548,9 +577,17 @@ describe("FiveOhOneEngine.undo", () => {
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
     expect(engine.state()).toEqual({
-      remainingScore: 40,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 40,
+        },
+      ],
     });
   });
 
@@ -574,15 +611,23 @@ describe("FiveOhOneEngine.undo", () => {
     winOneLeg(engine);
     const before = engine.facts();
     engine.record({ scoreAttempted: 60 });
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
     expect(engine.facts().stages).toHaveLength(2);
     expect(engine.state()).toEqual({
-      remainingScore: 501,
-      legsWon: 1,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 1 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 501,
+        },
+      ],
     });
   });
 
@@ -592,11 +637,11 @@ describe("FiveOhOneEngine.undo", () => {
     engine.record({ scoreAttempted: 180 });
     engine.record({ scoreAttempted: 180 });
     engine.record({ scoreAttempted: 180 });
-    expect(engine.state().remainingScore).toBe(81);
+    expect(engine.state().seats[0].remainingScore).toBe(81);
     expect(engine.facts().turns.at(-1)?.totalScore).toBe(0);
 
     expect(engine.undo()).toBe(true);
-    expect(engine.state().remainingScore).toBe(81);
+    expect(engine.state().seats[0].remainingScore).toBe(81);
     expect(engine.facts().turns).toHaveLength(3);
   });
 
@@ -610,9 +655,17 @@ describe("FiveOhOneEngine.undo", () => {
     expect(engine.undo()).toBe(true);
     expect(engine.facts().stages).toHaveLength(1);
     expect(engine.state()).toEqual({
-      remainingScore: 40,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 40,
+        },
+      ],
     });
   });
 
@@ -627,11 +680,11 @@ describe("FiveOhOneEngine.undo", () => {
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().remainingScore).toBe(40);
+    expect(engine.state().seats[0].remainingScore).toBe(40);
     expect(engine.facts().turns).toHaveLength(1);
 
     expect(engine.undo()).toBe(true);
-    expect(engine.state().remainingScore).toBe(101);
+    expect(engine.state().seats[0].remainingScore).toBe(101);
     expect(engine.facts().turns).toHaveLength(0);
     expect(engine.undo()).toBe(false);
   });
@@ -653,9 +706,9 @@ describe("FiveOhOneEngine — rehydration", () => {
     first.record({ scoreAttempted: 60 });
 
     const resumed = fiveOhOneEngineFactory.create(config(), first.facts());
-    expect(resumed.state().remainingScore).toBe(341);
+    expect(resumed.state().seats[0].remainingScore).toBe(341);
     resumed.record({ scoreAttempted: 41 });
-    expect(resumed.state().remainingScore).toBe(300);
+    expect(resumed.state().seats[0].remainingScore).toBe(300);
     expect(resumed.facts().turns.map((turn) => turn.sequence)).toEqual([
       1, 2, 3,
     ]);
@@ -670,9 +723,17 @@ describe("FiveOhOneEngine — rehydration", () => {
       first.facts(),
     );
     expect(resumed.state()).toEqual({
-      remainingScore: 501,
-      legsWon: 1,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 1 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 501,
+        },
+      ],
     });
     expect(resumed.facts().stages).toHaveLength(2);
 
@@ -692,7 +753,7 @@ describe("FiveOhOneEngine — rehydration", () => {
     expect(resumed.facts()).toEqual(before);
 
     expect(resumed.undo()).toBe(true);
-    expect(resumed.state().remainingScore).toBe(501);
+    expect(resumed.state().seats[0].remainingScore).toBe(501);
     expect(resumed.undo()).toBe(false);
   });
 });
@@ -702,6 +763,7 @@ describe("visual board capture", () => {
     startingScore: 501,
     maxVisitScore: 180,
     legsToWin: 1,
+    seats: SEATS,
   } as never;
 
   /**
@@ -728,10 +790,10 @@ describe("visual board capture", () => {
     ) as FiveOhOneEngine;
 
     engine.record(trebleTwenty);
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
 
     engine.record(trebleTwenty);
-    expect(engine.state().remainingScore).toBe(381);
+    expect(engine.state().seats[0].remainingScore).toBe(381);
   });
 
   it("keeps dart rows with real scores when a visit busts", () => {
@@ -746,7 +808,7 @@ describe("visual board capture", () => {
     const busted = engine.facts().turns.at(-1)!;
     expect(busted.totalScore).toBe(0);
     expect(busted.darts.map((dart) => dart.score)).toEqual([60, 60]);
-    expect(engine.state().remainingScore).toBe(70);
+    expect(engine.state().seats[0].remainingScore).toBe(70);
   });
 
   it("wins the leg on a double that reaches exactly zero", () => {
@@ -784,7 +846,7 @@ describe("visual board capture", () => {
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
     expect(engine.undo()).toBe(true);
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
   });
 
   it("leaves quick-score behaviour unchanged", () => {
@@ -792,7 +854,7 @@ describe("visual board capture", () => {
 
     engine.record({ scoreAttempted: 60 });
 
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
     expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
   });
 });
@@ -802,6 +864,7 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     startingScore: 40,
     maxVisitScore: 180,
     legsToWin: 1,
+    seats: SEATS,
   } as never;
 
   /**
@@ -898,6 +961,7 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       startingScore: 100,
       maxVisitScore: 180,
       legsToWin: 2,
+      seats: SEATS,
     } as never;
     const engine = fiveOhOneEngineFactory.create(
       config,
@@ -907,9 +971,17 @@ describe("FiveOhOneEngine.undo — visual board", () => {
     engine.record(trebleTwenty);
     engine.record(doubleTwenty);
     expect(engine.state()).toEqual({
-      remainingScore: 100,
-      legsWon: 1,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 1 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 100,
+        },
+      ],
     });
     expect(engine.facts().stages).toHaveLength(2);
 
@@ -920,18 +992,34 @@ describe("FiveOhOneEngine.undo — visual board", () => {
     expect(reopened.darts[0].score).toBe(60);
     expect(reopened.completedAt).toBeNull();
     expect(engine.state()).toEqual({
-      remainingScore: 40,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 40,
+        },
+      ],
     });
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().stages).toHaveLength(1);
     expect(engine.facts().turns).toHaveLength(0);
     expect(engine.state()).toEqual({
-      remainingScore: 100,
-      legsWon: 0,
+      activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
+      winningSideKey: null,
+      sides: [{ sideKey: "A", legsWon: 0 }],
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          remainingScore: 100,
+        },
+      ],
     });
     expect(engine.undo()).toBe(false);
   });
@@ -941,6 +1029,7 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       startingScore: 501,
       maxVisitScore: 180,
       legsToWin: 2,
+      seats: SEATS,
     } as never;
     const engine = fiveOhOneEngineFactory.create(
       config,
@@ -984,7 +1073,7 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     expect(visualTurn.darts).toEqual([]);
     expect(visualTurn.totalScore).toBe(quickTurn.totalScore);
     expect(visualTurn.darts).toEqual(quickTurn.darts);
-    expect(visualEngine.state().remainingScore).toBe(401);
+    expect(visualEngine.state().seats[0].remainingScore).toBe(401);
   });
 
   it("accepts a keypad visit total from a clean VISUAL_BOARD engine — the keypad stays usable as the accessible alternative", () => {
@@ -995,7 +1084,7 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
 
     expect(() => engine.record({ scoreAttempted: 60 })).not.toThrow();
 
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
     const turn = engine.facts().turns.at(-1)!;
     expect(turn.totalScore).toBe(60);
     expect(turn.darts).toEqual([]);
@@ -1035,7 +1124,7 @@ describe("FiveOhOneEngine.record — keypad input under VISUAL_BOARD (shape-base
     expect(engine.undo()).toBe(true);
 
     expect(engine.facts().turns).toHaveLength(0);
-    expect(engine.state().remainingScore).toBe(501);
+    expect(engine.state().seats[0].remainingScore).toBe(501);
   });
 });
 
@@ -1072,7 +1161,7 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape", () => {
 
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
-    expect(engine.state().remainingScore).toBe(381);
+    expect(engine.state().seats[0].remainingScore).toBe(381);
 
     expect(engine.undo()).toBe(true);
 
@@ -1080,7 +1169,7 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape", () => {
     expect(visit.darts).toHaveLength(1);
     expect(visit.darts[0].score).toBe(60);
     expect(visit.completedAt).toBeNull();
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
   });
 
   /**
@@ -1097,23 +1186,23 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape", () => {
     ) as FiveOhOneEngine;
 
     engine.record({ scoreAttempted: 60 });
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
 
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
-    expect(engine.state().remainingScore).toBe(321);
+    expect(engine.state().seats[0].remainingScore).toBe(321);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns.at(-1)!.darts).toHaveLength(1);
-    expect(engine.state().remainingScore).toBe(381);
+    expect(engine.state().seats[0].remainingScore).toBe(381);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns).toHaveLength(1);
-    expect(engine.state().remainingScore).toBe(441);
+    expect(engine.state().seats[0].remainingScore).toBe(441);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns).toHaveLength(0);
-    expect(engine.state().remainingScore).toBe(501);
+    expect(engine.state().seats[0].remainingScore).toBe(501);
 
     expect(engine.undo()).toBe(false);
   });
@@ -1124,23 +1213,23 @@ describe("FiveOhOneEngine.undo — dispatches on the fact log's shape", () => {
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
     engine.record(trebleTwenty);
-    expect(engine.state().remainingScore).toBe(321);
+    expect(engine.state().seats[0].remainingScore).toBe(321);
 
     engine.record({ scoreAttempted: 60 });
-    expect(engine.state().remainingScore).toBe(261);
+    expect(engine.state().seats[0].remainingScore).toBe(261);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns).toHaveLength(1);
-    expect(engine.state().remainingScore).toBe(321);
+    expect(engine.state().seats[0].remainingScore).toBe(321);
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns.at(-1)!.darts).toHaveLength(2);
-    expect(engine.state().remainingScore).toBe(381);
+    expect(engine.state().seats[0].remainingScore).toBe(381);
 
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
     expect(engine.facts().turns).toHaveLength(0);
-    expect(engine.state().remainingScore).toBe(501);
+    expect(engine.state().seats[0].remainingScore).toBe(501);
 
     expect(engine.undo()).toBe(false);
   });
@@ -1241,5 +1330,193 @@ describe("501 checkout dart counts", () => {
         dartsUsed: 1,
       }),
     ).not.toThrow();
+  });
+});
+
+const TWO_SEATS = [
+  {
+    participantRef: "seat-a",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+  {
+    participantRef: "seat-b",
+    displayName: "Dad",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
+const duo = (legsToWin = 1) =>
+  ({
+    startingScore: 501,
+    legsToWin,
+    checkIn: "STRAIGHT_IN",
+    checkOut: "DOUBLE_OUT",
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+    seats: TWO_SEATS,
+  }) satisfies Seated<FiveOhOneSnapshot>;
+
+/** Plays one whole leg for seat A while seat B scores 60 between every visit. */
+function seatAWinsALeg(engine: FiveOhOneEngine): FiveOhOneState {
+  engine.record({ scoreAttempted: 180 });
+  engine.record({ scoreAttempted: 60 });
+  engine.record({ scoreAttempted: 180 });
+  engine.record({ scoreAttempted: 60 });
+  engine.record({ scoreAttempted: 101 });
+  engine.record({ scoreAttempted: 60 });
+  return engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+}
+
+describe("FiveOhOneEngine with two seats", () => {
+  it("alternates seats visit by visit within one shared leg", () => {
+    const engine = new FiveOhOneEngine(duo());
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+
+    engine.record({ scoreAttempted: 60 });
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+
+    engine.record({ scoreAttempted: 100 });
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+  });
+
+  it("leaves the other seat's score untouched", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 180 });
+    const state = engine.record({ scoreAttempted: 60 });
+
+    expect(state.seats[0].remainingScore).toBe(321);
+    expect(state.seats[1].remainingScore).toBe(441);
+  });
+
+  it("leaves the other seat's score untouched on a bust", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    const state = engine.record({ scoreAttempted: 180 });
+
+    expect(state.seats[0].remainingScore).toBe(141);
+    expect(state.seats[1].remainingScore).toBe(141);
+  });
+
+  it("resets every seat and opens exactly one shared next leg", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    const state = seatAWinsALeg(engine);
+
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.seats.map((seat) => seat.remainingScore)).toEqual([501, 501]);
+    expect(engine.facts().stages).toHaveLength(2);
+  });
+
+  it("folds legs won per side, not per seat", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+    const state = engine.state();
+
+    expect(state.sides).toEqual([
+      { sideKey: "A", legsWon: 1 },
+      { sideKey: "B", legsWon: 0 },
+    ]);
+  });
+
+  it("starts leg 2 with seat B and leg 3 with seat A", () => {
+    const engine = new FiveOhOneEngine(duo(3));
+    seatAWinsALeg(engine);
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+  });
+
+  it("gives every turn a participantRef that is one of the seats", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+
+    const refs = new Set(TWO_SEATS.map((seat) => seat.participantRef));
+    for (const turn of engine.facts().turns) {
+      expect(refs.has(turn.participantRef)).toBe(true);
+    }
+  });
+
+  it("numbers interleaved turns 1..N within the leg, not per seat", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.facts().turns.map((turn) => turn.sequence)).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it("wouldComplete is true only for the visit that takes a side to legsToWin", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 101 });
+
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(false);
+
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 60 });
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(true);
+  });
+
+  it("undo across the seat boundary hands the turn back and restores facts exactly", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 60 });
+    const before = engine.facts();
+    engine.record({ scoreAttempted: 100 });
+
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("rehydrates a mid-leg three-seat log onto the same active seat", () => {
+    const trio = {
+      ...duo(),
+      seats: [
+        ...TWO_SEATS,
+        {
+          participantRef: "seat-c",
+          displayName: "Jan",
+          sideKey: "C",
+          participantTypeKey: "GUEST" as const,
+        },
+      ],
+    } satisfies Seated<FiveOhOneSnapshot>;
+
+    const engine = new FiveOhOneEngine(trio);
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+    const expected = engine.state().activeParticipantRef;
+
+    const resumed = new FiveOhOneEngine(trio, engine.facts());
+    expect(resumed.state().activeParticipantRef).toBe(expected);
+    expect(resumed.state()).toEqual(engine.state());
   });
 });

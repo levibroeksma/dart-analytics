@@ -2,6 +2,7 @@ import { getDb } from "@db/client";
 import { generateId } from "@lib/id";
 import { supportsMode } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
+import { composeSeatFacts, rejectSeatRequest } from "./session-seats.service";
 import {
   countTurnsForSession,
   findActiveSessions,
@@ -33,6 +34,7 @@ import type { RulesetVersionKey } from "@lib/types";
 import type {
   AppendBatchResult,
   CreateSessionResult,
+  SeatPlan,
   ServiceResult,
 } from "./types";
 
@@ -61,6 +63,7 @@ async function loadCreateSessionLookups(
     inputModeId: number;
     activeStatusId: number;
     playerParticipantTypeId: number;
+    guestParticipantTypeId: number;
     displayName: string;
   }>
 > {
@@ -69,12 +72,14 @@ async function loadCreateSessionLookups(
     inputModeId,
     activeStatusId,
     playerParticipantTypeId,
+    guestParticipantTypeId,
     displayName,
   ] = await Promise.all([
     findCaptureModeId(db, input.captureModeKey),
     findInputModeId(db, input.inputModeKey),
     findGameStatusId(db, "ACTIVE"),
     findParticipantTypeId(db, "PLAYER"),
+    findParticipantTypeId(db, "GUEST"),
     findPlayerDisplayName(db, playerId),
   ]);
   if (!captureModeId)
@@ -89,7 +94,12 @@ async function loadCreateSessionLookups(
       code: "VALIDATION_FAILED",
       details: { reason: "unknown inputModeKey" },
     };
-  if (!activeStatusId || !playerParticipantTypeId || !displayName) {
+  if (
+    !activeStatusId ||
+    !playerParticipantTypeId ||
+    !guestParticipantTypeId ||
+    !displayName
+  ) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -104,6 +114,7 @@ async function loadCreateSessionLookups(
       inputModeId,
       activeStatusId,
       playerParticipantTypeId,
+      guestParticipantTypeId,
       displayName,
     },
   };
@@ -166,38 +177,33 @@ async function insertSessionWithActiveGuard(
   db: ReturnType<typeof getDb>,
   params: {
     sessionId: string;
-    participantId: string;
+    participants: {
+      id: string;
+      participantTypeId: number;
+      playerId: string | null;
+      displayName: string;
+    }[];
     playerId: string;
     gameTypeId: string;
     rulesetVersionId: string;
     captureModeId: number;
     inputModeId: number;
     activeStatusId: number;
-    playerParticipantTypeId: number;
-    displayName: string;
     configuration: Record<string, unknown>;
   },
-): Promise<
-  ServiceResult<{
-    sessionId: string;
-    participantId: string;
-    displayName: string;
-  }>
-> {
+): Promise<ServiceResult<{ sessionId: string }>> {
   try {
     await insertSessionRecords({
       activityId: generateId(),
       sessionId: params.sessionId,
       configurationId: generateId(),
-      participantId: params.participantId,
+      participants: params.participants,
       playerId: params.playerId,
       gameTypeId: params.gameTypeId,
       rulesetVersionId: params.rulesetVersionId,
       captureModeId: params.captureModeId,
       inputModeId: params.inputModeId,
       activeStatusId: params.activeStatusId,
-      playerParticipantTypeId: params.playerParticipantTypeId,
-      displayName: params.displayName,
       configuration: params.configuration,
     });
   } catch (error) {
@@ -219,14 +225,46 @@ async function insertSessionWithActiveGuard(
       : { ok: false, code: "INTERNAL_ERROR" };
   }
 
-  return {
-    ok: true,
-    data: {
-      sessionId: params.sessionId,
-      participantId: params.participantId,
-      displayName: params.displayName,
-    },
-  };
+  return { ok: true, data: { sessionId: params.sessionId } };
+}
+
+/**
+ * The participant rows this session will own, in seat order. An omitted
+ * `participants` field produces exactly one PLAYER seat — today's behaviour,
+ * which is what keeps D61's "additive participants[]" promise literal and
+ * leaves every un-wired engine working untouched.
+ *
+ * The PLAYER seat's display name is always the player's own row, never the
+ * request's: migration `0005`'s CHECK requires a PLAYER participant to carry
+ * `players.display_name`.
+ */
+function buildSeatPlan(
+  input: CreateSessionRequestInput,
+  playerId: string,
+  lookups: {
+    playerParticipantTypeId: number;
+    guestParticipantTypeId: number;
+    displayName: string;
+  },
+): SeatPlan[] {
+  const requested = input.participants ?? [
+    { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+  ];
+
+  return requested.map((participant, index) => {
+    const isPlayer = participant.participantTypeKey === "PLAYER";
+    return {
+      participantId: generateId(),
+      participantTypeId: isPlayer
+        ? lookups.playerParticipantTypeId
+        : lookups.guestParticipantTypeId,
+      playerId: isPlayer ? playerId : null,
+      displayName: isPlayer
+        ? lookups.displayName
+        : (participant.displayName ?? "").trim(),
+      sideKey: participant.sideKey || String.fromCharCode(65 + index),
+    };
+  });
 }
 
 export async function createSession(
@@ -273,6 +311,18 @@ export async function createSession(
     };
   }
 
+  const seatRejection = rejectSeatRequest(
+    input.participants,
+    input.rulesetVersionKey,
+  );
+  if (seatRejection) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: seatRejection },
+    };
+  }
+
   const lookups = await loadCreateSessionLookups(db, playerId, input);
   if (!lookups.ok) return lookups;
   const {
@@ -280,6 +330,7 @@ export async function createSession(
     inputModeId,
     activeStatusId,
     playerParticipantTypeId,
+    guestParticipantTypeId,
     displayName,
   } = lookups.data;
 
@@ -309,20 +360,28 @@ export async function createSession(
   }
 
   const sessionId = generateId();
-  const participantId = generateId();
+  const seatPlan = buildSeatPlan(input, playerId, {
+    playerParticipantTypeId,
+    guestParticipantTypeId,
+    displayName,
+  });
+  const seats = composeSeatFacts(seatPlan);
 
   const inserted = await insertSessionWithActiveGuard(db, {
     sessionId,
-    participantId,
+    participants: seatPlan.map((seat) => ({
+      id: seat.participantId,
+      participantTypeId: seat.participantTypeId,
+      playerId: seat.playerId,
+      displayName: seat.displayName,
+    })),
     playerId,
     gameTypeId: gameTypeRuleset.gameTypeId,
     rulesetVersionId: gameTypeRuleset.rulesetVersionId,
     captureModeId,
     inputModeId,
     activeStatusId,
-    playerParticipantTypeId,
-    displayName,
-    configuration: configuration.data.config,
+    configuration: { ...configuration.data.config, seats },
   });
   if (!inserted.ok) return inserted;
 
@@ -330,13 +389,11 @@ export async function createSession(
     ok: true,
     data: {
       sessionId: inserted.data.sessionId,
-      participants: [
-        {
-          ref: inserted.data.participantId,
-          participantTypeKey: "PLAYER",
-          displayName: inserted.data.displayName,
-        },
-      ],
+      participants: seats.map((seat) => ({
+        ref: seat.participantRef,
+        participantTypeKey: seat.participantTypeKey,
+        displayName: seat.displayName,
+      })),
     },
   };
 }

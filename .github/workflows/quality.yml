@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # check-test-coverage.sh diffs against the merge base with the base
+          # branch; a shallow clone has no such commit.
+          fetch-depth: 0
       - name: Context-map consistency
         run: bash scripts/check-context-map.sh
       - name: File-location gate
@@ -44,6 +48,11 @@ jobs:
       - name: Game-wiring gate
         run: bash scripts/check-game-wiring.sh
 
+      - name: Test-coverage-of-changes gate
+        env:
+          TEST_COVERAGE_BASE_REF: origin/${{ github.base_ref || github.event.repository.default_branch }}
+        run: bash scripts/check-test-coverage.sh
+
   app:
     runs-on: ubuntu-latest
     defaults:
@@ -61,7 +70,7 @@ jobs:
       - name: Format gate
         run: npm run format:check
       - name: Type gate
-        run: npx astro check
+        run: npm run check
       - name: Stale-usage gate
         run: npx fallow
       - name: Unit tests
