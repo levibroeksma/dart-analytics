@@ -197,7 +197,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |
 | `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~9.4k |
-| `decisions/testing.md` | 5 decisions — test, TDD, Vitest, mock, coverage | canonical | ~0.6k |
+| `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 18 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.0k |
 | `decisions/frontend/alpine.md` | 13 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.5k |

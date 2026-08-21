@@ -16,7 +16,10 @@ bash scripts/check-context-budget.sh
 bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
 bash scripts/check-findings-log.sh
+bash scripts/check-test-coverage.sh
 ```
+
+`check-test-coverage.sh` reads the change set itself — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `TEST_COVERAGE_BASE_REF`). It fails when a runtime source file changed and no test importing it changed with it, so run it before the commit that would trip it, not after.
 
 ## If `app/` changed, also run
 
@@ -48,7 +51,7 @@ Then work through the Validation Checklist in `database/CLAUDE.md` by hand (migr
 bash scripts/check-decision-ids.sh
 ```
 
-Durable id-integrity guard for the split ledger (uniqueness, no id regression against the 2026-08-02 baseline, `Supersedes:` targets resolve, `DECISIONS.md` stays a router, every migrated row hash-matches `scripts/decision-row-hashes.tsv`, every `decisions/**.md` file is registered in the router). Runs unconditionally in `quality.yml` CI (alongside the other doc gates), so a missed local run is still caught before merge — it is only absent from the local "Always run" list and `.husky/pre-commit` because it has nothing to say unless `decisions/**` itself changed, and pre-commit already runs on every commit for the 13 structural gates. `context-maintenance`'s decision-ledger step also calls this out directly when a new decision block is added; this entry covers the rest (e.g. re-filing an id between domain files).
+Durable id-integrity guard for the split ledger (uniqueness, no id regression against the 2026-08-02 baseline, `Supersedes:` targets resolve, `DECISIONS.md` stays a router, every migrated row hash-matches `scripts/decision-row-hashes.tsv`, every `decisions/**.md` file is registered in the router). Runs unconditionally in `quality.yml` CI (alongside the other doc gates), so a missed local run is still caught before merge — it is only absent from the local "Always run" list and `.husky/pre-commit` because it has nothing to say unless `decisions/**` itself changed, and pre-commit already runs on every commit for the 14 structural gates. `context-maintenance`'s decision-ledger step also calls this out directly when a new decision block is added; this entry covers the rest (e.g. re-filing an id between domain files).
 
 ## If only `docs/` changed
 
