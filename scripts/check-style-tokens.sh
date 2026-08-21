@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Style-token gate (app/CLAUDE.md "Style non-negotiables" / D108, D126, D128, D161, D175):
 # - no font-medium, no {...rest} spread, no raw bg-bg*/text-fg* palette utilities
-# - no Tailwind v3 prefix-important (!utility) — use utility! (v4)
+# - no Tailwind important modifier at all — neither prefix (!utility) nor
+#   suffix (utility!, formerly the sanctioned v4 form under D175 — see D226)
 # - no leading-dash arbitrary negatives (-left-[45%]) — use left-[-45%]
 # Scan: app/src/**/*.{astro,css}.
 #
@@ -43,19 +44,29 @@ if [ -n "$RAW_PALETTE" ]; then
   FAIL=1
 fi
 
-PREFIX_IMPORTANT=$(
+IMPORTANT_MODIFIER=$(
   {
+    # Prefix form: !utility (banned since D175)
     grep -rnE '(^|[^:])class="[^"]*![a-z]|(^|[^:])class='\''[^'\'']*![a-z]|(^|[^:])class=\{`[^`]*![a-z]' \
       app/src --include="*.astro" --include="*.css" || true
     grep -rnE '["'\''`]![a-z][a-z0-9]*(-[a-z0-9./%-]+|-\[[^]]+\]|\[[^]]+\])' \
       app/src --include="*.astro" --include="*.css" || true
     grep -rnE 'cn\([^)]*["'\''`]![a-z]+["'\''`]' \
       app/src --include="*.astro" || true
+    # Suffix form: utility! (banned since D226 — supersedes D175's endorsement)
+    grep -rnE '(^|[^:])class="[^"]*[a-zA-Z0-9_./%]!([[:space:]]|")' \
+      app/src --include="*.astro" --include="*.css" || true
+    grep -rnE "(^|[^:])class='[^']*[a-zA-Z0-9_./%]!([[:space:]]|')" \
+      app/src --include="*.astro" --include="*.css" || true
+    grep -rnE '(^|[^:])class=\{`[^`]*[a-zA-Z0-9_./%]!([[:space:]]|`)' \
+      app/src --include="*.astro" --include="*.css" || true
+    grep -rnE 'cn\([^)]*["'\''`][a-zA-Z0-9_./%-]+!["'\''`]' \
+      app/src --include="*.astro" || true
   } | sort -u
 )
-if [ -n "$PREFIX_IMPORTANT" ]; then
-  echo "FAIL: Tailwind prefix-important (!utility) found — use suffix form (utility!) instead:" >&2
-  echo "$PREFIX_IMPORTANT" >&2
+if [ -n "$IMPORTANT_MODIFIER" ]; then
+  echo "FAIL: Tailwind important modifier found (prefix !utility or suffix utility!) — compose overrides through cn()'s merge ordering, or extend the primitive's own variant/prop surface instead:" >&2
+  echo "$IMPORTANT_MODIFIER" >&2
   FAIL=1
 fi
 
@@ -69,4 +80,4 @@ fi
 if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi
-echo "OK: no font-medium, {...rest}, raw bg-bg*/text-fg*, prefix-important (!utility), or leading-dash arbitrary (-prop-[…]) under app/src."
+echo "OK: no font-medium, {...rest}, raw bg-bg*/text-fg*, important modifier (prefix or suffix), or leading-dash arbitrary (-prop-[…]) under app/src."
