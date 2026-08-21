@@ -1,0 +1,50 @@
+---
+// Components
+import AddGuestButton from "./AddGuestButton.astro";
+import GuestNameModal from "./GuestNameModal.astro";
+import Button from "@components/forms/Button.astro";
+
+// Icons
+import UserIcon from "@icons/user.svg";
+import CrossIcon from "@icons/cross.svg";
+---
+
+<template
+  x-for="(g, i) in guests"
+  :key="i"
+>
+  <div class="relative">
+    <div class="flex flex-col gap-1 items-center justify-center">
+      <div
+        class="p-3 border-x border-t w-fit border-sky-500/70 rounded-full bg-tab-active"
+      >
+        <UserIcon
+          class="size-8 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
+        />
+      </div>
+      <span
+        class="text-sm text-accent font-semibold"
+        x-text="g.displayName"
+      ></span>
+    </div>
+    <Button
+      type="button"
+      variant="ghost"
+      icon
+      :aria-label="`Remove ${g.displayName}`"
+      @click="removeGuest(i)"
+      class="absolute -top-1 -right-1 size-4! p-0! rounded-full! bg-tab-card! text-accent!"
+    >
+      <CrossIcon
+        class="size-2.5"
+        slot="iconBefore"
+      />
+    </Button>
+  </div>
+</template>
+
+<AddGuestButton />
+
+<template x-if="showAddGuestModal">
+  <GuestNameModal />
+</template>
