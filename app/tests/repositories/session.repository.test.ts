@@ -106,29 +106,34 @@ vi.mock("@db/client", () => ({
 }));
 
 describe("insertSessionRecords", () => {
-  it("resolves with the generated sessionId and participantId", async () => {
+  it("resolves with the generated sessionId", async () => {
     const { insertSessionRecords } =
       await import("@repositories/session.repository");
     const result = await insertSessionRecords({
       activityId: "a1",
       sessionId: "s1",
       configurationId: "c1",
-      participantId: "pt1",
+      participants: [
+        {
+          id: "pt1",
+          participantTypeId: 1,
+          playerId: "p1",
+          displayName: "Levi",
+        },
+      ],
       playerId: "p1",
       gameTypeId: "gt1",
       rulesetVersionId: "rv1",
       captureModeId: 1,
       inputModeId: 1,
       activeStatusId: 1,
-      playerParticipantTypeId: 1,
-      displayName: "Levi",
       configuration: {
         duration_type: "ROUNDS",
         duration_value: 10,
         max_darts_per_turn: 3,
       },
     });
-    expect(result).toEqual({ sessionId: "s1", participantId: "pt1" });
+    expect(result).toEqual({ sessionId: "s1" });
   });
 });
 
