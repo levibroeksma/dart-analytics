@@ -1,0 +1,52 @@
+---
+/**
+ * Presentational — parent (`GuestSection.astro`) owns `showAddGuestModal`
+ * (`x-if`), mirroring `ContinueSessionModal.astro`'s ownership split.
+ */
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Input from "@components/forms/Input.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<Modal
+  titleId="guest-name-title"
+  onDismiss="showAddGuestModal = false; newGuestName = ''"
+>
+  <h2
+    id="guest-name-title"
+    class="text-lg font-semibold text-foreground"
+  >
+    Add Guest
+  </h2>
+  <Input
+    id="guestName"
+    name="guestName"
+    type="text"
+    placeholder="Guest name"
+    x-model="newGuestName"
+    maxlength="24"
+    class="mt-4"
+  />
+
+  <div
+    slot="footer"
+    class="mt-6 flex gap-3"
+  >
+    <Button
+      type="button"
+      variant="secondary"
+      class="flex-1"
+      title="Cancel"
+      @click="showAddGuestModal = false; newGuestName = ''"
+    />
+    <Button
+      type="button"
+      class="flex-1"
+      title="Add"
+      @click="addGuest()"
+      :disabled="!newGuestName.trim()"
+    />
+  </div>
+</Modal>
