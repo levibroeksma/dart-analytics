@@ -1,8 +1,9 @@
 ---
 /**
- * One seat's column inside `SplitScoreboard.astro`: avatar + name + active
- * dot, an optional leg-wins pill, the seat's big score/target number (reuses
- * `SinglePlayerDisplay.astro`), an optional checkout-hint chip row, and an
+ * One seat's column inside `SplitScoreboard.astro`: name + active dot, an
+ * optional leg-wins pill, the seat's compact score/target number (reuses
+ * `SinglePlayerDisplay.astro` at `size="sm"`), an optional checkout-hint
+ * chip row, and an
  * optional leg/round progress dot pager. The default slot renders inside the
  * body's `progress` region, alongside the checkout chips — this is where a
  * caller puts its own per-game `StatRow`s, parameterized to this seat.
@@ -42,9 +43,6 @@ const {
 import SinglePlayerDisplay from "./SinglePlayerDisplay.astro";
 import Badge from "@components/ui/Badge.astro";
 
-// Icons
-import UserIcon from "@icons/user.svg";
-
 // Lib
 import { cn } from "@client/cn";
 
@@ -56,23 +54,14 @@ const className = cn(
 ---
 
 <div class={className}>
-  <div class="flex items-center gap-2">
-    <div class="relative">
-      <div
-        class="p-2 border-x border-t w-fit border-sky-500/70 rounded-full bg-tab-active"
-      >
-        <UserIcon
-          class="size-5 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
-        />
-      </div>
-      <span
-        class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-accent border border-tab-card"
-        x-show={activeExpr}
-        x-cloak
-        aria-hidden="true"
-      >
-      </span>
-    </div>
+  <div class="flex items-center gap-1.5">
+    <span
+      class="size-2 rounded-full bg-accent"
+      x-show={activeExpr}
+      x-cloak
+      aria-hidden="true"
+    >
+    </span>
     <span
       class="text-sm text-accent font-semibold"
       x-text={nameExpr}
@@ -92,6 +81,7 @@ const className = cn(
     isTarget={isTarget}
     target={scoreExpr}
     score={scoreExpr}
+    size="sm"
     class="w-full flex-1 min-h-0"
   >
     <div
