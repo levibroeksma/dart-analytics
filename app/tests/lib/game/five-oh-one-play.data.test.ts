@@ -475,6 +475,101 @@ describe("checkoutHint", () => {
   });
 });
 
+describe("seat-parameterized getters — two-seat isolation", () => {
+  const SEAT_B = "participant-2";
+
+  function twoSeatConfig() {
+    return {
+      ...quickPlayConfig(),
+      seats: [
+        ...SEATS,
+        {
+          participantRef: SEAT_B,
+          displayName: "Sam",
+          sideKey: "B",
+          participantTypeKey: "GUEST" as const,
+        },
+      ],
+    };
+  }
+
+  it("remainingScoreFor reads only the named seat's own remaining score", async () => {
+    const seatATurns = turnsReaching(40); // participant-1 down to 40
+    const seatBTurn = turnFact("tB1", "leg-1", 2, 60, SEAT_B); // participant-2 scored 60
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: [...seatATurns, seatBTurn],
+    });
+    await play.init.call(play);
+
+    expect(play.remainingScoreFor.call(play, "participant-1")).toBe(40);
+    expect(play.remainingScoreFor.call(play, SEAT_B)).toBe(501 - 60);
+  });
+
+  it("remainingScore() delegates to the active seat", async () => {
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    expect(play.remainingScore.call(play)).toBe(
+      play.remainingScoreFor.call(
+        play,
+        play.state.call(play)!.activeParticipantRef,
+      ),
+    );
+  });
+
+  it("averageFor and previousScoreFor do not leak one seat's visits into the other's", async () => {
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: [
+        turnFact("t1", "leg-1", 1, 100, "participant-1"),
+        turnFact("t2", "leg-1", 2, 45, SEAT_B),
+      ],
+    });
+    await play.init.call(play);
+
+    expect(play.previousScoreFor.call(play, "participant-1")).toBe("100");
+    expect(play.previousScoreFor.call(play, SEAT_B)).toBe("45");
+    expect(play.averageFor.call(play, "participant-1")).not.toBe(
+      play.averageFor.call(play, SEAT_B),
+    );
+  });
+
+  it("dartsThrownThisLegFor counts only the named seat's own visits in the open leg", async () => {
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: [
+        turnFact("t1", "leg-1", 1, 60, "participant-1"),
+        turnFact("t2", "leg-1", 2, 45, SEAT_B),
+        turnFact("t3", "leg-1", 3, 60, "participant-1"),
+      ],
+    });
+    await play.init.call(play);
+
+    expect(play.dartsThrownThisLegFor.call(play, "participant-1")).toBe(6);
+    expect(play.dartsThrownThisLegFor.call(play, SEAT_B)).toBe(3);
+  });
+
+  it("checkoutHintFor reads the named seat's own remaining score", async () => {
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: turnsReaching(40), // only participant-1 has thrown
+    });
+    await play.init.call(play);
+
+    expect(play.checkoutHintFor.call(play, "participant-1")).toBe("D20");
+    expect(play.checkoutHintFor.call(play, SEAT_B)).toBe(""); // untouched, still 501 — not checkoutable
+  });
+
+  it("legsWonFor reads each seat's own side (0 legs won at the start of a fresh match)", async () => {
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    expect(play.legsWonFor.call(play, "participant-1")).toBe(0);
+    expect(play.legsWonFor.call(play, SEAT_B)).toBe(0);
+  });
+});
+
 describe("uploadAndCompleteSession", () => {
   it("summarises only the owning player's own visits", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
