@@ -60,10 +60,10 @@ evaluated in the page's own Alpine scope.
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
 | `ScoreInput.astro` | Numeric keypad with submit/delete/undo | `value`, `digitHandler`, `onDelete`, `onSubmit`, `submitDisabled`, `padDisabled`, `undoClick`, `undoDisabled` |
-| `SinglePlayerDisplay.astro` | Score-or-target panel with a `progress` slot | `score`, `target`, `isTarget`, `size` (`lg`/`sm`), `activeExpr` (accent border while true) |
+| `SinglePlayerDisplay.astro` | Score-or-target panel with `above`/`progress` slots | `score`, `target`, `isTarget`, `size` (`lg`/`sm`), `activeExpr` (accent border while true) |
 | `SinglesRecreationalInput.astro` | Target-aware S/D/T or Bull tap row | none |
 | `SplitScoreboard.astro` | Two-seat scoreboard shell; two `SplitScoreboardHalf` columns side by side | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`), `isTarget`, `legsToWinExpr`, named slots `progressA`/`progressB` |
-| `SplitScoreboardHalf.astro` | One seat's column inside `SplitScoreboard`: name, optional leg-wins pill, compact `SinglePlayerDisplay` (`size="sm"`, accent border while active), optional checkout chips, optional leg dot pager; whole column dims to 90% opacity while inactive | `nameExpr`, `activeExpr`, `scoreExpr`, `isTarget`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot renders in the progress region |
+| `SplitScoreboardHalf.astro` | One seat's column inside `SplitScoreboard`: centered name, then a compact `SinglePlayerDisplay` (`size="sm"`, accent border while active) with the optional leg-wins pill centered above the big number (`above` slot), optional checkout chips, optional leg dot pager; whole column dims to 90% opacity while inactive | `nameExpr`, `activeExpr`, `scoreExpr`, `isTarget`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot renders in the progress region |
 | `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `VisitPreview.astro` | Three-dart preview strip for the open visit | none |
 

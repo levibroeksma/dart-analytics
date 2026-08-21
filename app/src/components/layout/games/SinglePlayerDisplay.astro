@@ -7,6 +7,7 @@
  * @param {"lg" | "sm"} [size] Big-number size; "sm" fits the split scoreboard's narrower, shorter columns
  * @param {string} [activeExpr] Alpine expr; while true the card's border turns accent-colored instead of the default border color
  * @param {string} [class] Extra classes
+ * @slot above Rendered inside the card, centered, directly above the big number
  */
 interface Props {
   score?: string;
@@ -44,6 +45,7 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
       ? { ":class": `(${activeExpr}) ? 'border-accent' : 'border-border'` }
       : {}}
   >
+    <slot name="above" />
     <h1
       class={cn(
         "font-mono font-bold tabular-nums",
