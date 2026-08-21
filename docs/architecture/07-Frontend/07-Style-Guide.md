@@ -205,14 +205,15 @@ A template bound to a pointer-tracked controller must read a **plain reactive mi
 
 # Tailwind v4 class syntax
 
-This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era variants.
+This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era variants, and must never reach for the important modifier at all.
 
 | Do | Don't |
 | -- | ----- |
-| Suffix important: `max-w-none!`, `flex-row!`, `size-[130vmin]!` | Prefix important: `!max-w-none`, `!flex`, `!size-[130vmin]` |
+| Compose overrides via `cn()`'s merge ordering (`classNameProp` merges last) | Important modifier, prefix or suffix: `!max-w-none`, `max-w-none!` |
+| Extend a primitive's own variant/prop surface when its defaults genuinely conflict (e.g. `Button.astro`'s `dashed` variant) | Layering `!`-forced overrides on top of a primitive |
 | Negative inside arbitrary: `left-[-45%]`, `bottom-[-25%]` | Leading-dash arbitrary: `-left-[45%]`, `-bottom-[25%]` |
 
-Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D175).
+Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).
 
 ---
 
@@ -231,7 +232,7 @@ Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-t
 | Ad-hoc button CSS | `.btn` + a variant class / `Button.astro` |
 | A second press/tap animation on top of `.btn:active` | Instant state update + the shared press scale |
 | Astro `class:list` or manual `[...].filter(Boolean).join(" ")` for build-time classes | `cn()` (`05-Astro-Components.md`; gated by `scripts/check-astro-class-composition.sh`) |
-| Prefix important `!utility` | Suffix important `utility!` (Tailwind v4) |
+| Important modifier, either form: `!utility` or `utility!` | Compose through `cn()`'s merge ordering, or extend the primitive's variant/prop surface |
 | Leading-dash arbitrary `-prop-[…]` | `prop-[-…]` (minus inside brackets) |
 
 ---

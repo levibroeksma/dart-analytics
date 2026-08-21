@@ -188,6 +188,20 @@ describe("fiveOhOneSetup", () => {
     ]);
   });
 
+  it("addGuest refuses a second guest once one already exists", () => {
+    const setup = createSetup({
+      showAddGuestModal: true,
+      newGuestName: "Sam",
+      guests: [{ displayName: "Alex" }],
+    });
+
+    setup.addGuest();
+
+    expect(setup.guests).toEqual([{ displayName: "Alex" }]);
+    expect(setup.newGuestName).toBe("Sam");
+    expect(setup.showAddGuestModal).toBe(true);
+  });
+
   it("creates a session overriding legs_to_win and starting_score with the chosen values and redirects", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],

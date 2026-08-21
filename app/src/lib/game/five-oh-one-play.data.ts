@@ -183,18 +183,38 @@ export function fiveOhOnePlay() {
       );
     },
 
-    remainingScore(this: FiveOhOnePlayContext): number {
+    remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
       const state = this.state();
       if (!state) return 0;
       const seat = state.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
+        (candidate) => candidate.participantRef === seatRef,
       );
       return seat?.remainingScore ?? 0;
+    },
+
+    remainingScore(this: FiveOhOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.remainingScoreFor(state.activeParticipantRef);
+    },
+
+    checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string {
+      const path = checkoutPathFor(this.remainingScoreFor(seatRef));
+      return path ? path.join(" ") : "";
     },
 
     checkoutHint(this: FiveOhOnePlayContext): string {
       const path = checkoutPathFor(this.remainingScore());
       return path ? path.join(" ") : "";
+    },
+
+    dartsThrownThisLegFor(this: FiveOhOnePlayContext, seatRef: string): number {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      const seatTurns = this.turnsInCurrentLeg().filter(
+        (turn) => turn.participantRef === seatRef,
+      );
+      return dartsThrownCount(seatTurns, maxDartsPerTurn);
     },
 
     dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
@@ -209,14 +229,44 @@ export function fiveOhOnePlay() {
      * whole match, so they must survive a leg boundary rather than reset to
      * zero the instant a new leg's stage opens.
      */
-    average(this: FiveOhOnePlayContext): string {
+    averageFor(this: FiveOhOnePlayContext, seatRef: string): string {
       const maxDartsPerTurn =
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return threeDartAverageDisplay(this.$store.game.turns, maxDartsPerTurn);
+      const seatTurns = this.$store.game.turns.filter(
+        (turn) => turn.participantRef === seatRef,
+      );
+      return threeDartAverageDisplay(seatTurns, maxDartsPerTurn);
+    },
+
+    average(this: FiveOhOnePlayContext): string {
+      const state = this.state();
+      if (!state) return "0.0";
+      return this.averageFor(state.activeParticipantRef);
+    },
+
+    previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string {
+      const seatTurns = this.$store.game.turns.filter(
+        (turn) => turn.participantRef === seatRef,
+      );
+      return previousScoreDisplay(seatTurns);
     },
 
     previousScore(this: FiveOhOnePlayContext): string {
-      return previousScoreDisplay(this.$store.game.turns);
+      const state = this.state();
+      if (!state) return "—";
+      return this.previousScoreFor(state.activeParticipantRef);
+    },
+
+    legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number {
+      const state = this.state();
+      if (!state) return 0;
+      const seat = state.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      const side = state.sides.find(
+        (candidate) => candidate.sideKey === seat?.sideKey,
+      );
+      return side?.legsWon ?? 0;
     },
 
     /**

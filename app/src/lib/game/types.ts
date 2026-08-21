@@ -480,11 +480,17 @@ export type FiveOhOnePlayContext = {
   engine: FiveOhOneEngine | null;
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
   state(this: FiveOhOnePlayContext): FiveOhOneState | null;
+  remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number;
   remainingScore(this: FiveOhOnePlayContext): number;
+  checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string;
   checkoutHint(this: FiveOhOnePlayContext): string;
+  dartsThrownThisLegFor(this: FiveOhOnePlayContext, seatRef: string): number;
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
+  averageFor(this: FiveOhOnePlayContext, seatRef: string): string;
   average(this: FiveOhOnePlayContext): string;
+  previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
+  legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;
   checkoutDartOptions(this: FiveOhOnePlayContext): CheckoutDartOptions;
   init(this: FiveOhOnePlayContext): Promise<void>;
   retryReconciliation(this: FiveOhOnePlayContext): Promise<void>;

@@ -1,0 +1,77 @@
+---
+/**
+ * Two-seat scoreboard shell: renders when a session has exactly 2 seats,
+ * wrapping two `SplitScoreboardHalf.astro` columns side by side with a
+ * vertical divider. Each half's dynamic content is driven entirely by the
+ * Alpine expression strings the caller passes in — this component is static
+ * markup, not itself seat-aware.
+ * @param {object} seatA `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`
+ * @param {object} seatB Same shape as `seatA`
+ * @param {boolean} [isTarget] Passed through to both halves
+ * @param {string} [legsToWinExpr] Passed through to both halves, for the dot pager
+ * @param {string} [class] Extra classes on the outer grid
+ */
+interface SeatDisplay {
+  nameExpr: string;
+  activeExpr: string;
+  scoreExpr: string;
+  legsExpr?: string;
+  checkoutExpr?: string;
+}
+
+interface Props {
+  seatA: SeatDisplay;
+  seatB: SeatDisplay;
+  isTarget?: boolean;
+  legsToWinExpr?: string;
+  class?: string;
+}
+
+// Props
+const {
+  seatA,
+  seatB,
+  isTarget = true,
+  legsToWinExpr,
+  class: classNameProp = "",
+}: Props = Astro.props;
+
+// Components
+import SplitScoreboardHalf from "./SplitScoreboardHalf.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "grid grid-cols-2 divide-x divide-border flex-1 min-h-0 glass rounded-lg",
+  classNameProp,
+);
+---
+
+<div class={className}>
+  <SplitScoreboardHalf
+    nameExpr={seatA.nameExpr}
+    activeExpr={seatA.activeExpr}
+    scoreExpr={seatA.scoreExpr}
+    isTarget={isTarget}
+    legsExpr={seatA.legsExpr}
+    legsToWinExpr={legsToWinExpr}
+    checkoutExpr={seatA.checkoutExpr}
+    class="p-2"
+  >
+    <slot name="progressA" />
+  </SplitScoreboardHalf>
+  <SplitScoreboardHalf
+    nameExpr={seatB.nameExpr}
+    activeExpr={seatB.activeExpr}
+    scoreExpr={seatB.scoreExpr}
+    isTarget={isTarget}
+    legsExpr={seatB.legsExpr}
+    legsToWinExpr={legsToWinExpr}
+    checkoutExpr={seatB.checkoutExpr}
+    class="p-2"
+  >
+    <slot name="progressB" />
+  </SplitScoreboardHalf>
+</div>

@@ -99,6 +99,7 @@ export function fiveOhOneSetup() {
     },
 
     addGuest(this: FiveOhOneSetupContext) {
+      if (this.guests.length >= 1) return;
       const name = this.newGuestName.trim();
       if (!name) return;
       this.guests.push({ displayName: name });

@@ -2,7 +2,7 @@
 /**
  * Button with design-system variants.
  * @param {"button"|"submit"|"reset"} [type]
- * @param {"primary"|"secondary"|"ghost"|"error"} [variant]
+ * @param {"primary"|"secondary"|"ghost"|"error"|"dashed"} [variant]
  * @param {boolean} [icon] Equal padding on all sides (icon-only / square hit area)
  * @param {boolean} [disabled]
  * @param {string} [ariaLabel] Accessible name (required for icon-only)
@@ -11,7 +11,7 @@
 interface Props {
   type?: "button" | "submit" | "reset";
   title?: string;
-  variant?: "primary" | "secondary" | "ghost" | "error";
+  variant?: "primary" | "secondary" | "ghost" | "error" | "dashed";
   icon?: boolean;
   disabled?: boolean;
   ariaLabel?: string;
@@ -46,6 +46,7 @@ const variantClasses = {
   secondary: "border-border text-foreground btn-secondary",
   ghost: "text-muted-foreground btn-ghost",
   error: "bg-error text-error-foreground btn-error",
+  dashed: "border-accent border-dashed bg-transparent text-muted-foreground",
 }[variant];
 
 const className = cn(
