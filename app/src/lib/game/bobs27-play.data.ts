@@ -1,7 +1,7 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
   resolveSessionModePair,
-  seatsFromParticipants,
+  reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
@@ -401,10 +401,9 @@ export function bobs27Play() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
-          ...this.$store.game.configSnapshot,
-          seats: seatsFromParticipants(session.participants),
-        };
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

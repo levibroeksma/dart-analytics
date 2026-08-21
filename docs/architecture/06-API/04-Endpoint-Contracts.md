@@ -46,7 +46,7 @@ The engine-agnostic batch write payload is the centerpiece of this contract. It 
 - Single transaction: all stages, turns, darts created atomically.
 - Completed session → `409 SESSION_ALREADY_COMPLETED` (from error registry in `03-Shared-Conventions.md`).
 - Referential failures (`clientKey` lookup, `parentClientKey` tree breaks) → `BATCH_INCONSISTENT_ORDERING` or `BATCH_REFERENCE_MISSING`.
-- `TurnFact.participantRef` must match a participant `ref` returned by `POST /api/sessions`; an unmatched ref → `BATCH_REFERENCE_MISSING`. In v1 there is exactly one (the `PLAYER`). <!-- 2026-07-12 -->
+- `TurnFact.participantRef` must match a participant `ref` returned by `POST /api/sessions`; an unmatched ref → `BATCH_REFERENCE_MISSING`. Refs may vary within one batch when several seats played the session; a solo session has exactly one (the `PLAYER`). <!-- 2026-07-12; multi-seat 2026-08-21 -->
 - Success returns the standard envelope (via `ok()` from `03`) with a `BatchWriteResponse` created-row count summary (see Response DTOs below). <!-- 2026-07-12 -->
 
 ```typescript
@@ -94,6 +94,9 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 - Server creates activity / exercise session / config snapshot row / participant(s).
 - `captureModeKey` and `inputModeKey` are required and stored on the session (self-describing runtime record); both are validated against the ruleset (a ruleset may require `ANALYTICS` / `DETAILED_DARTS`). <!-- 2026-07-12 -->
 - **Participants (v1):** the server derives exactly one participant of type `PLAYER` for the authenticated player, `displayName` copied from `players.display_name`, and returns its `ref`. Guest/DartBot participants are deferred post-v1 (added later as an optional `participants[]` input — additive, non-breaking). <!-- 2026-07-12 -->
+- **Participants (guests):** the optional `participants[]` input is now implemented as that decision anticipated. Array ORDER is seat order — it decides who throws first in leg 1. Omitting the field reproduces the single-`PLAYER` session above exactly. The `PLAYER` seat's `displayName` is always copied server-side from `players.display_name`; a client-supplied value is ignored, because migration `0005`'s CHECK requires exactly that. The seats are also written into the configuration snapshot under `seats`, in the same transaction as the participant rows. <!-- 2026-08-21 -->
+- **Seat rejections** (all `VALIDATION_FAILED`, asserted once in `app/src/services/session-seats.service.ts`, and nothing is written): fewer than 1 or more than 4 seats; not exactly one `PLAYER`; a `GUEST` with a blank name; two seats sharing one `sideKey` (2v2 is not implemented); more than one seat for any ruleset other than `501_V1` (the other eight engines are not wired for seats, so a second seat would persist a participant nothing can throw for). Duplicate guest display names are deliberately allowed — seats are identified by ref, not name. <!-- 2026-08-21 -->
+- The events batch endpoint is unchanged: a turn's `participantRef` may now vary within one batch, which `validateBatchReferences` already allowed. <!-- 2026-08-21 -->
 - **Activity (v1):** the session's activity is created and managed server-side, one activity per session; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
 - Returns server-generated `sessionId` (UUIDv7) and participant ref(s), enclosed in standard `ok()` envelope.
@@ -112,19 +115,28 @@ const CreateSessionRequest = z.object({
   captureModeKey: z.string(),                // capture_modes.implementation_key (RECREATIONAL | ANALYTICS)
   inputModeKey: z.string(),                  // input_modes.implementation_key (QUICK_SCORE | DETAILED_DARTS)
   config: ConfigInput,
+  participants: z.array(ParticipantInput).optional(),  // array order IS seat order; omitted = one PLAYER seat
 });
 type CreateSessionRequest = z.infer<typeof CreateSessionRequest>;
 
-// v1: the server derives a single PLAYER participant; the response returns its
-// ref so the client can populate TurnFact.participantRef on the batch write.
+// one requested seat; displayName is required for a GUEST and ignored for the
+// PLAYER, whose name is copied server-side from players.display_name
+const ParticipantInput = z.object({
+  participantTypeKey: z.enum(["PLAYER", "GUEST"]),
+  displayName: z.string().optional(),
+  sideKey: z.string().min(1),                // groups seats; v1 writes one seat per side
+});
+
+// the response returns every minted participant's ref, in seat order, so the
+// client can populate TurnFact.participantRef on the batch write.
 const ParticipantRef = z.object({
   ref: z.string(),                           // referenced by TurnFact.participantRef
-  participantTypeKey: z.string(),            // participant_types.implementation_key (v1: always PLAYER)
-  displayName: z.string(),                   // copied from players.display_name
+  participantTypeKey: z.string(),            // participant_types.implementation_key (PLAYER | GUEST)
+  displayName: z.string(),                   // PLAYER: copied from players.display_name
 });
 const CreateSessionResponse = z.object({
   sessionId: z.string(),                     // server-generated UUIDv7
-  participants: z.array(ParticipantRef),     // v1: exactly one (PLAYER)
+  participants: z.array(ParticipantRef),     // one per seat, in seat order
 });
 type CreateSessionResponse = z.infer<typeof CreateSessionResponse>;
 ```

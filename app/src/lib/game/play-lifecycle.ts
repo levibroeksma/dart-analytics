@@ -1,7 +1,7 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
+  reseatSnapshot,
   resolveSessionModePair,
-  seatsFromParticipants,
 } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
@@ -276,7 +276,7 @@ export async function playAbandonAndExit<
  * `GameEngine<unknown, unknown>`.
  */
 export async function runPlayAgain<
-  TConfig,
+  TConfig extends object,
   TEngine extends GameEngine<DartObservation, unknown>,
   TResults,
 >(
@@ -323,10 +323,10 @@ export async function runPlayAgain<
 
     context.$store.game.sessionId = session.sessionId;
     context.$store.game.idempotencyKey = null;
-    context.$store.game.configSnapshot = {
-      ...nextConfigSnapshot,
-      seats: seatsFromParticipants(session.participants),
-    } as Seated<TConfig>;
+    context.$store.game.configSnapshot = reseatSnapshot(
+      nextConfigSnapshot,
+      session.participants,
+    ) as Seated<TConfig>;
     context.$store.game.setSessionModes(modePair);
 
     context.finished = false;

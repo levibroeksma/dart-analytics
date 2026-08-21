@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-08-20
-highest-issued: F11
+updated: 2026-08-21
+highest-issued: F13
 -->
 
 # Findings
@@ -115,3 +115,17 @@ Claim: `database/verification/0007_capability_seed_checks.sql` asserted `ruleset
 Evidence: `database/verification/0007_capability_seed_checks.sql` (before this task's fix) vs `database/seeds/0007_ruleset_version_capabilities.sql`, which already held 17 rows at the start of this task — three other rulesets' own `ANALYTICS + VISUAL_BOARD` additions had updated the seed without a matching update to this verification script. This task corrected the count to the real 17 → 18 (after adding TUOD's own row) rather than the originally-planned 14 → 15, but left one descriptive comment ("Driven by a fixed 9-row VALUES list, so this can only be short if the VALUES list above was edited down") unchanged — it was already inaccurate before this task (the list has always had far more than 9 rows) and remains so
 Impact: an agent trusting the row-count text (or the "9-row" comment) as ground truth for how many capability pairs exist would undercount before this fix, and the leftover comment can still mislead about the VALUES list's actual size after it
 Proposed: reword or remove the "9-row" comment near `database/verification/0007_capability_seed_checks.sql`'s Step 2 count-check to state what it actually guards (that the checked-triple count matches the declared VALUES list, whatever its current length), rather than naming a specific row count
+
+### F12 — `npx fallow` already fails on this repository's baseline, so `validate:app` cannot pass locally
+Status: Open · Found: 2026-08-21 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `npx fallow` — a mandatory step in `app/package.json`'s `validate:app` chain — exits non-zero on an unmodified checkout of this branch's base commit, reporting `dupes (70 clone groups), health (1 above threshold)`
+Evidence: `git stash && cd app && npx fallow` on `58729a7` reports `Failed: dupes (70 clone groups), health (1 above threshold): start with src/modules/game/score-input.module.ts`; the same command after this task's changes reports 71 clone groups and the identical health failure. `app/package.json:31` chains `npx fallow` between `db:introspect` and `npm test`, so the whole `validate:app` sequence stops there
+Impact: `validate:app` is the repository's stated completion bar (`app/CLAUDE.md`, "Validation Standard Procedure (sole definition)"), and no task can satisfy it as written while the baseline fails. Every recent task has had to run the chain's steps individually instead, which silently drops whichever steps come after the failure. The clone groups are largely the six near-identical `*-play.data.ts` controllers that D215 deliberately left alone, so the failure is expected behaviour meeting an unadjusted threshold rather than new rot
+Proposed: decide whether `fallow`'s dupes/health thresholds should be configured to the repository's accepted state (D215's deliberate `play.data.ts` duplication included), whether the step should be advisory rather than blocking inside `validate:app`, or whether the duplication is now worth collapsing — and record the choice, since the current state is neither passing nor consciously accepted
+
+### F13 — `scripts/verify-db.ts` does not cover the two dart analytics views
+Status: Open · Found: 2026-08-21 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: migration `0023` changes `v_dart_analytics` and `v_dart_locations`, but neither view has a `database/verification/*.sql` script, so no automated check proves the new participant filter behaves as intended against a real database
+Evidence: `database/verification/` holds scripts for `0007` capabilities, `0021` player settings and `0022` player profile among others, with no `0014`/`0018`/`0023` dart-view equivalent; `app/package.json:23` `db:verify` runs `app/scripts/verify-db.ts`
+Impact: the filter's correctness rests on reading the SQL. The specific case worth proving — a session with one PLAYER and one GUEST returns only the PLAYER's dart rows, while `v_game_replay` returns both — is exactly the one no existing test covers, and this task could not run any database check at all (no `DATABASE_URL` in the execution container)
+Proposed: add `database/verification/0023_owner_scoped_dart_view_checks.sql` asserting the two views' owner scoping and `v_game_replay`'s deliberate lack of it, following `0022_player_profile_checks.sql`'s shape

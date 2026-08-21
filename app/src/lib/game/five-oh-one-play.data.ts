@@ -5,7 +5,7 @@ import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import {
   resolveSessionModePair,
-  seatsFromParticipants,
+  reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
@@ -21,7 +21,11 @@ import {
   previousScoreDisplay,
   threeDartAverageDisplay,
 } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey, FiveOhOneSnapshot } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  FiveOhOneSnapshot,
+  SeatFact,
+} from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -89,6 +93,18 @@ function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
  * than three darts, which this slightly under-weights. Recovering it needs
  * per-dart capture, which 501 does not have (`06-Spec/04-Runtime-Layer.md`).
  */
+/**
+ * The seat the session belongs to — the one PLAYER participant. Guest visits
+ * land in the same fact log, so a results summary that sums every turn mixes
+ * two throwers into one average.
+ */
+function ownerRef(seats: readonly SeatFact[]): string | null {
+  return (
+    seats.find((seat) => seat.participantTypeKey === "PLAYER")
+      ?.participantRef ?? null
+  );
+}
+
 function computeStats(
   turns: TurnFact[],
   legsWon: number,
@@ -556,8 +572,13 @@ export function fiveOhOnePlay() {
         }
       }
 
+      const owner = ownerRef(this.$store.game.seats);
       this.resultsSnapshot = computeStats(
-        this.$store.game.turns,
+        owner === null
+          ? this.$store.game.turns
+          : this.$store.game.turns.filter(
+              (turn) => turn.participantRef === owner,
+            ),
         this.$store.game.configSnapshot!.legsToWin,
       );
       this.completionStatus = "succeeded";
@@ -637,10 +658,9 @@ export function fiveOhOnePlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
-          ...this.$store.game.configSnapshot,
-          seats: seatsFromParticipants(session.participants),
-        };
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

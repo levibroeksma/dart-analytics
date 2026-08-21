@@ -8,7 +8,7 @@ import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import {
   resolveSessionModePair,
-  seatsFromParticipants,
+  reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
@@ -598,10 +598,9 @@ export function oneTwentyOnePlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
-          ...this.$store.game.configSnapshot,
-          seats: seatsFromParticipants(session.participants),
-        };
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

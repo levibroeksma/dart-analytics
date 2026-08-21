@@ -13,7 +13,7 @@ import {
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   resolveSessionModePair,
-  seatsFromParticipants,
+  reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
@@ -562,10 +562,9 @@ export function tuodPlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
-          ...this.$store.game.configSnapshot,
-          seats: seatsFromParticipants(session.participants),
-        };
+        this.$store.game.configSnapshot =
+          this.$store.game.configSnapshot &&
+          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
         this.$store.game.timerRemainingMs = null;

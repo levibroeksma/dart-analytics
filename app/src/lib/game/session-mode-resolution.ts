@@ -98,3 +98,24 @@ export function startSessionInput<TConfig extends object>(input: {
     inputModeKey: input.modePair.inputModeKey,
   };
 }
+
+/**
+ * Re-seats a config snapshot onto the participants a freshly-created session
+ * minted. Play Again keeps the ruleset config but gets new participant rows,
+ * so the seats inside the snapshot must be replaced rather than carried over —
+ * a stale ref would attribute the new session's turns to a participant that
+ * belongs to the finished one.
+ */
+export function reseatSnapshot<TConfig extends object>(
+  configSnapshot: TConfig,
+  participants: {
+    ref: string;
+    participantTypeKey: string;
+    displayName: string;
+  }[],
+): Seated<TConfig> {
+  return {
+    ...configSnapshot,
+    seats: seatsFromParticipants(participants),
+  } as Seated<TConfig>;
+}
