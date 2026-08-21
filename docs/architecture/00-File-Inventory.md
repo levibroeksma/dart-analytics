@@ -66,8 +66,8 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
-| `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — suffix `!important`, arbitrary negatives (D175, 2026-07-31); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
-| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup (2026-08-19) | canonical | ~1.2k |
+| `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
+| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `SplitScoreboard`/`SplitScoreboardHalf` added (2026-08-21) | canonical | ~1.3k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
@@ -201,7 +201,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 19 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.8k |
 | `decisions/frontend/alpine.md` | 13 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.5k |
-| `decisions/frontend/style.md` | 10 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance | canonical | ~1.6k |
+| `decisions/frontend/style.md` | 11 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban | canonical | ~2.1k |
 | `decisions/context-system.md` | 31 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~5.1k |
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)

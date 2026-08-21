@@ -40,7 +40,7 @@ evaluated in the page's own Alpine scope.
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `AppModeForm.astro` | Analytics/recreational app-mode radio picker | none (reads the settings store) |
-| `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` |
+| `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` |
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
@@ -62,6 +62,8 @@ evaluated in the page's own Alpine scope.
 | `ScoreInput.astro` | Numeric keypad with submit/delete/undo | `value`, `digitHandler`, `onDelete`, `onSubmit`, `submitDisabled`, `padDisabled`, `undoClick`, `undoDisabled` |
 | `SinglePlayerDisplay.astro` | Large score-or-target panel with a `progress` slot | `score`, `target`, `isTarget` |
 | `SinglesRecreationalInput.astro` | Target-aware S/D/T or Bull tap row | none |
+| `SplitScoreboard.astro` | Two-seat scoreboard shell; two `SplitScoreboardHalf` columns side by side | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`), `isTarget`, `legsToWinExpr`, named slots `progressA`/`progressB` |
+| `SplitScoreboardHalf.astro` | One seat's column inside `SplitScoreboard`: avatar/name/active-dot, optional leg-wins pill, `SinglePlayerDisplay`, optional checkout chips, optional leg dot pager | `nameExpr`, `activeExpr`, `scoreExpr`, `isTarget`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot renders in the progress region |
 | `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `VisitPreview.astro` | Three-dart preview strip for the open visit | none |
 
@@ -69,7 +71,7 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 3 | none (reads `guests`/`showAddGuestModal` from the page scope) |
+| `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 1 (1v1 cap) | none (reads `guests`/`showAddGuestModal` from the page scope) |
 | `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
 | `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `SettingSectionShell.astro` | Bordered section wrapper inside a setup form | none |
