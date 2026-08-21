@@ -16,6 +16,7 @@ import type {
   DartCount,
   DartObservation,
   EngineFacts,
+  FiveOhOneState,
   MagnifierPlacement,
   StageFact,
   TuodAttemptInput,
@@ -473,6 +474,7 @@ export type FiveOhOnePlayContext = {
   $store: PlayStoreContext<FiveOhOneSnapshot>;
   engine: FiveOhOneEngine | null;
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
+  state(this: FiveOhOnePlayContext): FiveOhOneState | null;
   remainingScore(this: FiveOhOnePlayContext): number;
   checkoutHint(this: FiveOhOnePlayContext): string;
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;

@@ -103,16 +103,46 @@ export type FiveOhOneVisitOutcome = {
   remainingAfter: number;
 };
 
+/** The minimum any seat-aware game state says about one seat. */
+export type SeatState = {
+  participantRef: string;
+  sideKey: string;
+};
+
 /**
- * 501 session state. `remainingScore` is the score left in the leg being
- * played and `legsWon` counts completed legs; both are folds over the fact
- * log, never accumulated fields. `status` is the whole session's — winning a
- * leg short of `legsToWin` leaves it `IN_PROGRESS`.
+ * The base every seat-aware `TState` extends, so one generic scoreboard can
+ * render any game without knowing its ruleset. Generic in the seat type so a
+ * ruleset can add its own per-seat fields without an intersection of two
+ * array types.
  */
-export type FiveOhOneState = {
+export type MultiSeatState<TSeat extends SeatState = SeatState> = {
+  activeParticipantRef: string;
+  seats: readonly TSeat[];
+};
+
+/** One seat's score in the leg being played. */
+export type FiveOhOneSeatState = SeatState & {
   remainingScore: number;
+};
+
+/** One side's completed legs. What wins a leg and the match is the SIDE. */
+export type FiveOhOneSideState = {
+  sideKey: string;
   legsWon: number;
+};
+
+/**
+ * 501 session state, split into the three scopes it actually has: a
+ * `remainingScore` per SEAT, `legsWon` per SIDE, and `status` per SESSION.
+ * Every field is a fold over the fact log, never an accumulated value — a
+ * bust turn stores `totalScore: 0`, so replaying the log reproduces every
+ * leg exactly. A solo session is one seat and one side, with no branch
+ * anywhere in the engine.
+ */
+export type FiveOhOneState = MultiSeatState<FiveOhOneSeatState> & {
   status: "IN_PROGRESS" | "WON";
+  winningSideKey: string | null;
+  sides: readonly FiveOhOneSideState[];
 };
 
 /**

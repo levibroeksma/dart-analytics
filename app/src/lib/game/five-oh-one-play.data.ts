@@ -1,10 +1,7 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import {
-  applyFiveOhOneVisit,
-  initialFiveOhOneState,
-} from "@modules/game/five-oh-one.engine.module";
+import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import {
   resolveSessionModePair,
@@ -61,32 +58,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof FiveOhOneEngine ? engine : null;
-}
-
-/**
- * Folds a leg's turns into a `FiveOhOneState`, exactly like the engine's own
- * private replay, but reading only from the reactive `$store.game` fields —
- * never `engine.state()` — so every Alpine display expression that calls
- * this (directly or through `remainingScore`/`checkoutHint`/the stat
- * methods) re-renders when `recordFacts` writes a new turn. `engine` is a
- * plain class instance; its own internal mutations carry no Alpine
- * reactivity, so display must never depend on them (see
- * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention, already
- * followed by `ScoreTrainingResults.astro`).
- */
-function foldLegState(
-  turns: TurnFact[],
-  config: FiveOhOneSnapshot,
-): FiveOhOneState {
-  return turns.reduce(
-    (state, turn) =>
-      applyFiveOhOneVisit(
-        state,
-        { scoreAttempted: turn.totalScore, finishedOnDouble: true },
-        config,
-      ),
-    initialFiveOhOneState(config),
-  );
 }
 
 /**
@@ -184,10 +155,29 @@ export function fiveOhOnePlay() {
       );
     },
 
-    remainingScore(this: FiveOhOnePlayContext): number {
+    /**
+     * Folds the store's own fact log — never `engine.state()` — so every
+     * Alpine display expression that calls this re-renders when
+     * `recordFacts` writes a new turn. The engine is a plain class instance;
+     * its internal mutations carry no Alpine reactivity (see
+     * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention).
+     */
+    state(this: FiveOhOnePlayContext): FiveOhOneState | null {
       const config = this.$store.game.configSnapshot;
-      if (!config) return 0;
-      return foldLegState(this.turnsInCurrentLeg(), config).remainingScore;
+      if (!config) return null;
+      return foldFiveOhOneState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
+    },
+
+    remainingScore(this: FiveOhOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      const seat = state.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      return seat?.remainingScore ?? 0;
     },
 
     checkoutHint(this: FiveOhOnePlayContext): string {
