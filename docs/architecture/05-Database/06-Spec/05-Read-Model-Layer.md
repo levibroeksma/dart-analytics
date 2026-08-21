@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -149,12 +149,14 @@ Intention-complete, analytics-ready dart dataset.
 
 ## Sources
 
-- darts → turns → exercise_stages → exercise_sessions → game_types
+- darts → turns → participants, exercise_stages → exercise_sessions → game_types
 - dart_zones (intended and hit, LEFT JOIN)
 
 ## Exposes
 
 Session id (migration `0014`), player, game type key, intended target + intended zone key, hit target + hit zone key, score, and a computed `exact_hit` flag (intended target and zone both match the hit). <!-- 2026-07-12 -->
+
+Scoped to the session's OWNING player: migration `0023` joins `participants` and filters `p.player_id = es.player_id`, so a guest participant's darts never enter the owner's accuracy statistics. Behaviour-preserving for every single-participant session. <!-- 2026-08-21 -->
 
 ## Design Rationale
 
@@ -230,12 +232,12 @@ Exposes dart landing coordinates in millimetres, with derived polar form, for sp
 
 ## Sources
 
-- darts → turns → exercise_stages → exercise_sessions → game_types, input_modes
+- darts → turns → participants, exercise_stages → exercise_sessions → game_types, input_modes
 - dart_zones (intended and hit, LEFT JOIN)
 
 ## Exposes
 
-Session id, player id, game type key, input mode key, stage id, turn sequence, turn total score, dart number, hit target + hit zone key, intended target + intended zone key, score, `location_x`, `location_y`, and two derived columns: `radius_mm` (plain distance from the bull centre) and `angle_degrees` (clockwise bearing from the upward vertical, `0` straight up and `90` straight right — matching the classifier's sector convention). Only darts with both coordinates present are returned (`WHERE location_x IS NOT NULL AND location_y IS NOT NULL`).
+Session id, player id, game type key, input mode key, stage id, turn sequence, turn total score, dart number, hit target + hit zone key, intended target + intended zone key, score, `location_x`, `location_y`, and two derived columns: `radius_mm` (plain distance from the bull centre) and `angle_degrees` (clockwise bearing from the upward vertical, `0` straight up and `90` straight right — matching the classifier's sector convention). Only darts with both coordinates present are returned (`WHERE location_x IS NOT NULL AND location_y IS NOT NULL`), and only the session's OWNING player's darts: migration `0023` joins `participants` and filters `p.player_id = es.player_id`. <!-- 2026-08-21 -->
 
 ## Design Rationale
 

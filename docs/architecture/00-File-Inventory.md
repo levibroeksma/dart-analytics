@@ -34,9 +34,9 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~2.3k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0022`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15) | canonical | ~4.3k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0023`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15), `0023` owner-scoped dart views (2026-08-21) | canonical | ~4.3k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
-| `05-Views.md` | View categories and replay rules; nine implemented views through `0022` (2026-08-15) | canonical | ~2.2k |
+| `05-Views.md` | View categories and replay rules; nine implemented views through `0023` (2026-08-21) | canonical | ~2.2k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08) | canonical | ~2.1k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
@@ -76,7 +76,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0022` | Applied schema chain — never modify | canonical (applied) |
+| `migrations/0001`–`0023` | Applied schema chain — never modify | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
 | `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |
