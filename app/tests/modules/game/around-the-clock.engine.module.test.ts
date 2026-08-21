@@ -8,11 +8,7 @@ import {
 } from "@modules/game/around-the-clock.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import type {
-  AroundTheClockState,
-  DartObservation,
-  EngineFacts,
-} from "@modules/types";
+import type { AroundTheClockState, DartObservation } from "@modules/types";
 import type { AroundTheClockSnapshot, Seated } from "@lib/types";
 
 const SEATS = [

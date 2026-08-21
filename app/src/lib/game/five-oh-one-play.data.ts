@@ -21,11 +21,7 @@ import {
   previousScoreDisplay,
   threeDartAverageDisplay,
 } from "@lib/game/play-visit-stats";
-import type {
-  RulesetVersionKey,
-  FiveOhOneSnapshot,
-  SeatFact,
-} from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,

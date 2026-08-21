@@ -10,6 +10,7 @@ import type {
   DartZoneKey,
   EngineFacts,
   FiveOhOneInput,
+  FiveOhOneSeatState,
   FiveOhOneState,
   FiveOhOneVisitInput,
   FiveOhOneVisitOutcome,
@@ -138,15 +139,76 @@ function checkoutDartsRejectionFor(
 }
 
 /**
- * Folds the whole fact log into the session's state. A turn's `totalScore` is
- * what actually counted, so a bust replays as a scoreless visit and only a
- * genuine checkout can take a seat to zero — which is why a zeroing visit is
- * safe to treat as a checkout on replay.
+ * One leg's visits, in the order they were thrown. Turn `sequence` is the
+ * order of record within the stage, so sorting on it replays the leg exactly
+ * as it was played, whatever order the fact log happens to hold.
+ */
+function legVisitsOf(
+  facts: EngineFacts,
+  stage: StageFact,
+): readonly TurnFact[] {
+  return facts.turns
+    .filter((turn) => turn.stageClientKey === stage.clientKey)
+    .slice()
+    .sort((a, b) => a.sequence - b.sequence);
+}
+
+/**
+ * Replays one leg into `remaining`, which every seat re-enters at
+ * `startingScore` because a seat's remaining score is folded from that leg's
+ * own turns and a fresh leg has none. Answers the seat that checked out, or
+ * null while the leg is still open. A turn's `totalScore` is what actually
+ * counted, so a bust replays as a scoreless visit and only a genuine checkout
+ * can take a seat to zero — which is why a zeroing visit is safe to treat as
+ * a checkout on replay.
+ */
+function foldLeg(
+  visits: readonly TurnFact[],
+  config: Seated<FiveOhOneSnapshot>,
+  remaining: Map<string, number>,
+): SeatFact | null {
+  for (const seat of config.seats) {
+    remaining.set(seat.participantRef, config.startingScore);
+  }
+
+  for (const visit of visits) {
+    const seat = seatOf(visit, config.seats);
+    const before = remaining.get(seat.participantRef) ?? config.startingScore;
+    const after = before - visit.totalScore;
+    remaining.set(seat.participantRef, after);
+    if (after === 0) return seat;
+  }
+
+  return null;
+}
+
+/**
+ * Projects the folded leg into each seat's reported score. Once a side has
+ * won the match every seat on it reports zero: the match ended on that side's
+ * checkout, and the fold stops before any later leg could move it.
+ */
+function seatStatesOf(
+  config: Seated<FiveOhOneSnapshot>,
+  remaining: ReadonlyMap<string, number>,
+  winningSideKey: string | null,
+): readonly FiveOhOneSeatState[] {
+  return config.seats.map((seat) => ({
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    remainingScore:
+      seat.sideKey === winningSideKey
+        ? 0
+        : (remaining.get(seat.participantRef) ?? config.startingScore),
+  }));
+}
+
+/**
+ * Folds the whole fact log into the session's state.
  *
  * A leg is SHARED: one stage holds every seat's interleaved visits, and the
- * checkout that ends it resets every seat, because each seat's remaining
- * score is folded from that leg's own turns and a fresh leg has none. The
- * session reaches `WON` only when a SIDE reaches `legsToWin`.
+ * checkout that ends it resets every seat. The session reaches `WON` only
+ * when a SIDE reaches `legsToWin`, so legs are counted per side and the fold
+ * stops at the leg that decides the match.
  */
 export function foldFiveOhOneState(
   facts: EngineFacts,
@@ -160,29 +222,13 @@ export function foldFiveOhOneState(
 
   for (const stage of facts.stages) {
     if (winningSideKey !== null) break;
-    for (const seat of config.seats) {
-      remaining.set(seat.participantRef, config.startingScore);
-    }
 
-    const visits = facts.turns
-      .filter((turn) => turn.stageClientKey === stage.clientKey)
-      .slice()
-      .sort((a, b) => a.sequence - b.sequence);
+    const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
+    if (winner === null) continue;
 
-    for (const visit of visits) {
-      const seat = seatOf(visit, config.seats);
-      const before = remaining.get(seat.participantRef) ?? config.startingScore;
-      const after = before - visit.totalScore;
-      remaining.set(seat.participantRef, after);
-      if (after !== 0) continue;
-
-      const won = (legsWon.get(seat.sideKey) ?? 0) + 1;
-      legsWon.set(seat.sideKey, won);
-      if (won >= config.legsToWin) {
-        winningSideKey = seat.sideKey;
-      }
-      break;
-    }
+    const won = (legsWon.get(winner.sideKey) ?? 0) + 1;
+    legsWon.set(winner.sideKey, won);
+    if (won >= config.legsToWin) winningSideKey = winner.sideKey;
   }
 
   return {
@@ -191,14 +237,7 @@ export function foldFiveOhOneState(
     status: winningSideKey === null ? "IN_PROGRESS" : "WON",
     winningSideKey,
     sides: [...legsWon].map(([sideKey, won]) => ({ sideKey, legsWon: won })),
-    seats: config.seats.map((seat) => ({
-      participantRef: seat.participantRef,
-      sideKey: seat.sideKey,
-      remainingScore:
-        winningSideKey !== null && seat.sideKey === winningSideKey
-          ? 0
-          : (remaining.get(seat.participantRef) ?? config.startingScore),
-    })),
+    seats: seatStatesOf(config, remaining, winningSideKey),
   };
 }
 

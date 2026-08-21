@@ -92,7 +92,9 @@ Run for `app/` changes before claiming completion — full procedure and mid-tas
 npm run validate:app
 ```
 
-(2026-07-22; procedure moved to `.claude/skills/validate-app/SKILL.md`, 2026-07-28)
+Done means every step of that chain exits zero, `npx fallow` included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
+
+(2026-07-22; procedure moved to `.claude/skills/validate-app/SKILL.md`, 2026-07-28; zero-hint bar added 2026-08-21)
 
 ## Forbidden
 

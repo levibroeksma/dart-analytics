@@ -43,7 +43,7 @@ function hitObservationFor(
   };
 }
 
-function missObservationFor(state: ShanghaiState): DartObservation {
+function missObservation(): DartObservation {
   return {
     hitTargetNumber: null,
     hitZoneKey: "MISS",
@@ -138,7 +138,7 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
 
   it("scores 0 and records null for a MISS, but still counts the dart", () => {
     const state = initialShanghaiState();
-    const next = applyShanghaiDart(state, missObservationFor(state));
+    const next = applyShanghaiDart(state, missObservation());
     expect(next.totalScore).toBe(0);
     expect(next.dartsThisVisit).toEqual([null]);
   });
@@ -193,7 +193,7 @@ describe("applyShanghaiDart — visit resolution and round advance", () => {
     let state = initialShanghaiState();
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "DOUBLE"));
-    state = applyShanghaiDart(state, missObservationFor(state));
+    state = applyShanghaiDart(state, missObservation());
     expect(state.status).toBe("IN_PROGRESS");
     expect(state.targetIndex).toBe(1);
   });
@@ -225,9 +225,9 @@ describe("applyShanghaiDart — completion at round 20", () => {
       dartsThisVisit: [],
       status: "IN_PROGRESS",
     };
-    state = applyShanghaiDart(state, missObservationFor(state));
-    state = applyShanghaiDart(state, missObservationFor(state));
-    state = applyShanghaiDart(state, missObservationFor(state));
+    state = applyShanghaiDart(state, missObservation());
+    state = applyShanghaiDart(state, missObservation());
+    state = applyShanghaiDart(state, missObservation());
     expect(state.status).toBe("COMPLETE");
     expect(state.totalScore).toBe(570);
     expect(state.targetIndex).toBe(19);
@@ -258,9 +258,7 @@ describe("applyShanghaiDart — terminal state guard", () => {
         dartsThisVisit: [],
         status,
       };
-      expect(() =>
-        applyShanghaiDart(terminal, missObservationFor(terminal)),
-      ).toThrow();
+      expect(() => applyShanghaiDart(terminal, missObservation())).toThrow();
     },
   );
 });
@@ -349,9 +347,9 @@ describe("ShanghaiEngine — fact log and derived state", () => {
 
   it("completes after round 20 without a Shanghai", () => {
     const engine = shanghaiEngineFactory.create(config, facts19RoundsPlayed());
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservation());
+    engine.record(missObservation());
+    engine.record(missObservation());
     expect(engine.isComplete()).toBe(true);
     expect(engine.state().status).toBe("COMPLETE");
   });
@@ -392,7 +390,7 @@ describe("ShanghaiEngine.facts", () => {
     engine.record(hitObservationFor(engine.state(), "SINGLE"));
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservation());
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
     engine.record(hitObservationFor(engine.state(), "TREBLE"));
@@ -417,9 +415,7 @@ describe("ShanghaiEngine.wouldComplete", () => {
       engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
     ).toBe(false);
     engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    expect(engine.wouldComplete(missObservationFor(engine.state()))).toBe(
-      false,
-    );
+    expect(engine.wouldComplete(missObservation())).toBe(false);
   });
 
   it("is true for the 3rd dart when it completes a Shanghai", () => {
@@ -443,17 +439,17 @@ describe("ShanghaiEngine.wouldComplete", () => {
 
   it("is true for round 20's 3rd dart when it completes the session without a Shanghai", () => {
     const engine = shanghaiEngineFactory.create(config, facts19RoundsPlayed());
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    expect(engine.wouldComplete(missObservationFor(engine.state()))).toBe(true);
+    engine.record(missObservation());
+    engine.record(missObservation());
+    expect(engine.wouldComplete(missObservation())).toBe(true);
     expect(engine.state().status).toBe("IN_PROGRESS");
   });
 
   it("is false once the session has already ended", () => {
     const engine = shanghaiEngineFactory.create(config, facts19RoundsPlayed());
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservation());
+    engine.record(missObservation());
+    engine.record(missObservation());
     expect(engine.state().status).toBe("COMPLETE");
     expect(
       engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
@@ -518,12 +514,12 @@ describe("ShanghaiEngine.undo", () => {
 
   it("does not push a phantom dart when record is rejected on a finished session", () => {
     const engine = shanghaiEngineFactory.create(config, facts19RoundsPlayed());
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservation());
+    engine.record(missObservation());
+    engine.record(missObservation());
     expect(engine.isComplete()).toBe(true);
 
-    expect(() => engine.record(missObservationFor(engine.state()))).toThrow();
+    expect(() => engine.record(missObservation())).toThrow();
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);

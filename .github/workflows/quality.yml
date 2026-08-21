@@ -61,7 +61,7 @@ jobs:
       - name: Format gate
         run: npm run format:check
       - name: Type gate
-        run: npx astro check
+        run: npm run check
       - name: Stale-usage gate
         run: npx fallow
       - name: Unit tests
