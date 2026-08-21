@@ -1,0 +1,57 @@
+---
+/**
+ * Icon-only button — always a perfect circle. Unlike Button.astro, this
+ * never renders text: pass the icon as the single default slot.
+ * @param {"button"|"submit"|"reset"} [type]
+ * @param {"primary"|"secondary"|"ghost"|"error"|"dashed"} [variant]
+ * @param {boolean} [disabled]
+ * @param {string} ariaLabel Accessible name — required, there is no text fallback
+ * @param {string} [class] Extra classes; padding/sizing lives here, the component applies none
+ */
+interface Props {
+  type?: "button" | "submit" | "reset";
+  variant?: "primary" | "secondary" | "ghost" | "error" | "dashed";
+  disabled?: boolean;
+  ariaLabel: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  type = "button",
+  variant = "primary",
+  disabled = false,
+  ariaLabel,
+  class: classNameProp = "",
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const variantClasses = {
+  primary: "border-transparent bg-white text-black btn-primary",
+  secondary: "border-border text-foreground btn-secondary",
+  ghost: "border-transparent text-muted-foreground btn-ghost",
+  error: "border-transparent bg-error text-error-foreground btn-error",
+  dashed: "border-accent border-dashed bg-transparent text-muted-foreground",
+}[variant];
+
+const className = cn(
+  "btn flex items-center justify-center aspect-square rounded-full border-3 transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  variantClasses,
+  classNameProp,
+);
+---
+
+<button
+  type={type}
+  disabled={disabled}
+  aria-label={ariaLabel}
+  class={className}
+  {...props}
+>
+  <slot />
+</button>

@@ -41,6 +41,7 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `AppModeForm.astro` | Analytics/recreational app-mode radio picker | none (reads the settings store) |
 | `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` |
+| `IconBtn.astro` | Icon-only button, always a perfect circle (`aspect-square` + `rounded-full`); no built-in padding, no text | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `disabled`, `ariaLabel` (required) |
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
