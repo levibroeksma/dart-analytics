@@ -17,6 +17,8 @@ updated: 2026-08-21
 
 # Version History
 
+> **Version:** 1.17.0 (2026-08-21 — new `IconBtn.astro` icon-only button primitive: always a true circle via `aspect-square` + `rounded-full` regardless of caller-supplied padding, `border-3` base width across all five variants (`primary`/`secondary`/`ghost`/`error`/`dashed`), zero built-in padding, one default slot, required `ariaLabel` — no text fallback exists. Reuses `Button.astro`'s existing `.btn-*` CSS rules from `global.css`, no new CSS. Component only, per owner decision — migrating existing icon-only `Button.astro` call sites to it is an explicit follow-up, not part of this change; `08-Component-Inventory.md` gains one new row; `.fallowrc.jsonc` gains an `entry` allowlist line since the component has no call sites yet)
+
 > **Version:** 1.16.0 (2026-08-21 — split-scoreboard leg-pill placement: `SinglePlayerDisplay.astro` gains an `above` slot rendered inside the card, before the big number; `SplitScoreboardHalf.astro` moves the seat's leg-wins pill from the header row into that slot (centered, directly above the score/target number) and centers the standalone seat name above the card, per owner request)
 
 > **Version:** 1.15.0 (2026-08-21 — split-scoreboard active-seat indicator: replaced the accent dot next to the seat name with an accent-colored border on the active seat's `SinglePlayerDisplay` card (new `activeExpr` prop swaps `border-border`/`border-accent` via a reactive Alpine `:class` ternary rather than a static class, avoiding a same-category class-coexistence race), and the inactive seat's whole column now dims to `opacity-90`, per owner request)
