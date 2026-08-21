@@ -351,6 +351,9 @@ export type FiveOhOneSetupContext = {
   scoreClampNotice: string;
   legsToWin: number | string | null;
   legsClampNotice: string;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -377,6 +380,8 @@ export type FiveOhOneSetupContext = {
   continueSession(this: FiveOhOneSetupContext): void;
   abandonSession(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
+  addGuest(this: FiveOhOneSetupContext): void;
+  removeGuest(this: FiveOhOneSetupContext, index: number): void;
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
