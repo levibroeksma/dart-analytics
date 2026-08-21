@@ -1332,3 +1332,191 @@ describe("501 checkout dart counts", () => {
     ).not.toThrow();
   });
 });
+
+const TWO_SEATS = [
+  {
+    participantRef: "seat-a",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+  {
+    participantRef: "seat-b",
+    displayName: "Dad",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
+const duo = (legsToWin = 1) =>
+  ({
+    startingScore: 501,
+    legsToWin,
+    checkIn: "STRAIGHT_IN",
+    checkOut: "DOUBLE_OUT",
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+    seats: TWO_SEATS,
+  }) satisfies Seated<FiveOhOneSnapshot>;
+
+/** Plays one whole leg for seat A while seat B scores 60 between every visit. */
+function seatAWinsALeg(engine: FiveOhOneEngine): FiveOhOneState {
+  engine.record({ scoreAttempted: 180 });
+  engine.record({ scoreAttempted: 60 });
+  engine.record({ scoreAttempted: 180 });
+  engine.record({ scoreAttempted: 60 });
+  engine.record({ scoreAttempted: 101 });
+  engine.record({ scoreAttempted: 60 });
+  return engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+}
+
+describe("FiveOhOneEngine with two seats", () => {
+  it("alternates seats visit by visit within one shared leg", () => {
+    const engine = new FiveOhOneEngine(duo());
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+
+    engine.record({ scoreAttempted: 60 });
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+
+    engine.record({ scoreAttempted: 100 });
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+  });
+
+  it("leaves the other seat's score untouched", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 180 });
+    const state = engine.record({ scoreAttempted: 60 });
+
+    expect(state.seats[0].remainingScore).toBe(321);
+    expect(state.seats[1].remainingScore).toBe(441);
+  });
+
+  it("leaves the other seat's score untouched on a bust", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    const state = engine.record({ scoreAttempted: 180 });
+
+    expect(state.seats[0].remainingScore).toBe(141);
+    expect(state.seats[1].remainingScore).toBe(141);
+  });
+
+  it("resets every seat and opens exactly one shared next leg", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    const state = seatAWinsALeg(engine);
+
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.seats.map((seat) => seat.remainingScore)).toEqual([501, 501]);
+    expect(engine.facts().stages).toHaveLength(2);
+  });
+
+  it("folds legs won per side, not per seat", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+    const state = engine.state();
+
+    expect(state.sides).toEqual([
+      { sideKey: "A", legsWon: 1 },
+      { sideKey: "B", legsWon: 0 },
+    ]);
+  });
+
+  it("starts leg 2 with seat B and leg 3 with seat A", () => {
+    const engine = new FiveOhOneEngine(duo(3));
+    seatAWinsALeg(engine);
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+  });
+
+  it("gives every turn a participantRef that is one of the seats", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+
+    const refs = new Set(TWO_SEATS.map((seat) => seat.participantRef));
+    for (const turn of engine.facts().turns) {
+      expect(refs.has(turn.participantRef)).toBe(true);
+    }
+  });
+
+  it("numbers interleaved turns 1..N within the leg, not per seat", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+
+    expect(engine.facts().turns.map((turn) => turn.sequence)).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it("wouldComplete is true only for the visit that takes a side to legsToWin", () => {
+    const engine = new FiveOhOneEngine(duo(2));
+    seatAWinsALeg(engine);
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 101 });
+
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(false);
+
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 180 });
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 101 });
+    engine.record({ scoreAttempted: 60 });
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(true);
+  });
+
+  it("undo across the seat boundary hands the turn back and restores facts exactly", () => {
+    const engine = new FiveOhOneEngine(duo());
+    engine.record({ scoreAttempted: 60 });
+    const before = engine.facts();
+    engine.record({ scoreAttempted: 100 });
+
+    expect(engine.state().activeParticipantRef).toBe("seat-a");
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().activeParticipantRef).toBe("seat-b");
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("rehydrates a mid-leg three-seat log onto the same active seat", () => {
+    const trio = {
+      ...duo(),
+      seats: [
+        ...TWO_SEATS,
+        {
+          participantRef: "seat-c",
+          displayName: "Jan",
+          sideKey: "C",
+          participantTypeKey: "GUEST" as const,
+        },
+      ],
+    } satisfies Seated<FiveOhOneSnapshot>;
+
+    const engine = new FiveOhOneEngine(trio);
+    engine.record({ scoreAttempted: 60 });
+    engine.record({ scoreAttempted: 60 });
+    const expected = engine.state().activeParticipantRef;
+
+    const resumed = new FiveOhOneEngine(trio, engine.facts());
+    expect(resumed.state().activeParticipantRef).toBe(expected);
+    expect(resumed.state()).toEqual(engine.state());
+  });
+});

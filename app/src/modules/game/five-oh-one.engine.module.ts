@@ -369,12 +369,11 @@ export class FiveOhOneEngine implements GameEngine<
       darts: [],
     });
 
-    const after = this.deriveState();
-    if (outcome.wonLeg && after.status === "IN_PROGRESS") {
-      this.stages.push(legStage(this.stages.length + 1));
-    }
+    const settled = this.deriveState();
+    if (!outcome.wonLeg || settled.status !== "IN_PROGRESS") return settled;
 
-    return after;
+    this.stages.push(legStage(this.stages.length + 1));
+    return this.deriveState();
   }
 
   /**
@@ -415,12 +414,11 @@ export class FiveOhOneEngine implements GameEngine<
 
     const checkedOut = this.settleVisit(visit, resolved.zoneKey);
 
-    const after = this.deriveState();
-    if (checkedOut && after.status !== "WON") {
-      this.stages.push(legStage(this.stages.length + 1));
-    }
+    const settled = this.deriveState();
+    if (!checkedOut || settled.status === "WON") return settled;
 
-    return after;
+    this.stages.push(legStage(this.stages.length + 1));
+    return this.deriveState();
   }
 
   /** Appends an empty visit to the open leg and returns it. */
