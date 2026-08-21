@@ -5,6 +5,7 @@
  * @param {string} [target] Alpine expression for target text
  * @param {boolean} [isTarget] Show target vs score
  * @param {"lg" | "sm"} [size] Big-number size; "sm" fits the split scoreboard's narrower, shorter columns
+ * @param {string} [activeExpr] Alpine expr; while true the card's border turns accent-colored instead of the default border color
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   target?: string;
   isTarget?: boolean;
   size?: "lg" | "sm";
+  activeExpr?: string;
   class?: string;
 }
 
@@ -21,6 +23,7 @@ const {
   target,
   isTarget = true,
   size = "lg",
+  activeExpr,
   class: classNameProp = "",
 }: Props = Astro.props;
 
@@ -33,7 +36,13 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
 
 <div class={className}>
   <div
-    class="rounded-lg border border-border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center"
+    class={cn(
+      "rounded-lg border bg-surface-raised h-full p-3 mx-auto flex flex-col items-center justify-center",
+      activeExpr ? "" : "border-border",
+    )}
+    {...activeExpr
+      ? { ":class": `(${activeExpr}) ? 'border-accent' : 'border-border'` }
+      : {}}
   >
     <h1
       class={cn(

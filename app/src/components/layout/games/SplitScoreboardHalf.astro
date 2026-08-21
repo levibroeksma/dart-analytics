@@ -1,10 +1,11 @@
 ---
 /**
- * One seat's column inside `SplitScoreboard.astro`: name + active dot, an
- * optional leg-wins pill, the seat's compact score/target number (reuses
- * `SinglePlayerDisplay.astro` at `size="sm"`), an optional checkout-hint
- * chip row, and an
- * optional leg/round progress dot pager. The default slot renders inside the
+ * One seat's column inside `SplitScoreboard.astro`: name, an optional
+ * leg-wins pill, the seat's compact score/target number (reuses
+ * `SinglePlayerDisplay.astro` at `size="sm"`, its border turning accent
+ * while this seat is active), an optional checkout-hint chip row, and an
+ * optional leg/round progress dot pager. The whole column dims to 90%
+ * opacity while inactive. The default slot renders inside the
  * body's `progress` region, alongside the checkout chips — this is where a
  * caller puts its own per-game `StatRow`s, parameterized to this seat.
  * @param {string} nameExpr Alpine expr resolving to this seat's display name
@@ -53,15 +54,11 @@ const className = cn(
 );
 ---
 
-<div class={className}>
+<div
+  class={className}
+  :class={`{ 'opacity-90': !(${activeExpr}) }`}
+>
   <div class="flex items-center gap-1.5">
-    <span
-      class="size-2 rounded-full bg-accent"
-      x-show={activeExpr}
-      x-cloak
-      aria-hidden="true"
-    >
-    </span>
     <span
       class="text-sm text-accent font-semibold"
       x-text={nameExpr}
@@ -82,6 +79,7 @@ const className = cn(
     target={scoreExpr}
     score={scoreExpr}
     size="sm"
+    activeExpr={activeExpr}
     class="w-full flex-1 min-h-0"
   >
     <div
