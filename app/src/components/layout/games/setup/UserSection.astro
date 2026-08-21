@@ -1,18 +1,41 @@
 ---
-import UserIconDisplay from "./UserIconDisplay.astro";
-
 /**
- * TODO:
- * - When multi player / dartbot are introduced, this section will need to be updated to show the number of players and the dartbot.
+ * @param {boolean} [allowGuests=false] 501 only — renders `GuestSection`
+ * (add-guest button, guest avatars, name modal) beside the owner icon.
+ * Every other setup screen's ruleset 400s a second seat
+ * (`services/session-seats.service.ts`'s `rejectSeatRequest`), so this
+ * defaults to false and those callers are unchanged.
  */
+interface Props {
+  allowGuests?: boolean;
+}
+
+// Props
+const { allowGuests = false }: Props = Astro.props;
+
+// Components
+import UserIconDisplay from "./UserIconDisplay.astro";
+import GuestSection from "./GuestSection.astro";
 ---
 
 <div
   class="bg-tab-card border-tab-border rounded-3xl p-4 border flex flex-col items-start justify-start gap-4"
 >
   <h2 class="text-base text-center w-full">Players</h2>
-  <UserIconDisplay
-    name="User"
-    nameExpr="$store.profile.displayName || 'User'"
-  />
+  {
+    allowGuests ? (
+      <div class="flex flex-row items-start gap-4">
+        <UserIconDisplay
+          name="User"
+          nameExpr="$store.profile.displayName || 'User'"
+        />
+        <GuestSection />
+      </div>
+    ) : (
+      <UserIconDisplay
+        name="User"
+        nameExpr="$store.profile.displayName || 'User'"
+      />
+    )
+  }
 </div>
