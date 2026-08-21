@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-08-20
+updated: 2026-08-21
 -->
 
 # Component Inventory
@@ -69,9 +69,12 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
+| `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 3 | none (reads `guests`/`showAddGuestModal` from the page scope) |
+| `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
+| `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `SettingSectionShell.astro` | Bordered section wrapper inside a setup form | none |
 | `SetupShell.astro` | Page shell for every game setup screen | `title` |
 | `Toggle.astro` | Segmented option control bound via `x-modelable` | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
 | `ToggleListItem.astro` | One option inside a vertical `Toggle` | `value`, `label` |
 | `UserIconDisplay.astro` | Avatar/initial badge | `name`, `nameExpr` |
-| `UserSection.astro` | Player row on the setup screen | none |
+| `UserSection.astro` | Player row on the setup screen | `allowGuests` (501 only — renders `GuestSection` beside the owner icon) |
