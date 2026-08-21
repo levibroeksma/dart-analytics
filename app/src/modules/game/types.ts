@@ -270,10 +270,15 @@ export type DartFact = {
  * visit, never negative. `completedAt` is the client-observed end of the visit
  * (`06-Spec/04-Runtime-Layer.md`), so it is stamped when the visit resolves and
  * stays null while the visit is still open.
+ *
+ * `participantRef` is the seat that threw the visit — the engine mints it
+ * exactly as it mints `clientKey`, `sequence` and `completedAt`, which is what
+ * lets one session's log hold several throwers.
  */
 export type TurnFact = {
   clientKey: string;
   stageClientKey: string;
+  participantRef: string;
   sequence: number;
   completedAt: string | null;
   totalScore: number;
@@ -362,3 +367,12 @@ export type BoardInputController = {
   cancel(): void;
   commitUnseen(): void;
 };
+
+/**
+ * Which stage shape an engine has, so the shared rota can derive the active
+ * seat for both. `SHARED`: one stage instance holds every seat's turns,
+ * interleaved — an X01 leg, where a checkout ends the stage for all seats at
+ * once. `PER_SEAT`: one stage instance per seat per round — seat 2's round 4
+ * is not seat 1's round 4.
+ */
+export type StageOwnership = "SHARED" | "PER_SEAT";
