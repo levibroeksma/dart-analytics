@@ -52,6 +52,9 @@ export function fiveOhOneSetup() {
     scoreClampNotice: "",
     legsToWin: FIVE_OH_ONE_LEGS_MIN as number | string | null,
     legsClampNotice: "",
+    guests: [] as { displayName: string }[],
+    showAddGuestModal: false,
+    newGuestName: "",
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -93,6 +96,18 @@ export function fiveOhOneSetup() {
         this.presets.find((p) => presetLegsToWin(p) === FIVE_OH_ONE_LEGS_MIN) ??
         this.presets[0]
       );
+    },
+
+    addGuest(this: FiveOhOneSetupContext) {
+      const name = this.newGuestName.trim();
+      if (!name) return;
+      this.guests.push({ displayName: name });
+      this.newGuestName = "";
+      this.showAddGuestModal = false;
+    },
+
+    removeGuest(this: FiveOhOneSetupContext, index: number) {
+      this.guests.splice(index, 1);
     },
 
     async reconcile(
@@ -189,6 +204,16 @@ export function fiveOhOneSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
+        const participants = this.guests.length
+          ? [
+              { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+              ...this.guests.map((g, i) => ({
+                participantTypeKey: "GUEST" as const,
+                displayName: g.displayName,
+                sideKey: String.fromCharCode(66 + i),
+              })),
+            ]
+          : undefined;
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -202,6 +227,7 @@ export function fiveOhOneSetup() {
               starting_score: startingScore,
             },
           },
+          participants,
         });
         this.$store.game.startSession(
           startSessionInput({

@@ -146,6 +146,48 @@ describe("fiveOhOneSetup", () => {
     expect(setup.basePreset()).toBe(BEST_OF_5_PRESET);
   });
 
+  it("addGuest trims the name, pushes the guest, clears the field, and closes the modal", () => {
+    const setup = createSetup({
+      showAddGuestModal: true,
+      newGuestName: "  Alex  ",
+    });
+
+    setup.addGuest();
+
+    expect(setup.guests).toEqual([{ displayName: "Alex" }]);
+    expect(setup.newGuestName).toBe("");
+    expect(setup.showAddGuestModal).toBe(false);
+  });
+
+  it("addGuest ignores blank or whitespace-only input", () => {
+    const setup = createSetup({
+      showAddGuestModal: true,
+      newGuestName: "   ",
+    });
+
+    setup.addGuest();
+
+    expect(setup.guests).toEqual([]);
+    expect(setup.showAddGuestModal).toBe(true);
+  });
+
+  it("removeGuest splices the correct entry", () => {
+    const setup = createSetup({
+      guests: [
+        { displayName: "Alex" },
+        { displayName: "Sam" },
+        { displayName: "Jo" },
+      ],
+    });
+
+    setup.removeGuest(1);
+
+    expect(setup.guests).toEqual([
+      { displayName: "Alex" },
+      { displayName: "Jo" },
+    ]);
+  });
+
   it("creates a session overriding legs_to_win and starting_score with the chosen values and redirects", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
@@ -177,6 +219,7 @@ describe("fiveOhOneSetup", () => {
         templateRef: "tmpl-quick",
         overrides: { legs_to_win: 5, starting_score: 301 },
       },
+      participants: undefined,
     });
     expect(store.game.startSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -192,6 +235,49 @@ describe("fiveOhOneSetup", () => {
       }),
     );
     expect(locationSpy.href).toBe("/games/501/play");
+  });
+
+  it("sends the PLAYER seat plus every guest as participants, sides B/C/D in push order", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      legsToWin: 5,
+      startingScoreOption: "301",
+      guests: [{ displayName: "Alex" }, { displayName: "Sam" }],
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        { ref: "p1", displayName: "Player", participantTypeKey: "PLAYER" },
+        { ref: "p2", displayName: "Alex", participantTypeKey: "GUEST" },
+        { ref: "p3", displayName: "Sam", participantTypeKey: "GUEST" },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "GUEST", displayName: "Alex", sideKey: "B" },
+          { participantTypeKey: "GUEST", displayName: "Sam", sideKey: "C" },
+        ],
+      }),
+    );
+  });
+
+  it("keeps guests across a rejected start() so the player does not retype them", async () => {
+    const setup = createSetup({
+      presets: [],
+      legsToWin: 3,
+      guests: [{ displayName: "Alex" }],
+    });
+
+    await setup.start();
+
+    expect(setup.error).toBe("Could not find a preset for 501.");
+    expect(setup.guests).toEqual([{ displayName: "Alex" }]);
   });
 
   it("uses the custom starting score value when the option is CUSTOM", async () => {
