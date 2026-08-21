@@ -199,7 +199,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~9.4k |
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
-| `decisions/frontend/astro.md` | 18 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.0k |
+| `decisions/frontend/astro.md` | 19 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.8k |
 | `decisions/frontend/alpine.md` | 13 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~1.5k |
 | `decisions/frontend/style.md` | 10 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance | canonical | ~1.6k |
 | `decisions/context-system.md` | 31 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~5.1k |
