@@ -24,9 +24,19 @@ import type {
   DoublesTrainingSnapshot,
   FiveOhOneSnapshot,
   ScoreTrainingSnapshot,
+  Seated,
   SinglesSnapshot,
   TuodSnapshot,
 } from "@lib/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 /**
  * Mirrors `chk_dart_target_consistency` (migration `0007`, `database/`): a
@@ -48,10 +58,11 @@ function allDarts(facts: EngineFacts): DartFact[] {
   return facts.turns.flatMap((turn) => turn.darts);
 }
 
-const bobs27Config: Bobs27Snapshot = {
+const bobs27Config: Seated<Bobs27Snapshot> = {
   startScore: 27,
   bullHitValue: 50,
   missPenaltyMultiplier: 1,
+  seats: SEATS,
 };
 
 function bobs27HitObservation(state: Bobs27State): DartObservation {
@@ -89,12 +100,13 @@ function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
   return engine;
 }
 
-const doublesConfig: DoublesTrainingSnapshot = {
+const doublesConfig: Seated<DoublesTrainingSnapshot> = {
   mode: "EASY",
   orderMode: "LOW_TO_HIGH",
   targetOrder: [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
   ],
+  seats: SEATS,
 };
 
 function doublesHitObservation(state: DoublesTrainingState): DartObservation {
@@ -133,7 +145,7 @@ function playDoublesTrainingThroughBull(): GameEngine<
   return engine;
 }
 
-const singlesConfig: SinglesSnapshot = {
+const singlesConfig: Seated<SinglesSnapshot> = {
   orderMode: "LOW_TO_HIGH",
   targetOrder: [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
@@ -142,6 +154,7 @@ const singlesConfig: SinglesSnapshot = {
   pointsSingle: 1,
   pointsDouble: 2,
   pointsTreble: 3,
+  seats: SEATS,
 };
 
 function singlesObservationFor(
@@ -185,13 +198,14 @@ function playSinglesThroughBull(): GameEngine<
   return engine;
 }
 
-const fiveOhOneConfig: FiveOhOneSnapshot = {
+const fiveOhOneConfig: Seated<FiveOhOneSnapshot> = {
   startingScore: 501,
   legsToWin: 2,
   checkIn: "STRAIGHT_IN",
   checkOut: "DOUBLE_OUT",
   maxDartsPerTurn: 3,
   maxVisitScore: 180,
+  seats: SEATS,
 };
 
 function playFiveOhOne() {
@@ -203,11 +217,12 @@ function playFiveOhOne() {
   return engine;
 }
 
-const scoreTrainingConfig: ScoreTrainingSnapshot = {
+const scoreTrainingConfig: Seated<ScoreTrainingSnapshot> = {
   durationType: "ROUNDS",
   durationValue: 3,
   maxDartsPerTurn: 3,
   maxVisitScore: 180,
+  seats: SEATS,
 };
 
 function playScoreTraining() {
@@ -218,13 +233,14 @@ function playScoreTraining() {
   return engine;
 }
 
-const tuodConfig: TuodSnapshot = {
+const tuodConfig: Seated<TuodSnapshot> = {
   startingTarget: 41,
   finishBonus: 10,
   missPenalty: 1,
   durationType: "ROUNDS",
   durationValue: 3,
   maxDartsPerTurn: 3,
+  seats: SEATS,
 };
 
 function playTuod() {

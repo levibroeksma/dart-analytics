@@ -1,10 +1,14 @@
 import type { PersistFactory } from "@alpinejs/persist";
-import type { ModePair, RulesetVersionKey } from "@lib/types";
+import type { ModePair, RulesetVersionKey, SeatFact } from "@lib/types";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 import type { ConfigSnapshot } from "./types";
 
-/** D91: bumped to 2 — the fact-log shape replaced `RecordedTurn`, so v1 state is discarded. */
-const STORE_VERSION = 2;
+/**
+ * D91: bumped to 2 — the fact-log shape replaced `RecordedTurn`, so v1 state
+ * is discarded. Bumped to 3 — turns gained `participantRef` and the snapshot
+ * gained `seats`, so a v2 fact log would upload as turns belonging to nobody.
+ */
+const STORE_VERSION = 3;
 
 /**
  * Game-agnostic session state: which ruleset is being played, the snapshot of
@@ -40,7 +44,6 @@ export function gameStore(persist: PersistFactory) {
       "game.rulesetVersionKey",
     ),
     sessionId: persist()<string | null>(null).as("game.sessionId"),
-    participantRef: persist()<string | null>(null).as("game.participantRef"),
     /**
      * The ACTIVE session's own capture/input mode pair — the single authority
      * every play-time consumer reads (which engine shape to build, whether the
@@ -55,6 +58,15 @@ export function gameStore(persist: PersistFactory) {
     configSnapshot: persist()<ConfigSnapshot | null>(null).as(
       "game.configSnapshot",
     ),
+
+    /**
+     * The session's seats, read from the snapshot rather than persisted
+     * separately, so `$store.game.seats` and the config the engine was built
+     * from can never disagree.
+     */
+    get seats(): readonly SeatFact[] {
+      return this.configSnapshot?.seats ?? [];
+    },
     templateRef: persist()<string | null>(null).as("game.templateRef"),
     stages: persist()<StageFact[]>([]).as("game.stages"),
     turns: persist()<TurnFact[]>([]).as("game.turns"),
@@ -82,7 +94,6 @@ export function gameStore(persist: PersistFactory) {
       gameTypeKey: string;
       rulesetVersionKey: RulesetVersionKey;
       sessionId: string;
-      participantRef: string;
       templateRef: string | null;
       configSnapshot: ConfigSnapshot;
       captureModeKey: string;
@@ -91,7 +102,6 @@ export function gameStore(persist: PersistFactory) {
       this.gameTypeKey = input.gameTypeKey;
       this.rulesetVersionKey = input.rulesetVersionKey;
       this.sessionId = input.sessionId;
-      this.participantRef = input.participantRef;
       this.configSnapshot = input.configSnapshot;
       this.templateRef = input.templateRef;
       this.captureModeKey = input.captureModeKey;
@@ -124,7 +134,6 @@ export function gameStore(persist: PersistFactory) {
       this.gameTypeKey = null;
       this.rulesetVersionKey = null;
       this.sessionId = null;
-      this.participantRef = null;
       this.configSnapshot = null;
       this.templateRef = null;
       this.captureModeKey = null;

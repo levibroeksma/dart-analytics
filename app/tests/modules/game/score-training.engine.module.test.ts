@@ -5,21 +5,32 @@ import {
 } from "@modules/game/score-training.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type { ScoreTrainingState } from "@modules/types";
-import type { ScoreTrainingSnapshot } from "@lib/types";
+import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 
-const ROUNDS_10: ScoreTrainingSnapshot = {
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const ROUNDS_10: Seated<ScoreTrainingSnapshot> = {
   durationType: "ROUNDS",
   durationValue: 10,
   maxDartsPerTurn: 3,
   maxVisitScore: 180,
+  seats: SEATS,
 };
 
-function minutes(durationValue: number): ScoreTrainingSnapshot {
+function minutes(durationValue: number): Seated<ScoreTrainingSnapshot> {
   return {
     durationType: "MINUTES",
     durationValue,
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
+    seats: SEATS,
   };
 }
 
@@ -272,6 +283,7 @@ describe("visual board capture", () => {
     maxVisitScore: 180,
     durationType: "ROUNDS",
     durationValue: 2,
+    seats: SEATS,
   } as never;
 
   const trebleTwenty = {
@@ -417,6 +429,7 @@ describe("visual board capture", () => {
       maxVisitScore: 180,
       durationType: "ROUNDS",
       durationValue: 1,
+      seats: SEATS,
     } as never;
 
     it("is false before any dart is recorded (single round)", () => {
@@ -534,6 +547,7 @@ describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-
       maxVisitScore: 180,
       durationType: "ROUNDS",
       durationValue: 1,
+      seats: SEATS,
     } as never;
     const engine = scoreTrainingEngineFactory.create(
       single,

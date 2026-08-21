@@ -1,4 +1,4 @@
-import type { Bobs27Snapshot } from "@lib/types";
+import type { Bobs27Snapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
@@ -120,10 +120,11 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
  */
 export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
   readonly rulesetVersionKey = "BOBS27_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: Bobs27Snapshot,
+    private readonly config: Seated<Bobs27Snapshot>,
     prior?: EngineFacts,
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
@@ -151,6 +152,7 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
     const turn: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -248,12 +250,13 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
 }
 
 export const bobs27EngineFactory: GameEngineFactory<
-  Bobs27Snapshot,
+  Seated<Bobs27Snapshot>,
   DartObservation,
   Bobs27State
 > = {
   rulesetVersionKey: "BOBS27_V1",
-  create(config: Bobs27Snapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<Bobs27Snapshot>, prior?: EngineFacts) {
     return new Bobs27Engine(config, prior);
   },
 };

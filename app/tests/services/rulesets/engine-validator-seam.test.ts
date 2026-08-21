@@ -6,6 +6,15 @@ import { fiveOhOneValidator } from "@services/rulesets/five-oh-one/five-oh-one.v
 import { scoreTrainingValidator } from "@services/rulesets/score-training/score-training.validator";
 import type { DartObservation } from "@modules/types";
 
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
 /**
  * The seam no other test in this repo crosses: what an engine actually writes,
  * run through the validator that guards the endpoint it is uploaded to.
@@ -26,6 +35,7 @@ const FIVE_OH_ONE_CONFIG = {
   checkOut: "DOUBLE_OUT",
   maxDartsPerTurn: 3,
   maxVisitScore: 180,
+  seats: SEATS,
 };
 
 const SCORE_TRAINING_CONFIG = {
@@ -33,6 +43,7 @@ const SCORE_TRAINING_CONFIG = {
   durationValue: 20,
   maxDartsPerTurn: 3,
   maxVisitScore: 180,
+  seats: SEATS,
 };
 
 const trebleTwenty: DartObservation = {
@@ -56,7 +67,7 @@ function validate501(
 ) {
   return fiveOhOneValidator.validateBatch({
     config: { max_visit_score: 180 },
-    batch: buildEventsBatch("p1", facts) as never,
+    batch: buildEventsBatch(facts) as never,
     existingTurnCount: 0,
     captureModeKey,
     inputModeKey,
@@ -73,7 +84,7 @@ function validateScoreTraining(
 ) {
   return scoreTrainingValidator.validateBatch({
     config,
-    batch: buildEventsBatch("p1", facts) as never,
+    batch: buildEventsBatch(facts) as never,
     existingTurnCount: 0,
     captureModeKey,
     inputModeKey,

@@ -22,8 +22,18 @@ import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import type {
   AroundTheClockSnapshot,
   AroundTheClockPlayContext,
+  Seated,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -42,8 +52,8 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-function defaultConfig(): AroundTheClockSnapshot {
-  return {};
+function defaultConfig(): Seated<AroundTheClockSnapshot> {
+  return { seats: SEATS };
 }
 
 /** `n` prior turns, each hitting exactly one number with a SINGLE and closing
@@ -87,6 +97,7 @@ function priorTurnsThroughNumber(n: number): TurnFact[] {
     turns.push({
       clientKey: `prior-${number}`,
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: number,
       completedAt: "2026-08-15T10:00:00.000Z",
       totalScore: number,
@@ -100,9 +111,11 @@ type GameStub = AroundTheClockPlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: defaultConfig(),
     captureModeKey: "RECREATIONAL",

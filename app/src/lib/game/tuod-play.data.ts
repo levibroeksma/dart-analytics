@@ -11,7 +11,10 @@ import {
   fetchActiveSessions,
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  resolveSessionModePair,
+  seatsFromParticipants,
+} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -463,10 +466,7 @@ export function tuodPlay() {
       this.completionError = "";
 
       try {
-        const batch = buildEventsBatch(
-          this.$store.game.participantRef!,
-          currentFacts(this),
-        );
+        const batch = buildEventsBatch(currentFacts(this));
 
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
@@ -511,10 +511,7 @@ export function tuodPlay() {
           if (!this.$store.game.idempotencyKey) {
             this.$store.game.idempotencyKey = crypto.randomUUID();
           }
-          const batch = buildEventsBatch(
-            this.$store.game.participantRef!,
-            facts,
-          );
+          const batch = buildEventsBatch(facts);
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
@@ -565,7 +562,10 @@ export function tuodPlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.participantRef = session.participants[0].ref;
+        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
+          ...this.$store.game.configSnapshot,
+          seats: seatsFromParticipants(session.participants),
+        };
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
         this.$store.game.timerRemainingMs = null;

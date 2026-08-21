@@ -28,6 +28,8 @@ import type {
   ModePair,
   RulesetVersionKey,
   ScoreTrainingSnapshot,
+  SeatFact,
+  Seated,
   FiveOhOneSnapshot,
   Bobs27Snapshot,
   SinglesSnapshot,
@@ -119,14 +121,18 @@ export type BoardMarker = {
  *
  * The timer fields are optional because only Score Training runs a countdown;
  * 501 never reads them.
+ *
+ * `configSnapshot` is seated: the session's seats live inside the snapshot the
+ * engine was built from, so `$store.game.seats` and that config can never
+ * disagree.
  */
 export type PlayStoreContext<TConfig> = {
   game: {
     rulesetVersionKey: RulesetVersionKey | null;
     sessionId: string | null;
-    participantRef: string | null;
     templateRef: string | null;
-    configSnapshot: TConfig | null;
+    configSnapshot: Seated<TConfig> | null;
+    readonly seats: readonly SeatFact[];
     captureModeKey: string | null;
     inputModeKey: string | null;
     stages: StageFact[];

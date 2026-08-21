@@ -1,4 +1,4 @@
-import type { FiveOhOneSnapshot } from "@lib/types";
+import type { FiveOhOneSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
@@ -184,11 +184,12 @@ export class FiveOhOneEngine implements GameEngine<
   FiveOhOneState
 > {
   readonly rulesetVersionKey = "501_V1";
+  readonly stageOwnership = "SHARED" as const;
   private readonly stages: StageFact[];
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: FiveOhOneSnapshot,
+    private readonly config: Seated<FiveOhOneSnapshot>,
     prior?: EngineFacts,
   ) {
     this.stages =
@@ -304,6 +305,7 @@ export class FiveOhOneEngine implements GameEngine<
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: leg.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turnCountIn(leg.clientKey) + 1,
       completedAt: new Date().toISOString(),
       totalScore: outcome.scored,
@@ -369,6 +371,7 @@ export class FiveOhOneEngine implements GameEngine<
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: leg.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turnCountIn(leg.clientKey) + 1,
       completedAt: null,
       totalScore: 0,
@@ -556,12 +559,13 @@ export class FiveOhOneEngine implements GameEngine<
 }
 
 export const fiveOhOneEngineFactory: GameEngineFactory<
-  FiveOhOneSnapshot,
+  Seated<FiveOhOneSnapshot>,
   FiveOhOneInput,
   FiveOhOneState
 > = {
   rulesetVersionKey: "501_V1",
-  create(config: FiveOhOneSnapshot, prior?: EngineFacts) {
+  stageOwnership: "SHARED",
+  create(config: Seated<FiveOhOneSnapshot>, prior?: EngineFacts) {
     return new FiveOhOneEngine(config, prior);
   },
 };

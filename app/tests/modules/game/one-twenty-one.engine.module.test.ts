@@ -14,9 +14,18 @@ import type {
   OneTwentyOneState,
   OneTwentyOneVisitInput,
 } from "@modules/types";
-import type { OneTwentyOneSnapshot } from "@lib/types";
+import type { OneTwentyOneSnapshot, Seated } from "@lib/types";
 
-const config = () => ({}) satisfies OneTwentyOneSnapshot;
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config = () => ({ seats: SEATS }) satisfies Seated<OneTwentyOneSnapshot>;
 
 type OneTwentyOneGameEngine = GameEngine<
   OneTwentyOneVisitInput,
@@ -408,7 +417,7 @@ describe("OneTwentyOneEngine.undo", () => {
     engine.record({ scoreAttempted: 40, finishedOnDouble: true });
     engine.record({ scoreAttempted: 60 });
 
-    const batch = buildEventsBatch("participant-1", engine.facts());
+    const batch = buildEventsBatch(engine.facts());
     expect(batch.stages).toHaveLength(2);
     expect(batch.stages[0].turns).toHaveLength(2);
     expect(batch.stages[1].turns).toHaveLength(1);
@@ -445,7 +454,9 @@ describe("visual board capture", () => {
   const doubleTwenty = dartAt(0, -166, "DOUBLE", 20);
 
   it("deducts each dart from the remaining live total as it lands", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
 
     engine.record(trebleTwenty);
     expect(engine.state().remainingInAttempt).toBe(61);
@@ -455,7 +466,9 @@ describe("visual board capture", () => {
   });
 
   it("does not prematurely advance the visit counter while a visit is still open", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
 
     engine.record(trebleTwenty);
 
@@ -463,7 +476,9 @@ describe("visual board capture", () => {
   });
 
   it("keeps dart rows with real scores when a visit busts", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
 
     engine.record(trebleTwenty);
     engine.record(trebleNineteen);
@@ -477,7 +492,9 @@ describe("visual board capture", () => {
   });
 
   it("checks out on a double and climbs the ladder", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     engine.record({ scoreAttempted: 41, finishedOnDouble: false });
 
     engine.record(doubleTwenty);
@@ -492,7 +509,9 @@ describe("visual board capture", () => {
   });
 
   it("wins the session on a checkout at the 170 cap target", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     for (let target = 121; target < 170; target += 1) {
       engine.record({ scoreAttempted: target, finishedOnDouble: true });
     }
@@ -511,7 +530,9 @@ describe("visual board capture", () => {
   });
 
   it("leaves keypad behaviour unchanged", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
 
     engine.record({ scoreAttempted: 60 });
 
@@ -534,12 +555,16 @@ describe("OneTwentyOneEngine.wouldComplete — visual board", () => {
   });
 
   it("is false for a dart that merely opens a visit", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     expect(engine.wouldComplete(dartAt(0, -102, "TREBLE", 20))).toBe(false);
   });
 
   it("is true for the checkout dart at the cap target", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     for (let target = 121; target < 170; target += 1) {
       engine.record({ scoreAttempted: target, finishedOnDouble: true });
     }
@@ -550,12 +575,16 @@ describe("OneTwentyOneEngine.wouldComplete — visual board", () => {
   });
 
   it("is false for the same checkout short of the cap target", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     expect(engine.wouldComplete(dartAt(0, -166, "DOUBLE", 20))).toBe(false);
   });
 
   it("does not mutate the fact log", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     const before = engine.facts();
 
     engine.wouldComplete(dartAt(0, -102, "TREBLE", 20));
@@ -578,7 +607,9 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
   });
 
   it("undoes one dart at a time, reopening the visit", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     engine.record(dartAt(0, -102, "TREBLE", 20));
     engine.record(dartAt(0, -102, "TREBLE", 20));
 
@@ -590,7 +621,9 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
   });
 
   it("removes the whole turn once its last dart is undone", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     engine.record(dartAt(0, -102, "TREBLE", 20));
 
     expect(engine.undo()).toBe(true);
@@ -600,7 +633,9 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
   });
 
   it("undoes a checkout that opened a new round, popping the round stage and reopening the checkout visit", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     engine.record({ scoreAttempted: 41, finishedOnDouble: false });
     engine.record(dartAt(0, -166, "DOUBLE", 20));
     engine.record(dartAt(0, -166, "DOUBLE", 20));
@@ -616,7 +651,9 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
   });
 
   it("a keypad-recorded turn still undoes as a whole visit, not a dart", () => {
-    const engine = oneTwentyOneEngineFactory.create({}) as OneTwentyOneEngine;
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
     engine.record({ scoreAttempted: 60 });
 
     expect(engine.undo()).toBe(true);
@@ -627,7 +664,7 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
 
 describe("121 checkout dart counts", () => {
   it("rejects a checkout claiming fewer darts than the route needs", () => {
-    const engine = oneTwentyOneEngineFactory.create({});
+    const engine = oneTwentyOneEngineFactory.create(config());
     expect(() =>
       engine.record({
         scoreAttempted: 121,
@@ -638,7 +675,7 @@ describe("121 checkout dart counts", () => {
   });
 
   it("accepts a checkout whose dart counts fit the route", () => {
-    const engine = oneTwentyOneEngineFactory.create({});
+    const engine = oneTwentyOneEngineFactory.create(config());
     expect(() =>
       engine.record({
         scoreAttempted: 121,

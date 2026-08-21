@@ -31,7 +31,16 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import type { FiveOhOneSnapshot } from "@lib/types";
+import type { FiveOhOneSnapshot, Seated } from "@lib/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -55,10 +64,12 @@ function turnFact(
   stageClientKey: string,
   sequence: number,
   totalScore: number,
+  participantRef = "participant-1",
 ): TurnFact {
   return {
     clientKey,
     stageClientKey,
+    participantRef,
     sequence,
     completedAt: "2026-08-01T10:00:00.000Z",
     totalScore,
@@ -88,7 +99,7 @@ function turnsReaching(
   return turns;
 }
 
-function quickPlayConfig(): FiveOhOneSnapshot {
+function quickPlayConfig(): Seated<FiveOhOneSnapshot> {
   return {
     startingScore: 501,
     legsToWin: 1,
@@ -96,10 +107,11 @@ function quickPlayConfig(): FiveOhOneSnapshot {
     checkOut: "DOUBLE_OUT",
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
+    seats: SEATS,
   };
 }
 
-function bestOf5Config(): FiveOhOneSnapshot {
+function bestOf5Config(): Seated<FiveOhOneSnapshot> {
   return { ...quickPlayConfig(), legsToWin: 3 };
 }
 
@@ -107,9 +119,11 @@ type GameStub = FiveOhOnePlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "501_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: quickPlayConfig(),
     captureModeKey: "RECREATIONAL",

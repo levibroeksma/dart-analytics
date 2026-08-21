@@ -189,7 +189,16 @@ describe("aroundTheClockSetup", () => {
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
           templateRef: "tmpl-around-the-clock-standard",
-          configSnapshot: {},
+          configSnapshot: {
+            seats: [
+              {
+                participantRef: "participant-1",
+                displayName: "Player",
+                sideKey: "A",
+                participantTypeKey: "PLAYER",
+              },
+            ],
+          },
         }),
       );
       expect(locationSpy.href).toBe("/games/around-the-clock/play");

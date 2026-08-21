@@ -1,4 +1,4 @@
-import type { ShanghaiSnapshot } from "@lib/types";
+import type { ShanghaiSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { boardScore, numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
@@ -143,10 +143,11 @@ export class ShanghaiEngine implements GameEngine<
   ShanghaiState
 > {
   readonly rulesetVersionKey = "SHANGHAI_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: ShanghaiSnapshot,
+    private readonly config: Seated<ShanghaiSnapshot>,
     prior?: EngineFacts,
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
@@ -174,6 +175,7 @@ export class ShanghaiEngine implements GameEngine<
     const turn: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -270,12 +272,13 @@ export class ShanghaiEngine implements GameEngine<
 }
 
 export const shanghaiEngineFactory: GameEngineFactory<
-  ShanghaiSnapshot,
+  Seated<ShanghaiSnapshot>,
   DartObservation,
   ShanghaiState
 > = {
   rulesetVersionKey: "SHANGHAI_V1",
-  create(config: ShanghaiSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<ShanghaiSnapshot>, prior?: EngineFacts) {
     return new ShanghaiEngine(config, prior);
   },
 };

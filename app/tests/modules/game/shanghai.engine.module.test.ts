@@ -12,9 +12,18 @@ import type {
   EngineFacts,
   ShanghaiState,
 } from "@modules/types";
-import type { ShanghaiSnapshot } from "@lib/types";
+import type { ShanghaiSnapshot, Seated } from "@lib/types";
 
-const config: ShanghaiSnapshot = {};
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<ShanghaiSnapshot> = { seats: SEATS };
 
 function targetNumberFor(state: ShanghaiState): number {
   const target = targetAt(numbersPath(), state.targetIndex);

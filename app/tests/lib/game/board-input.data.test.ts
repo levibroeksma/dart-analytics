@@ -69,6 +69,7 @@ function turn(overrides: Partial<TurnFact> = {}): TurnFact {
   return {
     clientKey: "t1",
     stageClientKey: "block-1",
+    participantRef: "participant-1",
     sequence: 1,
     completedAt: null,
     totalScore: 60,

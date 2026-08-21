@@ -7,6 +7,15 @@ import { singlesTrainingEngineFactory } from "@modules/game/singles-training.eng
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import type { GameEngine } from "@modules/interfaces";
 
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
 /**
  * Nothing an engine hands out may alias its internals. `state()` must be a
  * derived value and `facts()` must be a detached copy — including the stage
@@ -27,6 +36,7 @@ const engines: EngineCase[] = [
         durationValue: 3,
         maxDartsPerTurn: 3,
         maxVisitScore: 180,
+        seats: SEATS,
       });
       engine.record(45);
       return engine;
@@ -39,6 +49,7 @@ const engines: EngineCase[] = [
         startScore: 27,
         bullHitValue: 50,
         missPenaltyMultiplier: 1,
+        seats: SEATS,
       });
       engine.record({
         hitTargetNumber: 1,
@@ -62,6 +73,7 @@ const engines: EngineCase[] = [
         pointsSingle: 1,
         pointsDouble: 2,
         pointsTreble: 3,
+        seats: SEATS,
       });
       engine.record({
         hitTargetNumber: 1,
@@ -82,6 +94,7 @@ const engines: EngineCase[] = [
           1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
           25,
         ],
+        seats: SEATS,
       });
       engine.record({
         hitTargetNumber: 1,
@@ -102,6 +115,7 @@ const engines: EngineCase[] = [
         checkOut: "DOUBLE_OUT",
         maxDartsPerTurn: 3,
         maxVisitScore: 180,
+        seats: SEATS,
       });
       engine.record({ scoreAttempted: 60 });
       return engine;
@@ -117,6 +131,7 @@ const engines: EngineCase[] = [
         durationType: "ROUNDS",
         durationValue: 10,
         maxDartsPerTurn: 3,
+        seats: SEATS,
       });
       engine.record({ checkedOut: false, dartsUsed: 3 });
       return engine;

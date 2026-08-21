@@ -19,8 +19,21 @@ import {
 } from "@modules/game/engine.registry";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
-import type { SinglesSnapshot, SinglesTrainingPlayContext } from "@lib/types";
+import type {
+  SinglesSnapshot,
+  Seated,
+  SinglesTrainingPlayContext,
+} from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -39,7 +52,7 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-function defaultConfig(): SinglesSnapshot {
+function defaultConfig(): Seated<SinglesSnapshot> {
   return {
     orderMode: "LOW_TO_HIGH",
     targetOrder: [
@@ -49,6 +62,7 @@ function defaultConfig(): SinglesSnapshot {
     pointsSingle: 1,
     pointsDouble: 2,
     pointsTreble: 3,
+    seats: SEATS,
   };
 }
 
@@ -71,6 +85,7 @@ function priorTurnsThroughNumber(n: number): TurnFact[] {
     turns.push({
       clientKey: `prior-${number}`,
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: number,
       completedAt: "2026-08-01T10:00:00.000Z",
       totalScore: darts.reduce((sum, d) => sum + d.score, 0),
@@ -84,9 +99,11 @@ type GameStub = SinglesTrainingPlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "SINGLES_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: defaultConfig(),
     captureModeKey: "RECREATIONAL",
@@ -194,6 +211,7 @@ describe("init", () => {
       {
         clientKey: "prior-bull",
         stageClientKey: "block-1",
+        participantRef: "participant-1",
         sequence: 21,
         completedAt: "2026-08-01T10:00:00.000Z",
         totalScore: 75,

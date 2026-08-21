@@ -379,5 +379,13 @@ export type SeatFact = {
  * A ruleset config snapshot plus the seats playing it. Seats are composed in
  * after the ruleset's own Zod schema has parsed the config, so no ruleset
  * schema needs a `seats` key it could never receive from a seeded template.
+ *
+ * The conditional branch is what a ruleset with nothing to configure needs:
+ * those snapshots are `Record<string, never>`, and intersecting one with a
+ * seat array narrows `seats` to `never` — a type no value can inhabit. The
+ * branch drops the empty record instead of intersecting with it.
  */
-export type Seated<TConfig> = TConfig & { seats: readonly SeatFact[] };
+export type Seated<TConfig> =
+  TConfig extends Record<string, never>
+    ? { seats: readonly SeatFact[] }
+    : TConfig & { seats: readonly SeatFact[] };

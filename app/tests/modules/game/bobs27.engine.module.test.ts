@@ -8,12 +8,22 @@ import {
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type { Bobs27State, DartObservation } from "@modules/types";
-import type { Bobs27Snapshot } from "@lib/types";
+import type { Bobs27Snapshot, Seated } from "@lib/types";
 
-const config: Bobs27Snapshot = {
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<Bobs27Snapshot> = {
   startScore: 27,
   bullHitValue: 50,
   missPenaltyMultiplier: 1,
+  seats: SEATS,
 };
 
 function hitObservationFor(state: Bobs27State): DartObservation {

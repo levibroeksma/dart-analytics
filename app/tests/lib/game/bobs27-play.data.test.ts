@@ -19,13 +19,22 @@ import {
 } from "@modules/game/engine.registry";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { bobs27Play } from "@lib/game/bobs27-play.data";
-import type { Bobs27PlayContext, Bobs27Snapshot } from "@lib/types";
+import type { Bobs27PlayContext, Bobs27Snapshot, Seated } from "@lib/types";
 import type {
   DartFact,
   DartObservation,
   StageFact,
   TurnFact,
 } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const ACTIVE_SESSION = {
   sessionId: "s1",
@@ -44,8 +53,13 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-function defaultConfig(): Bobs27Snapshot {
-  return { startScore: 27, bullHitValue: 50, missPenaltyMultiplier: 1 };
+function defaultConfig(): Seated<Bobs27Snapshot> {
+  return {
+    startScore: 27,
+    bullHitValue: 50,
+    missPenaltyMultiplier: 1,
+    seats: SEATS,
+  };
 }
 
 function hitAt(number: number): DartObservation {
@@ -90,6 +104,7 @@ function priorTurnsThroughBull(): TurnFact[] {
     {
       clientKey: "prior",
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: 1,
       completedAt: "2026-08-01T10:00:00.000Z",
       totalScore: darts.reduce((sum, d) => sum + d.score, 0),
@@ -102,9 +117,11 @@ type GameStub = Bobs27PlayContext["$store"]["game"];
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "BOBS27_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: defaultConfig(),
     captureModeKey: "RECREATIONAL",
@@ -210,6 +227,7 @@ describe("init", () => {
     const lostTurn: TurnFact = {
       clientKey: "prior-lost",
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: 1,
       completedAt: "2026-08-01T10:00:00.000Z",
       totalScore: 0,
@@ -221,6 +239,7 @@ describe("init", () => {
         startScore: 27,
         bullHitValue: 50,
         missPenaltyMultiplier: 20,
+        seats: SEATS,
       },
     });
 
@@ -351,6 +370,7 @@ describe("completion", () => {
         startScore: 27,
         bullHitValue: 50,
         missPenaltyMultiplier: 20,
+        seats: SEATS,
       },
     });
     await play.init.call(play);

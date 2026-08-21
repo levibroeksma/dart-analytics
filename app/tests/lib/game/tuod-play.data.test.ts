@@ -37,7 +37,7 @@ import {
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
-import type { TuodPlayContext, TuodSnapshot } from "@lib/types";
+import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type {
   EngineFacts,
   StageFact,
@@ -70,6 +70,7 @@ function turnFact(
   return {
     clientKey,
     stageClientKey: BLOCK.clientKey,
+    participantRef: "participant-1",
     sequence,
     completedAt: "2026-08-20T10:00:00.000Z",
     totalScore,
@@ -77,7 +78,7 @@ function turnFact(
   };
 }
 
-function rounds(durationValue: number): TuodSnapshot {
+function rounds(durationValue: number): Seated<TuodSnapshot> {
   return {
     startingTarget: 41,
     finishBonus: 10,
@@ -85,10 +86,11 @@ function rounds(durationValue: number): TuodSnapshot {
     durationType: "ROUNDS",
     durationValue,
     maxDartsPerTurn: 3,
+    seats: SEATS,
   };
 }
 
-function minutes(durationValue: number): TuodSnapshot {
+function minutes(durationValue: number): Seated<TuodSnapshot> {
   return {
     startingTarget: 41,
     finishBonus: 10,
@@ -96,6 +98,7 @@ function minutes(durationValue: number): TuodSnapshot {
     durationType: "MINUTES",
     durationValue,
     maxDartsPerTurn: 3,
+    seats: SEATS,
   };
 }
 
@@ -112,9 +115,11 @@ function settingsStub(overrides: Partial<SettingsStub> = {}): SettingsStub {
 
 function gameStub(overrides: Partial<GameStub> = {}): GameStub {
   return {
+    get seats() {
+      return this.configSnapshot?.seats ?? [];
+    },
     rulesetVersionKey: "TUOD_V1",
     sessionId: "s1",
-    participantRef: "p1",
     templateRef: "tpl-1",
     configSnapshot: rounds(3),
     captureModeKey: "RECREATIONAL",
@@ -375,6 +380,7 @@ describe("tuodPlay", () => {
     it("refuses to build an engine for a ruleset this page does not own", async () => {
       const foreignEngine: GameEngine<unknown, unknown> = {
         rulesetVersionKey: "BOBS27_V1",
+        stageOwnership: "PER_SEAT",
         record: () => ({}),
         undo: () => false,
         wouldComplete: () => false,
@@ -385,6 +391,7 @@ describe("tuodPlay", () => {
       const foreignCreate = vi.fn(() => foreignEngine);
       const foreignFactory: GameEngineFactory<unknown, unknown, unknown> = {
         rulesetVersionKey: "BOBS27_V1",
+        stageOwnership: "PER_SEAT",
         create: foreignCreate,
       };
       registerEngineFactory(foreignFactory);
@@ -538,7 +545,6 @@ describe("tuodPlay", () => {
         $store: {
           game: gameStub({
             sessionId: "session-1",
-            participantRef: "participant-1",
             configSnapshot: rounds(20),
             turns: [turnFact("t1", 1, 41)],
             ...gameOverrides,
@@ -656,7 +662,8 @@ describe("tuodPlay", () => {
         successes: 1,
         failures: 0,
       };
-      const priorConfig = play.$store.game.configSnapshot;
+      const { seats: _priorSeats, ...priorRulesetConfig } =
+        play.$store.game.configSnapshot!;
 
       vi.mocked(createSession).mockResolvedValue({
         sessionId: "new-session",
@@ -685,7 +692,9 @@ describe("tuodPlay", () => {
       expect(play.$store.game.turns).toEqual([]);
       expect(play.$store.game.idempotencyKey).toBeNull();
       expect(play.$store.game.timerExpired).toBe(false);
-      expect(play.$store.game.configSnapshot).toBe(priorConfig);
+      const { seats: _nextSeats, ...nextRulesetConfig } =
+        play.$store.game.configSnapshot!;
+      expect(nextRulesetConfig).toEqual(priorRulesetConfig);
       expect(play.finished).toBe(false);
       expect(play.completionStatus).toBe("pending");
       expect(play.resultsSnapshot).toBeNull();
@@ -905,6 +914,15 @@ describe("tuodPlay", () => {
 });
 
 import type { DartObservation } from "@modules/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 /** D20 — the same board coordinate used across every other engine/play test for D20. */
 const DOUBLE_20: DartObservation = {

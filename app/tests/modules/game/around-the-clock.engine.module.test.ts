@@ -13,9 +13,18 @@ import type {
   DartObservation,
   EngineFacts,
 } from "@modules/types";
-import type { AroundTheClockSnapshot } from "@lib/types";
+import type { AroundTheClockSnapshot, Seated } from "@lib/types";
 
-const config: AroundTheClockSnapshot = {};
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<AroundTheClockSnapshot> = { seats: SEATS };
 
 function numberHit(
   number: number,

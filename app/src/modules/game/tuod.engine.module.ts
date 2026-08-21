@@ -1,4 +1,4 @@
-import type { TuodSnapshot } from "@lib/types";
+import type { TuodSnapshot, Seated } from "@lib/types";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { newClientKey } from "./client-key.module";
@@ -134,12 +134,13 @@ export function applyTuodAttempt(
  */
 export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   readonly rulesetVersionKey = "TUOD_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly stage: StageFact;
   private readonly turns: TurnFact[];
   private timerExpired = false;
 
   constructor(
-    private readonly config: TuodSnapshot,
+    private readonly config: Seated<TuodSnapshot>,
     prior?: EngineFacts,
   ) {
     const priorStage = prior?.stages[0];
@@ -206,6 +207,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: this.stage.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -370,6 +372,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: this.stage.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
       totalScore: succeeded ? before.currentTarget : 0,
@@ -483,12 +486,13 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
 }
 
 export const tuodEngineFactory: GameEngineFactory<
-  TuodSnapshot,
+  Seated<TuodSnapshot>,
   TuodInput,
   TuodState
 > = {
   rulesetVersionKey: "TUOD_V1",
-  create(config: TuodSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<TuodSnapshot>, prior?: EngineFacts) {
     return new TuodEngine(config, prior);
   },
 };

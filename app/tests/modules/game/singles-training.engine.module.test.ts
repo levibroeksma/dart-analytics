@@ -12,9 +12,18 @@ import type {
   EngineFacts,
   SinglesTrainingState,
 } from "@modules/types";
-import type { SinglesSnapshot } from "@lib/types";
+import type { SinglesSnapshot, Seated } from "@lib/types";
 
-const config: SinglesSnapshot = {
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<SinglesSnapshot> = {
   orderMode: "LOW_TO_HIGH",
   targetOrder: [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
@@ -23,6 +32,7 @@ const config: SinglesSnapshot = {
   pointsSingle: 1,
   pointsDouble: 2,
   pointsTreble: 3,
+  seats: SEATS,
 };
 
 function hitObservationFor(
@@ -898,7 +908,7 @@ describe("SinglesTrainingEngine.undo", () => {
 
 describe("applySinglesTrainingDart — order-dependent completion", () => {
   it("does not complete on the first (bull) visit under a HIGH_TO_LOW order", () => {
-    const highToLowConfig: SinglesSnapshot = {
+    const highToLowConfig: Seated<SinglesSnapshot> = {
       ...config,
       orderMode: "HIGH_TO_LOW",
       targetOrder: [
@@ -920,7 +930,7 @@ describe("applySinglesTrainingDart — order-dependent completion", () => {
   });
 
   it("completes on the last target of a RANDOM order even though it is not BULL", () => {
-    const randomConfig: SinglesSnapshot = {
+    const randomConfig: Seated<SinglesSnapshot> = {
       ...config,
       orderMode: "RANDOM",
       targetOrder: [

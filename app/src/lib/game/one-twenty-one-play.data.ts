@@ -6,7 +6,10 @@ import {
 } from "@modules/game/one-twenty-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import { resolveSessionModePair } from "@lib/game/session-mode-resolution";
+import {
+  resolveSessionModePair,
+  seatsFromParticipants,
+} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   appendBatch,
@@ -507,10 +510,7 @@ export function oneTwentyOnePlay() {
       this.completionError = "";
 
       try {
-        const batch = buildEventsBatch(
-          this.$store.game.participantRef!,
-          currentFacts(this),
-        );
+        const batch = buildEventsBatch(currentFacts(this));
         await appendBatch(sessionId, idempotencyKey, batch);
         await completeSession(sessionId, "COMPLETED");
       } catch (err: unknown) {
@@ -551,10 +551,7 @@ export function oneTwentyOnePlay() {
           if (!this.$store.game.idempotencyKey) {
             this.$store.game.idempotencyKey = crypto.randomUUID();
           }
-          const batch = buildEventsBatch(
-            this.$store.game.participantRef!,
-            facts,
-          );
+          const batch = buildEventsBatch(facts);
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
@@ -601,7 +598,10 @@ export function oneTwentyOnePlay() {
         }
 
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.participantRef = session.participants[0].ref;
+        this.$store.game.configSnapshot = this.$store.game.configSnapshot && {
+          ...this.$store.game.configSnapshot,
+          seats: seatsFromParticipants(session.participants),
+        };
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 

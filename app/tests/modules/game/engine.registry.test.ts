@@ -37,6 +37,7 @@ describe("registeredRulesetsFor", () => {
     resetEngineRegistry();
     registerEngineFactory({
       rulesetVersionKey: "501_V1",
+      stageOwnership: "PER_SEAT",
       create: () => ({}) as never,
     });
 
@@ -49,6 +50,7 @@ describe("registeredRulesetsFor", () => {
     resetEngineRegistry();
     registerEngineFactory({
       rulesetVersionKey: "TUOD_V1",
+      stageOwnership: "PER_SEAT",
       create: () => ({}) as never,
     });
 

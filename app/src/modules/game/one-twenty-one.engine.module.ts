@@ -1,4 +1,4 @@
-import type { OneTwentyOneSnapshot } from "@lib/types";
+import type { OneTwentyOneSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
@@ -206,11 +206,12 @@ export class OneTwentyOneEngine implements GameEngine<
   OneTwentyOneState
 > {
   readonly rulesetVersionKey = "121_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private readonly stages: StageFact[];
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: OneTwentyOneSnapshot,
+    private readonly config: Seated<OneTwentyOneSnapshot>,
     prior?: EngineFacts,
   ) {
     this.stages =
@@ -300,6 +301,7 @@ export class OneTwentyOneEngine implements GameEngine<
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: round.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turnCountIn(round.clientKey) + 1,
       completedAt: null,
       totalScore: 0,
@@ -338,6 +340,7 @@ export class OneTwentyOneEngine implements GameEngine<
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: round.clientKey,
+      participantRef: this.config.seats[0].participantRef,
       sequence: this.turnCountIn(round.clientKey) + 1,
       completedAt: new Date().toISOString(),
       totalScore: outcome.scored,
@@ -537,12 +540,13 @@ export class OneTwentyOneEngine implements GameEngine<
 }
 
 export const oneTwentyOneEngineFactory: GameEngineFactory<
-  OneTwentyOneSnapshot,
+  Seated<OneTwentyOneSnapshot>,
   OneTwentyOneInput,
   OneTwentyOneState
 > = {
   rulesetVersionKey: "121_V1",
-  create(config: OneTwentyOneSnapshot, prior?: EngineFacts) {
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<OneTwentyOneSnapshot>, prior?: EngineFacts) {
     return new OneTwentyOneEngine(config, prior);
   },
 };

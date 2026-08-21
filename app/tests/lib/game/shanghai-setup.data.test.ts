@@ -189,7 +189,16 @@ describe("shanghaiSetup", () => {
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
           templateRef: "tmpl-shanghai-standard",
-          configSnapshot: {},
+          configSnapshot: {
+            seats: [
+              {
+                participantRef: "participant-1",
+                displayName: "Player",
+                sideKey: "A",
+                participantTypeKey: "PLAYER",
+              },
+            ],
+          },
         }),
       );
       expect(locationSpy.href).toBe("/games/shanghai/play");

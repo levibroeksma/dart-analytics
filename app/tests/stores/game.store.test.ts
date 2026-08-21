@@ -60,13 +60,20 @@ const SESSION_INPUT = {
   gameTypeKey: "SCORE_TRAINING",
   rulesetVersionKey: "SCORE_TRAINING_V1",
   sessionId: "s1",
-  participantRef: "p1",
   templateRef: "tpl-1",
   configSnapshot: {
     durationType: "ROUNDS",
     durationValue: 10,
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER",
+      },
+    ],
   },
   captureModeKey: "RECREATIONAL",
   inputModeKey: "QUICK_SCORE",
@@ -85,6 +92,7 @@ const FACTS: EngineFacts = {
     {
       clientKey: "t1",
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: 1,
       completedAt: "2026-07-25T10:00:00.000Z",
       totalScore: 60,
@@ -110,7 +118,7 @@ describe("gameStore", () => {
     expect(store.gameTypeKey).toBe("SCORE_TRAINING");
     expect(store.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
     expect(store.sessionId).toBe("s1");
-    expect(store.participantRef).toBe("p1");
+    expect(store.seats[0].participantRef).toBe("p1");
     expect(store.templateRef).toBe("tpl-1");
     expect(store.configSnapshot).toEqual(SESSION_INPUT.configSnapshot);
     expect(store.turns).toEqual([]);
@@ -179,7 +187,7 @@ describe("gameStore", () => {
     expect(store.gameTypeKey).toBeNull();
     expect(store.sessionId).toBeNull();
     expect(store.rulesetVersionKey).toBeNull();
-    expect(store.participantRef).toBeNull();
+    expect(store.seats).toEqual([]);
     expect(store.templateRef).toBeNull();
     expect(store.configSnapshot).toBeNull();
     expect(store.stages).toEqual([]);
@@ -230,7 +238,6 @@ describe("gameStore", () => {
           "game.gameTypeKey": "SCORE_TRAINING",
           "game.rulesetVersionKey": "SCORE_TRAINING_V1",
           "game.sessionId": "stale-session",
-          "game.participantRef": "stale-participant",
           "game.configSnapshot": SESSION_INPUT.configSnapshot,
           "game.templateRef": "tpl-1",
           "game.stages": [],
@@ -249,7 +256,7 @@ describe("gameStore", () => {
       expect(store.sessionId).toBeNull();
       expect(store.gameTypeKey).toBeNull();
       expect(store.rulesetVersionKey).toBeNull();
-      expect(store.participantRef).toBeNull();
+      expect(store.seats).toEqual([]);
       expect(store.configSnapshot).toBeNull();
       expect(store.templateRef).toBeNull();
       expect(store.timerRemainingMs).toBeNull();
@@ -260,18 +267,18 @@ describe("gameStore", () => {
 
     it("stamps the current version so the discard happens exactly once", () => {
       const store = gameStore(
-        rehydratingPersistFactory({ "game._v": 1, "game.sessionId": "stale" }),
+        rehydratingPersistFactory({ "game._v": 2, "game.sessionId": "stale" }),
       );
 
       store.init();
 
-      expect(store._v).toBe(2);
+      expect(store._v).toBe(3);
     });
 
     it("rehydrates state written by the current store version without discarding", () => {
       const store = gameStore(
         rehydratingPersistFactory({
-          "game._v": 2,
+          "game._v": 3,
           "game.sessionId": "live-session",
           "game.stages": FACTS.stages,
           "game.turns": FACTS.turns,
@@ -320,13 +327,12 @@ describe("gameStore", () => {
     gameStore(factory);
     for (const init of pendingInits) init();
 
-    expect(factoryCalls).toBe(15);
+    expect(factoryCalls).toBe(14);
     expect(aliasesAtInit).toEqual([
       "game._v",
       "game.gameTypeKey",
       "game.rulesetVersionKey",
       "game.sessionId",
-      "game.participantRef",
       "game.captureModeKey",
       "game.inputModeKey",
       "game.configSnapshot",

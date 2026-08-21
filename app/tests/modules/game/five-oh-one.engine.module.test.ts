@@ -13,7 +13,16 @@ import type {
   FiveOhOneState,
   FiveOhOneVisitInput,
 } from "@modules/types";
-import type { FiveOhOneSnapshot } from "@lib/types";
+import type { FiveOhOneSnapshot, Seated } from "@lib/types";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
 
 const config = () =>
   ({
@@ -23,7 +32,8 @@ const config = () =>
     checkOut: "DOUBLE_OUT",
     maxDartsPerTurn: 3,
     maxVisitScore: 180,
-  }) satisfies FiveOhOneSnapshot;
+    seats: SEATS,
+  }) satisfies Seated<FiveOhOneSnapshot>;
 
 type FiveOhOneGameEngine = GameEngine<FiveOhOneVisitInput, FiveOhOneState>;
 
@@ -437,7 +447,7 @@ describe("FiveOhOneEngine.facts", () => {
     winOneLeg(engine);
     engine.record({ scoreAttempted: 60 });
 
-    const batch = buildEventsBatch("participant-1", engine.facts());
+    const batch = buildEventsBatch(engine.facts());
     expect(batch.stages).toHaveLength(2);
     expect(batch.stages[0].turns).toHaveLength(4);
     expect(batch.stages[1].turns).toHaveLength(1);
@@ -702,6 +712,7 @@ describe("visual board capture", () => {
     startingScore: 501,
     maxVisitScore: 180,
     legsToWin: 1,
+    seats: SEATS,
   } as never;
 
   /**
@@ -802,6 +813,7 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     startingScore: 40,
     maxVisitScore: 180,
     legsToWin: 1,
+    seats: SEATS,
   } as never;
 
   /**
@@ -898,6 +910,7 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       startingScore: 100,
       maxVisitScore: 180,
       legsToWin: 2,
+      seats: SEATS,
     } as never;
     const engine = fiveOhOneEngineFactory.create(
       config,
@@ -941,6 +954,7 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       startingScore: 501,
       maxVisitScore: 180,
       legsToWin: 2,
+      seats: SEATS,
     } as never;
     const engine = fiveOhOneEngineFactory.create(
       config,

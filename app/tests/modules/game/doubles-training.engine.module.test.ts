@@ -12,14 +12,24 @@ import type {
   DoublesTrainingState,
   EngineFacts,
 } from "@modules/types";
-import type { DoublesTrainingSnapshot } from "@lib/types";
+import type { DoublesTrainingSnapshot, Seated } from "@lib/types";
 
-const config: DoublesTrainingSnapshot = {
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config: Seated<DoublesTrainingSnapshot> = {
   mode: "EASY",
   orderMode: "LOW_TO_HIGH",
   targetOrder: [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
   ],
+  seats: SEATS,
 };
 
 function hitObservationFor(state: DoublesTrainingState): DartObservation {
@@ -818,7 +828,7 @@ describe("DoublesTrainingEngine.undo", () => {
 
 describe("applyDoublesTrainingDart — order-dependent completion", () => {
   it("does not complete on the first (bull) visit under a HIGH_TO_LOW order", () => {
-    const highToLowConfig: DoublesTrainingSnapshot = {
+    const highToLowConfig: Seated<DoublesTrainingSnapshot> = {
       ...config,
       orderMode: "HIGH_TO_LOW",
       targetOrder: [
@@ -838,7 +848,7 @@ describe("applyDoublesTrainingDart — order-dependent completion", () => {
   });
 
   it("completes on the last target of a RANDOM order even though it is not BULL", () => {
-    const randomConfig: DoublesTrainingSnapshot = {
+    const randomConfig: Seated<DoublesTrainingSnapshot> = {
       ...config,
       orderMode: "RANDOM",
       targetOrder: [

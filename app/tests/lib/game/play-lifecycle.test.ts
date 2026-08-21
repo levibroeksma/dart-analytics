@@ -32,6 +32,15 @@ import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type { PlayLifecycleContext, RulesetVersionKey } from "@lib/types";
 
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
 type FakeState = { tally: number };
 type FakeConfig = { label: string };
 
@@ -41,6 +50,7 @@ type FakeConfig = { label: string };
  * completes the session and increments `tally`. */
 class FakeEngine implements GameEngine<DartObservation, FakeState> {
   readonly rulesetVersionKey: RulesetVersionKey = "SINGLES_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
   private turns: TurnFact[];
   private done = false;
 
@@ -55,6 +65,7 @@ class FakeEngine implements GameEngine<DartObservation, FakeState> {
     this.turns.push({
       clientKey: `t${this.turns.length + 1}`,
       stageClientKey: "block-1",
+      participantRef: "participant-1",
       sequence: this.turns.length + 1,
       completedAt: "2026-08-14T00:00:00.000Z",
       totalScore: hit ? 99 : 0,
@@ -118,6 +129,7 @@ const fakeEngineFactory: GameEngineFactory<
   FakeState
 > = {
   rulesetVersionKey: RULESET_VERSION_KEY,
+  stageOwnership: "PER_SEAT",
   create(_config, prior) {
     return new FakeEngine(prior);
   },
@@ -153,9 +165,11 @@ function makeContext(overrides: Partial<Ctx> = {}): Ctx {
       game: {
         rulesetVersionKey: RULESET_VERSION_KEY,
         sessionId: "s1",
-        participantRef: "p1",
         templateRef: "tpl-1",
-        configSnapshot: { label: "fake" },
+        configSnapshot: { label: "fake", seats: SEATS },
+        get seats() {
+          return this.configSnapshot?.seats ?? [];
+        },
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         stages: [],
@@ -244,6 +258,7 @@ describe("playInit", () => {
             {
               clientKey: "t1",
               stageClientKey: "block-1",
+              participantRef: "participant-1",
               sequence: 1,
               completedAt: "2026-08-14T00:00:00.000Z",
               totalScore: 99,
@@ -578,7 +593,17 @@ describe("runPlayAgain", () => {
         overrides: { some_key: "value" },
       },
     });
-    expect(context.$store.game.configSnapshot).toEqual({ label: "fresh" });
+    expect(context.$store.game.configSnapshot).toEqual({
+      label: "fresh",
+      seats: [
+        {
+          participantRef: "new-participant",
+          displayName: "Player",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    });
   });
 });
 
@@ -690,6 +715,7 @@ describe("playVisitMarkers", () => {
       {
         clientKey: "t1",
         stageClientKey: "block-1",
+        participantRef: "participant-1",
         sequence: 1,
         completedAt: "2026-08-15T00:00:00.000Z",
         totalScore: 60,
@@ -725,6 +751,7 @@ describe("playVisitMarkers", () => {
       {
         clientKey: "t1",
         stageClientKey: "block-1",
+        participantRef: "participant-1",
         sequence: 1,
         completedAt: "2026-08-15T00:00:00.000Z",
         totalScore: 60,

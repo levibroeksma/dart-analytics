@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 
 describe("buildEventsBatch", () => {
-  it("nests turns under the stage that owns them", () => {
-    const batch = buildEventsBatch("participant-1", {
+  it("nests turns under the stage that owns them and keeps each turn's own participant", () => {
+    const batch = buildEventsBatch({
       stages: [
         {
           clientKey: "leg-1",
@@ -22,6 +22,7 @@ describe("buildEventsBatch", () => {
         {
           clientKey: "t1",
           stageClientKey: "leg-1",
+          participantRef: "participant-1",
           sequence: 1,
           completedAt: "2026-07-25T10:00:00.000Z",
           totalScore: 60,
@@ -30,6 +31,7 @@ describe("buildEventsBatch", () => {
         {
           clientKey: "t2",
           stageClientKey: "leg-2",
+          participantRef: "participant-1",
           sequence: 1,
           completedAt: "2026-07-25T10:01:00.000Z",
           totalScore: 45,
@@ -44,8 +46,46 @@ describe("buildEventsBatch", () => {
     expect(batch.stages[0].turns[0].participantRef).toBe("participant-1");
   });
 
+  it("carries a different participant per turn within one stage", () => {
+    const batch = buildEventsBatch({
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: "leg-1",
+          participantRef: "seat-a",
+          sequence: 1,
+          completedAt: "2026-08-20T10:00:00.000Z",
+          totalScore: 60,
+          darts: [],
+        },
+        {
+          clientKey: "t2",
+          stageClientKey: "leg-1",
+          participantRef: "seat-b",
+          sequence: 2,
+          completedAt: "2026-08-20T10:00:30.000Z",
+          totalScore: 100,
+          darts: [],
+        },
+      ],
+    });
+
+    expect(batch.stages[0].turns.map((t) => t.participantRef)).toEqual([
+      "seat-a",
+      "seat-b",
+    ]);
+  });
+
   it("emits an empty darts array under quick-score capture", () => {
-    const batch = buildEventsBatch("participant-1", {
+    const batch = buildEventsBatch({
       stages: [
         {
           clientKey: "block-1",
@@ -58,6 +98,7 @@ describe("buildEventsBatch", () => {
         {
           clientKey: "t1",
           stageClientKey: "block-1",
+          participantRef: "participant-1",
           sequence: 1,
           completedAt: "2026-07-25T10:00:00.000Z",
           totalScore: 100,
@@ -79,7 +120,7 @@ describe("buildEventsBatch", () => {
       locationX: null,
       locationY: null,
     };
-    const batch = buildEventsBatch("participant-1", {
+    const batch = buildEventsBatch({
       stages: [
         {
           clientKey: "block-1",
@@ -92,6 +133,7 @@ describe("buildEventsBatch", () => {
         {
           clientKey: "t1",
           stageClientKey: "block-1",
+          participantRef: "participant-1",
           sequence: 1,
           completedAt: "2026-07-25T10:00:00.000Z",
           totalScore: 2,
@@ -104,7 +146,7 @@ describe("buildEventsBatch", () => {
 
   it("throws when a turn's stageClientKey matches no stage", () => {
     expect(() =>
-      buildEventsBatch("participant-1", {
+      buildEventsBatch({
         stages: [
           {
             clientKey: "leg-1",
@@ -117,6 +159,7 @@ describe("buildEventsBatch", () => {
           {
             clientKey: "t1",
             stageClientKey: "leg-orphan",
+            participantRef: "participant-1",
             sequence: 1,
             completedAt: "2026-07-25T10:00:00.000Z",
             totalScore: 60,
@@ -128,7 +171,7 @@ describe("buildEventsBatch", () => {
   });
 
   it("emits a stage with no turns rather than dropping it", () => {
-    const batch = buildEventsBatch("participant-1", {
+    const batch = buildEventsBatch({
       stages: [
         {
           clientKey: "leg-1",

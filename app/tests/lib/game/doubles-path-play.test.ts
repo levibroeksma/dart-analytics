@@ -58,6 +58,7 @@ function turnWithDarts(clientKey: string, darts: TurnFact["darts"]): TurnFact {
   return {
     clientKey,
     stageClientKey: "block-1",
+    participantRef: "participant-1",
     sequence: 1,
     completedAt: null,
     totalScore: 0,

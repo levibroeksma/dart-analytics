@@ -6,14 +6,27 @@ import * as sessionsApi from "@client/api/sessions";
 
 vi.mock("@client/api/sessions");
 
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+];
+
+const config = { seats: SEATS };
+
 function baseStore(): OneTwentyOnePlayContext["$store"] {
   return {
     game: {
+      get seats() {
+        return this.configSnapshot?.seats ?? [];
+      },
       rulesetVersionKey: "121_V1",
       sessionId: "session-1",
-      participantRef: "participant-1",
       templateRef: "tmpl-121-standard",
-      configSnapshot: {},
+      configSnapshot: config,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
       stages: [],
@@ -55,7 +68,7 @@ describe("oneTwentyOnePlay", () => {
   describe("submitVisit / double confirm", () => {
     it("records an ordinary scoring visit immediately", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.scoreInput.setValue("60");
 
       await play.submitVisit();
@@ -67,7 +80,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("opens the double-confirm dialog for a visit that would reach exactly zero via a real checkout path", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 81 });
       store.game.recordFacts(play.engine!.facts());
       play.scoreInput.setValue("40");
@@ -80,7 +93,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("offers the counts the finished score's route allows, preselecting the shortest", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 80 });
       store.game.recordFacts(play.engine!.facts());
       play.scoreInput.setValue("41");
@@ -97,7 +110,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("surfaces the engine's rejection when the counts cannot be true", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 80 });
       store.game.recordFacts(play.engine!.facts());
       play.scoreInput.setValue("41");
@@ -112,7 +125,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("confirmDouble records a checkout that only climbs the ladder immediately", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 81 });
       play.pendingCheckoutScore = 40;
       play.showDoubleConfirm = true;
@@ -126,7 +139,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("resets the active score to the new target's full value after a checkout, not the stale start target (#128)", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 81 });
       play.pendingCheckoutScore = 40;
       play.showDoubleConfirm = true;
@@ -140,7 +153,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("confirmDouble defers to the session-finish confirm for a checkout at the cap target", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
         play.engine!.record({ scoreAttempted: target, finishedOnDouble: true });
       }
@@ -171,7 +184,7 @@ describe("oneTwentyOnePlay", () => {
   describe("undoVisit", () => {
     it("undoes the last recorded visit and mirrors the fact log", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.scoreInput.setValue("60");
       await play.submitVisit();
       expect(store.game.turns).toHaveLength(1);
@@ -185,7 +198,7 @@ describe("oneTwentyOnePlay", () => {
   describe("uploadAndCompleteSession", () => {
     it("uploads the batch, completes the session, and snapshots the results", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
         play.engine!.record({ scoreAttempted: target, finishedOnDouble: true });
       }
@@ -208,7 +221,7 @@ describe("oneTwentyOnePlay", () => {
   describe("recordDart (board input)", () => {
     it("opens a visit and records one dart without closing it", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
 
       await play.recordDart.call(play, {
         hitTargetNumber: 20,
@@ -224,7 +237,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("closes the visit on the third dart", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
 
       await play.recordDart.call(play, {
         hitTargetNumber: 1,
@@ -251,7 +264,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("undo removes one dart at a time, not the whole visit", async () => {
       const play = createPlay();
-      play.engine = oneTwentyOneEngineFactory.create({}) as any;
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
       await play.recordDart.call(play, {
         hitTargetNumber: 1,
         hitZoneKey: "SINGLE",
@@ -275,7 +288,7 @@ describe("oneTwentyOnePlay", () => {
   describe("recordDart — session-ending checkout defers to the confirm dialog", () => {
     it("opens showSessionFinishConfirm instead of recording immediately", async () => {
       const play = createPlay();
-      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      const engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
         engine.record({ scoreAttempted: target, finishedOnDouble: true });
       }
@@ -316,7 +329,7 @@ describe("oneTwentyOnePlay", () => {
       } as any);
 
       const play = createPlay();
-      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      const engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
         engine.record({ scoreAttempted: target, finishedOnDouble: true });
       }
@@ -344,7 +357,7 @@ describe("oneTwentyOnePlay", () => {
 
     it("cancelSessionFinish records nothing", async () => {
       const play = createPlay();
-      const engine = oneTwentyOneEngineFactory.create({}) as any;
+      const engine = oneTwentyOneEngineFactory.create(config) as any;
       for (let target = 121; target < 170; target += 1) {
         engine.record({ scoreAttempted: target, finishedOnDouble: true });
       }
