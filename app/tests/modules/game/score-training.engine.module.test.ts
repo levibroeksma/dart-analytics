@@ -675,3 +675,72 @@ describe("ScoreTrainingEngine — 1v1", () => {
     }
   });
 });
+
+describe("ScoreTrainingEngine — 1v1 completion guard", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const decidedConfig: Seated<ScoreTrainingSnapshot> = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 1,
+    seats: twoSeats,
+  } as never;
+
+  it("refuses a visit total once a decided 1v1 match is already complete, leaving winningSideKey untouched", () => {
+    const engine = new ScoreTrainingEngine(decidedConfig);
+    engine.record(20); // p1 round 1
+    const decided = engine.record(60); // p2 round 1 — decides the match
+
+    expect(decided.status).toBe("COMPLETE");
+    expect(decided.winningSideKey).toBe("B");
+    expect(engine.isComplete()).toBe(true);
+
+    expect(() => engine.record(90)).toThrow();
+
+    expect(engine.state().winningSideKey).toBe("B");
+    expect(engine.facts().turns).toHaveLength(2);
+  });
+
+  it("refuses a dart once a decided 1v1 match is already complete, leaving winningSideKey untouched", () => {
+    const trebleTwenty = {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    } as const;
+    const engine = scoreTrainingEngineFactory.create(
+      decidedConfig,
+    ) as ScoreTrainingEngine;
+    engine.record(20); // p1 round 1
+    const decided = engine.record(60); // p2 round 1 — decides the match
+
+    expect(decided.status).toBe("COMPLETE");
+    expect(decided.winningSideKey).toBe("B");
+
+    expect(() => engine.record(trebleTwenty)).toThrow();
+
+    expect(engine.state().winningSideKey).toBe("B");
+    expect(engine.facts().turns).toHaveLength(2);
+  });
+
+  it("wouldComplete answers false once the match is already decided, instead of throwing", () => {
+    const engine = new ScoreTrainingEngine(decidedConfig);
+    engine.record(20);
+    engine.record(60);
+
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.wouldComplete(50)).toBe(false);
+  });
+});

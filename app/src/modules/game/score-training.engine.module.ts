@@ -163,6 +163,29 @@ export class ScoreTrainingEngine implements GameEngine<
   }
 
   /**
+   * Whether a 1v1 match's score-compare outcome is already settled — every
+   * seat's own round budget exhausted and `winningSideKey` (or a tie) fixed.
+   * Guards `record()` against a stray extra call that would otherwise push
+   * a seat's `totalScore` past the fold's own budget cap and flip
+   * `winningSideKey`, mirroring `TuodEngine`'s completion guard.
+   *
+   * Deliberately narrower than `isComplete()`: a solo session is exempt here
+   * because MINUTES completion there is driven by `timerExpired`, an
+   * external signal `expireTimer()` can set mid-visit — `isComplete()` can
+   * already read true before the one finishing visit `confirmFinish` still
+   * must record (see `score-training-play.data.ts`'s `submitVisit`), so a
+   * solo session's own boundary is that turnCount-based `isComplete()`
+   * reading, left to callers to consult directly, never enforced here. A 1v1
+   * match carries no such risk: it is ROUNDS-only, so `status` only turns
+   * terminal as the direct result of the very record call that reaches the
+   * last seat's budget — never ahead of it.
+   */
+  private isMatchDecided(): boolean {
+    const state = this.deriveState();
+    return state.seats.length > 1 && state.status !== "IN_PROGRESS";
+  }
+
+  /**
    * Records that the MINUTES countdown has elapsed. The countdown itself lives
    * in `game.store.ts`, not the engine, so expiry arrives as an explicit call
    * rather than as a write through the object `state()` returned — that object
@@ -175,6 +198,8 @@ export class ScoreTrainingEngine implements GameEngine<
   /**
    * Appends one visit total, or one dart, depending on the session's input
    * mode.
+   * @throws when a 1v1 match's outcome is already decided; the log is left
+   *   untouched.
    * @throws when a quick-score visit is not a whole number within the
    *   ruleset's `0..maxVisitScore` range; the log is left untouched.
    */
@@ -186,6 +211,10 @@ export class ScoreTrainingEngine implements GameEngine<
   }
 
   /**
+   * @throws when a 1v1 match's outcome is already decided; the log is left
+   *   untouched. Checked before any other guard so a decided match's fact
+   *   log — and the score-compare `winningSideKey` it is folded into — can
+   *   never be mutated after the outcome is settled.
    * @throws when a dart-based turn is still open — a whole-visit total and a
    *   part-thrown board visit are not composable, so this refuses loudly
    *   rather than guess how to merge them. A clean visit boundary (no open
@@ -195,6 +224,11 @@ export class ScoreTrainingEngine implements GameEngine<
    *   `0..maxVisitScore` range.
    */
   private recordVisitTotal(visitScore: number): ScoreTrainingState {
+    if (this.isMatchDecided()) {
+      throw new Error(
+        "Cannot record a visit once the match is complete; undo first to correct it.",
+      );
+    }
     if (this.openTurn() !== null) {
       throw new Error(
         "Finish the open visit on the board before entering a keypad total.",
@@ -232,7 +266,18 @@ export class ScoreTrainingEngine implements GameEngine<
     return last;
   }
 
+  /**
+   * @throws when a 1v1 match's outcome is already decided; the log is left
+   *   untouched. Checked before any other work so a decided match's fact
+   *   log — and the score-compare `winningSideKey` it is folded into — can
+   *   never be mutated after the outcome is settled.
+   */
   private recordDart(observation: DartObservation): ScoreTrainingState {
+    if (this.isMatchDecided()) {
+      throw new Error(
+        "Cannot record a dart once the match is complete; undo first to correct it.",
+      );
+    }
     const resolved =
       observation.locationX === null || observation.locationY === null
         ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
@@ -310,9 +355,18 @@ export class ScoreTrainingEngine implements GameEngine<
   /**
    * Answers whether recording `input` would end the WHOLE session — the
    * active seat's last round, and every other seat already at a terminal
-   * status. Mirrors Task 11's `TuodEngine.wouldComplete`.
+   * status. Mirrors Task 11's `TuodEngine.wouldComplete`. Once a 1v1 match's
+   * outcome is already decided there is nothing left for `input` to
+   * complete, so this answers false rather than throwing — mirrors
+   * `TuodEngine.wouldCompleteDart` — leaving `record()` as the sole throwing
+   * guard for that case. Solo sessions are unaffected: `isMatchDecided()`
+   * never trips for one seat, so a MINUTES session's already-`isComplete()`
+   * reading ahead of its one finishing visit (see `isMatchDecided()`'s own
+   * doc) still reports that visit as completing here, exactly as before.
    */
   wouldComplete(input: ScoreTrainingInput): boolean {
+    if (this.isMatchDecided()) return false;
+
     const before = this.deriveState();
     const activeSeatState = before.seats.find(
       (seat) => seat.participantRef === before.activeParticipantRef,
