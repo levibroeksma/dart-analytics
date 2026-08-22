@@ -23,6 +23,7 @@ import type {
   DartFact,
   DartObservation,
   DartZoneKey,
+  SinglesTrainingState,
   TurnFact,
 } from "@modules/types";
 import type {
@@ -160,35 +161,66 @@ export function singlesTrainingPlay() {
       doubles: number;
       trebles: number;
       hitPercentage: string;
+      winningSideKey: string | null;
+      status: "COMPLETE" | "TIE";
     } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as SinglesTrainingEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    currentTargetLabel(this: SinglesTrainingPlayContext): string {
+    state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    currentTargetLabelFor(
+      this: SinglesTrainingPlayContext,
+      seatRef: string,
+    ): string {
       const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config) return "";
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      if (!config || !seat) return "";
       const target = targetAt(
         numbersPath(config.targetOrder),
-        this.engine.state().targetIndex,
+        seat.targetIndex,
       );
       return target.kind === "BULL" ? "BULL" : String(target.number);
     },
 
+    currentTargetLabel(this: SinglesTrainingPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    currentPointsFor(
+      this: SinglesTrainingPlayContext,
+      seatRef: string,
+    ): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(seat.totalPoints) : "";
+    },
+
     currentPoints(this: SinglesTrainingPlayContext): string {
-      if (!this.engine) return "";
-      return String(this.engine.state().totalPoints);
+      const state = this.state();
+      if (!state) return "";
+      return this.currentPointsFor(state.activeParticipantRef);
     },
 
     isBullVisit(this: SinglesTrainingPlayContext): boolean {
       const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config) return false;
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!config || !seat) return false;
       return (
-        targetAt(
-          numbersPath(config.targetOrder),
-          this.engine.state().targetIndex,
-        ).kind === "BULL"
+        targetAt(numbersPath(config.targetOrder), seat.targetIndex).kind ===
+        "BULL"
       );
     },
 
@@ -201,22 +233,54 @@ export function singlesTrainingPlay() {
       );
     },
 
+    missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      return String(
+        countZoneKey(
+          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+          MISS_COUNT_ZONE_KEYS,
+        ),
+      );
+    },
     missCount(this: SinglesTrainingPlayContext): string {
       return String(countZoneKey(this.$store.game.turns, MISS_COUNT_ZONE_KEYS));
     },
 
+    singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      return String(
+        countZoneKey(
+          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+          SINGLE_COUNT_ZONE_KEYS,
+        ),
+      );
+    },
     singleCount(this: SinglesTrainingPlayContext): string {
       return String(
         countZoneKey(this.$store.game.turns, SINGLE_COUNT_ZONE_KEYS),
       );
     },
 
+    doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      return String(
+        countZoneKey(
+          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+          DOUBLE_COUNT_ZONE_KEYS,
+        ),
+      );
+    },
     doubleCount(this: SinglesTrainingPlayContext): string {
       return String(
         countZoneKey(this.$store.game.turns, DOUBLE_COUNT_ZONE_KEYS),
       );
     },
 
+    trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      return String(
+        countZoneKey(
+          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+          TREBLE_COUNT_ZONE_KEYS,
+        ),
+      );
+    },
     trebleCount(this: SinglesTrainingPlayContext): string {
       return String(
         countZoneKey(this.$store.game.turns, TREBLE_COUNT_ZONE_KEYS),
@@ -237,10 +301,14 @@ export function singlesTrainingPlay() {
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
       const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config || this.finished) return;
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!this.engine || !config || !seat || this.finished) return;
       const target = targetAt(
         numbersPath(config.targetOrder),
-        this.engine.state().targetIndex,
+        seat.targetIndex,
       );
       if (target.kind === "BULL" && ring === "TREBLE") return;
       const observation: DartObservation =
@@ -291,8 +359,17 @@ export function singlesTrainingPlay() {
     },
 
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
       return playUploadAndCompleteSession(this, (finalState) => {
-        const turns = this.$store.game.turns;
+        const ownerSeat =
+          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
+          finalState.seats[0];
+        const turns = this.$store.game.turns.filter(
+          (t) => t.participantRef === ownerSeat.participantRef,
+        );
         const misses = countZoneKey(turns, MISS_COUNT_ZONE_KEYS);
         const singles = countZoneKey(turns, SINGLE_COUNT_ZONE_KEYS);
         const doubles = countZoneKey(turns, DOUBLE_COUNT_ZONE_KEYS);
@@ -300,13 +377,15 @@ export function singlesTrainingPlay() {
         const hits = singles + doubles + trebles;
         const darts = hits + misses;
         return {
-          points: finalState.totalPoints,
+          points: ownerSeat.totalPoints,
           misses,
           singles,
           doubles,
           trebles,
           hitPercentage:
             darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
+          winningSideKey: finalState.winningSideKey,
+          status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
         };
       });
     },

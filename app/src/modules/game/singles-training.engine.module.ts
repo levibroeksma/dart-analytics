@@ -132,7 +132,7 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
  * regardless of hit or miss, so both seats always take the same number of
  * visits and `activeSeat` needs no completion predicate.
  */
-export function foldSinglesTrainingState(
+function foldSinglesTrainingState(
   facts: EngineFacts,
   config: Seated<SinglesSnapshot>,
 ): SinglesTrainingState {

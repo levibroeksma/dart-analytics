@@ -228,6 +228,30 @@ describe("init", () => {
   });
 });
 
+describe("singlesTrainingPlay — per-seat accessors", () => {
+  it("currentPointsFor reads the named seat", () => {
+    const ctx = singlesTrainingPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; totalPoints: number }[];
+        };
+      };
+      currentPointsFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", totalPoints: 5 },
+          { participantRef: "p2", totalPoints: 30 },
+        ],
+      }),
+    };
+    expect(ctx.currentPointsFor("p2")).toBe("30");
+  });
+});
+
 describe("currentTargetLabel / currentPoints / isBullVisit", () => {
   it("starts at target 1 with zero points, not the bull visit", async () => {
     const play = makePlay();
@@ -365,6 +389,8 @@ describe("recordTap on the BULL visit", () => {
       doubles: 1, // 1 INNER_BULL
       trebles: 0,
       hitPercentage: "98%", // round(62/63 * 100)
+      winningSideKey: null,
+      status: "COMPLETE",
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -583,7 +609,88 @@ describe("completion", () => {
       doubles: 0,
       trebles: 0,
       hitPercentage: "0%",
+      winningSideKey: null,
+      status: "COMPLETE",
     });
+  });
+});
+
+describe("completion — 1v1", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<SinglesSnapshot> {
+    return { ...defaultConfig(), seats: TWO_SEATS };
+  }
+
+  it("marks status TIE, with winningSideKey null, when both seats total the same points", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 21, turns: 42, darts: 126 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Both seats hit SINGLE on every dart of every one of the 21 targets, so
+    // each totals the same training-point score — a genuine tie, not a solo
+    // session, even though winningSideKey is null in both cases.
+    for (let i = 0; i < 21 * 3 * 2; i += 1) {
+      await play.recordTap.call(play, "SINGLE");
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+  });
+
+  it("names the higher-scoring seat as winner and scopes stats to the owner (PLAYER) seat", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 21, turns: 42, darts: 126 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // The rota alternates by whole visit: participant-1 (seat A, PLAYER)
+    // throws first each round and hits DOUBLE every dart, participant-2
+    // (seat B, GUEST) throws next and misses every dart — a decisive,
+    // non-tied win for seat A across all 21 targets.
+    for (let round = 0; round < 21; round += 1) {
+      await play.recordTap.call(play, "DOUBLE");
+      await play.recordTap.call(play, "DOUBLE");
+      await play.recordTap.call(play, "DOUBLE");
+      await play.recordTap.call(play, "MISS");
+      await play.recordTap.call(play, "MISS");
+      await play.recordTap.call(play, "MISS");
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsSnapshot?.points).toBeGreaterThan(0);
+    expect(play.resultsSnapshot?.misses).toBe(0);
   });
 });
 

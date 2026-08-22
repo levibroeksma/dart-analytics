@@ -24,6 +24,7 @@ import type {
   OneTwentyOneState,
   ScoreTrainingState,
   ShanghaiState,
+  SinglesTrainingState,
   StageFact,
   TuodAttemptInput,
   TuodState,
@@ -706,23 +707,35 @@ export type SinglesTrainingPlayContext = {
     doubles: number;
     trebles: number;
     hitPercentage: string;
+    winningSideKey: string | null;
+    status: "COMPLETE" | "TIE";
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot>;
   engine: SinglesTrainingEngine | null;
+  state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: SinglesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  currentTargetLabelFor(
+    this: SinglesTrainingPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: SinglesTrainingPlayContext): string;
+  currentPointsFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   currentPoints(this: SinglesTrainingPlayContext): string;
   isBullVisit(this: SinglesTrainingPlayContext): boolean;
   previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[];
+  missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   missCount(this: SinglesTrainingPlayContext): string;
+  singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   singleCount(this: SinglesTrainingPlayContext): string;
+  doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   doubleCount(this: SinglesTrainingPlayContext): string;
+  trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   trebleCount(this: SinglesTrainingPlayContext): string;
   init(this: SinglesTrainingPlayContext): Promise<void>;
   retryReconciliation(this: SinglesTrainingPlayContext): Promise<void>;
