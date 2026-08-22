@@ -12,6 +12,7 @@ import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.mod
 import type { AroundTheClockEngine } from "@modules/game/around-the-clock.engine.module";
 import type {
   BoardCoordinate,
+  Bobs27State,
   CheckoutDartOptions,
   DartCount,
   DartObservation,
@@ -605,13 +606,17 @@ export type Bobs27PlayContext = {
     darts: number;
     doubleHitRate: string;
     highestNumberReached: string;
+    winningSideKey: string | null;
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<Bobs27Snapshot>;
   engine: Bobs27Engine | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
+  state(this: Bobs27PlayContext): Bobs27State | null;
+  currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string;
   currentTargetLabel(this: Bobs27PlayContext): string;
+  currentScoreFor(this: Bobs27PlayContext, seatRef: string): string;
   currentScore(this: Bobs27PlayContext): string;
   previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[];
   init(this: Bobs27PlayContext): Promise<void>;
