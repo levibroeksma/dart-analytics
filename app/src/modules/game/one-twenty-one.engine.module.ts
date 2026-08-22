@@ -1,13 +1,16 @@
-import type { OneTwentyOneSnapshot, Seated } from "@lib/types";
+import type { OneTwentyOneSnapshot, Seated, SeatFact } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
+import { activeSeat } from "./seat-rota.module";
+import { raceWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
   EngineFacts,
   OneTwentyOneInput,
+  OneTwentyOneSeatState,
   OneTwentyOneState,
   OneTwentyOneVisitInput,
   OneTwentyOneVisitOutcome,
@@ -58,12 +61,26 @@ function isDartObservation(input: OneTwentyOneInput): input is DartObservation {
   return "hitZoneKey" in input;
 }
 
-export function initialOneTwentyOneState(): OneTwentyOneState {
+function initialSeatState(seat: SeatFact): OneTwentyOneSeatState {
   return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
     currentTarget: START_TARGET,
     remainingInAttempt: START_TARGET,
     visitsThisAttempt: 0,
     status: "IN_PROGRESS",
+  };
+}
+
+/** 121 starting state: every configured seat at 121, seat 0 active, nobody has won. */
+export function initialOneTwentyOneState(
+  config: Seated<OneTwentyOneSnapshot>,
+): OneTwentyOneState {
+  return {
+    activeParticipantRef: config.seats[0].participantRef,
+    status: "IN_PROGRESS",
+    winningSideKey: null,
+    seats: config.seats.map(initialSeatState),
   };
 }
 
@@ -109,12 +126,12 @@ function resolveOneTwentyOneVisit(
  * carries no dart rows under quick score.
  */
 function checkoutDartsRejectionFor(
-  state: OneTwentyOneState,
+  seat: OneTwentyOneSeatState,
   input: OneTwentyOneVisitInput,
 ): string | null {
   if (input.finishedOnDouble !== true) return null;
   return checkoutDartsRejection(
-    state.remainingInAttempt,
+    seat.remainingInAttempt,
     input.dartsUsed,
     input.dartsAtDouble,
     DARTS_PER_VISIT,
@@ -122,26 +139,27 @@ function checkoutDartsRejectionFor(
 }
 
 /**
- * Pure reducer: folds one FINISHED visit onto a `OneTwentyOneState`. A
- * checkout at the cap target (170) wins the session; any other checkout
- * climbs the target by one and opens a fresh 3-visit budget. A visit that
- * neither checks out nor is the attempt's 3rd carries its remaining score to
- * the next visit in the same attempt. The 3rd non-checkout visit applies the
- * v1 fail rule — stay on the same target with a fresh budget — whether that
- * visit busted or simply fell short.
+ * Pure reducer: folds one FINISHED visit onto one seat's `OneTwentyOneSeatState`.
+ * A checkout at the cap target (170) wins that seat's own race; any other
+ * checkout climbs the target by one and opens a fresh 3-visit budget. A
+ * visit that neither checks out nor is the attempt's 3rd carries its
+ * remaining score to the next visit in the same attempt. The 3rd
+ * non-checkout visit applies the v1 fail rule — stay on the same target with
+ * a fresh budget — whether that visit busted or simply fell short.
  *
  * Callers must only fold a visit that has actually resolved (checked out,
  * busted, or reached its 3rd dart) — this always treats its input as a
  * finished visit and will prematurely count `visitsThisAttempt` for a visit
  * still being thrown. `OneTwentyOneEngine.deriveState()` enforces this split.
- * @throws when the session is already complete, or when `scoreAttempted` is
- *   not a whole number within `0..180`; the caller's state is left untouched
- *   either way.
+ * Operates on one seat at a time — the caller folds it once per seat,
+ * filtering `this.turns` on that seat's own `participantRef` first.
+ * @throws when the seat is already complete, or when `scoreAttempted` is not
+ *   a whole number within `0..180`; the caller's state is left untouched.
  */
 export function applyOneTwentyOneVisit(
-  state: OneTwentyOneState,
+  state: OneTwentyOneSeatState,
   input: OneTwentyOneVisitInput,
-): OneTwentyOneState {
+): OneTwentyOneSeatState {
   if (!isPlayableVisitScore(input.scoreAttempted)) {
     throw new Error(`Enter a score between 0 and ${MAX_VISIT_SCORE}.`);
   }
@@ -160,7 +178,7 @@ export function applyOneTwentyOneVisit(
   if (outcome.checkedOut) {
     if (state.currentTarget === CAP_TARGET) {
       return {
-        currentTarget: state.currentTarget,
+        ...state,
         remainingInAttempt: 0,
         visitsThisAttempt: 0,
         status: "WON",
@@ -168,6 +186,7 @@ export function applyOneTwentyOneVisit(
     }
     const nextTarget = state.currentTarget + 1;
     return {
+      ...state,
       currentTarget: nextTarget,
       remainingInAttempt: nextTarget,
       visitsThisAttempt: 0,
@@ -185,21 +204,86 @@ export function applyOneTwentyOneVisit(
   }
 
   return {
-    currentTarget: state.currentTarget,
+    ...state,
     remainingInAttempt: state.currentTarget,
     visitsThisAttempt: 0,
-    status: "IN_PROGRESS",
+  };
+}
+
+/** Folds every CLOSED turn for one seat as the finished visit that produced it. */
+function deriveClosedSeatState(
+  seat: SeatFact,
+  turns: readonly TurnFact[],
+): OneTwentyOneSeatState {
+  return turns
+    .filter(
+      (turn) =>
+        turn.participantRef === seat.participantRef &&
+        turn.completedAt !== null,
+    )
+    .reduce(
+      (state, turn) =>
+        applyOneTwentyOneVisit(state, {
+          scoreAttempted: turn.totalScore,
+          finishedOnDouble: true,
+        }),
+      initialSeatState(seat),
+    );
+}
+
+/**
+ * Folds the whole fact log into the session's state — the same function the
+ * engine's own `deriveState()` delegates to and `one-twenty-one-play.data.ts`
+ * calls directly for reactive display, so the engine and the play page can
+ * never disagree about whose throw it is or what any seat's ladder position
+ * is, mirroring `foldFiveOhOneState`.
+ *
+ * Every closed turn folds fully per seat (this is where `currentTarget` /
+ * `visitsThisAttempt` / `status` come from); the currently open turn, if
+ * any, only overlays a live subtraction onto that one seat's
+ * `remainingInAttempt`, never touching its visit counter.
+ */
+export function foldOneTwentyOneState(
+  facts: EngineFacts,
+  config: Seated<OneTwentyOneSnapshot>,
+): OneTwentyOneState {
+  const openVisit =
+    facts.turns.at(-1)?.completedAt === null ? facts.turns.at(-1)! : null;
+
+  const seats = config.seats.map((seat) => {
+    const closed = deriveClosedSeatState(seat, facts.turns);
+    if (openVisit && openVisit.participantRef === seat.participantRef) {
+      return {
+        ...closed,
+        remainingInAttempt: closed.remainingInAttempt - openVisit.totalScore,
+      };
+    }
+    return closed;
+  });
+
+  const winningSideKey = raceWinner(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      finished: seat.status === "WON",
+    })),
+  );
+
+  return {
+    activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
+      .participantRef,
+    status: seats.some((seat) => seat.status === "WON") ? "WON" : "IN_PROGRESS",
+    winningSideKey,
+    seats,
   };
 }
 
 /**
  * 121: a checkout ladder from 121 to 170, each target attempted in up to 3
  * visits (9 darts) and won by a visit whose final dart lands in a double.
- * Under QUICK_SCORE the engine owns one turn per visit, carrying the visit
- * total with no dart rows. Under VISUAL_BOARD it owns one dart at a time,
- * exactly mirroring `FiveOhOneEngine`'s dual-shape `record()` — see this
- * file's own `deriveState()` for why 121's derivation cannot simply copy
- * 501's (the per-round visit cap 501 does not have).
+ * Race-to-finish: the first seat to check out at the cap target (170) wins
+ * the match immediately — the trailing seat never gets another turn. Under
+ * QUICK_SCORE the engine owns one turn per visit, carrying the visit total
+ * with no dart rows. Under VISUAL_BOARD it owns one dart at a time.
  */
 export class OneTwentyOneEngine implements GameEngine<
   OneTwentyOneInput,
@@ -221,42 +305,11 @@ export class OneTwentyOneEngine implements GameEngine<
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
-  /**
-   * Folds every CLOSED turn as the finished visit that produced it. Never
-   * called with an open turn — `deriveState()` is the only caller and keeps
-   * an open turn out of this fold on purpose.
-   */
-  private deriveClosedState(turns: readonly TurnFact[]): OneTwentyOneState {
-    return turns
-      .filter((turn) => turn.completedAt !== null)
-      .reduce(
-        (state, turn) =>
-          applyOneTwentyOneVisit(state, {
-            scoreAttempted: turn.totalScore,
-            finishedOnDouble: true,
-          }),
-        initialOneTwentyOneState(),
-      );
-  }
-
-  /**
-   * The full derived state: every closed visit folded in full (this is
-   * where `currentTarget`/`visitsThisAttempt`/`status` come from), with the
-   * currently open visit's running total (if any) overlaid onto
-   * `remainingInAttempt` only — a live countdown as darts land, without
-   * counting an unfinished visit against the round's 3-visit budget. A
-   * keypad-only game log never has an open turn (`recordVisitTotal` always
-   * stamps `completedAt` immediately), so this is byte-identical to folding
-   * every turn for a pure keypad session.
-   */
   private deriveState(): OneTwentyOneState {
-    const state = this.deriveClosedState(this.turns);
-    const open = this.openVisit();
-    if (!open) return state;
-    return {
-      ...state,
-      remainingInAttempt: state.remainingInAttempt - open.totalScore,
-    };
+    return foldOneTwentyOneState(
+      { stages: this.stages, turns: this.turns },
+      this.config,
+    );
   }
 
   /**
@@ -267,11 +320,7 @@ export class OneTwentyOneEngine implements GameEngine<
    */
   private resolveObservation(observation: DartObservation) {
     return observation.locationX === null || observation.locationY === null
-      ? {
-          targetNumber: null,
-          zoneKey: observation.hitZoneKey,
-          score: 0,
-        }
+      ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
       : classify(observation.locationX, observation.locationY);
   }
 
@@ -295,13 +344,13 @@ export class OneTwentyOneEngine implements GameEngine<
     return last;
   }
 
-  /** Appends an empty visit to the open round and returns it. */
-  private openNewVisit(): TurnFact {
+  /** Appends an empty visit to the open round, for the given seat, and returns it. */
+  private openNewVisit(activeParticipantRef: string): TurnFact {
     const round = this.openRound();
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: round.clientKey,
-      participantRef: this.config.seats[0].participantRef,
+      participantRef: activeParticipantRef,
       sequence: this.turnCountIn(round.clientKey) + 1,
       completedAt: null,
       totalScore: 0,
@@ -313,34 +362,50 @@ export class OneTwentyOneEngine implements GameEngine<
 
   /**
    * What the attempt's remaining score was immediately before `visit`
-   * opened — every turn strictly before `visit` in `this.turns` is always
-   * already closed (an engine only ever has one open turn, the last one),
-   * so folding them through `deriveClosedState` is safe and exact.
+   * opened, for the seat that threw it — every turn strictly before `visit`
+   * in `this.turns` is always already closed (an engine only ever has one
+   * open turn, the last one), so folding the whole log up to that point is
+   * safe and exact.
    */
   private remainingBeforeVisit(visit: TurnFact): number {
     const index = this.turns.indexOf(visit);
-    return this.deriveClosedState(this.turns.slice(0, index))
+    return foldOneTwentyOneState(
+      { stages: this.stages, turns: this.turns.slice(0, index) },
+      this.config,
+    ).seats.find((seat) => seat.participantRef === visit.participantRef)!
       .remainingInAttempt;
   }
 
   /**
    * Appends one visit to the open round, then opens the next round's stage
-   * when that visit resolved the attempt (checkout or a 3rd non-checkout)
-   * and the session continues. Stages and turns move together so the log
-   * never holds a turn without its stage.
-   * @throws when the score is out of range or the session has already
-   *   ended; the fact log is left untouched.
+   * when that visit resolved the active seat's attempt (checkout or a 3rd
+   * non-checkout) and its own race continues. Stages and turns move
+   * together so the log never holds a turn without its stage.
+   * @throws when the match has already ended, when the active seat has
+   *   already won its own race, or when the score is out of range; the fact
+   *   log is left untouched.
    */
   private recordVisitTotal(input: OneTwentyOneVisitInput): OneTwentyOneState {
     const before = this.deriveState();
-    const after = applyOneTwentyOneVisit(before, input);
-    const outcome = resolveOneTwentyOneVisit(before.remainingInAttempt, input);
+    if (before.status !== "IN_PROGRESS") {
+      throw new Error(
+        "Cannot record a visit once the match has ended; undo first to correct it.",
+      );
+    }
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    const after = applyOneTwentyOneVisit(activeSeatState, input);
+    const outcome = resolveOneTwentyOneVisit(
+      activeSeatState.remainingInAttempt,
+      input,
+    );
 
     const round = this.openRound();
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: round.clientKey,
-      participantRef: this.config.seats[0].participantRef,
+      participantRef: before.activeParticipantRef,
       sequence: this.turnCountIn(round.clientKey) + 1,
       completedAt: new Date().toISOString(),
       totalScore: outcome.scored,
@@ -351,7 +416,7 @@ export class OneTwentyOneEngine implements GameEngine<
       this.stages.push(roundStage(this.stages.length + 1));
     }
 
-    return after;
+    return this.deriveState();
   }
 
   /**
@@ -392,16 +457,24 @@ export class OneTwentyOneEngine implements GameEngine<
    * a double, or on the third dart — mirrors
    * `five-oh-one.engine.module.ts`'s `recordDart`, adapted for the round
    * boundary (see class-level doc).
-   * @throws when the session is already complete; the fact log is left
-   *   untouched.
+   * @throws when the match has already ended, or the active seat has
+   *   already won its own race; the fact log is left untouched.
    */
   private recordDart(observation: DartObservation): OneTwentyOneState {
-    if (this.deriveState().status !== "IN_PROGRESS") {
+    const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") {
+      throw new Error("Cannot record a visit once the match has ended");
+    }
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    if (activeSeatState.status !== "IN_PROGRESS") {
       throw new Error("Cannot record a visit once the session is complete");
     }
 
     const resolved = this.resolveObservation(observation);
-    const visit = this.openVisit() ?? this.openNewVisit();
+    const visit =
+      this.openVisit() ?? this.openNewVisit(before.activeParticipantRef);
 
     visit.darts.push({
       sequence: visit.darts.length + 1,
@@ -416,16 +489,20 @@ export class OneTwentyOneEngine implements GameEngine<
 
     const visitResolved = this.settleVisit(visit);
 
-    const after = this.deriveState();
-    if (
-      visitResolved &&
-      after.visitsThisAttempt === 0 &&
-      after.status === "IN_PROGRESS"
-    ) {
-      this.stages.push(roundStage(this.stages.length + 1));
+    if (visitResolved) {
+      const after = this.deriveState();
+      const afterSeat = after.seats.find(
+        (seat) => seat.participantRef === activeSeatState.participantRef,
+      )!;
+      if (
+        afterSeat.visitsThisAttempt === 0 &&
+        afterSeat.status === "IN_PROGRESS"
+      ) {
+        this.stages.push(roundStage(this.stages.length + 1));
+      }
     }
 
-    return after;
+    return this.deriveState();
   }
 
   record(input: OneTwentyOneInput): OneTwentyOneState {
@@ -493,22 +570,30 @@ export class OneTwentyOneEngine implements GameEngine<
 
   /**
    * Whether the dart under consideration would check out the cap target —
-   * the one way a 121 session can complete on a single dart.
+   * the one way a 121 seat can win its own race on a single dart. Match
+   * -level and seat-level completion are both checked before evaluating the
+   * dart, so a trailing seat's own near-checkout never misreads as still
+   * being able to end an already-decided match.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    if (activeSeatState.status !== "IN_PROGRESS") return false;
 
     const resolved = this.resolveObservation(observation);
-    const remainingAfter = before.remainingInAttempt - resolved.score;
+    const remainingAfter = activeSeatState.remainingInAttempt - resolved.score;
     const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
-    return checksOut && before.currentTarget === CAP_TARGET;
+    return checksOut && activeSeatState.currentTarget === CAP_TARGET;
   }
 
   /**
-   * Answers whether recording `input` would win the session, without
-   * mutating the fact log or the derived state. Only a checkout at the cap
-   * target (170) can ever complete a 121 session.
+   * Answers whether recording `input` would win the active seat's own race,
+   * without mutating the fact log or the derived state. Only a checkout at
+   * the cap target (170) can ever complete a seat's race — and only while
+   * the match itself, not merely the active seat, is still `IN_PROGRESS`.
    */
   wouldComplete(input: OneTwentyOneInput): boolean {
     if (isDartObservation(input)) {
@@ -517,10 +602,15 @@ export class OneTwentyOneEngine implements GameEngine<
 
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    if (activeSeatState.status !== "IN_PROGRESS") return false;
     if (!isPlayableVisitScore(input.scoreAttempted)) return false;
-    if (checkoutDartsRejectionFor(before, input) !== null) return false;
+    if (checkoutDartsRejectionFor(activeSeatState, input) !== null)
+      return false;
 
-    return applyOneTwentyOneVisit(before, input).status === "WON";
+    return applyOneTwentyOneVisit(activeSeatState, input).status === "WON";
   }
 
   isComplete(): boolean {

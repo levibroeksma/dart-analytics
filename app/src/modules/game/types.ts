@@ -185,11 +185,16 @@ export type OneTwentyOneVisitOutcome = {
  * in progress — it resets the instant the 3rd resolves). All three are folds
  * over the fact log, never accumulated fields.
  */
-export type OneTwentyOneState = {
+export type OneTwentyOneSeatState = SeatState & {
   currentTarget: number;
   remainingInAttempt: number;
   visitsThisAttempt: number;
   status: "IN_PROGRESS" | "WON";
+};
+
+export type OneTwentyOneState = MultiSeatState<OneTwentyOneSeatState> & {
+  status: "IN_PROGRESS" | "WON";
+  winningSideKey: string | null;
 };
 
 /**
