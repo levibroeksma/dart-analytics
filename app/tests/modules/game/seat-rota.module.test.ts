@@ -159,3 +159,83 @@ describe("activeSeat with one seat", () => {
     expect(activeSeat(facts, roster, "PER_SEAT")).toBe(roster[0]);
   });
 });
+
+describe("activeSeat with a completion predicate", () => {
+  const seatList = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function closedTurn(participantRef: string, sequence: number) {
+    return {
+      clientKey: `turn-${sequence}`,
+      stageClientKey: "block-1",
+      participantRef,
+      sequence,
+      completedAt: "2026-08-22T00:00:00.000Z",
+      totalScore: 0,
+      darts: [],
+    };
+  }
+
+  it("alternates normally while neither seat is complete", () => {
+    const facts = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK" as const,
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [closedTurn("p1", 1)],
+    };
+    expect(
+      activeSeat(facts, seatList, "PER_SEAT", () => false).participantRef,
+    ).toBe("p2");
+  });
+
+  it("skips a seat the predicate reports complete, handing every later turn to the other", () => {
+    const facts = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK" as const,
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [closedTurn("p1", 1), closedTurn("p2", 2), closedTurn("p1", 3)],
+    };
+    const isComplete = (seat: { participantRef: string }) =>
+      seat.participantRef === "p1";
+    expect(
+      activeSeat(facts, seatList, "PER_SEAT", isComplete).participantRef,
+    ).toBe("p2");
+  });
+
+  it("defaults to pure alternation when no predicate is passed", () => {
+    const facts = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK" as const,
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [closedTurn("p1", 1)],
+    };
+    expect(activeSeat(facts, seatList, "PER_SEAT").participantRef).toBe("p2");
+  });
+});

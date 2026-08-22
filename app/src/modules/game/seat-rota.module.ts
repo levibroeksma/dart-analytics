@@ -38,12 +38,20 @@ export function seatOf(turn: TurnFact, seats: readonly SeatFact[]): SeatFact {
  * `SHARED` engine counts the visits already thrown in the OPEN stage and
  * offsets them from that stage's own starting seat, so the rotation survives
  * a leg boundary; a `PER_SEAT` engine counts the whole log, because every
- * seat's stages advance in lockstep.
+ * seat's stages advance in lockstep — except a seat `isSeatComplete` reports
+ * finished, which is skipped so every remaining turn goes to whichever seat
+ * has not: Around the Clock plays a variable number of visits per seat (a
+ * miss costs an extra one), so lockstep alternation alone cannot describe
+ * whose throw it is once one seat has already finished. Every other engine
+ * either never calls with a real predicate or ends the match before two
+ * seats could diverge, so the default `() => false` reproduces the old pure
+ * alternation exactly.
  */
 export function activeSeat(
   facts: EngineFacts,
   seats: readonly SeatFact[],
   stageOwnership: StageOwnership,
+  isSeatComplete: (seat: SeatFact) => boolean = () => false,
 ): SeatFact {
   const lastTurn = facts.turns.at(-1);
   if (lastTurn && lastTurn.completedAt === null) {
@@ -51,7 +59,9 @@ export function activeSeat(
   }
 
   if (stageOwnership === "PER_SEAT") {
-    return seats[facts.turns.length % seats.length];
+    const remaining = seats.filter((seat) => !isSeatComplete(seat));
+    const pool = remaining.length > 0 ? remaining : seats;
+    return pool[facts.turns.length % pool.length];
   }
 
   const openStage = facts.stages.at(-1);
