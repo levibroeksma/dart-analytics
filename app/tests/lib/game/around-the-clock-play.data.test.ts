@@ -291,6 +291,7 @@ describe("session completion on BULL", () => {
       turns: 21,
       accuracy: "34.43%",
       totalDarts: 61,
+      winningSideKey: null,
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -306,6 +307,44 @@ describe("undoVisit", () => {
 
     expect(play.currentTargetLabel.call(play)).toBe("1");
     expect(play.$store.game.turns).toHaveLength(0);
+  });
+});
+
+describe("aroundTheClockPlay — per-seat accessors", () => {
+  it("currentTargetLabelFor and turnsSoFarFor read the named seat", () => {
+    const ctx = aroundTheClockPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; targetIndex: number }[];
+        };
+      };
+      $store: { game: { turns: { participantRef: string }[] } };
+      currentTargetLabelFor: (seatRef: string) => string;
+      turnsSoFarFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", targetIndex: 0 },
+          { participantRef: "p2", targetIndex: 5 },
+        ],
+      }),
+    };
+    ctx.$store = {
+      game: {
+        turns: [
+          { participantRef: "p1" },
+          { participantRef: "p2" },
+          { participantRef: "p1" },
+        ],
+      },
+    };
+    expect(ctx.currentTargetLabelFor("p1")).toBe("1");
+    expect(ctx.currentTargetLabelFor("p2")).toBe("6");
+    expect(ctx.turnsSoFarFor("p1")).toBe("2");
+    expect(ctx.turnsSoFarFor("p2")).toBe("1");
   });
 });
 

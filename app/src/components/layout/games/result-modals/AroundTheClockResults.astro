@@ -12,8 +12,14 @@ import IsLoading from "@components/ui/IsLoading.astro";
   <div
     class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
   >
-    <h2 class="font-display text-lg font-semibold text-foreground">
-      Session complete
+    <h2
+      class="font-display text-lg font-semibold text-foreground"
+      x-text="
+        !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+          ? 'Session complete'
+          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — fewest darts!')
+      "
+    >
     </h2>
 
     {/* Stats: shown once the final tallies are known */}

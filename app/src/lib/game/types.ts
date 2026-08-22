@@ -11,6 +11,8 @@ import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
 import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
 import type { AroundTheClockEngine } from "@modules/game/around-the-clock.engine.module";
 import type {
+  AroundTheClockSeatState,
+  AroundTheClockState,
   BoardCoordinate,
   Bobs27State,
   CheckoutDartOptions,
@@ -809,11 +811,12 @@ export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. */
+/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. */
 export type AroundTheClockResultsSnapshot = {
   turns: number;
   accuracy: string;
   totalDarts: number;
+  winningSideKey: string | null;
 };
 
 export type AroundTheClockPlayContext = {
@@ -837,8 +840,18 @@ export type AroundTheClockPlayContext = {
     this: AroundTheClockPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  state(this: AroundTheClockPlayContext): AroundTheClockState | null;
+  activeSeatState(
+    this: AroundTheClockPlayContext,
+  ): AroundTheClockSeatState | null;
+  currentTargetLabelFor(
+    this: AroundTheClockPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: AroundTheClockPlayContext): string;
+  turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string;
   turnsSoFar(this: AroundTheClockPlayContext): string;
+  accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string;
   accuracy(this: AroundTheClockPlayContext): string;
   isBullVisit(this: AroundTheClockPlayContext): boolean;
   previewSegments(
