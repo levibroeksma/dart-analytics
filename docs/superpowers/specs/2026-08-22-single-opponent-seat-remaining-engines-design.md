@@ -92,12 +92,12 @@ Shanghai composes two of these: a per-visit check via `raceWinner` (has anyone h
 const SEAT_CAPS: Record<string, number> = {
   "501_V1": 4,
   BOBS27_V1: 2,
-  ONE_TWENTY_ONE_V1: 2,
+  "121_V1": 2,
   AROUND_THE_CLOCK_V1: 2,
   TUOD_V1: 2,
   SHANGHAI_V1: 2,
   SCORE_TRAINING_V1: 2,
-  SINGLES_TRAINING_V1: 2,
+  SINGLES_V1: 2,
   DOUBLES_TRAINING_V1: 2,
 };
 ```
