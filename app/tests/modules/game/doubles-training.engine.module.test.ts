@@ -975,4 +975,30 @@ describe("DoublesTrainingEngine — 1v1", () => {
     expect(state.seats[1].outcomes.filter((o) => o.hit).length).toBe(0);
     expect(state.winningSideKey).toBe("A");
   });
+
+  it("ties when both seats finish with an equal doubles-hit count", () => {
+    const engine = new DoublesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) {
+        engine.record({
+          hitTargetNumber: number,
+          hitZoneKey: "MISS",
+          locationX: null,
+          locationY: null,
+        }); // p1
+      }
+      for (let d = 0; d < 3; d++) {
+        engine.record({
+          hitTargetNumber: number,
+          hitZoneKey: "MISS",
+          locationX: null,
+          locationY: null,
+        }); // p2
+      }
+    }
+    const state = engine.state();
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
+  });
 });
