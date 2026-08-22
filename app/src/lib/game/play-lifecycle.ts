@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
+  participantsFromSeats,
   reseatSnapshot,
   resolveSessionModePair,
 } from "@lib/game/session-mode-resolution";
@@ -315,18 +316,21 @@ export async function runPlayAgain<
         config: overrides
           ? { source: "template", templateRef, overrides: overrides.wire }
           : { source: "template", templateRef },
+        participants: participantsFromSeats(config.seats),
       });
     } catch {
       context.playAgainError = "Could not start a new session. Try again.";
       return;
     }
 
-    context.$store.game.sessionId = session.sessionId;
-    context.$store.game.idempotencyKey = null;
-    context.$store.game.configSnapshot = reseatSnapshot(
+    const seatedSnapshot = reseatSnapshot(
       nextConfigSnapshot,
       session.participants,
     ) as Seated<TConfig>;
+
+    context.$store.game.sessionId = session.sessionId;
+    context.$store.game.idempotencyKey = null;
+    context.$store.game.configSnapshot = seatedSnapshot;
     context.$store.game.setSessionModes(modePair);
 
     context.finished = false;
@@ -341,7 +345,7 @@ export async function runPlayAgain<
     context.error = "";
     context.hasActiveSession = true;
 
-    const engine = narrowEngine(factory.create(nextConfigSnapshot));
+    const engine = narrowEngine(factory.create(seatedSnapshot));
     if (!engine) return;
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());

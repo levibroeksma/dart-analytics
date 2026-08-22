@@ -15,6 +15,16 @@ const SEATS = [
   },
 ];
 
+const TWO_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
 const config = { seats: SEATS };
 
 function baseStore(): OneTwentyOnePlayContext["$store"] {
@@ -383,6 +393,67 @@ describe("oneTwentyOnePlay", () => {
       expect(play.pendingDartObservation).toBeNull();
       expect(play.$store.game.turns).toHaveLength(turnCountBefore);
       expect(play.finished).toBe(false);
+    });
+  });
+
+  describe("playAgain", () => {
+    it("replays a 1v1 match with both seats, engine-seated on the NEW session's refs", async () => {
+      store.game.configSnapshot = { seats: TWO_SEATS };
+      const play = createPlay();
+      play.completionStatus = "succeeded";
+      play.finished = true;
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "new-participant-2",
+            displayName: "Guest",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(
+        vi.mocked(sessionsApi.createSession).mock.calls[0][0].participants,
+      ).toEqual([
+        { participantTypeKey: "PLAYER", sideKey: "A" },
+        { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "B" },
+      ]);
+      expect(
+        play.engine?.state().seats.map((seat) => seat.participantRef),
+      ).toEqual(["new-participant-1", "new-participant-2"]);
+    });
+
+    it("a solo replay still seats one participant and sends no participants field", async () => {
+      const play = createPlay();
+      play.completionStatus = "succeeded";
+      play.finished = true;
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(
+        vi.mocked(sessionsApi.createSession).mock.calls[0][0].participants,
+      ).toBeUndefined();
+      expect(
+        play.engine?.state().seats.map((seat) => seat.participantRef),
+      ).toEqual(["new-participant"]);
     });
   });
 });

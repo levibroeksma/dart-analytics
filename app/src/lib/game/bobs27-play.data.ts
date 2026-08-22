@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
@@ -448,16 +449,17 @@ export function bobs27Play() {
             captureModeKey: modePair.captureModeKey,
             inputModeKey: modePair.inputModeKey,
             config: { source: "template", templateRef },
+            participants: participantsFromSeats(config.seats),
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
+        const seatedSnapshot = reseatSnapshot(config, session.participants);
+
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot =
-          this.$store.game.configSnapshot &&
-          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
+        this.$store.game.configSnapshot = seatedSnapshot;
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 
@@ -473,7 +475,7 @@ export function bobs27Play() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof Bobs27Engine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

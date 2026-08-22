@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   seatsFromParticipants,
   startSessionInput,
@@ -137,5 +138,63 @@ describe("startSessionInput", () => {
       ],
     });
     expect("participantRef" in input).toBe(false);
+  });
+});
+
+describe("participantsFromSeats", () => {
+  it("returns undefined for a solo seat list, so a solo replay omits the field entirely", () => {
+    expect(
+      participantsFromSeats([
+        {
+          participantRef: "p1",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+      ]),
+    ).toBeUndefined();
+  });
+
+  it("round-trips a 1v1 seat list back into the request shape createSession takes", () => {
+    expect(
+      participantsFromSeats([
+        {
+          participantRef: "p1",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          participantRef: "p2",
+          displayName: "Guest",
+          sideKey: "B",
+          participantTypeKey: "GUEST",
+        },
+      ]),
+    ).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "B" },
+    ]);
+  });
+
+  it("carries no participantRef through — the finished session's refs must never reach a new session", () => {
+    const requested = participantsFromSeats([
+      {
+        participantRef: "old-1",
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER",
+      },
+      {
+        participantRef: "old-2",
+        displayName: "Guest",
+        sideKey: "B",
+        participantTypeKey: "GUEST",
+      },
+    ]);
+
+    expect(
+      requested?.every((participant) => !("participantRef" in participant)),
+    ).toBe(true);
   });
 });

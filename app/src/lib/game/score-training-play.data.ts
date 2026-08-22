@@ -10,6 +10,7 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
@@ -600,16 +601,17 @@ export function scoreTrainingPlay() {
               templateRef,
               overrides: { duration_value: config.durationValue },
             },
+            participants: participantsFromSeats(config.seats),
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
+        const seatedSnapshot = reseatSnapshot(config, session.participants);
+
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot =
-          this.$store.game.configSnapshot &&
-          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
+        this.$store.game.configSnapshot = seatedSnapshot;
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
         this.$store.game.timerRemainingMs = null;
@@ -627,7 +629,7 @@ export function scoreTrainingPlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof ScoreTrainingEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

@@ -41,6 +41,16 @@ const SEATS = [
   },
 ];
 
+const TWO_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
 type FakeState = { tally: number };
 type FakeConfig = { label: string };
 
@@ -123,6 +133,8 @@ class FakeEngine implements GameEngine<DartObservation, FakeState> {
 const RULESET_VERSION_KEY: RulesetVersionKey = "SINGLES_V1";
 const GAME_TYPE_KEY = "FAKE_GAME";
 
+let lastCreateConfig: unknown = null;
+
 const fakeEngineFactory: GameEngineFactory<
   FakeConfig,
   DartObservation,
@@ -130,7 +142,8 @@ const fakeEngineFactory: GameEngineFactory<
 > = {
   rulesetVersionKey: RULESET_VERSION_KEY,
   stageOwnership: "PER_SEAT",
-  create(_config, prior) {
+  create(config, prior) {
+    lastCreateConfig = config;
     return new FakeEngine(prior);
   },
 };
@@ -217,6 +230,7 @@ const ACTIVE_SESSION = {
 beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
+  lastCreateConfig = null;
   registerEngineFactory(
     fakeEngineFactory as GameEngineFactory<unknown, unknown, unknown>,
   );
@@ -604,6 +618,113 @@ describe("runPlayAgain", () => {
         },
       ],
     });
+  });
+
+  it("builds a solo replay's engine from the reseated snapshot and requests no participants", async () => {
+    const context = makeContext({
+      finished: true,
+      completionStatus: "succeeded",
+    });
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Levi",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(
+      vi.mocked(createSession).mock.calls[0][0].participants,
+    ).toBeUndefined();
+    expect(lastCreateConfig).toEqual({
+      label: "fake",
+      seats: [
+        {
+          participantRef: "new-participant",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    });
+  });
+});
+
+describe("runPlayAgain — a replayed 1v1 match", () => {
+  function twoSeatContext() {
+    const context = makeContext({
+      finished: true,
+      completionStatus: "succeeded",
+    });
+    context.$store.game.configSnapshot = { label: "fake", seats: TWO_SEATS };
+    return context;
+  }
+
+  function mockTwoSeatSession() {
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant-1",
+          displayName: "Levi",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          ref: "new-participant-2",
+          displayName: "Guest",
+          participantTypeKey: "GUEST",
+        },
+      ],
+    } as any);
+  }
+
+  it("asks the new session for the same seats the finished match played with", async () => {
+    const context = twoSeatContext();
+    mockTwoSeatSession();
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(vi.mocked(createSession).mock.calls[0][0].participants).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "B" },
+    ]);
+  });
+
+  it("builds the replay's engine from the NEW session's participant refs, never the finished session's", async () => {
+    const context = twoSeatContext();
+    mockTwoSeatSession();
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(lastCreateConfig).toEqual({
+      label: "fake",
+      seats: [
+        {
+          participantRef: "new-participant-1",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          participantRef: "new-participant-2",
+          displayName: "Guest",
+          sideKey: "B",
+          participantTypeKey: "GUEST",
+        },
+      ],
+    });
+    expect(context.$store.game.configSnapshot).toEqual(lastCreateConfig);
   });
 });
 
