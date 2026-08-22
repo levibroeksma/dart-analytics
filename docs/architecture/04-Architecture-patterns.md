@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-07-26
+updated: 2026-08-22
 -->
 
 # Architecture Patterns
@@ -794,6 +794,20 @@ EngineFacts  →  exercise_stages / turns / darts
 - **Undo depth is unbounded, one `record()` per call.** Every engine undoes back to an empty fact log, and `undo()` returns `false` once there is nothing left. Rehydrated facts are undoable too — `create(config, prior)` replays them into the same log, so the depth limit is the log, not the session. No engine caps it. <!-- 2026-07-26 -->
 
 Registration is two-sided: `modules/game/engine.registry.ts` maps `rulesetVersionKey` to the engine factory, `services/rulesets/registry.ts` maps the same key to the server-side validator. `scripts/check-game-engines.sh` fails the build when an engine is absent from either.
+
+### Win conditions (1v1 and beyond)
+
+A multi-seat match ends via one of three win-condition categories, decided per ruleset:
+
+- **Elimination** — the match ends the instant one seat fails; the surviving seat wins (Bob's 27).
+- **Race-to-finish** — the match ends the instant one seat finishes; that seat wins (121).
+- **Score-compare** — every seat plays out its own full session; once every seat has completed, the seat with the best derived metric wins, and a tie resolves to no winner (Around the Clock, Ten Up One Down, Shanghai, Score Training — Shanghai layers a race-style instant win on top for whoever hits a Shanghai, falling back to score-compare otherwise).
+
+`modules/game/match-outcome.module.ts` holds one pure function per category — `eliminationWinner`, `raceWinner`, `scoreCompareWinner` — each taking the seats' per-side facts (`{sideKey, failed}` / `{sideKey, finished}` / `{sideKey, completed, metric}`) and returning the winning `sideKey`, or `null` while undecided or tied. Engines fold their own state into the shape the category function expects and call it; none inlines winner-picking logic of its own.
+
+`seat-rota.module.ts`'s `activeSeat()` takes an optional 4th parameter, a completion predicate `(seat: SeatFact) => boolean`, defaulting to `() => false`. Only Around the Clock passes a real one: its seats can finish their own circuit in a different number of visits (a miss costs an extra one), so once one seat is done, every remaining turn must go to whichever seat is not — plain lockstep alternation cannot express that. Every other engine either never reaches a state where two seats could diverge before the match ends, or ends the match outright on elimination/race, so the default reproduces the prior pure-alternation behavior unchanged.
+
+See `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` for the full design. <!-- 2026-08-22 -->
 
 ---
 

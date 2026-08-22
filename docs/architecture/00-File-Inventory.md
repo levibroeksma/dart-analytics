@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-08-20
+updated: 2026-08-22
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -26,7 +26,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
-| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns and `completedAt` timing (2026-07-26) | canonical | ~3.7k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22) | canonical | ~3.7k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |
@@ -58,7 +58,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/01-Implementation-Strategy.md` | REST endpoints, Cloudflare + Neon constraints | canonical | ~2.1k |
 | `06-API/02-Middleware-And-Layering.md` | Middleware, `locals.auth`, folder layering, API error boundary; `api-auth-proxy` route class (D172, 2026-07-29) | canonical | ~3.0k |
 | `06-API/03-Shared-Conventions.md` | Envelope, headers, pagination, error registry; type-raising governs type imports, value imports exempt (2026-07-26) | canonical | ~4k |
-| `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22); Player Settings `GET`/`PATCH /api/players/me/settings` incl. the uncapable-pair `VALIDATION_FAILED` case (D195, 2026-08-08) | canonical | ~5.7k |
+| `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22); Player Settings `GET`/`PATCH /api/players/me/settings` incl. the uncapable-pair `VALIDATION_FAILED` case (D195, 2026-08-08); `POST /sessions`' `SEAT_CAPS` table (2026-08-22) | canonical | ~5.7k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~3.4k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes; same-origin auth client (D172, 2026-07-29) | canonical | ~2.2k |
 | `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26) | canonical | ~1.9k |
@@ -196,7 +196,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |
-| `decisions/game-engine.md` | 32 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training | canonical | ~9.4k |
+| `decisions/game-engine.md` | 38 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training (D230 win-condition categories/`SEAT_CAPS`/`activeSeat()` completion predicate, 2026-08-22) | canonical | ~12k |
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 19 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area | canonical | ~3.8k |

@@ -30,6 +30,7 @@ Popular doubles training game with a running score. Start at **27**, throw three
 
 - **Traditional:** survive the path without hitting **0 or below**; after the bull visit, finish with a **positive** score to win.
 - **Session (V1):** one full traditional run (D1…D20, bull).
+- **1v1:** first to bust loses; the other seat wins (elimination). <!-- 2026-08-22 -->
 
 ## Config & presets (V1)
 

@@ -29,6 +29,7 @@ Round-by-round target game: each round has one **active number** (1, then 2, the
 
 - **Round:** with three darts, score as much as possible on the active number only.
 - **Session (V1):** complete the round range (default **1–7**). Highest cumulative score wins, unless someone hits a **Shanghai** for an instant win.
+- **1v1:** a Shanghai ends the match immediately for whoever hits it; otherwise both seats play all 20 rounds and the higher score wins (ties possible). <!-- 2026-08-22 -->
 
 ## Config & presets (V1)
 
