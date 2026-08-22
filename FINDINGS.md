@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-22
-highest-issued: F19
+highest-issued: F20
 -->
 
 # Findings
@@ -164,3 +164,10 @@ Claim: `docs/architecture/00-File-Inventory.md`'s row for `FINDINGS.md` claims `
 Evidence: `docs/architecture/00-File-Inventory.md:195` (`| \`FINDINGS.md\` | ... | canonical | ~4.2k |`); `bash scripts/check-context-budget.sh` — `FAIL: FINDINGS.md claimed=~4.2k computed=~5.5k (drift=23% > 20%)`; reproduced on `git stash` against this branch's pre-task HEAD (`e98eec6`), so the drift predates this task and was not introduced by it — most likely accumulated from F15–F18 being appended to `FINDINGS.md` (2026-08-22) without their added length being reflected back into the inventory row's estimate
 Impact: `scripts/check-context-budget.sh` (part of the `run-all-gates`/context-maintenance "Always run" set) fails on every run until the estimate is refreshed, unrelated to whatever task last touched the repo; not otherwise harmful — the actual `FINDINGS.md` content is unaffected, only its inventory-row token estimate is out of date
 Proposed: bump `docs/architecture/00-File-Inventory.md:195`'s `~4.2k` to `~5.5k` (or the then-current chars/4 estimate) — a one-line, mechanical fix once someone re-derives the number, but outside every individual task's own designated files so deferred here rather than folded into unrelated work
+
+### F20 — `foldShanghaiState`'s `winningSideKey` reads non-null for a solo session that ends on a Shanghai
+Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `raceWinner` is called unconditionally on every seat, including a solo (1-seat) session; a lone seat that hits a Shanghai is the sole `finished: true` entry, so `raceWinner` returns that seat's own `sideKey` rather than `null` — flagged as a Minor, non-blocking review note on the prior task that added this function, deferred to this task to determine whether it leaks into the frontend
+Evidence: `app/src/modules/game/shanghai.engine.module.ts:165-170` (`raceResult = raceWinner(seats.map(...))`, no `seats.length > 1` guard, unlike the `compareResult` branch two lines below which does gate on `seats.length > 1`); confirmed via `foldShanghaiState`'s own solo-Shanghai test in `app/tests/lib/game/shanghai-play.data.test.ts` ("SINGLE, DOUBLE, TREBLE in one visit wins instantly with a Shanghai"), whose `resultsSnapshot.winningSideKey` is the solo seat's own `"A"`, not `null`
+Impact: currently masked in the UI — `ShanghaiResults.astro`'s banner logic short-circuits to the classic solo "Shanghai!"/"Session complete" text whenever `($store.game.seats?.length ?? 1) < 2`, regardless of `winningSideKey`, so today's rendering is unaffected (verified this task). But `winningSideKey` is otherwise documented/used everywhere else as "null unless a 2+-seat match has a decided winner" (mirrors `AroundTheClockState`/`TuodState`'s own field), so any future direct consumer of `ShanghaiState.winningSideKey` (a stat view, a different UI surface) that does not itself re-check seat count would misread a solo Shanghai as having a "winning side"
+Proposed: gate `raceResult` on `seats.length > 1` in `foldShanghaiState`, matching the `compareResult` branch's own existing guard two lines below — restores `winningSideKey: null` for every solo completion, symmetric with the rest of the function; outside this task's designated files (`app/src/modules/game/shanghai.engine.module.ts` is Task 13's file, not Task 14's)
