@@ -47,11 +47,16 @@ export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
   winningSideKey: string | null;
 };
 
-export type SinglesTrainingState = {
+export type SinglesTrainingSeatState = SeatState & {
   targetIndex: number;
   totalPoints: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type SinglesTrainingState = MultiSeatState<SinglesTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /**

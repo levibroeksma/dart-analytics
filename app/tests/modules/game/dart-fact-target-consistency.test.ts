@@ -18,6 +18,7 @@ import type {
   DartObservation,
   DoublesTrainingState,
   EngineFacts,
+  SinglesTrainingSeatState,
   SinglesTrainingState,
 } from "@modules/types";
 import type {
@@ -159,7 +160,7 @@ const singlesConfig: Seated<SinglesSnapshot> = {
 };
 
 function singlesObservationFor(
-  state: SinglesTrainingState,
+  state: SinglesTrainingSeatState,
   zone: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
 ): DartObservation {
   const target = targetAt(numbersPath(), state.targetIndex);
@@ -191,11 +192,11 @@ function playSinglesThroughBull(): GameEngine<
 > {
   const engine = singlesTrainingEngineFactory.create(singlesConfig);
   for (let target = 0; target < 20; target++) {
-    engine.record(singlesObservationFor(engine.state(), "MISS"));
-    engine.record(singlesObservationFor(engine.state(), "SINGLE"));
-    engine.record(singlesObservationFor(engine.state(), "TREBLE"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "MISS"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "TREBLE"));
   }
-  engine.record(singlesObservationFor(engine.state(), "DOUBLE"));
+  engine.record(singlesObservationFor(engine.state().seats[0], "DOUBLE"));
   return engine;
 }
 
