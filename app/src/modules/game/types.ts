@@ -241,18 +241,29 @@ export type TuodAttemptInput = {
 export type TuodInput = TuodAttemptInput | DartObservation;
 
 /**
- * Ten Up One Down session state. `currentTarget`, `attempts`, `successes` and
- * `failures` are folded from the fact log on every read — the ladder position
- * is never accumulated. `timerExpired` is the one field the log cannot derive:
- * the MINUTES countdown lives in `game.store.ts`, so expiry arrives through
- * `TuodEngine.expireTimer()` exactly as it does for Score Training, never by
- * writing to this object, which is a copy.
+ * One seat's ladder in a Ten Up One Down session. `currentTarget`,
+ * `attempts`, `successes` and `failures` are folded from the fact log on
+ * every read — the ladder position is never accumulated.
  */
-export type TuodState = {
+export type TuodSeatState = SeatState & {
   currentTarget: number;
   attempts: number;
   successes: number;
   failures: number;
+};
+
+/**
+ * Ten Up One Down session state. Score-compare: both seats always play out
+ * their own full duration budget, then whichever reached the higher target
+ * wins — `status`/`winningSideKey` resolve only once every seat has.
+ * `timerExpired` is the one field the log cannot derive: the MINUTES
+ * countdown lives in `game.store.ts`, so expiry arrives through
+ * `TuodEngine.expireTimer()` exactly as it does for Score Training, never by
+ * writing to this object, which is a copy.
+ */
+export type TuodState = MultiSeatState<TuodSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   timerExpired: boolean;
 };
 

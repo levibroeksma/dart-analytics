@@ -1,8 +1,10 @@
-import type { TuodSnapshot, Seated } from "@lib/types";
+import type { TuodSnapshot, Seated, SeatFact } from "@lib/types";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { newClientKey } from "./client-key.module";
 import { registerEngineFactory } from "./engine.registry";
+import { activeSeat } from "./seat-rota.module";
+import { scoreCompareWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
@@ -11,6 +13,7 @@ import type {
   StageFact,
   TuodAttemptInput,
   TuodInput,
+  TuodSeatState,
   TuodState,
   TurnFact,
 } from "./types";
@@ -80,30 +83,38 @@ function visitOutcome(
   return { checkedOut, busted };
 }
 
-/** The ladder as it stands before any attempt: on the configured start target. */
-export function initialTuodState(config: TuodSnapshot): TuodState {
+function initialSeatState(config: TuodSnapshot, seat: SeatFact): TuodSeatState {
   return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
     currentTarget: config.startingTarget,
     attempts: 0,
     successes: 0,
     failures: 0,
+  };
+}
+
+/** The ladder as it stands before any attempt: every seat on the configured start target. */
+export function initialTuodState(config: Seated<TuodSnapshot>): TuodState {
+  return {
+    activeParticipantRef: config.seats[0].participantRef,
+    status: "IN_PROGRESS",
+    winningSideKey: null,
     timerExpired: false,
+    seats: config.seats.map((seat) => initialSeatState(config, seat)),
   };
 }
 
 /**
- * Pure reducer: folds one resolved attempt onto a `TuodState`. A success moves
- * the next target up by `finishBonus`; a failure — a plain miss and a bust
- * alike, since a bust voids the one visit the attempt gets — moves it down by
- * `missPenalty`, floored at the double-out minimum so the ladder never falls
- * onto a target no double can finish. `timerExpired` is carried through
- * untouched: it is not a fold over attempts.
+ * Pure reducer: folds one resolved attempt onto one seat's `TuodSeatState`. A
+ * success moves the next target up by `finishBonus`; a failure moves it down
+ * by `missPenalty`, floored at the double-out minimum.
  */
 export function applyTuodAttempt(
   config: TuodSnapshot,
-  state: TuodState,
+  state: TuodSeatState,
   succeeded: boolean,
-): TuodState {
+): TuodSeatState {
   return {
     ...state,
     currentTarget: succeeded
@@ -118,19 +129,99 @@ export function applyTuodAttempt(
   };
 }
 
+function seatCompletesAt(
+  config: TuodSnapshot,
+  attemptCount: number,
+  timerExpired: boolean,
+): boolean {
+  if (config.durationType === "ROUNDS") {
+    return attemptCount >= config.durationValue;
+  }
+  return timerExpired && attemptCount >= 1;
+}
+
 /**
- * Ten Up One Down: a checkout ladder starting at `startingTarget`, climbing
- * `finishBonus` on a checked-out attempt and falling `missPenalty` on a failed
- * one, played for a ROUNDS or MINUTES duration. Under RECREATIONAL +
- * QUICK_SCORE the engine owns one turn per attempt, carrying the attempt
- * total with no dart rows; under ANALYTICS + VISUAL_BOARD it owns one dart at
- * a time, building the same one-turn-per-attempt shape dart-by-dart —
- * mirrors `OneTwentyOneEngine`'s dual-shape `record()`, simplified because
- * TUOD has exactly one visit per attempt and one stage for the whole session
- * (no per-round stage bookkeeping). The ladder is derived by folding every
- * CLOSED turn through `applyTuodAttempt`, never accumulated: a successful
- * attempt stores the score it counted and a failed one stores `0`, so a
- * positive total is exactly what marks a success on replay.
+ * Folds the whole fact log into the session's state — the same function the
+ * engine's own `deriveState()` delegates to, mirroring `foldAroundTheClockState`.
+ * Score-compare, highest target wins: both seats always play out their own
+ * full ROUNDS budget (1v1 offers ROUNDS only — see `tuod-setup.data.ts`);
+ * `activeSeat` never needs a completion predicate here because every seat's
+ * budget is the same fixed count, so lockstep alternation already lands each
+ * seat on its own last round together. A solo (1-seat) session's own `status`
+ * always reads `IN_PROGRESS` here — solo completion is read off
+ * `TuodEngine.isComplete()` instead, never off this field.
+ */
+export function foldTuodState(
+  facts: EngineFacts,
+  config: Seated<TuodSnapshot>,
+  timerExpired: boolean,
+): TuodState {
+  const seats = config.seats.map((seat) => {
+    let state = initialSeatState(config, seat);
+    const seatTurns = facts.turns.filter(
+      (turn) =>
+        turn.participantRef === seat.participantRef &&
+        turn.completedAt !== null,
+    );
+    for (const turn of seatTurns) {
+      state = applyTuodAttempt(config, state, turn.totalScore > 0);
+    }
+    return state;
+  });
+
+  const completedSeats = seats.map((seat) =>
+    seatCompletesAt(config, seat.attempts, timerExpired),
+  );
+  const allComplete = completedSeats.every(Boolean);
+
+  const winningSideKey =
+    seats.length === 1
+      ? null
+      : scoreCompareWinner(
+          seats.map((seat, index) => ({
+            sideKey: seat.sideKey,
+            completed: completedSeats[index],
+            metric: seat.currentTarget,
+          })),
+          "HIGHEST",
+        );
+
+  const status: TuodState["status"] =
+    seats.length === 1
+      ? "IN_PROGRESS"
+      : !allComplete
+        ? "IN_PROGRESS"
+        : winningSideKey !== null
+          ? "COMPLETE"
+          : "TIE";
+
+  return {
+    activeParticipantRef: activeSeat(
+      facts,
+      config.seats,
+      "PER_SEAT",
+      (candidate) => {
+        const index = seats.findIndex(
+          (seat) => seat.participantRef === candidate.participantRef,
+        );
+        return index === -1 ? false : completedSeats[index];
+      },
+    ).participantRef,
+    status,
+    winningSideKey,
+    timerExpired,
+    seats,
+  };
+}
+
+/**
+ * Ten Up One Down: a checkout ladder per seat, starting at `startingTarget`,
+ * climbing `finishBonus` on a checked-out attempt and falling `missPenalty`
+ * on a failed one, played for a ROUNDS duration in 1v1 (MINUTES stays solo
+ * -only — a single wall-clock timer running through two seats' alternating
+ * turns is a separate, deferred capture problem). Score-compare: both seats
+ * always play their own full round budget, then whichever reached the higher
+ * target wins.
  */
 export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   readonly rulesetVersionKey = "TUOD_V1";
@@ -148,51 +239,12 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
-  /**
-   * Folds every CLOSED turn as the attempt that produced it. Never called
-   * with an open turn counted in — `deriveState()` is the only caller and
-   * keeps an open board visit out of this fold on purpose, exactly as
-   * `OneTwentyOneEngine.deriveClosedState` does.
-   */
-  private deriveClosedState(turns: readonly TurnFact[]): TuodState {
-    let state = initialTuodState(this.config);
-    for (const turn of turns) {
-      if (turn.completedAt === null) continue;
-      state = applyTuodAttempt(this.config, state, turn.totalScore > 0);
-    }
-    return state;
-  }
-
-  /**
-   * Replays every CLOSED attempt as the outcome that produced it. A turn's
-   * `totalScore` is the counted board score, and a failed attempt stores `0`,
-   * so `totalScore > 0` reproduces the ladder exactly — the floor in
-   * `applyTuodAttempt` runs on every step of the replay, so a rehydrated
-   * session lands on the same target a live one folded to. An open board
-   * visit contributes nothing until it resolves.
-   */
   private deriveState(): TuodState {
-    return {
-      ...this.deriveClosedState(this.turns),
-      timerExpired: this.timerExpired,
-    };
-  }
-
-  /** How many attempts have actually resolved — an open board visit does not count yet. */
-  private closedTurnCount(): number {
-    return this.turns.filter((turn) => turn.completedAt !== null).length;
-  }
-
-  /**
-   * The single completion rule, evaluated against an arbitrary attempt count so
-   * both `isComplete()` (the count now) and `wouldComplete()` (the count one
-   * attempt ahead) read it rather than restating it.
-   */
-  private completesAt(attemptCount: number): boolean {
-    if (this.config.durationType === "ROUNDS") {
-      return attemptCount >= this.config.durationValue;
-    }
-    return this.timerExpired && attemptCount >= 1;
+    return foldTuodState(
+      { stages: [this.stage], turns: this.turns },
+      this.config,
+      this.timerExpired,
+    );
   }
 
   /** The attempt still being thrown on the board, or null when the last one closed. */
@@ -202,12 +254,12 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     return last;
   }
 
-  /** Appends an empty attempt to the session's one stage and returns it. */
-  private openNewVisit(): TurnFact {
+  /** Appends an empty attempt for `activeParticipantRef` and returns it. */
+  private openNewVisit(activeParticipantRef: string): TurnFact {
     const visit: TurnFact = {
       clientKey: newClientKey(),
       stageClientKey: this.stage.clientKey,
-      participantRef: this.config.seats[0].participantRef,
+      participantRef: activeParticipantRef,
       sequence: this.turns.length + 1,
       completedAt: null,
       totalScore: 0,
@@ -220,12 +272,17 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   /**
    * The target `visit` was thrown at — every turn strictly before `visit` in
    * `this.turns` is always already closed (an engine only ever has one open
-   * turn, the last one), so folding them through `deriveClosedState` is safe
-   * and exact. Mirrors `OneTwentyOneEngine.remainingBeforeVisit`.
+   * turn, the last one), so folding them through `foldTuodState` is safe and
+   * exact. Mirrors `OneTwentyOneEngine.remainingBeforeVisit`.
    */
   private targetBeforeVisit(visit: TurnFact): number {
     const index = this.turns.indexOf(visit);
-    return this.deriveClosedState(this.turns.slice(0, index)).currentTarget;
+    return foldTuodState(
+      { stages: [this.stage], turns: this.turns.slice(0, index) },
+      this.config,
+      this.timerExpired,
+    ).seats.find((seat) => seat.participantRef === visit.participantRef)!
+      .currentTarget;
   }
 
   /**
@@ -252,7 +309,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * `FiveOhOneEngine.recordVisitTotal`'s guard (D198) — so the two input
    * shapes never write across each other.
    */
-  private rejectionReason(input: TuodAttemptInput): string | null {
+  private rejectionReason(
+    activeSeatState: TuodSeatState,
+    input: TuodAttemptInput,
+  ): string | null {
     if (this.isComplete()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
@@ -263,7 +323,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
       return null;
     }
     return checkoutDartsRejection(
-      this.deriveState().currentTarget,
+      activeSeatState.currentTarget,
       input.dartsUsed,
       input.dartsAtDouble,
       this.config.maxDartsPerTurn,
@@ -321,7 +381,11 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * Records one dart, opening a fresh attempt once the last one has resolved.
    * Mirrors `OneTwentyOneEngine.recordDart`; TUOD never opens a second stage,
    * unlike 121's per-round stage push, since the whole session is one
-   * `EXERCISE_BLOCK`.
+   * `EXERCISE_BLOCK`. `openVisit()` reuses the trailing turn only while it is
+   * still open — a visit only ever closes via `settleVisit`'s own
+   * `completedAt` stamp, so a reused open turn is always the same seat's own
+   * still-running attempt, never a stale, already-resolved one belonging to
+   * whoever threw last.
    * @throws when the session is already complete; the fact log is left
    *   untouched.
    */
@@ -331,9 +395,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
         "Cannot record an attempt once the session is complete; undo first to correct it.",
       );
     }
+    const activeParticipantRef = this.deriveState().activeParticipantRef;
 
     const resolved = this.resolveObservation(observation);
-    const visit = this.openVisit() ?? this.openNewVisit();
+    const visit = this.openVisit() ?? this.openNewVisit(activeParticipantRef);
 
     visit.darts.push({
       sequence: visit.darts.length + 1,
@@ -351,19 +416,22 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   }
 
   /**
-   * Appends one whole-visit attempt reported by the keypad. A checkout stores
-   * the target it was thrown at as the turn total, since the counted board
-   * score of a double-out finish always equals it; any failure — a miss, a
-   * checkout that did not finish on a double, or a bust — stores `0`.
-   * `completedAt` is stamped here because a keypad attempt is a single visit
-   * that resolves the moment it is reported.
+   * Appends one whole-visit attempt reported by the keypad, for the currently
+   * active seat. A checkout stores the target it was thrown at as the turn
+   * total, since the counted board score of a double-out finish always
+   * equals it; any failure — a miss, a checkout that did not finish on a
+   * double, or a bust — stores `0`. `completedAt` is stamped here because a
+   * keypad attempt is a single visit that resolves the moment it is reported.
    * @throws when the session has already ended, a board visit is open, or the
    *   attempt claims more darts than the ruleset allows; the fact log is left
    *   untouched in any case.
    */
   private recordAttemptTotal(input: TuodAttemptInput): TuodState {
     const before = this.deriveState();
-    const reason = this.rejectionReason(input);
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    const reason = this.rejectionReason(activeSeatState, input);
     if (reason) {
       throw new Error(reason);
     }
@@ -372,10 +440,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: this.stage.clientKey,
-      participantRef: this.config.seats[0].participantRef,
+      participantRef: before.activeParticipantRef,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
-      totalScore: succeeded ? before.currentTarget : 0,
+      totalScore: succeeded ? activeSeatState.currentTarget : 0,
       darts: [],
     });
 
@@ -427,19 +495,24 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   /**
    * Whether recording `observation` right now would resolve the current (or a
    * fresh) attempt — by checkout, bust, or running out of darts — and that
-   * resolution would be the session's last permitted attempt. Mirrors
-   * `recordAttemptTotal`'s own `wouldComplete` reading (any resolved attempt
-   * can end a duration-bounded session, success or not), computed without
-   * mutating the fact log.
+   * resolution would be the WHOLE session's last permitted attempt: the
+   * active seat reaching its own duration budget AND every other seat
+   * already at theirs. Mirrors `recordAttemptTotal`'s own `wouldComplete`
+   * reading (any resolved attempt can end a duration-bounded seat's own
+   * budget, success or not), computed without mutating the fact log.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
     if (this.isComplete()) return false;
 
+    const before = this.deriveState();
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
     const visit = this.openVisit();
     const priorDarts = visit ? visit.darts : [];
     const target = visit
       ? this.targetBeforeVisit(visit)
-      : this.deriveState().currentTarget;
+      : activeSeatState.currentTarget;
 
     const resolved = this.resolveObservation(observation);
     const thrown =
@@ -454,26 +527,74 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
       checkedOut || busted || dartCount === this.config.maxDartsPerTurn;
 
     if (!visitResolves) return false;
-    return this.completesAt(this.closedTurnCount() + 1);
+
+    const otherSeatsComplete = before.seats
+      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
+      .every((seat) =>
+        seatCompletesAt(this.config, seat.attempts, this.timerExpired),
+      );
+    return (
+      seatCompletesAt(
+        this.config,
+        activeSeatState.attempts + 1,
+        this.timerExpired,
+      ) && otherSeatsComplete
+    );
   }
 
   /**
    * Answers the finish-confirm gate without touching the fact log. An input
    * `record()` would reject never completes the session — the caller falls
-   * through to `record()` and surfaces its error instead.
+   * through to `record()` and surfaces its error instead. For 1v1, the whole
+   * session only completes once every OTHER seat has already finished its
+   * own budget too, exactly as `AroundTheClockEngine.wouldComplete` reads it.
    */
   wouldComplete(input: TuodInput): boolean {
     if (isDartObservation(input)) {
       return this.wouldCompleteDart(input);
     }
-    if (this.rejectionReason(input) !== null) {
+
+    const before = this.deriveState();
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+    if (this.rejectionReason(activeSeatState, input) !== null) {
       return false;
     }
-    return this.completesAt(this.closedTurnCount() + 1);
+
+    const otherSeatsComplete = before.seats
+      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
+      .every((seat) =>
+        seatCompletesAt(this.config, seat.attempts, this.timerExpired),
+      );
+    return (
+      seatCompletesAt(
+        this.config,
+        activeSeatState.attempts + 1,
+        this.timerExpired,
+      ) && otherSeatsComplete
+    );
   }
 
+  /**
+   * `foldTuodState`'s own `status` field reads `"IN_PROGRESS"` for a solo
+   * (1-seat) session even once that seat is done — score-compare's status
+   * only resolves once every OTHER seat is also complete, and a solo session
+   * has no other seat to wait on. Solo completion is instead read directly
+   * off that one seat's own attempt count against its own round budget —
+   * exactly the pre-1v1 `completesAt(closedTurnCount())` reading, so a solo
+   * session ends exactly when it always did.
+   */
   isComplete(): boolean {
-    return this.completesAt(this.closedTurnCount());
+    const state = this.deriveState();
+    if (state.seats.length === 1) {
+      return seatCompletesAt(
+        this.config,
+        state.seats[0].attempts,
+        this.timerExpired,
+      );
+    }
+    return state.status !== "IN_PROGRESS";
   }
 
   state(): TuodState {

@@ -29,6 +29,9 @@ export function tuodSetup() {
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+    guests: [] as { displayName: string }[],
+    showAddGuestModal: false,
+    newGuestName: "",
 
     async init(this: TuodSetupContext) {
       this.loadingReconciliation = true;
@@ -56,6 +59,30 @@ export function tuodSetup() {
         const cfg = p.configuration as { duration_type?: string } | null;
         return cfg?.duration_type === type;
       });
+    },
+
+    addGuest(this: TuodSetupContext) {
+      if (this.guests.length >= 1) return;
+      const name = this.newGuestName.trim();
+      if (!name) return;
+      this.guests.push({ displayName: name });
+      this.newGuestName = "";
+      this.showAddGuestModal = false;
+      this.forceRoundsIfGuested();
+    },
+
+    removeGuest(this: TuodSetupContext, index: number) {
+      this.guests.splice(index, 1);
+    },
+
+    /**
+     * A 1v1 match needs a fixed round count both seats share, not a
+     * wall-clock timer running through alternating turns — see
+     * `2026-08-22-single-opponent-seat-remaining-engines-design.md`. Once a
+     * guest is added, TIMED (MINUTES) is locked back to ROUNDS.
+     */
+    forceRoundsIfGuested(this: TuodSetupContext) {
+      if (this.guests.length > 0) this.durationType = "ROUNDS";
     },
 
     async reconcile(
@@ -132,6 +159,16 @@ export function tuodSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
+        const participants = this.guests.length
+          ? [
+              { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+              {
+                participantTypeKey: "GUEST" as const,
+                displayName: this.guests[0].displayName,
+                sideKey: "B",
+              },
+            ]
+          : undefined;
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -141,6 +178,7 @@ export function tuodSetup() {
             source: "template",
             templateRef: preset.configurationTemplateId,
           },
+          participants,
         });
         this.$store.game.startSession(
           startSessionInput({

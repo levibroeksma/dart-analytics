@@ -77,24 +77,38 @@ describe("tuodEngineFactory", () => {
 describe("initialTuodState", () => {
   it("starts on the configured target with nothing attempted", () => {
     expect(initialTuodState(config())).toEqual({
-      currentTarget: 41,
-      attempts: 0,
-      successes: 0,
-      failures: 0,
+      activeParticipantRef: SEATS[0].participantRef,
+      status: "IN_PROGRESS",
+      winningSideKey: null,
       timerExpired: false,
+      seats: [
+        {
+          participantRef: SEATS[0].participantRef,
+          sideKey: SEATS[0].sideKey,
+          currentTarget: 41,
+          attempts: 0,
+          successes: 0,
+          failures: 0,
+        },
+      ],
     });
   });
 
   it("honours a non-default starting target", () => {
     expect(
-      initialTuodState({ ...config(), startingTarget: 61 }).currentTarget,
+      initialTuodState({ ...config(), startingTarget: 61 }).seats[0]
+        .currentTarget,
     ).toBe(61);
   });
 });
 
 describe("applyTuodAttempt", () => {
   it("climbs by the finish bonus on a success", () => {
-    const next = applyTuodAttempt(config(), initialTuodState(config()), true);
+    const next = applyTuodAttempt(
+      config(),
+      initialTuodState(config()).seats[0],
+      true,
+    );
     expect(next.currentTarget).toBe(51);
     expect(next.successes).toBe(1);
     expect(next.failures).toBe(0);
@@ -102,7 +116,11 @@ describe("applyTuodAttempt", () => {
   });
 
   it("drops by the miss penalty on a failure", () => {
-    const next = applyTuodAttempt(config(), initialTuodState(config()), false);
+    const next = applyTuodAttempt(
+      config(),
+      initialTuodState(config()).seats[0],
+      false,
+    );
     expect(next.currentTarget).toBe(40);
     expect(next.successes).toBe(0);
     expect(next.failures).toBe(1);
@@ -110,23 +128,29 @@ describe("applyTuodAttempt", () => {
   });
 
   it("does not mutate the state it folds", () => {
-    const before = initialTuodState(config());
+    const before = initialTuodState(config()).seats[0];
     applyTuodAttempt(config(), before, true);
-    expect(before).toEqual(initialTuodState(config()));
+    expect(before).toEqual(initialTuodState(config()).seats[0]);
   });
 
   it("floors a failure at the double-out minimum instead of dropping below it", () => {
-    const near = { ...initialTuodState(config()), currentTarget: 3 };
+    const near = { ...initialTuodState(config()).seats[0], currentTarget: 3 };
     expect(applyTuodAttempt(config(), near, false).currentTarget).toBe(2);
   });
 
   it("keeps a failure at the floor once the target is already there", () => {
-    const atFloor = { ...initialTuodState(config()), currentTarget: 2 };
+    const atFloor = {
+      ...initialTuodState(config()).seats[0],
+      currentTarget: 2,
+    };
     expect(applyTuodAttempt(config(), atFloor, false).currentTarget).toBe(2);
   });
 
   it("still climbs by the finish bonus from the floor on a success", () => {
-    const atFloor = { ...initialTuodState(config()), currentTarget: 2 };
+    const atFloor = {
+      ...initialTuodState(config()).seats[0],
+      currentTarget: 2,
+    };
     expect(applyTuodAttempt(config(), atFloor, true).currentTarget).toBe(12);
   });
 });
@@ -136,7 +160,7 @@ describe("TuodEngine.record — outcomes", () => {
     const engine = tuodEngineFactory.create(config());
     const state = engine.record(CHECKOUT);
 
-    expect(state.currentTarget).toBe(51);
+    expect(state.seats[0].currentTarget).toBe(51);
     expect(engine.facts().turns[0].totalScore).toBe(41);
   });
 
@@ -144,7 +168,7 @@ describe("TuodEngine.record — outcomes", () => {
     const engine = tuodEngineFactory.create(config());
     const state = engine.record(MISS);
 
-    expect(state.currentTarget).toBe(40);
+    expect(state.seats[0].currentTarget).toBe(40);
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
@@ -152,8 +176,8 @@ describe("TuodEngine.record — outcomes", () => {
     const engine = tuodEngineFactory.create(config());
     const state = engine.record(BUST);
 
-    expect(state.currentTarget).toBe(40);
-    expect(state.failures).toBe(1);
+    expect(state.seats[0].currentTarget).toBe(40);
+    expect(state.seats[0].failures).toBe(1);
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
@@ -161,8 +185,8 @@ describe("TuodEngine.record — outcomes", () => {
     const engine = tuodEngineFactory.create(config());
     const state = engine.record({ checkedOut: true, dartsUsed: 3 });
 
-    expect(state.currentTarget).toBe(40);
-    expect(state.successes).toBe(0);
+    expect(state.seats[0].currentTarget).toBe(40);
+    expect(state.seats[0].successes).toBe(0);
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
@@ -174,8 +198,8 @@ describe("TuodEngine.record — outcomes", () => {
       finishedOnDouble: false,
     });
 
-    expect(state.currentTarget).toBe(40);
-    expect(state.successes).toBe(0);
+    expect(state.seats[0].currentTarget).toBe(40);
+    expect(state.seats[0].successes).toBe(0);
   });
 
   it("rejects an attempt using more darts than the ruleset allows", () => {
@@ -208,7 +232,7 @@ describe("TuodEngine — ladder floor", () => {
   it("floors a miss at target 3 to 2", () => {
     const engine = tuodEngineFactory.create(floorConfig());
     const state = engine.record(MISS);
-    expect(state.currentTarget).toBe(2);
+    expect(state.seats[0].currentTarget).toBe(2);
   });
 
   it("keeps a miss at target 2 at 2", () => {
@@ -218,15 +242,15 @@ describe("TuodEngine — ladder floor", () => {
       durationValue: 50,
     });
     const state = engine.record(MISS);
-    expect(state.currentTarget).toBe(2);
+    expect(state.seats[0].currentTarget).toBe(2);
   });
 
   it("stays at 2 through repeated misses at the floor", () => {
     const engine = tuodEngineFactory.create(floorConfig());
     const state = playAttempts(engine, [MISS, MISS, MISS, MISS, MISS]);
 
-    expect(state.currentTarget).toBe(2);
-    expect(state.failures).toBe(5);
+    expect(state.seats[0].currentTarget).toBe(2);
+    expect(state.seats[0].failures).toBe(5);
   });
 
   it("still climbs by the finish bonus on a successful checkout at 2", () => {
@@ -236,7 +260,7 @@ describe("TuodEngine — ladder floor", () => {
     });
     const state = engine.record(CHECKOUT);
 
-    expect(state.currentTarget).toBe(12);
+    expect(state.seats[0].currentTarget).toBe(12);
     expect(engine.facts().turns[0].totalScore).toBe(2);
   });
 
@@ -257,11 +281,20 @@ describe("TuodEngine.state — derived by folding facts", () => {
     const state = playAttempts(engine, [CHECKOUT, CHECKOUT, MISS, BUST]);
 
     expect(state).toEqual({
-      currentTarget: 59,
-      attempts: 4,
-      successes: 2,
-      failures: 2,
+      activeParticipantRef: SEATS[0].participantRef,
+      status: "IN_PROGRESS",
+      winningSideKey: null,
       timerExpired: false,
+      seats: [
+        {
+          participantRef: SEATS[0].participantRef,
+          sideKey: SEATS[0].sideKey,
+          currentTarget: 59,
+          attempts: 4,
+          successes: 2,
+          failures: 2,
+        },
+      ],
     });
   });
 
@@ -347,7 +380,7 @@ describe("TuodEngine.undo — exact inverse of record", () => {
     engine.undo();
 
     expect(engine.facts()).toEqual(beforeFacts);
-    expect(engine.state().currentTarget).toBe(51);
+    expect(engine.state().seats[0].currentTarget).toBe(51);
   });
 
   it("undoes back through rehydrated facts to an empty log", () => {
@@ -374,10 +407,10 @@ describe("TuodEngine.undo — exact inverse of record", () => {
 
     const beforeFacts = engine.facts();
     const beforeState = engine.state();
-    expect(beforeState.currentTarget).toBe(2);
+    expect(beforeState.seats[0].currentTarget).toBe(2);
 
     engine.record(MISS);
-    expect(engine.state().currentTarget).toBe(2);
+    expect(engine.state().seats[0].currentTarget).toBe(2);
     expect(engine.undo()).toBe(true);
 
     expect(engine.facts()).toEqual(beforeFacts);
@@ -410,7 +443,7 @@ describe("TuodEngine.wouldComplete — pure", () => {
     engine.wouldComplete(MISS);
 
     expect(engine.state()).toEqual(before);
-    expect(before.currentTarget).toBe(2);
+    expect(before.seats[0].currentTarget).toBe(2);
   });
 
   it("is true for the attempt that reaches the configured round count", () => {
@@ -518,7 +551,7 @@ describe("TUOD checkout dart counts", () => {
   it("checks the counts against the target the attempt is thrown at", () => {
     const engine = tuodEngineFactory.create(config());
     engine.record(CHECKOUT);
-    expect(engine.state().currentTarget).toBe(51);
+    expect(engine.state().seats[0].currentTarget).toBe(51);
     expect(() =>
       engine.record({
         checkedOut: true,
@@ -578,8 +611,8 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     const engine = tuodEngineFactory.create(boardConfig());
     const state = engine.record(DOUBLE_20);
 
-    expect(state.currentTarget).toBe(50);
-    expect(state.successes).toBe(1);
+    expect(state.seats[0].currentTarget).toBe(50);
+    expect(state.seats[0].successes).toBe(1);
     const turn = engine.facts().turns[0];
     expect(turn.totalScore).toBe(40);
     expect(turn.completedAt).not.toBeNull();
@@ -597,8 +630,8 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     const engine = tuodEngineFactory.create(boardConfig());
     const state = engine.record(TREBLE_20);
 
-    expect(state.currentTarget).toBe(39);
-    expect(state.failures).toBe(1);
+    expect(state.seats[0].currentTarget).toBe(39);
+    expect(state.seats[0].failures).toBe(1);
     const turn = engine.facts().turns[0];
     expect(turn.totalScore).toBe(0);
     expect(turn.darts[0].score).toBe(60);
@@ -616,7 +649,7 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
     const state = engine.record(DOUBLE_20);
-    expect(state.currentTarget).toBe(51);
+    expect(state.seats[0].currentTarget).toBe(51);
     const turn = engine.facts().turns[0];
     expect(turn.completedAt).not.toBeNull();
     expect(turn.darts).toHaveLength(2);
@@ -629,8 +662,8 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     engine.record(SINGLE_1);
     const state = engine.record(SINGLE_1);
 
-    expect(state.currentTarget).toBe(39);
-    expect(state.failures).toBe(1);
+    expect(state.seats[0].currentTarget).toBe(39);
+    expect(state.seats[0].failures).toBe(1);
     const turn = engine.facts().turns[0];
     expect(turn.totalScore).toBe(0);
     expect(turn.darts).toHaveLength(3);
@@ -747,5 +780,57 @@ describe("TuodEngine.wouldComplete — dart path, pure", () => {
     const before = engine.facts();
     engine.wouldComplete(DOUBLE_20);
     expect(engine.facts()).toEqual(before);
+  });
+});
+
+describe("TuodEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<TuodSnapshot> = {
+    startingTarget: 41,
+    finishBonus: 10,
+    missPenalty: 1,
+    maxDartsPerTurn: 3,
+    durationType: "ROUNDS",
+    durationValue: 2,
+    seats: twoSeats,
+  };
+
+  it("both seats always play out their own full ROUNDS budget before the match resolves", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    engine.record({ checkedOut: false }); // p1 round 1: fail
+    engine.record({ checkedOut: false }); // p2 round 1: fail
+    let state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS");
+    engine.record({ checkedOut: false }); // p1 round 2: fail
+    state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS"); // p2 still has a round left
+    state = engine.record({ checkedOut: true, finishedOnDouble: true }); // p2 round 2: success, climbs to 51
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B"); // p2's 51 beats p1's 40 (41 - 1)
+  });
+
+  it("stamps every turn's participantRef with a seat present in seats[]", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    engine.record({ checkedOut: false });
+    engine.record({ checkedOut: false });
+    const facts = engine.facts();
+    for (const turn of facts.turns) {
+      expect(
+        twoSeats.some((seat) => seat.participantRef === turn.participantRef),
+      ).toBe(true);
+    }
   });
 });

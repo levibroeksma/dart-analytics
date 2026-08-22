@@ -314,5 +314,104 @@ describe("tuodSetup", () => {
         }),
       );
     });
+
+    it("threads a PLAYER seat A and the guest as seat B once a guest is added", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            { participantTypeKey: "PLAYER", sideKey: "A" },
+            {
+              participantTypeKey: "GUEST",
+              displayName: "Guest 1",
+              sideKey: "B",
+            },
+          ],
+        }),
+      );
+    });
+  });
+});
+
+describe("tuodSetup — guests", () => {
+  function makeSetup() {
+    return {
+      ...tuodSetup(),
+      $store: {
+        game: { sessionId: null, reset: vi.fn(), startSession: vi.fn() },
+        settings: {
+          captureModeKey: "RECREATIONAL",
+          inputModeKey: "QUICK_SCORE",
+        },
+      },
+    } as unknown as TuodSetupContext;
+  }
+
+  it("caps 1v1 at a single guest", () => {
+    const setup = makeSetup();
+    setup.newGuestName = "Guest 1";
+    setup.addGuest();
+    setup.newGuestName = "Guest 2";
+    setup.addGuest();
+
+    expect(setup.guests).toHaveLength(1);
+    expect(setup.guests[0].displayName).toBe("Guest 1");
+  });
+
+  it("ignores a blank guest name", () => {
+    const setup = makeSetup();
+    setup.newGuestName = "   ";
+    setup.addGuest();
+
+    expect(setup.guests).toHaveLength(0);
+  });
+
+  it("removeGuest drops the guest by index", () => {
+    const setup = makeSetup();
+    setup.newGuestName = "Guest 1";
+    setup.addGuest();
+
+    setup.removeGuest(0);
+
+    expect(setup.guests).toHaveLength(0);
+  });
+});
+
+describe("tuodSetup — 1v1 forces ROUNDS", () => {
+  it("forceRoundsIfGuested resets MINUTES back to ROUNDS once a guest is added", () => {
+    const ctx = tuodSetup() as unknown as {
+      durationType: string;
+      guests: { displayName: string }[];
+      newGuestName: string;
+      addGuest: () => void;
+    };
+    ctx.durationType = "MINUTES";
+    ctx.newGuestName = "Guest 1";
+    ctx.addGuest();
+    expect(ctx.durationType).toBe("ROUNDS");
   });
 });

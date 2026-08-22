@@ -61,6 +61,9 @@ export type TuodSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -84,6 +87,9 @@ export type TuodSetupContext = {
     this: TuodSetupContext,
     type: TuodDurationType,
   ): ConfigurationPresetData | undefined;
+  addGuest(this: TuodSetupContext): void;
+  removeGuest(this: TuodSetupContext, index: number): void;
+  forceRoundsIfGuested(this: TuodSetupContext): void;
   start(this: TuodSetupContext): Promise<void>;
 };
 
