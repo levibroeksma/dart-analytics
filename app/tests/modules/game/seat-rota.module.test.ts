@@ -224,6 +224,26 @@ describe("activeSeat with a completion predicate", () => {
     ).toBe("p2");
   });
 
+  it("is a no-op under a uniform per-seat budget: the same seat either way, as TUOD and Score Training rely on", () => {
+    const facts = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK" as const,
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [closedTurn("p1", 1)],
+    };
+    const p1BudgetSpent = (seat: { participantRef: string }) =>
+      seat.participantRef === "p1";
+
+    expect(
+      activeSeat(facts, seatList, "PER_SEAT", p1BudgetSpent).participantRef,
+    ).toBe(activeSeat(facts, seatList, "PER_SEAT").participantRef);
+  });
+
   it("defaults to pure alternation when no predicate is passed", () => {
     const facts = {
       stages: [

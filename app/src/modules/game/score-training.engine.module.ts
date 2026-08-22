@@ -56,8 +56,10 @@ function seatCompletesAt(
  * Folds the whole fact log into the session's state, mirroring
  * `foldTuodState`. Score-compare, highest total wins: both seats always play
  * out their own full ROUNDS budget (1v1 offers ROUNDS only — see
- * `score-training-setup.data.ts`); `activeSeat` never needs a completion
- * predicate here for the same reason Task 11's TUOD fold does not.
+ * `score-training-setup.data.ts`). `activeSeat` IS passed a real completion
+ * predicate here (the 4-argument form), and it is structurally a no-op for
+ * the same reason `foldTuodState`'s is: a uniform per-seat budget under
+ * lockstep alternation.
  */
 export function foldScoreTrainingState(
   facts: EngineFacts,

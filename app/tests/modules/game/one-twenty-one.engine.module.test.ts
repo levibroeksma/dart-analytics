@@ -770,6 +770,18 @@ describe("OneTwentyOneEngine — 1v1", () => {
     expect(after.winningSideKey).toBe("A");
   });
 
+  it("leaves a SOLO checkout at 170 with a null winningSideKey — there is no side to beat", () => {
+    const engine = new OneTwentyOneEngine(config());
+    for (let target = 121; target < 170; target++) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+    const won = engine.record({ scoreAttempted: 170, finishedOnDouble: true });
+
+    expect(won.status).toBe("WON");
+    expect(won.seats[0].status).toBe("WON");
+    expect(won.winningSideKey).toBeNull();
+  });
+
   it("stamps every turn's participantRef with a seat present in seats[]", () => {
     const engine = new OneTwentyOneEngine(twoSeatConfig);
     engine.record({ scoreAttempted: 0 });

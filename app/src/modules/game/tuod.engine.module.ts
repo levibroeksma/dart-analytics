@@ -144,10 +144,14 @@ function seatCompletesAt(
  * Folds the whole fact log into the session's state — the same function the
  * engine's own `deriveState()` delegates to, mirroring `foldAroundTheClockState`.
  * Score-compare, highest target wins: both seats always play out their own
- * full ROUNDS budget (1v1 offers ROUNDS only — see `tuod-setup.data.ts`);
- * `activeSeat` never needs a completion predicate here because every seat's
- * budget is the same fixed count, so lockstep alternation already lands each
- * seat on its own last round together. A solo (1-seat) session's own `status`
+ * full ROUNDS budget (1v1 offers ROUNDS only — see `tuod-setup.data.ts`).
+ * `activeSeat` IS passed a real completion predicate here (the 4-argument
+ * form), reading each seat's own `seatCompletesAt`; it is structurally a
+ * no-op, because every seat's budget is the same fixed count and lockstep
+ * alternation already lands each seat on its own last round together. It is
+ * passed anyway so the fold stays correct if that budget ever stops being
+ * uniform — unlike Around the Clock's, whose predicate does real work today.
+ * A solo (1-seat) session's own `status`
  * always reads `IN_PROGRESS` here — solo completion is read off
  * `TuodEngine.isComplete()` instead, never off this field.
  */

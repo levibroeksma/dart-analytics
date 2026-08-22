@@ -123,9 +123,12 @@ function dartsThrownBy(
 }
 
 /**
- * Folds the whole fact log into the session's state — the same function the
- * engine's own `deriveState()` delegates to and the play page calls
- * directly for reactive display, mirroring `foldOneTwentyOneState`.
+ * Folds the whole fact log into the session's state — the function the
+ * engine's own `deriveState()` delegates to. Module-private: the play page
+ * reads state through `this.engine?.state()`, the same way Bob's 27 does,
+ * so nothing outside this file calls it (mirroring
+ * `foldSinglesTrainingState` and `foldDoublesTrainingState`, which are
+ * private for the same reason).
  *
  * Score-compare, fewest darts wins: both seats always play out their own
  * full circuit — a completed seat is skipped by `activeSeat`'s completion
@@ -133,7 +136,7 @@ function dartsThrownBy(
  * visit never steals a turn from a seat that has already finished. The
  * match resolves only once both seats are `COMPLETE`.
  */
-export function foldAroundTheClockState(
+function foldAroundTheClockState(
   facts: EngineFacts,
   config: Seated<AroundTheClockSnapshot>,
 ): AroundTheClockState {

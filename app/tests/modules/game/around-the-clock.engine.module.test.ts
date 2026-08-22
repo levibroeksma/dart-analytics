@@ -91,6 +91,22 @@ describe("initialAroundTheClockState", () => {
   });
 });
 
+describe("a solo circuit, read through the engine's own state()", () => {
+  it("completes with a null winningSideKey — there is no side to beat, and no caller folds outside the engine", () => {
+    const engine = new AroundTheClockEngine(config);
+    let state = engine.state();
+    for (let number = 1; number <= 20; number += 1) {
+      state = engine.record(numberHit(number, "SINGLE"));
+    }
+    state = engine.record(bullHit("OUTER_BULL"));
+
+    expect(state.seats[0].status).toBe("COMPLETE");
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBeNull();
+    expect(engine.isComplete()).toBe(true);
+  });
+});
+
 describe("isAroundTheClockHit — NUMBER target", () => {
   const target = targetAt(numbersPath(), 0);
 

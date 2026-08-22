@@ -822,6 +822,15 @@ describe("TuodEngine — 1v1", () => {
     expect(state.winningSideKey).toBe("B"); // p2's 51 beats p1's 40 (41 - 1)
   });
 
+  it("hands the last round to the seat that still has one, its completion predicate agreeing with lockstep alternation", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    engine.record({ checkedOut: false }); // p1 round 1
+    engine.record({ checkedOut: false }); // p2 round 1
+    engine.record({ checkedOut: false }); // p1 round 2 — p1's budget is now spent
+
+    expect(engine.state().activeParticipantRef).toBe("p2");
+  });
+
   it("stamps every turn's participantRef with a seat present in seats[]", () => {
     const engine = new TuodEngine(twoSeatConfig);
     engine.record({ checkedOut: false });

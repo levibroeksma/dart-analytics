@@ -663,6 +663,15 @@ describe("ScoreTrainingEngine — 1v1", () => {
     expect(state.winningSideKey).toBe("B");
   });
 
+  it("hands the last round to the seat that still has one, its completion predicate agreeing with lockstep alternation", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20); // p1 round 1
+    engine.record(60); // p2 round 1
+    engine.record(20); // p1 round 2 — p1's budget is now spent
+
+    expect(engine.state().activeParticipantRef).toBe("p2");
+  });
+
   it("stamps every turn's participantRef with a seat present in seats[]", () => {
     const engine = new ScoreTrainingEngine(twoSeatConfig);
     engine.record(20);

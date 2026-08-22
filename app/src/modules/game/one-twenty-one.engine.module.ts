@@ -242,6 +242,12 @@ function deriveClosedSeatState(
  * `visitsThisAttempt` / `status` come from); the currently open turn, if
  * any, only overlays a live subtraction onto that one seat's
  * `remainingInAttempt`, never touching its visit counter.
+ *
+ * A solo (1-seat) session's `winningSideKey` is always null: a lone seat
+ * checking out at 170 is the only `finished` entry `raceWinner` would see,
+ * so it would report that seat's own side as having beaten nobody. Solo
+ * completion is read off `status` instead, the same `seats.length === 1`
+ * gate every other multi-seat engine's win condition already carries.
  */
 export function foldOneTwentyOneState(
   facts: EngineFacts,
@@ -261,12 +267,15 @@ export function foldOneTwentyOneState(
     return closed;
   });
 
-  const winningSideKey = raceWinner(
-    seats.map((seat) => ({
-      sideKey: seat.sideKey,
-      finished: seat.status === "WON",
-    })),
-  );
+  const winningSideKey =
+    seats.length === 1
+      ? null
+      : raceWinner(
+          seats.map((seat) => ({
+            sideKey: seat.sideKey,
+            finished: seat.status === "WON",
+          })),
+        );
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")

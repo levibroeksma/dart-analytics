@@ -42,10 +42,13 @@ export function seatOf(turn: TurnFact, seats: readonly SeatFact[]): SeatFact {
  * finished, which is skipped so every remaining turn goes to whichever seat
  * has not: Around the Clock plays a variable number of visits per seat (a
  * miss costs an extra one), so lockstep alternation alone cannot describe
- * whose throw it is once one seat has already finished. Every other engine
- * either never calls with a real predicate or ends the match before two
- * seats could diverge, so the default `() => false` reproduces the old pure
- * alternation exactly.
+ * whose throw it is once one seat has already finished.
+ *
+ * Around the Clock, TUOD and Score Training all pass a real predicate; only
+ * Around the Clock's does work, because TUOD's and Score Training's seats
+ * share one fixed round budget and therefore never diverge. Every other
+ * engine omits the argument entirely, and the default `() => false`
+ * reproduces pure alternation exactly.
  */
 export function activeSeat(
   facts: EngineFacts,
