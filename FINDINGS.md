@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-22
-highest-issued: F17
+highest-issued: F18
 -->
 
 # Findings
@@ -143,6 +143,13 @@ Claim: `fallow` (this repo's duplication checker) flags a new clone group betwee
 Evidence: reported by the Task 9 implementer's own `fallow` run during the single-opponent-seat-remaining-engines plan; not independently re-run or narrowed to specific line ranges here
 Impact: the two engines' seat-folding/rotation/win-condition wiring now reads as near-identical boilerplate in two places, which is expected given both follow the same `MultiSeatState<TSeat>` conversion recipe used across all seven engines in this plan — but it is unassessed whether this specific pair crosses the project's duplication threshold enough to warrant a shared helper, or is an acceptable cost of "minimal diffs, follow the established per-engine pattern"
 Proposed: after all seven engines in the current plan land, run `fallow` once across the whole branch and decide whether any of the resulting clone groups (this one or others from the same conversion) warrant extracting a shared per-engine scaffold — not mid-plan, since the pattern is intentionally repeated seven times by design
+
+### F18 — TUOD's live-stats banner shows combined-seat data during the post-match save window
+Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `TenUpOneDownResults.astro`'s pre-existing "live" `<dl>` block (unfiltered `x-show="completionStatus !== 'succeeded'"`) reads `$store.game.turns.length`/filtered counts and `currentTargetLabel()` as if there is exactly one player throwing
+Evidence: `app/src/components/layout/games/result-modals/TenUpOneDownResults.astro` — the live stats block, against `app/src/lib/game/tuod-play.data.ts`'s `currentTargetLabel()`, which now delegates to whichever seat is `activeParticipantRef` (added when TUOD gained 1v1 support in this plan's Task 12)
+Impact: during the brief `pending`/`saving` window right after a 1v1 TUOD match finishes, this block shows attempt/success/failure counts summed across BOTH seats' turns, and a "Target reached" value keyed to whichever seat happened to be active last — not the viewer's own seat. Harmless while TUOD was solo-only (one player, one set of turns); now seat-count-dependent and misleading for the one window it's visible
+Proposed: scope the live block's `turns`/`currentTargetLabel` reads to the viewer's own seat (or to `state()?.activeParticipantRef`'s seat specifically), mirroring the seat-scoped accessors (`*For(seatRef)`) already added elsewhere in this file's sibling engines during this plan
 
 ### F17 — `foldAroundTheClockState` is exported but has no consumer outside its own module
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
