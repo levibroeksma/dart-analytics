@@ -22,6 +22,7 @@ import type {
   FiveOhOneState,
   MagnifierPlacement,
   OneTwentyOneState,
+  ScoreTrainingState,
   ShanghaiState,
   StageFact,
   TuodAttemptInput,
@@ -212,6 +213,15 @@ export type PlayAgainOverrides<TConfig> = {
   wire: Record<string, unknown>;
 };
 
+/** `winningSideKey` is score-compare (highest total) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats totalled the same score — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
+export type ScoreTrainingResultsSnapshot = {
+  total: number;
+  visits: number;
+  average: number;
+  winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
+};
+
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
@@ -224,13 +234,24 @@ export type ScoreTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { total: number; visits: number; average: number } | null;
+  resultsSnapshot: ScoreTrainingResultsSnapshot | null;
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
+  state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
+  totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
+  threeDartAverageFor(this: ScoreTrainingPlayContext, seatRef: string): string;
+  dartsThrownThisLegFor(
+    this: ScoreTrainingPlayContext,
+    seatRef: string,
+  ): number;
+  previousScoreThisLegFor(
+    this: ScoreTrainingPlayContext,
+    seatRef: string,
+  ): string;
   remainingLabel(this: ScoreTrainingPlayContext): string;
   threeDartAverage(this: ScoreTrainingPlayContext): string;
   dartsThrownThisLeg(this: ScoreTrainingPlayContext): number;

@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-22
-highest-issued: F21
+highest-issued: F22
 -->
 
 # Findings
@@ -143,6 +143,13 @@ Claim: `fallow` (this repo's duplication checker) flags a new clone group betwee
 Evidence: reported by the Task 9 implementer's own `fallow` run during the single-opponent-seat-remaining-engines plan; not independently re-run or narrowed to specific line ranges here
 Impact: the two engines' seat-folding/rotation/win-condition wiring now reads as near-identical boilerplate in two places, which is expected given both follow the same `MultiSeatState<TSeat>` conversion recipe used across all seven engines in this plan — but it is unassessed whether this specific pair crosses the project's duplication threshold enough to warrant a shared helper, or is an acceptable cost of "minimal diffs, follow the established per-engine pattern"
 Proposed: after all seven engines in the current plan land, run `fallow` once across the whole branch and decide whether any of the resulting clone groups (this one or others from the same conversion) warrant extracting a shared per-engine scaffold — not mid-plan, since the pattern is intentionally repeated seven times by design
+
+### F22 — Score Training's live-stats banner shows combined-seat data during the post-match save window
+Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `ScoreTrainingResults.astro`'s pre-existing "live" `<dl>` block (unfiltered `x-show="completionStatus !== 'succeeded'"`) reads `$store.game.turns` as if there is exactly one player throwing
+Evidence: `app/src/components/layout/games/result-modals/ScoreTrainingResults.astro` — the live stats block (`Total`/`Visits`/`Average`, all reduced over `$store.game.turns` with no seat filter), against `app/src/lib/game/score-training-play.data.ts`'s seat-scoped `totalScoreFor`/`threeDartAverageFor`/etc. accessors added this task for exactly this reason elsewhere in the same file
+Impact: during the brief `pending`/`saving` window right after a 1v1 Score Training match finishes, this block shows a total/visit-count/average summed across BOTH seats' turns, not the viewer's own seat — mirrors F18's identical TUOD defect, same root cause (pre-1v1 markup never updated for the new seat-scoped reads), not fixed here because this task's brief only asked for the `state()`-driven split-scoreboard interface and results-modal winner banner, not this pre-existing live block
+Proposed: scope the live block's `turns` reads to the viewer's own seat (`$store.game.seats.find((s) => s.participantTypeKey === 'PLAYER')?.participantRef`), mirroring F18's proposed fix and the seat-scoped accessors already added in this file's sibling engines during this plan
 
 ### F18 — TUOD's live-stats banner shows combined-seat data during the post-match save window
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v

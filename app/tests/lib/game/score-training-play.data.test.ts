@@ -155,6 +155,30 @@ const ACTIVE_SESSION = {
   startedAt: "now",
 } as const;
 
+describe("scoreTrainingPlay — per-seat accessors", () => {
+  it("totalScoreFor reads the named seat", () => {
+    const ctx = scoreTrainingPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; totalScore: number }[];
+        };
+      };
+      totalScoreFor: (seatRef: string) => number;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", totalScore: 40 },
+          { participantRef: "p2", totalScore: 120 },
+        ],
+      }),
+    };
+    expect(ctx.totalScoreFor("p2")).toBe(120);
+  });
+});
+
 describe("scoreTrainingPlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -829,6 +853,8 @@ describe("scoreTrainingPlay", () => {
         total: 50,
         visits: 1,
         average: 50,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 
@@ -880,7 +906,13 @@ describe("scoreTrainingPlay", () => {
       });
       play.completionStatus = "succeeded";
       play.finished = true;
-      play.resultsSnapshot = { total: 50, visits: 1, average: 50 };
+      play.resultsSnapshot = {
+        total: 50,
+        visits: 1,
+        average: 50,
+        winningSideKey: null,
+        status: "COMPLETE",
+      };
       play.playAgainError = "stale";
       const { seats: _priorSeats, ...priorRulesetConfig } =
         play.$store.game.configSnapshot!;
@@ -1101,6 +1133,8 @@ describe("scoreTrainingPlay", () => {
         total: 60,
         visits: 2,
         average: 30,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 
