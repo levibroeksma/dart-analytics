@@ -207,10 +207,15 @@ export type OneTwentyOneState = MultiSeatState<OneTwentyOneSeatState> & {
  * completes the session early. Both fields are folds over the fact log,
  * never accumulated.
  */
-export type AroundTheClockState = {
+export type AroundTheClockSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /**
