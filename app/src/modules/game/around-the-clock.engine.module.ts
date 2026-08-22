@@ -113,7 +113,10 @@ function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
   return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
-function dartsThrownBy(seat: SeatFact, turns: readonly TurnFact[]): number {
+function dartsThrownBy(
+  seat: Pick<SeatFact, "participantRef">,
+  turns: readonly TurnFact[],
+): number {
   return turns
     .filter((turn) => turn.participantRef === seat.participantRef)
     .reduce((sum, turn) => sum + turn.darts.length, 0);

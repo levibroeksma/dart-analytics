@@ -497,6 +497,16 @@ describe("AroundTheClockEngine — 1v1", () => {
     const state = history.at(-1)!;
     expect(state.status).toBe("COMPLETE");
     expect(state.winningSideKey).toBe("A");
+
+    // The exact metric scoreCompareWinner decided on: p1 needed its usual 21
+    // darts (20 hits + BULL, 0 misses); p2 needed 23 (2 extra misses).
+    const dartsThrownBy = (participantRef: string) =>
+      engine
+        .facts()
+        .turns.filter((turn) => turn.participantRef === participantRef)
+        .reduce((sum, turn) => sum + turn.darts.length, 0);
+    expect(dartsThrownBy("p1")).toBe(21);
+    expect(dartsThrownBy("p2")).toBe(23);
   });
 
   it("ties when both seats finish in the same number of darts", () => {
