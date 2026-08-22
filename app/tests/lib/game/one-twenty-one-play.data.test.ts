@@ -386,3 +386,68 @@ describe("oneTwentyOnePlay", () => {
     });
   });
 });
+
+describe("oneTwentyOnePlay — per-seat accessors", () => {
+  it("currentTargetLabelFor and remainingInAttemptFor read the named seat", () => {
+    const ctx = oneTwentyOnePlay() as unknown as {
+      $store: {
+        game: {
+          configSnapshot: { seats: unknown[] };
+          stages: unknown[];
+          turns: unknown[];
+        };
+      };
+      state: () => {
+        activeParticipantRef: string;
+        seats: {
+          participantRef: string;
+          currentTarget: number;
+          remainingInAttempt: number;
+        }[];
+      } | null;
+      currentTargetLabelFor: (seatRef: string) => string;
+      remainingInAttemptFor: (seatRef: string) => number;
+    };
+    ctx.$store = {
+      game: {
+        configSnapshot: {
+          seats: [
+            {
+              participantRef: "p1",
+              displayName: "A",
+              sideKey: "A",
+              participantTypeKey: "PLAYER",
+            },
+            {
+              participantRef: "p2",
+              displayName: "B",
+              sideKey: "B",
+              participantTypeKey: "GUEST",
+            },
+          ],
+        },
+        stages: [
+          {
+            clientKey: "round-1",
+            stageTypeKey: "ROUND",
+            parentClientKey: null,
+            sequence: 1,
+          },
+        ],
+        turns: [],
+      },
+    };
+    expect(ctx.currentTargetLabelFor("p1")).toBe("121");
+    expect(ctx.remainingInAttemptFor("p1")).toBe(121);
+  });
+
+  it("returns empty/zero defaults with no config snapshot", () => {
+    const ctx = oneTwentyOnePlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
+      currentTargetLabel: () => string;
+    };
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+});

@@ -1,9 +1,6 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import {
-  applyOneTwentyOneVisit,
-  initialOneTwentyOneState,
-} from "@modules/game/one-twenty-one.engine.module";
+import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import {
@@ -20,7 +17,7 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -61,35 +58,6 @@ function resumeEngine(
 }
 
 /**
- * Folds `turns` into a `OneTwentyOneState` for reactive display, exactly
- * like the engine's own `deriveState()` — every CLOSED turn folds fully
- * (this is where `currentTarget`/`visitsThisAttempt`/`status` come from);
- * the currently open turn, if any, only overlays a live subtraction onto
- * `remainingInAttempt`, never touching the visit counter. Reads only the
- * reactive `$store.game` fields, never `engine.state()`, so every Alpine
- * display expression that calls this re-renders when `recordFacts` writes a
- * new turn.
- */
-function foldRoundState(turns: readonly TurnFact[]): OneTwentyOneState {
-  const closed = turns.filter((turn) => turn.completedAt !== null);
-  const state = closed.reduce(
-    (s, turn) =>
-      applyOneTwentyOneVisit(s, {
-        scoreAttempted: turn.totalScore,
-        finishedOnDouble: true,
-      }),
-    initialOneTwentyOneState(),
-  );
-
-  const last = turns.at(-1);
-  if (!last || last.completedAt !== null) return state;
-  return {
-    ...state,
-    remainingInAttempt: state.remainingInAttempt - last.totalScore,
-  };
-}
-
-/**
  * The engine owns the fact log while a session is live; the store mirrors
  * it. Upload paths that can run without a live engine (a completion retry
  * driven straight from the results modal) fall back to the persisted
@@ -105,21 +73,36 @@ function currentFacts(context: OneTwentyOnePlayContext): EngineFacts {
 }
 
 /**
- * Session-wide summary for the results modal. `target` is the cap target the
- * winning checkout landed on (always 170 — `uploadAndCompleteSession` only
- * ever runs on the completion path). `visits` and `average` are session-wide,
- * mirroring 501's per-match stats.
+ * The seat this session belongs to — the one PLAYER participant. Mirrors
+ * `five-oh-one-play.data.ts`'s `ownerRef`.
  */
-function computeStats(turns: TurnFact[]): {
+function ownerRef(seats: readonly SeatFact[]): string | null {
+  return (
+    seats.find((seat) => seat.participantTypeKey === "PLAYER")
+      ?.participantRef ?? null
+  );
+}
+
+function computeStats(
+  state: OneTwentyOneState,
+  turns: TurnFact[],
+  owner: string | null,
+): {
   target: number;
   visits: number;
   average: number;
+  winningSideKey: string | null;
 } {
-  const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
+  const ownerTurns =
+    owner === null
+      ? turns
+      : turns.filter((turn) => turn.participantRef === owner);
+  const total = ownerTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
   return {
     target: 170,
-    visits: turns.length,
-    average: turns.length === 0 ? 0 : total / turns.length,
+    visits: ownerTurns.length,
+    average: ownerTurns.length === 0 ? 0 : total / ownerTurns.length,
+    winningSideKey: state.winningSideKey,
   };
 }
 
@@ -149,6 +132,7 @@ export function oneTwentyOnePlay() {
       target: number;
       visits: number;
       average: number;
+      winningSideKey: string | null;
     } | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
@@ -159,33 +143,69 @@ export function oneTwentyOnePlay() {
     engine: null as OneTwentyOneEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    /**
-     * Folded over the *whole* session's turns, not just the open round —
-     * `applyOneTwentyOneVisit` already resets `remainingInAttempt` to the new
-     * target on every checkout, so scoping to the open round's (possibly
-     * still-empty) turns would lose that reset and read back the initial
-     * state's stale 121 instead (#128).
-     */
-    remainingInAttempt(this: OneTwentyOnePlayContext): number {
-      return foldRoundState(this.$store.game.turns).remainingInAttempt;
+    state(this: OneTwentyOnePlayContext): OneTwentyOneState | null {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldOneTwentyOneState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
-    /**
-     * The ladder position, folded over the *whole* session's turns —
-     * `currentTarget` only moves on a checkout, so it cannot be read off a
-     * single round's turns once an earlier round has already climbed it.
-     */
+    remainingInAttemptFor(
+      this: OneTwentyOnePlayContext,
+      seatRef: string,
+    ): number {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat?.remainingInAttempt ?? 0;
+    },
+
+    remainingInAttempt(this: OneTwentyOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.remainingInAttemptFor(state.activeParticipantRef);
+    },
+
+    currentTargetLabelFor(
+      this: OneTwentyOnePlayContext,
+      seatRef: string,
+    ): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(seat.currentTarget) : "";
+    },
+
     currentTargetLabel(this: OneTwentyOnePlayContext): string {
-      return String(foldRoundState(this.$store.game.turns).currentTarget);
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    visitsThisAttemptFor(
+      this: OneTwentyOnePlayContext,
+      seatRef: string,
+    ): number {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat?.visitsThisAttempt ?? 0;
+    },
+
+    visitsThisAttempt(this: OneTwentyOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.visitsThisAttemptFor(state.activeParticipantRef);
     },
 
     checkoutHint(this: OneTwentyOnePlayContext): string {
       const path = checkoutPathFor(this.remainingInAttempt());
       return path ? path.join(" ") : "";
-    },
-
-    visitsThisAttempt(this: OneTwentyOnePlayContext): number {
-      return foldRoundState(this.$store.game.turns).visitsThisAttempt;
     },
 
     dartsThrownThisSession(this: OneTwentyOnePlayContext): number {
@@ -526,7 +546,14 @@ export function oneTwentyOnePlay() {
         }
       }
 
-      this.resultsSnapshot = computeStats(this.$store.game.turns);
+      const finalState = this.state();
+      if (finalState) {
+        this.resultsSnapshot = computeStats(
+          finalState,
+          this.$store.game.turns,
+          ownerRef(this.$store.game.seats),
+        );
+      }
       this.completionStatus = "succeeded";
     },
 

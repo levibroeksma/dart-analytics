@@ -19,6 +19,7 @@ import type {
   EngineFacts,
   FiveOhOneState,
   MagnifierPlacement,
+  OneTwentyOneState,
   StageFact,
   TuodAttemptInput,
   TurnFact,
@@ -530,6 +531,7 @@ export type OneTwentyOneResultsSnapshot = {
   target: number;
   visits: number;
   average: number;
+  winningSideKey: string | null;
 };
 
 export type OneTwentyOnePlayContext = {
@@ -553,9 +555,13 @@ export type OneTwentyOnePlayContext = {
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
   engine: OneTwentyOneEngine | null;
+  state(this: OneTwentyOnePlayContext): OneTwentyOneState | null;
+  remainingInAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
+  currentTargetLabelFor(this: OneTwentyOnePlayContext, seatRef: string): string;
   currentTargetLabel(this: OneTwentyOnePlayContext): string;
   checkoutHint(this: OneTwentyOnePlayContext): string;
+  visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
   dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
   init(this: OneTwentyOnePlayContext): Promise<void>;
