@@ -21,11 +21,16 @@ export type ScoreInputActivationEvent = {
   detail?: number;
 };
 
-export type Bobs27State = {
+export type Bobs27SeatState = SeatState & {
   targetIndex: number;
   score: number;
   dartsThisVisit: boolean[];
   status: "IN_PROGRESS" | "WON" | "LOST";
+};
+
+export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
+  status: "IN_PROGRESS" | "WON" | "LOST" | "COMPLETE";
+  winningSideKey: string | null;
 };
 
 export type SinglesTrainingState = {

@@ -12,6 +12,7 @@ import {
 } from "@modules/game/board-progression.module";
 import type { GameEngine } from "@modules/interfaces";
 import type {
+  Bobs27SeatState,
   Bobs27State,
   DartFact,
   DartObservation,
@@ -65,8 +66,8 @@ const bobs27Config: Seated<Bobs27Snapshot> = {
   seats: SEATS,
 };
 
-function bobs27HitObservation(state: Bobs27State): DartObservation {
-  const target = targetAt(doublesPath(), state.targetIndex);
+function bobs27HitObservation(seat: Bobs27SeatState): DartObservation {
+  const target = targetAt(doublesPath(), seat.targetIndex);
   return target.kind === "BULL"
     ? {
         hitTargetNumber: 25,
@@ -86,9 +87,9 @@ function bobs27HitObservation(state: Bobs27State): DartObservation {
 function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
   const engine = bobs27EngineFactory.create(bobs27Config);
   for (let target = 0; target < 20; target++) {
-    engine.record(bobs27HitObservation(engine.state()));
-    engine.record(bobs27HitObservation(engine.state()));
-    engine.record(bobs27HitObservation(engine.state()));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
   }
   engine.record({
     hitTargetNumber: 1,
@@ -96,7 +97,7 @@ function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
     locationX: null,
     locationY: null,
   });
-  engine.record(bobs27HitObservation(engine.state()));
+  engine.record(bobs27HitObservation(engine.state().seats[0]));
   return engine;
 }
 
