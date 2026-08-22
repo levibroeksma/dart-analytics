@@ -1053,6 +1053,20 @@ describe("SinglesTrainingEngine — 1v1", () => {
     expect(engine.state().activeParticipantRef).toBe("p1");
   });
 
+  it("undo crossing the seat boundary restores the previous active seat, not the next one", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS")); // p1's visit closes
+    expect(engine.state().activeParticipantRef).toBe("p2");
+    engine.record(dart(1, "MISS")); // p2's 1st dart of a new visit
+
+    expect(engine.undo()).toBe(true); // pops p2's only dart, removing p2's open turn
+    expect(engine.state().activeParticipantRef).toBe("p2"); // still p2's turn to play
+
+    expect(engine.undo()).toBe(true); // pops p1's 3rd dart, reopening p1's visit
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    expect(engine.state().seats[0].dartsThisVisit).toBe(2);
+  });
+
   it("stays IN_PROGRESS once one seat finishes its 21st target while the other has not", () => {
     const engine = new SinglesTrainingEngine(twoSeatConfig);
     for (let round = 0; round < 21; round++) {
