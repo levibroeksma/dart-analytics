@@ -282,6 +282,7 @@ describe("recordTap", () => {
       score: 6,
       status: "SHANGHAI",
       round: 1,
+      winningSideKey: "A",
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -320,6 +321,7 @@ describe("completion at round 20", () => {
       score: 3 * ((19 * 20) / 2),
       status: "COMPLETE",
       round: 20,
+      winningSideKey: null,
     });
   });
 
@@ -343,7 +345,137 @@ describe("completion at round 20", () => {
       score: 3 * ((19 * 20) / 2) + 20 + 40 + 60,
       status: "SHANGHAI",
       round: 20,
+      winningSideKey: "A",
     });
+  });
+});
+
+describe("shanghaiPlay — per-seat accessors", () => {
+  it("currentScoreFor and roundLabelFor read the named seat", () => {
+    const ctx = shanghaiPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: {
+            participantRef: string;
+            targetIndex: number;
+            totalScore: number;
+          }[];
+        };
+      };
+      currentScoreFor: (seatRef: string) => string;
+      roundLabelFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", targetIndex: 0, totalScore: 10 },
+          { participantRef: "p2", targetIndex: 4, totalScore: 40 },
+        ],
+      }),
+    };
+    expect(ctx.currentScoreFor("p2")).toBe("40");
+    expect(ctx.roundLabelFor("p2")).toBe("5/20");
+  });
+});
+
+describe("session completion — 1v1", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<ShanghaiSnapshot> {
+    return { seats: TWO_SEATS };
+  }
+
+  it("ends the whole match instantly on either seat's Shanghai, naming that seat the winner", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Seat A throws first and hits a Shanghai on its own first visit, mid
+    // round for seat B — the match ends immediately regardless.
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "DOUBLE");
+    await play.recordTap.call(play, "TREBLE");
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("SHANGHAI");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+  });
+
+  it("marks status TIE, with winningSideKey null, when both seats finish with the same score and no Shanghai", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 40, turns: 40, darts: 120 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Both seats miss every dart of all 20 rounds — a genuine 0-0 tie, not
+    // a solo session, even though winningSideKey is null in both cases.
+    for (let i = 0; i < 120; i += 1) {
+      await play.recordTap.call(play, "MISS");
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+  });
+
+  it("names the higher-scoring seat the winner once both complete all 20 rounds without a Shanghai", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 40, turns: 40, darts: 120 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Seat A scores a SINGLE on every dart of every round (never a Shanghai
+    // — SINGLE alone never trips the single/double/treble check); seat B
+    // misses every dart, so A's total strictly exceeds B's by the end.
+    for (let round = 0; round < 20; round += 1) {
+      await play.recordTap.call(play, "SINGLE");
+      await play.recordTap.call(play, "SINGLE");
+      await play.recordTap.call(play, "SINGLE");
+      await play.recordTap.call(play, "MISS");
+      await play.recordTap.call(play, "MISS");
+      await play.recordTap.call(play, "MISS");
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
   });
 });
 

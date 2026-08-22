@@ -19,6 +19,7 @@ import type {
   ShanghaiPlayContext,
   ShanghaiPreviewSegment,
 } from "./types";
+import type { ShanghaiState } from "@modules/types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -105,19 +106,47 @@ export function shanghaiPlay() {
     engine: null as ShanghaiEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
+    state(this: ShanghaiPlayContext): ShanghaiState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(targetNumberAt(seat.targetIndex)) : "";
+    },
+
     currentTargetLabel(this: ShanghaiPlayContext): string {
-      if (!this.engine) return "";
-      return String(targetNumberAt(this.engine.state().targetIndex));
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? `${seat.targetIndex + 1}/20` : "";
     },
 
     roundLabel(this: ShanghaiPlayContext): string {
-      if (!this.engine) return "";
-      return `${this.engine.state().targetIndex + 1}/20`;
+      const state = this.state();
+      if (!state) return "";
+      return this.roundLabelFor(state.activeParticipantRef);
+    },
+
+    currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(seat.totalScore) : "";
     },
 
     currentScore(this: ShanghaiPlayContext): string {
-      if (!this.engine) return "";
-      return String(this.engine.state().totalScore);
+      const state = this.state();
+      if (!state) return "";
+      return this.currentScoreFor(state.activeParticipantRef);
     },
 
     isBullVisit(this: ShanghaiPlayContext): boolean {
@@ -142,6 +171,11 @@ export function shanghaiPlay() {
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
       if (!this.engine) return;
+      const state = this.state();
+      const activeSeat = state?.seats.find(
+        (seat) => seat.participantRef === state.activeParticipantRef,
+      );
+      if (!activeSeat) return;
       const observation: DartObservation =
         ring === "MISS"
           ? {
@@ -151,7 +185,7 @@ export function shanghaiPlay() {
               locationY: null,
             }
           : {
-              hitTargetNumber: targetNumberAt(this.engine.state().targetIndex),
+              hitTargetNumber: targetNumberAt(activeSeat.targetIndex),
               hitZoneKey: ring,
               locationX: null,
               locationY: null,
@@ -182,11 +216,21 @@ export function shanghaiPlay() {
     },
 
     uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        score: finalState.totalScore,
-        status: finalState.status as "SHANGHAI" | "COMPLETE",
-        round: finalState.targetIndex + 1,
-      }));
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
+      return playUploadAndCompleteSession(this, (finalState) => {
+        const ownerSeat =
+          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
+          finalState.seats[0];
+        return {
+          score: ownerSeat.totalScore,
+          status: finalState.status as "SHANGHAI" | "COMPLETE" | "TIE",
+          round: ownerSeat.targetIndex + 1,
+          winningSideKey: finalState.winningSideKey,
+        };
+      });
     },
 
     back(this: ShanghaiPlayContext) {

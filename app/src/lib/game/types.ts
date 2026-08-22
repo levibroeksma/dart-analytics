@@ -22,6 +22,7 @@ import type {
   FiveOhOneState,
   MagnifierPlacement,
   OneTwentyOneState,
+  ShanghaiState,
   StageFact,
   TuodAttemptInput,
   TuodState,
@@ -768,11 +769,12 @@ export type DoublesTrainingPlayContext = {
 /** One dart slot in Shanghai's visit preview — a resolved hit/miss mark (against the round's own number), or a not-yet-thrown placeholder. */
 export type ShanghaiPreviewSegment = { status: "hit" | "miss" | "empty" };
 
-/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE` session, the round the Shanghai landed on for a `SHANGHAI` one. */
+/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE`/`TIE` session, the round the Shanghai landed on for a `SHANGHAI` one. `status` mirrors the match-level `ShanghaiState.status`, not the owner seat's own status — a solo session's own status and the match status always coincide, but only the match status can read `TIE`. */
 export type ShanghaiResultsSnapshot = {
   score: number;
-  status: "SHANGHAI" | "COMPLETE";
+  status: "SHANGHAI" | "COMPLETE" | "TIE";
   round: number;
+  winningSideKey: string | null;
 };
 
 export type ShanghaiPlayContext = {
@@ -796,8 +798,12 @@ export type ShanghaiPlayContext = {
     this: ShanghaiPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  state(this: ShanghaiPlayContext): ShanghaiState | null;
+  currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string;
   currentTargetLabel(this: ShanghaiPlayContext): string;
+  roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string;
   roundLabel(this: ShanghaiPlayContext): string;
+  currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string;
   currentScore(this: ShanghaiPlayContext): string;
   isBullVisit(this: ShanghaiPlayContext): boolean;
   previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[];
