@@ -326,6 +326,7 @@ export function aroundTheClockPlay() {
           : "0%",
         totalDarts: countDarts(ownerTurns),
         winningSideKey: state?.winningSideKey ?? null,
+        status: (state?.status ?? "COMPLETE") as "COMPLETE" | "TIE",
       }));
     },
 

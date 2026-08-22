@@ -292,8 +292,55 @@ describe("session completion on BULL", () => {
       accuracy: "34.43%",
       totalDarts: 61,
       winningSideKey: null,
+      status: "COMPLETE",
     });
     expect(play.completionStatus).toBe("succeeded");
+  });
+});
+
+describe("session completion — 1v1", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<AroundTheClockSnapshot> {
+    return { seats: TWO_SEATS };
+  }
+
+  it("marks status TIE, with winningSideKey null, when both seats finish in the same number of darts", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 14, turns: 14, darts: 42 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Both seats hit every target with no misses, so each clears its own
+    // circuit in exactly 21 darts (20 numbers + BULL) — a genuine tie, not
+    // a solo session, even though winningSideKey is null in both cases.
+    for (let i = 0; i < 42; i += 1) {
+      await play.recordTap.call(play, "SINGLE");
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
   });
 });
 

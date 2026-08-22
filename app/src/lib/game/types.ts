@@ -811,12 +811,13 @@ export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. */
+/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats finished in the same number of darts — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
 export type AroundTheClockResultsSnapshot = {
   turns: number;
   accuracy: string;
   totalDarts: number;
   winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
 };
 
 export type AroundTheClockPlayContext = {
