@@ -233,6 +233,11 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
    */
   record(observation: DartObservation): Bobs27State {
     const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") {
+      throw new Error(
+        "Cannot record a dart once the match has ended; undo first to correct it.",
+      );
+    }
     const activeSeatState = before.seats.find(
       (seat) => seat.participantRef === before.activeParticipantRef,
     )!;
@@ -297,6 +302,7 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") return false;
     const activeSeatState = before.seats.find(
       (seat) => seat.participantRef === before.activeParticipantRef,
     )!;

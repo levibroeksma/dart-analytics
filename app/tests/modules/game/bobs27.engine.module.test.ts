@@ -7,7 +7,11 @@ import {
 } from "@modules/game/bobs27.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import type { Bobs27SeatState, DartObservation } from "@modules/types";
+import type {
+  Bobs27SeatState,
+  DartObservation,
+  EngineFacts,
+} from "@modules/types";
 import type { Bobs27Snapshot, Seated } from "@lib/types";
 
 const SEATS = [
@@ -833,5 +837,87 @@ describe("Bobs27Engine — 1v1", () => {
     engine.undo();
     expect(engine.state().status).toBe("IN_PROGRESS");
     expect(engine.state().winningSideKey).toBeNull();
+  });
+
+  it("rejects recording another dart for the surviving seat once the match has completed", () => {
+    const engine = new Bobs27Engine(twoSeatConfig);
+    let state = engine.state();
+    while (state.status === "IN_PROGRESS") {
+      engine.record(missDart());
+      state = engine.state();
+    }
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+    expect(state.activeParticipantRef).toBe("p2");
+
+    expect(() => engine.record(missDart())).toThrow(/ended/);
+
+    const after = engine.state();
+    expect(after.status).toBe("COMPLETE");
+    expect(after.winningSideKey).toBe("B");
+  });
+
+  it("wouldComplete is false for the surviving seat's resolving dart once the match has completed", () => {
+    // Facts constructed directly (bypassing record()) so the scenario holds
+    // regardless of record()'s own guard: p1 has already busted its opening
+    // visit (match COMPLETE, B wins) while p2 sits on a 2-dart open visit
+    // whose 3rd miss would, taken in isolation, also bust p2 — the exact
+    // shape that must NOT read as "would complete the game" once the match
+    // is already decided.
+    const bustConfig: Seated<Bobs27Snapshot> = {
+      ...twoSeatConfig,
+      startScore: 1,
+    };
+    const missDartFact = (sequence: number) => ({
+      sequence,
+      intendedTargetNumber: 1,
+      intendedZoneKey: "DOUBLE" as const,
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS" as const,
+      score: 0,
+      locationX: null,
+      locationY: null,
+    });
+    const prior: EngineFacts = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: "block-1",
+          participantRef: "p1",
+          sequence: 1,
+          completedAt: "2026-08-22T00:00:00.000Z",
+          totalScore: 0,
+          darts: [missDartFact(1), missDartFact(2), missDartFact(3)],
+        },
+        {
+          clientKey: "t2",
+          stageClientKey: "block-1",
+          participantRef: "p2",
+          sequence: 2,
+          completedAt: null,
+          totalScore: 0,
+          darts: [missDartFact(1), missDartFact(2)],
+        },
+      ],
+    };
+
+    const engine = new Bobs27Engine(bustConfig, prior);
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+    expect(state.activeParticipantRef).toBe("p2");
+    expect(state.seats.find((seat) => seat.sideKey === "B")!.status).toBe(
+      "IN_PROGRESS",
+    );
+
+    expect(engine.wouldComplete(missDart())).toBe(false);
   });
 });
