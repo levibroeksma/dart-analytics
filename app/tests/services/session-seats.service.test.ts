@@ -82,13 +82,83 @@ describe("rejectSeatRequest", () => {
   });
 
   it("rejects a second seat for a ruleset other than 501_V1", () => {
-    expect(rejectSeatRequest([player, guest], "BOBS27_V1")).toMatch(
-      /only supported by 501_V1/,
+    expect(rejectSeatRequest([player, guest], "SOME_OTHER_RULESET_V1")).toMatch(
+      /supports at most 1 seat/,
     );
   });
 
   it("accepts a lone player seat for any ruleset", () => {
     expect(rejectSeatRequest([player], "BOBS27_V1")).toBeNull();
+  });
+});
+
+describe("rejectSeatRequest with the seven new rulesets", () => {
+  const twoPlayers = [
+    { participantTypeKey: "PLAYER" as const, sideKey: "A", displayName: "Me" },
+    {
+      participantTypeKey: "GUEST" as const,
+      sideKey: "B",
+      displayName: "Guest",
+    },
+  ];
+  const threePlayers = [
+    ...twoPlayers,
+    {
+      participantTypeKey: "GUEST" as const,
+      sideKey: "C",
+      displayName: "Guest 2",
+    },
+  ];
+
+  it.each([
+    "BOBS27_V1",
+    "121_V1",
+    "AROUND_THE_CLOCK_V1",
+    "TUOD_V1",
+    "SHANGHAI_V1",
+    "SCORE_TRAINING_V1",
+    "SINGLES_V1",
+    "DOUBLES_TRAINING_V1",
+  ])("accepts exactly 2 seats for %s", (rulesetVersionKey) => {
+    expect(rejectSeatRequest(twoPlayers, rulesetVersionKey)).toBeNull();
+  });
+
+  it.each([
+    "BOBS27_V1",
+    "121_V1",
+    "AROUND_THE_CLOCK_V1",
+    "TUOD_V1",
+    "SHANGHAI_V1",
+    "SCORE_TRAINING_V1",
+    "SINGLES_V1",
+    "DOUBLES_TRAINING_V1",
+  ])("rejects a 3rd seat for %s", (rulesetVersionKey) => {
+    expect(rejectSeatRequest(threePlayers, rulesetVersionKey)).toContain(
+      "supports at most 2 seat",
+    );
+  });
+
+  it("still rejects a 2nd seat for a ruleset not in SEAT_CAPS", () => {
+    expect(rejectSeatRequest(twoPlayers, "SOME_FUTURE_RULESET_V1")).toContain(
+      "supports at most 1 seat",
+    );
+  });
+
+  it("still accepts 4 seats for 501", () => {
+    const four = [
+      ...twoPlayers,
+      {
+        participantTypeKey: "GUEST" as const,
+        sideKey: "C",
+        displayName: "Guest 2",
+      },
+      {
+        participantTypeKey: "GUEST" as const,
+        sideKey: "D",
+        displayName: "Guest 3",
+      },
+    ];
+    expect(rejectSeatRequest(four, "501_V1")).toBeNull();
   });
 });
 
