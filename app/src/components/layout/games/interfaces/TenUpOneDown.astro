@@ -6,6 +6,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
@@ -15,31 +16,33 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
   class="flex flex-col flex-1 min-h-0 gap-3"
   {...props}
 >
-  <SinglePlayerDisplay
-    isTarget={true}
-    target="currentTargetLabel()"
-    class="max-h-2/5 h-full"
-  >
-    <div
-      slot="progress"
-      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+  <template x-if="(state()?.seats.length ?? 1) < 2">
+    <SinglePlayerDisplay
+      isTarget={true}
+      target="currentTargetLabel()"
+      class="max-h-2/5 h-full"
     >
-      <dl class="w-full space-y-1">
-        <StatRow
-          label="Attempts"
-          value="$store.game.turns.length"
-        />
-        <StatRow
-          label="Successes"
-          value="$store.game.turns.filter((t) => t.totalScore > 0).length"
-        />
-        <StatRow
-          label="Failures"
-          value="$store.game.turns.filter((t) => t.totalScore === 0).length"
-        />
-      </dl>
-    </div>
-  </SinglePlayerDisplay>
+      <div
+        slot="progress"
+        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+      >
+        <dl class="w-full space-y-1">
+          <StatRow
+            label="Attempts"
+            value="$store.game.turns.length"
+          />
+          <StatRow
+            label="Successes"
+            value="$store.game.turns.filter((t) => t.totalScore > 0).length"
+          />
+          <StatRow
+            label="Failures"
+            value="$store.game.turns.filter((t) => t.totalScore === 0).length"
+          />
+        </dl>
+      </div>
+    </SinglePlayerDisplay>
+  </template>
 
   <div
     class="flex justify-center items-center gap-2 px-3"
@@ -52,6 +55,52 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     >
     </p>
   </div>
+
+  <template x-if="(state()?.seats.length ?? 1) >= 2">
+    <SplitScoreboard
+      seatA={{
+        nameExpr: "$store.game.seats[0]?.displayName",
+        activeExpr:
+          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
+        scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
+      }}
+      seatB={{
+        nameExpr: "$store.game.seats[1]?.displayName",
+        activeExpr:
+          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
+        scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
+      }}
+      isTarget={true}
+      class="h-2/5"
+    >
+      <dl
+        slot="progressA"
+        class="w-full space-y-1"
+      >
+        <StatRow
+          label="Attempts"
+          value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[0]?.participantRef).length"
+        />
+        <StatRow
+          label="Successes"
+          value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[0]?.participantRef && t.totalScore > 0).length"
+        />
+      </dl>
+      <dl
+        slot="progressB"
+        class="w-full space-y-1"
+      >
+        <StatRow
+          label="Attempts"
+          value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[1]?.participantRef).length"
+        />
+        <StatRow
+          label="Successes"
+          value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[1]?.participantRef && t.totalScore > 0).length"
+        />
+      </dl>
+    </SplitScoreboard>
+  </template>
 
   <p
     class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"

@@ -12,8 +12,16 @@ import IsLoading from "@components/ui/IsLoading.astro";
   <div
     class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
   >
-    <h2 class="font-display text-lg font-semibold text-foreground">
-      Game Summary
+    <h2
+      class="font-display text-lg font-semibold text-foreground"
+      x-text="
+        resultsSnapshot?.status === 'TIE'
+          ? 'Tie — same target!'
+          : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+            ? 'Game Summary'
+            : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — highest target!')
+      "
+    >
     </h2>
 
     {/* Stats: live from store while saving, snapshot once succeeded */}

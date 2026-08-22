@@ -24,6 +24,7 @@ import type {
   OneTwentyOneState,
   StageFact,
   TuodAttemptInput,
+  TuodState,
   TurnFact,
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
@@ -250,11 +251,14 @@ export type ScoreTrainingPlayContext = {
   destroy(this: ScoreTrainingPlayContext): void;
 };
 
+/** `winningSideKey` is score-compare (highest target) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats reached the same target — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
 export type TuodResultsSnapshot = {
   target: number;
   attempts: number;
   successes: number;
   failures: number;
+  winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
 };
 
 export type TuodPlayContext = {
@@ -280,6 +284,8 @@ export type TuodPlayContext = {
   $store: PlayStoreContext<TuodSnapshot>;
   engine: TuodEngine | null;
   timer: SegmentTimer | null;
+  state(this: TuodPlayContext): TuodState | null;
+  currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
   remainingLabel(this: TuodPlayContext): string;
   init(this: TuodPlayContext): Promise<void>;

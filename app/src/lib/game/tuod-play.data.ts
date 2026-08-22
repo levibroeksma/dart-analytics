@@ -23,7 +23,7 @@ import type {
   DartObservation,
   EngineFacts,
   TuodAttemptInput,
-  TurnFact,
+  TuodState,
 } from "@modules/types";
 import type { TuodPlayContext, TuodResultsSnapshot } from "./types";
 
@@ -31,11 +31,7 @@ import type { TuodPlayContext, TuodResultsSnapshot } from "./types";
 // and importing it also runs the module's side effect, which registers
 // tuodEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import {
-  TuodEngine,
-  applyTuodAttempt,
-  initialTuodState,
-} from "@modules/game/tuod.engine.module";
+import { TuodEngine, foldTuodState } from "@modules/game/tuod.engine.module";
 
 const GAME_TYPE_KEY = "TUOD";
 const RULESET_VERSION_KEY: RulesetVersionKey = "TUOD_V1";
@@ -81,23 +77,46 @@ function currentFacts(context: TuodPlayContext): EngineFacts {
 }
 
 /**
- * Folds the fact log into the ladder's final resting state using the same
- * pure reducer the engine replays with — never re-derives the ladder math
- * separately.
+ * The engine's own state while live; mirrors `currentFacts()`'s own fallback
+ * otherwise — a completion retry driven straight from the results modal (no
+ * live engine) folds the persisted mirror through the same pure reducer
+ * instead of going without a snapshot.
+ */
+function finalTuodState(context: TuodPlayContext): TuodState | null {
+  const live = context.state();
+  if (live) return live;
+  const config = context.$store.game.configSnapshot;
+  if (!config) return null;
+  return foldTuodState(
+    currentFacts(context),
+    config,
+    context.$store.game.timerExpired ?? false,
+  );
+}
+
+/**
+ * Reads the owner seat's final resting state off the already-folded engine
+ * state — never re-derives the ladder math separately. `status` collapses
+ * the engine's own three-way `status` to the two outcomes a finished session
+ * can report, so a genuine TIE (both seats reach the same target) stays
+ * distinguishable from a solo session even though both leave
+ * `winningSideKey` `null`: solo sessions never see `TIE` from the engine
+ * (score-compare only runs seats.length >= 2), so this collapse is safe.
  */
 function computeStats(
-  turns: readonly TurnFact[],
-  config: TuodPlayContext["$store"]["game"]["configSnapshot"],
+  state: TuodState,
+  ownerRef: string | null,
 ): TuodResultsSnapshot {
-  const state = turns.reduce(
-    (s, turn) => applyTuodAttempt(config!, s, turn.totalScore > 0),
-    initialTuodState(config!),
-  );
+  const ownerSeat =
+    state.seats.find((seat) => seat.participantRef === ownerRef) ??
+    state.seats[0];
   return {
-    target: state.currentTarget,
-    attempts: state.attempts,
-    successes: state.successes,
-    failures: state.failures,
+    target: ownerSeat.currentTarget,
+    attempts: ownerSeat.attempts,
+    successes: ownerSeat.successes,
+    failures: ownerSeat.failures,
+    winningSideKey: state.winningSideKey,
+    status: state.status === "TIE" ? "TIE" : "COMPLETE",
   };
 }
 
@@ -169,8 +188,21 @@ export function tuodPlay() {
     timer: null as SegmentTimer | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
+    state(this: TuodPlayContext): TuodState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(seat.currentTarget) : "";
+    },
+
     currentTargetLabel(this: TuodPlayContext): string {
-      return String(this.engine?.state().currentTarget ?? "");
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
     },
 
     remainingLabel(this: TuodPlayContext): string {
@@ -280,7 +312,11 @@ export function tuodPlay() {
         return;
 
       const score = Number(this.scoreInput.value);
-      const target = this.engine.state().currentTarget;
+      const activeState = this.state();
+      const target =
+        activeState?.seats.find(
+          (seat) => seat.participantRef === activeState.activeParticipantRef,
+        )?.currentTarget ?? 0;
 
       if (score === target && checkoutPathFor(target) !== null) {
         this.error = "";
@@ -483,10 +519,14 @@ export function tuodPlay() {
         }
       }
 
-      this.resultsSnapshot = computeStats(
-        this.$store.game.turns,
-        this.$store.game.configSnapshot,
-      );
+      const finalState = finalTuodState(this);
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
+      if (finalState) {
+        this.resultsSnapshot = computeStats(finalState, ownerRef);
+      }
       this.completionStatus = "succeeded";
     },
 

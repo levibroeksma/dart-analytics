@@ -573,6 +573,8 @@ describe("tuodPlay", () => {
         attempts: 1,
         successes: 1,
         failures: 0,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 
@@ -600,6 +602,8 @@ describe("tuodPlay", () => {
         attempts: 3,
         successes: 2,
         failures: 1,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 
@@ -661,6 +665,8 @@ describe("tuodPlay", () => {
         attempts: 1,
         successes: 1,
         failures: 0,
+        winningSideKey: null,
+        status: "COMPLETE",
       };
       const { seats: _priorSeats, ...priorRulesetConfig } =
         play.$store.game.configSnapshot!;
@@ -1035,5 +1041,117 @@ describe("recordDart (board input)", () => {
     expect(component.pendingDartObservation).toBeNull();
     expect(component.showFinishConfirm).toBe(false);
     expect(store.turns).toHaveLength(0);
+  });
+});
+
+describe("session completion — 1v1", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatRounds(durationValue: number): Seated<TuodSnapshot> {
+    return {
+      startingTarget: 41,
+      finishBonus: 10,
+      missPenalty: 1,
+      durationType: "ROUNDS",
+      durationValue,
+      maxDartsPerTurn: 3,
+      seats: TWO_SEATS,
+    };
+  }
+
+  it("marks status TIE, with winningSideKey null, when both seats land on the same target", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = gameStub({ configSnapshot: twoSeatRounds(1) });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    // Both seats miss their only round, landing on the same target (40) —
+    // a genuine tie, not a solo session, even though winningSideKey is null
+    // in both cases.
+    await component.recordAttempt.call(component, MISS);
+    await component.recordAttempt.call(component, MISS);
+    expect(component.showFinishConfirm).toBe(true);
+    await component.confirmFinish.call(component);
+
+    expect(component.finished).toBe(true);
+    expect(component.completionStatus).toBe("succeeded");
+    expect(component.resultsSnapshot?.status).toBe("TIE");
+    expect(component.resultsSnapshot?.winningSideKey).toBeNull();
+  });
+
+  it("marks status COMPLETE, with the owning seat's sideKey, when one seat reaches the higher target", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = gameStub({ configSnapshot: twoSeatRounds(1) });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    // participant-1 (side A) checks out, climbing to 51; participant-2
+    // (side B) misses, falling to 40 — side A wins outright.
+    await component.recordAttempt.call(component, CHECKOUT);
+    await component.recordAttempt.call(component, MISS);
+    expect(component.showFinishConfirm).toBe(true);
+    await component.confirmFinish.call(component);
+
+    expect(component.finished).toBe(true);
+    expect(component.completionStatus).toBe("succeeded");
+    expect(component.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(component.resultsSnapshot?.winningSideKey).toBe("A");
+  });
+});
+
+describe("tuodPlay — per-seat accessors", () => {
+  it("currentTargetLabelFor reads the named seat, not the active one", () => {
+    const ctx = tuodPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; currentTarget: number }[];
+        };
+      };
+      currentTargetLabelFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", currentTarget: 41 },
+          { participantRef: "p2", currentTarget: 51 },
+        ],
+      }),
+    };
+    expect(ctx.currentTargetLabelFor("p2")).toBe("51");
   });
 });
