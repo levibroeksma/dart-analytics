@@ -83,11 +83,16 @@ export type DoublesVisitOutcome = {
   hitDartNumber: 1 | 2 | 3 | null;
 };
 
-export type DoublesTrainingState = {
+export type DoublesTrainingSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
   outcomes: DoublesVisitOutcome[];
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type DoublesTrainingState = MultiSeatState<DoublesTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /** How many darts of one visit a reported checkout used, or threw at a double. */

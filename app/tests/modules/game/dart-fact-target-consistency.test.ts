@@ -16,6 +16,7 @@ import type {
   Bobs27State,
   DartFact,
   DartObservation,
+  DoublesTrainingSeatState,
   DoublesTrainingState,
   EngineFacts,
   SinglesTrainingSeatState,
@@ -111,7 +112,9 @@ const doublesConfig: Seated<DoublesTrainingSnapshot> = {
   seats: SEATS,
 };
 
-function doublesHitObservation(state: DoublesTrainingState): DartObservation {
+function doublesHitObservation(
+  state: DoublesTrainingSeatState,
+): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
     ? {
@@ -135,7 +138,7 @@ function playDoublesTrainingThroughBull(): GameEngine<
 > {
   const engine = doublesTrainingEngineFactory.create(doublesConfig);
   for (let target = 0; target < 20; target++) {
-    engine.record(doublesHitObservation(engine.state()));
+    engine.record(doublesHitObservation(engine.state().seats[0]));
   }
   engine.record({
     hitTargetNumber: 1,
@@ -143,7 +146,7 @@ function playDoublesTrainingThroughBull(): GameEngine<
     locationX: null,
     locationY: null,
   });
-  engine.record(doublesHitObservation(engine.state()));
+  engine.record(doublesHitObservation(engine.state().seats[0]));
   return engine;
 }
 
