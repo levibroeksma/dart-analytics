@@ -19,7 +19,7 @@ import {
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import type { RulesetVersionKey } from "@lib/types";
-import type { DartObservation } from "@modules/types";
+import type { DartObservation, DoublesTrainingState } from "@modules/types";
 import type {
   BoardMarker,
   DoublesPreviewSegment,
@@ -69,35 +69,69 @@ export function doublesTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as { hits: number; misses: number } | null,
+    resultsSnapshot: null as {
+      hits: number;
+      misses: number;
+      winningSideKey: string | null;
+      status: "COMPLETE" | "TIE";
+    } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as DoublesTrainingEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    currentTargetLabel(this: DoublesTrainingPlayContext): string {
+    state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    currentTargetLabelFor(
+      this: DoublesTrainingPlayContext,
+      seatRef: string,
+    ): string {
       const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config) return "";
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      if (!config || !seat) return "";
       return doublesPathTargetLabel(
-        targetAt(
-          doublesPath(config.targetOrder),
-          this.engine.state().targetIndex,
-        ),
+        targetAt(doublesPath(config.targetOrder), seat.targetIndex),
+      );
+    },
+
+    currentTargetLabel(this: DoublesTrainingPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return String(
+        seat?.outcomes.filter((outcome) => outcome.hit).length ?? 0,
       );
     },
 
     hitCount(this: DoublesTrainingPlayContext): string {
-      if (!this.engine) return "0";
+      const state = this.state();
+      if (!state) return "0";
+      return this.hitCountFor(state.activeParticipantRef);
+    },
+
+    missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
       return String(
-        this.engine.state().outcomes.filter((outcome) => outcome.hit).length,
+        seat?.outcomes.filter((outcome) => !outcome.hit).length ?? 0,
       );
     },
 
     missCount(this: DoublesTrainingPlayContext): string {
-      if (!this.engine) return "0";
-      return String(
-        this.engine.state().outcomes.filter((outcome) => !outcome.hit).length,
-      );
+      const state = this.state();
+      if (!state) return "0";
+      return this.missCountFor(state.activeParticipantRef);
     },
 
     previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[] {
@@ -121,10 +155,14 @@ export function doublesTrainingPlay() {
      * `commitDart`. */
     async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
       const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config || this.finished) return;
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!this.engine || !config || !seat || this.finished) return;
       const target = targetAt(
         doublesPath(config.targetOrder),
-        this.engine.state().targetIndex,
+        seat.targetIndex,
       );
       await this.commitDart(doublesPathObservation(target, hit));
     },
@@ -153,10 +191,21 @@ export function doublesTrainingPlay() {
     },
 
     uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        hits: finalState.outcomes.filter((outcome) => outcome.hit).length,
-        misses: finalState.outcomes.filter((outcome) => !outcome.hit).length,
-      }));
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
+      return playUploadAndCompleteSession(this, (finalState) => {
+        const ownerSeat =
+          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
+          finalState.seats[0];
+        return {
+          hits: ownerSeat.outcomes.filter((outcome) => outcome.hit).length,
+          misses: ownerSeat.outcomes.filter((outcome) => !outcome.hit).length,
+          winningSideKey: finalState.winningSideKey,
+          status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+        };
+      });
     },
 
     back(this: DoublesTrainingPlayContext) {

@@ -144,7 +144,7 @@ function isVisitOpen(turn: TurnFact): boolean {
  * of how many darts each used, so `activeSeat` needs no completion
  * predicate, same reasoning as Singles Training.
  */
-export function foldDoublesTrainingState(
+function foldDoublesTrainingState(
   facts: EngineFacts,
   config: Seated<DoublesTrainingSnapshot>,
 ): DoublesTrainingState {

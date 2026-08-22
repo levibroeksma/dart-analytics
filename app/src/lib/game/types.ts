@@ -18,6 +18,7 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
+  DoublesTrainingState,
   EngineFacts,
   FiveOhOneState,
   MagnifierPlacement,
@@ -778,18 +779,30 @@ export type DoublesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { hits: number; misses: number } | null;
+  resultsSnapshot: {
+    hits: number;
+    misses: number;
+    winningSideKey: string | null;
+    status: "COMPLETE" | "TIE";
+  } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
   engine: DoublesTrainingEngine | null;
+  state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: DoublesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  currentTargetLabelFor(
+    this: DoublesTrainingPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: DoublesTrainingPlayContext): string;
+  hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string;
   hitCount(this: DoublesTrainingPlayContext): string;
+  missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string;
   missCount(this: DoublesTrainingPlayContext): string;
   previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[];
   init(this: DoublesTrainingPlayContext): Promise<void>;
