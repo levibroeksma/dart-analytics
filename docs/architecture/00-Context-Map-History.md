@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-08-21
+updated: 2026-08-22
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-08-21
 ---
 
 # Version History
+
+> **Version:** 1.19.0 (2026-08-22 — split-scoreboard nested-blur fix: `SplitScoreboard.astro`'s outer grid carried its own `glass` (backdrop-filter blur) class wrapping `SplitScoreboardHalf.astro` → `SinglePlayerDisplay.astro`, whose own card already carries `glass` — a nested backdrop-filter stack unique to the split (2-seat) path, since single-player mode has only the one `glass` layer. Reported as a name/score overlap on a real iPhone 12 Pro in production that did not reproduce in desktop-simulated mobile viewports or in this environment's Chromium-only Playwright at matching dimensions (390×various heights down to 600px) with realistic seat names — consistent with a WebKit-specific nested-`backdrop-filter` compositing/stacking bug rather than a layout/sizing bug, since no other component in this codebase nests `glass` inside `glass`. Fix: dropped the redundant outer `glass` from `SplitScoreboard.astro` — the seat cards already provide the glass surface the user sees; visually unchanged in Chromium. Root cause could not be directly confirmed against real WebKit in this sandboxed environment — flagged to the user for on-device re-verification)
 
 > **Version:** 1.18.0 (2026-08-21 — first `IconBtn.astro` call sites: `AddGuestButton.astro`'s dashed add-guest circle and `GuestSection.astro`'s per-guest remove badge moved off `Button.astro`'s `icon` prop onto `IconBtn.astro`, per owner request. Visuals unchanged (`AddGuestButton` keeps its `border-4` override via `class`; the remove badge keeps its Alpine `:aria-label` override alongside a static `ariaLabel="Remove guest"` to satisfy `IconBtn`'s required prop, same trick the prior `Button.astro` call site relied on). `.fallowrc.jsonc`'s `IconBtn.astro` `entry` allowlist line from 1.17.0 removed — the component now has real call sites and is reachable without it. Other icon-only `Button.astro` call sites (`GameLayout.astro`'s exit button, `BoardInputPanel.astro`'s undo/bounce-out, `LogoutButton.astro`) remain untouched, still out of scope)
 
