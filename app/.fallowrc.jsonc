@@ -11,9 +11,6 @@
     // services/ area-root types.ts barrel (type-raising convention, docs/architecture/06-API/03-Shared-Conventions.md);
     // kept reachable even though nothing currently imports @services/types directly.
     "src/services/types.ts",
-    // Icon-only button primitive, component-only by owner decision — migrating
-    // existing icon-only Button.astro call sites to it is a separate follow-up task.
-    "src/components/forms/IconBtn.astro",
     "vitest.config.ts",
   ],
   "ignoreDependencies": [

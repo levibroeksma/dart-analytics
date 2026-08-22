@@ -2,7 +2,7 @@
 // Components
 import AddGuestButton from "./AddGuestButton.astro";
 import GuestNameModal from "./GuestNameModal.astro";
-import Button from "@components/forms/Button.astro";
+import IconBtn from "@components/forms/IconBtn.astro";
 
 // Icons
 import UserIcon from "@icons/user.svg";
@@ -27,19 +27,16 @@ import CrossIcon from "@icons/cross.svg";
         x-text="g.displayName"
       ></span>
     </div>
-    <Button
+    <IconBtn
       type="button"
       variant="ghost"
-      icon
+      ariaLabel="Remove guest"
       :aria-label="`Remove ${g.displayName}`"
       @click="removeGuest(i)"
-      class="absolute -top-1 -right-1 p-0.5 rounded-full bg-tab-card text-accent"
+      class="absolute -top-1 -right-1 p-0.5 bg-tab-card text-accent"
     >
-      <CrossIcon
-        class="size-4"
-        slot="iconBefore"
-      />
-    </Button>
+      <CrossIcon class="size-4" />
+    </IconBtn>
   </div>
 </template>
 
