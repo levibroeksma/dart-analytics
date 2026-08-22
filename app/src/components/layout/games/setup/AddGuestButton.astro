@@ -1,6 +1,6 @@
 ---
 // Components
-import Button from "@components/forms/Button.astro";
+import IconBtn from "@components/forms/IconBtn.astro";
 
 // Icons
 import PlusIcon from "@icons/plus.svg";
@@ -11,19 +11,15 @@ import PlusIcon from "@icons/plus.svg";
   x-show="guests.length < 1"
   x-cloak
 >
-  <Button
+  <IconBtn
     type="button"
     variant="dashed"
-    icon
     ariaLabel="Add guest"
     @click="showAddGuestModal = true"
-    class="rounded-full p-3 border-4"
+    class="p-3 border-4"
   >
-    <PlusIcon
-      class="size-8"
-      slot="iconBefore"
-    />
-  </Button>
+    <PlusIcon class="size-8" />
+  </IconBtn>
   <span
     class="text-sm invisible"
     aria-hidden="true"
