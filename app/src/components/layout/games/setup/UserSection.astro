@@ -1,10 +1,10 @@
 ---
 /**
- * @param {boolean} [allowGuests=false] 501 only — renders `GuestSection`
- * (add-guest button, guest avatars, name modal) beside the owner icon.
- * Every other setup screen's ruleset 400s a second seat
- * (`services/session-seats.service.ts`'s `rejectSeatRequest`), so this
- * defaults to false and those callers are unchanged.
+ * @param {boolean} [allowGuests=false] Renders `GuestSection` (add-guest
+ * button, guest avatars, name modal) beside the owner icon. Every ruleset
+ * this session's own `session-seats.service.ts` caps at 1 seat still 400s a
+ * 2nd participant regardless of what this prop renders — the prop only
+ * controls the setup screen's own markup, never the server-side cap.
  */
 interface Props {
   allowGuests?: boolean;

@@ -186,4 +186,77 @@ describe("createPresetSetupController", () => {
     expect(setup.showActiveSessionModal).toBe(false);
     expect(setup.activeSession).toBeNull();
   });
+
+  describe("guest wiring", () => {
+    /** Bob's 27's config schema defaults every field, so `{}` is valid. */
+    const BOBS27_PRESET = {
+      configurationTemplateId: "tmpl-1",
+      gameTypeKey: "BOBS27",
+      name: "Bob's 27 — Standard",
+      description: null,
+      configuration: {},
+      isSystemTemplate: true,
+    } as any;
+
+    function bobs27(): PresetSetupContext {
+      return {
+        ...createPresetSetupController<PresetSetupContext>({
+          gameTypeKey: "BOBS27",
+          rulesetVersionKey: "BOBS27_V1",
+          playHref: "/games/bobs27/play",
+          label: "Bob's 27",
+        }),
+        $store: store,
+      } as PresetSetupContext;
+    }
+
+    it("addGuest caps at one guest and start() sends a 2-seat participants array", async () => {
+      const setup = bobs27();
+      setup.presets = [BOBS27_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      setup.newGuestName = "Guest 2";
+      setup.addGuest();
+      expect(setup.guests).toHaveLength(1);
+      expect(setup.guests[0].displayName).toBe("Guest 1");
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            { participantTypeKey: "PLAYER", sideKey: "A" },
+            {
+              participantTypeKey: "GUEST",
+              displayName: "Guest 1",
+              sideKey: "B",
+            },
+          ],
+        }),
+      );
+    });
+
+    it("start() omits participants entirely when no guest was added", async () => {
+      const setup = bobs27();
+      setup.presets = [BOBS27_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      await setup.start();
+
+      const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+      expect(body.participants).toBeUndefined();
+    });
+
+    it("removeGuest drops the guest by index", () => {
+      const setup = bobs27();
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+
+      setup.removeGuest(0);
+
+      expect(setup.guests).toHaveLength(0);
+    });
+  });
 });

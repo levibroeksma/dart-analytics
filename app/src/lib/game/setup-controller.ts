@@ -46,6 +46,9 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+    guests: [] as { displayName: string }[],
+    showAddGuestModal: false,
+    newGuestName: "",
 
     async init(this: Ctx) {
       this.loadingReconciliation = true;
@@ -117,6 +120,19 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
       }
     },
 
+    addGuest(this: Ctx) {
+      if (this.guests.length >= 1) return;
+      const name = this.newGuestName.trim();
+      if (!name) return;
+      this.guests.push({ displayName: name });
+      this.newGuestName = "";
+      this.showAddGuestModal = false;
+    },
+
+    removeGuest(this: Ctx, index: number) {
+      this.guests.splice(index, 1);
+    },
+
     async start(this: Ctx) {
       const preset = this.presets[0];
       if (!preset) {
@@ -142,6 +158,16 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
           rulesetVersionKey,
           this.$store.settings,
         );
+        const participants = this.guests.length
+          ? [
+              { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+              {
+                participantTypeKey: "GUEST" as const,
+                displayName: this.guests[0].displayName,
+                sideKey: "B",
+              },
+            ]
+          : undefined;
         const session = await createSession({
           gameTypeKey,
           rulesetVersionKey,
@@ -152,6 +178,7 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
             templateRef: preset.configurationTemplateId,
             ...(overrides ? { overrides } : {}),
           },
+          participants,
         });
         this.$store.game.startSession(
           startSessionInput({

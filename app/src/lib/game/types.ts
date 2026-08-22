@@ -411,6 +411,9 @@ export type PresetSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -430,6 +433,8 @@ export type PresetSetupContext = {
   retryReconciliation(this: PresetSetupContext): Promise<void>;
   continueSession(this: PresetSetupContext): void;
   abandonSession(this: PresetSetupContext): Promise<void>;
+  addGuest(this: PresetSetupContext): void;
+  removeGuest(this: PresetSetupContext, index: number): void;
   start(this: PresetSetupContext): Promise<void>;
 };
 
