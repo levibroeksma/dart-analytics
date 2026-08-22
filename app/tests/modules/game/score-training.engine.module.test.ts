@@ -240,12 +240,13 @@ describe("ScoreTrainingEngine.wouldComplete", () => {
     const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 2 });
     engine.record(60);
     const factsBefore = structuredClone(engine.facts());
-    const turnCountBefore = (engine.state() as ScoreTrainingState).turnCount;
+    const turnCountBefore = (engine.state() as ScoreTrainingState).seats[0]
+      .turnCount;
 
     expect(engine.wouldComplete(45)).toBe(true);
 
     expect(engine.facts()).toEqual(factsBefore);
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(
       turnCountBefore,
     );
   });
@@ -254,10 +255,12 @@ describe("ScoreTrainingEngine.wouldComplete", () => {
 describe("ScoreTrainingEngine.state", () => {
   it("reports the live turn count through record and undo", () => {
     const engine = new ScoreTrainingEngine(ROUNDS_10);
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(0);
-    expect((engine.record(40) as ScoreTrainingState).turnCount).toBe(1);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(0);
+    expect((engine.record(40) as ScoreTrainingState).seats[0].turnCount).toBe(
+      1,
+    );
     engine.undo();
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(0);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(0);
   });
 });
 
@@ -621,5 +624,54 @@ describe("ScoreTrainingEngine.undo — dispatches on the fact log's shape", () =
     expect(engine.facts().turns).toHaveLength(0);
 
     expect(engine.undo()).toBe(false);
+  });
+});
+
+describe("ScoreTrainingEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<ScoreTrainingSnapshot> = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+    seats: twoSeats,
+  } as never;
+
+  it("both seats always play out their own full ROUNDS budget, higher total wins", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20); // p1 round 1
+    engine.record(60); // p2 round 1
+    let state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS");
+    engine.record(20); // p1 round 2 — total 40
+    state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS"); // p2 still has a round left
+    state = engine.record(60); // p2 round 2 — total 120
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+  });
+
+  it("stamps every turn's participantRef with a seat present in seats[]", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20);
+    engine.record(60);
+    const facts = engine.facts();
+    for (const turn of facts.turns) {
+      expect(
+        twoSeats.some((seat) => seat.participantRef === turn.participantRef),
+      ).toBe(true);
+    }
   });
 });

@@ -2,11 +2,14 @@ import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
+import { activeSeat } from "./seat-rota.module";
+import { scoreCompareWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
   EngineFacts,
   ScoreTrainingInput,
+  ScoreTrainingSeatState,
   ScoreTrainingState,
   StageFact,
   TurnFact,
@@ -18,7 +21,6 @@ const STAGE: StageFact = {
   parentClientKey: null,
   sequence: 1,
 };
-
 const DARTS_PER_VISIT = 3;
 
 function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
@@ -39,12 +41,93 @@ function isDartObservation(
   return typeof input !== "number";
 }
 
+function seatCompletesAt(
+  config: ScoreTrainingSnapshot,
+  turnCount: number,
+  timerExpired: boolean,
+): boolean {
+  if (config.durationType === "ROUNDS") {
+    return turnCount >= config.durationValue;
+  }
+  return timerExpired && turnCount >= 1;
+}
+
 /**
- * Score Training: every visit is one turn under a single exercise block.
- * Under QUICK_SCORE it is captured as a whole-visit total; under
- * VISUAL_BOARD it is captured one dart at a time, and the turn total is
- * derived as the sum of the counted dart scores. The engine owns the fact
- * log; `game.store.ts` persists a snapshot of it.
+ * Folds the whole fact log into the session's state, mirroring
+ * `foldTuodState`. Score-compare, highest total wins: both seats always play
+ * out their own full ROUNDS budget (1v1 offers ROUNDS only — see
+ * `score-training-setup.data.ts`); `activeSeat` never needs a completion
+ * predicate here for the same reason Task 11's TUOD fold does not.
+ */
+export function foldScoreTrainingState(
+  facts: EngineFacts,
+  config: Seated<ScoreTrainingSnapshot>,
+  timerExpired: boolean,
+): ScoreTrainingState {
+  const seats: ScoreTrainingSeatState[] = config.seats.map((seat) => {
+    const closed = facts.turns.filter(
+      (turn) =>
+        turn.participantRef === seat.participantRef &&
+        turn.completedAt !== null,
+    );
+    return {
+      participantRef: seat.participantRef,
+      sideKey: seat.sideKey,
+      turnCount: closed.length,
+      totalScore: closed.reduce((sum, turn) => sum + turn.totalScore, 0),
+    };
+  });
+
+  const completedSeats = seats.map((seat) =>
+    seatCompletesAt(config, seat.turnCount, timerExpired),
+  );
+  const allComplete = completedSeats.every(Boolean);
+
+  const winningSideKey =
+    seats.length === 1
+      ? null
+      : scoreCompareWinner(
+          seats.map((seat, index) => ({
+            sideKey: seat.sideKey,
+            completed: completedSeats[index],
+            metric: seat.totalScore,
+          })),
+          "HIGHEST",
+        );
+
+  const status: ScoreTrainingState["status"] =
+    seats.length === 1
+      ? "IN_PROGRESS"
+      : !allComplete
+        ? "IN_PROGRESS"
+        : winningSideKey !== null
+          ? "COMPLETE"
+          : "TIE";
+
+  return {
+    activeParticipantRef: activeSeat(
+      facts,
+      config.seats,
+      "PER_SEAT",
+      (candidate) => {
+        const index = seats.findIndex(
+          (seat) => seat.participantRef === candidate.participantRef,
+        );
+        return index === -1 ? false : completedSeats[index];
+      },
+    ).participantRef,
+    status,
+    winningSideKey,
+    timerExpired,
+    seats,
+  };
+}
+
+/**
+ * Score Training: every visit is one turn, per seat, under a single exercise
+ * block, played for a ROUNDS duration in 1v1 (MINUTES stays solo-only, same
+ * reasoning as TUOD). Score-compare: both seats always play their own full
+ * round budget, then whichever totalled the higher score wins.
  */
 export class ScoreTrainingEngine implements GameEngine<
   ScoreTrainingInput,
@@ -71,16 +154,12 @@ export class ScoreTrainingEngine implements GameEngine<
     );
   }
 
-  /**
-   * The single completion rule, evaluated against an arbitrary turn count so
-   * both `isComplete()` (the count now) and `wouldComplete()` (the count one
-   * visit ahead) read it rather than restating it.
-   */
-  private completesAt(turnCount: number): boolean {
-    if (this.config.durationType === "ROUNDS") {
-      return turnCount >= this.config.durationValue;
-    }
-    return this.timerExpired && turnCount >= 1;
+  private deriveState(): ScoreTrainingState {
+    return foldScoreTrainingState(
+      { stages: [STAGE], turns: this.turns },
+      this.config,
+      this.timerExpired,
+    );
   }
 
   /**
@@ -127,16 +206,17 @@ export class ScoreTrainingEngine implements GameEngine<
       );
     }
 
+    const activeParticipantRef = this.deriveState().activeParticipantRef;
     this.turns.push({
       clientKey: newClientKey(),
       stageClientKey: STAGE.clientKey,
-      participantRef: this.config.seats[0].participantRef,
+      participantRef: activeParticipantRef,
       sequence: this.turns.length + 1,
       completedAt: new Date().toISOString(),
       totalScore: visitScore,
       darts: [],
     });
-    return this.state();
+    return this.deriveState();
   }
 
   /**
@@ -160,10 +240,11 @@ export class ScoreTrainingEngine implements GameEngine<
 
     let turn = this.openTurn();
     if (!turn) {
+      const activeParticipantRef = this.deriveState().activeParticipantRef;
       turn = {
         clientKey: newClientKey(),
         stageClientKey: STAGE.clientKey,
-        participantRef: this.config.seats[0].participantRef,
+        participantRef: activeParticipantRef,
         sequence: this.turns.length + 1,
         completedAt: null,
         totalScore: 0,
@@ -188,7 +269,7 @@ export class ScoreTrainingEngine implements GameEngine<
       turn.completedAt = new Date().toISOString();
     }
 
-    return this.state();
+    return this.deriveState();
   }
 
   /**
@@ -227,34 +308,51 @@ export class ScoreTrainingEngine implements GameEngine<
   }
 
   /**
-   * Answers the finish-confirm gate without touching the fact log: the visit
-   * is only ever recorded once, by `record()`, after the player confirms.
-   * A score `record()` would reject never completes the session — the caller
-   * falls through to `record()` and surfaces its range error instead.
-   * Under `VISUAL_BOARD`, only a dart that completes an already-open visit
-   * (one that already holds `DARTS_PER_VISIT - 1` darts) can complete the
-   * session — a dart that opens a new visit never can.
+   * Answers whether recording `input` would end the WHOLE session — the
+   * active seat's last round, and every other seat already at a terminal
+   * status. Mirrors Task 11's `TuodEngine.wouldComplete`.
    */
   wouldComplete(input: ScoreTrainingInput): boolean {
+    const before = this.deriveState();
+    const activeSeatState = before.seats.find(
+      (seat) => seat.participantRef === before.activeParticipantRef,
+    )!;
+
     if (isDartObservation(input)) {
       const turn = this.openTurn();
       if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
-      return this.completesAt(this.state().turnCount + 1);
+    } else {
+      if (!this.isPlayable(input) || this.openTurn() !== null) return false;
     }
 
-    if (!this.isPlayable(input) || this.openTurn() !== null) return false;
-    return this.completesAt(this.state().turnCount + 1);
+    const otherSeatsComplete = before.seats
+      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
+      .every((seat) =>
+        seatCompletesAt(this.config, seat.turnCount, this.timerExpired),
+      );
+    return (
+      seatCompletesAt(
+        this.config,
+        activeSeatState.turnCount + 1,
+        this.timerExpired,
+      ) && otherSeatsComplete
+    );
   }
 
   isComplete(): boolean {
-    return this.completesAt(this.state().turnCount);
+    const state = this.deriveState();
+    if (state.seats.length === 1) {
+      return seatCompletesAt(
+        this.config,
+        state.seats[0].turnCount,
+        this.timerExpired,
+      );
+    }
+    return state.status !== "IN_PROGRESS";
   }
 
   state(): ScoreTrainingState {
-    return {
-      turnCount: this.turns.filter((turn) => turn.completedAt !== null).length,
-      timerExpired: this.timerExpired,
-    };
+    return this.deriveState();
   }
 
   facts(): EngineFacts {

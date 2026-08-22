@@ -1,14 +1,28 @@
 import type { BoardHit } from "@lib/types";
 
 /**
- * Score Training's engine state, derived on every `state()` call. The MINUTES
- * countdown lives in `game.store.ts`, not the engine, so `timerExpired`
- * reports a flag the caller sets through `ScoreTrainingEngine.expireTimer()` —
- * never by writing to this object, which is a copy. That keeps the contract's
- * zero-argument `isComplete()` intact without handing out live state.
+ * One seat's Score Training progress: how many visits it has closed and the
+ * running total of their counted scores, both folded from the fact log —
+ * never accumulated.
  */
-export type ScoreTrainingState = {
+export type ScoreTrainingSeatState = SeatState & {
   turnCount: number;
+  totalScore: number;
+};
+
+/**
+ * Score Training session state, derived on every `state()` call. Score
+ * -compare, highest total wins: both seats always play out their own full
+ * ROUNDS duration budget (1v1 offers ROUNDS only — see
+ * `score-training-setup.data.ts`). The MINUTES countdown lives in
+ * `game.store.ts`, not the engine, so `timerExpired` reports a flag the
+ * caller sets through `ScoreTrainingEngine.expireTimer()` — never by writing
+ * to this object, which is a copy. That keeps the contract's zero-argument
+ * `isComplete()` intact without handing out live state.
+ */
+export type ScoreTrainingState = MultiSeatState<ScoreTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   timerExpired: boolean;
 };
 

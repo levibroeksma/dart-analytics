@@ -325,6 +325,9 @@ export type ScoreTrainingSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -356,6 +359,9 @@ export type ScoreTrainingSetupContext = {
     this: ScoreTrainingSetupContext,
     type: ScoreTrainingDurationType,
   ): ConfigurationPresetData | undefined;
+  addGuest(this: ScoreTrainingSetupContext): void;
+  removeGuest(this: ScoreTrainingSetupContext, index: number): void;
+  forceRoundsIfGuested(this: ScoreTrainingSetupContext): void;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
 
