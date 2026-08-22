@@ -46,11 +46,16 @@ export type SinglesTrainingState = {
  * pre-computed single/double/treble flag, so a Shanghai is derived from it
  * on the visit's 3rd dart rather than tracked as it happens.
  */
-export type ShanghaiState = {
+export type ShanghaiSeatState = SeatState & {
   targetIndex: number;
   totalScore: number;
   dartsThisVisit: (DartZoneKey | null)[];
   status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE";
+};
+
+export type ShanghaiState = MultiSeatState<ShanghaiSeatState> & {
+  status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 export type DoublesVisitOutcome = {

@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-22
-highest-issued: F18
+highest-issued: F19
 -->
 
 # Findings
@@ -157,3 +157,10 @@ Claim: `app/src/modules/game/around-the-clock.engine.module.ts:136`'s own doc co
 Evidence: `app/src/lib/game/around-the-clock-play.data.ts`'s `state()` accessor (added this task) reads `this.engine?.state() ?? null` instead — the same `this.engine?.state()` pattern Bob's 27 uses, which never exported a standalone fold function to begin with. `foldAroundTheClockState` is only called internally by the engine class's own `deriveState()` in the same file, so `npx fallow` flags it under "Unused exports" ("no known consumers") both before and after this task's change (confirmed via `git stash` against the pre-task commit `b8be5f9`) — this task's own step-2 test (`currentTargetLabelFor`/`turnsSoFarFor` stubbing `ctx.engine.state()` directly) locks `state()` into the `this.engine?.state()` form, so switching it to call `foldAroundTheClockState` directly would break that test
 Impact: `npx fallow` (part of `npm run validate:app`'s completion bar) fails on this one dead export; the doc comment inside the engine module overstates how the function is actually consumed, which could mislead a future reader into assuming a call site exists that does not
 Proposed: either drop the doc comment's play-page claim (and, if nothing else needs the top-level export, remove `export` so the function is a plain module-private helper again), or — if a future task's `state()` design changes to fold directly from `$store.game` config/turns instead of `this.engine?.state()` — update that doc comment to match. Either fix touches `around-the-clock.engine.module.ts`, outside this task's designated files
+
+### F19 — `scripts/check-context-budget.sh` fails: FINDINGS.md's File Inventory token estimate has drifted stale
+Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `docs/architecture/00-File-Inventory.md`'s row for `FINDINGS.md` claims `~4.2k` tokens; the gate's own chars/4 estimate now computes `~5.5k`, a 23% drift past the script's 20% per-file tolerance
+Evidence: `docs/architecture/00-File-Inventory.md:195` (`| \`FINDINGS.md\` | ... | canonical | ~4.2k |`); `bash scripts/check-context-budget.sh` — `FAIL: FINDINGS.md claimed=~4.2k computed=~5.5k (drift=23% > 20%)`; reproduced on `git stash` against this branch's pre-task HEAD (`e98eec6`), so the drift predates this task and was not introduced by it — most likely accumulated from F15–F18 being appended to `FINDINGS.md` (2026-08-22) without their added length being reflected back into the inventory row's estimate
+Impact: `scripts/check-context-budget.sh` (part of the `run-all-gates`/context-maintenance "Always run" set) fails on every run until the estimate is refreshed, unrelated to whatever task last touched the repo; not otherwise harmful — the actual `FINDINGS.md` content is unaffected, only its inventory-row token estimate is out of date
+Proposed: bump `docs/architecture/00-File-Inventory.md:195`'s `~4.2k` to `~5.5k` (or the then-current chars/4 estimate) — a one-line, mechanical fix once someone re-derives the number, but outside every individual task's own designated files so deferred here rather than folded into unrelated work
