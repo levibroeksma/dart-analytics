@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-22
-highest-issued: F16
+highest-issued: F17
 -->
 
 # Findings
@@ -143,3 +143,10 @@ Claim: `fallow` (this repo's duplication checker) flags a new clone group betwee
 Evidence: reported by the Task 9 implementer's own `fallow` run during the single-opponent-seat-remaining-engines plan; not independently re-run or narrowed to specific line ranges here
 Impact: the two engines' seat-folding/rotation/win-condition wiring now reads as near-identical boilerplate in two places, which is expected given both follow the same `MultiSeatState<TSeat>` conversion recipe used across all seven engines in this plan — but it is unassessed whether this specific pair crosses the project's duplication threshold enough to warrant a shared helper, or is an acceptable cost of "minimal diffs, follow the established per-engine pattern"
 Proposed: after all seven engines in the current plan land, run `fallow` once across the whole branch and decide whether any of the resulting clone groups (this one or others from the same conversion) warrant extracting a shared per-engine scaffold — not mid-plan, since the pattern is intentionally repeated seven times by design
+
+### F17 — `foldAroundTheClockState` is exported but has no consumer outside its own module
+Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
+Claim: `app/src/modules/game/around-the-clock.engine.module.ts:136`'s own doc comment on `foldAroundTheClockState` says it is "the same function the engine's own `deriveState()` delegates to and the play page calls directly for reactive display, mirroring `foldOneTwentyOneState`" — implying the frontend play page imports and calls it directly, the way `one-twenty-one-play.data.ts`'s `state()` calls `foldOneTwentyOneState`
+Evidence: `app/src/lib/game/around-the-clock-play.data.ts`'s `state()` accessor (added this task) reads `this.engine?.state() ?? null` instead — the same `this.engine?.state()` pattern Bob's 27 uses, which never exported a standalone fold function to begin with. `foldAroundTheClockState` is only called internally by the engine class's own `deriveState()` in the same file, so `npx fallow` flags it under "Unused exports" ("no known consumers") both before and after this task's change (confirmed via `git stash` against the pre-task commit `b8be5f9`) — this task's own step-2 test (`currentTargetLabelFor`/`turnsSoFarFor` stubbing `ctx.engine.state()` directly) locks `state()` into the `this.engine?.state()` form, so switching it to call `foldAroundTheClockState` directly would break that test
+Impact: `npx fallow` (part of `npm run validate:app`'s completion bar) fails on this one dead export; the doc comment inside the engine module overstates how the function is actually consumed, which could mislead a future reader into assuming a call site exists that does not
+Proposed: either drop the doc comment's play-page claim (and, if nothing else needs the top-level export, remove `export` so the function is a plain module-private helper again), or — if a future task's `state()` design changes to fold directly from `$store.game` config/turns instead of `this.engine?.state()` — update that doc comment to match. Either fix touches `around-the-clock.engine.module.ts`, outside this task's designated files
