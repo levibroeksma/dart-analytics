@@ -561,6 +561,18 @@ describe("AroundTheClockEngine — 1v1", () => {
     expect(after.seats[1].targetIndex).toBe(20);
     expect(after.seats[0].status).toBe("COMPLETE");
     expect(after.status).toBe("IN_PROGRESS");
+
+    // undo() must revert only p2's own dart (its own fresh turn), leaving
+    // p1's already-closed 1-dart completing turn — a different seat's
+    // turn entirely — untouched.
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns.at(-1)!.participantRef).toBe("p1");
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(1);
+    const reverted = engine.state();
+    expect(reverted.seats[0].status).toBe("COMPLETE");
+    expect(reverted.seats[1].targetIndex).toBe(19);
+    expect(reverted.seats[1].status).toBe("IN_PROGRESS");
+    expect(reverted.activeParticipantRef).toBe("p2");
   });
 
   it("rejects recording another dart once both seats have completed", () => {
