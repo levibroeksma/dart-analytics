@@ -46,40 +46,12 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 
 ---
 
-### F1 — `permissions.allow` pre-approves a CLI that is not installed
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `.claude/settings.json:20-22` grants `Bash(gh pr view:*)`, `Bash(gh pr list:*)` and `Bash(gh pr diff:*)`
-Evidence: `.claude/settings.json:20` — `command -v gh` finds nothing in the session container; GitHub access runs through the `mcp__github__*` tools instead
-Impact: an agent reading the allowlist as a capability inventory tries `gh pr diff`, gets a shell error, and spends a round discovering the MCP tools it should have used first
-Proposed: drop the three `gh` entries, or keep them and note in the settings file that they cover a locally-installed `gh` only
-
-### F3 — `DECISIONS.md` states a stale maximum decision id
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: "How to add a decision" names `D198` as the current maximum
-Evidence: `DECISIONS.md:45` vs the derived max `D213`; the same line's ID-gap note at `DECISIONS.md:62` independently says `D212`
-Impact: an agent trusting either number issues a colliding id; the derive command on the same line is correct, so the stale figures are pure trap
-Proposed: drop both parentheticals and keep only the derive command, so there is no number to go stale
-
-### F4 — `.graphifyignore` excludes a directory the invariants make impossible
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `.graphifyignore:6` ignores `.worktrees/`
-Evidence: `.graphifyignore:6` vs `CLAUDE.md`'s "No git worktrees" hard invariant (D102), which forbids the directory from ever existing
-Impact: small — a dead ignore line. It is logged because it is exactly the kind of residue that reads as evidence the practice is allowed
-Proposed: delete the line
-
 ### F5 — A broken script is filed as a deferred feature
 Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
 Claim: `scripts/check-context-map.sh`'s migration-range regex cannot tell a seed range from a migration range, so a seed chain quoted as ending at `0003` is compared against the migration chain end and fails
 Evidence: `scripts/check-context-map.sh` — the check at its "2. Migration range consistency" section; the workaround was to reword the affected doc line, leaving the script deliberately unfixed (2026-07-26)
 Impact: the defect sat in `DECISIONS.md`'s Deferred list among eleven unbuilt features, where "we chose not to build this" and "this is broken" are indistinguishable
 Proposed: narrow the regex to skip lines naming seeds — partly done for `decisions/**` and seed lines by D194, but the seed-vs-migration ambiguity itself remains
-
-### F6 — The file inventory still describes `AGENT.md` as a byte-identical mirror
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `docs/architecture/00-File-Inventory.md` describes `scripts/check-agent-mirrors.sh` as asserting "every `CLAUDE.md` has a byte-identical `AGENT.md` sibling", and the `AGENT.md` row as an "Exact mirror of the sibling `CLAUDE.md` … edit both together"
-Evidence: `docs/architecture/00-File-Inventory.md` — both rows, against D213 in `decisions/context-system.md`, which reduced all six `AGENT.md` files to pointer stubs and inverted the gate to assert the stub
-Impact: an agent following the inventory copies rules into an `AGENT.md` and the inverted gate rejects the commit; the stale row says to do the exact thing the gate now forbids
-Proposed: restate both rows against the stub behaviour D213 actually shipped
 
 ### F7 — Per-game capability verification scripts each assert the complete capability set
 Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
@@ -122,13 +94,6 @@ Claim: migration `0023` changes `v_dart_analytics` and `v_dart_locations`, but n
 Evidence: `database/verification/` holds scripts for `0007` capabilities, `0021` player settings and `0022` player profile among others, with no `0014`/`0018`/`0023` dart-view equivalent; `app/package.json:23` `db:verify` runs `app/scripts/verify-db.ts`
 Impact: the filter's correctness rests on reading the SQL. The specific case worth proving — a session with one PLAYER and one GUEST returns only the PLAYER's dart rows, while `v_game_replay` returns both — is exactly the one no existing test covers, and this task could not run any database check at all (no `DATABASE_URL` in the execution container)
 Proposed: add `database/verification/0023_owner_scoped_dart_view_checks.sql` asserting the two views' owner scoping and `v_game_replay`'s deliberate lack of it, following `0022_player_profile_checks.sql`'s shape
-
-### F14 — A prior task's spec and plan never got their context-map-history rows
-Status: Open · Found: 2026-08-21 · Task: claude/guest-player-x01-architecture-m8ia8v
-Claim: every completed task's spec/plan pair is registered as a row in `docs/architecture/00-Context-Map-History.md` (this file's own mandatory step 2)
-Evidence: `docs/superpowers/specs/2026-08-21-guest-player-501-setup-ui-design.md` (commit `5cec9fa`) and its plan `docs/superpowers/plans/2026-08-21-guest-player-501-setup-ui.md` have no row in `docs/architecture/00-Context-Map-History.md` — the file's last row before this task's own additions was for the guest-player-x01-implementation plan (`docs/superpowers/plans/2026-08-20-guest-player-x01-implementation.md`)
-Impact: an agent scanning the history for what shipped the guest-add UI (the very feature this task hardened) would not find it there; the provenance trail has a gap for one committed task
-Proposed: append the two missing rows following the existing table's format, dated to their actual commit
 
 ### F15 — Every game interface repeats a fragile `max-h-2/5 h-full` sizing pair, and one grid item carries a dead `flex-1`
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
