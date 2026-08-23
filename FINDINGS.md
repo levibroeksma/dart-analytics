@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-23
-highest-issued: F27
+highest-issued: F28
 -->
 
 # Findings
@@ -136,6 +136,13 @@ Claim: `npx fallow` now exits 0 (76 clone groups, 14.8% duplicated, 0 files abov
 Evidence: `cd app && npx fallow dupes` — an 8-group / 236-line family across `app/src/lib/game/five-oh-one-play.data.ts` and `app/src/lib/game/one-twenty-one-play.data.ts`, a matching 8-group family across `app/src/lib/game/score-training-play.data.ts` and `app/src/lib/game/tuod-play.data.ts` (both centred on `uploadAndCompleteSession` / `playAgain` / `computeStats` around `app/src/lib/game/play-lifecycle.ts`), and one 354-line structural clone between `app/src/modules/game/score-training.engine.module.ts:81-344` (264 lines) and `app/src/modules/game/tuod.engine.module.ts`
 Impact: the play-data family was left alone on purpose — that code was hardened days earlier by the Play Again session-participant/config reseating fix, and refactoring it immediately afterwards would put regression risk on the most fragile, most recently repaired path in the app. The engine pair's remaining clone is whole-class structural similarity (two duration-bounded, dual-input engines converted by the same recipe), not a set of extractable blocks; the pieces that WERE extractable have been (`turn-log.module.ts`, `seat-state.module.ts`, `scoreCompareOutcome`). The result is a passing but thin margin: `.fallowrc.jsonc`'s `duplicates.threshold` is configured at `0.0` (unset), so the actual gate is fallow's own inferred default, empirically somewhere between 14.8% (this passes) and 18.6% (the pre-fix state failed) — not a confirmed "15%" figure — so a modest future addition can fail CI again without any new duplication of its own
 Proposed: a dedicated task should take the play-data lifecycle family on its own branch, with the Play Again 1v1 path exercised end to end before and after; the engine pair is better left as-is until one of the two rulesets diverges on its own, at which point the clone dissolves without a refactor
+
+### F28 — `00-File-Inventory.md` still describes `context-maintenance` as an "8-step procedure"
+Status: Open · Found: 2026-08-23 · Task: claude/findings-grouping-specs-aekw5m
+Claim: `docs/architecture/00-File-Inventory.md:235` describes `.claude/skills/context-maintenance/SKILL.md` as an "8-step procedure"
+Evidence: `.claude/skills/context-maintenance/SKILL.md` currently numbers 9 steps (step 9, "Component inventory," follows step 8 "Findings gate")
+Impact: an agent trusting the row's step count as a checklist length stops after 8, skipping the component-inventory step whenever it applies
+Proposed: reword the row to "9-step procedure," or drop the number and just say "procedure" so it can't go stale again
 
 ### F26 — `singles-training.md` has no 1v1 win condition, unlike its sibling `doubles-training.md`
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
