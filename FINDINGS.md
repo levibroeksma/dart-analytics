@@ -60,13 +60,6 @@ Evidence: `database/verification/0010_around_the_clock_capability_checks.sql` he
 Impact: game ten's seed makes both scripts fail on their exact-count assertion, so adding a game means either editing every earlier per-game verification script or knowingly leaving them stale — neither is what a per-game, additive script implies
 Proposed: keep the exact-count parity assertion in the one shared `0007_capability_seed_checks.sql` and narrow the per-game scripts to their own rows
 
-### F8 — One of the six preset setup files lost its shared doc line
-Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
-Claim: five of the six preset-driven setup data modules carry the JSDoc line "V1 seeds exactly one configuration preset; index 0 is always that preset"; `doubles-training-setup.data.ts` carries none
-Evidence: `app/src/lib/game/doubles-training-setup.data.ts` against its five siblings, e.g. `app/src/lib/game/bobs27-setup.data.ts`
-Impact: cosmetic only — the fact is now stated once on `createPresetSetupController` itself, so the per-file line is arguably redundant in all six rather than missing in one
-Proposed: decide once — either drop the line from all six now that the factory documents it, or add it to the sixth
-
 ### F9 — A game-frontend plan written one-commit-per-task collides with `check-game-wiring.sh`'s atomicity requirement
 Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
 Claim: `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list, and a plan written by `writing-plans` from it, break a new game's frontend into sequential per-file tasks (setup controller, setup page, play controller, play page, wiring), each with its own commit
@@ -143,10 +136,3 @@ Claim: `docs/architecture/00-File-Inventory.md:235` describes `.claude/skills/co
 Evidence: `.claude/skills/context-maintenance/SKILL.md` currently numbers 9 steps (step 9, "Component inventory," follows step 8 "Findings gate")
 Impact: an agent trusting the row's step count as a checklist length stops after 8, skipping the component-inventory step whenever it applies
 Proposed: reword the row to "9-step procedure," or drop the number and just say "procedure" so it can't go stale again
-
-### F26 — `singles-training.md` has no 1v1 win condition, unlike its sibling `doubles-training.md`
-Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
-Claim: `SINGLES_V1` ships a real score-compare 1v1 win condition (highest `totalPoints`, per `2026-08-22-single-opponent-seat-remaining-engines-design.md`'s win-condition table and `SEAT_CAPS.SINGLES_V1 = 2` in `app/src/services/session-seats.service.ts`), the same way `DOUBLES_TRAINING_V1` does
-Evidence: `docs/game-rules/rulesets/doubles-training.md:82-84` states "### Variants — Multiplayer (1v1)" / "1v1 win condition: most doubles hit across all 21 targets; ties possible, no tiebreak in this version." — added by this plan's own Doubles Training task. `docs/game-rules/rulesets/singles-training.md:83` still reads only "Multiplayer / online multiplayer" under Later Versions → Match structure, with no 1v1 win-condition prose anywhere in the file
-Impact: an agent or reader consulting `singles-training.md` for its 1v1 rule (the way `docs/architecture/00-Context-Map.md`'s "New game engine" pack directs a task to that file) finds nothing, unlike every other engine this plan touched; this task's own brief (Step 1) named only six ruleset docs to update and did not include `singles-training.md`, so the gap survives this task too
-Proposed: add a "1v1 win condition: highest total points; ties possible, no tiebreak in this version" line to `singles-training.md`, mirroring `doubles-training.md`'s own wording and placement — a one-line, in-scope-sized fix for whichever task picks it up next
