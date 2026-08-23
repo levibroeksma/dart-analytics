@@ -101,12 +101,6 @@ function trainingPointsFor(
 }
 
 /**
- * Every turn maps 1:1 to the target at its own array index (the engine only
- * ever opens a new turn once the previous one holds 3 darts), so the last
- * turn's target is always `targetAt(numbersPath(), turns.length - 1)` — no
- * separate per-dart target bookkeeping is needed.
- */
-/**
  * The dart one recreational tap stands for, on `target`. A MISS carries no
  * target number at all; a tap on the BULL target resolves SINGLE to the outer
  * bull and DOUBLE to the inner one; every other target takes the tapped ring
@@ -141,6 +135,12 @@ function tapObservation(
   };
 }
 
+/**
+ * Every turn maps 1:1 to the target at its own array index (the engine only
+ * ever opens a new turn once the previous one holds 3 darts), so the last
+ * turn's target is always `targetAt(numbersPath(), turns.length - 1)` — no
+ * separate per-dart target bookkeeping is needed.
+ */
 function previewSegmentsFor(
   turns: readonly TurnFact[],
   config: SinglesSnapshot | null,

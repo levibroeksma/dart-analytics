@@ -336,7 +336,6 @@ export class OneTwentyOneEngine implements GameEngine<
       .length;
   }
 
-  /** The visit still being thrown, or null when the last one closed. */
   /** Appends an empty visit to the open round, for the given seat, and returns it. */
   private openNewVisit(activeParticipantRef: string): TurnFact {
     const round = this.openRound();

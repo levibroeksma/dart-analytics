@@ -140,7 +140,7 @@ export function applyTuodAttempt(
  * Score-compare, highest target wins: both seats always play out their own
  * full ROUNDS budget (1v1 offers ROUNDS only — see `tuod-setup.data.ts`).
  * `activeSeat` IS passed a real completion predicate here (the 4-argument
- * form), reading each seat's own `seatCompletesAt`; it is structurally a
+ * form), reading each seat's own `durationSeatComplete`; it is structurally a
  * no-op, because every seat's budget is the same fixed count and lockstep
  * alternation already lands each seat on its own last round together. It is
  * passed anyway so the fold stays correct if that budget ever stops being
