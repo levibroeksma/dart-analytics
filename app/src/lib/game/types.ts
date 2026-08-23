@@ -11,15 +11,24 @@ import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
 import type { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
 import type { AroundTheClockEngine } from "@modules/game/around-the-clock.engine.module";
 import type {
+  AroundTheClockSeatState,
+  AroundTheClockState,
   BoardCoordinate,
+  Bobs27State,
   CheckoutDartOptions,
   DartCount,
   DartObservation,
+  DoublesTrainingState,
   EngineFacts,
   FiveOhOneState,
   MagnifierPlacement,
+  OneTwentyOneState,
+  ScoreTrainingState,
+  ShanghaiState,
+  SinglesTrainingState,
   StageFact,
   TuodAttemptInput,
+  TuodState,
   TurnFact,
 } from "@modules/types";
 import type { BoardHit } from "./board/types";
@@ -57,6 +66,9 @@ export type TuodSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -80,6 +92,9 @@ export type TuodSetupContext = {
     this: TuodSetupContext,
     type: TuodDurationType,
   ): ConfigurationPresetData | undefined;
+  addGuest(this: TuodSetupContext): void;
+  removeGuest(this: TuodSetupContext, index: number): void;
+  forceRoundsIfGuested(this: TuodSetupContext): void;
   start(this: TuodSetupContext): Promise<void>;
 };
 
@@ -200,6 +215,15 @@ export type PlayAgainOverrides<TConfig> = {
   wire: Record<string, unknown>;
 };
 
+/** `winningSideKey` is score-compare (highest total) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats totalled the same score — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
+export type ScoreTrainingResultsSnapshot = {
+  total: number;
+  visits: number;
+  average: number;
+  winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
+};
+
 export type ScoreTrainingPlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
@@ -212,13 +236,24 @@ export type ScoreTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { total: number; visits: number; average: number } | null;
+  resultsSnapshot: ScoreTrainingResultsSnapshot | null;
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
+  state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
+  totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
+  threeDartAverageFor(this: ScoreTrainingPlayContext, seatRef: string): string;
+  dartsThrownThisLegFor(
+    this: ScoreTrainingPlayContext,
+    seatRef: string,
+  ): number;
+  previousScoreThisLegFor(
+    this: ScoreTrainingPlayContext,
+    seatRef: string,
+  ): string;
   remainingLabel(this: ScoreTrainingPlayContext): string;
   threeDartAverage(this: ScoreTrainingPlayContext): string;
   dartsThrownThisLeg(this: ScoreTrainingPlayContext): number;
@@ -240,11 +275,14 @@ export type ScoreTrainingPlayContext = {
   destroy(this: ScoreTrainingPlayContext): void;
 };
 
+/** `winningSideKey` is score-compare (highest target) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats reached the same target — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
 export type TuodResultsSnapshot = {
   target: number;
   attempts: number;
   successes: number;
   failures: number;
+  winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
 };
 
 export type TuodPlayContext = {
@@ -270,6 +308,8 @@ export type TuodPlayContext = {
   $store: PlayStoreContext<TuodSnapshot>;
   engine: TuodEngine | null;
   timer: SegmentTimer | null;
+  state(this: TuodPlayContext): TuodState | null;
+  currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
   remainingLabel(this: TuodPlayContext): string;
   init(this: TuodPlayContext): Promise<void>;
@@ -308,6 +348,9 @@ export type ScoreTrainingSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -339,6 +382,9 @@ export type ScoreTrainingSetupContext = {
     this: ScoreTrainingSetupContext,
     type: ScoreTrainingDurationType,
   ): ConfigurationPresetData | undefined;
+  addGuest(this: ScoreTrainingSetupContext): void;
+  removeGuest(this: ScoreTrainingSetupContext, index: number): void;
+  forceRoundsIfGuested(this: ScoreTrainingSetupContext): void;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
 
@@ -411,6 +457,9 @@ export type PresetSetupContext = {
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
   $store: {
     game: {
       sessionId: string | null;
@@ -430,6 +479,8 @@ export type PresetSetupContext = {
   retryReconciliation(this: PresetSetupContext): Promise<void>;
   continueSession(this: PresetSetupContext): void;
   abandonSession(this: PresetSetupContext): Promise<void>;
+  addGuest(this: PresetSetupContext): void;
+  removeGuest(this: PresetSetupContext, index: number): void;
   start(this: PresetSetupContext): Promise<void>;
 };
 
@@ -524,6 +575,7 @@ export type OneTwentyOneResultsSnapshot = {
   target: number;
   visits: number;
   average: number;
+  winningSideKey: string | null;
 };
 
 export type OneTwentyOnePlayContext = {
@@ -547,9 +599,13 @@ export type OneTwentyOnePlayContext = {
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
   engine: OneTwentyOneEngine | null;
+  state(this: OneTwentyOnePlayContext): OneTwentyOneState | null;
+  remainingInAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
+  currentTargetLabelFor(this: OneTwentyOnePlayContext, seatRef: string): string;
   currentTargetLabel(this: OneTwentyOnePlayContext): string;
   checkoutHint(this: OneTwentyOnePlayContext): string;
+  visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
   dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
   init(this: OneTwentyOnePlayContext): Promise<void>;
@@ -600,13 +656,17 @@ export type Bobs27PlayContext = {
     darts: number;
     doubleHitRate: string;
     highestNumberReached: string;
+    winningSideKey: string | null;
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<Bobs27Snapshot>;
   engine: Bobs27Engine | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
+  state(this: Bobs27PlayContext): Bobs27State | null;
+  currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string;
   currentTargetLabel(this: Bobs27PlayContext): string;
+  currentScoreFor(this: Bobs27PlayContext, seatRef: string): string;
   currentScore(this: Bobs27PlayContext): string;
   previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[];
   init(this: Bobs27PlayContext): Promise<void>;
@@ -648,23 +708,35 @@ export type SinglesTrainingPlayContext = {
     doubles: number;
     trebles: number;
     hitPercentage: string;
+    winningSideKey: string | null;
+    status: "COMPLETE" | "TIE";
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot>;
   engine: SinglesTrainingEngine | null;
+  state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: SinglesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  currentTargetLabelFor(
+    this: SinglesTrainingPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: SinglesTrainingPlayContext): string;
+  currentPointsFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   currentPoints(this: SinglesTrainingPlayContext): string;
   isBullVisit(this: SinglesTrainingPlayContext): boolean;
   previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[];
+  missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   missCount(this: SinglesTrainingPlayContext): string;
+  singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   singleCount(this: SinglesTrainingPlayContext): string;
+  doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   doubleCount(this: SinglesTrainingPlayContext): string;
+  trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string;
   trebleCount(this: SinglesTrainingPlayContext): string;
   init(this: SinglesTrainingPlayContext): Promise<void>;
   retryReconciliation(this: SinglesTrainingPlayContext): Promise<void>;
@@ -707,18 +779,30 @@ export type DoublesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { hits: number; misses: number } | null;
+  resultsSnapshot: {
+    hits: number;
+    misses: number;
+    winningSideKey: string | null;
+    status: "COMPLETE" | "TIE";
+  } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
   engine: DoublesTrainingEngine | null;
+  state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: DoublesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  currentTargetLabelFor(
+    this: DoublesTrainingPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: DoublesTrainingPlayContext): string;
+  hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string;
   hitCount(this: DoublesTrainingPlayContext): string;
+  missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string;
   missCount(this: DoublesTrainingPlayContext): string;
   previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[];
   init(this: DoublesTrainingPlayContext): Promise<void>;
@@ -738,11 +822,12 @@ export type DoublesTrainingPlayContext = {
 /** One dart slot in Shanghai's visit preview — a resolved hit/miss mark (against the round's own number), or a not-yet-thrown placeholder. */
 export type ShanghaiPreviewSegment = { status: "hit" | "miss" | "empty" };
 
-/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE` session, the round the Shanghai landed on for a `SHANGHAI` one. */
+/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE`/`TIE` session, the round the Shanghai landed on for a `SHANGHAI` one. `status` mirrors the match-level `ShanghaiState.status`, not the owner seat's own status — a solo session's own status and the match status always coincide, but only the match status can read `TIE`. */
 export type ShanghaiResultsSnapshot = {
   score: number;
-  status: "SHANGHAI" | "COMPLETE";
+  status: "SHANGHAI" | "COMPLETE" | "TIE";
   round: number;
+  winningSideKey: string | null;
 };
 
 export type ShanghaiPlayContext = {
@@ -766,8 +851,12 @@ export type ShanghaiPlayContext = {
     this: ShanghaiPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  state(this: ShanghaiPlayContext): ShanghaiState | null;
+  currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string;
   currentTargetLabel(this: ShanghaiPlayContext): string;
+  roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string;
   roundLabel(this: ShanghaiPlayContext): string;
+  currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string;
   currentScore(this: ShanghaiPlayContext): string;
   isBullVisit(this: ShanghaiPlayContext): boolean;
   previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[];
@@ -793,11 +882,13 @@ export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. */
+/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats finished in the same number of darts — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
 export type AroundTheClockResultsSnapshot = {
   turns: number;
   accuracy: string;
   totalDarts: number;
+  winningSideKey: string | null;
+  status: "COMPLETE" | "TIE";
 };
 
 export type AroundTheClockPlayContext = {
@@ -821,8 +912,18 @@ export type AroundTheClockPlayContext = {
     this: AroundTheClockPlayContext,
     observation: DartObservation,
   ): Promise<void>;
+  state(this: AroundTheClockPlayContext): AroundTheClockState | null;
+  activeSeatState(
+    this: AroundTheClockPlayContext,
+  ): AroundTheClockSeatState | null;
+  currentTargetLabelFor(
+    this: AroundTheClockPlayContext,
+    seatRef: string,
+  ): string;
   currentTargetLabel(this: AroundTheClockPlayContext): string;
+  turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string;
   turnsSoFar(this: AroundTheClockPlayContext): string;
+  accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string;
   accuracy(this: AroundTheClockPlayContext): string;
   isBullVisit(this: AroundTheClockPlayContext): boolean;
   previewSegments(
@@ -865,4 +966,11 @@ export type GamesIndexContext = {
   ): boolean;
   analyticsMode(this: GamesIndexContext): boolean;
   noneVisible(this: GamesIndexContext): boolean;
+};
+
+/** The guest-list state every setup screen's add-a-guest modal drives. */
+export type GuestListContext = {
+  guests: { displayName: string }[];
+  newGuestName: string;
+  showAddGuestModal: boolean;
 };

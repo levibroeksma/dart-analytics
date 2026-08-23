@@ -14,7 +14,9 @@ import {
 } from "@lib/game/score-training-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { addTypedGuest } from "@lib/game/guest-list";
 import {
+  participantsFromGuests,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -53,6 +55,9 @@ export function scoreTrainingSetup() {
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+    guests: [] as { displayName: string }[],
+    showAddGuestModal: false,
+    newGuestName: "",
 
     /**
      * On fetch failure, keeps the user on setup with a visible error and the
@@ -105,6 +110,24 @@ export function scoreTrainingSetup() {
       this.durationValue =
         durationValueOf(this.presetForMode(type)) ?? FALLBACK_DURATION[type];
       this.clampNotice = "";
+    },
+
+    addGuest(this: ScoreTrainingSetupContext) {
+      if (addTypedGuest(this)) this.forceRoundsIfGuested();
+    },
+
+    removeGuest(this: ScoreTrainingSetupContext, index: number) {
+      this.guests.splice(index, 1);
+    },
+
+    /**
+     * A 1v1 match needs a fixed round count both seats share, not a
+     * wall-clock timer running through alternating turns — see
+     * `2026-08-22-single-opponent-seat-remaining-engines-design.md`. Once a
+     * guest is added, TIMED (MINUTES) is locked back to ROUNDS.
+     */
+    forceRoundsIfGuested(this: ScoreTrainingSetupContext) {
+      if (this.guests.length > 0) this.durationType = "ROUNDS";
     },
 
     /**
@@ -196,6 +219,7 @@ export function scoreTrainingSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
+        const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
@@ -206,6 +230,7 @@ export function scoreTrainingSetup() {
             templateRef: preset.configurationTemplateId,
             overrides: { duration_value: value },
           },
+          participants,
         });
         this.$store.game.startSession(
           startSessionInput({

@@ -1,19 +1,30 @@
-import type { SinglesSnapshot, Seated } from "@lib/types";
-import { newClientKey } from "./client-key.module";
+import type { SinglesSnapshot, Seated, SeatFact } from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
-  boardScore,
   numbersPath,
   targetAt,
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
+import { activeSeat } from "./seat-rota.module";
+import {
+  activeSeatState,
+  foldSeatStates,
+  otherSeatsComplete,
+} from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   BoardTarget,
-  DartFact,
   DartObservation,
   DartZoneKey,
   EngineFacts,
+  SinglesTrainingSeatState,
   SinglesTrainingState,
   StageFact,
   TurnFact,
@@ -26,15 +37,26 @@ const STAGE: StageFact = {
   sequence: 1,
 };
 
-/**
- * Singles Training starting state: aimed at NUMBER 1, no darts thrown yet.
- */
-export function initialSinglesTrainingState(): SinglesTrainingState {
+function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
   return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
     targetIndex: 0,
     totalPoints: 0,
     dartsThisVisit: 0,
     status: "IN_PROGRESS",
+  };
+}
+
+/** Singles Training starting state: every configured seat aimed at NUMBER 1, no darts thrown. */
+export function initialSinglesTrainingState(
+  config: Seated<SinglesSnapshot>,
+): SinglesTrainingState {
+  return {
+    activeParticipantRef: config.seats[0].participantRef,
+    status: "IN_PROGRESS",
+    winningSideKey: null,
+    seats: config.seats.map(initialSeatState),
   };
 }
 
@@ -69,21 +91,15 @@ function trainingPointsFor(
 }
 
 /**
- * Pure reducer: folds one dart observation onto a `SinglesTrainingState`.
- * Training points are ring quality relative to the current target — a hit
- * on any other number scores zero regardless of ring, and BULL only ever
- * awards its single/double points, never treble. A visit resolves on its
- * 3rd dart: resolving the 21st (last) target in `config.targetOrder`
- * completes the session — not necessarily a BULL visit, since High→Low and
- * Random order modes can put BULL anywhere in the path; any other target
- * advances to the next one in the order.
+ * Pure reducer: folds one dart observation onto one seat's
+ * `SinglesTrainingSeatState`.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applySinglesTrainingDart(
   config: SinglesSnapshot,
-  state: SinglesTrainingState,
+  state: SinglesTrainingSeatState,
   observation: DartObservation,
-): SinglesTrainingState {
+): SinglesTrainingSeatState {
   if (state.status !== "IN_PROGRESS") {
     throw new Error(
       "Cannot record a dart once the session is complete; undo first to correct it.",
@@ -98,7 +114,6 @@ export function applySinglesTrainingDart(
   if (dartsThisVisit < 3) {
     return { ...state, totalPoints, dartsThisVisit };
   }
-
   if (state.targetIndex === 20) {
     return { ...state, totalPoints, dartsThisVisit: 0, status: "COMPLETE" };
   }
@@ -110,22 +125,49 @@ export function applySinglesTrainingDart(
   };
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
+/**
+ * Folds the whole fact log into the session's state, mirroring
+ * `foldAroundTheClockState`. Score-compare, highest training-point total
+ * wins: unlike Around the Clock, every visit here is exactly 3 darts
+ * regardless of hit or miss, so both seats always take the same number of
+ * visits and `activeSeat` needs no completion predicate.
+ */
+function foldSinglesTrainingState(
+  facts: EngineFacts,
+  config: Seated<SinglesSnapshot>,
+): SinglesTrainingState {
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    initialSeatState,
+    (state, observation) =>
+      applySinglesTrainingDart(config, state, observation),
+  );
 
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
+  const outcome = scoreCompareOutcome(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      completed: seat.status === "COMPLETE",
+      metric: seat.totalPoints,
+    })),
+    "HIGHEST",
+    seats[0].status,
+  );
+
+  return {
+    activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
+      .participantRef,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
+    seats,
+  };
 }
 
 /**
  * Singles Training: a fixed path of 21 targets (1..20, then BULL), each
- * visit scored by ring quality relative to its own target rather than by
- * board value. The engine owns the fact log — `state()` derives the running
- * training-point total, current target and completion by folding `facts()`
- * through `applySinglesTrainingDart`; the total is never stored. Each dart's
- * `score` fact is the actual board score of the throw, independent of the
- * training points it earned.
+ * visit scored by ring quality relative to its own target, per seat.
+ * Score-compare: both seats always play the fixed number of visits, then
+ * whichever totalled the higher training-point score wins.
  */
 export class SinglesTrainingEngine implements GameEngine<
   DartObservation,
@@ -143,80 +185,70 @@ export class SinglesTrainingEngine implements GameEngine<
   }
 
   private deriveState(): SinglesTrainingState {
-    let state = initialSinglesTrainingState();
-    for (const turn of this.turns) {
-      for (const dart of turn.darts) {
-        state = applySinglesTrainingDart(this.config, state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
+    return foldSinglesTrainingState(
+      { stages: [{ ...STAGE }], turns: this.turns },
+      this.config,
+    );
   }
 
-  private openOrCreateTurn(): TurnFact {
-    const last = this.turns.at(-1);
-    if (last && last.darts.length < 3) return last;
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: this.config.seats[0].participantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+  private openOrCreateTurn(activeParticipantRef: string): TurnFact {
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      (last) => last.darts.length < 3,
+    );
   }
 
   /**
-   * Appends one dart to the open visit, opening a new one when the last is
-   * already 3 darts deep. Both `intendedTargetNumber` and `intendedZoneKey`
-   * are always `null` — the whole intention pair, not just the zone. Unlike
-   * Bob's 27, Singles Training treats single, double and treble on the
-   * current segment as equally valid intentional outcomes (differing only in
-   * point value), so no single ring is "the" intended one; recording a target
-   * number without a ring would still assert an intention the player never
-   * held, and a target number with a null zone is rejected outright by
+   * Appends one dart to the active seat's open visit. Both
+   * `intendedTargetNumber` and `intendedZoneKey` are always `null` — the
+   * whole intention pair, not just the zone. Unlike Bob's 27, Singles
+   * Training treats single, double and treble on the current segment as
+   * equally valid intentional outcomes (differing only in point value), so
+   * no single ring is "the" intended one; recording a target number without
+   * a ring would still assert an intention the player never held, and a
+   * target number with a null zone is rejected outright by
    * `chk_dart_target_consistency` (migration `0007`), which only admits both
    * intention columns NULL or the zone NOT NULL. Nothing analytic is lost:
    * Singles plays exactly one target per visit in a fixed, configured order,
    * so the intended target is always recoverable from the visit index
-   * (`targetIndex`) without storing it per dart. Do not restore either field.
-   * The fact's `score` is the dart's board score, never the training points
-   * the derived total adds. `completedAt` is stamped only by the dart that
-   * resolves the visit — the client-observed end of it — so an open visit
-   * carries none.
-   * @throws when the session has already ended; the fact log is left untouched.
+   * (`targetIndex`) without storing it per dart. Do not restore either
+   * field. The fact's `score` is the dart's board score, never the training
+   * points the derived total adds. `completedAt` is stamped only by the
+   * dart that resolves the visit — the client-observed end of it — so an
+   * open visit carries none.
+   *
+   * Guarded only by the ACTIVE seat's own `status`: every seat's own visit
+   * count is fixed (21) and every visit is exactly 3 darts win or miss, so
+   * both seats always finish in strict lockstep alternation with no
+   * race/instant-win shortcut (unlike `ShanghaiEngine`, whose Shanghai race
+   * can end the whole match while the OTHER seat's own status still reads
+   * `IN_PROGRESS`) — the match can only ever turn `COMPLETE`/`TIE` once
+   * EVERY seat is individually `COMPLETE`, so whichever seat `activeSeat()`
+   * names next is necessarily `COMPLETE` too by then, and this check alone
+   * throws. No separate match-level guard is needed, unlike
+   * `ScoreTrainingEngine.isMatchDecided()` (whose seat state carries no
+   * `status` field to check in the first place).
+   * @throws when the active seat has already completed its own session; the
+   *   fact log is left untouched.
    */
   record(observation: DartObservation): SinglesTrainingState {
     const before = this.deriveState();
-    const after = applySinglesTrainingDart(this.config, before, observation);
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
+      throw new Error(
+        "Cannot record a dart once the session is complete; undo first to correct it.",
+      );
+    }
 
-    const openTurn = this.openOrCreateTurn();
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
+    appendObservedDart(openTurn, observation);
     if (openTurn.darts.length === 3) {
       openTurn.completedAt = new Date().toISOString();
     }
 
-    return after;
+    return this.deriveState();
   }
 
   /**
@@ -227,31 +259,28 @@ export class SinglesTrainingEngine implements GameEngine<
    * @returns true if a dart was removed; false if there was nothing to undo.
    */
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
-   * Answers whether recording `observation` would complete the session,
-   * without mutating the fact log or the derived state. Only a visit's 3rd
-   * dart, thrown at the BULL target, can ever complete the session.
+   * Answers whether recording `observation` would end the WHOLE session —
+   * this dart is the active seat's 21st target's 3rd dart, and every other
+   * seat has already reached COMPLETE.
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") return false;
-    if (before.dartsThisVisit < 2) return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
+    if (seatBefore.dartsThisVisit < 2) return false;
 
-    const after = applySinglesTrainingDart(this.config, before, observation);
-    return after.status !== "IN_PROGRESS";
+    const after = applySinglesTrainingDart(
+      this.config,
+      seatBefore,
+      observation,
+    );
+    if (after.status !== "COMPLETE") return false;
+
+    return otherSeatsComplete(before.seats, seatBefore.participantRef);
   }
 
   isComplete(): boolean {

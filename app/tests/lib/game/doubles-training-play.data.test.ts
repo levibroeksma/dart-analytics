@@ -431,7 +431,93 @@ describe("completion", () => {
 
     await play.recordTap.call(play, true);
 
-    expect(play.resultsSnapshot).toEqual({ hits: 21, misses: 0 });
+    expect(play.resultsSnapshot).toEqual({
+      hits: 21,
+      misses: 0,
+      winningSideKey: null,
+      status: "COMPLETE",
+    });
+  });
+});
+
+describe("completion — 1v1", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<DoublesTrainingSnapshot> {
+    return { ...defaultConfig(), seats: TWO_SEATS };
+  }
+
+  it("marks status TIE, with winningSideKey null, when both seats hit the same number of doubles", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 21, turns: 42, darts: 42 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Both seats hit on the 1st dart of every one of the 21 visits, so
+    // each totals the same doubles-hit count — a genuine tie, not a solo
+    // session, even though winningSideKey is null in both cases.
+    for (let i = 0; i < 21 * 2; i += 1) {
+      await play.recordTap.call(play, true);
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+  });
+
+  it("names the most-doubles-hit seat as winner and scopes stats to the owner (PLAYER) seat", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 21, turns: 42, darts: 84 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // The rota alternates by whole visit: participant-1 (seat A, PLAYER)
+    // throws first each round and hits every double, participant-2
+    // (seat B, GUEST) throws next and misses every dart — a decisive,
+    // non-tied win for seat A across all 21 targets.
+    for (let round = 0; round < 21; round += 1) {
+      await play.recordTap.call(play, true);
+      await play.recordTap.call(play, false);
+      await play.recordTap.call(play, false);
+      await play.recordTap.call(play, false);
+    }
+
+    expect(play.finished).toBe(true);
+    expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsSnapshot).toEqual({
+      hits: 21,
+      misses: 0,
+      winningSideKey: "A",
+      status: "COMPLETE",
+    });
   });
 });
 
@@ -615,6 +701,35 @@ describe("recordDart (board input)", () => {
     });
 
     expect(play.$store.game.turns).toHaveLength(21);
+  });
+});
+
+describe("doublesTrainingPlay — per-seat accessors", () => {
+  it("hitCountFor and missCountFor read the named seat", () => {
+    const ctx = doublesTrainingPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; outcomes: { hit: boolean }[] }[];
+        };
+      };
+      hitCountFor: (seatRef: string) => string;
+      missCountFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", outcomes: [{ hit: true }, { hit: false }] },
+          {
+            participantRef: "p2",
+            outcomes: [{ hit: true }, { hit: true }, { hit: false }],
+          },
+        ],
+      }),
+    };
+    expect(ctx.hitCountFor("p2")).toBe("2");
+    expect(ctx.missCountFor("p2")).toBe("1");
   });
 });
 

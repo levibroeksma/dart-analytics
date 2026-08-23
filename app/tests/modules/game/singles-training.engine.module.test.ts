@@ -9,8 +9,9 @@ import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type {
   DartObservation,
+  DartZoneKey,
   EngineFacts,
-  SinglesTrainingState,
+  SinglesTrainingSeatState,
 } from "@modules/types";
 import type { SinglesSnapshot, Seated } from "@lib/types";
 
@@ -36,7 +37,7 @@ const config: Seated<SinglesSnapshot> = {
 };
 
 function hitObservationFor(
-  state: SinglesTrainingState,
+  state: SinglesTrainingSeatState,
   zone: "SINGLE" | "DOUBLE" | "TREBLE",
 ): DartObservation {
   const target = targetAt(numbersPath(), state.targetIndex);
@@ -56,7 +57,7 @@ function hitObservationFor(
   };
 }
 
-function missObservationFor(state: SinglesTrainingState): DartObservation {
+function missObservationFor(state: SinglesTrainingSeatState): DartObservation {
   const target = targetAt(numbersPath(), state.targetIndex);
   return {
     hitTargetNumber: target.kind === "BULL" ? 25 : target.number,
@@ -66,6 +67,11 @@ function missObservationFor(state: SinglesTrainingState): DartObservation {
   };
 }
 
+/** The single configured seat's initial per-seat reducer state. */
+function initialSeat(): SinglesTrainingSeatState {
+  return initialSinglesTrainingState(config).seats[0];
+}
+
 /**
  * Builds `EngineFacts` for 20 completed all-MISS visits on targets 1..20, so
  * an engine created against them rehydrates onto the BULL target.
@@ -73,9 +79,9 @@ function missObservationFor(state: SinglesTrainingState): DartObservation {
 function facts20TargetsPlayed(): EngineFacts {
   const engine = singlesTrainingEngineFactory.create(config);
   for (let visit = 0; visit < 20; visit++) {
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservationFor(engine.state().seats[0]));
+    engine.record(missObservationFor(engine.state().seats[0]));
+    engine.record(missObservationFor(engine.state().seats[0]));
   }
   return engine.facts();
 }
@@ -94,19 +100,27 @@ describe("singlesTrainingEngineFactory", () => {
 });
 
 describe("initialSinglesTrainingState", () => {
-  it("starts at 0 points on target index 0, in progress", () => {
-    expect(initialSinglesTrainingState()).toEqual({
-      targetIndex: 0,
-      totalPoints: 0,
-      dartsThisVisit: 0,
-      status: "IN_PROGRESS",
-    });
+  it("starts at 0 points on target index 0, in progress, for every configured seat", () => {
+    const state = initialSinglesTrainingState(config);
+    expect(state.activeParticipantRef).toBe("participant-1");
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.winningSideKey).toBeNull();
+    expect(state.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        targetIndex: 0,
+        totalPoints: 0,
+        dartsThisVisit: 0,
+        status: "IN_PROGRESS",
+      },
+    ]);
   });
 });
 
 describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   it("scores pointsSingle for a SINGLE hit and keeps the same target", () => {
-    const state = initialSinglesTrainingState();
+    const state = initialSeat();
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
@@ -120,7 +134,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   });
 
   it("scores pointsDouble for a DOUBLE hit", () => {
-    const state = initialSinglesTrainingState();
+    const state = initialSeat();
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "DOUBLE",
@@ -131,7 +145,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   });
 
   it("scores pointsTreble for a TREBLE hit", () => {
-    const state = initialSinglesTrainingState();
+    const state = initialSeat();
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "TREBLE",
@@ -142,7 +156,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   });
 
   it("scores 0 points for a MISS but still counts the dart", () => {
-    const state = initialSinglesTrainingState();
+    const state = initialSeat();
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "MISS",
@@ -154,7 +168,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   });
 
   it("scores 0 training points when the dart lands on a different number than the target, but the number is a genuine hit", () => {
-    const state = initialSinglesTrainingState();
+    const state = initialSeat();
     const next = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
@@ -166,7 +180,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
   });
 
   it("sums a mixed 3-dart visit and advances the target on the 3rd dart", () => {
-    let state = initialSinglesTrainingState();
+    let state = initialSeat();
     state = applySinglesTrainingDart(config, state, {
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
@@ -194,7 +208,7 @@ describe("applySinglesTrainingDart — ring scoring on a NUMBER target", () => {
 
 describe("applySinglesTrainingDart — path completion", () => {
   it("completes after a full run of TREBLE on every NUMBER target and DOUBLE on BULL", () => {
-    let state = initialSinglesTrainingState();
+    let state = initialSeat();
     for (let visit = 0; visit < 20; visit++) {
       state = applySinglesTrainingDart(
         config,
@@ -233,7 +247,9 @@ describe("applySinglesTrainingDart — path completion", () => {
 });
 
 describe("applySinglesTrainingDart — BULL target scoring", () => {
-  const bullState: SinglesTrainingState = {
+  const bullState: SinglesTrainingSeatState = {
+    participantRef: "participant-1",
+    sideKey: "A",
     targetIndex: 20,
     totalPoints: 0,
     dartsThisVisit: 0,
@@ -271,7 +287,9 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
   });
 
   it("sets status COMPLETE on the bull visit's 3rd dart, not just advancing", () => {
-    const twoDartsIn: SinglesTrainingState = {
+    const twoDartsIn: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 20,
       totalPoints: 10,
       dartsThisVisit: 2,
@@ -300,7 +318,9 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
 
 describe("applySinglesTrainingDart — terminal state guard", () => {
   it("throws when called on a state that is already COMPLETE", () => {
-    const completeState: SinglesTrainingState = {
+    const completeState: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 20,
       totalPoints: 186,
       dartsThisVisit: 0,
@@ -331,7 +351,7 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     expect(dart.score).toBe(3);
     expect(dart.intendedTargetNumber).toBeNull();
     expect(dart.intendedZoneKey).toBeNull();
-    expect(engine.state().totalPoints).toBe(3);
+    expect(engine.state().seats[0].totalPoints).toBe(3);
   });
 
   it("scores a dart that missed the target as zero training points but keeps the board fact", () => {
@@ -344,7 +364,7 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     });
 
     expect(engine.facts().turns[0].darts[0].score).toBe(60);
-    expect(engine.state().totalPoints).toBe(0);
+    expect(engine.state().seats[0].totalPoints).toBe(0);
   });
 
   it("advances to the next target after three darts", () => {
@@ -368,7 +388,7 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
       locationY: null,
     });
 
-    expect(engine.state().targetIndex).toBe(1);
+    expect(engine.state().seats[0].targetIndex).toBe(1);
     expect(engine.facts().turns).toHaveLength(1);
     expect(engine.facts().turns[0].totalScore).toBe(3);
   });
@@ -388,7 +408,7 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     const dart = engine.facts().turns.at(-1)!.darts.at(-1)!;
     expect(dart.hitZoneKey).toBe("INNER_BULL");
     expect(dart.score).toBe(50);
-    expect(engine.state().totalPoints).toBe(2);
+    expect(engine.state().seats[0].totalPoints).toBe(2);
   });
 
   it("completes after the bull visit", () => {
@@ -454,15 +474,15 @@ describe("SinglesTrainingEngine — fact log and derived state (Task 7 acceptanc
     });
 
     const resumed = singlesTrainingEngineFactory.create(config, first.facts());
-    expect(resumed.state().totalPoints).toBe(9);
-    expect(resumed.state().targetIndex).toBe(1);
+    expect(resumed.state().seats[0].totalPoints).toBe(9);
+    expect(resumed.state().seats[0].targetIndex).toBe(1);
   });
 });
 
 describe("SinglesTrainingEngine.facts", () => {
   it("emits exactly one EXERCISE_BLOCK stage every turn belongs to", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     const facts = engine.facts();
     expect(facts.stages).toEqual([
@@ -478,10 +498,10 @@ describe("SinglesTrainingEngine.facts", () => {
 
   it("mints a unique clientKey and an ISO completedAt per turn", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     const [first, second] = engine.facts().turns;
     expect(first.clientKey).not.toBe(second.clientKey);
@@ -491,13 +511,13 @@ describe("SinglesTrainingEngine.facts", () => {
   it("leaves completedAt null until the visit's 3rd dart resolves it", () => {
     const engine = new SinglesTrainingEngine(config);
 
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
-    engine.record(missObservationFor(engine.state()));
+    engine.record(missObservationFor(engine.state().seats[0]));
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
-    engine.record(hitObservationFor(engine.state(), "TREBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
     expect(engine.facts().turns[0].completedAt).toMatch(
       /^\d{4}-\d{2}-\d{2}T.*Z$/,
     );
@@ -505,11 +525,11 @@ describe("SinglesTrainingEngine.facts", () => {
 
   it("is an exact inverse of record over facts() when undo reopens a closed visit", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     const before = engine.facts();
 
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.facts().turns[0].completedAt).not.toBeNull();
 
     expect(engine.undo()).toBe(true);
@@ -518,10 +538,10 @@ describe("SinglesTrainingEngine.facts", () => {
 
   it("numbers darts 1..3 within a turn and turns incrementing across visits", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     const [firstTurn, secondTurn] = engine.facts().turns;
     expect(firstTurn.sequence).toBe(1);
@@ -532,7 +552,7 @@ describe("SinglesTrainingEngine.facts", () => {
 
   it("returns a detached copy so callers cannot mutate the engine's log", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     engine.facts().turns[0].darts.push(engine.facts().turns[0].darts[0]);
     expect(engine.facts().turns[0].darts).toHaveLength(1);
@@ -572,8 +592,10 @@ describe("SinglesTrainingEngine — dart location facts", () => {
 describe("SinglesTrainingEngine", () => {
   it("starts at 0 points on target NUMBER 1, not complete", () => {
     const engine = new SinglesTrainingEngine(config);
-    expect(engine.state().totalPoints).toBe(0);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(0);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 1,
     });
@@ -588,8 +610,10 @@ describe("SinglesTrainingEngine", () => {
       locationX: null,
       locationY: null,
     });
-    expect(engine.state().totalPoints).toBe(3);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(3);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 1,
     });
@@ -605,8 +629,10 @@ describe("SinglesTrainingEngine", () => {
       locationX: null,
       locationY: null,
     });
-    expect(engine.state().totalPoints).toBe(9);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(9);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 2,
     });
@@ -615,15 +641,15 @@ describe("SinglesTrainingEngine", () => {
   it("reports isComplete once the full path is finished", () => {
     const engine = new SinglesTrainingEngine(config);
     for (let visit = 0; visit < 20; visit++) {
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
     }
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     expect(engine.isComplete()).toBe(true);
-    expect(engine.state().totalPoints).toBe(186);
+    expect(engine.state().seats[0].totalPoints).toBe(186);
   });
 });
 
@@ -631,22 +657,26 @@ describe("SinglesTrainingEngine.wouldComplete", () => {
   it("is false for the 1st and 2nd dart of a visit, regardless of outcome", () => {
     const engine = new SinglesTrainingEngine(config);
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    expect(engine.wouldComplete(missObservationFor(engine.state()))).toBe(
-      false,
-    );
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    expect(
+      engine.wouldComplete(missObservationFor(engine.state().seats[0])),
+    ).toBe(false);
   });
 
   it("is false for the 3rd dart when the visit resolves but advances to the next NUMBER target", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
-    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
   });
 
   it("is true for the 3rd dart on BULL when the run completes the path", () => {
@@ -654,10 +684,12 @@ describe("SinglesTrainingEngine.wouldComplete", () => {
       config,
       facts20TargetsPlayed(),
     );
-    engine.record(missObservationFor(engine.state()));
-    engine.record(missObservationFor(engine.state()));
-    expect(engine.wouldComplete(missObservationFor(engine.state()))).toBe(true);
-    expect(engine.state().status).toBe("IN_PROGRESS");
+    engine.record(missObservationFor(engine.state().seats[0]));
+    engine.record(missObservationFor(engine.state().seats[0]));
+    expect(
+      engine.wouldComplete(missObservationFor(engine.state().seats[0])),
+    ).toBe(true);
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
   });
 
   it("is false once the game has already ended", () => {
@@ -683,7 +715,7 @@ describe("SinglesTrainingEngine.wouldComplete", () => {
       locationX: null,
       locationY: null,
     });
-    expect(engine.state().status).toBe("COMPLETE");
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
     expect(
       engine.wouldComplete({
         hitTargetNumber: 25,
@@ -696,13 +728,15 @@ describe("SinglesTrainingEngine.wouldComplete", () => {
 
   it("does not mutate the fact log or the derived state", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     const factsBefore = engine.facts();
     const stateBefore = engine.state();
 
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
 
     expect(engine.facts()).toEqual(factsBefore);
@@ -719,16 +753,16 @@ describe("SinglesTrainingEngine.undo", () => {
   it("is an exact inverse of record over facts() when it opened a new turn", () => {
     const engine = new SinglesTrainingEngine(config);
     const before = engine.facts();
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
   });
 
   it("is an exact inverse of record over facts() when it extended the open turn", () => {
     const engine = new SinglesTrainingEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     const before = engine.facts();
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
   });
@@ -736,24 +770,24 @@ describe("SinglesTrainingEngine.undo", () => {
   it("does not push a phantom dart when record is rejected on a finished session", () => {
     const engine = new SinglesTrainingEngine(config);
     for (let visit = 0; visit < 20; visit++) {
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
     }
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     expect(engine.isComplete()).toBe(true);
 
     expect(() =>
-      engine.record(hitObservationFor(engine.state(), "DOUBLE")),
+      engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE")),
     ).toThrow();
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().totalPoints).toBe(184);
+    expect(engine.state().seats[0].totalPoints).toBe(184);
     expect(engine.undo()).toBe(true);
-    expect(engine.state().totalPoints).toBe(182);
+    expect(engine.state().seats[0].totalPoints).toBe(182);
   });
 
   it("reverts a single dart", () => {
@@ -765,7 +799,7 @@ describe("SinglesTrainingEngine.undo", () => {
       locationY: null,
     });
     expect(engine.undo()).toBe(true);
-    expect(engine.state().totalPoints).toBe(0);
+    expect(engine.state().seats[0].totalPoints).toBe(0);
   });
 
   it("reverts the 3rd dart of a visit, restoring the mid-visit total, then can still resolve the visit", () => {
@@ -788,12 +822,14 @@ describe("SinglesTrainingEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(afterThird.totalPoints).toBe(3);
-    expect(afterThird.targetIndex).toBe(1);
+    expect(afterThird.seats[0].totalPoints).toBe(3);
+    expect(afterThird.seats[0].targetIndex).toBe(1);
 
     expect(engine.undo()).toBe(true);
-    expect(engine.state().totalPoints).toBe(2);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(2);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 1,
     });
@@ -804,32 +840,34 @@ describe("SinglesTrainingEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(resumed.totalPoints).toBe(2);
-    expect(resumed.targetIndex).toBe(1);
-    expect(resumed.dartsThisVisit).toBe(0);
+    expect(resumed.seats[0].totalPoints).toBe(2);
+    expect(resumed.seats[0].targetIndex).toBe(1);
+    expect(resumed.seats[0].dartsThisVisit).toBe(0);
   });
 
   it("reverts the completing dart, allowing the engine to be marked complete again on redo", () => {
     const engine = new SinglesTrainingEngine(config);
     for (let visit = 0; visit < 20; visit++) {
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
-      engine.record(hitObservationFor(engine.state(), "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
     }
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     expect(engine.isComplete()).toBe(false);
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     expect(engine.isComplete()).toBe(true);
-    expect(engine.state().totalPoints).toBe(186);
+    expect(engine.state().seats[0].totalPoints).toBe(186);
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().totalPoints).toBe(184);
+    expect(engine.state().seats[0].totalPoints).toBe(184);
 
-    const resumed = engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    const resumed = engine.record(
+      hitObservationFor(engine.state().seats[0], "DOUBLE"),
+    );
     expect(engine.isComplete()).toBe(true);
-    expect(resumed.totalPoints).toBe(186);
+    expect(resumed.seats[0].totalPoints).toBe(186);
   });
 
   it("walks back across multiple visits with repeated undos", () => {
@@ -858,8 +896,10 @@ describe("SinglesTrainingEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(engine.state().totalPoints).toBe(4);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(4);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 2,
     });
@@ -868,8 +908,10 @@ describe("SinglesTrainingEngine.undo", () => {
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
-    expect(engine.state().totalPoints).toBe(0);
-    expect(targetAt(numbersPath(), engine.state().targetIndex)).toEqual({
+    expect(engine.state().seats[0].totalPoints).toBe(0);
+    expect(
+      targetAt(numbersPath(), engine.state().seats[0].targetIndex),
+    ).toEqual({
       kind: "NUMBER",
       number: 1,
     });
@@ -898,11 +940,11 @@ describe("SinglesTrainingEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(resumed.state().totalPoints).toBe(3);
+    expect(resumed.state().seats[0].totalPoints).toBe(3);
 
     expect(resumed.undo()).toBe(true);
     expect(resumed.facts().turns[0].darts).toHaveLength(2);
-    expect(resumed.state().totalPoints).toBe(2);
+    expect(resumed.state().seats[0].totalPoints).toBe(2);
   });
 });
 
@@ -916,7 +958,7 @@ describe("applySinglesTrainingDart — order-dependent completion", () => {
         1,
       ],
     };
-    let state = initialSinglesTrainingState();
+    let state = initialSeat();
     for (let dart = 0; dart < 3; dart++) {
       state = applySinglesTrainingDart(highToLowConfig, state, {
         hitTargetNumber: 25,
@@ -938,7 +980,9 @@ describe("applySinglesTrainingDart — order-dependent completion", () => {
         20,
       ],
     };
-    const twoDartsIn: SinglesTrainingState = {
+    const twoDartsIn: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 20,
       totalPoints: 0,
       dartsThisVisit: 2,
@@ -951,5 +995,215 @@ describe("applySinglesTrainingDart — order-dependent completion", () => {
       locationY: null,
     });
     expect(next.status).toBe("COMPLETE");
+  });
+});
+
+describe("SinglesTrainingEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<SinglesSnapshot> = {
+    orderMode: "LOW_TO_HIGH",
+    targetOrder: Array.from({ length: 20 }, (_, i) => i + 1).concat(25),
+    difficulty: "EASY",
+    pointsSingle: 1,
+    pointsDouble: 2,
+    pointsTreble: 3,
+    seats: twoSeats,
+  };
+
+  function dart(number: number, zone: DartZoneKey): DartObservation {
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: zone,
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  it("both seats play all 21 targets, higher training-point total wins", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "TREBLE")); // p1: max points every visit
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS")); // p2: zero every visit
+    }
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+  });
+
+  it("alternates seats strictly A, B, A, B, ... across every visit, never skipping ahead", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS"));
+    expect(engine.state().activeParticipantRef).toBe("p2");
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS"));
+    expect(engine.state().activeParticipantRef).toBe("p1");
+  });
+
+  it("undo crossing the seat boundary restores the previous active seat, not the next one", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS")); // p1's visit closes
+    expect(engine.state().activeParticipantRef).toBe("p2");
+    engine.record(dart(1, "MISS")); // p2's 1st dart of a new visit
+
+    expect(engine.undo()).toBe(true); // pops p2's only dart, removing p2's open turn
+    expect(engine.state().activeParticipantRef).toBe("p2"); // still p2's turn to play
+
+    expect(engine.undo()).toBe(true); // pops p1's 3rd dart, reopening p1's visit
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    expect(engine.state().seats[0].dartsThisVisit).toBe(2);
+  });
+
+  it("stays IN_PROGRESS once one seat finishes its 21st target while the other has not", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS")); // p1
+      if (round < 20) {
+        for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS")); // p2
+      }
+    }
+    const state = engine.state();
+    expect(state.seats[0].status).toBe("COMPLETE");
+    expect(state.seats[1].status).toBe("IN_PROGRESS");
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.winningSideKey).toBeNull();
+    expect(state.activeParticipantRef).toBe("p2");
+  });
+
+  it("ties when both seats finish with an equal training-point total", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS")); // p1
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS")); // p2
+    }
+    const state = engine.state();
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
+  });
+});
+
+/**
+ * Self-review regression (Task 17): confirms the per-seat `status` guard the
+ * brief's `record()` already carries is sufficient to keep a decided 1v1
+ * match's fact log immutable — no separate match-level guard (unlike
+ * `ScoreTrainingEngine.isMatchDecided()` or `TuodEngine`'s `isComplete()`
+ * check) is needed, because every seat carries its own genuine `status` and
+ * both seats always take the identical, fixed number of visits (21) in
+ * strict alternation with no race/instant-win shortcut. Once the match is
+ * COMPLETE/TIE, EVERY seat is COMPLETE by the fold's own `allComplete`
+ * definition, so whichever seat `activeSeat()` names next is necessarily
+ * COMPLETE too, and `record()`'s existing per-seat check throws — this is
+ * the mirror image of `AroundTheClockEngine`, which needs no separate guard
+ * for the same reason, and the opposite of `ShanghaiEngine`, whose race
+ * short-circuit needs one because a race can end the match while the OTHER
+ * seat's own status still reads `IN_PROGRESS`. Singles Training composes no
+ * `raceWinner` — score-compare only — so that gap does not apply here.
+ */
+describe("SinglesTrainingEngine — 1v1 completion guard", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<SinglesSnapshot> = {
+    orderMode: "LOW_TO_HIGH",
+    targetOrder: Array.from({ length: 20 }, (_, i) => i + 1).concat(25),
+    difficulty: "EASY",
+    pointsSingle: 1,
+    pointsDouble: 2,
+    pointsTreble: 3,
+    seats: twoSeats,
+  };
+
+  function dart(number: number, zone: DartZoneKey): DartObservation {
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: zone,
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  it("throws on a stray record() once both seats have completed, leaving the fact log untouched", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS"));
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS"));
+    }
+    expect(engine.state().status).toBe("TIE");
+    const factsBefore = engine.facts();
+
+    expect(() => engine.record(dart(1, "MISS"))).toThrow();
+
+    expect(engine.facts()).toEqual(factsBefore);
+    expect(engine.state().status).toBe("TIE");
+  });
+
+  it("wouldComplete is false once the match has already been decided by score-compare", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS"));
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "MISS"));
+    }
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.wouldComplete(dart(1, "MISS"))).toBe(false);
+  });
+});
+
+describe("Singles Training dart facts", () => {
+  it("records the board score, never the ruleset's training points", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.score).toBe(3);
+    expect(dart.intendedTargetNumber).toBeNull();
+    expect(dart.intendedZoneKey).toBeNull();
+    expect(engine.state().seats[0].totalPoints).toBe(config.pointsTreble);
+  });
+
+  it("undo removes the visit entirely once its only dart goes", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
   });
 });

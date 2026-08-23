@@ -31,6 +31,7 @@ Simple scoring practice: throw for **N** visits and pile up as many points as yo
 - **Visit:** score the sum of three darts (face values, including doubles/trebles/bulls).
 - **Session (V1), Rounds mode:** complete **N** visits; highest total wins (solo: beat your own total / chase a personal best).
 - **Session (V1), Timed mode:** score for **M** minutes; total at time-up is the result.
+- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest total score wins (score-compare, ties possible). <!-- 2026-08-22 -->
 
 ## Config & presets (V1)
 

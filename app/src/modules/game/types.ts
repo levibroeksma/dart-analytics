@@ -1,14 +1,28 @@
 import type { BoardHit } from "@lib/types";
 
 /**
- * Score Training's engine state, derived on every `state()` call. The MINUTES
- * countdown lives in `game.store.ts`, not the engine, so `timerExpired`
- * reports a flag the caller sets through `ScoreTrainingEngine.expireTimer()` —
- * never by writing to this object, which is a copy. That keeps the contract's
- * zero-argument `isComplete()` intact without handing out live state.
+ * One seat's Score Training progress: how many visits it has closed and the
+ * running total of their counted scores, both folded from the fact log —
+ * never accumulated.
  */
-export type ScoreTrainingState = {
+export type ScoreTrainingSeatState = SeatState & {
   turnCount: number;
+  totalScore: number;
+};
+
+/**
+ * Score Training session state, derived on every `state()` call. Score
+ * -compare, highest total wins: both seats always play out their own full
+ * ROUNDS duration budget (1v1 offers ROUNDS only — see
+ * `score-training-setup.data.ts`). The MINUTES countdown lives in
+ * `game.store.ts`, not the engine, so `timerExpired` reports a flag the
+ * caller sets through `ScoreTrainingEngine.expireTimer()` — never by writing
+ * to this object, which is a copy. That keeps the contract's zero-argument
+ * `isComplete()` intact without handing out live state.
+ */
+export type ScoreTrainingState = MultiSeatState<ScoreTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   timerExpired: boolean;
 };
 
@@ -21,18 +35,28 @@ export type ScoreInputActivationEvent = {
   detail?: number;
 };
 
-export type Bobs27State = {
+export type Bobs27SeatState = SeatState & {
   targetIndex: number;
   score: number;
   dartsThisVisit: boolean[];
   status: "IN_PROGRESS" | "WON" | "LOST";
 };
 
-export type SinglesTrainingState = {
+export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
+  status: "IN_PROGRESS" | "WON" | "LOST" | "COMPLETE";
+  winningSideKey: string | null;
+};
+
+export type SinglesTrainingSeatState = SeatState & {
   targetIndex: number;
   totalPoints: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type SinglesTrainingState = MultiSeatState<SinglesTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /**
@@ -41,11 +65,16 @@ export type SinglesTrainingState = {
  * pre-computed single/double/treble flag, so a Shanghai is derived from it
  * on the visit's 3rd dart rather than tracked as it happens.
  */
-export type ShanghaiState = {
+export type ShanghaiSeatState = SeatState & {
   targetIndex: number;
   totalScore: number;
   dartsThisVisit: (DartZoneKey | null)[];
   status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE";
+};
+
+export type ShanghaiState = MultiSeatState<ShanghaiSeatState> & {
+  status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 export type DoublesVisitOutcome = {
@@ -54,11 +83,16 @@ export type DoublesVisitOutcome = {
   hitDartNumber: 1 | 2 | 3 | null;
 };
 
-export type DoublesTrainingState = {
+export type DoublesTrainingSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
   outcomes: DoublesVisitOutcome[];
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type DoublesTrainingState = MultiSeatState<DoublesTrainingSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /** How many darts of one visit a reported checkout used, or threw at a double. */
@@ -180,11 +214,16 @@ export type OneTwentyOneVisitOutcome = {
  * in progress — it resets the instant the 3rd resolves). All three are folds
  * over the fact log, never accumulated fields.
  */
-export type OneTwentyOneState = {
+export type OneTwentyOneSeatState = SeatState & {
   currentTarget: number;
   remainingInAttempt: number;
   visitsThisAttempt: number;
   status: "IN_PROGRESS" | "WON";
+};
+
+export type OneTwentyOneState = MultiSeatState<OneTwentyOneSeatState> & {
+  status: "IN_PROGRESS" | "WON";
+  winningSideKey: string | null;
 };
 
 /**
@@ -197,10 +236,15 @@ export type OneTwentyOneState = {
  * completes the session early. Both fields are folds over the fact log,
  * never accumulated.
  */
-export type AroundTheClockState = {
+export type AroundTheClockSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
 };
 
 /**
@@ -226,18 +270,29 @@ export type TuodAttemptInput = {
 export type TuodInput = TuodAttemptInput | DartObservation;
 
 /**
- * Ten Up One Down session state. `currentTarget`, `attempts`, `successes` and
- * `failures` are folded from the fact log on every read — the ladder position
- * is never accumulated. `timerExpired` is the one field the log cannot derive:
- * the MINUTES countdown lives in `game.store.ts`, so expiry arrives through
- * `TuodEngine.expireTimer()` exactly as it does for Score Training, never by
- * writing to this object, which is a copy.
+ * One seat's ladder in a Ten Up One Down session. `currentTarget`,
+ * `attempts`, `successes` and `failures` are folded from the fact log on
+ * every read — the ladder position is never accumulated.
  */
-export type TuodState = {
+export type TuodSeatState = SeatState & {
   currentTarget: number;
   attempts: number;
   successes: number;
   failures: number;
+};
+
+/**
+ * Ten Up One Down session state. Score-compare: both seats always play out
+ * their own full duration budget, then whichever reached the higher target
+ * wins — `status`/`winningSideKey` resolve only once every seat has.
+ * `timerExpired` is the one field the log cannot derive: the MINUTES
+ * countdown lives in `game.store.ts`, so expiry arrives through
+ * `TuodEngine.expireTimer()` exactly as it does for Score Training, never by
+ * writing to this object, which is a copy.
+ */
+export type TuodState = MultiSeatState<TuodSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   timerExpired: boolean;
 };
 
@@ -406,3 +461,26 @@ export type BoardInputController = {
  * is not seat 1's round 4.
  */
 export type StageOwnership = "SHARED" | "PER_SEAT";
+
+/**
+ * What a dart was aimed at. Both fields move together: a target number with a
+ * null zone is rejected by `chk_dart_target_consistency` (migration `0007`),
+ * which admits only both-null or a NOT NULL zone.
+ */
+export type DartIntent = {
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+};
+
+/** One seat's entry in a score-compare, reduced to what deciding needs. */
+export type ScoreCompareSeat = {
+  sideKey: string;
+  completed: boolean;
+  metric: number;
+};
+
+/** A whole match's resolution: its status and the side that took it. */
+export type MatchOutcome = {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+};

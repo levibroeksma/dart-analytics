@@ -36,6 +36,16 @@ const SEATS = [
   },
 ];
 
+const TWO_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
 const ACTIVE_SESSION = {
   sessionId: "s1",
   gameTypeKey: "BOBS27",
@@ -254,6 +264,7 @@ describe("init", () => {
       darts: 3,
       doubleHitRate: "0%",
       highestNumberReached: "D1",
+      winningSideKey: null,
     });
   });
 });
@@ -288,7 +299,7 @@ describe("recordTap", () => {
 
     await play.recordTap.call(play, true);
 
-    expect(play.engine!.state().score).toBe(29); // 27 + D1 board value (2)
+    expect(play.engine!.state().seats[0].score).toBe(29); // 27 + D1 board value (2)
     expect(play.$store.game.turns[0].darts[0].hitZoneKey).toBe("DOUBLE");
   });
 
@@ -298,7 +309,7 @@ describe("recordTap", () => {
 
     await play.recordTap.call(play, false);
 
-    expect(play.engine!.state().score).toBe(27);
+    expect(play.engine!.state().seats[0].score).toBe(27);
     expect(play.$store.game.turns[0].darts[0].hitZoneKey).toBe("MISS");
   });
 
@@ -310,7 +321,7 @@ describe("recordTap", () => {
     await play.recordTap.call(play, false);
     await play.recordTap.call(play, false);
 
-    expect(play.engine!.state().score).toBe(29);
+    expect(play.engine!.state().seats[0].score).toBe(29);
     expect(play.currentTargetLabel.call(play)).toBe("D2");
   });
 
@@ -322,7 +333,7 @@ describe("recordTap", () => {
     await play.recordTap.call(play, false);
     await play.recordTap.call(play, false);
 
-    expect(play.engine!.state().score).toBe(25); // 27 - D1 board value (2)
+    expect(play.engine!.state().seats[0].score).toBe(25); // 27 - D1 board value (2)
     expect(play.currentTargetLabel.call(play)).toBe("D2");
   });
 });
@@ -352,6 +363,7 @@ describe("completion", () => {
       darts: 63,
       doubleHitRate: "100%",
       highestNumberReached: "BULL",
+      winningSideKey: null,
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -386,6 +398,7 @@ describe("completion", () => {
       darts: 3,
       doubleHitRate: "0%",
       highestNumberReached: "D1",
+      winningSideKey: null,
     });
   });
 
@@ -677,5 +690,108 @@ describe("playAgain", () => {
       "Could not start a new session. Try again.",
     );
     expect(play.finished).toBe(true);
+  });
+
+  it("replays a 1v1 match with both seats, engine-seated on the NEW session's refs", async () => {
+    const play = makePlay({
+      configSnapshot: { ...defaultConfig(), seats: TWO_SEATS },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant-1",
+          displayName: "Levi",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          ref: "new-participant-2",
+          displayName: "Guest",
+          participantTypeKey: "GUEST",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(vi.mocked(createSession).mock.calls[0][0].participants).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "B" },
+    ]);
+    expect(
+      play.engine?.state().seats.map((seat) => seat.participantRef),
+    ).toEqual(["new-participant-1", "new-participant-2"]);
+  });
+
+  it("a solo replay still seats one participant and sends no participants field", async () => {
+    const play = makePlay();
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Levi",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(
+      vi.mocked(createSession).mock.calls[0][0].participants,
+    ).toBeUndefined();
+    expect(
+      play.engine?.state().seats.map((seat) => seat.participantRef),
+    ).toEqual(["new-participant"]);
+  });
+});
+
+describe("bobs27Play — per-seat accessors", () => {
+  it("currentScoreFor and currentTargetLabelFor read the named seat, not the active one", () => {
+    const ctx = bobs27Play() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: {
+            participantRef: string;
+            score: number;
+            targetIndex: number;
+          }[];
+        };
+      };
+      currentScoreFor: (seatRef: string) => string;
+      currentTargetLabelFor: (seatRef: string) => string;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", score: 25, targetIndex: 0 },
+          { participantRef: "p2", score: 31, targetIndex: 1 },
+        ],
+      }),
+    };
+    expect(ctx.currentScoreFor("p2")).toBe("31");
+    expect(ctx.currentTargetLabelFor("p1")).not.toBe(
+      ctx.currentTargetLabelFor("p2"),
+    );
+  });
+
+  it("currentScoreFor returns an empty string for an unknown seat", () => {
+    const ctx = bobs27Play() as unknown as {
+      engine: {
+        state: () => { activeParticipantRef: string; seats: [] };
+      } | null;
+      currentScoreFor: (seatRef: string) => string;
+    };
+    ctx.engine = null;
+    expect(ctx.currentScoreFor("nobody")).toBe("");
   });
 });

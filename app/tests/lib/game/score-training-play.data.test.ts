@@ -55,6 +55,16 @@ const SEATS = [
   },
 ];
 
+const TWO_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
 const BLOCK: StageFact = {
   clientKey: "block-1",
   stageTypeKey: "EXERCISE_BLOCK",
@@ -154,6 +164,30 @@ const ACTIVE_SESSION = {
   rulesetVersionKey: "SCORE_TRAINING_V1",
   startedAt: "now",
 } as const;
+
+describe("scoreTrainingPlay — per-seat accessors", () => {
+  it("totalScoreFor reads the named seat", () => {
+    const ctx = scoreTrainingPlay() as unknown as {
+      engine: {
+        state: () => {
+          activeParticipantRef: string;
+          seats: { participantRef: string; totalScore: number }[];
+        };
+      };
+      totalScoreFor: (seatRef: string) => number;
+    };
+    ctx.engine = {
+      state: () => ({
+        activeParticipantRef: "p1",
+        seats: [
+          { participantRef: "p1", totalScore: 40 },
+          { participantRef: "p2", totalScore: 120 },
+        ],
+      }),
+    };
+    expect(ctx.totalScoreFor("p2")).toBe(120);
+  });
+});
 
 describe("scoreTrainingPlay", () => {
   beforeEach(() => {
@@ -829,6 +863,8 @@ describe("scoreTrainingPlay", () => {
         total: 50,
         visits: 1,
         average: 50,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 
@@ -880,7 +916,13 @@ describe("scoreTrainingPlay", () => {
       });
       play.completionStatus = "succeeded";
       play.finished = true;
-      play.resultsSnapshot = { total: 50, visits: 1, average: 50 };
+      play.resultsSnapshot = {
+        total: 50,
+        visits: 1,
+        average: 50,
+        winningSideKey: null,
+        status: "COMPLETE",
+      };
       play.playAgainError = "stale";
       const { seats: _priorSeats, ...priorRulesetConfig } =
         play.$store.game.configSnapshot!;
@@ -1039,6 +1081,66 @@ describe("scoreTrainingPlay", () => {
       expect(play.$store.game.sessionId).toBe("new-session");
     });
 
+    it("replays a 1v1 match with both seats, engine-seated on the NEW session's refs", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(20), seats: TWO_SEATS },
+      });
+      play.completionStatus = "succeeded";
+      play.finished = true;
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "new-participant-2",
+            displayName: "Guest",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(vi.mocked(createSession).mock.calls[0][0].participants).toEqual([
+        { participantTypeKey: "PLAYER", sideKey: "A" },
+        { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "B" },
+      ]);
+      expect(
+        play.engine?.state().seats.map((seat) => seat.participantRef),
+      ).toEqual(["new-participant-1", "new-participant-2"]);
+    });
+
+    it("a solo replay still seats one participant and sends no participants field", async () => {
+      const play = makePlay();
+      play.completionStatus = "succeeded";
+      play.finished = true;
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(
+        vi.mocked(createSession).mock.calls[0][0].participants,
+      ).toBeUndefined();
+      expect(
+        play.engine?.state().seats.map((seat) => seat.participantRef),
+      ).toEqual(["new-participant"]);
+    });
+
     it("submitVisit is a no-op when finished is already true", async () => {
       const store = gameStub();
       const component = {
@@ -1101,6 +1203,8 @@ describe("scoreTrainingPlay", () => {
         total: 60,
         visits: 2,
         average: 30,
+        winningSideKey: null,
+        status: "COMPLETE",
       });
     });
 

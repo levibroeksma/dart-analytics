@@ -10,7 +10,9 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { addTypedGuest } from "@lib/game/guest-list";
 import {
+  participantsFromGuests,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -46,6 +48,9 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+    guests: [] as { displayName: string }[],
+    showAddGuestModal: false,
+    newGuestName: "",
 
     async init(this: Ctx) {
       this.loadingReconciliation = true;
@@ -117,6 +122,14 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
       }
     },
 
+    addGuest(this: Ctx) {
+      addTypedGuest(this);
+    },
+
+    removeGuest(this: Ctx, index: number) {
+      this.guests.splice(index, 1);
+    },
+
     async start(this: Ctx) {
       const preset = this.presets[0];
       if (!preset) {
@@ -142,6 +155,7 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
           rulesetVersionKey,
           this.$store.settings,
         );
+        const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey,
           rulesetVersionKey,
@@ -152,6 +166,7 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
             templateRef: preset.configurationTemplateId,
             ...(overrides ? { overrides } : {}),
           },
+          participants,
         });
         this.$store.game.startSession(
           startSessionInput({

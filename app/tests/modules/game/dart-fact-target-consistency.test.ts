@@ -12,11 +12,14 @@ import {
 } from "@modules/game/board-progression.module";
 import type { GameEngine } from "@modules/interfaces";
 import type {
+  Bobs27SeatState,
   Bobs27State,
   DartFact,
   DartObservation,
+  DoublesTrainingSeatState,
   DoublesTrainingState,
   EngineFacts,
+  SinglesTrainingSeatState,
   SinglesTrainingState,
 } from "@modules/types";
 import type {
@@ -65,8 +68,8 @@ const bobs27Config: Seated<Bobs27Snapshot> = {
   seats: SEATS,
 };
 
-function bobs27HitObservation(state: Bobs27State): DartObservation {
-  const target = targetAt(doublesPath(), state.targetIndex);
+function bobs27HitObservation(seat: Bobs27SeatState): DartObservation {
+  const target = targetAt(doublesPath(), seat.targetIndex);
   return target.kind === "BULL"
     ? {
         hitTargetNumber: 25,
@@ -86,9 +89,9 @@ function bobs27HitObservation(state: Bobs27State): DartObservation {
 function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
   const engine = bobs27EngineFactory.create(bobs27Config);
   for (let target = 0; target < 20; target++) {
-    engine.record(bobs27HitObservation(engine.state()));
-    engine.record(bobs27HitObservation(engine.state()));
-    engine.record(bobs27HitObservation(engine.state()));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
+    engine.record(bobs27HitObservation(engine.state().seats[0]));
   }
   engine.record({
     hitTargetNumber: 1,
@@ -96,7 +99,7 @@ function playBobs27ThroughBull(): GameEngine<DartObservation, Bobs27State> {
     locationX: null,
     locationY: null,
   });
-  engine.record(bobs27HitObservation(engine.state()));
+  engine.record(bobs27HitObservation(engine.state().seats[0]));
   return engine;
 }
 
@@ -109,7 +112,9 @@ const doublesConfig: Seated<DoublesTrainingSnapshot> = {
   seats: SEATS,
 };
 
-function doublesHitObservation(state: DoublesTrainingState): DartObservation {
+function doublesHitObservation(
+  state: DoublesTrainingSeatState,
+): DartObservation {
   const target = targetAt(doublesPath(), state.targetIndex);
   return target.kind === "BULL"
     ? {
@@ -133,7 +138,7 @@ function playDoublesTrainingThroughBull(): GameEngine<
 > {
   const engine = doublesTrainingEngineFactory.create(doublesConfig);
   for (let target = 0; target < 20; target++) {
-    engine.record(doublesHitObservation(engine.state()));
+    engine.record(doublesHitObservation(engine.state().seats[0]));
   }
   engine.record({
     hitTargetNumber: 1,
@@ -141,7 +146,7 @@ function playDoublesTrainingThroughBull(): GameEngine<
     locationX: null,
     locationY: null,
   });
-  engine.record(doublesHitObservation(engine.state()));
+  engine.record(doublesHitObservation(engine.state().seats[0]));
   return engine;
 }
 
@@ -158,7 +163,7 @@ const singlesConfig: Seated<SinglesSnapshot> = {
 };
 
 function singlesObservationFor(
-  state: SinglesTrainingState,
+  state: SinglesTrainingSeatState,
   zone: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
 ): DartObservation {
   const target = targetAt(numbersPath(), state.targetIndex);
@@ -190,11 +195,11 @@ function playSinglesThroughBull(): GameEngine<
 > {
   const engine = singlesTrainingEngineFactory.create(singlesConfig);
   for (let target = 0; target < 20; target++) {
-    engine.record(singlesObservationFor(engine.state(), "MISS"));
-    engine.record(singlesObservationFor(engine.state(), "SINGLE"));
-    engine.record(singlesObservationFor(engine.state(), "TREBLE"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "MISS"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(singlesObservationFor(engine.state().seats[0], "TREBLE"));
   }
-  engine.record(singlesObservationFor(engine.state(), "DOUBLE"));
+  engine.record(singlesObservationFor(engine.state().seats[0], "DOUBLE"));
   return engine;
 }
 

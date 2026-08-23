@@ -100,6 +100,70 @@ export function startSessionInput<TConfig extends object>(input: {
 }
 
 /**
+ * The `participants` a replay's `createSession` must request, derived from the
+ * seats the finished session actually played with — the inverse of
+ * `seatsFromParticipants`, and the same shape the setup screen sends when a
+ * guest is added at start time.
+ *
+ * Play Again mints a brand-new session, so omitting this field would seat the
+ * replay with the single `PLAYER` the server derives by default: a 1v1 match
+ * would silently replay solo, and every dart stamped with the engine's second
+ * seat would upload as `BATCH_REFERENCE_MISSING`.
+ *
+ * A solo seat list returns `undefined` — the field's own "omit me" value —
+ * so a solo replay sends exactly the request it always did. `displayName` is
+ * carried for a GUEST only; the PLAYER's is copied server-side from
+ * `players.display_name` and a client-supplied value is ignored.
+ */
+export function participantsFromSeats(seats: readonly SeatFact[]):
+  | {
+      participantTypeKey: "PLAYER" | "GUEST";
+      displayName?: string;
+      sideKey: string;
+    }[]
+  | undefined {
+  if (seats.length < 2) return undefined;
+  return seats.map((seat) => ({
+    participantTypeKey: seat.participantTypeKey,
+    ...(seat.participantTypeKey === "GUEST"
+      ? { displayName: seat.displayName }
+      : {}),
+    sideKey: seat.sideKey,
+  }));
+}
+
+/**
+ * The `participants` a setup screen's `createSession` must request, given the
+ * guests the player added — the start-time twin of `participantsFromSeats`,
+ * which derives the same shape from a finished session's seats.
+ *
+ * An empty guest list returns `undefined` — the field's own "omit me" value —
+ * so a solo session sends exactly the request it always did. The owning
+ * player is always seat 0 on side `A` and the guests take `B` onward;
+ * `displayName` is carried for a guest only, because the player's is copied
+ * server-side from `players.display_name`.
+ */
+export function participantsFromGuests(
+  guests: readonly { displayName: string }[],
+):
+  | {
+      participantTypeKey: "PLAYER" | "GUEST";
+      displayName?: string;
+      sideKey: string;
+    }[]
+  | undefined {
+  if (guests.length === 0) return undefined;
+  return [
+    { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+    ...guests.map((guest, index) => ({
+      participantTypeKey: "GUEST" as const,
+      displayName: guest.displayName,
+      sideKey: String.fromCharCode(66 + index),
+    })),
+  ];
+}
+
+/**
  * Re-seats a config snapshot onto the participants a freshly-created session
  * minted. Play Again keeps the ruleset config but gets new participant rows,
  * so the seats inside the snapshot must be replaced rather than carried over —

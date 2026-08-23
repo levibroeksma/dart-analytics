@@ -11,6 +11,8 @@ import type { GameEngine } from "@modules/interfaces";
 import type {
   DartObservation,
   DartZoneKey,
+  EngineFacts,
+  OneTwentyOneSeatState,
   OneTwentyOneState,
   OneTwentyOneVisitInput,
 } from "@modules/types";
@@ -54,7 +56,13 @@ describe("oneTwentyOneEngineFactory", () => {
 
 describe("initialOneTwentyOneState", () => {
   it("starts at 121 with a fresh budget", () => {
-    expect(initialOneTwentyOneState()).toEqual({
+    const state = initialOneTwentyOneState(config());
+    expect(state.activeParticipantRef).toBe("participant-1");
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.winningSideKey).toBeNull();
+    expect(state.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 121,
       remainingInAttempt: 121,
       visitsThisAttempt: 0,
@@ -65,9 +73,12 @@ describe("initialOneTwentyOneState", () => {
 
 describe("applyOneTwentyOneVisit — legal reduction", () => {
   it("subtracts the visit score, stays in progress, and counts the visit", () => {
-    const next = applyOneTwentyOneVisit(initialOneTwentyOneState(), {
-      scoreAttempted: 45,
-    });
+    const next = applyOneTwentyOneVisit(
+      initialOneTwentyOneState(config()).seats[0],
+      {
+        scoreAttempted: 45,
+      },
+    );
     expect(next.remainingInAttempt).toBe(76);
     expect(next.currentTarget).toBe(121);
     expect(next.visitsThisAttempt).toBe(1);
@@ -75,7 +86,9 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
   });
 
   it("ignores a finish flag on a visit that does not reach zero", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 130,
       remainingInAttempt: 100,
       visitsThisAttempt: 0,
@@ -91,7 +104,7 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
 
   it("throws on a negative score", () => {
     expect(() =>
-      applyOneTwentyOneVisit(initialOneTwentyOneState(), {
+      applyOneTwentyOneVisit(initialOneTwentyOneState(config()).seats[0], {
         scoreAttempted: -1,
       }),
     ).toThrow(/0 and 180/);
@@ -99,7 +112,7 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
 
   it("throws above the 3-dart maximum of 180", () => {
     expect(() =>
-      applyOneTwentyOneVisit(initialOneTwentyOneState(), {
+      applyOneTwentyOneVisit(initialOneTwentyOneState(config()).seats[0], {
         scoreAttempted: 181,
       }),
     ).toThrow(/0 and 180/);
@@ -107,7 +120,7 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
 
   it("throws on a non-integer score", () => {
     expect(() =>
-      applyOneTwentyOneVisit(initialOneTwentyOneState(), {
+      applyOneTwentyOneVisit(initialOneTwentyOneState(config()).seats[0], {
         scoreAttempted: 60.5,
       }),
     ).toThrow(/0 and 180/);
@@ -115,7 +128,9 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
 });
 
 describe("applyOneTwentyOneVisit — bust matrix", () => {
-  const at = (remainingInAttempt: number): OneTwentyOneState => ({
+  const at = (remainingInAttempt: number): OneTwentyOneSeatState => ({
+    participantRef: "participant-1",
+    sideKey: "A",
     currentTarget: 121,
     remainingInAttempt,
     visitsThisAttempt: 0,
@@ -147,7 +162,9 @@ describe("applyOneTwentyOneVisit — bust matrix", () => {
 
 describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
   it("climbs the target by one and resets the budget on a sub-cap checkout", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 121,
       remainingInAttempt: 40,
       visitsThisAttempt: 1,
@@ -158,6 +175,8 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       finishedOnDouble: true,
     });
     expect(next).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 122,
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
@@ -166,7 +185,9 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
   });
 
   it("wins the session on a checkout at the cap target (170)", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 170,
       remainingInAttempt: 40,
       visitsThisAttempt: 0,
@@ -177,6 +198,8 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       finishedOnDouble: true,
     });
     expect(next).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 170,
       remainingInAttempt: 0,
       visitsThisAttempt: 0,
@@ -185,7 +208,9 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
   });
 
   it("busts when the finishing dart was not a double, at any target", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 170,
       remainingInAttempt: 40,
       visitsThisAttempt: 0,
@@ -203,7 +228,9 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
 
 describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
   it("resets the attempt at the same target after a 3rd-visit bust", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 130,
       remainingInAttempt: 30,
       visitsThisAttempt: 2,
@@ -211,6 +238,8 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
     };
     const next = applyOneTwentyOneVisit(state, { scoreAttempted: 40 });
     expect(next).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 130,
       remainingInAttempt: 130,
       visitsThisAttempt: 0,
@@ -219,7 +248,9 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
   });
 
   it("resets the attempt after a 3rd visit that scores but does not check out", () => {
-    const state: OneTwentyOneState = {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 130,
       remainingInAttempt: 50,
       visitsThisAttempt: 2,
@@ -227,6 +258,8 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
     };
     const next = applyOneTwentyOneVisit(state, { scoreAttempted: 10 });
     expect(next).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 130,
       remainingInAttempt: 130,
       visitsThisAttempt: 0,
@@ -237,7 +270,9 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
 
 describe("applyOneTwentyOneVisit — terminal state guard", () => {
   it("throws when called on a state that is already WON", () => {
-    const wonState: OneTwentyOneState = {
+    const wonState: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 170,
       remainingInAttempt: 0,
       visitsThisAttempt: 0,
@@ -254,7 +289,7 @@ describe("OneTwentyOneEngine — record", () => {
     const engine = oneTwentyOneEngineFactory.create(config());
     expect(() => engine.record({ scoreAttempted: -1 })).toThrow(/0 and 180/);
     expect(() => engine.record({ scoreAttempted: 181 })).toThrow(/0 and 180/);
-    expect(engine.state().remainingInAttempt).toBe(121);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(121);
     expect(engine.facts().turns).toHaveLength(0);
   });
 
@@ -265,8 +300,8 @@ describe("OneTwentyOneEngine — record", () => {
       scoreAttempted: 40,
       finishedOnDouble: false,
     });
-    expect(busted.status).toBe("IN_PROGRESS");
-    expect(engine.state().remainingInAttempt).toBe(40);
+    expect(busted.seats[0].status).toBe("IN_PROGRESS");
+    expect(engine.state().seats[0].remainingInAttempt).toBe(40);
     expect(engine.facts().turns.at(-1)?.totalScore).toBe(0);
   });
 
@@ -274,7 +309,7 @@ describe("OneTwentyOneEngine — record", () => {
     const engine = oneTwentyOneEngineFactory.create(config());
     engine.record({ scoreAttempted: 81 });
     const won = engine.record({ scoreAttempted: 40, finishedOnDouble: true });
-    expect(won.currentTarget).toBe(122);
+    expect(won.seats[0].currentTarget).toBe(122);
     expect(engine.facts().stages).toHaveLength(2);
     expect(engine.facts().stages[1].stageTypeKey).toBe("ROUND");
   });
@@ -282,8 +317,8 @@ describe("OneTwentyOneEngine — record", () => {
   it("opens a new ROUND stage after a fail-rule reset, at the same target", () => {
     const engine = oneTwentyOneEngineFactory.create(config());
     const after = bustAttempt(engine);
-    expect(after.currentTarget).toBe(121);
-    expect(after.remainingInAttempt).toBe(121);
+    expect(after.seats[0].currentTarget).toBe(121);
+    expect(after.seats[0].remainingInAttempt).toBe(121);
     expect(engine.facts().stages).toHaveLength(2);
     expect(
       engine.facts().turns.filter((t) => t.stageClientKey === "round-1"),
@@ -305,8 +340,8 @@ describe("OneTwentyOneEngine — record", () => {
     const first = oneTwentyOneEngineFactory.create(config());
     first.record({ scoreAttempted: 60 });
     const resumed = oneTwentyOneEngineFactory.create(config(), first.facts());
-    expect(resumed.state().remainingInAttempt).toBe(61);
-    expect(resumed.state().visitsThisAttempt).toBe(1);
+    expect(resumed.state().seats[0].remainingInAttempt).toBe(61);
+    expect(resumed.state().seats[0].visitsThisAttempt).toBe(1);
   });
 });
 
@@ -361,7 +396,7 @@ describe("OneTwentyOneEngine.undo", () => {
     engine.record({ scoreAttempted: 20 });
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
-    expect(engine.state().remainingInAttempt).toBe(61);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(61);
   });
 
   it("is an exact inverse for the visit that checked out and opened the next round", () => {
@@ -374,7 +409,9 @@ describe("OneTwentyOneEngine.undo", () => {
 
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
-    expect(engine.state()).toEqual({
+    expect(engine.state().seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 121,
       remainingInAttempt: 40,
       visitsThisAttempt: 1,
@@ -459,10 +496,10 @@ describe("visual board capture", () => {
     ) as OneTwentyOneEngine;
 
     engine.record(trebleTwenty);
-    expect(engine.state().remainingInAttempt).toBe(61);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(61);
 
     engine.record(trebleNineteen);
-    expect(engine.state().remainingInAttempt).toBe(4);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(4);
   });
 
   it("does not prematurely advance the visit counter while a visit is still open", () => {
@@ -472,7 +509,7 @@ describe("visual board capture", () => {
 
     engine.record(trebleTwenty);
 
-    expect(engine.state().visitsThisAttempt).toBe(0);
+    expect(engine.state().seats[0].visitsThisAttempt).toBe(0);
   });
 
   it("keeps dart rows with real scores when a visit busts", () => {
@@ -487,8 +524,8 @@ describe("visual board capture", () => {
     const busted = engine.facts().turns.at(-1)!;
     expect(busted.totalScore).toBe(0);
     expect(busted.darts.map((dart) => dart.score)).toEqual([60, 57, 60]);
-    expect(engine.state().remainingInAttempt).toBe(121);
-    expect(engine.state().visitsThisAttempt).toBe(1);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(121);
+    expect(engine.state().seats[0].visitsThisAttempt).toBe(1);
   });
 
   it("checks out on a double and climbs the ladder", () => {
@@ -500,7 +537,9 @@ describe("visual board capture", () => {
     engine.record(doubleTwenty);
     engine.record(dartAt(0, -166, "DOUBLE", 20));
 
-    expect(engine.state()).toEqual({
+    expect(engine.state().seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       currentTarget: 122,
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
@@ -515,7 +554,7 @@ describe("visual board capture", () => {
     for (let target = 121; target < 170; target += 1) {
       engine.record({ scoreAttempted: target, finishedOnDouble: true });
     }
-    expect(engine.state().currentTarget).toBe(170);
+    expect(engine.state().seats[0].currentTarget).toBe(170);
 
     // Only a genuine DOUBLE dart checks a board visit out — matches
     // `five-oh-one.engine.module.ts`'s own `settleVisit`, which never treats
@@ -536,7 +575,7 @@ describe("visual board capture", () => {
 
     engine.record({ scoreAttempted: 60 });
 
-    expect(engine.state().remainingInAttempt).toBe(61);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(61);
     expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
   });
 });
@@ -617,7 +656,7 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
 
     expect(engine.facts().turns).toHaveLength(1);
     expect(engine.facts().turns[0].darts).toHaveLength(1);
-    expect(engine.state().remainingInAttempt).toBe(61);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(61);
   });
 
   it("removes the whole turn once its last dart is undone", () => {
@@ -629,7 +668,7 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
     expect(engine.undo()).toBe(true);
 
     expect(engine.facts().turns).toHaveLength(0);
-    expect(engine.state().remainingInAttempt).toBe(121);
+    expect(engine.state().seats[0].remainingInAttempt).toBe(121);
   });
 
   it("undoes a checkout that opened a new round, popping the round stage and reopening the checkout visit", () => {
@@ -647,7 +686,7 @@ describe("OneTwentyOneEngine.undo — dispatches on the fact log's shape", () =>
     const reopened = engine.facts().turns.at(-1)!;
     expect(reopened.darts).toHaveLength(1);
     expect(reopened.completedAt).toBeNull();
-    expect(engine.state().currentTarget).toBe(121);
+    expect(engine.state().seats[0].currentTarget).toBe(121);
   });
 
   it("a keypad-recorded turn still undoes as a whole visit, not a dart", () => {
@@ -684,5 +723,208 @@ describe("121 checkout dart counts", () => {
         dartsAtDouble: 1,
       }),
     ).not.toThrow();
+  });
+});
+
+describe("OneTwentyOneEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<OneTwentyOneSnapshot> = { seats: twoSeats };
+
+  it("alternates the active seat attempt by attempt", () => {
+    const engine = new OneTwentyOneEngine(twoSeatConfig);
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    engine.record({ scoreAttempted: 0 });
+    expect(engine.state().activeParticipantRef).toBe("p2");
+  });
+
+  it("ends the match the instant one seat checks out at 170, the other seat never gets another turn", () => {
+    const engine = new OneTwentyOneEngine(twoSeatConfig);
+    // Climb p1 from 121 to 170 (49 climbs, one checkout per target), p2 idles at 0 every turn between.
+    for (let target = 121; target < 170; target++) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true }); // p1 checks out
+      engine.record({ scoreAttempted: 0 }); // p2 busts to keep its own target unchanged
+    }
+    const beforeFinal = engine.state();
+    expect(beforeFinal.activeParticipantRef).toBe("p1");
+    expect(beforeFinal.seats[0].currentTarget).toBe(170);
+
+    const after = engine.record({
+      scoreAttempted: 170,
+      finishedOnDouble: true,
+    });
+    expect(after.seats[0].status).toBe("WON");
+    expect(after.status).toBe("WON");
+    expect(after.winningSideKey).toBe("A");
+  });
+
+  it("leaves a SOLO checkout at 170 with a null winningSideKey — there is no side to beat", () => {
+    const engine = new OneTwentyOneEngine(config());
+    for (let target = 121; target < 170; target++) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+    const won = engine.record({ scoreAttempted: 170, finishedOnDouble: true });
+
+    expect(won.status).toBe("WON");
+    expect(won.seats[0].status).toBe("WON");
+    expect(won.winningSideKey).toBeNull();
+  });
+
+  it("stamps every turn's participantRef with a seat present in seats[]", () => {
+    const engine = new OneTwentyOneEngine(twoSeatConfig);
+    engine.record({ scoreAttempted: 0 });
+    engine.record({ scoreAttempted: 0 });
+    const facts = engine.facts();
+    for (const turn of facts.turns) {
+      expect(
+        twoSeats.some((seat) => seat.participantRef === turn.participantRef),
+      ).toBe(true);
+    }
+  });
+
+  it("rejects recording another visit for the trailing seat once the match has completed", () => {
+    const engine = new OneTwentyOneEngine(twoSeatConfig);
+    for (let target = 121; target < 170; target++) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+      engine.record({ scoreAttempted: 0 });
+    }
+    const won = engine.record({ scoreAttempted: 170, finishedOnDouble: true });
+    expect(won.status).toBe("WON");
+    expect(won.winningSideKey).toBe("A");
+    expect(won.activeParticipantRef).toBe("p2");
+    expect(won.seats[1].status).toBe("IN_PROGRESS");
+
+    expect(() => engine.record({ scoreAttempted: 0 })).toThrow(/ended/);
+
+    const after = engine.state();
+    expect(after.status).toBe("WON");
+    expect(after.winningSideKey).toBe("A");
+  });
+
+  it("wouldComplete is false for the trailing seat's own checkout dart once the match has completed", () => {
+    // Facts constructed directly (bypassing record()) so the scenario holds
+    // regardless of record()'s own guard: p1 has already checked out at 170
+    // (match WON, A wins) while p2's climb — built the same way, one
+    // checkout turn per rung — has independently also reached target 170
+    // without yet checking out there. Evaluated in isolation, p2's next
+    // checkout at 170 WOULD complete its own race; this is the exact shape
+    // that must NOT read as "would complete the game" once the match is
+    // already decided.
+    const climbTurns = (participantRef: string, startSeq: number) =>
+      Array.from({ length: 49 }, (_, i) => ({
+        clientKey: `${participantRef}-climb-${i}`,
+        stageClientKey: "round-1",
+        participantRef,
+        sequence: startSeq + i,
+        completedAt: "2026-08-22T00:00:00.000Z",
+        totalScore: 121 + i,
+        darts: [],
+      }));
+
+    const prior: EngineFacts = {
+      stages: [
+        {
+          clientKey: "round-1",
+          stageTypeKey: "ROUND",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [
+        ...climbTurns("p1", 1),
+        {
+          clientKey: "p1-win",
+          stageClientKey: "round-1",
+          participantRef: "p1",
+          sequence: 50,
+          completedAt: "2026-08-22T00:00:00.000Z",
+          totalScore: 170,
+          darts: [],
+        },
+        ...climbTurns("p2", 1),
+      ],
+    };
+
+    const engine = new OneTwentyOneEngine(twoSeatConfig, prior);
+    const state = engine.state();
+    expect(state.status).toBe("WON");
+    expect(state.winningSideKey).toBe("A");
+    expect(state.activeParticipantRef).toBe("p2");
+    const trailingSeat = state.seats.find((seat) => seat.sideKey === "B")!;
+    expect(trailingSeat.status).toBe("IN_PROGRESS");
+    expect(trailingSeat.currentTarget).toBe(170);
+
+    expect(
+      engine.wouldComplete({ scoreAttempted: 170, finishedOnDouble: true }),
+    ).toBe(false);
+  });
+});
+
+describe("121 board-dart resolution and undo", () => {
+  it("keeps a coordinate-less dart's own zone and scores it 0", () => {
+    const engine = new OneTwentyOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.hitTargetNumber).toBeNull();
+    expect(dart.hitZoneKey).toBe("MISS");
+    expect(dart.score).toBe(0);
+    expect(dart.intendedZoneKey).toBeNull();
+  });
+
+  it("classifies a dart that carries coordinates and carries them onto the fact", () => {
+    const engine = new OneTwentyOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.hitTargetNumber).toBe(25);
+    expect(dart.hitZoneKey).toBe("INNER_BULL");
+    expect(dart.score).toBe(50);
+    expect(dart.locationY).toBe(0);
+  });
+
+  it("undo pops one dart at a time and takes the visit with the last one", () => {
+    const engine = new OneTwentyOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
   });
 });

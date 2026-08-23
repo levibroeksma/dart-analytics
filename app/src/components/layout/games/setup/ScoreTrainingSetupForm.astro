@@ -21,41 +21,57 @@ const infoSection = {
 ---
 
 <SetupShell title="Score Training">
-  <UserSection />
+  <UserSection allowGuests />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={formatOpts}
-      x-model="durationType"
-      class="w-full"
-    />
-    <Input
-      id="durationValue"
-      name="durationValue"
-      type="text"
-      inputmode="numeric"
-      :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
-      x-model.number="durationValue"
-      @input="clampNotice = ''"
-      class="glass border-tab-border rounded-full mt-4"
-    />
-    <label
-      for="durationValue"
-      class="text-xs text-muted-foreground px-4 py-0 italic"
-      x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
-    ></label>
-    <p
-      class="text-sm text-muted-foreground px-4 py-0"
-      role="status"
-      x-show="clampNotice"
-      x-text="clampNotice"
-      x-cloak
-    >
-    </p>
+    <template x-if="guests.length === 0">
+      <Fragment>
+        <Toggle
+          orientation="horizontal"
+          options={formatOpts}
+          x-model="durationType"
+          class="w-full"
+        />
+        <Input
+          id="durationValue"
+          name="durationValue"
+          type="text"
+          inputmode="numeric"
+          :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
+          x-model.number="durationValue"
+          @input="clampNotice = ''"
+          class="glass border-tab-border rounded-full mt-4"
+        />
+        <label
+          for="durationValue"
+          class="text-xs text-muted-foreground px-4 py-0 italic"
+          x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+        ></label>
+        <p
+          class="text-sm text-muted-foreground px-4 py-0"
+          role="status"
+          x-show="clampNotice"
+          x-text="clampNotice"
+          x-cloak
+        >
+        </p>
+      </Fragment>
+    </template>
+    <template x-if="guests.length > 0">
+      <Input
+        id="durationValue"
+        name="durationValue"
+        type="text"
+        inputmode="numeric"
+        placeholder="Number of rounds"
+        x-model.number="durationValue"
+        @input="clampNotice = ''"
+        class="glass border-tab-border rounded-full mt-4"
+      />
+    </template>
   </SettingSectionShell>
 
   <p

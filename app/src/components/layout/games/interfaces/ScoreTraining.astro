@@ -3,11 +3,10 @@ interface Props {
   [key: string]: unknown;
 }
 
-// Props
 const { ...props }: Props = Astro.props;
 
-// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
@@ -17,31 +16,79 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
   class="flex flex-col flex-1 min-h-0 gap-3"
   {...props}
 >
-  <SinglePlayerDisplay
-    isTarget={false}
-    score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
-    class="max-h-2/5 h-full"
-  >
-    <div
-      slot="progress"
-      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+  <template x-if="(state()?.seats.length ?? 1) < 2">
+    <SinglePlayerDisplay
+      isTarget={false}
+      score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
+      class="max-h-2/5 h-full"
     >
-      <dl class="w-full space-y-1">
+      <div
+        slot="progress"
+        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+      >
+        <dl class="w-full space-y-1">
+          <StatRow
+            label="3 dart avg."
+            value="threeDartAverage()"
+          />
+          <StatRow
+            label="Darts"
+            value="dartsThrownThisLeg()"
+          />
+          <StatRow
+            label="Previous"
+            value="previousScoreThisLeg()"
+          />
+        </dl>
+      </div>
+    </SinglePlayerDisplay>
+  </template>
+
+  <template x-if="(state()?.seats.length ?? 1) >= 2">
+    <SplitScoreboard
+      seatA={{
+        nameExpr: "$store.game.seats[0]?.displayName",
+        activeExpr:
+          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
+        scoreExpr: "totalScoreFor(state()?.seats[0]?.participantRef)",
+      }}
+      seatB={{
+        nameExpr: "$store.game.seats[1]?.displayName",
+        activeExpr:
+          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
+        scoreExpr: "totalScoreFor(state()?.seats[1]?.participantRef)",
+      }}
+      isTarget={false}
+      class="h-2/5"
+    >
+      <dl
+        slot="progressA"
+        class="w-full space-y-1"
+      >
         <StatRow
           label="3 dart avg."
-          value="threeDartAverage()"
+          value="threeDartAverageFor(state()?.seats[0]?.participantRef)"
         />
         <StatRow
           label="Darts"
-          value="dartsThrownThisLeg()"
-        />
-        <StatRow
-          label="Previous"
-          value="previousScoreThisLeg()"
+          value="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
         />
       </dl>
-    </div>
-  </SinglePlayerDisplay>
+      <dl
+        slot="progressB"
+        class="w-full space-y-1"
+      >
+        <StatRow
+          label="3 dart avg."
+          value="threeDartAverageFor(state()?.seats[1]?.participantRef)"
+        />
+        <StatRow
+          label="Darts"
+          value="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
+        />
+      </dl>
+    </SplitScoreboard>
+  </template>
   <div
     class="flex justify-center items-center gap-2 px-3"
     x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"

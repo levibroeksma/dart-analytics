@@ -1,0 +1,50 @@
+import { describe, it, expect } from "vitest";
+import { addTypedGuest } from "@lib/game/guest-list";
+import type { GuestListContext } from "@lib/types";
+
+function context(overrides: Partial<GuestListContext> = {}): GuestListContext {
+  return {
+    guests: [],
+    newGuestName: "",
+    showAddGuestModal: true,
+    ...overrides,
+  };
+}
+
+describe("addTypedGuest", () => {
+  it("seats the typed guest, clears the field and closes the modal", () => {
+    const state = context({ newGuestName: "Rosa" });
+
+    expect(addTypedGuest(state)).toBe(true);
+    expect(state.guests).toEqual([{ displayName: "Rosa" }]);
+    expect(state.newGuestName).toBe("");
+    expect(state.showAddGuestModal).toBe(false);
+  });
+
+  it("trims the typed name before seating it", () => {
+    const state = context({ newGuestName: "  Rosa  " });
+
+    addTypedGuest(state);
+    expect(state.guests).toEqual([{ displayName: "Rosa" }]);
+  });
+
+  it("refuses a blank name and leaves the modal open", () => {
+    const state = context({ newGuestName: "   " });
+
+    expect(addTypedGuest(state)).toBe(false);
+    expect(state.guests).toEqual([]);
+    expect(state.showAddGuestModal).toBe(true);
+  });
+
+  it("refuses a second guest — V1 seats at most one", () => {
+    const state = context({
+      guests: [{ displayName: "Rosa" }],
+      newGuestName: "Sam",
+    });
+
+    expect(addTypedGuest(state)).toBe(false);
+    expect(state.guests).toEqual([{ displayName: "Rosa" }]);
+    expect(state.newGuestName).toBe("Sam");
+    expect(state.showAddGuestModal).toBe(true);
+  });
+});

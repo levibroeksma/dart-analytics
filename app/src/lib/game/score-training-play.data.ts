@@ -10,6 +10,7 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
@@ -20,14 +21,24 @@ import {
   previousScoreDisplay,
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
-import type { ScoreTrainingPlayContext } from "./types";
+import type {
+  DartObservation,
+  EngineFacts,
+  ScoreTrainingState,
+} from "@modules/types";
+import type {
+  ScoreTrainingPlayContext,
+  ScoreTrainingResultsSnapshot,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // scoreTrainingEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { ScoreTrainingEngine } from "@modules/game/score-training.engine.module";
+import {
+  ScoreTrainingEngine,
+  foldScoreTrainingState,
+} from "@modules/game/score-training.engine.module";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
@@ -39,14 +50,32 @@ function formatRemaining(ms: number | null | undefined): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function computeStats(turns: TurnFact[]): {
-  total: number;
-  visits: number;
-  average: number;
-} {
-  const visits = turns.length;
-  const total = turns.reduce((sum, t) => sum + t.totalScore, 0);
-  return { total, visits, average: visits === 0 ? 0 : total / visits };
+/**
+ * Reads the owner seat's final resting state off the already-folded engine
+ * state — never re-derives the totals separately. `status` collapses the
+ * engine's own three-way `status` to the two outcomes a finished session can
+ * report, so a genuine TIE (both seats total the same score) stays
+ * distinguishable from a solo session even though both leave
+ * `winningSideKey` `null`: solo sessions never see `TIE` from the engine
+ * (score-compare only runs seats.length >= 2), so this collapse is safe.
+ */
+function computeStats(
+  state: ScoreTrainingState,
+  ownerRef: string | null,
+): ScoreTrainingResultsSnapshot {
+  const ownerSeat =
+    state.seats.find((seat) => seat.participantRef === ownerRef) ??
+    state.seats[0];
+  return {
+    total: ownerSeat.totalScore,
+    visits: ownerSeat.turnCount,
+    average:
+      ownerSeat.turnCount === 0
+        ? 0
+        : ownerSeat.totalScore / ownerSeat.turnCount,
+    winningSideKey: state.winningSideKey,
+    status: state.status === "TIE" ? "TIE" : "COMPLETE",
+  };
 }
 
 /**
@@ -127,6 +156,27 @@ function currentFacts(context: ScoreTrainingPlayContext): EngineFacts {
 }
 
 /**
+ * The engine's own state while live; mirrors `currentFacts()`'s own fallback
+ * otherwise — a completion retry driven straight from the results modal (no
+ * live engine) folds the persisted mirror through the same pure reducer
+ * instead of going without a snapshot. Mirrors `tuod-play.data.ts`'s own
+ * `finalTuodState`.
+ */
+function finalScoreTrainingState(
+  context: ScoreTrainingPlayContext,
+): ScoreTrainingState | null {
+  const live = context.state();
+  if (live) return live;
+  const config = context.$store.game.configSnapshot;
+  if (!config) return null;
+  return foldScoreTrainingState(
+    currentFacts(context),
+    config,
+    context.$store.game.timerExpired ?? false,
+  );
+}
+
+/**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` Alpine binds to every
  * directive-driven call (`@click="…"`, `init()`). `onCommit` is built once,
@@ -159,17 +209,60 @@ export function scoreTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      total: number;
-      visits: number;
-      average: number;
-    } | null,
+    resultsSnapshot: null as ScoreTrainingResultsSnapshot | null,
     pendingFinishScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
     ...boardInputData((observation) => self.recordDart(observation)),
+
+    state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat?.totalScore ?? 0;
+    },
+
+    threeDartAverageFor(
+      this: ScoreTrainingPlayContext,
+      seatRef: string,
+    ): string {
+      return perVisitAverageDisplay(
+        this.$store.game.turns.filter(
+          (turn) => turn.participantRef === seatRef,
+        ),
+      );
+    },
+
+    dartsThrownThisLegFor(
+      this: ScoreTrainingPlayContext,
+      seatRef: string,
+    ): number {
+      const maxDartsPerTurn =
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+      return dartsThrownCount(
+        this.$store.game.turns.filter(
+          (turn) => turn.participantRef === seatRef,
+        ),
+        maxDartsPerTurn,
+      );
+    },
+
+    previousScoreThisLegFor(
+      this: ScoreTrainingPlayContext,
+      seatRef: string,
+    ): string {
+      return previousScoreDisplay(
+        this.$store.game.turns.filter(
+          (turn) => turn.participantRef === seatRef,
+        ),
+      );
+    },
 
     remainingLabel(this: ScoreTrainingPlayContext): string {
       return formatRemaining(this.$store.game.timerRemainingMs);
@@ -428,7 +521,14 @@ export function scoreTrainingPlay() {
         }
       }
 
-      this.resultsSnapshot = computeStats(this.$store.game.turns);
+      const finalState = finalScoreTrainingState(this);
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
+      if (finalState) {
+        this.resultsSnapshot = computeStats(finalState, ownerRef);
+      }
       this.completionStatus = "succeeded";
     },
 
@@ -501,16 +601,17 @@ export function scoreTrainingPlay() {
               templateRef,
               overrides: { duration_value: config.durationValue },
             },
+            participants: participantsFromSeats(config.seats),
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
+        const seatedSnapshot = reseatSnapshot(config, session.participants);
+
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot =
-          this.$store.game.configSnapshot &&
-          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
+        this.$store.game.configSnapshot = seatedSnapshot;
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
         this.$store.game.timerRemainingMs = null;
@@ -528,7 +629,7 @@ export function scoreTrainingPlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof ScoreTrainingEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

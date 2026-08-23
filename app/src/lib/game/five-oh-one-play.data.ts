@@ -4,6 +4,7 @@ import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
@@ -697,16 +698,17 @@ export function fiveOhOnePlay() {
               templateRef,
               overrides: { legs_to_win: config.legsToWin },
             },
+            participants: participantsFromSeats(config.seats),
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
+        const seatedSnapshot = reseatSnapshot(config, session.participants);
+
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot =
-          this.$store.game.configSnapshot &&
-          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
+        this.$store.game.configSnapshot = seatedSnapshot;
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 
@@ -721,7 +723,7 @@ export function fiveOhOnePlay() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof FiveOhOneEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

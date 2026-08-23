@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-07-26
+updated: 2026-08-22
 -->
 
 # Architecture Patterns
@@ -794,6 +794,26 @@ EngineFacts  →  exercise_stages / turns / darts
 - **Undo depth is unbounded, one `record()` per call.** Every engine undoes back to an empty fact log, and `undo()` returns `false` once there is nothing left. Rehydrated facts are undoable too — `create(config, prior)` replays them into the same log, so the depth limit is the log, not the session. No engine caps it. <!-- 2026-07-26 -->
 
 Registration is two-sided: `modules/game/engine.registry.ts` maps `rulesetVersionKey` to the engine factory, `services/rulesets/registry.ts` maps the same key to the server-side validator. `scripts/check-game-engines.sh` fails the build when an engine is absent from either.
+
+### Win conditions (1v1 and beyond)
+
+A multi-seat match ends via one of three win-condition categories, decided per ruleset:
+
+- **Elimination** — the match ends the instant one seat fails; the surviving seat wins (Bob's 27).
+- **Race-to-finish** — the match ends the instant one seat finishes; that seat wins (121).
+- **Score-compare** — every seat plays out its own full session; once every seat has completed, the seat with the best derived metric wins, and a tie resolves to no winner (Around the Clock, Ten Up One Down, Shanghai, Score Training, Singles Training, Doubles Training — Shanghai layers a race-style instant win on top for whoever hits a Shanghai, falling back to score-compare otherwise).
+
+`modules/game/match-outcome.module.ts` holds one pure function per category — `eliminationWinner`, `raceWinner`, `scoreCompareWinner` — each taking the seats' per-side facts (`{sideKey, failed}` / `{sideKey, finished}` / `{sideKey, completed, metric}`) and returning the winning `sideKey`, or `null` while undecided or tied. Engines fold their own state into the shape the category function expects and call it; none inlines winner-picking logic of its own.
+
+A score-compare engine calls `scoreCompareOutcome(seats, direction, soloStatus)` rather than `scoreCompareWinner` directly: it returns the match `status` and `winningSideKey` together, since the two are one composition (nobody wins while a seat is still playing; the best metric wins once they all finish; an unbroken tie stays `TIE`).
+
+The mechanical half of an engine — everything with no ruleset content in it — is composed from two shared pure modules rather than copied per engine (D232). `modules/game/turn-log.module.ts` owns the `TurnFact`/`DartFact` log: `cloneTurns`, `sumDartScores`, `dartsThrownBy`, `openOrCreateTurn` (the caller supplies the reuse rule), `appendCompletedTurn`, `openVisit`, `resolveObservation`/`appendResolvedDart`, `appendObservedDart`/`doubleTargetIntent`, and the three undo shapes `undoLastDart` / `undoLastUnit` / `undoStagedTurn`. `modules/game/seat-state.module.ts` owns per-seat derivation: `foldSeatStates`, `activeSeatState`, `otherSeatsComplete`, `durationSeatComplete`, `completedByIndex`. A new engine composes these; what stays in the engine is what its ruleset actually decides.
+
+`seat-rota.module.ts`'s `activeSeat()` takes an optional 4th parameter, a completion predicate `(seat: SeatFact) => boolean`, defaulting to `() => false`. Three engines pass a real one — Around the Clock, Ten Up One Down and Score Training — but only Around the Clock's does any work: its seats can finish their own circuit in a different number of visits (a miss costs an extra one), so once one seat is done, every remaining turn must go to whichever seat is not, and plain lockstep alternation cannot express that. TUOD's and Score Training's seats share one fixed round budget, so their predicates never change the answer; they are passed so the fold stays correct if that budget ever stops being uniform. Every other engine omits the argument, and the default reproduces the prior pure-alternation behavior unchanged. <!-- corrected 2026-08-22, D231 -->
+
+See `decisions/game-engine.md` D231 — D230 originally claimed only Around the Clock passes a predicate at all.
+
+See `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` for the full design. <!-- 2026-08-22 -->
 
 ---
 

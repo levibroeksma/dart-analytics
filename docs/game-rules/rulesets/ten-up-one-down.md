@@ -30,6 +30,7 @@ Checkout ladder under pressure: start at **41**, try to finish in **one visit (3
 
 - **Attempt:** from the current target, reach **exactly 0** on a **double** within **three darts**.
 - **Session (V1):** keep climbing (+10) on success and slipping (−1) on failure until the player stops or hits a later end condition.
+- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 -->
 
 ## Config & presets (V1)
 

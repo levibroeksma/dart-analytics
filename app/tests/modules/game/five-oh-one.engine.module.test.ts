@@ -1520,3 +1520,62 @@ describe("FiveOhOneEngine with two seats", () => {
     expect(resumed.state()).toEqual(engine.state());
   });
 });
+
+describe("501 board-dart resolution and undo", () => {
+  it("keeps a coordinate-less dart's own zone and scores it 0", () => {
+    const engine = new FiveOhOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.hitTargetNumber).toBeNull();
+    expect(dart.hitZoneKey).toBe("MISS");
+    expect(dart.score).toBe(0);
+    expect(dart.intendedTargetNumber).toBeNull();
+    expect(engine.state().seats[0].remainingScore).toBe(501);
+  });
+
+  it("classifies a dart that carries coordinates and carries them onto the fact", () => {
+    const engine = new FiveOhOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.hitTargetNumber).toBe(25);
+    expect(dart.hitZoneKey).toBe("INNER_BULL");
+    expect(dart.score).toBe(50);
+    expect(dart.locationX).toBe(0);
+    expect(dart.locationY).toBe(0);
+  });
+
+  it("undo pops one dart at a time and takes the visit with the last one", () => {
+    const engine = new FiveOhOneEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+});

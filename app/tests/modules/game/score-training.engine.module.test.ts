@@ -240,12 +240,13 @@ describe("ScoreTrainingEngine.wouldComplete", () => {
     const engine = new ScoreTrainingEngine({ ...ROUNDS_10, durationValue: 2 });
     engine.record(60);
     const factsBefore = structuredClone(engine.facts());
-    const turnCountBefore = (engine.state() as ScoreTrainingState).turnCount;
+    const turnCountBefore = (engine.state() as ScoreTrainingState).seats[0]
+      .turnCount;
 
     expect(engine.wouldComplete(45)).toBe(true);
 
     expect(engine.facts()).toEqual(factsBefore);
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(
       turnCountBefore,
     );
   });
@@ -254,10 +255,12 @@ describe("ScoreTrainingEngine.wouldComplete", () => {
 describe("ScoreTrainingEngine.state", () => {
   it("reports the live turn count through record and undo", () => {
     const engine = new ScoreTrainingEngine(ROUNDS_10);
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(0);
-    expect((engine.record(40) as ScoreTrainingState).turnCount).toBe(1);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(0);
+    expect((engine.record(40) as ScoreTrainingState).seats[0].turnCount).toBe(
+      1,
+    );
     engine.undo();
-    expect((engine.state() as ScoreTrainingState).turnCount).toBe(0);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(0);
   });
 });
 
@@ -621,5 +624,181 @@ describe("ScoreTrainingEngine.undo — dispatches on the fact log's shape", () =
     expect(engine.facts().turns).toHaveLength(0);
 
     expect(engine.undo()).toBe(false);
+  });
+});
+
+describe("ScoreTrainingEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<ScoreTrainingSnapshot> = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+    seats: twoSeats,
+  } as never;
+
+  it("both seats always play out their own full ROUNDS budget, higher total wins", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20); // p1 round 1
+    engine.record(60); // p2 round 1
+    let state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS");
+    engine.record(20); // p1 round 2 — total 40
+    state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS"); // p2 still has a round left
+    state = engine.record(60); // p2 round 2 — total 120
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+  });
+
+  it("hands the last round to the seat that still has one, its completion predicate agreeing with lockstep alternation", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20); // p1 round 1
+    engine.record(60); // p2 round 1
+    engine.record(20); // p1 round 2 — p1's budget is now spent
+
+    expect(engine.state().activeParticipantRef).toBe("p2");
+  });
+
+  it("stamps every turn's participantRef with a seat present in seats[]", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20);
+    engine.record(60);
+    const facts = engine.facts();
+    for (const turn of facts.turns) {
+      expect(
+        twoSeats.some((seat) => seat.participantRef === turn.participantRef),
+      ).toBe(true);
+    }
+  });
+});
+
+describe("ScoreTrainingEngine — 1v1 completion guard", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const decidedConfig: Seated<ScoreTrainingSnapshot> = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 1,
+    seats: twoSeats,
+  } as never;
+
+  it("refuses a visit total once a decided 1v1 match is already complete, leaving winningSideKey untouched", () => {
+    const engine = new ScoreTrainingEngine(decidedConfig);
+    engine.record(20); // p1 round 1
+    const decided = engine.record(60); // p2 round 1 — decides the match
+
+    expect(decided.status).toBe("COMPLETE");
+    expect(decided.winningSideKey).toBe("B");
+    expect(engine.isComplete()).toBe(true);
+
+    expect(() => engine.record(90)).toThrow();
+
+    expect(engine.state().winningSideKey).toBe("B");
+    expect(engine.facts().turns).toHaveLength(2);
+  });
+
+  it("refuses a dart once a decided 1v1 match is already complete, leaving winningSideKey untouched", () => {
+    const trebleTwenty = {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    } as const;
+    const engine = scoreTrainingEngineFactory.create(
+      decidedConfig,
+    ) as ScoreTrainingEngine;
+    engine.record(20); // p1 round 1
+    const decided = engine.record(60); // p2 round 1 — decides the match
+
+    expect(decided.status).toBe("COMPLETE");
+    expect(decided.winningSideKey).toBe("B");
+
+    expect(() => engine.record(trebleTwenty)).toThrow();
+
+    expect(engine.state().winningSideKey).toBe("B");
+    expect(engine.facts().turns).toHaveLength(2);
+  });
+
+  it("wouldComplete answers false once the match is already decided, instead of throwing", () => {
+    const engine = new ScoreTrainingEngine(decidedConfig);
+    engine.record(20);
+    engine.record(60);
+
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.wouldComplete(50)).toBe(false);
+  });
+});
+
+describe("Score Training mixed-input undo", () => {
+  it("pops a whole keypad visit as one unit", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record(60);
+    engine.record(41);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("pops a board visit one dart at a time, reopening it", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(engine.facts().turns[0].totalScore).toBe(100);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.facts().turns[0].totalScore).toBe(50);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+  });
+
+  it("refuses a keypad total while a board visit is still open", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(() => engine.record(60)).toThrow(/Finish the open visit/);
   });
 });

@@ -36,6 +36,7 @@ Traditional pub game that also works as training: hit every segment “around”
 
 - **Run:** hit every required target in sequence until the path is complete (typically **1 → 20 → bull**).
 - **Session (V1):** complete one full clock. Optional later modes can fail the player for missing a visit’s hit requirement.
+- **1v1:** both seats finish their own circuit; fewest darts wins (score-compare, ties possible). <!-- 2026-08-22 -->
 
 ## Config & presets (V1)
 

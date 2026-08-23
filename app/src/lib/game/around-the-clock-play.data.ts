@@ -16,8 +16,18 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
-import type { RulesetVersionKey } from "@lib/types";
-import type { DartFact, DartObservation, TurnFact } from "@modules/types";
+import type {
+  AroundTheClockSnapshot,
+  RulesetVersionKey,
+  Seated,
+} from "@lib/types";
+import type {
+  AroundTheClockSeatState,
+  AroundTheClockState,
+  DartFact,
+  DartObservation,
+  TurnFact,
+} from "@modules/types";
 import type {
   AroundTheClockPlayContext,
   AroundTheClockPreviewSegment,
@@ -62,8 +72,11 @@ function dartObservation(dart: DartFact): DartObservation {
  * the board, so `hitZoneKey !== "MISS"` alone cannot tell a hit on the
  * active target from a hit on the wrong number.
  */
-function replayHits(turns: readonly TurnFact[]): boolean[] {
-  let state = initialAroundTheClockState();
+function replayHits(
+  config: Seated<AroundTheClockSnapshot>,
+  turns: readonly TurnFact[],
+): boolean[] {
+  let state = initialAroundTheClockState(config).seats[0];
   const hits: boolean[] = [];
   for (const turn of turns) {
     for (const dart of turn.darts) {
@@ -77,6 +90,7 @@ function replayHits(turns: readonly TurnFact[]): boolean[] {
 }
 
 function previewSegmentsFor(
+  config: Seated<AroundTheClockSnapshot>,
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
 ): AroundTheClockPreviewSegment[] {
@@ -87,7 +101,7 @@ function previewSegmentsFor(
   const priorDarts = turns
     .slice(0, -1)
     .reduce((total, turn) => total + turn.darts.length, 0);
-  const hits = replayHits(turns);
+  const hits = replayHits(config, turns);
   return [0, 1, 2].map((i) => {
     const dart = lastTurn.darts[i];
     if (!dart) return { status: "empty" };
@@ -95,8 +109,11 @@ function previewSegmentsFor(
   });
 }
 
-function countHits(turns: readonly TurnFact[]): number {
-  return replayHits(turns).filter(Boolean).length;
+function countHits(
+  config: Seated<AroundTheClockSnapshot>,
+  turns: readonly TurnFact[],
+): number {
+  return replayHits(config, turns).filter(Boolean).length;
 }
 
 function countDarts(turns: readonly TurnFact[]): number {
@@ -143,32 +160,83 @@ export function aroundTheClockPlay() {
     engine: null as AroundTheClockEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    currentTargetLabel(this: AroundTheClockPlayContext): string {
-      if (!this.engine) return "";
-      const target = targetAt(numbersPath(), this.engine.state().targetIndex);
+    state(this: AroundTheClockPlayContext): AroundTheClockState | null {
+      return this.engine?.state() ?? null;
+    },
+
+    activeSeatState(
+      this: AroundTheClockPlayContext,
+    ): AroundTheClockSeatState | null {
+      const state = this.state();
+      if (!state) return null;
+      return (
+        state.seats.find(
+          (seat) => seat.participantRef === state.activeParticipantRef,
+        ) ?? null
+      );
+    },
+
+    currentTargetLabelFor(
+      this: AroundTheClockPlayContext,
+      seatRef: string,
+    ): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      if (!seat) return "";
+      const target = targetAt(numbersPath(), seat.targetIndex);
       return target.kind === "BULL" ? "BULL" : String(target.number);
     },
 
+    currentTargetLabel(this: AroundTheClockPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string {
+      return String(
+        this.$store.game.turns.filter((turn) => turn.participantRef === seatRef)
+          .length,
+      );
+    },
+
     turnsSoFar(this: AroundTheClockPlayContext): string {
-      return String(this.$store.game.turns.length);
+      const state = this.state();
+      if (!state) return "0";
+      return this.turnsSoFarFor(state.activeParticipantRef);
+    },
+
+    accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot!;
+      const turns = this.$store.game.turns.filter(
+        (turn) => turn.participantRef === seatRef,
+      );
+      return accuracyLabel(countHits(config, turns), countDarts(turns));
     },
 
     accuracy(this: AroundTheClockPlayContext): string {
-      const turns = this.$store.game.turns;
-      return accuracyLabel(countHits(turns), countDarts(turns));
+      const state = this.state();
+      if (!state) return "0%";
+      return this.accuracyFor(state.activeParticipantRef);
     },
 
     isBullVisit(this: AroundTheClockPlayContext): boolean {
-      if (!this.engine) return false;
-      return (
-        targetAt(numbersPath(), this.engine.state().targetIndex).kind === "BULL"
-      );
+      const seat = this.activeSeatState();
+      if (!seat) return false;
+      return targetAt(numbersPath(), seat.targetIndex).kind === "BULL";
     },
 
     previewSegments(
       this: AroundTheClockPlayContext,
     ): AroundTheClockPreviewSegment[] {
-      return previewSegmentsFor(this.$store.game.turns, this.hiddenTurnKey);
+      const state = this.state();
+      const config = this.$store.game.configSnapshot;
+      if (!state || !config) return [...EMPTY_SEGMENTS];
+      const seatTurns = this.$store.game.turns.filter(
+        (turn) => turn.participantRef === state.activeParticipantRef,
+      );
+      return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
     },
 
     init(this: AroundTheClockPlayContext) {
@@ -185,7 +253,9 @@ export function aroundTheClockPlay() {
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
       if (!this.engine || this.finished) return;
-      const target = targetAt(numbersPath(), this.engine.state().targetIndex);
+      const seat = this.activeSeatState();
+      if (!seat) return;
+      const target = targetAt(numbersPath(), seat.targetIndex);
       if (target.kind === "BULL" && ring === "TREBLE") return;
       const observation: DartObservation =
         ring === "MISS"
@@ -237,11 +307,26 @@ export function aroundTheClockPlay() {
     },
 
     uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
-      const turns = this.$store.game.turns;
+      const state = this.state();
+      const config = this.$store.game.configSnapshot;
+      const ownerRef =
+        this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )?.participantRef ?? null;
+      const ownerTurns =
+        ownerRef === null
+          ? this.$store.game.turns
+          : this.$store.game.turns.filter(
+              (turn) => turn.participantRef === ownerRef,
+            );
       return playUploadAndCompleteSession(this, () => ({
-        turns: turns.length,
-        accuracy: accuracyLabel(countHits(turns), countDarts(turns)),
-        totalDarts: countDarts(turns),
+        turns: ownerTurns.length,
+        accuracy: config
+          ? accuracyLabel(countHits(config, ownerTurns), countDarts(ownerTurns))
+          : "0%",
+        totalDarts: countDarts(ownerTurns),
+        winningSideKey: state?.winningSideKey ?? null,
+        status: (state?.status ?? "COMPLETE") as "COMPLETE" | "TIE",
       }));
     },
 

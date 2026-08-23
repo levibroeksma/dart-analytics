@@ -79,6 +79,10 @@ Same three darts per target and early end on hit, but the player **stays on the 
 
 Same as hard for hits, but if the player **misses with all three darts**, they **move back** one double. On **D1**, missing all three is **game over**.
 
+### Variants — Multiplayer (1v1)
+
+1v1 win condition: most doubles hit across all 21 targets; ties possible, no tiebreak in this version.
+
 ### Config
 
 - Order (v1): low → high, high → low (bull leads), randomized (bull shuffled in with the 20 doubles)

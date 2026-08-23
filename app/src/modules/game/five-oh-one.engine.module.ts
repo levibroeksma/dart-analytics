@@ -2,8 +2,14 @@ import type { FiveOhOneSnapshot, SeatFact, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { activeSeat, seatOf } from "./seat-rota.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
-import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
+import {
+  appendResolvedDart,
+  cloneTurns,
+  openVisit,
+  resolveObservation,
+  undoStagedTurn,
+} from "./turn-log.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
@@ -32,10 +38,6 @@ function legStage(sequence: number): StageFact {
     parentClientKey: null,
     sequence,
   };
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
 /**
@@ -293,22 +295,6 @@ export class FiveOhOneEngine implements GameEngine<
     return seat?.remainingScore ?? this.config.startingScore;
   }
 
-  /**
-   * Classifies one board observation into the target, zone, and score it
-   * struck. A miss carries no coordinates, so it resolves to a scoreless
-   * `MISS` hit using the observation's own zone key rather than going through
-   * `classify()`.
-   */
-  private resolveObservation(observation: DartObservation) {
-    return observation.locationX === null || observation.locationY === null
-      ? {
-          targetNumber: null,
-          zoneKey: observation.hitZoneKey,
-          score: 0,
-        }
-      : classify(observation.locationX, observation.locationY);
-  }
-
   private openLeg(): StageFact {
     const stage = this.stages.at(-1);
     if (!stage) {
@@ -320,13 +306,6 @@ export class FiveOhOneEngine implements GameEngine<
   private turnCountIn(stageClientKey: string): number {
     return this.turns.filter((turn) => turn.stageClientKey === stageClientKey)
       .length;
-  }
-
-  /** The visit still being thrown in the open leg, or null when the last one closed. */
-  private openVisit(): TurnFact | null {
-    const last = this.turns.at(-1);
-    if (!last || last.completedAt !== null) return null;
-    return last;
   }
 
   /**
@@ -369,7 +348,7 @@ export class FiveOhOneEngine implements GameEngine<
    *   as the accessible alternative from any resting state.
    */
   private recordVisitTotal(input: FiveOhOneVisitInput): FiveOhOneState {
-    if (this.openVisit() !== null) {
+    if (openVisit(this.turns) !== null) {
       throw new Error(
         "Finish the open visit on the board before entering a keypad total.",
       );
@@ -437,19 +416,10 @@ export class FiveOhOneEngine implements GameEngine<
       throw new Error("Cannot record a visit once the session is complete");
     }
 
-    const resolved = this.resolveObservation(observation);
-    const visit = this.openVisit() ?? this.openNewVisit();
+    const resolved = resolveObservation(observation);
+    const visit = openVisit(this.turns) ?? this.openNewVisit();
 
-    visit.darts.push({
-      sequence: visit.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: resolved.targetNumber,
-      hitZoneKey: resolved.zoneKey,
-      score: resolved.score,
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    });
+    appendResolvedDart(visit, observation, resolved);
 
     const checkedOut = this.settleVisit(visit, resolved.zoneKey);
 
@@ -533,50 +503,7 @@ export class FiveOhOneEngine implements GameEngine<
    *   nothing to undo.
    */
   undo(): boolean {
-    const last = this.turns.at(-1);
-    if (!last) return false;
-
-    return last.darts.length > 0 ? this.undoDart() : this.undoVisitTotal();
-  }
-
-  private undoVisitTotal(): boolean {
-    const removed = this.turns.pop();
-    if (!removed) return false;
-
-    this.popStageOpenedBy(removed.stageClientKey);
-    return true;
-  }
-
-  private undoDart(): boolean {
-    const visit = this.turns.at(-1);
-    if (!visit) return false;
-
-    visit.darts.pop();
-    this.popStageOpenedBy(visit.stageClientKey);
-
-    if (visit.darts.length === 0) {
-      this.turns.pop();
-      return true;
-    }
-
-    visit.totalScore = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    visit.completedAt = null;
-    return true;
-  }
-
-  /**
-   * Pops the open leg's stage when it was opened by the turn now being
-   * undone — the same stage `record()` would have appended for that turn.
-   */
-  private popStageOpenedBy(stageClientKey: string): void {
-    const openLeg = this.stages.at(-1);
-    if (
-      this.stages.length > 1 &&
-      openLeg &&
-      openLeg.clientKey !== stageClientKey
-    ) {
-      this.stages.pop();
-    }
+    return undoStagedTurn(this.turns, this.stages);
   }
 
   /**
@@ -588,7 +515,7 @@ export class FiveOhOneEngine implements GameEngine<
     observation: DartObservation,
     before: FiveOhOneState,
   ): boolean {
-    const resolved = this.resolveObservation(observation);
+    const resolved = resolveObservation(observation);
 
     const remainingAfter = this.activeRemaining(before) - resolved.score;
     const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
@@ -629,7 +556,7 @@ export class FiveOhOneEngine implements GameEngine<
       return this.wouldCompleteDart(input);
     }
 
-    if (this.openVisit() !== null) return false;
+    if (openVisit(this.turns) !== null) return false;
     if (
       !isPlayableVisitScore(input.scoreAttempted, this.config.maxVisitScore)
     ) {

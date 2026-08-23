@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   applyShanghaiDart,
+  foldShanghaiState,
   initialShanghaiState,
   ShanghaiEngine,
   shanghaiEngineFactory,
@@ -9,8 +10,10 @@ import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type {
   DartObservation,
+  DartZoneKey,
   EngineFacts,
-  ShanghaiState,
+  ShanghaiSeatState,
+  TurnFact,
 } from "@modules/types";
 import type { ShanghaiSnapshot, Seated } from "@lib/types";
 
@@ -25,18 +28,18 @@ const SEATS = [
 
 const config: Seated<ShanghaiSnapshot> = { seats: SEATS };
 
-function targetNumberFor(state: ShanghaiState): number {
-  const target = targetAt(numbersPath(), state.targetIndex);
+function targetNumberFor(seat: ShanghaiSeatState): number {
+  const target = targetAt(numbersPath(), seat.targetIndex);
   if (target.kind === "BULL") throw new Error("unreachable in these tests");
   return target.number;
 }
 
 function hitObservationFor(
-  state: ShanghaiState,
+  seat: ShanghaiSeatState,
   zone: "SINGLE" | "DOUBLE" | "TREBLE",
 ): DartObservation {
   return {
-    hitTargetNumber: targetNumberFor(state),
+    hitTargetNumber: targetNumberFor(seat),
     hitZoneKey: zone,
     locationX: null,
     locationY: null,
@@ -52,8 +55,8 @@ function missObservation(): DartObservation {
   };
 }
 
-function offTargetObservationFor(state: ShanghaiState): DartObservation {
-  const number = targetNumberFor(state);
+function offTargetObservationFor(seat: ShanghaiSeatState): DartObservation {
+  const number = targetNumberFor(seat);
   const wrongNumber = number === 20 ? 1 : number + 1;
   return {
     hitTargetNumber: wrongNumber,
@@ -68,9 +71,9 @@ function offTargetObservationFor(state: ShanghaiState): DartObservation {
 function facts19RoundsPlayed(): EngineFacts {
   const engine = shanghaiEngineFactory.create(config);
   for (let round = 0; round < 19; round++) {
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
   }
   return engine.facts();
 }
@@ -90,7 +93,13 @@ describe("shanghaiEngineFactory", () => {
 
 describe("initialShanghaiState", () => {
   it("starts at round 1 (index 0), zero score, no darts thrown, in progress", () => {
-    expect(initialShanghaiState()).toEqual({
+    const state = initialShanghaiState(config);
+    expect(state.activeParticipantRef).toBe("participant-1");
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.winningSideKey).toBeNull();
+    expect(state.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 0,
       totalScore: 0,
       dartsThisVisit: [],
@@ -101,7 +110,7 @@ describe("initialShanghaiState", () => {
 
 describe("applyShanghaiDart — scoring on the round's own number", () => {
   it("adds face value for a SINGLE hit and records the raw zone", () => {
-    const state = initialShanghaiState();
+    const state = initialShanghaiState(config).seats[0];
     const next = applyShanghaiDart(state, {
       hitTargetNumber: 1,
       hitZoneKey: "SINGLE",
@@ -115,7 +124,7 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
   });
 
   it("adds 2x face value for a DOUBLE hit", () => {
-    const state = initialShanghaiState();
+    const state = initialShanghaiState(config).seats[0];
     const next = applyShanghaiDart(state, {
       hitTargetNumber: 1,
       hitZoneKey: "DOUBLE",
@@ -126,7 +135,7 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
   });
 
   it("adds 3x face value for a TREBLE hit", () => {
-    const state = initialShanghaiState();
+    const state = initialShanghaiState(config).seats[0];
     const next = applyShanghaiDart(state, {
       hitTargetNumber: 1,
       hitZoneKey: "TREBLE",
@@ -137,21 +146,23 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
   });
 
   it("scores 0 and records null for a MISS, but still counts the dart", () => {
-    const state = initialShanghaiState();
+    const state = initialShanghaiState(config).seats[0];
     const next = applyShanghaiDart(state, missObservation());
     expect(next.totalScore).toBe(0);
     expect(next.dartsThisVisit).toEqual([null]);
   });
 
   it("scores 0 and records null for a hit on the wrong number, even though it is a genuine board hit", () => {
-    const state = initialShanghaiState();
+    const state = initialShanghaiState(config).seats[0];
     const next = applyShanghaiDart(state, offTargetObservationFor(state));
     expect(next.totalScore).toBe(0);
     expect(next.dartsThisVisit).toEqual([null]);
   });
 
   it("scores 0 for a BULL hit even at round 20's own number 20 (BULL is never the active number)", () => {
-    const roundTwenty: ShanghaiState = {
+    const roundTwenty: ShanghaiSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 19,
       totalScore: 0,
       dartsThisVisit: [],
@@ -170,7 +181,7 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
 
 describe("applyShanghaiDart — visit resolution and round advance", () => {
   it("sums a 3-SINGLE visit and advances to the next round when it is not a Shanghai", () => {
-    let state = initialShanghaiState();
+    let state = initialShanghaiState(config).seats[0];
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
@@ -181,7 +192,7 @@ describe("applyShanghaiDart — visit resolution and round advance", () => {
   });
 
   it("does not trigger a Shanghai on two singles and a double (missing treble)", () => {
-    let state = initialShanghaiState();
+    let state = initialShanghaiState(config).seats[0];
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "DOUBLE"));
@@ -190,7 +201,7 @@ describe("applyShanghaiDart — visit resolution and round advance", () => {
   });
 
   it("a miss or off-target dart in the visit still blocks a Shanghai even alongside single+double", () => {
-    let state = initialShanghaiState();
+    let state = initialShanghaiState(config).seats[0];
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "DOUBLE"));
     state = applyShanghaiDart(state, missObservation());
@@ -206,7 +217,7 @@ describe("applyShanghaiDart — Shanghai instant win, any dart order", () => {
     ["TREBLE", "SINGLE", "DOUBLE"],
     ["TREBLE", "DOUBLE", "SINGLE"],
   ] as const)("triggers on order %s / %s / %s", (first, second, third) => {
-    let state = initialShanghaiState();
+    let state = initialShanghaiState(config).seats[0];
     state = applyShanghaiDart(state, hitObservationFor(state, first));
     state = applyShanghaiDart(state, hitObservationFor(state, second));
     state = applyShanghaiDart(state, hitObservationFor(state, third));
@@ -219,7 +230,9 @@ describe("applyShanghaiDart — Shanghai instant win, any dart order", () => {
 
 describe("applyShanghaiDart — completion at round 20", () => {
   it("completes without a Shanghai after round 20 resolves with no triggering combo", () => {
-    let state: ShanghaiState = {
+    let state: ShanghaiSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 19,
       totalScore: 570,
       dartsThisVisit: [],
@@ -234,7 +247,9 @@ describe("applyShanghaiDart — completion at round 20", () => {
   });
 
   it("reports SHANGHAI, not COMPLETE, when round 20 itself is a Shanghai", () => {
-    let state: ShanghaiState = {
+    let state: ShanghaiSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
       targetIndex: 19,
       totalScore: 570,
       dartsThisVisit: [],
@@ -252,7 +267,9 @@ describe("applyShanghaiDart — terminal state guard", () => {
   it.each(["SHANGHAI", "COMPLETE"] as const)(
     "throws when called on a %s state",
     (status) => {
-      const terminal: ShanghaiState = {
+      const terminal: ShanghaiSeatState = {
+        participantRef: "participant-1",
+        sideKey: "A",
         targetIndex: 19,
         totalScore: 570,
         dartsThisVisit: [],
@@ -277,7 +294,7 @@ describe("ShanghaiEngine — fact log and derived state", () => {
     expect(dart.score).toBe(3);
     expect(dart.intendedTargetNumber).toBeNull();
     expect(dart.intendedZoneKey).toBeNull();
-    expect(engine.state().totalScore).toBe(3);
+    expect(engine.state().seats[0].totalScore).toBe(3);
   });
 
   it("keeps the board fact even when the hit scores 0 toward the round total", () => {
@@ -290,7 +307,7 @@ describe("ShanghaiEngine — fact log and derived state", () => {
     });
 
     expect(engine.facts().turns[0].darts[0].score).toBe(60);
-    expect(engine.state().totalScore).toBe(0);
+    expect(engine.state().seats[0].totalScore).toBe(0);
   });
 
   it("advances to round 2 after three non-Shanghai darts", () => {
@@ -314,7 +331,7 @@ describe("ShanghaiEngine — fact log and derived state", () => {
       locationY: null,
     });
 
-    expect(engine.state().targetIndex).toBe(1);
+    expect(engine.state().seats[0].targetIndex).toBe(1);
     expect(engine.facts().turns).toHaveLength(1);
     expect(engine.facts().turns[0].totalScore).toBe(3);
   });
@@ -341,8 +358,8 @@ describe("ShanghaiEngine — fact log and derived state", () => {
     });
 
     const resumed = shanghaiEngineFactory.create(config, first.facts());
-    expect(resumed.state().totalScore).toBe(9);
-    expect(resumed.state().targetIndex).toBe(1);
+    expect(resumed.state().seats[0].totalScore).toBe(9);
+    expect(resumed.state().seats[0].targetIndex).toBe(1);
   });
 
   it("completes after round 20 without a Shanghai", () => {
@@ -351,14 +368,14 @@ describe("ShanghaiEngine — fact log and derived state", () => {
     engine.record(missObservation());
     engine.record(missObservation());
     expect(engine.isComplete()).toBe(true);
-    expect(engine.state().status).toBe("COMPLETE");
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
   });
 });
 
 describe("ShanghaiEngine.facts", () => {
   it("emits exactly one EXERCISE_BLOCK stage every turn belongs to", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     const facts = engine.facts();
     expect(facts.stages).toEqual([
@@ -374,10 +391,10 @@ describe("ShanghaiEngine.facts", () => {
 
   it("mints a unique clientKey and an ISO completedAt per turn", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     const [first, second] = engine.facts().turns;
     expect(first.clientKey).not.toBe(second.clientKey);
@@ -387,13 +404,13 @@ describe("ShanghaiEngine.facts", () => {
   it("leaves completedAt null until the visit's 3rd dart resolves it", () => {
     const engine = new ShanghaiEngine(config);
 
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
     engine.record(missObservation());
     expect(engine.facts().turns[0].completedAt).toBeNull();
 
-    engine.record(hitObservationFor(engine.state(), "TREBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
     expect(engine.facts().turns[0].completedAt).toMatch(
       /^\d{4}-\d{2}-\d{2}T.*Z$/,
     );
@@ -401,7 +418,7 @@ describe("ShanghaiEngine.facts", () => {
 
   it("returns a detached copy so callers cannot mutate the engine's log", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
 
     engine.facts().turns[0].darts.push(engine.facts().turns[0].darts[0]);
     expect(engine.facts().turns[0].darts).toHaveLength(1);
@@ -412,28 +429,34 @@ describe("ShanghaiEngine.wouldComplete", () => {
   it("is false for the 1st and 2nd dart of a visit, regardless of outcome", () => {
     const engine = new ShanghaiEngine(config);
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.wouldComplete(missObservation())).toBe(false);
   });
 
   it("is true for the 3rd dart when it completes a Shanghai", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "TREBLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "TREBLE"),
+      ),
     ).toBe(true);
-    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
   });
 
   it("is false for the 3rd dart when the visit resolves but only advances to the next round", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
   });
 
@@ -442,7 +465,7 @@ describe("ShanghaiEngine.wouldComplete", () => {
     engine.record(missObservation());
     engine.record(missObservation());
     expect(engine.wouldComplete(missObservation())).toBe(true);
-    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
   });
 
   it("is false once the session has already ended", () => {
@@ -450,21 +473,25 @@ describe("ShanghaiEngine.wouldComplete", () => {
     engine.record(missObservation());
     engine.record(missObservation());
     engine.record(missObservation());
-    expect(engine.state().status).toBe("COMPLETE");
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "SINGLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "SINGLE"),
+      ),
     ).toBe(false);
   });
 
   it("does not mutate the fact log or the derived state", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
     const factsBefore = engine.facts();
     const stateBefore = engine.state();
 
     expect(
-      engine.wouldComplete(hitObservationFor(engine.state(), "TREBLE")),
+      engine.wouldComplete(
+        hitObservationFor(engine.state().seats[0], "TREBLE"),
+      ),
     ).toBe(true);
 
     expect(engine.facts()).toEqual(factsBefore);
@@ -481,35 +508,37 @@ describe("ShanghaiEngine.undo", () => {
   it("is an exact inverse of record over facts() when it opened a new turn", () => {
     const engine = new ShanghaiEngine(config);
     const before = engine.facts();
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
   });
 
   it("is an exact inverse of record over facts() when it extended the open turn", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     const before = engine.facts();
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
     expect(engine.undo()).toBe(true);
     expect(engine.facts()).toEqual(before);
   });
 
   it("reverts the completing dart of a Shanghai, allowing it to be recompleted on redo", () => {
     const engine = new ShanghaiEngine(config);
-    engine.record(hitObservationFor(engine.state(), "SINGLE"));
-    engine.record(hitObservationFor(engine.state(), "DOUBLE"));
-    engine.record(hitObservationFor(engine.state(), "TREBLE"));
-    expect(engine.state().status).toBe("SHANGHAI");
-    expect(engine.state().totalScore).toBe(6);
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "TREBLE"));
+    expect(engine.state().seats[0].status).toBe("SHANGHAI");
+    expect(engine.state().seats[0].totalScore).toBe(6);
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
-    expect(engine.state().totalScore).toBe(3);
+    expect(engine.state().seats[0].totalScore).toBe(3);
 
-    const resumed = engine.record(hitObservationFor(engine.state(), "TREBLE"));
-    expect(resumed.status).toBe("SHANGHAI");
-    expect(resumed.totalScore).toBe(6);
+    const resumed = engine.record(
+      hitObservationFor(engine.state().seats[0], "TREBLE"),
+    );
+    expect(resumed.seats[0].status).toBe("SHANGHAI");
+    expect(resumed.seats[0].totalScore).toBe(6);
   });
 
   it("does not push a phantom dart when record is rejected on a finished session", () => {
@@ -551,15 +580,15 @@ describe("ShanghaiEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(engine.state().totalScore).toBe(5);
-    expect(engine.state().targetIndex).toBe(1);
+    expect(engine.state().seats[0].totalScore).toBe(5);
+    expect(engine.state().seats[0].targetIndex).toBe(1);
 
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(true);
-    expect(engine.state().totalScore).toBe(0);
-    expect(engine.state().targetIndex).toBe(0);
+    expect(engine.state().seats[0].totalScore).toBe(0);
+    expect(engine.state().seats[0].targetIndex).toBe(0);
     expect(engine.undo()).toBe(false);
   });
 
@@ -585,10 +614,291 @@ describe("ShanghaiEngine.undo", () => {
       locationX: null,
       locationY: null,
     });
-    expect(resumed.state().totalScore).toBe(3);
+    expect(resumed.state().seats[0].totalScore).toBe(3);
 
     expect(resumed.undo()).toBe(true);
     expect(resumed.facts().turns[0].darts).toHaveLength(2);
-    expect(resumed.state().totalScore).toBe(2);
+    expect(resumed.state().seats[0].totalScore).toBe(2);
+  });
+});
+
+describe("ShanghaiEngine — 1v1", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatConfig: Seated<ShanghaiSnapshot> = { seats: twoSeats };
+
+  function dart(number: number, zone: DartZoneKey): DartObservation {
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: zone,
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  /**
+   * `activeSeat`'s "the thrower keeps the turn until it resolves" rule (see
+   * `seat-rota.module.ts`) means a seat's own visit always plays out in full
+   * (3 darts) before the turn passes — a seat never sees the other seat's
+   * dart land inside its own open visit. So the natural per-visit rotation
+   * here is p1's round 1, then p2's round 1, then p1's round 2 (where the
+   * Shanghai lands) — p2 is left "mid-round" in the sense that the match
+   * ends before its own round 2 turn ever comes up, not mid-visit.
+   */
+  it("ends the whole match the instant one seat hits a Shanghai, even mid-round for the other seat", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 1
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 2
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 3: not a Shanghai, advances p1 to round 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 1
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 3: not a Shanghai, advances p2 to round 2
+    engine.record(dart(2, "SINGLE")); // p1 round 2, dart 1
+    engine.record(dart(2, "DOUBLE")); // p1 round 2, dart 2
+    const state = engine.record(dart(2, "TREBLE")); // p1 round 2, dart 3: single+double+treble on 2 = Shanghai
+    expect(state.seats[0].status).toBe("SHANGHAI");
+    expect(state.seats[1].status).toBe("IN_PROGRESS");
+    expect(state.seats[1].targetIndex).toBe(1);
+    expect(state.status).toBe("SHANGHAI");
+    expect(state.winningSideKey).toBe("A");
+  });
+
+  it("resolves by total score once both seats finish all 20 rounds without a Shanghai", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    // Every visit for both seats misses every dart at every round — both finish at score 0, a tie.
+    for (let round = 0; round < 20; round++) {
+      for (let dartNum = 0; dartNum < 3; dartNum++)
+        engine.record(dart(round + 1, "MISS"));
+      for (let dartNum = 0; dartNum < 3; dartNum++)
+        engine.record(dart(round + 1, "MISS"));
+    }
+    const state = engine.state();
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
+  });
+
+  it("resolves by total score in favor of the higher scorer once both finish without a Shanghai", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    for (let round = 0; round < 20; round++) {
+      engine.record(dart(round + 1, "SINGLE"));
+      engine.record(dart(round + 1, "MISS"));
+      engine.record(dart(round + 1, "MISS"));
+      engine.record(dart(round + 1, "MISS"));
+      engine.record(dart(round + 1, "MISS"));
+      engine.record(dart(round + 1, "MISS"));
+    }
+    const state = engine.state();
+    expect(state.seats[0].status).toBe("COMPLETE");
+    expect(state.seats[1].status).toBe("COMPLETE");
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+  });
+
+  /**
+   * The instant-Shanghai short circuit is exactly the gap Bob's 27 (Task 5)
+   * and 121 (Task 7) had to guard against: it can end the WHOLE match on one
+   * seat's own visit while the OTHER seat's own `status` still reads
+   * `IN_PROGRESS` (that seat never got to finish the round the match ended
+   * on). A guard that only checks the active seat's own status would miss
+   * this — the trailing seat's own next turn would sail through record().
+   */
+  it("rejects recording another dart for the trailing seat once the match has ended via an instant Shanghai", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 1
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 2
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 3: advances p1 to round 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 1
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 3: advances p2 to round 2
+    engine.record(dart(2, "SINGLE")); // p1 round 2, dart 1
+    engine.record(dart(2, "DOUBLE")); // p1 round 2, dart 2
+    const won = engine.record(dart(2, "TREBLE")); // p1's Shanghai ends the match
+    expect(won.status).toBe("SHANGHAI");
+    expect(won.activeParticipantRef).toBe("p2");
+    expect(won.seats[1].status).toBe("IN_PROGRESS");
+
+    expect(() => engine.record(dart(2, "SINGLE"))).toThrow(/ended/);
+
+    const after = engine.state();
+    expect(after.status).toBe("SHANGHAI");
+    expect(after.winningSideKey).toBe("A");
+  });
+
+  /**
+   * Isolates the same gap for `wouldComplete`, constructed directly
+   * (bypassing `record()`'s own guard, mirroring
+   * `one-twenty-one.engine.module.test.ts`'s equivalent case): p1 has
+   * already won the match outright via a Shanghai on round 1, while p2 —
+   * built independently the same way, one all-SINGLE round per turn — has
+   * separately climbed all the way to round 20 with 2 darts already thrown
+   * this visit. Evaluated in isolation, p2's next dart WOULD complete its
+   * own path (round 20, 3rd dart, no Shanghai); this is the exact shape that
+   * must NOT read as "would complete the match" once the match is already
+   * decided.
+   */
+  it("wouldComplete is false for the trailing seat's own completing dart once the match has already ended via an instant Shanghai", () => {
+    function soloFacts(participantRef: string, sideKey: string): TurnFact[] {
+      const soloConfig: Seated<ShanghaiSnapshot> = {
+        seats: [
+          {
+            participantRef,
+            displayName: sideKey,
+            sideKey,
+            participantTypeKey: "GUEST" as const,
+          },
+        ],
+      };
+      const engine = shanghaiEngineFactory.create(soloConfig);
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "TREBLE")); // Shanghai on round 1
+      return engine.facts().turns;
+    }
+
+    function soloFactsNearlyDone(
+      participantRef: string,
+      sideKey: string,
+    ): TurnFact[] {
+      const soloConfig: Seated<ShanghaiSnapshot> = {
+        seats: [
+          {
+            participantRef,
+            displayName: sideKey,
+            sideKey,
+            participantTypeKey: "GUEST" as const,
+          },
+        ],
+      };
+      const engine = shanghaiEngineFactory.create(soloConfig);
+      for (let round = 0; round < 19; round++) {
+        engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+        engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+        engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+      }
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE")); // round 20, dart 1
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE")); // round 20, dart 2 (visit stays open)
+      return engine.facts().turns;
+    }
+
+    const prior: EngineFacts = {
+      stages: [],
+      turns: [...soloFacts("p1", "A"), ...soloFactsNearlyDone("p2", "B")],
+    };
+    const engine = shanghaiEngineFactory.create(twoSeatConfig, prior);
+    const before = engine.state();
+    expect(before.status).toBe("SHANGHAI");
+    expect(before.activeParticipantRef).toBe("p2");
+    expect(before.seats[1].status).toBe("IN_PROGRESS");
+    expect(before.seats[1].targetIndex).toBe(19);
+
+    expect(
+      engine.wouldComplete(hitObservationFor(before.seats[1], "SINGLE")),
+    ).toBe(false);
+  });
+
+  it("stamps every turn's participantRef with a seat present in seats[]", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    engine.record(dart(1, "MISS"));
+    engine.record(dart(1, "MISS"));
+    const facts = engine.facts();
+    for (const turn of facts.turns) {
+      expect(
+        twoSeats.some((seat) => seat.participantRef === turn.participantRef),
+      ).toBe(true);
+    }
+  });
+
+  /**
+   * `undo()` needs no 1v1-specific change — it always pops the tail of
+   * `this.turns`, and `deriveState()` recomputes the active seat from facts
+   * every time, so reverting a Shanghai's completing dart un-decides the
+   * whole match exactly as popping any other dart un-resolves a visit.
+   */
+  it("undo reverts an instant-Shanghai match decision, un-deciding the whole match and restoring the winning seat's own turn", () => {
+    const engine = new ShanghaiEngine(twoSeatConfig);
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 1
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 2
+    engine.record(dart(1, "SINGLE")); // p1 round 1, dart 3: advances p1 to round 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 1
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 2
+    engine.record(dart(1, "MISS")); // p2 round 1, dart 3: advances p2 to round 2
+    engine.record(dart(2, "SINGLE")); // p1 round 2, dart 1
+    engine.record(dart(2, "DOUBLE")); // p1 round 2, dart 2
+    engine.record(dart(2, "TREBLE")); // p1's Shanghai ends the match
+    expect(engine.state().status).toBe("SHANGHAI");
+
+    expect(engine.undo()).toBe(true);
+
+    const after = engine.state();
+    expect(after.status).toBe("IN_PROGRESS");
+    expect(after.winningSideKey).toBeNull();
+    expect(after.activeParticipantRef).toBe("p1");
+    expect(after.seats[0].status).toBe("IN_PROGRESS");
+    expect(after.seats[0].dartsThisVisit).toEqual(["SINGLE", "DOUBLE"]);
+
+    const resumed = engine.record(dart(2, "TREBLE"));
+    expect(resumed.status).toBe("SHANGHAI");
+    expect(resumed.winningSideKey).toBe("A");
+  });
+});
+
+describe("foldShanghaiState — solo session", () => {
+  it("reproduces initialShanghaiState for an empty fact log", () => {
+    const facts: EngineFacts = { stages: [], turns: [] };
+    expect(foldShanghaiState(facts, config)).toEqual(
+      initialShanghaiState(config),
+    );
+  });
+});
+
+describe("Shanghai dart facts", () => {
+  it("records no intention — the round's own number is derivable", () => {
+    const engine = new ShanghaiEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.intendedTargetNumber).toBeNull();
+    expect(dart.intendedZoneKey).toBeNull();
+    expect(dart.score).toBe(3);
+    expect(engine.facts().turns[0].totalScore).toBe(3);
+  });
+
+  it("undo pops one dart, reopens the visit and restores its total", () => {
+    const engine = new ShanghaiEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.undo()).toBe(true);
+    const turn = engine.facts().turns[0];
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.totalScore).toBe(1);
+    expect(turn.completedAt).toBeNull();
   });
 });

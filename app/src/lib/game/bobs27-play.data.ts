@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import {
+  participantsFromSeats,
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
@@ -40,15 +41,24 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
 function computeStats(
   state: Bobs27State,
   turns: readonly TurnFact[],
+  ownerRef: string | null,
 ): {
   status: "WON" | "LOST";
   score: number;
   darts: number;
   doubleHitRate: string;
   highestNumberReached: string;
+  winningSideKey: string | null;
 } {
-  const darts = turns.reduce((sum, turn) => sum + turn.darts.length, 0);
-  const hits = turns.reduce(
+  const ownerTurns =
+    ownerRef === null
+      ? turns
+      : turns.filter((turn) => turn.participantRef === ownerRef);
+  const ownerSeat =
+    state.seats.find((seat) => seat.participantRef === ownerRef) ??
+    state.seats[0];
+  const darts = ownerTurns.reduce((sum, turn) => sum + turn.darts.length, 0);
+  const hits = ownerTurns.reduce(
     (sum, turn) =>
       sum +
       turn.darts.filter(
@@ -59,14 +69,28 @@ function computeStats(
     0,
   );
   return {
-    status: state.status === "WON" ? "WON" : "LOST",
-    score: state.score,
+    status: ownerSeat.status === "WON" ? "WON" : "LOST",
+    score: ownerSeat.score,
     darts,
     doubleHitRate: darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
     highestNumberReached: doublesPathTargetLabel(
-      targetAt(doublesPath(), state.targetIndex),
+      targetAt(doublesPath(), ownerSeat.targetIndex),
     ),
+    winningSideKey: state.winningSideKey,
   };
+}
+
+/**
+ * The seat this session belongs to — the one PLAYER participant. Mirrors
+ * `five-oh-one-play.data.ts`'s `ownerRef`.
+ */
+function ownerRef(
+  seats: readonly { participantRef: string; participantTypeKey: string }[],
+): string | null {
+  return (
+    seats.find((seat) => seat.participantTypeKey === "PLAYER")
+      ?.participantRef ?? null
+  );
 }
 
 /**
@@ -128,22 +152,44 @@ export function bobs27Play() {
       darts: number;
       doubleHitRate: string;
       highestNumberReached: string;
+      winningSideKey: string | null;
     } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as Bobs27Engine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
-    currentTargetLabel(this: Bobs27PlayContext): string {
-      if (!this.engine) return "";
-      return doublesPathTargetLabel(
-        targetAt(doublesPath(), this.engine.state().targetIndex),
+    state(this: Bobs27PlayContext): Bobs27State | null {
+      return this.engine?.state() ?? null;
+    },
+
+    currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
       );
+      if (!seat) return "";
+      return doublesPathTargetLabel(targetAt(doublesPath(), seat.targetIndex));
+    },
+
+    currentTargetLabel(this: Bobs27PlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.currentTargetLabelFor(state.activeParticipantRef);
+    },
+
+    currentScoreFor(this: Bobs27PlayContext, seatRef: string): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat ? String(seat.score) : "";
     },
 
     currentScore(this: Bobs27PlayContext): string {
-      if (!this.engine) return "";
-      return String(this.engine.state().score);
+      const state = this.state();
+      if (!state) return "";
+      return this.currentScoreFor(state.activeParticipantRef);
     },
 
     previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
@@ -222,7 +268,12 @@ export function bobs27Play() {
      * `commitDart`, exactly as the board's per-dart `recordDart` does. */
     async recordTap(this: Bobs27PlayContext, hit: boolean) {
       if (!this.engine || this.finished) return;
-      const target = targetAt(doublesPath(), this.engine.state().targetIndex);
+      const state = this.state();
+      const activeSeat = state?.seats.find(
+        (seat) => seat.participantRef === state.activeParticipantRef,
+      );
+      if (!activeSeat) return;
+      const target = targetAt(doublesPath(), activeSeat.targetIndex);
       await this.commitDart(doublesPathObservation(target, hit));
     },
 
@@ -327,7 +378,11 @@ export function bobs27Play() {
       }
 
       if (finalState) {
-        this.resultsSnapshot = computeStats(finalState, this.$store.game.turns);
+        this.resultsSnapshot = computeStats(
+          finalState,
+          this.$store.game.turns,
+          ownerRef(this.$store.game.seats),
+        );
       }
       this.completionStatus = "succeeded";
     },
@@ -394,16 +449,17 @@ export function bobs27Play() {
             captureModeKey: modePair.captureModeKey,
             inputModeKey: modePair.inputModeKey,
             config: { source: "template", templateRef },
+            participants: participantsFromSeats(config.seats),
           });
         } catch {
           this.playAgainError = "Could not start a new session. Try again.";
           return;
         }
 
+        const seatedSnapshot = reseatSnapshot(config, session.participants);
+
         this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot =
-          this.$store.game.configSnapshot &&
-          reseatSnapshot(this.$store.game.configSnapshot, session.participants);
+        this.$store.game.configSnapshot = seatedSnapshot;
         this.$store.game.idempotencyKey = null;
         this.$store.game.setSessionModes(modePair);
 
@@ -419,7 +475,7 @@ export function bobs27Play() {
         this.error = "";
         this.hasActiveSession = true;
 
-        const engine = factory.create(config);
+        const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof Bobs27Engine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());

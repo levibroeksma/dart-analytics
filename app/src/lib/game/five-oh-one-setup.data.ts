@@ -10,7 +10,9 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { addTypedGuest } from "@lib/game/guest-list";
 import {
+  participantsFromGuests,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -99,12 +101,7 @@ export function fiveOhOneSetup() {
     },
 
     addGuest(this: FiveOhOneSetupContext) {
-      if (this.guests.length >= 1) return;
-      const name = this.newGuestName.trim();
-      if (!name) return;
-      this.guests.push({ displayName: name });
-      this.newGuestName = "";
-      this.showAddGuestModal = false;
+      addTypedGuest(this);
     },
 
     removeGuest(this: FiveOhOneSetupContext, index: number) {
@@ -205,16 +202,7 @@ export function fiveOhOneSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
-        const participants = this.guests.length
-          ? [
-              { participantTypeKey: "PLAYER" as const, sideKey: "A" },
-              ...this.guests.map((g, i) => ({
-                participantTypeKey: "GUEST" as const,
-                displayName: g.displayName,
-                sideKey: String.fromCharCode(66 + i),
-              })),
-            ]
-          : undefined;
+        const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,

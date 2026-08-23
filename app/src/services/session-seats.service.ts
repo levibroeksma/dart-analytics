@@ -4,8 +4,27 @@ import type { SeatPlan } from "./types";
 
 const MIN_SEATS = 1;
 const MAX_SEATS = 4;
-const MULTI_SEAT_RULESET = "501_V1";
 const PLAYER_PARTICIPANT_TYPE_ID = 1;
+
+/**
+ * The most seats a session may request, keyed by ruleset version. A ruleset
+ * with no entry defaults to 1 — the same "reject any 2nd seat" behavior
+ * every non-501 ruleset had before this map existed. 501 alone keeps room
+ * for a future 2v2 (D-something, X01 guest-player design); the other eight
+ * are wired for exactly one opponent (1v1) and never more, per
+ * `2026-08-22-single-opponent-seat-remaining-engines-design.md`.
+ */
+const SEAT_CAPS: Record<string, number> = {
+  "501_V1": 4,
+  BOBS27_V1: 2,
+  "121_V1": 2,
+  AROUND_THE_CLOCK_V1: 2,
+  TUOD_V1: 2,
+  SHANGHAI_V1: 2,
+  SCORE_TRAINING_V1: 2,
+  SINGLES_V1: 2,
+  DOUBLES_TRAINING_V1: 2,
+};
 
 /**
  * Why a requested seat list cannot be created, or null when it can. The
@@ -20,9 +39,8 @@ const PLAYER_PARTICIPANT_TYPE_ID = 1;
  *
  * Two seats on one side is the guard that stops 2v2 preparation from
  * silently half-working: `sideKey` and per-side folding exist, the pairing
- * does not. A second seat for any ruleset but 501 is refused for the same
- * reason — the other eight engines are not wired for seats, so accepting one
- * would persist a participant nothing can throw for.
+ * does not. A ruleset's own cap in `SEAT_CAPS` is the guard that stops a
+ * session persisting a participant nothing can throw for.
  */
 export function rejectSeatRequest(
   participants: ParticipantInputData[] | undefined,
@@ -55,8 +73,9 @@ export function rejectSeatRequest(
     return "Only one seat per side is supported; 2v2 is not implemented yet.";
   }
 
-  if (participants.length > 1 && rulesetVersionKey !== MULTI_SEAT_RULESET) {
-    return `Multiple seats are only supported by ${MULTI_SEAT_RULESET}.`;
+  const cap = SEAT_CAPS[rulesetVersionKey] ?? 1;
+  if (participants.length > cap) {
+    return `${rulesetVersionKey} supports at most ${cap} seat${cap === 1 ? "" : "s"}.`;
   }
 
   return null;
