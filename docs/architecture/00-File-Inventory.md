@@ -169,7 +169,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-no-inline-comments.sh` | Guard: no `//` or non-JSDoc `/* */` comment inside a function/method body under `app/src/**/*.ts`; JSDoc `/** */` above a declaration stays exempt | canonical |
 | `scripts/check-style-tokens.sh` | Guard: no `font-medium`, `{...rest}`, raw `bg-bg*`/`text-fg*`, Tailwind prefix-important (`!utility`), or leading-dash arbitrary (`-prop-[…]`) under `app/src/**/*.{astro,css}` | canonical |
 | `scripts/check-file-locations.sh` | Guard: no `.ts` files directly under `components/`/`pages/` except `pages/api/**` | canonical |
-| `scripts/check-agent-mirrors.sh` | Guard: every `CLAUDE.md` has a byte-identical `AGENT.md` sibling | canonical |
+| `scripts/check-agent-mirrors.sh` | Guard: every `CLAUDE.md` has an `AGENT.md` sibling holding the fixed pointer stub (D213) | canonical |
 | `scripts/check-astro-class-composition.sh` | Guard: no `class:list` or manual class-join in `app/src/**/*.astro`; `cn()` only | canonical |
 | `scripts/check-astro-conventions.sh` | Guard: every `x-show` has `x-cloak`; no HTML comments in `.astro` template regions | canonical |
 | `scripts/check-context-map.sh` | Guard: every path referenced from a CLAUDE.md/README.md/context map exists; migration-range claims agree with `database/migrations/` (2026-07-23) | canonical |
@@ -230,7 +230,7 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
-| `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Exact mirror of the sibling `CLAUDE.md` in the same directory, for agent tools that read `AGENT.md` instead of `CLAUDE.md`; edit both together (2026-07-15) | canonical |
+| `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Fixed pointer stub redirecting to the sibling `CLAUDE.md` in the same directory — not a rule source, never carries content (D213, 2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
 | `.claude/skills/context-maintenance/SKILL.md` | Context Maintenance 8-step procedure, invoked before claiming any task done (2026-07-28) | canonical |
 | `.claude/skills/validate-app/SKILL.md` | `validate:app` sequence + mid-task gate condition for `app/` changes (2026-07-28) | canonical |
