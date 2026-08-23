@@ -1,20 +1,29 @@
 import type { AroundTheClockSnapshot, Seated, SeatFact } from "@lib/types";
-import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
-  boardScore,
   numbersPath,
   targetAt,
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { scoreCompareWinner } from "./match-outcome.module";
+import {
+  activeSeatState,
+  foldSeatStates,
+  otherSeatsComplete,
+} from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  dartsThrownBy,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   AroundTheClockSeatState,
   AroundTheClockState,
   BoardTarget,
-  DartFact,
   DartObservation,
   EngineFacts,
   StageFact,
@@ -105,23 +114,6 @@ export function applyAroundTheClockDart(
   return { ...state, targetIndex, dartsThisVisit, status: "IN_PROGRESS" };
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
-function dartsThrownBy(
-  seat: Pick<SeatFact, "participantRef">,
-  turns: readonly TurnFact[],
-): number {
-  return turns
-    .filter((turn) => turn.participantRef === seat.participantRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
-
 /**
  * Folds the whole fact log into the session's state — the function the
  * engine's own `deriveState()` delegates to. Module-private: the play page
@@ -140,45 +132,22 @@ function foldAroundTheClockState(
   facts: EngineFacts,
   config: Seated<AroundTheClockSnapshot>,
 ): AroundTheClockState {
-  const seats = config.seats.map((seat) => {
-    let state = initialSeatState(seat);
-    const seatTurns = facts.turns.filter(
-      (turn) => turn.participantRef === seat.participantRef,
-    );
-    for (const turn of seatTurns) {
-      for (const dart of turn.darts) {
-        state = applyAroundTheClockDart(state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
-  });
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    initialSeatState,
+    applyAroundTheClockDart,
+  );
 
-  const winningSideKey =
-    seats.length === 1
-      ? null
-      : scoreCompareWinner(
-          seats.map((seat) => ({
-            sideKey: seat.sideKey,
-            completed: seat.status === "COMPLETE",
-            metric: dartsThrownBy(seat, facts.turns),
-          })),
-          "LOWEST",
-        );
-
-  const allComplete = seats.every((seat) => seat.status === "COMPLETE");
-  const status: AroundTheClockState["status"] =
-    seats.length === 1
-      ? seats[0].status
-      : !allComplete
-        ? "IN_PROGRESS"
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "TIE";
+  const outcome = scoreCompareOutcome(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      completed: seat.status === "COMPLETE",
+      metric: dartsThrownBy(seat.participantRef, facts.turns),
+    })),
+    "LOWEST",
+    seats[0].status,
+  );
 
   return {
     activeParticipantRef: activeSeat(
@@ -189,8 +158,8 @@ function foldAroundTheClockState(
         seats.find((seat) => seat.participantRef === candidate.participantRef)
           ?.status === "COMPLETE",
     ).participantRef,
-    status,
-    winningSideKey,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     seats,
   };
 }
@@ -225,26 +194,13 @@ export class AroundTheClockEngine implements GameEngine<
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    const last = this.turns.at(-1);
-    if (
-      last &&
-      last.participantRef === activeParticipantRef &&
-      last.darts.length < 3
-    ) {
-      return last;
-    }
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      (last) =>
+        last.participantRef === activeParticipantRef && last.darts.length < 3,
+    );
   }
 
   /**
@@ -261,30 +217,16 @@ export class AroundTheClockEngine implements GameEngine<
    */
   record(observation: DartObservation): AroundTheClockState {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") {
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
         "Cannot record a dart once the session has ended; undo first to correct it.",
       );
     }
-    const after = applyAroundTheClockDart(activeSeatState, observation);
+    const after = applyAroundTheClockDart(seatBefore, observation);
 
     const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    appendObservedDart(openTurn, observation);
     if (openTurn.darts.length === 3 || after.status === "COMPLETE") {
       openTurn.completedAt = new Date().toISOString();
     }
@@ -293,17 +235,7 @@ export class AroundTheClockEngine implements GameEngine<
   }
 
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
@@ -314,17 +246,13 @@ export class AroundTheClockEngine implements GameEngine<
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
 
-    const after = applyAroundTheClockDart(activeSeatState, observation);
+    const after = applyAroundTheClockDart(seatBefore, observation);
     if (after.status !== "COMPLETE") return false;
 
-    return before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
-      .every((seat) => seat.status === "COMPLETE");
+    return otherSeatsComplete(before.seats, seatBefore.participantRef);
   }
 
   isComplete(): boolean {

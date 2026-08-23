@@ -10,7 +10,9 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { addTypedGuest } from "@lib/game/guest-list";
 import {
+  participantsFromGuests,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -62,13 +64,7 @@ export function tuodSetup() {
     },
 
     addGuest(this: TuodSetupContext) {
-      if (this.guests.length >= 1) return;
-      const name = this.newGuestName.trim();
-      if (!name) return;
-      this.guests.push({ displayName: name });
-      this.newGuestName = "";
-      this.showAddGuestModal = false;
-      this.forceRoundsIfGuested();
+      if (addTypedGuest(this)) this.forceRoundsIfGuested();
     },
 
     removeGuest(this: TuodSetupContext, index: number) {
@@ -159,16 +155,7 @@ export function tuodSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
-        const participants = this.guests.length
-          ? [
-              { participantTypeKey: "PLAYER" as const, sideKey: "A" },
-              {
-                participantTypeKey: "GUEST" as const,
-                displayName: this.guests[0].displayName,
-                sideKey: "B",
-              },
-            ]
-          : undefined;
+        const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,

@@ -461,3 +461,26 @@ export type BoardInputController = {
  * is not seat 1's round 4.
  */
 export type StageOwnership = "SHARED" | "PER_SEAT";
+
+/**
+ * What a dart was aimed at. Both fields move together: a target number with a
+ * null zone is rejected by `chk_dart_target_consistency` (migration `0007`),
+ * which admits only both-null or a NOT NULL zone.
+ */
+export type DartIntent = {
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+};
+
+/** One seat's entry in a score-compare, reduced to what deciding needs. */
+export type ScoreCompareSeat = {
+  sideKey: string;
+  completed: boolean;
+  metric: number;
+};
+
+/** A whole match's resolution: its status and the side that took it. */
+export type MatchOutcome = {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+};

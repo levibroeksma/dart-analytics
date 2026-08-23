@@ -354,6 +354,19 @@ describe("recordTap on the BULL visit", () => {
     expect(dart.hitZoneKey).toBe("INNER_BULL");
   });
 
+  it("MISS on the BULL visit records a bare MISS, not a bull ring", async () => {
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "MISS");
+
+    const dart = play.$store.game.turns[20].darts[0];
+    expect(dart.hitTargetNumber).toBeNull();
+    expect(dart.hitZoneKey).toBe("MISS");
+    expect(dart.locationX).toBeNull();
+    expect(dart.locationY).toBeNull();
+  });
+
   it("TREBLE is rejected as a no-op instead of silently recording INNER_BULL", async () => {
     const play = makePlay({ turns: priorTurnsThroughNumber(20) });
     await play.init.call(play);

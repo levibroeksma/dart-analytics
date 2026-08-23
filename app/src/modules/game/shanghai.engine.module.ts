@@ -1,12 +1,17 @@
 import type { ShanghaiSnapshot, Seated, SeatFact } from "@lib/types";
-import { newClientKey } from "./client-key.module";
 import { boardScore, numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
+import { activeSeatState, foldSeatStates } from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
 import { raceWinner, scoreCompareWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
-  DartFact,
   DartObservation,
   DartZoneKey,
   EngineFacts,
@@ -124,14 +129,6 @@ export function applyShanghaiDart(
   };
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
 /**
  * Folds the whole fact log into the session's state, mirroring
  * `foldAroundTheClockState`. Composes `raceWinner` and `scoreCompareWinner`:
@@ -144,23 +141,12 @@ export function foldShanghaiState(
   facts: EngineFacts,
   config: Seated<ShanghaiSnapshot>,
 ): ShanghaiState {
-  const seats = config.seats.map((seat) => {
-    let state = initialSeatState(seat);
-    const seatTurns = facts.turns.filter(
-      (turn) => turn.participantRef === seat.participantRef,
-    );
-    for (const turn of seatTurns) {
-      for (const dart of turn.darts) {
-        state = applyShanghaiDart(state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
-  });
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    initialSeatState,
+    applyShanghaiDart,
+  );
 
   const raceResult = raceWinner(
     seats.map((seat) => ({
@@ -230,20 +216,12 @@ export class ShanghaiEngine implements GameEngine<
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    const last = this.turns.at(-1);
-    if (last && last.darts.length < 3) return last;
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      (last) => last.darts.length < 3,
+    );
   }
 
   /**
@@ -265,29 +243,15 @@ export class ShanghaiEngine implements GameEngine<
         "Cannot record a dart once the match has ended; undo first to correct it.",
       );
     }
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") {
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
         "Cannot record a dart once the session has ended; undo first to correct it.",
       );
     }
 
     const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    appendObservedDart(openTurn, observation);
     if (openTurn.darts.length === 3) {
       openTurn.completedAt = new Date().toISOString();
     }
@@ -296,17 +260,7 @@ export class ShanghaiEngine implements GameEngine<
   }
 
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
@@ -323,18 +277,16 @@ export class ShanghaiEngine implements GameEngine<
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") return false;
-    if (activeSeatState.dartsThisVisit.length < 2) return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
+    if (seatBefore.dartsThisVisit.length < 2) return false;
 
-    const after = applyShanghaiDart(activeSeatState, observation);
+    const after = applyShanghaiDart(seatBefore, observation);
     if (after.status === "SHANGHAI") return true;
     if (after.status !== "COMPLETE") return false;
 
     return before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
+      .filter((seat) => seat.participantRef !== seatBefore.participantRef)
       .every((seat) => seat.status !== "IN_PROGRESS");
   }
 

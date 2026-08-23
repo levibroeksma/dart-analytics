@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  participantsFromGuests,
   participantsFromSeats,
   resolveSessionModePair,
   seatsFromParticipants,
@@ -196,5 +197,23 @@ describe("participantsFromSeats", () => {
     expect(
       requested?.every((participant) => !("participantRef" in participant)),
     ).toBe(true);
+  });
+});
+
+describe("participantsFromGuests", () => {
+  it("omits the field entirely for a solo session", () => {
+    expect(participantsFromGuests([])).toBeUndefined();
+  });
+
+  it("seats the owning player on A and the guest on B", () => {
+    expect(participantsFromGuests([{ displayName: "Rosa" }])).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "GUEST", displayName: "Rosa", sideKey: "B" },
+    ]);
+  });
+
+  it("never sends a displayName for the owning player", () => {
+    const requested = participantsFromGuests([{ displayName: "Rosa" }]);
+    expect(requested?.[0]).not.toHaveProperty("displayName");
   });
 });

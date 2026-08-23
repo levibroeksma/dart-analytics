@@ -753,3 +753,52 @@ describe("ScoreTrainingEngine — 1v1 completion guard", () => {
     expect(engine.wouldComplete(50)).toBe(false);
   });
 });
+
+describe("Score Training mixed-input undo", () => {
+  it("pops a whole keypad visit as one unit", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record(60);
+    engine.record(41);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("pops a board visit one dart at a time, reopening it", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(engine.facts().turns[0].totalScore).toBe(100);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.facts().turns[0].totalScore).toBe(50);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+  });
+
+  it("refuses a keypad total while a board visit is still open", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(() => engine.record(60)).toThrow(/Finish the open visit/);
+  });
+});

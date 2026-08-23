@@ -133,6 +133,37 @@ export function participantsFromSeats(seats: readonly SeatFact[]):
 }
 
 /**
+ * The `participants` a setup screen's `createSession` must request, given the
+ * guests the player added — the start-time twin of `participantsFromSeats`,
+ * which derives the same shape from a finished session's seats.
+ *
+ * An empty guest list returns `undefined` — the field's own "omit me" value —
+ * so a solo session sends exactly the request it always did. The owning
+ * player is always seat 0 on side `A` and the guests take `B` onward;
+ * `displayName` is carried for a guest only, because the player's is copied
+ * server-side from `players.display_name`.
+ */
+export function participantsFromGuests(
+  guests: readonly { displayName: string }[],
+):
+  | {
+      participantTypeKey: "PLAYER" | "GUEST";
+      displayName?: string;
+      sideKey: string;
+    }[]
+  | undefined {
+  if (guests.length === 0) return undefined;
+  return [
+    { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+    ...guests.map((guest, index) => ({
+      participantTypeKey: "GUEST" as const,
+      displayName: guest.displayName,
+      sideKey: String.fromCharCode(66 + index),
+    })),
+  ];
+}
+
+/**
  * Re-seats a config snapshot onto the participants a freshly-created session
  * minted. Play Again keeps the ruleset config but gets new participant rows,
  * so the seats inside the snapshot must be replaced rather than carried over —

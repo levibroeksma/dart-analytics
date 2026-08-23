@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   eliminationWinner,
   raceWinner,
+  scoreCompareOutcome,
   scoreCompareWinner,
 } from "@modules/game/match-outcome.module";
 
@@ -109,5 +110,76 @@ describe("scoreCompareWinner", () => {
         "HIGHEST",
       ),
     ).toBe("A");
+  });
+});
+
+describe("scoreCompareOutcome", () => {
+  it("stays IN_PROGRESS with no winner while a seat is still playing", () => {
+    expect(
+      scoreCompareOutcome(
+        [
+          { sideKey: "A", completed: true, metric: 40 },
+          { sideKey: "B", completed: false, metric: 10 },
+        ],
+        "HIGHEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "IN_PROGRESS", winningSideKey: null });
+  });
+
+  it("completes on the best metric once every seat has finished", () => {
+    expect(
+      scoreCompareOutcome(
+        [
+          { sideKey: "A", completed: true, metric: 40 },
+          { sideKey: "B", completed: true, metric: 55 },
+        ],
+        "HIGHEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "COMPLETE", winningSideKey: "B" });
+  });
+
+  it("reads LOWEST as best where the metric inverts", () => {
+    expect(
+      scoreCompareOutcome(
+        [
+          { sideKey: "A", completed: true, metric: 61 },
+          { sideKey: "B", completed: true, metric: 74 },
+        ],
+        "LOWEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "COMPLETE", winningSideKey: "A" });
+  });
+
+  it("ties, with no winner, when the best metric is shared", () => {
+    expect(
+      scoreCompareOutcome(
+        [
+          { sideKey: "A", completed: true, metric: 40 },
+          { sideKey: "B", completed: true, metric: 40 },
+        ],
+        "HIGHEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "TIE", winningSideKey: null });
+  });
+
+  it("reports a solo session's own status and never a winner", () => {
+    expect(
+      scoreCompareOutcome(
+        [{ sideKey: "A", completed: true, metric: 40 }],
+        "HIGHEST",
+        "COMPLETE",
+      ),
+    ).toEqual({ status: "COMPLETE", winningSideKey: null });
+    expect(
+      scoreCompareOutcome(
+        [{ sideKey: "A", completed: true, metric: 40 }],
+        "HIGHEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "IN_PROGRESS", winningSideKey: null });
   });
 });

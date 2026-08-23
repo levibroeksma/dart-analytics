@@ -607,3 +607,42 @@ describe("AroundTheClockEngine — 1v1", () => {
     expect(after.winningSideKey).toBe(state.winningSideKey);
   });
 });
+
+describe("Around the Clock dart facts", () => {
+  it("records no intention at all — the path's target is derivable", () => {
+    const engine = new AroundTheClockEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.intendedTargetNumber).toBeNull();
+    expect(dart.intendedZoneKey).toBeNull();
+    expect(dart.score).toBe(1);
+  });
+
+  it("undo pops one dart, reopens the visit and restores its total", () => {
+    const engine = new AroundTheClockEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 2,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.undo()).toBe(true);
+    const turn = engine.facts().turns[0];
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.totalScore).toBe(1);
+    expect(turn.completedAt).toBeNull();
+  });
+});

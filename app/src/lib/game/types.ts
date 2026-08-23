@@ -967,3 +967,10 @@ export type GamesIndexContext = {
   analyticsMode(this: GamesIndexContext): boolean;
   noneVisible(this: GamesIndexContext): boolean;
 };
+
+/** The guest-list state every setup screen's add-a-guest modal drives. */
+export type GuestListContext = {
+  guests: { displayName: string }[];
+  newGuestName: string;
+  showAddGuestModal: boolean;
+};

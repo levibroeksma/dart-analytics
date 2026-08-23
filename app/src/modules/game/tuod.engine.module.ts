@@ -1,10 +1,19 @@
 import type { TuodSnapshot, Seated, SeatFact } from "@lib/types";
-import { classify } from "@lib/game/board/board-geometry.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
-import { newClientKey } from "./client-key.module";
 import { registerEngineFactory } from "./engine.registry";
+import {
+  appendCompletedTurn,
+  appendResolvedDart,
+  cloneTurns,
+  openOrCreateTurn,
+  openVisit,
+  resolveObservation,
+  sumDartScores,
+  undoLastUnit,
+} from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
-import { scoreCompareWinner } from "./match-outcome.module";
+import { completedByIndex, durationSeatComplete } from "./seat-state.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
@@ -37,10 +46,6 @@ function blockStage(): StageFact {
     parentClientKey: null,
     sequence: 1,
   };
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
 /**
@@ -129,17 +134,6 @@ export function applyTuodAttempt(
   };
 }
 
-function seatCompletesAt(
-  config: TuodSnapshot,
-  attemptCount: number,
-  timerExpired: boolean,
-): boolean {
-  if (config.durationType === "ROUNDS") {
-    return attemptCount >= config.durationValue;
-  }
-  return timerExpired && attemptCount >= 1;
-}
-
 /**
  * Folds the whole fact log into the session's state — the same function the
  * engine's own `deriveState()` delegates to, mirroring `foldAroundTheClockState`.
@@ -174,45 +168,27 @@ export function foldTuodState(
   });
 
   const completedSeats = seats.map((seat) =>
-    seatCompletesAt(config, seat.attempts, timerExpired),
+    durationSeatComplete(config, seat.attempts, timerExpired),
   );
-  const allComplete = completedSeats.every(Boolean);
-
-  const winningSideKey =
-    seats.length === 1
-      ? null
-      : scoreCompareWinner(
-          seats.map((seat, index) => ({
-            sideKey: seat.sideKey,
-            completed: completedSeats[index],
-            metric: seat.currentTarget,
-          })),
-          "HIGHEST",
-        );
-
-  const status: TuodState["status"] =
-    seats.length === 1
-      ? "IN_PROGRESS"
-      : !allComplete
-        ? "IN_PROGRESS"
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "TIE";
+  const outcome = scoreCompareOutcome(
+    seats.map((seat, index) => ({
+      sideKey: seat.sideKey,
+      completed: completedSeats[index],
+      metric: seat.currentTarget,
+    })),
+    "HIGHEST",
+    "IN_PROGRESS",
+  );
 
   return {
     activeParticipantRef: activeSeat(
       facts,
       config.seats,
       "PER_SEAT",
-      (candidate) => {
-        const index = seats.findIndex(
-          (seat) => seat.participantRef === candidate.participantRef,
-        );
-        return index === -1 ? false : completedSeats[index];
-      },
+      completedByIndex(seats, completedSeats),
     ).participantRef,
-    status,
-    winningSideKey,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     timerExpired,
     seats,
   };
@@ -251,26 +227,14 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     );
   }
 
-  /** The attempt still being thrown on the board, or null when the last one closed. */
-  private openVisit(): TurnFact | null {
-    const last = this.turns.at(-1);
-    if (!last || last.completedAt !== null) return null;
-    return last;
-  }
-
   /** Appends an empty attempt for `activeParticipantRef` and returns it. */
   private openNewVisit(activeParticipantRef: string): TurnFact {
-    const visit: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: this.stage.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(visit);
-    return visit;
+    return openOrCreateTurn(
+      this.turns,
+      this.stage.clientKey,
+      activeParticipantRef,
+      () => false,
+    );
   }
 
   /**
@@ -290,22 +254,6 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   }
 
   /**
-   * Classifies one board observation into the target, zone, and score it
-   * struck. A miss carries no coordinates, so it resolves to a scoreless hit
-   * using the observation's own zone key rather than going through
-   * `classify()` — mirrors `one-twenty-one.engine.module.ts`.
-   */
-  private resolveObservation(observation: DartObservation) {
-    return observation.locationX === null || observation.locationY === null
-      ? {
-          targetNumber: null,
-          zoneKey: observation.hitZoneKey,
-          score: 0,
-        }
-      : classify(observation.locationX, observation.locationY);
-  }
-
-  /**
    * Why `record()` would refuse this attempt, or null when it would accept it.
    * `wouldComplete()` reads the same answer, which is what keeps the pure
    * predicate and the mutating call in agreement about what is playable. A
@@ -320,7 +268,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     if (this.isComplete()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
-    if (this.openVisit() !== null) {
+    if (openVisit(this.turns) !== null) {
       return "Finish the open attempt on the board before entering a keypad total.";
     }
     if (!isTuodSuccess(input)) {
@@ -354,7 +302,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * @returns whether this dart resolved (closed) the attempt.
    */
   private settleVisit(visit: TurnFact): boolean {
-    const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
+    const thrown = sumDartScores(visit.darts);
     const remainingAfter = this.targetBeforeVisit(visit) - thrown;
     const lastDart = visit.darts.at(-1)!;
     const { checkedOut, busted } = visitOutcome(
@@ -401,19 +349,11 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     }
     const activeParticipantRef = this.deriveState().activeParticipantRef;
 
-    const resolved = this.resolveObservation(observation);
-    const visit = this.openVisit() ?? this.openNewVisit(activeParticipantRef);
+    const resolved = resolveObservation(observation);
+    const visit =
+      openVisit(this.turns) ?? this.openNewVisit(activeParticipantRef);
 
-    visit.darts.push({
-      sequence: visit.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: resolved.targetNumber,
-      hitZoneKey: resolved.zoneKey,
-      score: resolved.score,
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    });
+    appendResolvedDart(visit, observation, resolved);
 
     this.settleVisit(visit);
     return this.deriveState();
@@ -441,15 +381,12 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     }
 
     const succeeded = isTuodSuccess(input);
-    this.turns.push({
-      clientKey: newClientKey(),
-      stageClientKey: this.stage.clientKey,
-      participantRef: before.activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: new Date().toISOString(),
-      totalScore: succeeded ? activeSeatState.currentTarget : 0,
-      darts: [],
-    });
+    appendCompletedTurn(
+      this.turns,
+      this.stage.clientKey,
+      before.activeParticipantRef,
+      succeeded ? activeSeatState.currentTarget : 0,
+    );
 
     return this.deriveState();
   }
@@ -472,28 +409,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    *   nothing to undo.
    */
   undo(): boolean {
-    const last = this.turns.at(-1);
-    if (!last) return false;
-    return last.darts.length > 0 ? this.undoDart() : this.undoAttemptTotal();
-  }
-
-  private undoAttemptTotal(): boolean {
-    return this.turns.pop() !== undefined;
-  }
-
-  private undoDart(): boolean {
-    const visit = this.turns.at(-1);
-    if (!visit) return false;
-
-    visit.darts.pop();
-    if (visit.darts.length === 0) {
-      this.turns.pop();
-      return true;
-    }
-
-    visit.totalScore = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    visit.completedAt = null;
-    return true;
+    return undoLastUnit(this.turns);
   }
 
   /**
@@ -512,13 +428,13 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const activeSeatState = before.seats.find(
       (seat) => seat.participantRef === before.activeParticipantRef,
     )!;
-    const visit = this.openVisit();
+    const visit = openVisit(this.turns);
     const priorDarts = visit ? visit.darts : [];
     const target = visit
       ? this.targetBeforeVisit(visit)
       : activeSeatState.currentTarget;
 
-    const resolved = this.resolveObservation(observation);
+    const resolved = resolveObservation(observation);
     const thrown =
       priorDarts.reduce((sum, dart) => sum + dart.score, 0) + resolved.score;
     const remainingAfter = target - thrown;
@@ -535,10 +451,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const otherSeatsComplete = before.seats
       .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
       .every((seat) =>
-        seatCompletesAt(this.config, seat.attempts, this.timerExpired),
+        durationSeatComplete(this.config, seat.attempts, this.timerExpired),
       );
     return (
-      seatCompletesAt(
+      durationSeatComplete(
         this.config,
         activeSeatState.attempts + 1,
         this.timerExpired,
@@ -569,10 +485,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const otherSeatsComplete = before.seats
       .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
       .every((seat) =>
-        seatCompletesAt(this.config, seat.attempts, this.timerExpired),
+        durationSeatComplete(this.config, seat.attempts, this.timerExpired),
       );
     return (
-      seatCompletesAt(
+      durationSeatComplete(
         this.config,
         activeSeatState.attempts + 1,
         this.timerExpired,
@@ -592,7 +508,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   isComplete(): boolean {
     const state = this.deriveState();
     if (state.seats.length === 1) {
-      return seatCompletesAt(
+      return durationSeatComplete(
         this.config,
         state.seats[0].attempts,
         this.timerExpired,

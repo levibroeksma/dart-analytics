@@ -1,18 +1,26 @@
 import type { SinglesSnapshot, Seated, SeatFact } from "@lib/types";
-import { newClientKey } from "./client-key.module";
 import {
   BULL_TARGET_NUMBER,
-  boardScore,
   numbersPath,
   targetAt,
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { scoreCompareWinner } from "./match-outcome.module";
+import {
+  activeSeatState,
+  foldSeatStates,
+  otherSeatsComplete,
+} from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   BoardTarget,
-  DartFact,
   DartObservation,
   DartZoneKey,
   EngineFacts,
@@ -117,14 +125,6 @@ export function applySinglesTrainingDart(
   };
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
 /**
  * Folds the whole fact log into the session's state, mirroring
  * `foldAroundTheClockState`. Score-compare, highest training-point total
@@ -136,51 +136,29 @@ function foldSinglesTrainingState(
   facts: EngineFacts,
   config: Seated<SinglesSnapshot>,
 ): SinglesTrainingState {
-  const seats = config.seats.map((seat) => {
-    let state = initialSeatState(seat);
-    const seatTurns = facts.turns.filter(
-      (turn) => turn.participantRef === seat.participantRef,
-    );
-    for (const turn of seatTurns) {
-      for (const dart of turn.darts) {
-        state = applySinglesTrainingDart(config, state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
-  });
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    initialSeatState,
+    (state, observation) =>
+      applySinglesTrainingDart(config, state, observation),
+  );
 
-  const winningSideKey =
-    seats.length === 1
-      ? null
-      : scoreCompareWinner(
-          seats.map((seat) => ({
-            sideKey: seat.sideKey,
-            completed: seat.status === "COMPLETE",
-            metric: seat.totalPoints,
-          })),
-          "HIGHEST",
-        );
-
-  const allComplete = seats.every((seat) => seat.status === "COMPLETE");
-  const status: SinglesTrainingState["status"] =
-    seats.length === 1
-      ? seats[0].status
-      : !allComplete
-        ? "IN_PROGRESS"
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "TIE";
+  const outcome = scoreCompareOutcome(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      completed: seat.status === "COMPLETE",
+      metric: seat.totalPoints,
+    })),
+    "HIGHEST",
+    seats[0].status,
+  );
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
       .participantRef,
-    status,
-    winningSideKey,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     seats,
   };
 }
@@ -214,20 +192,12 @@ export class SinglesTrainingEngine implements GameEngine<
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    const last = this.turns.at(-1);
-    if (last && last.darts.length < 3) return last;
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      (last) => last.darts.length < 3,
+    );
   }
 
   /**
@@ -265,29 +235,15 @@ export class SinglesTrainingEngine implements GameEngine<
    */
   record(observation: DartObservation): SinglesTrainingState {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") {
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
         "Cannot record a dart once the session is complete; undo first to correct it.",
       );
     }
 
     const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    appendObservedDart(openTurn, observation);
     if (openTurn.darts.length === 3) {
       openTurn.completedAt = new Date().toISOString();
     }
@@ -303,17 +259,7 @@ export class SinglesTrainingEngine implements GameEngine<
    * @returns true if a dart was removed; false if there was nothing to undo.
    */
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
@@ -323,22 +269,18 @@ export class SinglesTrainingEngine implements GameEngine<
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") return false;
-    if (activeSeatState.dartsThisVisit < 2) return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
+    if (seatBefore.dartsThisVisit < 2) return false;
 
     const after = applySinglesTrainingDart(
       this.config,
-      activeSeatState,
+      seatBefore,
       observation,
     );
     if (after.status !== "COMPLETE") return false;
 
-    return before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
-      .every((seat) => seat.status === "COMPLETE");
+    return otherSeatsComplete(before.seats, seatBefore.participantRef);
   }
 
   isComplete(): boolean {

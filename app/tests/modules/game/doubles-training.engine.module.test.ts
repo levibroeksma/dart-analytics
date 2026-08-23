@@ -1002,3 +1002,38 @@ describe("DoublesTrainingEngine — 1v1", () => {
     expect(state.winningSideKey).toBeNull();
   });
 });
+
+describe("Doubles Training dart intention", () => {
+  it("stamps the current double as the intended target, whatever was hit", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 7,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const first = targetAt(doublesPath(config.targetOrder), 0);
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.intendedTargetNumber).toBe(
+      first.kind === "BULL" ? 25 : first.number,
+    );
+    expect(dart.intendedZoneKey).toBe(
+      first.kind === "BULL" ? "INNER_BULL" : "DOUBLE",
+    );
+  });
+
+  it("undo removes the visit entirely once its only dart goes", () => {
+    const engine = new DoublesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 7,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+});

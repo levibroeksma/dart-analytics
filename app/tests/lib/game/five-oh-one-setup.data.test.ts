@@ -171,6 +171,21 @@ describe("fiveOhOneSetup", () => {
     expect(setup.showAddGuestModal).toBe(true);
   });
 
+  it("never sends a displayName for the owning PLAYER seat", async () => {
+    const setup = createSetup({
+      presets: [BEST_OF_5_PRESET],
+      guests: [{ displayName: "Alex" }],
+    });
+
+    await setup.start();
+
+    const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+    expect(body.participants?.[0]).toEqual({
+      participantTypeKey: "PLAYER",
+      sideKey: "A",
+    });
+  });
+
   it("removeGuest splices the correct entry", () => {
     const setup = createSetup({
       guests: [

@@ -1175,3 +1175,35 @@ describe("SinglesTrainingEngine — 1v1 completion guard", () => {
     expect(engine.wouldComplete(dart(1, "MISS"))).toBe(false);
   });
 });
+
+describe("Singles Training dart facts", () => {
+  it("records the board score, never the ruleset's training points", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.score).toBe(3);
+    expect(dart.intendedTargetNumber).toBeNull();
+    expect(dart.intendedZoneKey).toBeNull();
+    expect(engine.state().seats[0].totalPoints).toBe(config.pointsTreble);
+  });
+
+  it("undo removes the visit entirely once its only dart goes", () => {
+    const engine = new SinglesTrainingEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+});

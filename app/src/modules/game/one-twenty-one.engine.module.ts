@@ -1,8 +1,14 @@
 import type { OneTwentyOneSnapshot, Seated, SeatFact } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
-import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
+import {
+  appendResolvedDart,
+  cloneTurns,
+  openVisit,
+  resolveObservation,
+  undoStagedTurn,
+} from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
 import { raceWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -36,10 +42,6 @@ function roundStage(sequence: number): StageFact {
     parentClientKey: null,
     sequence,
   };
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
 }
 
 /** A visit score is playable only as a whole number in `0..180`. */
@@ -321,18 +323,6 @@ export class OneTwentyOneEngine implements GameEngine<
     );
   }
 
-  /**
-   * Classifies one board observation into the target, zone, and score it
-   * struck. A miss carries no coordinates, so it resolves to a scoreless
-   * `MISS` hit using the observation's own zone key rather than going
-   * through `classify()` — mirrors `five-oh-one.engine.module.ts`.
-   */
-  private resolveObservation(observation: DartObservation) {
-    return observation.locationX === null || observation.locationY === null
-      ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
-      : classify(observation.locationX, observation.locationY);
-  }
-
   private openRound(): StageFact {
     const stage = this.stages.at(-1);
     if (!stage) {
@@ -347,12 +337,6 @@ export class OneTwentyOneEngine implements GameEngine<
   }
 
   /** The visit still being thrown, or null when the last one closed. */
-  private openVisit(): TurnFact | null {
-    const last = this.turns.at(-1);
-    if (!last || last.completedAt !== null) return null;
-    return last;
-  }
-
   /** Appends an empty visit to the open round, for the given seat, and returns it. */
   private openNewVisit(activeParticipantRef: string): TurnFact {
     const round = this.openRound();
@@ -481,20 +465,11 @@ export class OneTwentyOneEngine implements GameEngine<
       throw new Error("Cannot record a visit once the session is complete");
     }
 
-    const resolved = this.resolveObservation(observation);
+    const resolved = resolveObservation(observation);
     const visit =
-      this.openVisit() ?? this.openNewVisit(before.activeParticipantRef);
+      openVisit(this.turns) ?? this.openNewVisit(before.activeParticipantRef);
 
-    visit.darts.push({
-      sequence: visit.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: resolved.targetNumber,
-      hitZoneKey: resolved.zoneKey,
-      score: resolved.score,
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    });
+    appendResolvedDart(visit, observation, resolved);
 
     const visitResolved = this.settleVisit(visit);
 
@@ -531,50 +506,7 @@ export class OneTwentyOneEngine implements GameEngine<
    *   nothing to undo.
    */
   undo(): boolean {
-    const last = this.turns.at(-1);
-    if (!last) return false;
-
-    return last.darts.length > 0 ? this.undoDart() : this.undoVisitTotal();
-  }
-
-  private undoVisitTotal(): boolean {
-    const removed = this.turns.pop();
-    if (!removed) return false;
-
-    this.popStageOpenedBy(removed.stageClientKey);
-    return true;
-  }
-
-  private undoDart(): boolean {
-    const visit = this.turns.at(-1);
-    if (!visit) return false;
-
-    visit.darts.pop();
-    this.popStageOpenedBy(visit.stageClientKey);
-
-    if (visit.darts.length === 0) {
-      this.turns.pop();
-      return true;
-    }
-
-    visit.totalScore = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    visit.completedAt = null;
-    return true;
-  }
-
-  /**
-   * Pops the open round's stage when it was opened by the turn now being
-   * undone — the same stage `record()` would have appended for that turn.
-   */
-  private popStageOpenedBy(stageClientKey: string): void {
-    const openRound = this.stages.at(-1);
-    if (
-      this.stages.length > 1 &&
-      openRound &&
-      openRound.clientKey !== stageClientKey
-    ) {
-      this.stages.pop();
-    }
+    return undoStagedTurn(this.turns, this.stages);
   }
 
   /**
@@ -592,7 +524,7 @@ export class OneTwentyOneEngine implements GameEngine<
     )!;
     if (activeSeatState.status !== "IN_PROGRESS") return false;
 
-    const resolved = this.resolveObservation(observation);
+    const resolved = resolveObservation(observation);
     const remainingAfter = activeSeatState.remainingInAttempt - resolved.score;
     const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
     return checksOut && activeSeatState.currentTarget === CAP_TARGET;

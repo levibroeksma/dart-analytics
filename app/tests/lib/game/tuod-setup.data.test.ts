@@ -390,6 +390,29 @@ describe("tuodSetup — guests", () => {
     expect(setup.guests).toHaveLength(0);
   });
 
+  it("trims the typed name, clears the field and closes the modal", () => {
+    const setup = makeSetup();
+    setup.showAddGuestModal = true;
+    setup.newGuestName = "  Guest 1  ";
+    setup.addGuest();
+
+    expect(setup.guests[0].displayName).toBe("Guest 1");
+    expect(setup.newGuestName).toBe("");
+    expect(setup.showAddGuestModal).toBe(false);
+  });
+
+  it("leaves the modal open and the typed name intact when it refuses", () => {
+    const setup = makeSetup();
+    setup.newGuestName = "Guest 1";
+    setup.addGuest();
+    setup.showAddGuestModal = true;
+    setup.newGuestName = "Guest 2";
+    setup.addGuest();
+
+    expect(setup.newGuestName).toBe("Guest 2");
+    expect(setup.showAddGuestModal).toBe(true);
+  });
+
   it("removeGuest drops the guest by index", () => {
     const setup = makeSetup();
     setup.newGuestName = "Guest 1";

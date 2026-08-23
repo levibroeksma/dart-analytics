@@ -106,6 +106,41 @@ function trainingPointsFor(
  * turn's target is always `targetAt(numbersPath(), turns.length - 1)` — no
  * separate per-dart target bookkeeping is needed.
  */
+/**
+ * The dart one recreational tap stands for, on `target`. A MISS carries no
+ * target number at all; a tap on the BULL target resolves SINGLE to the outer
+ * bull and DOUBLE to the inner one; every other target takes the tapped ring
+ * as-is. Coordinates are always null — a tap says which ring was hit, never
+ * where on the board it landed.
+ */
+function tapObservation(
+  target: BoardTarget,
+  ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+): DartObservation {
+  if (ring === "MISS") {
+    return {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+  }
+  if (target.kind === "BULL") {
+    return {
+      hitTargetNumber: BULL_TARGET_NUMBER,
+      hitZoneKey: ring === "SINGLE" ? "OUTER_BULL" : "INNER_BULL",
+      locationX: null,
+      locationY: null,
+    };
+  }
+  return {
+    hitTargetNumber: target.number,
+    hitZoneKey: ring,
+    locationX: null,
+    locationY: null,
+  };
+}
+
 function previewSegmentsFor(
   turns: readonly TurnFact[],
   config: SinglesSnapshot | null,
@@ -311,28 +346,7 @@ export function singlesTrainingPlay() {
         seat.targetIndex,
       );
       if (target.kind === "BULL" && ring === "TREBLE") return;
-      const observation: DartObservation =
-        ring === "MISS"
-          ? {
-              hitTargetNumber: null,
-              hitZoneKey: "MISS",
-              locationX: null,
-              locationY: null,
-            }
-          : target.kind === "BULL"
-            ? {
-                hitTargetNumber: BULL_TARGET_NUMBER,
-                hitZoneKey: ring === "SINGLE" ? "OUTER_BULL" : "INNER_BULL",
-                locationX: null,
-                locationY: null,
-              }
-            : {
-                hitTargetNumber: target.number,
-                hitZoneKey: ring,
-                locationX: null,
-                locationY: null,
-              };
-      await this.commitDart(observation);
+      await this.commitDart(tapObservation(target, ring));
     },
 
     commitDart(this: SinglesTrainingPlayContext, observation: DartObservation) {

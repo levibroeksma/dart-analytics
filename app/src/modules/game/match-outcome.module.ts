@@ -1,3 +1,5 @@
+import type { MatchOutcome, ScoreCompareSeat } from "./types";
+
 /**
  * The side that survived, or null while nobody has failed yet. Elimination
  * games (Bob's 27) end the instant one seat fails — the match never asks
@@ -32,7 +34,7 @@ export function raceWinner(
  * highest-wins rule the other score-compare games use.
  */
 export function scoreCompareWinner(
-  seats: readonly { sideKey: string; completed: boolean; metric: number }[],
+  seats: readonly ScoreCompareSeat[],
   direction: "HIGHEST" | "LOWEST",
 ): string | null {
   if (seats.some((seat) => !seat.completed)) return null;
@@ -43,4 +45,31 @@ export function scoreCompareWinner(
       : Math.min(...seats.map((seat) => seat.metric));
   const winners = seats.filter((seat) => seat.metric === best);
   return winners.length === 1 ? winners[0].sideKey : null;
+}
+
+/**
+ * The whole match's outcome for a score-compare ruleset — the composition
+ * every one of them repeats around `scoreCompareWinner`: nobody wins while
+ * any seat is still playing, the best metric wins once they have all
+ * finished, and an unbroken tie stays a `TIE` (deferred tiebreak).
+ *
+ * A solo session has no side to compare against, so it never reports a
+ * winner; its status is `soloStatus` — the seat's own status where the seat
+ * carries one (Around the Clock, Singles, Doubles), and `IN_PROGRESS` where
+ * solo completion is read off the engine instead (Score Training, TUOD).
+ */
+export function scoreCompareOutcome(
+  seats: readonly ScoreCompareSeat[],
+  direction: "HIGHEST" | "LOWEST",
+  soloStatus: "IN_PROGRESS" | "COMPLETE",
+): MatchOutcome {
+  if (seats.length === 1) return { status: soloStatus, winningSideKey: null };
+
+  const winningSideKey = scoreCompareWinner(seats, direction);
+  const status = !seats.every((seat) => seat.completed)
+    ? "IN_PROGRESS"
+    : winningSideKey !== null
+      ? "COMPLETE"
+      : "TIE";
+  return { status, winningSideKey };
 }

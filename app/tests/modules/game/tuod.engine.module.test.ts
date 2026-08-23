@@ -843,3 +843,50 @@ describe("TuodEngine — 1v1", () => {
     }
   });
 });
+
+describe("TUOD mixed-input undo", () => {
+  it("pops a whole keypad attempt as one unit", () => {
+    const engine = new TuodEngine(config());
+    engine.record(CHECKOUT);
+    engine.record(CHECKOUT);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("pops a board attempt one dart at a time, reopening it", () => {
+    const engine = new TuodEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(engine.facts().turns[0].darts).toHaveLength(2);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+  });
+
+  it("refuses a keypad attempt while a board attempt is still open", () => {
+    const engine = new TuodEngine(config());
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(() => engine.record(CHECKOUT)).toThrow(/Finish the open attempt/);
+  });
+});

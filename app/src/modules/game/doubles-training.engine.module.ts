@@ -1,20 +1,24 @@
 import type { DoublesTrainingSnapshot, Seated, SeatFact } from "@lib/types";
-import { newClientKey } from "./client-key.module";
-import {
-  BULL_TARGET_NUMBER,
-  boardScore,
-  doublesPath,
-  isHitOn,
-  targetAt,
-} from "./board-progression.module";
+import { doublesPath, isHitOn, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { scoreCompareWinner } from "./match-outcome.module";
+import {
+  activeSeatState,
+  foldSeatStates,
+  otherSeatsComplete,
+} from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  doubleTargetIntent,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartFact,
   DartObservation,
-  DartZoneKey,
   DoublesTrainingSeatState,
   DoublesTrainingState,
   DoublesVisitOutcome,
@@ -115,14 +119,6 @@ export function applyDoublesTrainingDart(
   return resolveVisit(state, [...state.outcomes, outcome]);
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
 function dartHitIntendedTarget(dart: DartFact): boolean {
   return (
     dart.hitTargetNumber === dart.intendedTargetNumber &&
@@ -148,51 +144,29 @@ function foldDoublesTrainingState(
   facts: EngineFacts,
   config: Seated<DoublesTrainingSnapshot>,
 ): DoublesTrainingState {
-  const seats = config.seats.map((seat) => {
-    let state = initialSeatState(seat);
-    const seatTurns = facts.turns.filter(
-      (turn) => turn.participantRef === seat.participantRef,
-    );
-    for (const turn of seatTurns) {
-      for (const dart of turn.darts) {
-        state = applyDoublesTrainingDart(config, state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
-  });
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    initialSeatState,
+    (state, observation) =>
+      applyDoublesTrainingDart(config, state, observation),
+  );
 
-  const winningSideKey =
-    seats.length === 1
-      ? null
-      : scoreCompareWinner(
-          seats.map((seat) => ({
-            sideKey: seat.sideKey,
-            completed: seat.status === "COMPLETE",
-            metric: seat.outcomes.filter((outcome) => outcome.hit).length,
-          })),
-          "HIGHEST",
-        );
-
-  const allComplete = seats.every((seat) => seat.status === "COMPLETE");
-  const status: DoublesTrainingState["status"] =
-    seats.length === 1
-      ? seats[0].status
-      : !allComplete
-        ? "IN_PROGRESS"
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "TIE";
+  const outcome = scoreCompareOutcome(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      completed: seat.status === "COMPLETE",
+      metric: seat.outcomes.filter((visit) => visit.hit).length,
+    })),
+    "HIGHEST",
+    seats[0].status,
+  );
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
       .participantRef,
-    status,
-    winningSideKey,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     seats,
   };
 }
@@ -226,28 +200,18 @@ export class DoublesTrainingEngine implements GameEngine<
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    const last = this.turns.at(-1);
-    if (last && isVisitOpen(last)) return last;
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      isVisitOpen,
+    );
   }
 
   record(observation: DartObservation): DoublesTrainingState {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") {
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
         "Cannot record a dart once the session is complete; undo first to correct it.",
       );
@@ -255,25 +219,10 @@ export class DoublesTrainingEngine implements GameEngine<
 
     const target = targetAt(
       doublesPath(this.config.targetOrder),
-      activeSeatState.targetIndex,
+      seatBefore.targetIndex,
     );
     const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    const intendedZoneKey: DartZoneKey =
-      target.kind === "BULL" ? "INNER_BULL" : "DOUBLE";
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber:
-        target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
-      intendedZoneKey,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    appendObservedDart(openTurn, observation, doubleTargetIntent(target));
     if (!isVisitOpen(openTurn)) {
       openTurn.completedAt = new Date().toISOString();
     }
@@ -282,17 +231,7 @@ export class DoublesTrainingEngine implements GameEngine<
   }
 
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
@@ -302,21 +241,17 @@ export class DoublesTrainingEngine implements GameEngine<
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
 
     const after = applyDoublesTrainingDart(
       this.config,
-      activeSeatState,
+      seatBefore,
       observation,
     );
     if (after.status !== "COMPLETE") return false;
 
-    return before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
-      .every((seat) => seat.status === "COMPLETE");
+    return otherSeatsComplete(before.seats, seatBefore.participantRef);
   }
 
   isComplete(): boolean {

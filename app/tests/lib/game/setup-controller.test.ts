@@ -249,6 +249,22 @@ describe("createPresetSetupController", () => {
       expect(body.participants).toBeUndefined();
     });
 
+    it("never sends a displayName for the owning PLAYER seat", async () => {
+      const setup = bobs27();
+      setup.presets = [BOBS27_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      await setup.start();
+
+      const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+      expect(body.participants?.[0]).toEqual({
+        participantTypeKey: "PLAYER",
+        sideKey: "A",
+      });
+    });
+
     it("removeGuest drops the guest by index", () => {
       const setup = bobs27();
       setup.newGuestName = "Guest 1";

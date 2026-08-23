@@ -1,9 +1,18 @@
 import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
-import { newClientKey } from "./client-key.module";
-import { classify } from "@lib/game/board/board-geometry.module";
 import { registerEngineFactory } from "./engine.registry";
+import {
+  appendCompletedTurn,
+  appendResolvedDart,
+  cloneTurns,
+  openOrCreateTurn,
+  openVisit,
+  resolveObservation,
+  sumDartScores,
+  undoLastUnit,
+} from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
-import { scoreCompareWinner } from "./match-outcome.module";
+import { completedByIndex, durationSeatComplete } from "./seat-state.module";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   DartObservation,
@@ -23,10 +32,6 @@ const STAGE: StageFact = {
 };
 const DARTS_PER_VISIT = 3;
 
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
 /**
  * Discriminates `ScoreTrainingInput` by shape, never by session mode: a
  * keypad total is always a `number`, so anything else is a `DartObservation`
@@ -39,17 +44,6 @@ function isDartObservation(
   input: ScoreTrainingInput,
 ): input is DartObservation {
   return typeof input !== "number";
-}
-
-function seatCompletesAt(
-  config: ScoreTrainingSnapshot,
-  turnCount: number,
-  timerExpired: boolean,
-): boolean {
-  if (config.durationType === "ROUNDS") {
-    return turnCount >= config.durationValue;
-  }
-  return timerExpired && turnCount >= 1;
 }
 
 /**
@@ -81,45 +75,27 @@ export function foldScoreTrainingState(
   });
 
   const completedSeats = seats.map((seat) =>
-    seatCompletesAt(config, seat.turnCount, timerExpired),
+    durationSeatComplete(config, seat.turnCount, timerExpired),
   );
-  const allComplete = completedSeats.every(Boolean);
-
-  const winningSideKey =
-    seats.length === 1
-      ? null
-      : scoreCompareWinner(
-          seats.map((seat, index) => ({
-            sideKey: seat.sideKey,
-            completed: completedSeats[index],
-            metric: seat.totalScore,
-          })),
-          "HIGHEST",
-        );
-
-  const status: ScoreTrainingState["status"] =
-    seats.length === 1
-      ? "IN_PROGRESS"
-      : !allComplete
-        ? "IN_PROGRESS"
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "TIE";
+  const outcome = scoreCompareOutcome(
+    seats.map((seat, index) => ({
+      sideKey: seat.sideKey,
+      completed: completedSeats[index],
+      metric: seat.totalScore,
+    })),
+    "HIGHEST",
+    "IN_PROGRESS",
+  );
 
   return {
     activeParticipantRef: activeSeat(
       facts,
       config.seats,
       "PER_SEAT",
-      (candidate) => {
-        const index = seats.findIndex(
-          (seat) => seat.participantRef === candidate.participantRef,
-        );
-        return index === -1 ? false : completedSeats[index];
-      },
+      completedByIndex(seats, completedSeats),
     ).participantRef,
-    status,
-    winningSideKey,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     timerExpired,
     seats,
   };
@@ -231,7 +207,7 @@ export class ScoreTrainingEngine implements GameEngine<
         "Cannot record a visit once the match is complete; undo first to correct it.",
       );
     }
-    if (this.openTurn() !== null) {
+    if (openVisit(this.turns) !== null) {
       throw new Error(
         "Finish the open visit on the board before entering a keypad total.",
       );
@@ -243,29 +219,13 @@ export class ScoreTrainingEngine implements GameEngine<
     }
 
     const activeParticipantRef = this.deriveState().activeParticipantRef;
-    this.turns.push({
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: new Date().toISOString(),
-      totalScore: visitScore,
-      darts: [],
-    });
+    appendCompletedTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      visitScore,
+    );
     return this.deriveState();
-  }
-
-  /**
-   * The visit still being thrown, or null when the last one closed. Reads
-   * `completedAt`, not dart count — a keypad-recorded turn always has
-   * `darts: []` and is complete the instant it is pushed, so a dart-count
-   * check alone would wrongly treat it as still open and let `recordDart`
-   * append into it.
-   */
-  private openTurn(): TurnFact | null {
-    const last = this.turns.at(-1);
-    if (!last || last.completedAt !== null) return null;
-    return last;
   }
 
   /**
@@ -280,38 +240,20 @@ export class ScoreTrainingEngine implements GameEngine<
         "Cannot record a dart once the match is complete; undo first to correct it.",
       );
     }
-    const resolved =
-      observation.locationX === null || observation.locationY === null
-        ? { targetNumber: null, zoneKey: observation.hitZoneKey, score: 0 }
-        : classify(observation.locationX, observation.locationY);
+    const resolved = resolveObservation(observation);
 
-    let turn = this.openTurn();
-    if (!turn) {
-      const activeParticipantRef = this.deriveState().activeParticipantRef;
-      turn = {
-        clientKey: newClientKey(),
-        stageClientKey: STAGE.clientKey,
-        participantRef: activeParticipantRef,
-        sequence: this.turns.length + 1,
-        completedAt: null,
-        totalScore: 0,
-        darts: [],
-      };
-      this.turns.push(turn);
-    }
+    const turn =
+      openVisit(this.turns) ??
+      openOrCreateTurn(
+        this.turns,
+        STAGE.clientKey,
+        this.deriveState().activeParticipantRef,
+        () => false,
+      );
 
-    turn.darts.push({
-      sequence: turn.darts.length + 1,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: resolved.targetNumber,
-      hitZoneKey: resolved.zoneKey,
-      score: resolved.score,
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    });
+    appendResolvedDart(turn, observation, resolved);
 
-    turn.totalScore = turn.darts.reduce((sum, dart) => sum + dart.score, 0);
+    turn.totalScore = sumDartScores(turn.darts);
     if (turn.darts.length === DARTS_PER_VISIT) {
       turn.completedAt = new Date().toISOString();
     }
@@ -335,23 +277,7 @@ export class ScoreTrainingEngine implements GameEngine<
    * @returns true if something was removed; false if there was nothing to undo.
    */
   undo(): boolean {
-    const turn = this.turns.at(-1);
-    if (!turn) return false;
-
-    if (turn.darts.length === 0) {
-      this.turns.pop();
-      return true;
-    }
-
-    turn.darts.pop();
-    if (turn.darts.length === 0) {
-      this.turns.pop();
-      return true;
-    }
-
-    turn.totalScore = turn.darts.reduce((sum, dart) => sum + dart.score, 0);
-    turn.completedAt = null;
-    return true;
+    return undoLastUnit(this.turns);
   }
 
   /**
@@ -375,19 +301,20 @@ export class ScoreTrainingEngine implements GameEngine<
     )!;
 
     if (isDartObservation(input)) {
-      const turn = this.openTurn();
+      const turn = openVisit(this.turns);
       if (!turn || turn.darts.length !== DARTS_PER_VISIT - 1) return false;
     } else {
-      if (!this.isPlayable(input) || this.openTurn() !== null) return false;
+      if (!this.isPlayable(input) || openVisit(this.turns) !== null)
+        return false;
     }
 
     const otherSeatsComplete = before.seats
       .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
       .every((seat) =>
-        seatCompletesAt(this.config, seat.turnCount, this.timerExpired),
+        durationSeatComplete(this.config, seat.turnCount, this.timerExpired),
       );
     return (
-      seatCompletesAt(
+      durationSeatComplete(
         this.config,
         activeSeatState.turnCount + 1,
         this.timerExpired,
@@ -398,7 +325,7 @@ export class ScoreTrainingEngine implements GameEngine<
   isComplete(): boolean {
     const state = this.deriveState();
     if (state.seats.length === 1) {
-      return seatCompletesAt(
+      return durationSeatComplete(
         this.config,
         state.seats[0].turnCount,
         this.timerExpired,

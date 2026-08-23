@@ -921,3 +921,42 @@ describe("Bobs27Engine — 1v1", () => {
     expect(engine.wouldComplete(missDart())).toBe(false);
   });
 });
+
+describe("Bob's 27 dart intention", () => {
+  it("stamps the current double as the intended target, whatever was hit", () => {
+    const engine = new Bobs27Engine(config);
+    engine.record({
+      hitTargetNumber: 5,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    const dart = engine.facts().turns[0].darts[0];
+    expect(dart.intendedTargetNumber).toBe(1);
+    expect(dart.intendedZoneKey).toBe("DOUBLE");
+    expect(dart.hitTargetNumber).toBe(5);
+    expect(dart.hitZoneKey).toBe("SINGLE");
+  });
+
+  it("stamps the inner bull once the path reaches BULL", () => {
+    const engine = new Bobs27Engine(config);
+    while (engine.state().seats[0].targetIndex < 20) {
+      engine.record(hitObservationFor(engine.state().seats[0]));
+    }
+    engine.record(hitObservationFor(engine.state().seats[0]));
+
+    const darts = engine.facts().turns.at(-1)!.darts;
+    expect(darts.at(-1)!.intendedTargetNumber).toBe(25);
+    expect(darts.at(-1)!.intendedZoneKey).toBe("INNER_BULL");
+  });
+
+  it("undo removes the visit entirely once its only dart goes", () => {
+    const engine = new Bobs27Engine(config);
+    engine.record(hitObservationFor(engine.state().seats[0]));
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toEqual([]);
+    expect(engine.undo()).toBe(false);
+  });
+});

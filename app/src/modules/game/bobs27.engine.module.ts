@@ -1,7 +1,5 @@
 import type { Bobs27Snapshot, Seated } from "@lib/types";
-import { newClientKey } from "./client-key.module";
 import {
-  BULL_TARGET_NUMBER,
   boardScore,
   doublesPath,
   isHitOn,
@@ -9,15 +7,21 @@ import {
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
+import { activeSeatState, foldSeatStates } from "./seat-state.module";
+import {
+  appendObservedDart,
+  cloneTurns,
+  doubleTargetIntent,
+  openOrCreateTurn,
+  undoLastDart,
+} from "./turn-log.module";
 import { eliminationWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   BoardTarget,
   Bobs27SeatState,
   Bobs27State,
-  DartFact,
   DartObservation,
-  DartZoneKey,
   EngineFacts,
   StageFact,
   TurnFact,
@@ -127,14 +131,6 @@ export function applyBobs27Dart(
   };
 }
 
-function sumDartScores(darts: readonly DartFact[]): number {
-  return darts.reduce((total, dart) => total + dart.score, 0);
-}
-
-function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
-}
-
 /**
  * Bob's 27: a fixed path of 21 targets (D1..D20, then BULL) played to a full
  * -hit clear of BULL or a bust at zero. Elimination: the first seat to bust
@@ -158,23 +154,12 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
   }
 
   private deriveState(): Bobs27State {
-    const seats = this.config.seats.map((seat) => {
-      let state = initialSeatState(this.config, seat);
-      const seatTurns = this.turns.filter(
-        (turn) => turn.participantRef === seat.participantRef,
-      );
-      for (const turn of seatTurns) {
-        for (const dart of turn.darts) {
-          state = applyBobs27Dart(this.config, state, {
-            hitTargetNumber: dart.hitTargetNumber,
-            hitZoneKey: dart.hitZoneKey,
-            locationX: dart.locationX,
-            locationY: dart.locationY,
-          });
-        }
-      }
-      return state;
-    });
+    const seats = foldSeatStates(
+      this.turns,
+      this.config.seats,
+      (seat) => initialSeatState(this.config, seat),
+      (state, observation) => applyBobs27Dart(this.config, state, observation),
+    );
 
     const winningSideKey = eliminationWinner(
       seats.map((seat) => ({
@@ -202,20 +187,12 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    const last = this.turns.at(-1);
-    if (last && last.darts.length < 3) return last;
-
-    const turn: TurnFact = {
-      clientKey: newClientKey(),
-      stageClientKey: STAGE.clientKey,
-      participantRef: activeParticipantRef,
-      sequence: this.turns.length + 1,
-      completedAt: null,
-      totalScore: 0,
-      darts: [],
-    };
-    this.turns.push(turn);
-    return turn;
+    return openOrCreateTurn(
+      this.turns,
+      STAGE.clientKey,
+      activeParticipantRef,
+      (last) => last.darts.length < 3,
+    );
   }
 
   /**
@@ -238,33 +215,16 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
         "Cannot record a dart once the match has ended; undo first to correct it.",
       );
     }
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") {
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
         "Cannot record a dart once the game has ended; undo first to correct it.",
       );
     }
 
-    const target = targetAt(doublesPath(), activeSeatState.targetIndex);
+    const target = targetAt(doublesPath(), seatBefore.targetIndex);
     const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    const intendedZoneKey: DartZoneKey =
-      target.kind === "BULL" ? "INNER_BULL" : "DOUBLE";
-    const dart: DartFact = {
-      sequence: openTurn.darts.length + 1,
-      intendedTargetNumber:
-        target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number,
-      intendedZoneKey,
-      hitTargetNumber: observation.hitTargetNumber,
-      hitZoneKey: observation.hitZoneKey,
-      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      locationX: observation.locationX,
-      locationY: observation.locationY,
-    };
-
-    openTurn.darts.push(dart);
-    openTurn.totalScore = sumDartScores(openTurn.darts);
+    appendObservedDart(openTurn, observation, doubleTargetIntent(target));
     if (openTurn.darts.length === 3) {
       openTurn.completedAt = new Date().toISOString();
     }
@@ -282,17 +242,7 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
    * @returns true if a dart was removed; false if there was nothing to undo.
    */
   undo(): boolean {
-    const openTurn = this.turns.at(-1);
-    if (!openTurn || openTurn.darts.length === 0) return false;
-
-    openTurn.darts.pop();
-    if (openTurn.darts.length === 0) {
-      this.turns.pop();
-    } else {
-      openTurn.completedAt = null;
-      openTurn.totalScore = sumDartScores(openTurn.darts);
-    }
-    return true;
+    return undoLastDart(this.turns);
   }
 
   /**
@@ -303,13 +253,11 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
     if (before.status !== "IN_PROGRESS") return false;
-    const activeSeatState = before.seats.find(
-      (seat) => seat.participantRef === before.activeParticipantRef,
-    )!;
-    if (activeSeatState.status !== "IN_PROGRESS") return false;
-    if (activeSeatState.dartsThisVisit.length < 2) return false;
+    const seatBefore = activeSeatState(before);
+    if (seatBefore.status !== "IN_PROGRESS") return false;
+    if (seatBefore.dartsThisVisit.length < 2) return false;
 
-    const after = applyBobs27Dart(this.config, activeSeatState, observation);
+    const after = applyBobs27Dart(this.config, seatBefore, observation);
     return after.status !== "IN_PROGRESS";
   }
 
