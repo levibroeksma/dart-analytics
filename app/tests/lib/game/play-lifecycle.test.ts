@@ -18,6 +18,8 @@ import {
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
 import {
+  armHiddenTimer,
+  clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -375,6 +377,136 @@ describe("playCommitDart", () => {
       locationY: null,
     });
     expect(context.$store.game.turns).toHaveLength(0);
+  });
+});
+
+describe("armHiddenTimer", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function resolvedTurn(clientKey: string): TurnFact {
+    return {
+      clientKey,
+      stageClientKey: "block-1",
+      participantRef: "participant-1",
+      sequence: 1,
+      completedAt: "2026-08-26T00:00:00.000Z",
+      totalScore: 60,
+      darts: [],
+    };
+  }
+
+  function openTurn(clientKey: string): TurnFact {
+    return { ...resolvedTurn(clientKey), completedAt: null };
+  }
+
+  it("arms a 1500ms timer once the last turn has resolved", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+
+    armHiddenTimer(context, [resolvedTurn("t1")]);
+
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.hiddenTimer).not.toBeNull();
+
+    vi.advanceTimersByTime(1500);
+
+    expect(context.hiddenTurnKey).toBe("t1");
+  });
+
+  it("does nothing while the last turn is still open", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+
+    armHiddenTimer(context, [openTurn("t1")]);
+
+    expect(context.hiddenTimer).toBeNull();
+  });
+
+  it("does nothing when there are no turns", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+
+    armHiddenTimer(context, []);
+
+    expect(context.hiddenTimer).toBeNull();
+  });
+
+  it("replaces a still-pending timer rather than stacking two", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+
+    armHiddenTimer(context, [resolvedTurn("t1")]);
+    const firstTimer = context.hiddenTimer;
+    armHiddenTimer(context, [resolvedTurn("t1"), resolvedTurn("t2")]);
+
+    expect(context.hiddenTimer).not.toBe(firstTimer);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(context.hiddenTurnKey).toBe("t2");
+  });
+});
+
+describe("clearHiddenTimer", () => {
+  it("cancels a pending timer and clears the key", () => {
+    vi.useFakeTimers();
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+    armHiddenTimer(context, [
+      {
+        clientKey: "t1",
+        stageClientKey: "block-1",
+        participantRef: "participant-1",
+        sequence: 1,
+        completedAt: "2026-08-26T00:00:00.000Z",
+        totalScore: 60,
+        darts: [],
+      },
+    ]);
+
+    clearHiddenTimer(context);
+    vi.advanceTimersByTime(1500);
+
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.hiddenTimer).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it("is a no-op when nothing is pending", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: null, hiddenTimer: null };
+
+    expect(() => clearHiddenTimer(context)).not.toThrow();
+
+    expect(context.hiddenTurnKey).toBeNull();
+  });
+
+  it("clears an already-set hiddenTurnKey even with no pending timer", () => {
+    const context: {
+      hiddenTurnKey: string | null;
+      hiddenTimer: ReturnType<typeof setTimeout> | null;
+    } = { hiddenTurnKey: "t1", hiddenTimer: null };
+
+    clearHiddenTimer(context);
+
+    expect(context.hiddenTurnKey).toBeNull();
   });
 });
 
