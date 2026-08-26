@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-08-21
+updated: 2026-08-26
 -->
 
 # Component Inventory
