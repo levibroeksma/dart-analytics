@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -478,6 +478,38 @@ describe("previewSegments", () => {
       { status: "miss" },
       { status: "hit" },
       { status: "miss" },
+    ]);
+  });
+});
+
+describe("previewSegments — reveal-then-clear timer", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps all 3 darts visible for 1.5s after the visit resolves, then clears", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "miss" },
+    ]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
     ]);
   });
 });
