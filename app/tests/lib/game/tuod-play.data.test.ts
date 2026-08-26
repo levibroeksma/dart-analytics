@@ -488,7 +488,7 @@ describe("tuodPlay", () => {
     });
   });
 
-  describe("undoAttempt", () => {
+  describe("undoVisit", () => {
     it("pops the engine log and mirrors it into the store", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
       const component = {
@@ -499,7 +499,7 @@ describe("tuodPlay", () => {
       await component.recordAttempt.call(component, CHECKOUT);
       expect(store.turns).toHaveLength(1);
 
-      component.undoAttempt();
+      component.undoVisit();
 
       expect(store.turns).toHaveLength(0);
       expect(component.error).toBe("");
@@ -515,7 +515,7 @@ describe("tuodPlay", () => {
       const recordCallsAfterInit = vi.mocked(store.recordFacts).mock.calls
         .length;
 
-      component.undoAttempt();
+      component.undoVisit();
 
       expect(vi.mocked(store.recordFacts).mock.calls.length).toBe(
         recordCallsAfterInit,
@@ -532,7 +532,7 @@ describe("tuodPlay", () => {
       await component.recordAttempt.call(component, CHECKOUT);
       expect(component.showFinishConfirm).toBe(true);
 
-      component.undoAttempt();
+      component.undoVisit();
 
       expect(store.turns).toHaveLength(0);
     });
@@ -971,7 +971,7 @@ describe("tuodPlay", () => {
       await component.recordAttempt.call(component, MISS);
       component.scoreInput.setValue("12");
 
-      component.undoAttempt.call(component);
+      component.undoVisit.call(component);
 
       expect(store.turns).toHaveLength(0);
       expect(component.scoreInput.value).toBe("");
@@ -1144,7 +1144,7 @@ describe("recordDart — reveal-then-clear board markers", () => {
     expect(component.visitMarkers.call(component)).toEqual([]);
   });
 
-  it("undoAttempt cancels a pending hide timer so a reopened visit stays visible", async () => {
+  it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
     const store = gameStub({
       configSnapshot: { ...rounds(10), startingTarget: 40 },
     });
@@ -1156,7 +1156,7 @@ describe("recordDart — reveal-then-clear board markers", () => {
     await component.recordDart.call(component, DOUBLE_20);
 
     vi.advanceTimersByTime(1000);
-    component.undoAttempt();
+    component.undoVisit();
     vi.advanceTimersByTime(1000);
 
     expect(component.hiddenTurnKey).toBeNull();
@@ -1249,28 +1249,107 @@ describe("session completion — 1v1", () => {
     expect(component.resultsSnapshot?.status).toBe("COMPLETE");
     expect(component.resultsSnapshot?.winningSideKey).toBe("A");
   });
+
+  it("undoVisit pops the last recorded attempt regardless of which seat threw it", async () => {
+    const store = gameStub({ configSnapshot: twoSeatRounds(10) });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+    await component.recordAttempt.call(component, CHECKOUT);
+    await component.recordAttempt.call(component, MISS);
+    expect(store.turns).toHaveLength(2);
+
+    component.undoVisit();
+
+    expect(store.turns).toHaveLength(1);
+    expect(
+      component.currentTargetLabelFor.call(component, "participant-2"),
+    ).toBe("41");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = tuodPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
+    };
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects $store.game.turns even with no live engine, so a target label stays correct without engine.state()", () => {
+    const ctx = tuodPlay() as unknown as {
+      $store: {
+        game: {
+          configSnapshot: Seated<TuodSnapshot>;
+          stages: StageFact[];
+          turns: TurnFact[];
+          timerExpired: boolean;
+        };
+      };
+      engine: null;
+      currentTargetLabel: () => string;
+    };
+    ctx.engine = null;
+    ctx.$store = {
+      game: {
+        configSnapshot: rounds(10),
+        stages: [BLOCK],
+        turns: [turnFact("t1", 1, 41)],
+        timerExpired: false,
+      },
+    };
+    expect(ctx.currentTargetLabel()).toBe("51");
+  });
 });
 
 describe("tuodPlay — per-seat accessors", () => {
   it("currentTargetLabelFor reads the named seat, not the active one", () => {
     const ctx = tuodPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; currentTarget: number }[];
+      $store: {
+        game: {
+          configSnapshot: Seated<TuodSnapshot>;
+          stages: StageFact[];
+          turns: TurnFact[];
         };
       };
       currentTargetLabelFor: (seatRef: string) => string;
     };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", currentTarget: 41 },
-          { participantRef: "p2", currentTarget: 51 },
-        ],
-      }),
+    ctx.$store = {
+      game: {
+        configSnapshot: {
+          startingTarget: 41,
+          finishBonus: 10,
+          missPenalty: 1,
+          durationType: "ROUNDS",
+          durationValue: 10,
+          maxDartsPerTurn: 3,
+          seats: [
+            {
+              participantRef: "p1",
+              displayName: "Levi",
+              sideKey: "A",
+              participantTypeKey: "PLAYER",
+            },
+            {
+              participantRef: "p2",
+              displayName: "Guest",
+              sideKey: "B",
+              participantTypeKey: "GUEST",
+            },
+          ],
+        },
+        stages: [BLOCK],
+        turns: [turnFact("t1", 1, 41)].map((turn) => ({
+          ...turn,
+          participantRef: "p2",
+        })),
+      },
     };
+    expect(ctx.currentTargetLabelFor("p1")).toBe("41");
     expect(ctx.currentTargetLabelFor("p2")).toBe("51");
   });
 });

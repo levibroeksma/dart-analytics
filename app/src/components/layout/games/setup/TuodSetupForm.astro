@@ -1,5 +1,6 @@
 ---
 // Components
+import Input from "@components/forms/Input.astro";
 import Toggle from "./Toggle.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
@@ -26,21 +27,36 @@ const infoSection = {
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={durationOpts}
-      x-model="durationType"
-      x-show="guests.length === 0"
-      x-cloak
-      class="w-full"
-    />
-    <p
-      class="text-sm text-muted-foreground px-4 py-0 italic"
-      x-show="guests.length > 0"
-      x-cloak
-    >
-      1v1 plays 10 Rounds — timed mode is solo-only.
-    </p>
+    <template x-if="guests.length === 0">
+      <Toggle
+        orientation="horizontal"
+        options={durationOpts}
+        x-model="durationType"
+        class="w-full"
+      />
+    </template>
+    <template x-if="guests.length > 0">
+      <Fragment>
+        <Input
+          id="durationValue"
+          name="durationValue"
+          type="text"
+          inputmode="numeric"
+          placeholder="Number of rounds"
+          x-model.number="durationValue"
+          @input="clampNotice = ''"
+          class="glass border-tab-border rounded-full mt-4"
+        />
+        <p
+          class="text-sm text-muted-foreground px-4 py-0"
+          role="status"
+          x-show="clampNotice"
+          x-text="clampNotice"
+          x-cloak
+        >
+        </p>
+      </Fragment>
+    </template>
   </SettingSectionShell>
 
   <p

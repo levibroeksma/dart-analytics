@@ -30,7 +30,7 @@ Checkout ladder under pressure: start at **41**, try to finish in **one visit (3
 
 - **Attempt:** from the current target, reach **exactly 0** on a **double** within **three darts**.
 - **Session (V1):** keep climbing (+10) on success and slipping (−1) on failure until the player stops or hits a later end condition.
-- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 -->
+- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 --> The round count is player-configurable (1–100) rather than fixed at the 10-round preset. <!-- 2026-08-26 -->
 
 ## Config & presets (V1)
 
@@ -70,6 +70,8 @@ The **ladder** having no win condition and the **session** having an end are sep
 Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit 0 without a double, that visit is a **bust** — darts do not count; score returns to the start of the visit. With only one visit per attempt, a bust means the attempt fails (apply **−1**).
 
 **Resolved (V1):** a bust consumes the whole attempt and applies the −1, exactly like any other failure. There is no re-throw and no partial credit; the engine records a busted attempt as a zero-scoring turn, indistinguishable from a plain miss. <!-- 2026-07-26 -->
+
+**Early bust on an unfinishable odd remainder (V1, ANALYTICS + VISUAL_BOARD):** once only one dart remains in the visit, a remaining target that is odd (and above 1) can never be checked out — every double scores an even number — so the visit busts immediately instead of requiring the last dart to be thrown. This is TUOD-specific: 501 and 121 still require every dart in the visit to be thrown regardless of whether checkout remains mathematically possible. <!-- 2026-08-26 -->
 
 ## Capture
 

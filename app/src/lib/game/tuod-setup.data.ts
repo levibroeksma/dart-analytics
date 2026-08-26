@@ -12,6 +12,10 @@ import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { addTypedGuest } from "@lib/game/guest-list";
 import {
+  clampTuodRounds,
+  tuodRoundsClampNotice,
+} from "@lib/game/tuod-duration";
+import {
   participantsFromGuests,
   resolveSessionModePair,
   startSessionInput,
@@ -20,11 +24,25 @@ import type { TuodDurationType, TuodSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "TUOD";
 const RULESET_VERSION_KEY = "TUOD_V1";
+const FALLBACK_ROUNDS = 10;
+
+/**
+ * Reads `duration_value` off a preset's `configuration`, which the API types
+ * as `Record<string, unknown>`. Returns undefined when the key is absent or
+ * not a number, so callers fall back to `FALLBACK_ROUNDS`. Mirrors
+ * `score-training-setup.data.ts`'s `durationValueOf`.
+ */
+function durationValueOf(preset: ConfigurationPresetData | undefined) {
+  const raw = preset?.configuration?.duration_value;
+  return typeof raw === "number" ? raw : undefined;
+}
 
 export function tuodSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
     durationType: "ROUNDS" as TuodDurationType,
+    durationValue: FALLBACK_ROUNDS as number | string | null,
+    clampNotice: "",
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
@@ -45,6 +63,9 @@ export function tuodSetup() {
 
         this.presets = presets;
         this.durationType = "ROUNDS";
+        this.durationValue =
+          durationValueOf(this.presetForMode("ROUNDS")) ?? FALLBACK_ROUNDS;
+        this.clampNotice = "";
 
         await this.reconcile(activeSessions);
       } catch {
@@ -144,13 +165,21 @@ export function tuodSetup() {
         return;
       }
 
+      let overrideValue: number | null = null;
+      if (this.guests.length > 0) {
+        const { value, clamped } = clampTuodRounds(this.durationValue);
+        this.durationValue = value;
+        this.clampNotice = clamped ? tuodRoundsClampNotice() : "";
+        overrideValue = value;
+      }
+
       this.loading = true;
       this.error = "";
       try {
-        const configSnapshot = toSnapshot(
-          RULESET_VERSION_KEY,
-          preset.configuration,
-        );
+        const wire = overrideValue
+          ? { ...preset.configuration, duration_value: overrideValue }
+          : preset.configuration;
+        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const modePair = resolveSessionModePair(
           RULESET_VERSION_KEY,
           this.$store.settings,
@@ -161,10 +190,16 @@ export function tuodSetup() {
           rulesetVersionKey: RULESET_VERSION_KEY,
           captureModeKey: modePair.captureModeKey,
           inputModeKey: modePair.inputModeKey,
-          config: {
-            source: "template",
-            templateRef: preset.configurationTemplateId,
-          },
+          config: overrideValue
+            ? {
+                source: "template",
+                templateRef: preset.configurationTemplateId,
+                overrides: { duration_value: overrideValue },
+              }
+            : {
+                source: "template",
+                templateRef: preset.configurationTemplateId,
+              },
           participants,
         });
         this.$store.game.startSession(

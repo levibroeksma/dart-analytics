@@ -669,6 +669,32 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     expect(turn.darts).toHaveLength(3);
   });
 
+  it("busts immediately after dart 2 when the remainder is odd — no double can ever finish it, so dart 3 is never thrown", () => {
+    // Default config() (startingTarget 41, odd): two SINGLE_1 darts leave a
+    // 39 remainder, which is odd — no double scores an odd number, so the
+    // visit is unfinishable with the one dart left and must close right away
+    // instead of waiting for a third dart.
+    const engine = tuodEngineFactory.create(config());
+    engine.record(SINGLE_1);
+    const state = engine.record(SINGLE_1);
+
+    expect(state.seats[0].currentTarget).toBe(40);
+    expect(state.seats[0].failures).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.completedAt).not.toBeNull();
+    expect(turn.totalScore).toBe(0);
+    expect(turn.darts).toHaveLength(2);
+  });
+
+  it("does not bust early after dart 1 on an odd remainder — two darts still remain", () => {
+    const engine = tuodEngineFactory.create(config());
+    engine.record(SINGLE_1);
+
+    const turn = engine.facts().turns[0];
+    expect(turn.completedAt).toBeNull();
+    expect(turn.darts).toHaveLength(1);
+  });
+
   it("records an unseen dart as a scoreless, real dart row", () => {
     const engine = tuodEngineFactory.create(boardConfig());
     engine.record(UNSEEN);
@@ -768,6 +794,12 @@ describe("TuodEngine.wouldComplete — dart path, pure", () => {
       durationValue: 1,
     });
     engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+    expect(engine.wouldComplete(SINGLE_1)).toBe(true);
+  });
+
+  it("is true for the 2nd dart of the last permitted attempt when it leaves an unfinishable odd remainder", () => {
+    const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(SINGLE_1);
     expect(engine.wouldComplete(SINGLE_1)).toBe(true);
   });

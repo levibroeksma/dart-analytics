@@ -71,20 +71,24 @@ function isDartObservation(input: TuodInput): input is DartObservation {
 
 /**
  * Whether a visit that has `remainingAfter` points left once its last dart
- * landed in `lastZoneKey` has checked out or busted. Shared by `settleVisit`
- * (which stamps the resolved fact) and `wouldCompleteDart` (which only asks
- * whether it would resolve) so the bust/checkout rule — overshoot, exactly 1
- * left, or reaching 0 without a double — is written once.
+ * landed in `lastZoneKey`, with `dartsRemaining` darts still to throw, has
+ * checked out or busted. Shared by `settleVisit` (which stamps the resolved
+ * fact) and `wouldCompleteDart` (which only asks whether it would resolve) so
+ * the bust/checkout rule — overshoot, exactly 1 left, reaching 0 without a
+ * double, or a last dart's remainder that no double can ever finish (odd,
+ * since every double scores even) — is written once.
  */
 function visitOutcome(
   remainingAfter: number,
   lastZoneKey: DartZoneKey,
+  dartsRemaining: number,
 ): { checkedOut: boolean; busted: boolean } {
   const checkedOut = remainingAfter === 0 && lastZoneKey === "DOUBLE";
   const busted =
     remainingAfter < 0 ||
     remainingAfter === 1 ||
-    (remainingAfter === 0 && !checkedOut);
+    (remainingAfter === 0 && !checkedOut) ||
+    (dartsRemaining === 1 && remainingAfter > 1 && remainingAfter % 2 !== 0);
   return { checkedOut, busted };
 }
 
@@ -308,6 +312,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const { checkedOut, busted } = visitOutcome(
       remainingAfter,
       lastDart.hitZoneKey,
+      this.config.maxDartsPerTurn - visit.darts.length,
     );
 
     if (busted) {
@@ -438,11 +443,12 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const thrown =
       priorDarts.reduce((sum, dart) => sum + dart.score, 0) + resolved.score;
     const remainingAfter = target - thrown;
+    const dartCount = priorDarts.length + 1;
     const { checkedOut, busted } = visitOutcome(
       remainingAfter,
       resolved.zoneKey,
+      this.config.maxDartsPerTurn - dartCount,
     );
-    const dartCount = priorDarts.length + 1;
     const visitResolves =
       checkedOut || busted || dartCount === this.config.maxDartsPerTurn;
 
