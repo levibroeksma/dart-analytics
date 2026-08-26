@@ -1811,6 +1811,72 @@ describe("scoreTrainingPlay — visual board input", () => {
   });
 });
 
+describe("scoreTrainingPlay — reveal-then-clear board markers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...VISUAL_ACTIVE_SESSION },
+    ]);
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps the closed visit's markers visible, then clears them after 1500ms", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
+    play.recordDart.call(play, SINGLE_20);
+
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.visitMarkers.call(play)).not.toEqual([]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.visitMarkers.call(play)).toEqual([]);
+  });
+
+  it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
+    const play = boardPlay();
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
+    play.recordDart.call(play, SINGLE_20);
+
+    vi.advanceTimersByTime(1000);
+    play.undoVisit.call(play);
+    vi.advanceTimersByTime(1000);
+
+    expect(play.hiddenTurnKey).toBeNull();
+  });
+
+  it("a MINUTES session already complete from timer expiry still arms the timer without re-triggering completion", async () => {
+    const play = boardPlay({
+      configSnapshot: {
+        ...rounds(20),
+        durationType: "MINUTES",
+        durationValue: 1,
+      },
+    });
+    await play.init.call(play);
+    play.recordDart.call(play, SINGLE_20);
+    play.recordDart.call(play, TREBLE_20);
+    play.recordDart.call(play, SINGLE_20);
+    play.engine!.expireTimer();
+
+    play.recordDart.call(play, SINGLE_20);
+
+    expect(appendBatch).not.toHaveBeenCalled();
+    expect(play.finished).toBe(false);
+  });
+});
+
 describe("scoreTrainingPlay — playAgain mode resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();

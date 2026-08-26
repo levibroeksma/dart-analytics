@@ -245,6 +245,9 @@ export type ScoreTrainingPlayContext = {
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
   totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
   threeDartAverageFor(this: ScoreTrainingPlayContext, seatRef: string): string;
