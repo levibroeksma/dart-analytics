@@ -71,6 +71,10 @@ export function doublesTrainingPlay() {
     playAgainLoading: false,
     resultsSnapshot: null as {
       hits: number;
+      on1st: number;
+      on2nd: number;
+      on3rd: number;
+      accuracy: string;
       misses: number;
       winningSideKey: string | null;
       status: "COMPLETE" | "TIE";
@@ -199,8 +203,23 @@ export function doublesTrainingPlay() {
         const ownerSeat =
           finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
           finalState.seats[0];
+        const hitOutcomes = ownerSeat.outcomes.filter((outcome) => outcome.hit);
+        const dartsThrown = ownerSeat.outcomes.reduce(
+          (sum, outcome) => sum + (outcome.hitDartNumber ?? 3),
+          0,
+        );
         return {
-          hits: ownerSeat.outcomes.filter((outcome) => outcome.hit).length,
+          hits: hitOutcomes.length,
+          on1st: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 1)
+            .length,
+          on2nd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 2)
+            .length,
+          on3rd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 3)
+            .length,
+          accuracy:
+            dartsThrown === 0
+              ? "0%"
+              : `${Math.round((hitOutcomes.length / dartsThrown) * 100)}%`,
           misses: ownerSeat.outcomes.filter((outcome) => !outcome.hit).length,
           winningSideKey: finalState.winningSideKey,
           status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
