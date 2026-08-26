@@ -474,7 +474,7 @@ describe("previewSegments", () => {
   });
 });
 
-describe("reveal-then-clear under VISUAL_BOARD", () => {
+describe("reveal-then-clear timer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -482,7 +482,7 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     vi.useRealTimers();
   });
 
-  it("hides the resolved visit's markers 1.5s after the 3rd dart", async () => {
+  it("hides the resolved visit's markers 1.5s after the 3rd dart under VISUAL_BOARD", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
     ]);
@@ -508,7 +508,7 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     ]);
   });
 
-  it("hides the resolved visit's preview immediately under RECREATIONAL, with no timer", async () => {
+  it("keeps all 3 darts visible for 1.5s under tap input too, then clears", async () => {
     const play = makePlay({ inputModeKey: "DETAILED_DARTS" });
     await play.init.call(play);
 
@@ -517,8 +517,16 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     await play.recordTap.call(play, false);
 
     const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "miss" },
+    ]);
+
+    vi.advanceTimersByTime(1500);
+
     expect(play.hiddenTurnKey).toBe(clientKey);
-    expect(play.hiddenTimer).toBeNull();
     expect(play.previewSegments.call(play)).toEqual([
       { status: "empty" },
       { status: "empty" },
@@ -536,9 +544,9 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     await play.recordDart.call(play, missAt(1));
     await play.recordDart.call(play, missAt(1));
 
-    vi.advanceTimersByTime(1000); // before the 1.5s mark
+    vi.advanceTimersByTime(1000);
     play.undoVisit.call(play);
-    vi.advanceTimersByTime(1000); // past where the original timer would have fired
+    vi.advanceTimersByTime(1000);
 
     expect(play.hiddenTurnKey).toBeNull();
   });
@@ -561,29 +569,26 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
   });
 
   it("clears a still-pending hide timer before scheduling a new one, so a fast second visit never leaks the first timer", async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([
-      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
-    ]);
-    const play = makePlay({ inputModeKey: "VISUAL_BOARD" });
+    const play = makePlay();
     await play.init.call(play);
 
-    await play.recordDart.call(play, hitAt(1));
-    await play.recordDart.call(play, missAt(1));
-    await play.recordDart.call(play, missAt(1));
+    await play.recordTap.call(play, true);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
     const firstTimer = play.hiddenTimer;
 
     vi.advanceTimersByTime(1400);
 
-    await play.recordDart.call(play, hitAt(2));
-    await play.recordDart.call(play, missAt(2));
-    await play.recordDart.call(play, missAt(2));
+    await play.recordTap.call(play, true);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
 
     expect(play.hiddenTimer).not.toBe(firstTimer);
 
-    vi.advanceTimersByTime(200); // past the leaked first timer's 1500ms deadline
+    vi.advanceTimersByTime(200);
     expect(play.hiddenTurnKey).toBeNull();
 
-    vi.advanceTimersByTime(1300); // up to the second timer's own 1500ms deadline
+    vi.advanceTimersByTime(1300);
 
     expect(play.hiddenTurnKey).toBe(play.$store.game.turns[1].clientKey);
   });
