@@ -125,14 +125,10 @@ export async function playCommitDart<
       clearTimeout(context.hiddenTimer);
       context.hiddenTimer = null;
     }
-    if (context.$store.game.inputModeKey === "VISUAL_BOARD") {
-      const clientKey = resolvedTurn.clientKey;
-      context.hiddenTimer = setTimeout(() => {
-        context.hiddenTurnKey = clientKey;
-      }, 1500);
-    } else {
-      context.hiddenTurnKey = resolvedTurn.clientKey;
-    }
+    const clientKey = resolvedTurn.clientKey;
+    context.hiddenTimer = setTimeout(() => {
+      context.hiddenTurnKey = clientKey;
+    }, 1500);
   }
 
   if (context.engine.isComplete()) {

@@ -300,7 +300,8 @@ describe("playRetryReconciliation", () => {
 });
 
 describe("playCommitDart", () => {
-  it("records the observation, mirrors facts, and sets hiddenTurnKey once the visit resolves", async () => {
+  it("records the observation, mirrors facts, and schedules hiddenTurnKey once the visit resolves", async () => {
+    vi.useFakeTimers();
     const context = makeContext();
     await playInit(context, GAME_TYPE_KEY, resumeEngine);
 
@@ -312,8 +313,12 @@ describe("playCommitDart", () => {
     });
 
     expect(context.$store.game.turns).toHaveLength(1);
-    expect(context.hiddenTurnKey).toBe("t1");
     expect(context.error).toBe("");
+
+    vi.advanceTimersByTime(1500);
+
+    expect(context.hiddenTurnKey).toBe("t1");
+    vi.useRealTimers();
   });
 
   it("surfaces the engine's rejection as context.error without mutating facts", async () => {
@@ -728,7 +733,7 @@ describe("runPlayAgain — a replayed 1v1 match", () => {
   });
 });
 
-describe("playCommitDart — reveal-then-clear under VISUAL_BOARD", () => {
+describe("playCommitDart — reveal-then-clear timer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -736,7 +741,7 @@ describe("playCommitDart — reveal-then-clear under VISUAL_BOARD", () => {
     vi.useRealTimers();
   });
 
-  it("schedules hiddenTurnKey 1.5s after a resolving dart when inputModeKey is VISUAL_BOARD", async () => {
+  it("schedules hiddenTurnKey 1.5s after a resolving dart under VISUAL_BOARD", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
     ]);
@@ -758,7 +763,7 @@ describe("playCommitDart — reveal-then-clear under VISUAL_BOARD", () => {
     expect(context.hiddenTurnKey).toBe("t1");
   });
 
-  it("sets hiddenTurnKey immediately, with no timer, when inputModeKey is not VISUAL_BOARD", async () => {
+  it("schedules the same 1.5s delay under a non-board input mode (tap/keypad)", async () => {
     const context = makeContext();
     await playInit(context, GAME_TYPE_KEY, resumeEngine);
 
@@ -769,14 +774,17 @@ describe("playCommitDart — reveal-then-clear under VISUAL_BOARD", () => {
       locationY: null,
     });
 
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.hiddenTimer).not.toBeNull();
+
+    vi.advanceTimersByTime(1499);
+    expect(context.hiddenTurnKey).toBeNull();
+
+    vi.advanceTimersByTime(1);
     expect(context.hiddenTurnKey).toBe("t1");
-    expect(context.hiddenTimer).toBeUndefined();
   });
 
   it("clears a still-pending hide timer before scheduling a new one", async () => {
-    vi.mocked(fetchActiveSessions).mockResolvedValue([
-      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
-    ]);
     const context = makeContext();
     await playInit(context, GAME_TYPE_KEY, resumeEngine);
 
