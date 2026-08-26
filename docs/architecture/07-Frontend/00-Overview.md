@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-08-11
+updated: 2026-08-26
 -->
 
 # Frontend Overview
 
-> **Version:** 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); prior 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
+> **Version:** 0.3.6 (Visual Board Input section corrected: all 9 rulesets support it, marker clearing described as the reveal-then-clear timer, 2026-08-26); prior 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -92,7 +92,7 @@ The frontend sends gameplay-derived payloads. It does not send persistence UUIDs
 
 # Visual Board Input
 
-An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer on a drawn board, instead of a typed visit total. Only 501 and Score Training offer it. The mode pair is chosen in **Settings → App mode** (`AppModeForm.astro`), not on the game's setup screen; setup forwards the settings store through `resolveSessionModePair` (`lib/game/session-mode-resolution.ts`), which narrows the choice to what the ruleset's capability declaration actually supports. Once a session exists, the session's own stored pair — not the settings store — is the authority for how it is played and validated.
+An ANALYTICS + `VISUAL_BOARD` session captures **one dart at a time** by pointer on a drawn board, instead of a typed visit total. Every ruleset declares it as a capability pair (`lib/game/rulesets/capabilities.ts`). The mode pair is chosen in **Settings → App mode** (`AppModeForm.astro`), not on the game's setup screen; setup forwards the settings store through `resolveSessionModePair` (`lib/game/session-mode-resolution.ts`), which narrows the choice to what the ruleset's capability declaration actually supports. Once a session exists, the session's own stored pair — not the settings store — is the authority for how it is played and validated.
 
 **The gesture is press-drag-release, never a bare tap.** On `pointerdown` a magnifier opens beside the fingertip showing the board under the crosshair plus the live resolved read (`TREBLE 20 · 60`). Dragging moves the point; nothing is committed until `pointerup`. `pointercancel` discards. A press that never moves still commits at its own position, so a confident throw costs one gesture.
 
@@ -100,7 +100,7 @@ Nothing commits on press because the treble ring is ~8 mm tall against a ~45 px 
 
 **"Bounce out"** commits a `MISS` with `locationX`/`locationY` null — the pair is written together or not at all (`chk_dart_location_pair`). This is the honest record of a dart whose landing point the player never observed; it is not a zero-score dart that landed somewhere.
 
-**Landed darts are drawn as markers on the board.** They show the most recent turn's located darts — still open, or just closed by its last dart — so a finished visit's grouping stays on the board until the next visit's first dart replaces it. An unseen dart has no coordinate and is not drawn.
+**Landed darts are drawn as markers on the board.** They show the most recent turn's located darts — still open, or just closed by its last dart. A closed visit's grouping stays on the board for 1500ms (the reveal-then-clear timer, `04-Architecture-patterns.md` Pattern 19), then clears — the same timer every board-input game uses, whether or not it also renders a 3-dart preview strip. An unseen dart has no coordinate and is not drawn.
 
 **The board replaces the keypad while a visual session is being played** (D201, superseding D199's keypad clause): `ScoreInput.astro` is hidden and `BoardInputPanel.astro` carries its own icon-only undo button (`aria-label="Undo dart"`). The server still accepts a dartless keypad visit inside a visual session, so the persistence path never assumes darts — only the UI is exclusive. Both engines dispatch `record()`, `wouldComplete()` and `undo()` on the *shape* of the input (visit total vs `DartObservation`), never on the session's stored mode, so the two input paths remain able to coexist within one session and `undo()` stays an exact inverse of whichever one wrote the turn (D198).
 
