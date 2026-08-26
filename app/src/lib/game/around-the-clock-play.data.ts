@@ -9,6 +9,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playPreviewSegments,
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
@@ -94,19 +95,13 @@ function previewSegmentsFor(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
 ): AroundTheClockPreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
-    return [...EMPTY_SEGMENTS];
-  }
   const priorDarts = turns
     .slice(0, -1)
     .reduce((total, turn) => total + turn.darts.length, 0);
   const hits = replayHits(config, turns);
-  return [0, 1, 2].map((i) => {
-    const dart = lastTurn.darts[i];
-    if (!dart) return { status: "empty" };
-    return { status: hits[priorDarts + i] ? "hit" : "miss" };
-  });
+  return playPreviewSegments(turns, hiddenTurnKey, (_dart, i) =>
+    hits[priorDarts + i] ? "hit" : "miss",
+  );
 }
 
 function countHits(
