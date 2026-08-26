@@ -422,16 +422,19 @@ describe("undoVisit", () => {
   });
 
   it("clears hiddenTurnKey set by a resolved visit", async () => {
+    vi.useFakeTimers();
     const play = makePlay();
     await play.init.call(play);
     await play.recordTap.call(play, "SINGLE");
     await play.recordTap.call(play, "SINGLE");
     await play.recordTap.call(play, "SINGLE");
+    vi.advanceTimersByTime(1500);
     expect(play.hiddenTurnKey).not.toBeNull();
 
     play.undoVisit.call(play);
 
     expect(play.hiddenTurnKey).toBeNull();
+    vi.useRealTimers();
   });
 });
 
@@ -490,8 +493,17 @@ describe("previewSegments", () => {
       { status: "empty" },
     ]);
   });
+});
 
-  it("hides the resolved visit's preview immediately, with no timer", async () => {
+describe("previewSegments — reveal-then-clear timer", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps all 3 darts visible for 1.5s after the visit resolves, then clears", async () => {
     const play = makePlay();
     await play.init.call(play);
 
@@ -499,8 +511,14 @@ describe("previewSegments", () => {
     await play.recordTap.call(play, "MISS");
     await play.recordTap.call(play, "MISS");
 
-    const clientKey = play.$store.game.turns[0].clientKey;
-    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "miss" },
+    ]);
+
+    vi.advanceTimersByTime(1500);
+
     expect(play.previewSegments.call(play)).toEqual([
       { status: "empty" },
       { status: "empty" },
@@ -936,7 +954,7 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     expect(play.visitMarkers.call(play)).toEqual([]);
   });
 
-  it("hides the resolved visit's preview immediately under DETAILED_DARTS, with no timer", async () => {
+  it("schedules the resolved visit's preview to hide 1.5s later under DETAILED_DARTS too", async () => {
     const play = makePlay({ inputModeKey: "DETAILED_DARTS" });
     await play.init.call(play);
 
@@ -945,8 +963,12 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     await play.recordTap.call(play, "SINGLE");
 
     const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.hiddenTimer).not.toBeNull();
+
+    vi.advanceTimersByTime(1500);
+
     expect(play.hiddenTurnKey).toBe(clientKey);
-    expect(play.hiddenTimer).toBeNull();
   });
 
   it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
