@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-26
-highest-issued: F29
+highest-issued: F30
 -->
 
 # Findings
@@ -122,3 +122,10 @@ Claim: `Bobs27PlayContext`, `SinglesTrainingPlayContext`, `DoublesTrainingPlayCo
 Evidence: `app/src/lib/game/types.ts` — compare `PlayLifecycleContext` (around line 181) against any of the 9 named types; each restates the same ~15 fields verbatim with only `TConfig`/`TEngine`/`TResults` substituted by hand
 Impact: a future field added to the shared lifecycle contract (e.g. a new timer or status field) must be hand-copied into 9 places instead of one; noticed while extracting `playPreviewSegments`/unifying the reveal timer, then widened when `FiveOhOnePlayContext`/`OneTwentyOnePlayContext`/`ScoreTrainingPlayContext`/`TuodPlayContext` picked up the same fields (D234) — a full generic-based unification is a separate, larger type-level refactor outside either task's scope
 Proposed: define each `*PlayContext` as `PlayLifecycleContext<XxxSnapshot, XxxEngine, XxxResultsSnapshot> & { <per-game methods> }` instead of a fully hand-written object type, once a task is scoped to take on that refactor across all 9 files at once
+
+### F30 — `00-File-Inventory.md`'s `decisions/frontend/alpine.md` row undercounts its decision blocks
+Status: Open · Found: 2026-08-26 · Task: claude/dart-cleanup-timing-xk9ucw
+Claim: the row's description says "13 decisions," matching only the file's table-format rows; it was already stale before this task (D187, D206, D233 are block-format entries the count never included) and is now off by one more after this task's D234
+Evidence: `docs/architecture/00-File-Inventory.md` row for `decisions/frontend/alpine.md`; `git grep -cE '^\| D[0-9]+ \||^### D[0-9]+' decisions/frontend/alpine.md` currently returns 15
+Impact: cosmetic only — the row's `~Nk` size field (what `scripts/check-context-budget.sh` actually validates) was corrected in this task; the decision count in the description text has no gate checking it and can keep drifting silently
+Proposed: either recount it to the true total the next time this file is touched, or reword the description to drop the specific count (e.g. "Alpine, stores, state, persist, recovery, x-data, x-show") so it can't go stale again
