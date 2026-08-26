@@ -825,6 +825,49 @@ It never adds a new engine API, a new fact model, or a per-game payload module.
 
 ---
 
+# Pattern 19 — Shared Reveal-Then-Clear Preview
+
+## Principle
+
+A per-dart game mode's visit preview is one shared mechanism, not a
+per-ruleset reimplementation.
+
+## Pattern
+
+```
+commitDart
+    ↓
+playCommitDart (play-lifecycle.ts) — uniform 1500ms reveal-then-clear
+timer, regardless of input mode
+    ↓
+hiddenTurnKey
+    ↓
+playPreviewSegments(turns, hiddenTurnKey, classify) — gate + pad to 3
+    ↓
+VisitPreview.astro
+```
+
+## Application
+
+- Timer duration and the hidden/empty gate live once in `play-lifecycle.ts`
+  (`playCommitDart`, `playPreviewSegments`). A new per-dart game mode
+  supplies only a `classify(dart, index) => "hit" | "miss"` callback — never
+  its own timer or its own 3-empty-placeholder gate.
+- The mechanism is turn/seat-scoped, not player-count-scoped: single-player
+  and 1v1 both read `$store.game.turns`/`hiddenTurnKey` identically, so a
+  future 2v2 (once its `sideKey`-group work lands) needs no special case
+  here either.
+- `VisitPreview.astro` stays markup-only, reading `previewSegments()` off
+  the page's own Alpine scope — it never depends on which classifier the
+  page used.
+
+## Rule
+
+Detail lives in `app/src/lib/game/play-lifecycle.ts` and
+`07-Frontend/04-Modules-And-OOP.md`.
+
+---
+
 # Pattern Adoption Process
 
 A new pattern may only be introduced when:

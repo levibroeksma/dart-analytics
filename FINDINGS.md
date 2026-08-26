@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-26
-highest-issued: F28
+highest-issued: F29
 -->
 
 # Findings
@@ -115,3 +115,10 @@ Claim: `docs/architecture/00-File-Inventory.md:235` describes `.claude/skills/co
 Evidence: `.claude/skills/context-maintenance/SKILL.md` currently numbers 9 steps (step 9, "Component inventory," follows step 8 "Findings gate")
 Impact: an agent trusting the row's step count as a checklist length stops after 8, skipping the component-inventory step whenever it applies
 Proposed: reword the row to "9-step procedure," or drop the number and just say "procedure" so it can't go stale again
+
+### F29 — 5 near-identical `*PlayContext` types restate `PlayLifecycleContext`'s shape instead of reusing it
+Status: Open · Found: 2026-08-26 · Task: claude/dart-previews-architecture-9tomxf
+Claim: `Bobs27PlayContext`, `SinglesTrainingPlayContext`, `DoublesTrainingPlayContext`, `ShanghaiPlayContext`, and `AroundTheClockPlayContext` (all in `app/src/lib/game/types.ts`) each hand-declare `hiddenTurnKey`, `hiddenTimer`, `loading`, `error`, `finished`, and the rest of `PlayLifecycleContext<TConfig, TEngine, TResults>`'s fields, rather than being defined in terms of it
+Evidence: `app/src/lib/game/types.ts` — compare `PlayLifecycleContext` (around line 181) against any of the 5 named types; each restates the same ~15 fields verbatim with only `TConfig`/`TEngine`/`TResults` substituted by hand
+Impact: a future field added to the shared lifecycle contract (e.g. a new timer or status field) must be hand-copied into 5 places instead of one; noticed while extracting `playPreviewSegments`/unifying the reveal timer (this task), but a full generic-based unification is a separate, larger type-level refactor outside this task's scope
+Proposed: define each `*PlayContext` as `PlayLifecycleContext<XxxSnapshot, XxxEngine, XxxResultsSnapshot> & { <per-game methods> }` instead of a fully hand-written object type, once a task is scoped to take on that refactor across all 5 files at once
