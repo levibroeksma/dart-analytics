@@ -604,6 +604,9 @@ export type OneTwentyOnePlayContext = {
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
   engine: OneTwentyOneEngine | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[];
   state(this: OneTwentyOnePlayContext): OneTwentyOneState | null;
   remainingInAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
