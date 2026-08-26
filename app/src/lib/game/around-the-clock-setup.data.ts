@@ -1,7 +1,6 @@
 import { createPresetSetupController } from "@lib/game/setup-controller";
 import type { AroundTheClockSetupContext } from "./types";
 
-/** V1 seeds exactly one configuration preset; index 0 is always that preset. */
 export function aroundTheClockSetup() {
   return createPresetSetupController<AroundTheClockSetupContext>({
     gameTypeKey: "AROUND_THE_CLOCK",

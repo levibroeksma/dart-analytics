@@ -82,6 +82,10 @@ N/A.
 
 - Multiplayer / online multiplayer
 
+### Variants — Multiplayer (1v1)
+
+1v1 win condition: highest total points; ties possible, no tiebreak in this version.
+
 ## Glossary
 
 | Term                | Version | Meaning                                                                         |

@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-23
-highest-issued: F27
+highest-issued: F28
 -->
 
 # Findings
@@ -46,27 +46,6 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 
 ---
 
-### F1 — `permissions.allow` pre-approves a CLI that is not installed
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `.claude/settings.json:20-22` grants `Bash(gh pr view:*)`, `Bash(gh pr list:*)` and `Bash(gh pr diff:*)`
-Evidence: `.claude/settings.json:20` — `command -v gh` finds nothing in the session container; GitHub access runs through the `mcp__github__*` tools instead
-Impact: an agent reading the allowlist as a capability inventory tries `gh pr diff`, gets a shell error, and spends a round discovering the MCP tools it should have used first
-Proposed: drop the three `gh` entries, or keep them and note in the settings file that they cover a locally-installed `gh` only
-
-### F3 — `DECISIONS.md` states a stale maximum decision id
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: "How to add a decision" names `D198` as the current maximum
-Evidence: `DECISIONS.md:45` vs the derived max `D213`; the same line's ID-gap note at `DECISIONS.md:62` independently says `D212`
-Impact: an agent trusting either number issues a colliding id; the derive command on the same line is correct, so the stale figures are pure trap
-Proposed: drop both parentheticals and keep only the derive command, so there is no number to go stale
-
-### F4 — `.graphifyignore` excludes a directory the invariants make impossible
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `.graphifyignore:6` ignores `.worktrees/`
-Evidence: `.graphifyignore:6` vs `CLAUDE.md`'s "No git worktrees" hard invariant (D102), which forbids the directory from ever existing
-Impact: small — a dead ignore line. It is logged because it is exactly the kind of residue that reads as evidence the practice is allowed
-Proposed: delete the line
-
 ### F5 — A broken script is filed as a deferred feature
 Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
 Claim: `scripts/check-context-map.sh`'s migration-range regex cannot tell a seed range from a migration range, so a seed chain quoted as ending at `0003` is compared against the migration chain end and fails
@@ -74,26 +53,12 @@ Evidence: `scripts/check-context-map.sh` — the check at its "2. Migration rang
 Impact: the defect sat in `DECISIONS.md`'s Deferred list among eleven unbuilt features, where "we chose not to build this" and "this is broken" are indistinguishable
 Proposed: narrow the regex to skip lines naming seeds — partly done for `decisions/**` and seed lines by D194, but the seed-vs-migration ambiguity itself remains
 
-### F6 — The file inventory still describes `AGENT.md` as a byte-identical mirror
-Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
-Claim: `docs/architecture/00-File-Inventory.md` describes `scripts/check-agent-mirrors.sh` as asserting "every `CLAUDE.md` has a byte-identical `AGENT.md` sibling", and the `AGENT.md` row as an "Exact mirror of the sibling `CLAUDE.md` … edit both together"
-Evidence: `docs/architecture/00-File-Inventory.md` — both rows, against D213 in `decisions/context-system.md`, which reduced all six `AGENT.md` files to pointer stubs and inverted the gate to assert the stub
-Impact: an agent following the inventory copies rules into an `AGENT.md` and the inverted gate rejects the commit; the stale row says to do the exact thing the gate now forbids
-Proposed: restate both rows against the stub behaviour D213 actually shipped
-
 ### F7 — Per-game capability verification scripts each assert the complete capability set
 Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
 Claim: `database/verification/0010_around_the_clock_capability_checks.sql` is scoped to the one additive `AROUND_THE_CLOCK_V1` row, but its check 2 asserts "the table now holds exactly the 12 triples", i.e. every earlier game's rows too
 Evidence: `database/verification/0010_around_the_clock_capability_checks.sql` header check 2, and the same shape in `database/verification/0009_121_capability_checks.sql`
 Impact: game ten's seed makes both scripts fail on their exact-count assertion, so adding a game means either editing every earlier per-game verification script or knowingly leaving them stale — neither is what a per-game, additive script implies
 Proposed: keep the exact-count parity assertion in the one shared `0007_capability_seed_checks.sql` and narrow the per-game scripts to their own rows
-
-### F8 — One of the six preset setup files lost its shared doc line
-Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
-Claim: five of the six preset-driven setup data modules carry the JSDoc line "V1 seeds exactly one configuration preset; index 0 is always that preset"; `doubles-training-setup.data.ts` carries none
-Evidence: `app/src/lib/game/doubles-training-setup.data.ts` against its five siblings, e.g. `app/src/lib/game/bobs27-setup.data.ts`
-Impact: cosmetic only — the fact is now stated once on `createPresetSetupController` itself, so the per-file line is arguably redundant in all six rather than missing in one
-Proposed: decide once — either drop the line from all six now that the factory documents it, or add it to the sixth
 
 ### F9 — A game-frontend plan written one-commit-per-task collides with `check-game-wiring.sh`'s atomicity requirement
 Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
@@ -122,13 +87,6 @@ Claim: migration `0023` changes `v_dart_analytics` and `v_dart_locations`, but n
 Evidence: `database/verification/` holds scripts for `0007` capabilities, `0021` player settings and `0022` player profile among others, with no `0014`/`0018`/`0023` dart-view equivalent; `app/package.json:23` `db:verify` runs `app/scripts/verify-db.ts`
 Impact: the filter's correctness rests on reading the SQL. The specific case worth proving — a session with one PLAYER and one GUEST returns only the PLAYER's dart rows, while `v_game_replay` returns both — is exactly the one no existing test covers, and this task could not run any database check at all (no `DATABASE_URL` in the execution container)
 Proposed: add `database/verification/0023_owner_scoped_dart_view_checks.sql` asserting the two views' owner scoping and `v_game_replay`'s deliberate lack of it, following `0022_player_profile_checks.sql`'s shape
-
-### F14 — A prior task's spec and plan never got their context-map-history rows
-Status: Open · Found: 2026-08-21 · Task: claude/guest-player-x01-architecture-m8ia8v
-Claim: every completed task's spec/plan pair is registered as a row in `docs/architecture/00-Context-Map-History.md` (this file's own mandatory step 2)
-Evidence: `docs/superpowers/specs/2026-08-21-guest-player-501-setup-ui-design.md` (commit `5cec9fa`) and its plan `docs/superpowers/plans/2026-08-21-guest-player-501-setup-ui.md` have no row in `docs/architecture/00-Context-Map-History.md` — the file's last row before this task's own additions was for the guest-player-x01-implementation plan (`docs/superpowers/plans/2026-08-20-guest-player-x01-implementation.md`)
-Impact: an agent scanning the history for what shipped the guest-add UI (the very feature this task hardened) would not find it there; the provenance trail has a gap for one committed task
-Proposed: append the two missing rows following the existing table's format, dated to their actual commit
 
 ### F15 — Every game interface repeats a fragile `max-h-2/5 h-full` sizing pair, and one grid item carries a dead `flex-1`
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
@@ -172,9 +130,9 @@ Evidence: `cd app && npx fallow dupes` — an 8-group / 236-line family across `
 Impact: the play-data family was left alone on purpose — that code was hardened days earlier by the Play Again session-participant/config reseating fix, and refactoring it immediately afterwards would put regression risk on the most fragile, most recently repaired path in the app. The engine pair's remaining clone is whole-class structural similarity (two duration-bounded, dual-input engines converted by the same recipe), not a set of extractable blocks; the pieces that WERE extractable have been (`turn-log.module.ts`, `seat-state.module.ts`, `scoreCompareOutcome`). The result is a passing but thin margin: `.fallowrc.jsonc`'s `duplicates.threshold` is configured at `0.0` (unset), so the actual gate is fallow's own inferred default, empirically somewhere between 14.8% (this passes) and 18.6% (the pre-fix state failed) — not a confirmed "15%" figure — so a modest future addition can fail CI again without any new duplication of its own
 Proposed: a dedicated task should take the play-data lifecycle family on its own branch, with the Play Again 1v1 path exercised end to end before and after; the engine pair is better left as-is until one of the two rulesets diverges on its own, at which point the clone dissolves without a refactor
 
-### F26 — `singles-training.md` has no 1v1 win condition, unlike its sibling `doubles-training.md`
-Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
-Claim: `SINGLES_V1` ships a real score-compare 1v1 win condition (highest `totalPoints`, per `2026-08-22-single-opponent-seat-remaining-engines-design.md`'s win-condition table and `SEAT_CAPS.SINGLES_V1 = 2` in `app/src/services/session-seats.service.ts`), the same way `DOUBLES_TRAINING_V1` does
-Evidence: `docs/game-rules/rulesets/doubles-training.md:82-84` states "### Variants — Multiplayer (1v1)" / "1v1 win condition: most doubles hit across all 21 targets; ties possible, no tiebreak in this version." — added by this plan's own Doubles Training task. `docs/game-rules/rulesets/singles-training.md:83` still reads only "Multiplayer / online multiplayer" under Later Versions → Match structure, with no 1v1 win-condition prose anywhere in the file
-Impact: an agent or reader consulting `singles-training.md` for its 1v1 rule (the way `docs/architecture/00-Context-Map.md`'s "New game engine" pack directs a task to that file) finds nothing, unlike every other engine this plan touched; this task's own brief (Step 1) named only six ruleset docs to update and did not include `singles-training.md`, so the gap survives this task too
-Proposed: add a "1v1 win condition: highest total points; ties possible, no tiebreak in this version" line to `singles-training.md`, mirroring `doubles-training.md`'s own wording and placement — a one-line, in-scope-sized fix for whichever task picks it up next
+### F28 — `00-File-Inventory.md` still describes `context-maintenance` as an "8-step procedure"
+Status: Open · Found: 2026-08-23 · Task: claude/findings-grouping-specs-aekw5m
+Claim: `docs/architecture/00-File-Inventory.md:235` describes `.claude/skills/context-maintenance/SKILL.md` as an "8-step procedure"
+Evidence: `.claude/skills/context-maintenance/SKILL.md` currently numbers 9 steps (step 9, "Component inventory," follows step 8 "Findings gate")
+Impact: an agent trusting the row's step count as a checklist length stops after 8, skipping the component-inventory step whenever it applies
+Proposed: reword the row to "9-step procedure," or drop the number and just say "procedure" so it can't go stale again
