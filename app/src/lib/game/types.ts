@@ -781,6 +781,10 @@ export type DoublesTrainingPlayContext = {
   playAgainLoading: boolean;
   resultsSnapshot: {
     hits: number;
+    on1st: number;
+    on2nd: number;
+    on3rd: number;
+    accuracy: string;
     misses: number;
     winningSideKey: string | null;
     status: "COMPLETE" | "TIE";
