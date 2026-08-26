@@ -53,6 +53,16 @@
  * the string form silently drops the whole `transform` declaration (invalid
  * `var()`), which a hand-written Alpine stub never exercises.
  *
+ * The OUTER div's `:style="magnifierAnchor()"` binding is object-form for the
+ * same reason, and here it is even more load-bearing: that div also carries
+ * `x-show="board.active"`, which Alpine implements as a direct
+ * `style.display` write. A string-form `magnifierAnchor()` would
+ * `setAttribute("style", …)` on every re-evaluation — including one triggered
+ * by `board` changing while `active` stays `false`, e.g. `recordUnseen()`
+ * (the board bounce-out button) — wiping the `display: none` `x-show` had
+ * just set and leaving the magnifier stuck visible at the idle (0,0 / bull)
+ * position until the next real press (#159).
+ *
  * Positioned `fixed`, not `absolute`: `pointerX`/`pointerY` are `clientX`/
  * `clientY`, and the controller clamps its placement against the visual
  * viewport, so both halves of the position must be read in viewport
