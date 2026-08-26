@@ -7,7 +7,7 @@ updated: 2026-08-26
 
 # Architecture Patterns
 
-> **Version:** 1.6.0 (Pattern 19: shared reveal-then-clear preview 2026-08-26; prior 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.6.1 (Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; prior 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -853,6 +853,23 @@ VisitPreview.astro
   (`playCommitDart`, `playPreviewSegments`). A new per-dart game mode
   supplies only a `classify(dart, index) => "hit" | "miss"` callback — never
   its own timer or its own 3-empty-placeholder gate.
+- The timer-arm/clear logic itself is a separate exported primitive —
+  `armHiddenTimer(context, turns)` / `clearHiddenTimer(context)` —
+  factored out of `playCommitDart` so a caller whose engine has different
+  completion semantics can reuse just the timer without adopting the whole
+  `playCommitDart` composite. Score Training's `recordDart` is this case:
+  its engine can already be complete before a dart is thrown (MINUTES-mode
+  timer expiry), so it must never run `playCommitDart`'s post-record
+  `isComplete()` check — it calls `armHiddenTimer` directly instead. Every
+  other per-dart game (501, 121, Ten Up One Down, and the 5 originally
+  wired) delegates its whole `commitDart` to `playCommitDart`.
+- All 9 board-input games (501, 121, Score Training, Ten Up One Down, Bob's
+  27, Singles Training, Doubles Training, Shanghai, Around the Clock) clear
+  their board markers via `playVisitMarkers`, whether or not they also
+  render `VisitPreview.astro`'s 3-dart strip — 501/121/Score
+  Training/TUOD score by visit total/checkout and correctly render no
+  preview strip, but still show per-dart board markers under
+  `ANALYTICS`+`VISUAL_BOARD` capture and clear them the same way.
 - The mechanism is turn/seat-scoped, not player-count-scoped: single-player
   and 1v1 both read `$store.game.turns`/`hiddenTurnKey` identically, so a
   future 2v2 (once its `sideKey`-group work lands) needs no special case

@@ -18,6 +18,11 @@ import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  clearHiddenTimer,
+  playCommitDart,
+  playVisitMarkers,
+} from "@lib/game/play-lifecycle";
+import {
   dartsThrownCount,
   previousScoreDisplay,
   threeDartAverageDisplay,
@@ -31,7 +36,7 @@ import type {
   FiveOhOneState,
   TurnFact,
 } from "@modules/types";
-import type { FiveOhOnePlayContext } from "./types";
+import type { BoardMarker, FiveOhOnePlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -158,7 +163,16 @@ export function fiveOhOnePlay() {
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
     engine: null as FiveOhOneEngine | null,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData((observation) => self.recordDart(observation)),
+
+    /** Overrides `boardInputData`'s own default — object-literal key order
+     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
+     * shared implementation, mirrors `bobs27-play.data.ts`. */
+    visitMarkers(this: FiveOhOnePlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
+    },
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
       const openLeg = this.$store.game.stages.at(-1);
@@ -406,25 +420,11 @@ export function fiveOhOnePlay() {
       await this.commitDart(observation);
     },
 
-    /**
-     * Records one dart against the engine and refreshes displayed state
-     * exactly as `recordVisit` does for a whole visit — shared by the
-     * immediate path (`recordDart`) and the deferred match-finish confirm
-     * (`confirmMatchFinish`) so the record → mirror → complete sequence
-     * exists exactly once for board input, mirroring `recordVisit`'s own
-     * role for quick score.
-     */
-    async commitDart(this: FiveOhOnePlayContext, observation: DartObservation) {
-      if (!this.engine) return;
-      this.engine.record(observation);
-      this.error = "";
-      this.$store.game.recordFacts(this.engine.facts());
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-      }
+    commitDart(
+      this: FiveOhOnePlayContext,
+      observation: DartObservation,
+    ): Promise<void> {
+      return playCommitDart(this, observation);
     },
 
     /**
@@ -580,6 +580,7 @@ export function fiveOhOnePlay() {
         return;
       if (!this.engine || !this.engine.undo()) return;
 
+      clearHiddenTimer(this);
       this.$store.game.recordFacts(this.engine.facts());
       this.scoreInput.clear();
       this.error = "";
@@ -719,6 +720,7 @@ export function fiveOhOnePlay() {
         this.pendingCheckoutScore = null;
         this.showDoubleConfirm = false;
         this.showMatchFinishConfirm = false;
+        clearHiddenTimer(this);
         this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;

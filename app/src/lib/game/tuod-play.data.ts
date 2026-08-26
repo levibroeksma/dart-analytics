@@ -17,6 +17,11 @@ import {
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
+import {
+  clearHiddenTimer,
+  playCommitDart,
+  playVisitMarkers,
+} from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
@@ -26,7 +31,11 @@ import type {
   TuodAttemptInput,
   TuodState,
 } from "@modules/types";
-import type { TuodPlayContext, TuodResultsSnapshot } from "./types";
+import type {
+  BoardMarker,
+  TuodPlayContext,
+  TuodResultsSnapshot,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -187,7 +196,16 @@ export function tuodPlay() {
     showFinishConfirm: false,
     engine: null as TuodEngine | null,
     timer: null as SegmentTimer | null,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData((observation) => self.recordDart(observation)),
+
+    /** Overrides `boardInputData`'s own default — object-literal key order
+     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
+     * shared implementation, mirrors `bobs27-play.data.ts`. */
+    visitMarkers(this: TuodPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
+    },
 
     state(this: TuodPlayContext): TuodState | null {
       return this.engine?.state() ?? null;
@@ -418,33 +436,11 @@ export function tuodPlay() {
       await this.commitDart(observation);
     },
 
-    /**
-     * Records one dart against the engine and refreshes displayed state,
-     * exactly as `recordAttempt` does for a whole visit — shared by the
-     * immediate path (`recordDart`) and the deferred finish confirm
-     * (`confirmFinish`).
-     */
-    async commitDart(
+    commitDart(
       this: TuodPlayContext,
       observation: DartObservation,
     ): Promise<void> {
-      if (!this.engine) return;
-
-      try {
-        this.engine.record(observation);
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        return;
-      }
-
-      this.error = "";
-      this.$store.game.recordFacts(this.engine.facts());
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-      }
+      return playCommitDart(this, observation);
     },
 
     async confirmFinish(this: TuodPlayContext): Promise<void> {
@@ -486,6 +482,7 @@ export function tuodPlay() {
         return;
       if (!this.engine || !this.engine.undo()) return;
 
+      clearHiddenTimer(this);
       this.$store.game.recordFacts(this.engine.facts());
       this.scoreInput.clear();
       this.error = "";
@@ -620,6 +617,7 @@ export function tuodPlay() {
         this.pendingAttempt = null;
         this.pendingDartObservation = null;
         this.showFinishConfirm = false;
+        clearHiddenTimer(this);
         this.error = "";
         this.hasActiveSession = true;
 

@@ -106,6 +106,52 @@ export async function playRetryReconciliation<
   await context.init();
 }
 
+function clearTimerHandle(context: {
+  hiddenTimer?: ReturnType<typeof setTimeout> | null;
+}): void {
+  if (context.hiddenTimer) {
+    clearTimeout(context.hiddenTimer);
+    context.hiddenTimer = null;
+  }
+}
+
+/**
+ * Arms the 1500ms reveal-then-clear timer once `turns`' last entry has
+ * resolved (`completedAt` set). This is the primitive `playCommitDart` uses
+ * internally, and the one a caller whose engine has different completion
+ * semantics (Score Training, D234) calls directly instead of adopting the
+ * whole `playCommitDart` composite. A no-op while the last turn is open, or
+ * when there are no turns yet.
+ */
+export function armHiddenTimer(
+  context: {
+    hiddenTurnKey: string | null;
+    hiddenTimer?: ReturnType<typeof setTimeout> | null;
+  },
+  turns: readonly TurnFact[],
+): void {
+  const resolvedTurn = turns.at(-1);
+  if (!resolvedTurn?.completedAt) return;
+  clearTimerHandle(context);
+  const clientKey = resolvedTurn.clientKey;
+  context.hiddenTimer = setTimeout(() => {
+    context.hiddenTurnKey = clientKey;
+  }, 1500);
+}
+
+/**
+ * Cancels a pending reveal-then-clear timer and clears `hiddenTurnKey`, so
+ * an undone or replayed visit's markers/preview stay visible instead of
+ * disappearing on a timer that no longer applies to it.
+ */
+export function clearHiddenTimer(context: {
+  hiddenTurnKey: string | null;
+  hiddenTimer?: ReturnType<typeof setTimeout> | null;
+}): void {
+  clearTimerHandle(context);
+  context.hiddenTurnKey = null;
+}
+
 export async function playCommitDart<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
@@ -124,18 +170,7 @@ export async function playCommitDart<
   context.error = "";
   const facts = context.engine.facts();
   context.$store.game.recordFacts(facts);
-
-  const resolvedTurn = facts.turns.at(-1);
-  if (resolvedTurn?.completedAt) {
-    if (context.hiddenTimer) {
-      clearTimeout(context.hiddenTimer);
-      context.hiddenTimer = null;
-    }
-    const clientKey = resolvedTurn.clientKey;
-    context.hiddenTimer = setTimeout(() => {
-      context.hiddenTurnKey = clientKey;
-    }, 1500);
-  }
+  armHiddenTimer(context, facts.turns);
 
   if (context.engine.isComplete()) {
     context.finished = true;
@@ -151,11 +186,7 @@ export function playUndoVisit<
 >(context: PlayLifecycleContext<TConfig, TEngine, TResults>): void {
   if (context.finished) return;
   if (!context.engine || !context.engine.undo()) return;
-  if (context.hiddenTimer) {
-    clearTimeout(context.hiddenTimer);
-    context.hiddenTimer = null;
-  }
-  context.hiddenTurnKey = null;
+  clearHiddenTimer(context);
   context.$store.game.recordFacts(context.engine.facts());
   context.error = "";
 }
@@ -369,11 +400,7 @@ export async function runPlayAgain<
     context.completionStatus = "pending";
     context.completionError = "";
     context.resultsSnapshot = null;
-    if (context.hiddenTimer) {
-      clearTimeout(context.hiddenTimer);
-      context.hiddenTimer = null;
-    }
-    context.hiddenTurnKey = null;
+    clearHiddenTimer(context);
     context.error = "";
     context.hasActiveSession = true;
 

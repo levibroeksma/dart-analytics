@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
 import type { OneTwentyOnePlayContext } from "@lib/types";
@@ -292,6 +292,78 @@ describe("oneTwentyOnePlay", () => {
 
       expect(play.$store.game.turns).toHaveLength(1);
       expect(play.$store.game.turns[0].darts).toHaveLength(1);
+    });
+  });
+
+  describe("recordDart — reveal-then-clear board markers", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("keeps the closed visit's markers visible, then clears them after 1500ms", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+
+      const clientKey = store.game.turns[0].clientKey;
+      expect(play.hiddenTurnKey).toBeNull();
+      expect(play.visitMarkers.call(play)).not.toEqual([]);
+
+      vi.advanceTimersByTime(1500);
+
+      expect(play.hiddenTurnKey).toBe(clientKey);
+      expect(play.visitMarkers.call(play)).toEqual([]);
+    });
+
+    it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 1,
+        hitZoneKey: "SINGLE",
+        locationX: 1,
+        locationY: 1,
+      });
+
+      vi.advanceTimersByTime(1000);
+      play.undoVisit();
+      vi.advanceTimersByTime(1000);
+
+      expect(play.hiddenTurnKey).toBeNull();
     });
   });
 

@@ -17,6 +17,11 @@ import {
 } from "@client/api/sessions";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
+import {
+  clearHiddenTimer,
+  playCommitDart,
+  playVisitMarkers,
+} from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
@@ -27,7 +32,7 @@ import type {
   OneTwentyOneState,
   TurnFact,
 } from "@modules/types";
-import type { OneTwentyOnePlayContext } from "./types";
+import type { BoardMarker, OneTwentyOnePlayContext } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -142,7 +147,16 @@ export function oneTwentyOnePlay() {
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
     engine: null as OneTwentyOneEngine | null,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData((observation) => self.recordDart(observation)),
+
+    /** Overrides `boardInputData`'s own default — object-literal key order
+     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
+     * shared implementation, mirrors `bobs27-play.data.ts`. */
+    visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
+    },
 
     state(this: OneTwentyOnePlayContext): OneTwentyOneState | null {
       const config = this.$store.game.configSnapshot;
@@ -344,26 +358,11 @@ export function oneTwentyOnePlay() {
       await this.commitDart(observation);
     },
 
-    /**
-     * Records one dart against the engine and refreshes displayed state
-     * exactly as `recordVisit` does for a whole visit — shared by the
-     * immediate path (`recordDart`) and the deferred session-finish confirm
-     * (`confirmSessionFinish`).
-     */
-    async commitDart(
+    commitDart(
       this: OneTwentyOnePlayContext,
       observation: DartObservation,
-    ) {
-      if (!this.engine) return;
-      this.engine.record(observation);
-      this.error = "";
-      this.$store.game.recordFacts(this.engine.facts());
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-      }
+    ): Promise<void> {
+      return playCommitDart(this, observation);
     },
 
     /**
@@ -506,6 +505,7 @@ export function oneTwentyOnePlay() {
         return;
       if (!this.engine || !this.engine.undo()) return;
 
+      clearHiddenTimer(this);
       this.$store.game.recordFacts(this.engine.facts());
       this.scoreInput.clear();
       this.error = "";
@@ -641,6 +641,7 @@ export function oneTwentyOnePlay() {
         this.pendingDartObservation = null;
         this.showDoubleConfirm = false;
         this.showSessionFinishConfirm = false;
+        clearHiddenTimer(this);
         this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;

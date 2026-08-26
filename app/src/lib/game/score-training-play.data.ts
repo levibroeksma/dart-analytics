@@ -16,6 +16,11 @@ import {
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  armHiddenTimer,
+  clearHiddenTimer,
+  playVisitMarkers,
+} from "@lib/game/play-lifecycle";
+import {
   dartsThrownCount,
   perVisitAverageDisplay,
   previousScoreDisplay,
@@ -27,6 +32,7 @@ import type {
   ScoreTrainingState,
 } from "@modules/types";
 import type {
+  BoardMarker,
   ScoreTrainingPlayContext,
   ScoreTrainingResultsSnapshot,
 } from "./types";
@@ -215,7 +221,16 @@ export function scoreTrainingPlay() {
     showFinishConfirm: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData((observation) => self.recordDart(observation)),
+
+    /** Overrides `boardInputData`'s own default — object-literal key order
+     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
+     * shared implementation, mirrors `bobs27-play.data.ts`. */
+    visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[] {
+      return playVisitMarkers(this);
+    },
 
     state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
       return this.engine?.state() ?? null;
@@ -427,6 +442,7 @@ export function scoreTrainingPlay() {
       this.engine.record(observation);
       this.error = "";
       this.$store.game.recordFacts(this.engine.facts());
+      armHiddenTimer(this, this.$store.game.turns);
     },
 
     /**
@@ -478,6 +494,7 @@ export function scoreTrainingPlay() {
       if (this.finished || this.showFinishConfirm) return;
       if (!this.engine || !this.engine.undo()) return;
 
+      clearHiddenTimer(this);
       this.$store.game.recordFacts(this.engine.facts());
       this.scoreInput.clear();
       this.error = "";
@@ -625,6 +642,7 @@ export function scoreTrainingPlay() {
         this.pendingFinishScore = null;
         this.pendingDartObservation = null;
         this.showFinishConfirm = false;
+        clearHiddenTimer(this);
         this.scoreInput.clear();
         this.error = "";
         this.hasActiveSession = true;

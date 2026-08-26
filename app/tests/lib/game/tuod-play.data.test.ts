@@ -1114,6 +1114,55 @@ describe("recordDart (board input)", () => {
   });
 });
 
+describe("recordDart — reveal-then-clear board markers", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps the closed visit's markers visible, then clears them after 1500ms", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(10), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    await component.recordDart.call(component, DOUBLE_20);
+
+    const clientKey = store.turns[0].clientKey;
+    expect(component.hiddenTurnKey).toBeNull();
+    expect(component.visitMarkers.call(component)).not.toEqual([]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(component.hiddenTurnKey).toBe(clientKey);
+    expect(component.visitMarkers.call(component)).toEqual([]);
+  });
+
+  it("undoAttempt cancels a pending hide timer so a reopened visit stays visible", async () => {
+    const store = gameStub({
+      configSnapshot: { ...rounds(10), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+    await component.recordDart.call(component, DOUBLE_20);
+
+    vi.advanceTimersByTime(1000);
+    component.undoAttempt();
+    vi.advanceTimersByTime(1000);
+
+    expect(component.hiddenTurnKey).toBeNull();
+  });
+});
+
 describe("session completion — 1v1", () => {
   const TWO_SEATS = [
     {

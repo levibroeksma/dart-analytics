@@ -245,6 +245,9 @@ export type ScoreTrainingPlayContext = {
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
   totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
   threeDartAverageFor(this: ScoreTrainingPlayContext, seatRef: string): string;
@@ -310,6 +313,9 @@ export type TuodPlayContext = {
   $store: PlayStoreContext<TuodSnapshot>;
   engine: TuodEngine | null;
   timer: SegmentTimer | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: TuodPlayContext): BoardMarker[];
   state(this: TuodPlayContext): TuodState | null;
   currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
@@ -531,6 +537,9 @@ export type FiveOhOnePlayContext = {
   showMatchFinishConfirm: boolean;
   $store: PlayStoreContext<FiveOhOneSnapshot>;
   engine: FiveOhOneEngine | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: FiveOhOnePlayContext): BoardMarker[];
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
   state(this: FiveOhOnePlayContext): FiveOhOneState | null;
   remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number;
@@ -601,6 +610,9 @@ export type OneTwentyOnePlayContext = {
   showSessionFinishConfirm: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot>;
   engine: OneTwentyOneEngine | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[];
   state(this: OneTwentyOnePlayContext): OneTwentyOneState | null;
   remainingInAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
