@@ -115,4 +115,46 @@ describe("doublesPathPreviewSegments", () => {
       { status: "empty" },
     ]);
   });
+
+  it("marks all 3 darts hit/miss once the visit holds 3 darts, with no padding", () => {
+    const turns = [
+      turnWithDarts("t1", [
+        {
+          sequence: 1,
+          intendedTargetNumber: 5,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: 5,
+          hitZoneKey: "DOUBLE",
+          score: 10,
+          locationX: null,
+          locationY: null,
+        },
+        {
+          sequence: 2,
+          intendedTargetNumber: 5,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: null,
+          hitZoneKey: "MISS",
+          score: 0,
+          locationX: null,
+          locationY: null,
+        },
+        {
+          sequence: 3,
+          intendedTargetNumber: 5,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: 5,
+          hitZoneKey: "DOUBLE",
+          score: 10,
+          locationX: null,
+          locationY: null,
+        },
+      ]),
+    ];
+    expect(doublesPathPreviewSegments(turns, null)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "hit" },
+    ]);
+  });
 });
