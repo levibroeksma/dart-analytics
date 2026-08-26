@@ -5,6 +5,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playPreviewSegments,
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
@@ -30,12 +31,6 @@ import { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
 const GAME_TYPE_KEY = "SHANGHAI";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SHANGHAI_V1";
 
-const EMPTY_SEGMENTS: readonly ShanghaiPreviewSegment[] = [
-  { status: "empty" },
-  { status: "empty" },
-  { status: "empty" },
-];
-
 /**
  * Rounds 1..20 never reach `numbersPath()`'s 21st (BULL) entry — mirrors the
  * same guard the engine itself carries, since this module also needs the
@@ -59,15 +54,9 @@ function previewSegmentsFor(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
 ): ShanghaiPreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
-    return [...EMPTY_SEGMENTS];
-  }
-  const targetNumber = targetNumberAt(turns.length - 1);
-  return [0, 1, 2].map((i) => {
-    const dart = lastTurn.darts[i];
-    if (!dart) return { status: "empty" };
-    return { status: dart.hitTargetNumber === targetNumber ? "hit" : "miss" };
+  return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
+    const targetNumber = targetNumberAt(turns.length - 1);
+    return dart.hitTargetNumber === targetNumber ? "hit" : "miss";
   });
 }
 
