@@ -616,6 +616,26 @@ describe("visual board capture", () => {
     });
   });
 
+  it("does not close visit 2 early on the same unreachable-with-1-dart shape — only the 3rd visit ever does", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    // Climb from 121 to 130 via quick-score checkouts, so the target's own
+    // visit 1 starts fresh (visitsThisAttempt 0).
+    for (let target = 121; target < 130; target += 1) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+
+    engine.record({ scoreAttempted: 0 }); // visit 1: no-op, visitsThisAttempt now 1
+    engine.record(trebleTwenty); // visit 2, dart 1: 130 - 60 = 70, 2 darts left
+    const after = engine.record(trebleNineteen); // dart 2: 70 - 57 = 13, 1 dart left — 13 needs 2 (5 D4), unreachable
+
+    expect(after.seats[0].visitsThisAttempt).toBe(1); // visit 2 still open, not yet counted
+    const openVisit = engine.facts().turns.at(-1)!;
+    expect(openVisit.darts).toHaveLength(2);
+    expect(openVisit.completedAt).toBeNull();
+  });
+
   it("does not close visit 1 early on the same unreachable-with-1-dart shape — every dart still required", () => {
     const engine = oneTwentyOneEngineFactory.create(
       config(),

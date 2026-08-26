@@ -142,6 +142,24 @@ function checkoutDartsRejectionFor(
 }
 
 /**
+ * Whether the attempt's final (3rd) visit can no longer reach a double-out
+ * finish with the darts still in hand — see `settleVisit`'s own doc for why
+ * only that visit is checked this way. `dartsThrown` is the visit's dart
+ * count so far, so `DARTS_PER_VISIT - dartsThrown` is what remains of it.
+ */
+function finalVisitHasNoFinishLeft(
+  before: OneTwentyOneSeatState,
+  remainingAfter: number,
+  dartsThrown: number,
+): boolean {
+  const isFinalVisit = before.visitsThisAttempt === VISITS_PER_ATTEMPT - 1;
+  return (
+    isFinalVisit &&
+    !isCheckoutReachable(remainingAfter, DARTS_PER_VISIT - dartsThrown)
+  );
+}
+
+/**
  * Pure reducer: folds one FINISHED visit onto one seat's `OneTwentyOneSeatState`.
  * A checkout at the cap target (170) wins that seat's own race; any other
  * checkout climbs the target by one and opens a fresh 3-visit budget. A
@@ -446,15 +464,10 @@ export class OneTwentyOneEngine implements GameEngine<
     }
 
     visit.totalScore = thrown;
-    const isFinalVisit = before.visitsThisAttempt === VISITS_PER_ATTEMPT - 1;
-    const noFinishLeft =
-      isFinalVisit &&
-      !isCheckoutReachable(
-        remainingAfter,
-        DARTS_PER_VISIT - visit.darts.length,
-      );
     const resolved =
-      checkedOut || visit.darts.length === DARTS_PER_VISIT || noFinishLeft;
+      checkedOut ||
+      visit.darts.length === DARTS_PER_VISIT ||
+      finalVisitHasNoFinishLeft(before, remainingAfter, visit.darts.length);
     if (resolved) {
       visit.completedAt = new Date().toISOString();
     }
