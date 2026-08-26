@@ -10,6 +10,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playPreviewSegments,
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
@@ -146,17 +147,10 @@ function previewSegmentsFor(
   config: SinglesSnapshot | null,
   hiddenTurnKey: string | null,
 ): SinglesPreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey || !config) {
-    return [...EMPTY_SEGMENTS];
-  }
-  const target = targetAt(numbersPath(config.targetOrder), turns.length - 1);
-  return [0, 1, 2].map((i) => {
-    const dart = lastTurn.darts[i];
-    if (!dart) return { status: "empty" };
-    return {
-      status: trainingPointsFor(target, config, dart) > 0 ? "hit" : "miss",
-    };
+  if (!config) return [...EMPTY_SEGMENTS];
+  return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
+    const target = targetAt(numbersPath(config.targetOrder), turns.length - 1);
+    return trainingPointsFor(target, config, dart) > 0 ? "hit" : "miss";
   });
 }
 
