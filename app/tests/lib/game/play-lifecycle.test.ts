@@ -22,6 +22,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playPreviewSegments,
   playRetryReconciliation,
   playUndoVisit,
   playUploadAndCompleteSession,
@@ -907,5 +908,73 @@ describe("playVisitMarkers", () => {
     });
 
     expect(playVisitMarkers(context)).toEqual([]);
+  });
+});
+
+describe("playPreviewSegments", () => {
+  function turnWithDarts(
+    clientKey: string,
+    darts: TurnFact["darts"],
+  ): TurnFact {
+    return {
+      clientKey,
+      stageClientKey: "block-1",
+      participantRef: "participant-1",
+      sequence: 1,
+      completedAt: "2026-08-14T00:00:00.000Z",
+      totalScore: 0,
+      darts,
+    };
+  }
+
+  const DART: TurnFact["darts"][number] = {
+    sequence: 1,
+    intendedTargetNumber: 5,
+    intendedZoneKey: "DOUBLE",
+    hitTargetNumber: 5,
+    hitZoneKey: "DOUBLE",
+    score: 10,
+    locationX: null,
+    locationY: null,
+  };
+
+  it("returns 3 empty placeholders when there are no turns", () => {
+    expect(playPreviewSegments([], null, () => "hit")).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("returns 3 empty placeholders when the last turn's key matches hiddenTurnKey", () => {
+    const turns = [turnWithDarts("t1", [DART])];
+    expect(playPreviewSegments(turns, "t1", () => "hit")).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("classifies each thrown dart and pads the remaining slots empty", () => {
+    const turns = [turnWithDarts("t1", [DART, DART])];
+    const classify = vi.fn((dart: typeof DART) =>
+      dart.hitTargetNumber === 5 ? ("hit" as const) : ("miss" as const),
+    );
+    expect(playPreviewSegments(turns, null, classify)).toEqual([
+      { status: "hit" },
+      { status: "hit" },
+      { status: "empty" },
+    ]);
+    expect(classify).toHaveBeenCalledTimes(2);
+  });
+
+  it("passes each dart's index within the turn to classify", () => {
+    const turns = [turnWithDarts("t1", [DART, DART, DART])];
+    const seenIndexes: number[] = [];
+    playPreviewSegments(turns, null, (_dart, index) => {
+      seenIndexes.push(index);
+      return "hit";
+    });
+    expect(seenIndexes).toEqual([0, 1, 2]);
   });
 });
