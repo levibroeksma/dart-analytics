@@ -118,7 +118,7 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     onSubmit="submitVisit()"
     submitDisabled="!scoreInput.value || showDoubleConfirm || showFinishConfirm || finished"
     padDisabled="showDoubleConfirm || showFinishConfirm || finished"
-    undoClick="undoAttempt()"
+    undoClick="undoVisit()"
     undoDisabled="!$store.game.turns.length || showDoubleConfirm || showFinishConfirm || finished"
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak

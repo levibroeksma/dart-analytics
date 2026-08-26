@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-26
-highest-issued: F30
+highest-issued: F31
 -->
 
 # Findings
@@ -129,3 +129,10 @@ Claim: the row's description says "13 decisions," matching only the file's table
 Evidence: `docs/architecture/00-File-Inventory.md` row for `decisions/frontend/alpine.md`; `git grep -cE '^\| D[0-9]+ \||^### D[0-9]+' decisions/frontend/alpine.md` currently returns 15
 Impact: cosmetic only — the row's `~Nk` size field (what `scripts/check-context-budget.sh` actually validates) was corrected in this task; the decision count in the description text has no gate checking it and can keep drifting silently
 Proposed: either recount it to the true total the next time this file is touched, or reword the description to drop the specific count (e.g. "Alpine, stores, state, persist, recovery, x-data, x-show") so it can't go stale again
+
+### F31 — 6 more `*-play.data.ts` files still read `state()` off `engine.state()` instead of folding `$store.game`, the same Alpine reactivity gap issue #161 found in TUOD
+Status: Open · Found: 2026-08-26 · Task: claude/dart-cleanup-timing-xk9ucw
+Claim: `score-training-play.data.ts`, `doubles-training-play.data.ts`, `around-the-clock-play.data.ts`, `bobs27-play.data.ts`, `singles-training-play.data.ts`, and `shanghai-play.data.ts` all define `state()` as `return this.engine?.state() ?? null;` — reading a plain, non-reactive class instance's internal mutation, not a tracked Alpine store field — the exact pattern issue #161 reported as "the target doesn't update" for TUOD's ANALYTICS + VISUAL_BOARD mode, and that `five-oh-one-play.data.ts`/`one-twenty-one-play.data.ts` were already rewritten to avoid before this task
+Evidence: `app/src/lib/game/score-training-play.data.ts:236`, `app/src/lib/game/doubles-training-play.data.ts:88`, `app/src/lib/game/around-the-clock-play.data.ts:159`, `app/src/lib/game/bobs27-play.data.ts:142`, `app/src/lib/game/singles-training-play.data.ts:202`, `app/src/lib/game/shanghai-play.data.ts:99` — each `return this.engine?.state() ?? null;`. Compare `app/src/lib/game/five-oh-one-play.data.ts:185-199`'s `foldFiveOhOneState({stages: this.$store.game.stages, turns: this.$store.game.turns}, config)`, the pattern this task applied to `app/src/lib/game/tuod-play.data.ts`'s `state()`, each with a fold function (`foldScoreTrainingState`, `foldShanghaiState`, etc.) already exported and available for the same substitution
+Impact: any Alpine `x-text`/`x-show` expression that calls `state()` (directly, or via a `*For(seatRef)` accessor) subscribes only to `this.engine`'s object identity, which never changes after `init()` — so a dart/attempt recorded via `context.$store.game.recordFacts(facts)` never triggers a re-render of that expression in these 6 games, on any input mode, even though the underlying data is correct. Not verified in a real browser for any of the 6 (no WebKit/Chromium DOM harness in this environment, and `.astro` markup has no test runner per D101), so this is reported as the same-shaped defect already confirmed for TUOD, not independently reproduced per game
+Proposed: apply the identical `foldXxxState({stages, turns}, config, ...)` rewrite to each of the 6 files' `state()`, one game (or a small batch) per task so each gets its own regression coverage and gate run, mirroring this task's `tuod-play.data.ts` fix and the pre-existing `five-oh-one-play.data.ts`/`one-twenty-one-play.data.ts` precedent

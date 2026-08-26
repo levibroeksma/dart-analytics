@@ -207,8 +207,21 @@ export function tuodPlay() {
       return playVisitMarkers(this);
     },
 
+    /**
+     * Folds the store's own fact log — never `engine.state()` — so every
+     * Alpine display expression that calls this re-renders when
+     * `recordFacts` writes a new turn. The engine is a plain class instance;
+     * its internal mutations carry no Alpine reactivity (see
+     * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention).
+     */
     state(this: TuodPlayContext): TuodState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldTuodState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+        this.$store.game.timerExpired ?? false,
+      );
     },
 
     currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string {
@@ -477,7 +490,7 @@ export function tuodPlay() {
       this.showFinishConfirm = false;
     },
 
-    undoAttempt(this: TuodPlayContext) {
+    undoVisit(this: TuodPlayContext) {
       if (this.finished || this.showDoubleConfirm || this.showFinishConfirm)
         return;
       if (!this.engine || !this.engine.undo()) return;

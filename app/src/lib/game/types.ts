@@ -60,6 +60,8 @@ export type TuodDurationType = "ROUNDS" | "MINUTES";
 export type TuodSetupContext = {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
+  durationValue: number | string | null;
+  clampNotice: string;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -337,7 +339,7 @@ export type TuodPlayContext = {
   ): Promise<void>;
   confirmFinish(this: TuodPlayContext): Promise<void>;
   cancelFinish(this: TuodPlayContext): void;
-  undoAttempt(this: TuodPlayContext): void;
+  undoVisit(this: TuodPlayContext): void;
   uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
   back(this: TuodPlayContext): Promise<void>;
   playAgain(this: TuodPlayContext): Promise<void>;

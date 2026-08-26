@@ -74,6 +74,7 @@ describe("tuodSetup", () => {
 
       expect(setup.presets).toEqual([ROUND_PRESET, MINUTES_PRESET]);
       expect(setup.durationType).toBe("ROUNDS");
+      expect(setup.durationValue).toBe(10);
       expect(presetsApi.fetchConfigurationPresets).toHaveBeenCalledWith("TUOD");
     });
 
@@ -311,6 +312,107 @@ describe("tuodSetup", () => {
         expect.objectContaining({
           captureModeKey: "ANALYTICS",
           inputModeKey: "VISUAL_BOARD",
+        }),
+      );
+    });
+
+    it("overrides duration_value with the clamped rounds count once a guest is added", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 25,
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: {
+            source: "template",
+            templateRef: "tmpl-rounds",
+            overrides: { duration_value: 25 },
+          },
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          configSnapshot: expect.objectContaining({ durationValue: 25 }),
+        }),
+      );
+    });
+
+    it("clamps an out-of-range typed rounds count and sets a notice for a guested session", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 500,
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(setup.durationValue).toBe(100);
+      expect(setup.clampNotice).toBe("Allowed range: 1–100 rounds");
+    });
+
+    it("does not override duration_value for a solo session", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 25,
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: { source: "template", templateRef: "tmpl-rounds" },
         }),
       );
     });
