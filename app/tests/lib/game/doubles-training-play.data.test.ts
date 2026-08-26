@@ -433,6 +433,103 @@ describe("completion", () => {
 
     expect(play.resultsSnapshot).toEqual({
       hits: 21,
+      on1st: 21,
+      on2nd: 0,
+      on3rd: 0,
+      accuracy: "100%",
+      misses: 0,
+      winningSideKey: null,
+      status: "COMPLETE",
+    });
+  });
+
+  it("splits hits across on1st/on2nd/on3rd and divides accuracy by darts actually thrown", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 5 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay();
+    await play.init.call(play);
+
+    // Visit 1 (D1): miss, hit — hitDartNumber 2, 2 darts thrown.
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, true);
+    // Visit 2 (D2): miss, miss, hit — hitDartNumber 3, 3 darts thrown.
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, true);
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot).toEqual({
+      hits: 2,
+      on1st: 0,
+      on2nd: 1,
+      on3rd: 1,
+      accuracy: "40%",
+      misses: 0,
+      winningSideKey: null,
+      status: "COMPLETE",
+    });
+  });
+
+  it("counts a full-miss visit's 3 darts in accuracy's denominator", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 4 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay();
+    await play.init.call(play);
+
+    // Visit 1 (D1): miss, miss, miss — 3 darts thrown, 1 miss outcome.
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    // Visit 2 (D2): hit — hitDartNumber 1, 1 dart thrown.
+    await play.recordTap.call(play, true);
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot).toEqual({
+      hits: 1,
+      on1st: 1,
+      on2nd: 0,
+      on3rd: 0,
+      accuracy: "25%",
+      misses: 1,
+      winningSideKey: null,
+      status: "COMPLETE",
+    });
+  });
+
+  it("shows 0% accuracy, not NaN%, when no darts have been thrown", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 0, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot).toEqual({
+      hits: 0,
+      on1st: 0,
+      on2nd: 0,
+      on3rd: 0,
+      accuracy: "0%",
       misses: 0,
       winningSideKey: null,
       status: "COMPLETE",
@@ -514,6 +611,10 @@ describe("completion — 1v1", () => {
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
     expect(play.resultsSnapshot).toEqual({
       hits: 21,
+      on1st: 21,
+      on2nd: 0,
+      on3rd: 0,
+      accuracy: "100%",
       misses: 0,
       winningSideKey: "A",
       status: "COMPLETE",
