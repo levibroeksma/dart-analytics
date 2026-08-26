@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both
@@ -1057,6 +1057,72 @@ describe("recordDart — plain darts", () => {
 
     expect(play.$store.game.turns).toHaveLength(1);
     expect(play.$store.game.turns[0].darts).toHaveLength(1);
+  });
+});
+
+describe("recordDart — reveal-then-clear board markers", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps the closed visit's markers visible, then clears them after 1500ms", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+
+    const clientKey = play.$store.game.turns[0].clientKey;
+    expect(play.hiddenTurnKey).toBeNull();
+    expect(play.visitMarkers.call(play)).not.toEqual([]);
+
+    vi.advanceTimersByTime(1500);
+
+    expect(play.hiddenTurnKey).toBe(clientKey);
+    expect(play.visitMarkers.call(play)).toEqual([]);
+  });
+
+  it("undoVisit cancels a pending hide timer so a reopened visit stays visible", async () => {
+    const play = makePlay({}, { inputModeKey: "VISUAL_BOARD" });
+    await play.init.call(play);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+
+    vi.advanceTimersByTime(1000);
+    play.undoVisit.call(play);
+    vi.advanceTimersByTime(1000);
+
+    expect(play.hiddenTurnKey).toBeNull();
+  });
+
+  it("playAgain resets hiddenTurnKey so the new session's board starts clear", async () => {
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "s2",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+    const play = makePlay(
+      { turns: turnsReaching(40), configSnapshot: bestOf5Config() },
+      { inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    await play.recordDart.call(play, DOUBLE_20);
+    vi.advanceTimersByTime(1500);
+    expect(play.hiddenTurnKey).not.toBeNull();
+
+    await play.playAgain.call(play);
+
+    expect(play.hiddenTurnKey).toBeNull();
   });
 });
 

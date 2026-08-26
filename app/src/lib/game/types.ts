@@ -531,6 +531,9 @@ export type FiveOhOnePlayContext = {
   showMatchFinishConfirm: boolean;
   $store: PlayStoreContext<FiveOhOneSnapshot>;
   engine: FiveOhOneEngine | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: FiveOhOnePlayContext): BoardMarker[];
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
   state(this: FiveOhOnePlayContext): FiveOhOneState | null;
   remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number;
