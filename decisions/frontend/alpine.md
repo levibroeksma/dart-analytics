@@ -33,3 +33,23 @@ Status: Accepted · Date: 2026-08-11
 Decision: The player's throwing hand (`Handedness`, already a `boardInput()` option per D199) is read from a new `boardInput` Alpine store (`stores/board-input.store.ts`, one `$persist` field, `PersistFactory` per D120) rather than added to the server-backed `player_settings`/`v_player_settings` pair. `board-input.data.ts`'s `freshController` now passes `$store.boardInput.handedness` into `boardInput()` instead of relying on its `"RIGHT"` default, and a new `HandednessForm.astro` on the profile page writes the store directly.
 Reason: Which side the magnifier opens on is a per-device rendering preference — it does not describe gameplay, need not sync across devices, and has no server read path today. Routing it through `player_settings` would mean a new migration, endpoint contract bump, service/repository change and view column for a value only the client ever consumes, for no behavioural gain over `$persist`.
 Consequences: Handedness does not follow a player across devices (matches D77/D86's `forms/`-as-substitute precedent for pre-`player_settings` local prefs). If a future need for cross-device sync emerges, migrating this one field into `player_settings` is a small, isolated change against an established pattern (`settings.store.ts`/`AppModeForm.astro`) — not a reason to default there now.
+
+### D233 — Unify the dart-preview reveal timer across input modes
+Status: Accepted · Date: 2026-08-26
+Decision: `play-lifecycle.ts`'s reveal-then-clear timer (`playCommitDart`) no
+longer branches on `inputModeKey`. Every input mode gets the same 1500ms
+delay between a visit resolving and its preview clearing. Bob's 27's
+previously independent, hand-rolled copy of this same timer is deleted; it
+now delegates to `play-lifecycle.ts` like every other per-dart game mode.
+Reason: the branch's non-`VISUAL_BOARD` path set `hiddenTurnKey` in the same
+tick the 3rd dart was recorded, before Alpine's reactive effects repaint —
+so tap/keypad input (the recreational entry path for Bob's 27, Singles
+Training, Doubles Training, Shanghai, and Around the Clock) never actually
+rendered the 3rd dart's preview. This was an accidental divergence between
+input modes, not a deliberate design choice.
+Consequences: every per-dart game mode's preview now behaves identically
+regardless of input mode or seat count. `playPreviewSegments()` (a new
+shared export alongside the timer) replaces 3 duplicated segment-computation
+functions and reshapes the pre-existing shared `doublesPathPreviewSegments`
+helper onto the same gate. See Pattern 19,
+`docs/architecture/04-Architecture-patterns.md`.
