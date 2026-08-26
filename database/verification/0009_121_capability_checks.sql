@@ -3,17 +3,18 @@
 --
 -- Mirrors 0008_shanghai_capability_checks.sql's shape, re-scoped
 -- for the additive 121_V1 row appended to 0007_ruleset_version_
--- capabilities.sql's own VALUES list on top of its original 10.
--- No PostgreSQL server exists in the container that authored this
--- file (D193), so it asserts against a real Neon database before
--- merge:
+-- capabilities.sql's own VALUES list. No PostgreSQL server exists
+-- in the container that authored this file (D193), so it asserts
+-- against a real Neon database before merge:
 --
 --   1. 121_V1 + RECREATIONAL + QUICK_SCORE resolved through the
 --      implementation_key joins
---   2. the table now holds exactly the 11 triples declared across
---      0007 and this file, no more and no fewer (full
---      bidirectional parity with capabilities.ts as of this seed)
---   3. no exercise_sessions row is left undeclared
+--   2. no exercise_sessions row is left undeclared
+--
+-- Full-table exact-count parity (every declared triple present,
+-- no unexpected row) lives in 0007_capability_seed_checks.sql
+-- alone — see that file's header for why. This script owns only
+-- 121_V1's own addition (F7).
 --
 -- Usage:
 --   psql "$DATABASE_URL" -f database/verification/0009_121_capability_checks.sql
@@ -54,46 +55,10 @@ FROM ruleset_versions rv
 WHERE rv.implementation_key = '121_V1';
 
 -- ------------------------------------------------------------
--- Step 2: full-table parity — 0007's 10 triples plus this file's
--- 1 new one, no more and no fewer.
+-- Step 2: no live exercise_sessions row is left undeclared.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '2',
-    'table holds exactly the 11 declared triples, no more and no fewer',
-    CASE
-        WHEN count(*) = 11 THEN 'PASS'
-        ELSE 'FAIL'
-    END,
-    format('expected 11, found %s', count(*))
-FROM ruleset_version_capabilities c
-    JOIN ruleset_versions rv ON rv.id = c.ruleset_version_id
-    JOIN capture_modes cm ON cm.id = c.capture_mode_id
-    JOIN input_modes im ON im.id = c.input_mode_id
-WHERE EXISTS (
-        SELECT 1
-        FROM (
-                VALUES ('501_V1', 'RECREATIONAL', 'QUICK_SCORE'),
-                    ('501_V1', 'ANALYTICS', 'VISUAL_BOARD'),
-                    ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
-                    ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
-                    ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
-                    ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
-                    ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('121_V1', 'RECREATIONAL', 'QUICK_SCORE')
-            ) AS declared(ruleset_key, capture_key, input_key)
-        WHERE declared.ruleset_key = rv.implementation_key
-            AND declared.capture_key = cm.implementation_key
-            AND declared.input_key = im.implementation_key
-    );
-
--- ------------------------------------------------------------
--- Step 3: no live exercise_sessions row is left undeclared.
--- ------------------------------------------------------------
-INSERT INTO verification_results
-SELECT '3',
     'no exercise_sessions row is undeclared',
     CASE
         WHEN undeclared = 0 THEN 'PASS'
