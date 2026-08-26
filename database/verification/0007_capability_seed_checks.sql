@@ -114,8 +114,9 @@ FROM (
     AND c.capture_mode_id = cm.id
     AND c.input_mode_id = im.id;
 
--- Driven by a fixed 9-row VALUES list, so this can only be short if the
--- VALUES list above was edited down — guard it anyway per house style.
+-- Guards against a future edit shortening the VALUES list above without
+-- updating the counts this script asserts — the check-count would then
+-- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
     'all 18 declared triples were actually checked',

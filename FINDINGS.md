@@ -2,7 +2,7 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-08-23
+updated: 2026-08-26
 highest-issued: F28
 -->
 
@@ -53,13 +53,6 @@ Evidence: `scripts/check-context-map.sh` — the check at its "2. Migration rang
 Impact: the defect sat in `DECISIONS.md`'s Deferred list among eleven unbuilt features, where "we chose not to build this" and "this is broken" are indistinguishable
 Proposed: narrow the regex to skip lines naming seeds — partly done for `decisions/**` and seed lines by D194, but the seed-vs-migration ambiguity itself remains
 
-### F7 — Per-game capability verification scripts each assert the complete capability set
-Status: Open · Found: 2026-08-19 · Task: claude/consistency-spec3
-Claim: `database/verification/0010_around_the_clock_capability_checks.sql` is scoped to the one additive `AROUND_THE_CLOCK_V1` row, but its check 2 asserts "the table now holds exactly the 12 triples", i.e. every earlier game's rows too
-Evidence: `database/verification/0010_around_the_clock_capability_checks.sql` header check 2, and the same shape in `database/verification/0009_121_capability_checks.sql`
-Impact: game ten's seed makes both scripts fail on their exact-count assertion, so adding a game means either editing every earlier per-game verification script or knowingly leaving them stale — neither is what a per-game, additive script implies
-Proposed: keep the exact-count parity assertion in the one shared `0007_capability_seed_checks.sql` and narrow the per-game scripts to their own rows
-
 ### F9 — A game-frontend plan written one-commit-per-task collides with `check-game-wiring.sh`'s atomicity requirement
 Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
 Claim: `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list, and a plan written by `writing-plans` from it, break a new game's frontend into sequential per-file tasks (setup controller, setup page, play controller, play page, wiring), each with its own commit
@@ -73,20 +66,6 @@ Claim: `applyTuodAttempt` floors the target at 2 on a miss but has no ceiling on
 Evidence: `app/src/modules/game/tuod.engine.module.ts` — `MIN_FINISHABLE_TARGET` is applied only to the failure branch, while the success branch is `state.currentTarget + config.finishBonus` with no bound; `checkoutPathFor` returns null for every one of those targets
 Impact: once the ladder reaches such a target the session can only ever record failures — `submitVisit` skips the checkout dialog when the chart has no route (matching 501's bogey-number behaviour, D217), so the target drops by `missPenalty` each attempt until it re-enters the chart. Reaching 171 needs 13 consecutive checkouts inside 10 rounds or 10 minutes, so it is unreachable in practice today; it becomes reachable the moment `duration_value` or `finish_bonus` is made editable
 Proposed: decide whether the ladder caps at 170 (the chart's ceiling), skips unfinishable targets on the way up, or is left unbounded on the grounds that the duration ends the session first — and record it, since the current behaviour is unstated rather than chosen
-
-### F11 — A capability-seed verification script's row-count assertions had already drifted stale
-Status: Open · Found: 2026-08-20 · Task: claude/tuod-analytics-plan-os3v5f
-Claim: `database/verification/0007_capability_seed_checks.sql` asserted `ruleset_version_capabilities` held exactly 14 rows, with a VALUES list of 14 declared triples to match
-Evidence: `database/verification/0007_capability_seed_checks.sql` (before this task's fix) vs `database/seeds/0007_ruleset_version_capabilities.sql`, which already held 17 rows at the start of this task — three other rulesets' own `ANALYTICS + VISUAL_BOARD` additions had updated the seed without a matching update to this verification script. This task corrected the count to the real 17 → 18 (after adding TUOD's own row) rather than the originally-planned 14 → 15, but left one descriptive comment ("Driven by a fixed 9-row VALUES list, so this can only be short if the VALUES list above was edited down") unchanged — it was already inaccurate before this task (the list has always had far more than 9 rows) and remains so
-Impact: an agent trusting the row-count text (or the "9-row" comment) as ground truth for how many capability pairs exist would undercount before this fix, and the leftover comment can still mislead about the VALUES list's actual size after it
-Proposed: reword or remove the "9-row" comment near `database/verification/0007_capability_seed_checks.sql`'s Step 2 count-check to state what it actually guards (that the checked-triple count matches the declared VALUES list, whatever its current length), rather than naming a specific row count
-
-### F13 — `scripts/verify-db.ts` does not cover the two dart analytics views
-Status: Open · Found: 2026-08-21 · Task: claude/guest-player-x01-architecture-m8ia8v
-Claim: migration `0023` changes `v_dart_analytics` and `v_dart_locations`, but neither view has a `database/verification/*.sql` script, so no automated check proves the new participant filter behaves as intended against a real database
-Evidence: `database/verification/` holds scripts for `0007` capabilities, `0021` player settings and `0022` player profile among others, with no `0014`/`0018`/`0023` dart-view equivalent; `app/package.json:23` `db:verify` runs `app/scripts/verify-db.ts`
-Impact: the filter's correctness rests on reading the SQL. The specific case worth proving — a session with one PLAYER and one GUEST returns only the PLAYER's dart rows, while `v_game_replay` returns both — is exactly the one no existing test covers, and this task could not run any database check at all (no `DATABASE_URL` in the execution container)
-Proposed: add `database/verification/0023_owner_scoped_dart_view_checks.sql` asserting the two views' owner scoping and `v_game_replay`'s deliberate lack of it, following `0022_player_profile_checks.sql`'s shape
 
 ### F15 — Every game interface repeats a fragile `max-h-2/5 h-full` sizing pair, and one grid item carries a dead `flex-1`
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
