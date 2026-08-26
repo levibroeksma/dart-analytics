@@ -50,15 +50,27 @@ export function magnifierLabelStyle(view: BoardView): string {
  * The magnifier's own position, in viewport pixels, for one pointer position.
  * The anchor is `clientX`/`clientY` and the placement offsets were clamped
  * against the visual viewport, so the element this drives is `fixed`.
+ *
+ * Returns an object, not a string: this binds to the SAME element as
+ * `x-show="board.active"` (BoardMagnifier's outer div). A string return would
+ * make Alpine's `:style` replace the whole `style` attribute on every
+ * re-evaluation (`setAttribute`), wiping out the `display: none` `x-show` had
+ * just set the moment any dependency of this function changes — including
+ * `board` changing while `active` stays false, e.g. on `recordUnseen()` (#159).
+ * The object form merges individual properties instead (`style.setProperty`),
+ * leaving `display` untouched, matching `magnifierBox()`.
  */
 export function magnifierAnchorStyle(
   view: BoardView,
   pointerX: number,
   pointerY: number,
-): string {
+): Record<string, string> {
   const offsetX = view.placement ? view.placement.offsetX : 0;
   const offsetY = view.placement ? view.placement.offsetY : 0;
-  return `left: ${pointerX + offsetX}px; top: ${pointerY + offsetY}px`;
+  return {
+    left: `${pointerX + offsetX}px`,
+    top: `${pointerY + offsetY}px`,
+  };
 }
 
 /**
@@ -92,7 +104,7 @@ type BoardInputDataContext = {
     boardInput: { handedness: Handedness };
   };
   syncBoard(this: BoardInputDataContext): void;
-  magnifierAnchor(this: BoardInputDataContext): string;
+  magnifierAnchor(this: BoardInputDataContext): Record<string, string>;
   magnifierBox(this: BoardInputDataContext): Record<string, string>;
   magnifierBoard(this: BoardInputDataContext): string;
   magnifierLabel(this: BoardInputDataContext): string;
@@ -197,7 +209,7 @@ export function boardInputData(
       };
     },
 
-    magnifierAnchor(this: BoardInputDataContext): string {
+    magnifierAnchor(this: BoardInputDataContext): Record<string, string> {
       return magnifierAnchorStyle(this.board, this.pointerX, this.pointerY);
     },
 

@@ -367,7 +367,7 @@ describe("magnifier styles", () => {
         200,
         300,
       ),
-    ).toBe("left: 124px; top: 224px");
+    ).toEqual({ left: "124px", top: "224px" });
   });
 
   /**
@@ -377,7 +377,23 @@ describe("magnifier styles", () => {
    * evaluator and leave the binding unset.
    */
   it("anchors at the bare pointer while no press has placed it yet", () => {
-    expect(magnifierAnchorStyle(idle, 10, 20)).toBe("left: 10px; top: 20px");
+    expect(magnifierAnchorStyle(idle, 10, 20)).toEqual({
+      left: "10px",
+      top: "20px",
+    });
+  });
+
+  /**
+   * `:style="magnifierAnchor()"` sits on the SAME element as `x-show`
+   * (BoardMagnifier's outer div). A string return would make Alpine replace
+   * the whole `style` attribute on every re-evaluation (`setAttribute`),
+   * wiping out the `display: none` `x-show` had just set — reproduced against
+   * a real Alpine instance in #159. The object form merges individual
+   * properties instead and leaves `display` untouched, exactly like
+   * `magnifierBox()` already does for the inner circle.
+   */
+  it("returns an object, not a string, so it never clobbers x-show's inline display style", () => {
+    expect(magnifierAnchorStyle(idle, 10, 20)).not.toBeTypeOf("string");
   });
 
   it("slides the pressed point under the crosshair at the board's live scale", () => {
