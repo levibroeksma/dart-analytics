@@ -295,6 +295,57 @@ describe("oneTwentyOnePlay", () => {
     });
   });
 
+  describe("checkoutHint", () => {
+    it("shows the 3-dart route when the visit has not started", () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      expect(play.checkoutHint.call(play)).toBe("T20 T11 D14");
+    });
+
+    it("goes blank once the open visit has too few darts left for the route", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+
+      expect(play.checkoutHint.call(play)).toBe("");
+    });
+
+    it("still shows a route reachable with the darts left", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+      play.engine!.record({ scoreAttempted: 81 });
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.recordDart.call(play, {
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+
+      expect(play.checkoutHint.call(play)).toBe("D20");
+    });
+  });
+
   describe("recordDart — reveal-then-clear board markers", () => {
     beforeEach(() => {
       vi.useFakeTimers();
