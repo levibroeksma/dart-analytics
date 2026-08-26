@@ -310,6 +310,9 @@ export type TuodPlayContext = {
   $store: PlayStoreContext<TuodSnapshot>;
   engine: TuodEngine | null;
   timer: SegmentTimer | null;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
+  visitMarkers(this: TuodPlayContext): BoardMarker[];
   state(this: TuodPlayContext): TuodState | null;
   currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
