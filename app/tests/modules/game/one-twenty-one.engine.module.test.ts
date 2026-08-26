@@ -578,6 +578,96 @@ describe("visual board capture", () => {
     expect(engine.state().seats[0].remainingInAttempt).toBe(61);
     expect(engine.facts().turns.at(-1)!.darts).toHaveLength(0);
   });
+
+  it("closes the attempt's 3rd visit early once no finish is reachable, without a 3rd dart", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    // Null coordinates, not `dartAt(0, 0, ...)` — (0, 0) is the bull centre
+    // and would reclassify as INNER_BULL (score 50); a coordinate-less dart
+    // is the only reliable MISS/score-0 fixture (see "keeps a
+    // coordinate-less dart's own zone and scores it 0" above).
+    const missDart: DartObservation = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+
+    engine.record({ scoreAttempted: 0 }); // visit 1: no-op, stays at 121
+    engine.record({ scoreAttempted: 96 }); // visit 2: 121 - 96 = 25, visitsThisAttempt now 2
+
+    engine.record(missDart); // visit 3, dart 1: remaining stays 25, 2 darts left — still reachable (9 D8)
+    expect(engine.state().seats[0].visitsThisAttempt).toBe(2);
+    expect(engine.facts().turns.at(-1)?.completedAt).toBeNull();
+
+    const after = engine.record(missDart); // visit 3, dart 2: 1 dart left — 25 needs 2, unreachable
+
+    const closedVisit = engine.facts().turns.at(-1)!;
+    expect(closedVisit.darts).toHaveLength(2);
+    expect(closedVisit.completedAt).not.toBeNull();
+    expect(after.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 121,
+      remainingInAttempt: 121,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+    });
+  });
+
+  it("does not close visit 1 early on the same unreachable-with-1-dart shape — every dart still required", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    // Climb from 121 to 130 via quick-score checkouts, so visit 1 of target
+    // 130 starts fresh (visitsThisAttempt 0) rather than reusing 121's own
+    // 3-dart-route shape.
+    for (let target = 121; target < 130; target += 1) {
+      engine.record({ scoreAttempted: target, finishedOnDouble: true });
+    }
+
+    engine.record(trebleTwenty); // 130 - 60 = 70, 2 darts left — reachable (T18 D8)
+    const after = engine.record(trebleNineteen); // 70 - 57 = 13, 1 dart left — 13 needs 2 (5 D4), unreachable
+
+    expect(after.seats[0].visitsThisAttempt).toBe(0); // visit still open, not yet counted
+    const openVisit = engine.facts().turns.at(-1)!;
+    expect(openVisit.darts).toHaveLength(2);
+    expect(openVisit.completedAt).toBeNull();
+  });
+
+  it("still requires the dart in the final visit when a finish is reachable, and lets it check out", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    const missDart: DartObservation = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+
+    engine.record({ scoreAttempted: 0 }); // visit 1: no-op, stays at 121
+    engine.record({ scoreAttempted: 81 }); // visit 2: 121 - 81 = 40, visitsThisAttempt now 2
+
+    engine.record(missDart); // visit 3, dart 1: remaining stays 40, 2 darts left
+    const afterSecondMiss = engine.record(missDart); // dart 2: 1 dart left — 40 needs 1 (D20), still reachable
+
+    expect(afterSecondMiss.seats[0].visitsThisAttempt).toBe(2);
+    const stillOpen = engine.facts().turns.at(-1)!;
+    expect(stillOpen.darts).toHaveLength(2);
+    expect(stillOpen.completedAt).toBeNull();
+
+    const checkedOut = engine.record(doubleTwenty); // dart 3: D20 finishes 40 exactly
+    expect(checkedOut.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 122,
+      remainingInAttempt: 122,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+    });
+  });
 });
 
 describe("OneTwentyOneEngine.wouldComplete — visual board", () => {
