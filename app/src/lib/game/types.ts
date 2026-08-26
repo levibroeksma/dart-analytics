@@ -121,6 +121,8 @@ export type BoardView = {
   pxPerMm: number;
 };
 
+export type PreviewSegment = { status: "hit" | "miss" | "empty" };
+
 /** One landed dart, positioned as a percentage of the board's rendered box. */
 export type BoardMarker = {
   sequence: number;

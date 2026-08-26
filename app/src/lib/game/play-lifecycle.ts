@@ -14,13 +14,19 @@ import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
 import type { RulesetVersionKey, Seated } from "@lib/types";
-import type { DartObservation, EngineFacts } from "@modules/types";
+import type {
+  DartFact,
+  DartObservation,
+  EngineFacts,
+  TurnFact,
+} from "@modules/types";
 import type { GameEngine } from "@modules/interfaces";
 import type {
   BoardMarker,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
+  PreviewSegment,
 } from "./types";
 
 function currentFacts<
@@ -170,6 +176,36 @@ export function playVisitMarkers<
     return [];
   }
   return markersForTurns(context.$store.game.turns);
+}
+
+const EMPTY_PREVIEW_SEGMENTS: readonly PreviewSegment[] = [
+  { status: "empty" },
+  { status: "empty" },
+  { status: "empty" },
+];
+
+/**
+ * The open visit's 3-dart preview strip: the last turn's darts classified
+ * hit/miss by the caller's own rule, padded to 3 placeholders, or all 3
+ * empty once there is no turn yet or its reveal-then-clear timer
+ * (`playCommitDart`) has fired. `classify` only runs once a turn exists, so
+ * a caller may safely read state that assumes one (e.g. `turns.length - 1`
+ * as the current visit's index).
+ */
+export function playPreviewSegments(
+  turns: readonly TurnFact[],
+  hiddenTurnKey: string | null,
+  classify: (dart: DartFact, index: number) => "hit" | "miss",
+): PreviewSegment[] {
+  const lastTurn = turns.at(-1);
+  if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
+    return [...EMPTY_PREVIEW_SEGMENTS];
+  }
+  return [0, 1, 2].map((i) => {
+    const dart = lastTurn.darts[i];
+    if (!dart) return { status: "empty" };
+    return { status: classify(dart, i) };
+  });
 }
 
 /**
