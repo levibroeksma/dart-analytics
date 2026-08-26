@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import {
+  checkoutPathFor,
+  isCheckoutReachable,
+} from "@modules/game/checkout-path.module";
 
 describe("checkoutPathFor", () => {
   it("returns the highest possible finish for 170", () => {
@@ -94,4 +97,32 @@ describe("checkoutPathFor — table-wide invariants", () => {
       expect(checkoutPathFor(bogey)).toBeNull();
     });
   }
+});
+
+describe("isCheckoutReachable", () => {
+  it("is true when the route's minimum darts exactly matches darts available", () => {
+    expect(isCheckoutReachable(121, 3)).toBe(true); // T20 T11 D14 = 3 darts
+  });
+
+  it("is true with slack darts to spare", () => {
+    expect(isCheckoutReachable(25, 3)).toBe(true); // 9 D8 = 2 darts, 3 available
+  });
+
+  it("is false when fewer darts remain than the route needs", () => {
+    expect(isCheckoutReachable(25, 1)).toBe(false); // needs 2, only 1 left
+  });
+
+  it("is true for a single-dart double with exactly 1 dart left", () => {
+    expect(isCheckoutReachable(40, 1)).toBe(true); // D20
+  });
+
+  it("is false for every bogey number regardless of darts available", () => {
+    for (const bogey of [169, 168, 166, 165, 163, 162, 159, 1]) {
+      expect(isCheckoutReachable(bogey, 3)).toBe(false);
+    }
+  });
+
+  it("is false when no darts remain", () => {
+    expect(isCheckoutReachable(40, 0)).toBe(false);
+  });
 });
