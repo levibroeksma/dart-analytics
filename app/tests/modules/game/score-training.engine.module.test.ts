@@ -802,6 +802,13 @@ describe("ScoreTrainingEngine — 1v1", () => {
       ).toBe(true);
     }
   });
+
+  it("does not complete while the other seat still has budget left", () => {
+    const engine = new ScoreTrainingEngine(twoSeatConfig);
+    engine.record(20); // p1 round 1
+
+    expect(engine.wouldComplete(60)).toBe(false);
+  });
 });
 
 describe("ScoreTrainingEngine — 1v1 completion guard", () => {
