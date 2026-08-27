@@ -48,8 +48,13 @@ function isDartObservation(
 
 /**
  * Folds the whole fact log into the session's state, mirroring
- * `foldTuodState`. Score-compare, highest total wins: both seats always play
- * out their own full ROUNDS budget (1v1 offers ROUNDS only — see
+ * `foldTuodState`. `totalScore` sums every one of a seat's turns, open or
+ * closed — a dart-captured visit's `totalScore` is kept live by
+ * `recordDart` on every dart, before the visit closes, so a still-open
+ * visit's darts already count toward the seat's total (#168); `turnCount`
+ * counts only closed turns, so an open visit is never treated as a played
+ * round. Score-compare, highest total wins: both seats always play out
+ * their own full ROUNDS budget (1v1 offers ROUNDS only — see
  * `score-training-setup.data.ts`). `activeSeat` IS passed a real completion
  * predicate here (the 4-argument form), and it is structurally a no-op for
  * the same reason `foldTuodState`'s is: a uniform per-seat budget under
@@ -61,16 +66,17 @@ export function foldScoreTrainingState(
   timerExpired: boolean,
 ): ScoreTrainingState {
   const seats: ScoreTrainingSeatState[] = config.seats.map((seat) => {
-    const closed = facts.turns.filter(
-      (turn) =>
-        turn.participantRef === seat.participantRef &&
-        turn.completedAt !== null,
+    const seatTurns = facts.turns.filter(
+      (turn) => turn.participantRef === seat.participantRef,
     );
+    const closedCount = seatTurns.filter(
+      (turn) => turn.completedAt !== null,
+    ).length;
     return {
       participantRef: seat.participantRef,
       sideKey: seat.sideKey,
-      turnCount: closed.length,
-      totalScore: closed.reduce((sum, turn) => sum + turn.totalScore, 0),
+      turnCount: closedCount,
+      totalScore: seatTurns.reduce((sum, turn) => sum + turn.totalScore, 0),
     };
   });
 
