@@ -922,3 +922,14 @@ describe("TUOD mixed-input undo", () => {
     expect(() => engine.record(CHECKOUT)).toThrow(/Finish the open attempt/);
   });
 });
+
+describe("TuodEngine final-dart odd-remainder early bust", () => {
+  it("busts on the visit's 2nd dart when only an odd remainder is left with one dart to go", () => {
+    const engine = tuodEngineFactory.create(config());
+
+    engine.record(SINGLE_1);
+    const state = engine.record(SINGLE_1);
+
+    expect(state.seats[0].failures).toBe(1);
+  });
+});

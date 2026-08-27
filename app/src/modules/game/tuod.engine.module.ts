@@ -1,5 +1,6 @@
 import type { TuodSnapshot, Seated, SeatFact } from "@lib/types";
 import { checkoutDartsRejection } from "./checkout-darts.module";
+import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import { registerEngineFactory } from "./engine.registry";
 import {
   appendCompletedTurn,
@@ -70,26 +71,31 @@ function isDartObservation(input: TuodInput): input is DartObservation {
 }
 
 /**
- * Whether a visit that has `remainingAfter` points left once its last dart
- * landed in `lastZoneKey`, with `dartsRemaining` darts still to throw, has
- * checked out or busted. Shared by `settleVisit` (which stamps the resolved
- * fact) and `wouldCompleteDart` (which only asks whether it would resolve) so
- * the bust/checkout rule — overshoot, exactly 1 left, reaching 0 without a
- * double, or a last dart's remainder that no double can ever finish (odd,
- * since every double scores even) — is written once.
+ * Whether a visit that scored `scored` off `remainingBefore`, with its last
+ * dart landing in `lastZoneKey` and `dartsRemaining` darts still to throw,
+ * has checked out or busted. Shared by `settleVisit` (which stamps the
+ * resolved fact) and `wouldCompleteDart` (which only asks whether it would
+ * resolve) so the bust/checkout rule — overshoot, exactly 1 left, reaching 0
+ * without a double, or a last dart's remainder that no double can ever
+ * finish (odd, since every double scores even) — is written once.
  */
 function visitOutcome(
-  remainingAfter: number,
+  remainingBefore: number,
+  scored: number,
   lastZoneKey: DartZoneKey,
   dartsRemaining: number,
-): { checkedOut: boolean; busted: boolean } {
-  const checkedOut = remainingAfter === 0 && lastZoneKey === "DOUBLE";
+): { remainingAfter: number; checkedOut: boolean; busted: boolean } {
+  const outcome = resolveCheckoutAttempt(
+    remainingBefore,
+    scored,
+    lastZoneKey === "DOUBLE",
+  );
   const busted =
-    remainingAfter < 0 ||
-    remainingAfter === 1 ||
-    (remainingAfter === 0 && !checkedOut) ||
-    (dartsRemaining === 1 && remainingAfter > 1 && remainingAfter % 2 !== 0);
-  return { checkedOut, busted };
+    outcome.busted ||
+    (dartsRemaining === 1 &&
+      outcome.remainingAfter > 1 &&
+      outcome.remainingAfter % 2 !== 0);
+  return { ...outcome, busted };
 }
 
 function initialSeatState(config: TuodSnapshot, seat: SeatFact): TuodSeatState {
@@ -307,10 +313,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    */
   private settleVisit(visit: TurnFact): boolean {
     const thrown = sumDartScores(visit.darts);
-    const remainingAfter = this.targetBeforeVisit(visit) - thrown;
     const lastDart = visit.darts.at(-1)!;
     const { checkedOut, busted } = visitOutcome(
-      remainingAfter,
+      this.targetBeforeVisit(visit),
+      thrown,
       lastDart.hitZoneKey,
       this.config.maxDartsPerTurn - visit.darts.length,
     );
@@ -442,10 +448,10 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     const resolved = resolveObservation(observation);
     const thrown =
       priorDarts.reduce((sum, dart) => sum + dart.score, 0) + resolved.score;
-    const remainingAfter = target - thrown;
     const dartCount = priorDarts.length + 1;
     const { checkedOut, busted } = visitOutcome(
-      remainingAfter,
+      target,
+      thrown,
       resolved.zoneKey,
       this.config.maxDartsPerTurn - dartCount,
     );
