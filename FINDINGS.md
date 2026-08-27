@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-27
-highest-issued: F37
+highest-issued: F38
 -->
 
 # Findings
@@ -171,3 +171,10 @@ Claim: `around-the-clock-play.data.ts`'s `previewSegments()` filters `this.$stor
 Evidence: `app/src/modules/game/seat-rota.module.ts:53-78` (`activeSeat`'s own doc: "A visit still open always holds its own seat... the thrower keeps the turn until it resolves" — implying, correctly, that a *closed* turn does not); `app/src/lib/game/around-the-clock-play.data.ts:225-235` (`previewSegments()` filters by `state.activeParticipantRef` before calling `previewSegmentsFor`)
 Impact: in a 1v1 Around the Clock session, for the 1.5s window after a turn closes, the visible preview strip is scoped to the wrong seat's turn history — at minimum showing a stale/empty strip instead of the just-thrown darts' hit/miss marks, since the newly-active seat's own last turn (if any) is a different turn entirely; not yet reported by a user, found while tracing issue #166's identical-shaped Shanghai bug
 Proposed: scope `previewSegments()`'s turn filter to the last turn's own `participantRef` (`this.$store.game.turns.at(-1)?.participantRef`), not `state.activeParticipantRef` — the same fix direction as F32 and this issue's own Shanghai fix, adapted to Around the Clock's `previewSegmentsFor(config, seatTurns, hiddenTurnKey)` signature
+
+### F38 — Issue #169 Part B's own spec names the wrong file for its new shared type
+Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
+Claim: `docs/superpowers/specs/2026-08-27-score-training-rounds-limit-seat-fix-design.md`'s Design section states `ExistingTurnCounts` is defined in `app/src/services/rulesets/types.ts`, but the implementation plan written from that same spec (and the shipped code) correctly places it in `app/src/repositories/interfaces.ts` instead, per `app/CLAUDE.md`'s Controller → Service → Repository type-flow direction and the `ProvisionedPlayer` precedent in that same file
+Evidence: `docs/superpowers/specs/2026-08-27-score-training-rounds-limit-seat-fix-design.md:73` (`// app/src/services/rulesets/types.ts`) vs. `docs/superpowers/plans/2026-08-27-score-training-rounds-limit-seat-fix.md:13` and the shipped `app/src/repositories/interfaces.ts`, which both use the repository location
+Impact: `docs/superpowers/specs/**` is a historical record (`docs/CLAUDE.md`), so this is not corrected in place; a future reader of the spec alone (not the plan) would look for the type in the wrong file
+Proposed: none — historical specs are status notes, never rewritten; noted here only so the discrepancy isn't mistaken for a live doc defect
