@@ -7,7 +7,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Feature                                                      | Version |
 | ------------------------------------------------------------ | ------- |
 | Single player                                                | v1      |
-| Multiplayer                                                  | TBD     |
+| Multiplayer (1v1)                                            | V1      |
 | Config screen (presets shown)                                | v1      |
 | Easy mode (advance after visit even on miss)                 | v1      |
 | Hard mode (stay until hit)                                   | TBD     |
@@ -30,6 +30,7 @@ Doubles practice: work through each double (and bull) with three darts per targe
 
 - **Target:** hit the current double within the visit rules for the active mode.
 - **Session (V1 easy):** visit every double once in order (1…20, then bull), whether or not you hit.
+- **1v1:** most doubles hit across all 21 targets wins; ties possible, no tiebreak in this version.
 
 ## Config & presets (V1)
 
@@ -78,10 +79,6 @@ Same three darts per target and early end on hit, but the player **stays on the 
 ### Variants — Challenge mode
 
 Same as hard for hits, but if the player **misses with all three darts**, they **move back** one double. On **D1**, missing all three is **game over**.
-
-### Variants — Multiplayer (1v1)
-
-1v1 win condition: most doubles hit across all 21 targets; ties possible, no tiebreak in this version.
 
 ### Config
 

@@ -7,7 +7,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Feature                                       | Version |
 | --------------------------------------------- | ------- |
 | Single player                                 | v1      |
-| Multiplayer                                   | TBD     |
+| Multiplayer (1v1)                             | V1      |
 | Online multiplayer                            | TBD     |
 | Config screen (presets shown)                 | v1      |
 | Order: low → high (1…20, bull)                | v1      |
@@ -30,6 +30,7 @@ Section training: one target at a time, three darts each, scoring by ring qualit
 
 - **Target:** throw three darts at the current section; earn training points for hits on that section.
 - **Session (V1):** complete the full order (all numbers and bull once) and total the points.
+- **1v1:** highest total training points wins; ties possible, no tiebreak in this version.
 
 ## Config & presets (V1)
 
@@ -81,10 +82,6 @@ N/A.
 ### Match structure
 
 - Multiplayer / online multiplayer
-
-### Variants — Multiplayer (1v1)
-
-1v1 win condition: highest total points; ties possible, no tiebreak in this version.
 
 ## Glossary
 
