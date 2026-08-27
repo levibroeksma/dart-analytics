@@ -490,6 +490,125 @@ describe("visual board capture", () => {
   });
 });
 
+describe("ScoreTrainingEngine.state — open visit contributes to totalScore (#168)", () => {
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  const visualConfig = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+    seats: SEATS,
+  } as never;
+
+  it("counts darts toward totalScore as they're thrown, before the visit closes", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      visualConfig,
+      undefined,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].totalScore).toBe(60);
+
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].totalScore).toBe(
+      120,
+    );
+
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].totalScore).toBe(
+      180,
+    );
+  });
+
+  it("keeps a reopened visit's partial total after undo, instead of dropping it to 0", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      visualConfig,
+      undefined,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].totalScore).toBe(
+      180,
+    );
+
+    expect(engine.undo()).toBe(true);
+
+    expect((engine.state() as ScoreTrainingState).seats[0].totalScore).toBe(
+      120,
+    );
+    expect(engine.facts().turns[0]!.completedAt).toBeNull();
+  });
+
+  it("does not count a still-open visit toward turnCount", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      visualConfig,
+      undefined,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(0);
+
+    engine.record(trebleTwenty);
+    expect((engine.state() as ScoreTrainingState).seats[0].turnCount).toBe(1);
+  });
+});
+
+describe("ScoreTrainingEngine — 1v1 open visit isolation (#168)", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const twoSeatVisualConfig = {
+    maxVisitScore: 180,
+    durationType: "ROUNDS",
+    durationValue: 2,
+    seats: twoSeats,
+  } as never;
+
+  const trebleTwenty = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE",
+    locationX: 0,
+    locationY: -102,
+  } as const;
+
+  it("an open visit's partial darts count only toward the throwing seat, and status stays IN_PROGRESS", () => {
+    const engine = scoreTrainingEngineFactory.create(
+      twoSeatVisualConfig,
+      undefined,
+    ) as ScoreTrainingEngine;
+
+    engine.record(trebleTwenty);
+
+    const state = engine.state() as ScoreTrainingState;
+    expect(state.seats.find((s) => s.participantRef === "p1")!.totalScore).toBe(
+      60,
+    );
+    expect(state.seats.find((s) => s.participantRef === "p2")!.totalScore).toBe(
+      0,
+    );
+    expect(state.status).toBe("IN_PROGRESS");
+  });
+});
+
 describe("ScoreTrainingEngine.record — keypad input under VISUAL_BOARD (shape-based dispatch)", () => {
   const trebleTwenty = {
     hitTargetNumber: 20,
