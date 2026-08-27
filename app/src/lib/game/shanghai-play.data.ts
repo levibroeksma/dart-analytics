@@ -13,6 +13,7 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
@@ -108,10 +109,7 @@ function statsFor(
     if (bucket === "SINGLE") singles += 1;
   });
 
-  const accuracy =
-    seatDarts.length === 0
-      ? "0%"
-      : `${Math.round((hits / seatDarts.length) * 100)}%`;
+  const accuracy = accuracyDisplay(hits, seatDarts.length);
 
   return {
     participantRef: seat.participantRef,
