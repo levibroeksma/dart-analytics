@@ -518,7 +518,7 @@ describe("accuracy", () => {
   it("is 0% before any dart is thrown", async () => {
     const play = makePlay();
     await play.init.call(play);
-    expect(play.accuracy.call(play)).toBe("0%");
+    expect(play.accuracy.call(play)).toBe("0.00%");
   });
 
   it("reflects genuine target hits over darts thrown, not just darts that hit the board", async () => {

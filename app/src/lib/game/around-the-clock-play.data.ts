@@ -17,6 +17,7 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type {
   AroundTheClockSnapshot,
   RulesetVersionKey,
@@ -115,11 +116,6 @@ function countDarts(turns: readonly TurnFact[]): number {
   return turns.reduce((total, turn) => total + turn.darts.length, 0);
 }
 
-/** `hits`/`darts` as a percentage, rounded to 2 decimals; "0%" before any dart is thrown. */
-function accuracyLabel(hits: number, darts: number): string {
-  return darts === 0 ? "0%" : `${((hits / darts) * 100).toFixed(2)}%`;
-}
-
 function resumeEngine(
   game: AroundTheClockPlayContext["$store"]["game"],
 ): AroundTheClockEngine | null {
@@ -207,12 +203,12 @@ export function aroundTheClockPlay() {
       const turns = this.$store.game.turns.filter(
         (turn) => turn.participantRef === seatRef,
       );
-      return accuracyLabel(countHits(config, turns), countDarts(turns));
+      return accuracyDisplay(countHits(config, turns), countDarts(turns));
     },
 
     accuracy(this: AroundTheClockPlayContext): string {
       const state = this.state();
-      if (!state) return "0%";
+      if (!state) return "0.00%";
       return this.accuracyFor(state.activeParticipantRef);
     },
 
@@ -317,8 +313,11 @@ export function aroundTheClockPlay() {
       return playUploadAndCompleteSession(this, () => ({
         turns: ownerTurns.length,
         accuracy: config
-          ? accuracyLabel(countHits(config, ownerTurns), countDarts(ownerTurns))
-          : "0%",
+          ? accuracyDisplay(
+              countHits(config, ownerTurns),
+              countDarts(ownerTurns),
+            )
+          : "0.00%",
         totalDarts: countDarts(ownerTurns),
         winningSideKey: state?.winningSideKey ?? null,
         status: (state?.status ?? "COMPLETE") as "COMPLETE" | "TIE",
