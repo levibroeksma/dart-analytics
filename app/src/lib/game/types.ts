@@ -842,12 +842,37 @@ export type DoublesTrainingPlayContext = {
 /** One dart slot in Shanghai's visit preview — a resolved hit/miss mark (against the round's own number), or a not-yet-thrown placeholder. */
 export type ShanghaiPreviewSegment = { status: "hit" | "miss" | "empty" };
 
-/** `round` is 1-indexed: the round the session ended on — always 20 for a `COMPLETE`/`TIE` session, the round the Shanghai landed on for a `SHANGHAI` one. `status` mirrors the match-level `ShanghaiState.status`, not the owner seat's own status — a solo session's own status and the match status always coincide, but only the match status can read `TIE`. */
-export type ShanghaiResultsSnapshot = {
+/** One seat's own results stats. `round` is 1-indexed: the round that seat
+ * ended on — always 20 for a `COMPLETE`/`TIE` session, the round the
+ * Shanghai landed on for a `SHANGHAI` one (the losing seat in a
+ * Shanghai-ending 1v1 session may show an earlier round, if the match ended
+ * before its own turn came back around). `accuracy` is that seat's hits
+ * (darts landing on its own round's assigned number) over darts thrown,
+ * formatted as a percentage, `"0%"` when it never threw a dart (e.g. the
+ * losing seat in a 1v1 session that ended on the opening seat's own
+ * round-1 Shanghai). `trebles`/`doubles`/`singles` are raw zone tallies
+ * over every dart that seat threw, independent of whether it hit that
+ * round's own target — a bull hit or a miss increments none of the three. */
+export type ShanghaiSeatResult = {
+  participantRef: string;
+  sideKey: string;
   score: number;
-  status: "SHANGHAI" | "COMPLETE" | "TIE";
   round: number;
+  accuracy: string;
+  trebles: number;
+  doubles: number;
+  singles: number;
+};
+
+/** `status` mirrors the match-level `ShanghaiState.status`, not any one
+ * seat's own status — a solo session's own status and the match status
+ * always coincide, but only the match status can read `TIE`. `seats` has
+ * one entry per configured seat (1 for solo, 2 for 1v1), in the same order
+ * `$store.game.seats` is already in. */
+export type ShanghaiResultsSnapshot = {
+  status: "SHANGHAI" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
+  seats: ShanghaiSeatResult[];
 };
 
 export type ShanghaiPlayContext = {

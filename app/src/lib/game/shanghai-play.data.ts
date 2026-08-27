@@ -14,19 +14,27 @@ import {
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
 import type { RulesetVersionKey } from "@lib/types";
-import type { DartObservation, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  ShanghaiSeatState,
+  ShanghaiState,
+  TurnFact,
+} from "@modules/types";
 import type {
   BoardMarker,
   ShanghaiPlayContext,
   ShanghaiPreviewSegment,
+  ShanghaiSeatResult,
 } from "./types";
-import type { ShanghaiState } from "@modules/types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // shanghaiEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
+import {
+  ShanghaiEngine,
+  zoneBucketOf,
+} from "@modules/game/shanghai.engine.module";
 
 const GAME_TYPE_KEY = "SHANGHAI";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SHANGHAI_V1";
@@ -67,6 +75,54 @@ function previewSegmentsFor(
     const targetNumber = targetNumberAt(seatRoundIndex);
     return dart.hitTargetNumber === targetNumber ? "hit" : "miss";
   });
+}
+
+/**
+ * One seat's own results stats, replayed from its own darts in `turns` — a
+ * seat's `targetIndex`/`totalScore` (from `finalState`) name where it ended
+ * and its final score, but not its per-dart accuracy or zone breakdown,
+ * which need each dart's own round at the time it was thrown. Every one of
+ * a seat's own turns holds exactly 3 darts by the time a session is fully
+ * complete (Shanghai has no early-visit-end rule), so grouping the seat's
+ * flattened darts into 3s in throw order reproduces its round-by-round
+ * history exactly.
+ */
+function statsFor(
+  seat: ShanghaiSeatState,
+  turns: readonly TurnFact[],
+): ShanghaiSeatResult {
+  const seatDarts = turns
+    .filter((turn) => turn.participantRef === seat.participantRef)
+    .flatMap((turn) => turn.darts);
+
+  let hits = 0;
+  let trebles = 0;
+  let doubles = 0;
+  let singles = 0;
+  seatDarts.forEach((dart, index) => {
+    const targetNumber = targetNumberAt(Math.floor(index / 3));
+    if (dart.hitTargetNumber === targetNumber) hits += 1;
+    const bucket = zoneBucketOf(dart.hitZoneKey);
+    if (bucket === "TREBLE") trebles += 1;
+    if (bucket === "DOUBLE") doubles += 1;
+    if (bucket === "SINGLE") singles += 1;
+  });
+
+  const accuracy =
+    seatDarts.length === 0
+      ? "0%"
+      : `${Math.round((hits / seatDarts.length) * 100)}%`;
+
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    score: seat.totalScore,
+    round: seat.targetIndex + 1,
+    accuracy,
+    trebles,
+    doubles,
+    singles,
+  };
 }
 
 function resumeEngine(
@@ -214,21 +270,12 @@ export function shanghaiPlay() {
     },
 
     uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
-      return playUploadAndCompleteSession(this, (finalState) => {
-        const ownerSeat =
-          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
-          finalState.seats[0];
-        return {
-          score: ownerSeat.totalScore,
-          status: finalState.status as "SHANGHAI" | "COMPLETE" | "TIE",
-          round: ownerSeat.targetIndex + 1,
-          winningSideKey: finalState.winningSideKey,
-        };
-      });
+      const turns = this.$store.game.turns;
+      return playUploadAndCompleteSession(this, (finalState) => ({
+        status: finalState.status as "SHANGHAI" | "COMPLETE" | "TIE",
+        winningSideKey: finalState.winningSideKey,
+        seats: finalState.seats.map((seat) => statsFor(seat, turns)),
+      }));
     },
 
     back(this: ShanghaiPlayContext) {

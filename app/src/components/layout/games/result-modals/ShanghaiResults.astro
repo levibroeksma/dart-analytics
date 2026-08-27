@@ -2,6 +2,15 @@
 import Button from "@components/forms/Button.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import IsLoading from "@components/ui/IsLoading.astro";
+
+const STAT_ROWS = [
+  { label: "Score", key: "score" },
+  { label: "Round", key: "round" },
+  { label: "Accuracy", key: "accuracy" },
+  { label: "Trebles", key: "trebles" },
+  { label: "Doubles", key: "doubles" },
+  { label: "Singles", key: "singles" },
+] as const;
 ---
 
 <div
@@ -26,21 +35,52 @@ import IsLoading from "@components/ui/IsLoading.astro";
     >
     </h2>
 
-    {/* Stats: shown once the final score is known */}
+    {/* Solo: one column of StatRow entries, same shape as before, more rows */}
     <dl
       class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-      x-show="completionStatus === 'succeeded' && resultsSnapshot"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 1"
       x-cloak
     >
-      <StatRow
-        label="Total score"
-        value="resultsSnapshot?.score"
-      />
-      <StatRow
-        label="Round reached"
-        value="resultsSnapshot?.round"
-      />
+      {
+        STAT_ROWS.map((row) => (
+          <StatRow
+            label={row.label}
+            value={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+          />
+        ))
+      }
     </dl>
+
+    {/* 1v1: comparison rows — stat label centered, values on either side */}
+    <div
+      class="mt-4 space-y-2 text-sm"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 2"
+      x-cloak
+    >
+      <div class="flex justify-between text-xs font-semibold text-foreground">
+        <span
+          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
+        ></span>
+        <span
+          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
+        ></span>
+      </div>
+      {
+        STAT_ROWS.map((row) => (
+          <div class="flex justify-between items-center font-display-mono">
+            <dd
+              class="font-mono text-sm font-bold tabular-nums text-foreground"
+              x-text={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+            />
+            <dt class="text-sm text-muted-foreground">{row.label}</dt>
+            <dd
+              class="font-mono text-sm font-bold tabular-nums text-foreground"
+              x-text={`resultsSnapshot?.seats?.[1]?.${row.key}`}
+            />
+          </div>
+        ))
+      }
+    </div>
 
     {/* Completion status */}
     <div class="mt-4">

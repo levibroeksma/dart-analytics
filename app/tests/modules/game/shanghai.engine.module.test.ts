@@ -5,6 +5,7 @@ import {
   initialShanghaiState,
   ShanghaiEngine,
   shanghaiEngineFactory,
+  zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -88,6 +89,25 @@ describe("shanghaiEngineFactory", () => {
     const engine = shanghaiEngineFactory.create(config);
     expect(engine).toBeInstanceOf(ShanghaiEngine);
     expect(engine.rulesetVersionKey).toBe("SHANGHAI_V1");
+  });
+});
+
+describe("zoneBucketOf", () => {
+  it("buckets every single-ring zone key as SINGLE", () => {
+    expect(zoneBucketOf("SINGLE")).toBe("SINGLE");
+    expect(zoneBucketOf("INNER_SINGLE")).toBe("SINGLE");
+    expect(zoneBucketOf("OUTER_SINGLE")).toBe("SINGLE");
+  });
+
+  it("buckets DOUBLE and TREBLE as themselves", () => {
+    expect(zoneBucketOf("DOUBLE")).toBe("DOUBLE");
+    expect(zoneBucketOf("TREBLE")).toBe("TREBLE");
+  });
+
+  it("buckets both bull zones and MISS as null — none of the three", () => {
+    expect(zoneBucketOf("OUTER_BULL")).toBeNull();
+    expect(zoneBucketOf("INNER_BULL")).toBeNull();
+    expect(zoneBucketOf("MISS")).toBeNull();
   });
 });
 

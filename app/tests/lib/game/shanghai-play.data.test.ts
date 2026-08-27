@@ -279,10 +279,20 @@ describe("recordTap", () => {
 
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
-      score: 6,
       status: "SHANGHAI",
-      round: 1,
       winningSideKey: "A",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 6,
+          round: 1,
+          accuracy: "100%",
+          trebles: 1,
+          doubles: 1,
+          singles: 1,
+        },
+      ],
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -318,10 +328,20 @@ describe("completion at round 20", () => {
 
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
-      score: 3 * ((19 * 20) / 2),
       status: "COMPLETE",
-      round: 20,
       winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 3 * ((19 * 20) / 2),
+          round: 20,
+          accuracy: "95%",
+          trebles: 0,
+          doubles: 0,
+          singles: 57,
+        },
+      ],
     });
   });
 
@@ -342,10 +362,20 @@ describe("completion at round 20", () => {
     await play.recordTap.call(play, "TREBLE");
 
     expect(play.resultsSnapshot).toEqual({
-      score: 3 * ((19 * 20) / 2) + 20 + 40 + 60,
       status: "SHANGHAI",
-      round: 20,
       winningSideKey: "A",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 3 * ((19 * 20) / 2) + 20 + 40 + 60,
+          round: 20,
+          accuracy: "100%",
+          trebles: 1,
+          doubles: 1,
+          singles: 58,
+        },
+      ],
     });
   });
 });
@@ -420,8 +450,32 @@ describe("session completion — 1v1", () => {
 
     expect(play.finished).toBe(true);
     expect(play.completionStatus).toBe("succeeded");
-    expect(play.resultsSnapshot?.status).toBe("SHANGHAI");
-    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsSnapshot).toEqual({
+      status: "SHANGHAI",
+      winningSideKey: "A",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 6,
+          round: 1,
+          accuracy: "100%",
+          trebles: 1,
+          doubles: 1,
+          singles: 1,
+        },
+        {
+          participantRef: "participant-2",
+          sideKey: "B",
+          score: 0,
+          round: 1,
+          accuracy: "0%",
+          trebles: 0,
+          doubles: 0,
+          singles: 0,
+        },
+      ],
+    });
   });
 
   it("marks status TIE, with winningSideKey null, when both seats finish with the same score and no Shanghai", async () => {
@@ -446,6 +500,28 @@ describe("session completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        score: 0,
+        round: 20,
+        accuracy: "0%",
+        trebles: 0,
+        doubles: 0,
+        singles: 0,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        score: 0,
+        round: 20,
+        accuracy: "0%",
+        trebles: 0,
+        doubles: 0,
+        singles: 0,
+      },
+    ]);
   });
 
   it("names the higher-scoring seat the winner once both complete all 20 rounds without a Shanghai", async () => {
@@ -476,6 +552,28 @@ describe("session completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("COMPLETE");
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        score: 3 * ((20 * 21) / 2),
+        round: 20,
+        accuracy: "100%",
+        trebles: 0,
+        doubles: 0,
+        singles: 60,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        score: 0,
+        round: 20,
+        accuracy: "0%",
+        trebles: 0,
+        doubles: 0,
+        singles: 0,
+      },
+    ]);
   });
 });
 
