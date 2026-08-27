@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-08-26
-highest-issued: F31
+updated: 2026-08-27
+highest-issued: F33
 -->
 
 # Findings
@@ -136,3 +136,17 @@ Claim: `score-training-play.data.ts`, `doubles-training-play.data.ts`, `around-t
 Evidence: `app/src/lib/game/score-training-play.data.ts:236`, `app/src/lib/game/doubles-training-play.data.ts:88`, `app/src/lib/game/around-the-clock-play.data.ts:159`, `app/src/lib/game/bobs27-play.data.ts:142`, `app/src/lib/game/singles-training-play.data.ts:202`, `app/src/lib/game/shanghai-play.data.ts:99` — each `return this.engine?.state() ?? null;`. Compare `app/src/lib/game/five-oh-one-play.data.ts:185-199`'s `foldFiveOhOneState({stages: this.$store.game.stages, turns: this.$store.game.turns}, config)`, the pattern this task applied to `app/src/lib/game/tuod-play.data.ts`'s `state()`, each with a fold function (`foldScoreTrainingState`, `foldShanghaiState`, etc.) already exported and available for the same substitution
 Impact: any Alpine `x-text`/`x-show` expression that calls `state()` (directly, or via a `*For(seatRef)` accessor) subscribes only to `this.engine`'s object identity, which never changes after `init()` — so a dart/attempt recorded via `context.$store.game.recordFacts(facts)` never triggers a re-render of that expression in these 6 games, on any input mode, even though the underlying data is correct. Not verified in a real browser for any of the 6 (no WebKit/Chromium DOM harness in this environment, and `.astro` markup has no test runner per D101), so this is reported as the same-shaped defect already confirmed for TUOD, not independently reproduced per game
 Proposed: apply the identical `foldXxxState({stages, turns}, config, ...)` rewrite to each of the 6 files' `state()`, one game (or a small batch) per task so each gets its own regression coverage and gate run, mirroring this task's `tuod-play.data.ts` fix and the pre-existing `five-oh-one-play.data.ts`/`one-twenty-one-play.data.ts` precedent
+
+### F32 — Singles Training's dart preview has the identical seat-unscoped round-index bug Shanghai had (#166)
+Status: Open · Found: 2026-08-27 · Task: claude/issue-166-shanghai-preview
+Claim: `singles-training-play.data.ts`'s `previewSegmentsFor` computes `targetAt(numbersPath(config.targetOrder), turns.length - 1)` — the same global-turn-count index Shanghai's own `previewSegmentsFor` used before this issue's fix, wrong the moment a 1v1 session's turns from two seats interleave
+Evidence: `app/src/lib/game/singles-training-play.data.ts:145-155`; `previewSegments()` (line 256-263) passes `this.$store.game.turns` unfiltered, exactly as Shanghai's did before `docs/superpowers/plans/2026-08-27-shanghai-preview-seat-scoping.md`'s fix; Singles Training supports 1v1 (`app/src/components/layout/games/interfaces/SinglesTraining.astro` renders `SplitScoreboard` with `seats[1]`), so the bug is reachable there the same way it was in Shanghai
+Impact: in a 1v1 Singles Training session, the per-dart hit/miss preview strip misclassifies darts once both players have thrown at least once, and can throw (via `targetAt`'s own out-of-range guard) once the combined turn count runs past the target list — same shape as issue #166's report, not yet reported against this ruleset
+Proposed: apply the identical fix `shanghai-play.data.ts`'s `previewSegmentsFor` received — derive the round index from a count of turns filtered to the last turn's own `participantRef`, not `turns.length`
+
+### F33 — Around the Clock's dart preview reads the wrong seat's turns during the reveal-then-clear window in 1v1
+Status: Open · Found: 2026-08-27 · Task: claude/issue-166-shanghai-preview
+Claim: `around-the-clock-play.data.ts`'s `previewSegments()` filters `this.$store.game.turns` down to `state.activeParticipantRef`'s own turns before computing the preview — but `seat-rota.module.ts`'s `activeSeat` rotates to the other seat the instant a turn closes (`completedAt !== null`), before `playCommitDart`'s 1.5s reveal timer even starts, so during that reveal window `state.activeParticipantRef` already names the *next* thrower, not the seat whose darts are fading out
+Evidence: `app/src/modules/game/seat-rota.module.ts:53-78` (`activeSeat`'s own doc: "A visit still open always holds its own seat... the thrower keeps the turn until it resolves" — implying, correctly, that a *closed* turn does not); `app/src/lib/game/around-the-clock-play.data.ts:225-235` (`previewSegments()` filters by `state.activeParticipantRef` before calling `previewSegmentsFor`)
+Impact: in a 1v1 Around the Clock session, for the 1.5s window after a turn closes, the visible preview strip is scoped to the wrong seat's turn history — at minimum showing a stale/empty strip instead of the just-thrown darts' hit/miss marks, since the newly-active seat's own last turn (if any) is a different turn entirely; not yet reported by a user, found while tracing issue #166's identical-shaped Shanghai bug
+Proposed: scope `previewSegments()`'s turn filter to the last turn's own `participantRef` (`this.$store.game.turns.at(-1)?.participantRef`), not `state.activeParticipantRef` — the same fix direction as F32 and this issue's own Shanghai fix, adapted to Around the Clock's `previewSegmentsFor(config, seatTurns, hiddenTurnKey)` signature
