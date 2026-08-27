@@ -88,3 +88,52 @@ export function accuracyDisplay(hits: number, darts: number): string {
   if (darts === 0) return "0.00%";
   return `${((hits / darts) * 100).toFixed(2)}%`;
 }
+
+/**
+ * Average of the first 3 completed visits' totals, one-decimal display
+ * string — the classic "first 9" darts stat. Fewer than 3 completed visits
+ * averages over however many exist; "0.0" before any visit completes, same
+ * convention as `perVisitAverageDisplay`.
+ */
+export function firstNineAverageDisplay(turns: VisitLike[]): string {
+  const first = completedVisits(turns).slice(0, 3);
+  if (first.length === 0) return "0.0";
+  const total = first.reduce((sum, turn) => sum + turn.totalScore, 0);
+  return (total / first.length).toFixed(1);
+}
+
+/** Highest single completed-visit total; 0 if none completed. */
+export function highestVisitScore(turns: VisitLike[]): number {
+  const completed = completedVisits(turns);
+  if (completed.length === 0) return 0;
+  return Math.max(...completed.map((turn) => turn.totalScore));
+}
+
+/**
+ * Tallies completed visits into exactly one of four score bands — whichever
+ * is the *highest* threshold that visit's total meets, never more than one
+ * (D238, Pattern 21). A 125 counts only as `oneTwentyPlus`, not also
+ * `hundredPlus`; a 180 counts only as `oneEighties`, not also
+ * `oneFortyPlus`/`oneTwentyPlus`/`hundredPlus`.
+ */
+export function visitScoreBandCounts(turns: VisitLike[]): {
+  hundredPlus: number;
+  oneTwentyPlus: number;
+  oneFortyPlus: number;
+  oneEighties: number;
+} {
+  const counts = {
+    hundredPlus: 0,
+    oneTwentyPlus: 0,
+    oneFortyPlus: 0,
+    oneEighties: 0,
+  };
+  for (const turn of completedVisits(turns)) {
+    const score = turn.totalScore;
+    if (score === 180) counts.oneEighties += 1;
+    else if (score >= 140) counts.oneFortyPlus += 1;
+    else if (score >= 120) counts.oneTwentyPlus += 1;
+    else if (score >= 100) counts.hundredPlus += 1;
+  }
+  return counts;
+}
