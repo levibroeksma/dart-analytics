@@ -262,7 +262,7 @@ describe("init", () => {
       status: "LOST",
       score: -13,
       darts: 3,
-      doubleHitRate: "0%",
+      doubleHitRate: "0.00%",
       highestNumberReached: "D1",
       winningSideKey: null,
     });
@@ -361,7 +361,7 @@ describe("completion", () => {
       status: "WON",
       score: 1437,
       darts: 63,
-      doubleHitRate: "100%",
+      doubleHitRate: "100.00%",
       highestNumberReached: "BULL",
       winningSideKey: null,
     });
@@ -396,7 +396,7 @@ describe("completion", () => {
       status: "LOST",
       score: -13,
       darts: 3,
-      doubleHitRate: "0%",
+      doubleHitRate: "0.00%",
       highestNumberReached: "D1",
       winningSideKey: null,
     });
