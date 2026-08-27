@@ -1,9 +1,10 @@
 import type { BoardHit } from "@lib/types";
 
 /**
- * One seat's Score Training progress: how many visits it has closed and the
- * running total of their counted scores, both folded from the fact log —
- * never accumulated.
+ * One seat's Score Training progress, folded from the fact log — never
+ * accumulated. `turnCount` is how many visits it has closed; `totalScore` is
+ * the running total across every one of its turns, including a still-open
+ * visit's darts so far (#168) — it does not wait for a visit to close.
  */
 export type ScoreTrainingSeatState = SeatState & {
   turnCount: number;
