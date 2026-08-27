@@ -7,7 +7,7 @@ updated: 2026-08-27
 
 # Architecture Patterns
 
-> **Version:** 1.7.0 (Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; prior 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.8.0 (Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; prior 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -917,6 +917,46 @@ result-modal .astro (renders the string directly)
   helper.
 - Result-modal `.astro` components render the field's string value
   directly; they never reformat or re-round it.
+
+## Rule
+
+Detail lives in `app/src/lib/game/play-visit-stats.ts`.
+
+---
+
+# Pattern 21 — Exclusive Score-Band Tallying
+
+## Principle
+
+A visit-score milestone count (100+/120+/140+/180-style bands) is computed
+once, not reimplemented per ruleset, and every band is mutually exclusive: a
+visit counts toward its single highest qualifying band only, never toward
+any lower band it also happens to clear.
+
+## Pattern
+
+```
+completed visits
+    ↓
+visitScoreBandCounts(turns) (play-visit-stats.ts) — one pass, each visit
+tallied into exactly one of hundredPlus / oneTwentyPlus / oneFortyPlus /
+oneEighties (highest threshold met, e.g. 125 → oneTwentyPlus only, never
+also hundredPlus; 180 → oneEighties only)
+    ↓
+resultsSnapshot.seats[].{hundredPlus, oneTwentyPlus, oneFortyPlus, oneEighties}
+    ↓
+result-modal .astro (renders each count directly)
+```
+
+## Application
+
+- Any game whose result reports visit-score milestone counts calls
+  `visitScoreBandCounts(turns)` rather than four independent
+  threshold-or-above tallies.
+- Bands are exclusive, not cumulative: a single visit increments exactly one
+  counter (or none, below 100).
+- Result-modal `.astro` components render each count directly; they never
+  re-tally or re-bucket it.
 
 ## Rule
 

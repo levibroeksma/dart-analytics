@@ -77,6 +77,12 @@ implementation of this exact shape, landed same day as this design).
 
 #### 1. Three new shared visit-stat helpers (`play-visit-stats.ts`)
 
+The exclusive-band tallying rule below is an architectural decision
+(`D238`, `decisions/game-engine.md`), not a Score-Training-local choice —
+documented as Pattern 21 in `04-Architecture-patterns.md` so any future
+game adding visit-score milestone counts reuses `visitScoreBandCounts`
+rather than re-deriving cumulative-vs-exclusive on its own.
+
 Alongside the existing `perVisitAverageDisplay`/`previousScoreDisplay`/etc.
 (generic per-visit computations already shared across games):
 
@@ -252,9 +258,12 @@ Per root `CLAUDE.md`, run `context-maintenance` before completion:
 
 - `FINDINGS.md`: delete F22 (closed by this task, see "Closes F22 as a
   byproduct" above).
-- No new architecture pattern or decision — this composes onto the existing
-  Doubles Training / Shanghai results-stats precedent (issue #133, #166) and
-  the existing `play-visit-stats.ts` helper module; no new pattern block
-  needed in `04-Architecture-patterns.md`.
+- New decision `D238` in `decisions/game-engine.md` (exclusive score-band
+  tallying) and new Pattern 21 in `04-Architecture-patterns.md`, already
+  landed ahead of implementation per user direction — this is an
+  architectural rule, not a Score Training-local implementation detail, so
+  it needed to be decided and documented before the code that first uses it.
+  `00-File-Inventory.md`'s rows for both files updated (decision count/size,
+  pattern list).
 - `08-Component-Inventory.md`: no change — no new shared component.
 - Run `run-all-gates` and confirm every applicable script passes.
