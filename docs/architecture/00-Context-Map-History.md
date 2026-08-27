@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-08-22
+updated: 2026-08-27
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-08-22
 ---
 
 # Version History
+
+> **Version:** 1.26.0 (2026-08-27 — issue #173 accuracy-formatting fix: extracted `accuracyDisplay(hits, darts)` into `app/src/lib/game/play-visit-stats.ts`, the single shared formatter for every ruleset's hit-rate percentage (always 2 decimal places, `"0.00%"` at zero darts), replacing 5 independent implementations across `around-the-clock-play.data.ts`, `bobs27-play.data.ts`, `shanghai-play.data.ts`, `doubles-training-play.data.ts`, `singles-training-play.data.ts` — 4 of which previously rounded to a whole number via `Math.round`, the root cause of Doubles Training's reported "rounds to multiples of 10%" symptom. Documented as Pattern 20 in `04-Architecture-patterns.md` (version 1.6.1 → 1.7.0) and recorded as `decisions/game-engine.md` D237. `00-File-Inventory.md`'s `04-Architecture-patterns.md` row updated to name Pattern 20. Validation: `npm test` 2828/2828 across 135 files, `npx fallow` exits 0 (14.3% duplication, under the 15% gate), `astro check --minimumFailingSeverity hint` 0 errors/0 warnings/0 hints, `format`/`format:check` clean, `check-decision-ids.sh`/`check-doc-links.sh`/`check-context-map.sh`/`check-findings-log.sh` all pass; `db:status`/`db:migrate`/`db:introspect` could not run (no `DATABASE_URL`/Neon credentials in this sandboxed session — the established D193 precedent; this change touches no schema)
 
 > **Version:** 1.25.0 (2026-08-26 — DB verification script drift closed: F7 (narrowed `database/verification/0008_shanghai_capability_checks.sql`, `0009_121_capability_checks.sql`, `0010_around_the_clock_capability_checks.sql` to their own game's row plus the shared "no undeclared session" check, dropping each script's stale full-table exact-count assertion — full bidirectional parity against `capabilities.ts` already lives in `0007_capability_seed_checks.sql` alone, which re-verifies the whole table on every run since its seed file is the single running ledger; 0008 included even though F7's evidence named only 0009/0010, since it carried the identical stale-count defect), F11 (reworded `0007_capability_seed_checks.sql`'s stale "fixed 9-row VALUES list" comment to describe what the guard checks without naming a specific count), F13 (added `database/verification/0023_owner_scoped_dart_view_checks.sql` — a PLAYER + GUEST fixture proving `v_dart_analytics`/`v_dart_locations` return only the owning player's dart while `v_game_replay` deliberately returns both, per migration `0023`'s own comment). Verification-script-only change set, no `app/` or migration/seed files touched. Validation: `scripts/check-context-map.sh`, `scripts/check-findings-log.sh`, `scripts/check-doc-links.sh` pass; the four edited/new `.sql` files could not be executed against a live database in this sandbox (no `DATABASE_URL`, established D193 precedent) — `npm run db:verify` still needs to run against the real Neon database before merge)
 

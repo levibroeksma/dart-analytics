@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-08-22
+updated: 2026-08-27
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -22,11 +22,11 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
 | `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19) | canonical | ~1.7k |
 | `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-08-20) | canonical | ~8.3k |
-| `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~28.1k |
+| `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~35.4k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
-| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22) | canonical | ~4.7k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22); Pattern 20 shared accuracy/hit-rate formatting via `accuracyDisplay()` (2026-08-27) | canonical | ~4.8k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |
