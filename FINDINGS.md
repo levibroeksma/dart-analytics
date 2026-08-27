@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-27
-highest-issued: F33
+highest-issued: F37
 -->
 
 # Findings
@@ -136,6 +136,34 @@ Claim: `singles-training-play.data.ts`'s `previewSegmentsFor` computes `targetAt
 Evidence: `app/src/lib/game/singles-training-play.data.ts:145-155`; `previewSegments()` (line 256-263) passes `this.$store.game.turns` unfiltered, exactly as Shanghai's did before `docs/superpowers/plans/2026-08-27-shanghai-preview-seat-scoping.md`'s fix; Singles Training supports 1v1 (`app/src/components/layout/games/interfaces/SinglesTraining.astro` renders `SplitScoreboard` with `seats[1]`), so the bug is reachable there the same way it was in Shanghai
 Impact: in a 1v1 Singles Training session, the per-dart hit/miss preview strip misclassifies darts once both players have thrown at least once, and can throw (via `targetAt`'s own out-of-range guard) once the combined turn count runs past the target list — same shape as issue #166's report, not yet reported against this ruleset
 Proposed: apply the identical fix `shanghai-play.data.ts`'s `previewSegmentsFor` received — derive the round index from a count of turns filtered to the last turn's own `participantRef`, not `turns.length`
+
+### F34 — `visitScoreBandCounts`'s 180 check is an equality test, not the "highest threshold" its contract promises
+Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
+Claim: the function's JSDoc and D238/Pattern 21 both say a visit tallies into whichever is the *highest* threshold its total meets; the implementation checks `score === 180` for the top band while the other three bands use `>=`
+Evidence: `app/src/lib/game/play-visit-stats.ts` — `visitScoreBandCounts`'s `if (score === 180) counts.oneEighties += 1;` branch, versus `else if (score >= 140)`/`>= 120`/`>= 100` below it
+Impact: inert today — every seeded template's `max_visit_score` is 180 (`database/seeds/0002_default_templates.sql:113,131`, `database/seeds/0004_score_training_minutes_preset.sql:24`) and the engine rejects any visit total above it, so no visit can ever exceed 180. The moment a template is seeded or configured with a higher ceiling, a visit above 180 would fall through to `oneFortyPlus` instead of `oneEighties` — the exact double/wrong-band outcome D238 exists to prevent
+Proposed: change the check to `score >= 180`, matching the pattern of the other three bands — a one-character fix once a task is scoped to touch this file again
+
+### F35 — Score Training's per-seat `total` counts open visits; the other seven summary stats do not
+Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
+Claim: `statsFor`'s `total` field is read straight off the engine's `seat.totalScore`, which sums every turn whether open or closed (deliberate, per issue #168); `threeDartAverage`, `firstNineAverage`, `highestScore`, and the four score-band counts all derive from `completedVisits(seatTurns)`, excluding any open visit
+Evidence: `app/src/lib/game/score-training-play.data.ts` — `statsFor(seat, turns)`'s `total: seat.totalScore` line versus its calls to `perVisitAverageDisplay`/`firstNineAverageDisplay`/`highestVisitScore`/`visitScoreBandCounts`, all of which filter through `completedVisits` in `app/src/lib/game/play-visit-stats.ts`
+Impact: a results snapshot taken while a visit is still open (reachable via the persisted-mirror retry path, not the normal `confirmFinish` route, which always closes the visit first) renders a `Total` no combination of the other seven rows can reproduce — the modal would show, e.g., a total 40 points higher than `highestScore` plus what `threeDartAverage` × visits implies. The old modal showed only Total/Visits/Average, where this gap was invisible; the new eight-row layout makes it legible for the first time. Pre-existing semantics, not introduced by this task — surfaced during issue #169's final whole-branch review
+Proposed: decide whether `total` should also derive from `completedVisits` (dropping the open visit's running score from the summary) or whether the open-visit case simply can't reach the results modal in practice and the inconsistency is acceptable — a decision, not an obvious fix either way
+
+### F36 — Results-modal comparison rows put `<dt>`/`<dd>` directly inside a `<div>`, not a `<dl>`
+Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
+Claim: per the HTML spec, `<dt>`/`<dd>` are only valid as children of a `<dl>` (or of a `<div>` that is itself a direct child of a `<dl>`); the 1v1 comparison-row markup wraps them in a plain `<div>` with no enclosing `<dl>`
+Evidence: `app/src/components/layout/games/result-modals/ScoreTrainingResults.astro`'s 1v1 comparison-row block (added this task, mirroring the identical structure already shipped in `app/src/components/layout/games/result-modals/ShanghaiResults.astro`) — both files' per-stat rows are `<div class="flex justify-between items-center ..."><dd/><dt/><dd/></div>` with no ancestor `<dl>`
+Impact: assistive tech loses the term/definition association between each stat's label and its two values — a screen reader has no structural cue that the `dt`/`dd` triple is a definition-list entry. This task copied the pattern exactly as specified ("mirror Shanghai's existing pattern"), so fixing only `ScoreTrainingResults.astro` would break the mirror and leave the sibling file wrong; it is a two-file cleanup, not a one-file fix
+Proposed: wrap each 1v1 comparison block's row-container in a `<dl>` (or restructure to a `<dl>` of alternating `<dt>`/`<dd>` pairs per row) in both `ShanghaiResults.astro` and `ScoreTrainingResults.astro` together, in one task
+
+### F37 — No 1v1 test asserts the reshaped `ScoreTrainingResultsSnapshot`'s top-level `winningSideKey`/`status`
+Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
+Claim: issue #169's reshape moved `winningSideKey`/`status` from a flat object to sitting alongside a new `seats` array, but no added or reshaped test exercises a 1v1 session where the two seats' totals actually differ enough to produce a non-null `winningSideKey` or a `"TIE"` status
+Evidence: `app/tests/lib/game/score-training-play.data.test.ts` — the 1v1 test added by this task asserts only `resultsSnapshot?.seats`; every `winningSideKey` assertion in the file (including this task's) is `null`, and its 1v1 fixture's 20-round budget with 3 total turns leaves the engine's fold at `IN_PROGRESS`, so the `status === "TIE" ? "TIE" : "COMPLETE"` collapse in `statsFor`'s call site is exercised only on its trivial branch
+Impact: the modal's winner-title and tie-title copy (`ScoreTrainingResults.astro`) are the only consumers of `resultsSnapshot.winningSideKey`/`.status`, and neither branch has regression coverage for the reshaped object's top level — a future change to that collapse or to `winningSideKey`'s passthrough could silently break the winner/tie banner with no test catching it
+Proposed: add a 1v1 test that plays both seats to a decided finish with different totals (asserting `winningSideKey` matches the higher-scoring seat's `sideKey`) and, separately, a tie case (`status: "TIE"`, `winningSideKey: null`) — cheap to add once a task is scoped to touch this test file again
 
 ### F33 — Around the Clock's dart preview reads the wrong seat's turns during the reveal-then-clear window in 1v1
 Status: Open · Found: 2026-08-27 · Task: claude/issue-166-shanghai-preview
