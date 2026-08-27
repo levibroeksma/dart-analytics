@@ -4,6 +4,7 @@ import {
   dartsThrownCount,
   perVisitAverageDisplay,
   threeDartAverageDisplay,
+  accuracyDisplay,
 } from "@lib/game/play-visit-stats";
 
 describe("previousScoreDisplay", () => {
@@ -127,5 +128,23 @@ describe("open visits are excluded from completed-visit statistics", () => {
     expect(perVisitAverageDisplay(quickScore)).toBe("62.0");
     expect(threeDartAverageDisplay(quickScore, 3)).toBe("62.0");
     expect(dartsThrownCount(quickScore, 3)).toBe(9);
+  });
+});
+
+describe("accuracyDisplay", () => {
+  it('returns "0.00%" when no darts have been thrown', () => {
+    expect(accuracyDisplay(0, 0)).toBe("0.00%");
+  });
+
+  it("formats an exact percentage to 2 decimal places", () => {
+    expect(accuracyDisplay(1, 2)).toBe("50.00%");
+  });
+
+  it("formats a repeating-decimal percentage to 2 decimal places, not rounded to a whole number", () => {
+    expect(accuracyDisplay(1, 3)).toBe("33.33%");
+  });
+
+  it("formats 100% with 2 decimal places", () => {
+    expect(accuracyDisplay(63, 63)).toBe("100.00%");
   });
 });
