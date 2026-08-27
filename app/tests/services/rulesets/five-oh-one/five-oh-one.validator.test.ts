@@ -106,7 +106,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
           },
         ],
       },
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -117,7 +117,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
     const result = fiveOhOneValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([45, 60]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -141,7 +141,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
     const result = fiveOhOneValidator.validateBatch({
       config: validConfig,
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -184,7 +184,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
     const result = fiveOhOneValidator.validateBatch({
       config: validConfig,
       batch: batch as never,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -210,7 +210,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
     const result = fiveOhOneValidator.validateBatch({
       config: validConfig,
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

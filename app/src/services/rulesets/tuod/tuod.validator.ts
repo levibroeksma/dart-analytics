@@ -1,4 +1,5 @@
 import { TuodConfig } from "@lib/types";
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -74,13 +75,13 @@ export const tuodValidator: RulesetValidator = {
   validateBatch({
     config,
     batch,
-    existingTurnCount,
+    existingTurnCounts,
     captureModeKey,
     inputModeKey,
   }: {
     config: Record<string, unknown>;
     batch: EventsBatchRequestInput;
-    existingTurnCount: number;
+    existingTurnCounts: ExistingTurnCounts;
     captureModeKey: string;
     inputModeKey: string;
   }): BatchValidationResult {
@@ -99,7 +100,7 @@ export const tuodValidator: RulesetValidator = {
     const turns = validateQuickScoreTurns(batch, maxTurnScore(config));
     if (!turns.valid) return turns;
 
-    if (exceedsRoundsLimit(config, batch, existingTurnCount)) {
+    if (exceedsRoundsLimit(config, batch, existingTurnCounts)) {
       return {
         valid: false,
         code: "VALIDATION_FAILED",

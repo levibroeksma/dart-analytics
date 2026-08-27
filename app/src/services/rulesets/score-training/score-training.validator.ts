@@ -1,4 +1,5 @@
 import { ScoreTrainingConfig } from "@lib/types";
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -28,9 +29,9 @@ const DEFAULT_MAX_VISIT_SCORE = 180;
 function roundsLimitRejection(
   config: Record<string, unknown>,
   batch: EventsBatchRequestInput,
-  existingTurnCount: number,
+  existingTurnCounts: ExistingTurnCounts,
 ): BatchValidationResult {
-  if (exceedsRoundsLimit(config, batch, existingTurnCount)) {
+  if (exceedsRoundsLimit(config, batch, existingTurnCounts)) {
     return {
       valid: false,
       code: "VALIDATION_FAILED",
@@ -72,13 +73,13 @@ export const scoreTrainingValidator: RulesetValidator = {
   validateBatch({
     config,
     batch,
-    existingTurnCount,
+    existingTurnCounts,
     captureModeKey,
     inputModeKey,
   }: {
     config: Record<string, unknown>;
     batch: EventsBatchRequestInput;
-    existingTurnCount: number;
+    existingTurnCounts: ExistingTurnCounts;
     captureModeKey: string;
     inputModeKey: string;
   }): BatchValidationResult {
@@ -90,7 +91,7 @@ export const scoreTrainingValidator: RulesetValidator = {
       );
       if (!turns.valid) return turns;
 
-      return roundsLimitRejection(config, batch, existingTurnCount);
+      return roundsLimitRejection(config, batch, existingTurnCounts);
     }
 
     if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
@@ -107,6 +108,6 @@ export const scoreTrainingValidator: RulesetValidator = {
     const turns = validateQuickScoreTurns(batch, maxVisitScore);
     if (!turns.valid) return turns;
 
-    return roundsLimitRejection(config, batch, existingTurnCount);
+    return roundsLimitRejection(config, batch, existingTurnCounts);
   },
 };

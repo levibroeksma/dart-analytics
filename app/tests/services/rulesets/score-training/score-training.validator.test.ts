@@ -194,7 +194,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch: batchWithTurns([45, 60]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -218,7 +218,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -229,7 +229,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch: batchWithTurns([181]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -240,7 +240,69 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch: batchWithTurns([45]),
-      existingTurnCount: 2,
+      existingTurnCounts: { p1: 2 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts a 1v1 batch where each seat is under its own ROUNDS budget, even though the combined total is over it", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "t1",
+              participantRef: "p2",
+              sequence: 1,
+              totalScore: 45,
+              completedAt: null,
+              darts: [] as DartFactInput[],
+            },
+          ],
+        },
+      ],
+    };
+    const result = scoreTrainingValidator.validateBatch({
+      config,
+      batch,
+      existingTurnCounts: { p1: 2, p2: 1 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a 1v1 batch when one seat's own turn count would exceed the ROUNDS budget", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "t1",
+              participantRef: "p2",
+              sequence: 1,
+              totalScore: 45,
+              completedAt: null,
+              darts: [] as DartFactInput[],
+            },
+          ],
+        },
+      ],
+    };
+    const result = scoreTrainingValidator.validateBatch({
+      config,
+      batch,
+      existingTurnCounts: { p1: 2, p2: 2 },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -255,7 +317,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
         max_darts_per_turn: 3,
       },
       batch: batchWithTurns([45]),
-      existingTurnCount: 999,
+      existingTurnCounts: { p1: 999 },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -298,7 +360,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch: batch as never,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -324,7 +386,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
     const result = scoreTrainingValidator.validateBatch({
       config,
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

@@ -4,6 +4,14 @@ export interface ProvisionedPlayer {
   created: boolean;
 }
 
+/**
+ * Turns already persisted for a session, grouped by participant id — the
+ * same id a batch turn's `participantRef` carries (see
+ * `resolveBatchStructure`/`validateBatchReferences` in `session.service.ts`).
+ * A participant absent from this map has zero existing turns.
+ */
+export type ExistingTurnCounts = Record<string, number>;
+
 export interface GameTypeRulesetRow {
   gameTypeId: string;
   rulesetVersionId: string;

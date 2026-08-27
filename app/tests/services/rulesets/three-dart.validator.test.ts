@@ -87,7 +87,7 @@ describe("createThreeDartValidator — validateBatch", () => {
     const result = validator.validateBatch({
       config: { rounds: 20 },
       batch: batchWithTurns([[hitDart]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(true);
   });
@@ -96,7 +96,7 @@ describe("createThreeDartValidator — validateBatch", () => {
     const result = validator.validateBatch({
       config: { rounds: 20 },
       batch: batchWithTurns([[]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
     expect(JSON.stringify(result)).toContain("turn t1 needs darts");
@@ -106,7 +106,7 @@ describe("createThreeDartValidator — validateBatch", () => {
     const result = validator.validateBatch({
       config: { rounds: 20 },
       batch: batchWithTurns([[{ ...hitDart, score: -1 }]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -115,7 +115,7 @@ describe("createThreeDartValidator — validateBatch", () => {
     const result = validator.validateBatch({
       config: { rounds: 20 },
       batch: batchWithTurns([[]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });

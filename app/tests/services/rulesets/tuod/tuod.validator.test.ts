@@ -77,7 +77,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([41, 0, 51]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -88,7 +88,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([131]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -99,7 +99,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([132]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -111,7 +111,7 @@ describe("tuodValidator.validateBatch", () => {
       tuodValidator.validateBatch({
         config: minutesConfig,
         batch: batchWithTurns([170]),
-        existingTurnCount: 0,
+        existingTurnCounts: {},
         captureModeKey: "RECREATIONAL",
         inputModeKey: "QUICK_SCORE",
       }).valid,
@@ -120,7 +120,7 @@ describe("tuodValidator.validateBatch", () => {
       tuodValidator.validateBatch({
         config: minutesConfig,
         batch: batchWithTurns([171]),
-        existingTurnCount: 0,
+        existingTurnCounts: {},
         captureModeKey: "RECREATIONAL",
         inputModeKey: "QUICK_SCORE",
       }).valid,
@@ -131,7 +131,69 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: { ...validConfig, duration_value: 2 },
       batch: batchWithTurns([0, 0]),
-      existingTurnCount: 1,
+      existingTurnCounts: { p1: 1 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts a 1v1 batch where each seat is under its own ROUNDS budget, even though the combined total is over it", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "t1",
+              participantRef: "p2",
+              sequence: 1,
+              totalScore: 41,
+              completedAt: "2026-07-26T10:00:00.000Z",
+              darts: [] as DartFactInput[],
+            },
+          ],
+        },
+      ],
+    };
+    const result = tuodValidator.validateBatch({
+      config: { ...validConfig, duration_value: 2 },
+      batch,
+      existingTurnCounts: { p1: 2, p2: 1 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a 1v1 batch when one seat's own attempt count would exceed the ROUNDS budget", () => {
+    const batch = {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "t1",
+              participantRef: "p2",
+              sequence: 1,
+              totalScore: 41,
+              completedAt: "2026-07-26T10:00:00.000Z",
+              darts: [] as DartFactInput[],
+            },
+          ],
+        },
+      ],
+    };
+    const result = tuodValidator.validateBatch({
+      config: { ...validConfig, duration_value: 2 },
+      batch,
+      existingTurnCounts: { p1: 2, p2: 2 },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -142,7 +204,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: { ...minutesConfig, duration_value: 2 },
       batch: batchWithTurns([0, 0]),
-      existingTurnCount: 5,
+      existingTurnCounts: { p1: 5 },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -153,7 +215,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([-1]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -177,7 +239,7 @@ describe("tuodValidator.validateBatch", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -266,7 +328,7 @@ describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
           ],
         },
       ]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -290,7 +352,7 @@ describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
           ],
         },
       ]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -301,7 +363,7 @@ describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithDarts([{ totalScore: 41, darts: [] }]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -312,7 +374,7 @@ describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
     const result = tuodValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([132]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

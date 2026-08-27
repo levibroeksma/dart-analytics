@@ -57,7 +57,7 @@ describe("oneTwentyOneValidator.validateBatch", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch: batchWithTurns([0, 0, 121]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -68,7 +68,7 @@ describe("oneTwentyOneValidator.validateBatch", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch: batchWithTurns([180]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -79,7 +79,7 @@ describe("oneTwentyOneValidator.validateBatch", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch: batchWithTurns([181]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -88,7 +88,7 @@ describe("oneTwentyOneValidator.validateBatch", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch: batchWithTurns([-1]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -110,7 +110,7 @@ describe("oneTwentyOneValidator.validateBatch", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -164,7 +164,7 @@ describe("oneTwentyOneValidator.validateBatch — visual board", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch: batch as never,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -190,7 +190,7 @@ describe("oneTwentyOneValidator.validateBatch — visual board", () => {
     const result = oneTwentyOneValidator.validateBatch({
       config: {},
       batch,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

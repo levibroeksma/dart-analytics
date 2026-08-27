@@ -68,7 +68,7 @@ function validate501(
   return fiveOhOneValidator.validateBatch({
     config: { max_visit_score: 180 },
     batch: buildEventsBatch(facts) as never,
-    existingTurnCount: 0,
+    existingTurnCounts: {},
     captureModeKey,
     inputModeKey,
   });
@@ -85,7 +85,7 @@ function validateScoreTraining(
   return scoreTrainingValidator.validateBatch({
     config,
     batch: buildEventsBatch(facts) as never,
-    existingTurnCount: 0,
+    existingTurnCounts: {},
     captureModeKey,
     inputModeKey,
   });
