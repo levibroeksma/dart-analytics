@@ -195,7 +195,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20) | canonical | ~6.4k |
+| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20); F34-F37 added from issue #169's final whole-branch review (2026-08-27) | canonical | ~8.3k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 30 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings | canonical | ~2.6k |
