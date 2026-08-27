@@ -9,7 +9,7 @@ Personal darts scoring and long-term progression tracking. Architecture-first: e
 | Folder | Contents |
 | ------ | -------- |
 | `app/` | The application — Astro frontend + Worker API |
-| `database/` | Executable schema: dbmate migrations (`0001`–`0016`) and seeds |
+| `database/` | Executable schema: dbmate migrations (`0001`–`0023`) and seeds |
 | `docs/` | Architecture documentation (`docs/architecture/`) and point-in-time design records (`docs/superpowers/`) |
 | `scripts/` | Repo checks (`scripts/check-context-map.sh`, `scripts/refresh-graph.sh`) |
 | `graphify-out/` | Committed AST-only codebase knowledge graph |
