@@ -7,7 +7,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Feature                                     | Version |
 | ------------------------------------------- | ------- |
 | Single player                               | v1      |
-| Multiplayer                                 | TBD     |
+| Multiplayer (1v1)                           | V1      |
 | Config screen (presets shown)               | v1      |
 | Start target 41                             | v1      |
 | One visit (3 darts) per attempt             | v1      |

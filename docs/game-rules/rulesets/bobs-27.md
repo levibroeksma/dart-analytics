@@ -7,7 +7,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Feature                                         | Version |
 | ----------------------------------------------- | ------- |
 | Single player                                   | v1      |
-| Multiplayer vs guest                            | TBD     |
+| Multiplayer vs guest                            | V1      |
 | Vs DartBot                                      | TBD     |
 | Config screen (presets shown)                   | v1      |
 | Start score 27                                  | v1      |

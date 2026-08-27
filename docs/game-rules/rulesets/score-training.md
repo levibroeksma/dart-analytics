@@ -7,7 +7,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Feature                                | Version         |
 | -------------------------------------- | --------------- |
 | Single player                          | v1              |
-| Multiplayer                            | TBD             |
+| Multiplayer (1v1)                      | V1              |
 | Config screen (mode + duration)        | v1              |
 | Fixed number of visits (N turns)       | v1 (default 10) |
 | N editable (1–100)                     | v1              |
