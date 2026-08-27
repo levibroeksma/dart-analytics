@@ -76,11 +76,12 @@ function turnFact(
   clientKey: string,
   sequence: number,
   totalScore: number,
+  participantRef = "participant-1",
 ): TurnFact {
   return {
     clientKey,
     stageClientKey: BLOCK.clientKey,
-    participantRef: "participant-1",
+    participantRef,
     sequence,
     completedAt: "2026-07-17T10:00:00.000Z",
     totalScore,
@@ -860,12 +861,101 @@ describe("scoreTrainingPlay", () => {
       await play.uploadAndCompleteSession();
 
       expect(play.resultsSnapshot).toEqual({
-        total: 50,
-        visits: 1,
-        average: 50,
-        winningSideKey: null,
         status: "COMPLETE",
+        winningSideKey: null,
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            total: 50,
+            threeDartAverage: "50.0",
+            firstNineAverage: "50.0",
+            highestScore: 50,
+            hundredPlus: 0,
+            oneTwentyPlus: 0,
+            oneFortyPlus: 0,
+            oneEighties: 0,
+          },
+        ],
       });
+    });
+
+    it("1v1: both seats get their own independently-scoped stats, including the losing seat", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(20), seats: TWO_SEATS },
+        turns: [
+          turnFact("t1", 1, 60, "participant-1"),
+          turnFact("t2", 2, 45, "participant-1"),
+          turnFact("t3", 1, 40, "participant-2"),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 3, darts: 9 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.seats).toEqual([
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          total: 105,
+          threeDartAverage: "52.5",
+          firstNineAverage: "52.5",
+          highestScore: 60,
+          hundredPlus: 0,
+          oneTwentyPlus: 0,
+          oneFortyPlus: 0,
+          oneEighties: 0,
+        },
+        {
+          participantRef: "participant-2",
+          sideKey: "B",
+          total: 40,
+          threeDartAverage: "40.0",
+          firstNineAverage: "40.0",
+          highestScore: 40,
+          hundredPlus: 0,
+          oneTwentyPlus: 0,
+          oneFortyPlus: 0,
+          oneEighties: 0,
+        },
+      ]);
+    });
+
+    it("tallies visits across all four score bands exclusively, end to end", async () => {
+      const play = makePlay({
+        turns: [
+          turnFact("t1", 1, 105),
+          turnFact("t2", 2, 125),
+          turnFact("t3", 3, 145),
+          turnFact("t4", 4, 180),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 4, darts: 12 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      const seat = play.resultsSnapshot?.seats[0];
+      expect(seat?.highestScore).toBe(180);
+      expect(seat?.hundredPlus).toBe(1);
+      expect(seat?.oneTwentyPlus).toBe(1);
+      expect(seat?.oneFortyPlus).toBe(1);
+      expect(seat?.oneEighties).toBe(1);
     });
 
     it("treats SESSION_ALREADY_COMPLETED as success on the completion path", async () => {
@@ -917,11 +1007,22 @@ describe("scoreTrainingPlay", () => {
       play.completionStatus = "succeeded";
       play.finished = true;
       play.resultsSnapshot = {
-        total: 50,
-        visits: 1,
-        average: 50,
-        winningSideKey: null,
         status: "COMPLETE",
+        winningSideKey: null,
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            total: 50,
+            threeDartAverage: "50.0",
+            firstNineAverage: "50.0",
+            highestScore: 50,
+            hundredPlus: 0,
+            oneTwentyPlus: 0,
+            oneFortyPlus: 0,
+            oneEighties: 0,
+          },
+        ],
       };
       play.playAgainError = "stale";
       const { seats: _priorSeats, ...priorRulesetConfig } =
@@ -1200,11 +1301,22 @@ describe("scoreTrainingPlay", () => {
       ).toBe(true);
       expect(component.completionStatus).toBe("succeeded");
       expect(component.resultsSnapshot).toEqual({
-        total: 60,
-        visits: 2,
-        average: 30,
-        winningSideKey: null,
         status: "COMPLETE",
+        winningSideKey: null,
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            total: 60,
+            threeDartAverage: "30.0",
+            firstNineAverage: "30.0",
+            highestScore: 30,
+            hundredPlus: 0,
+            oneTwentyPlus: 0,
+            oneFortyPlus: 0,
+            oneEighties: 0,
+          },
+        ],
       });
     });
 

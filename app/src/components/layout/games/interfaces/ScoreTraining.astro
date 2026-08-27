@@ -73,6 +73,10 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
           label="Darts"
           value="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
         />
+        <StatRow
+          label="Previous"
+          value="previousScoreThisLegFor(state()?.seats[0]?.participantRef)"
+        />
       </dl>
       <dl
         slot="progressB"
@@ -85,6 +89,10 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         <StatRow
           label="Darts"
           value="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
+        />
+        <StatRow
+          label="Previous"
+          value="previousScoreThisLegFor(state()?.seats[1]?.participantRef)"
         />
       </dl>
     </SplitScoreboard>

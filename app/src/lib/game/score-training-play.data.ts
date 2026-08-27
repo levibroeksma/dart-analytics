@@ -22,19 +22,25 @@ import {
 } from "@lib/game/play-lifecycle";
 import {
   dartsThrownCount,
+  firstNineAverageDisplay,
+  highestVisitScore,
   perVisitAverageDisplay,
   previousScoreDisplay,
+  visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
   EngineFacts,
+  ScoreTrainingSeatState,
   ScoreTrainingState,
+  TurnFact,
 } from "@modules/types";
 import type {
   BoardMarker,
   ScoreTrainingPlayContext,
   ScoreTrainingResultsSnapshot,
+  ScoreTrainingSeatResult,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -57,30 +63,26 @@ function formatRemaining(ms: number | null | undefined): string {
 }
 
 /**
- * Reads the owner seat's final resting state off the already-folded engine
- * state — never re-derives the totals separately. `status` collapses the
- * engine's own three-way `status` to the two outcomes a finished session can
- * report, so a genuine TIE (both seats total the same score) stays
- * distinguishable from a solo session even though both leave
- * `winningSideKey` `null`: solo sessions never see `TIE` from the engine
- * (score-compare only runs seats.length >= 2), so this collapse is safe.
+ * One seat's own results stats, replayed from its own completed visits in
+ * `turns` — `total` is read off the already-folded engine state (never
+ * recomputed), the rest are derived from that seat's own filtered turns via
+ * the shared `play-visit-stats.ts` helpers.
  */
-function computeStats(
-  state: ScoreTrainingState,
-  ownerRef: string | null,
-): ScoreTrainingResultsSnapshot {
-  const ownerSeat =
-    state.seats.find((seat) => seat.participantRef === ownerRef) ??
-    state.seats[0];
+function statsFor(
+  seat: ScoreTrainingSeatState,
+  turns: readonly TurnFact[],
+): ScoreTrainingSeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
   return {
-    total: ownerSeat.totalScore,
-    visits: ownerSeat.turnCount,
-    average:
-      ownerSeat.turnCount === 0
-        ? 0
-        : ownerSeat.totalScore / ownerSeat.turnCount,
-    winningSideKey: state.winningSideKey,
-    status: state.status === "TIE" ? "TIE" : "COMPLETE",
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    total: seat.totalScore,
+    threeDartAverage: perVisitAverageDisplay(seatTurns),
+    firstNineAverage: firstNineAverageDisplay(seatTurns),
+    highestScore: highestVisitScore(seatTurns),
+    ...visitScoreBandCounts(seatTurns),
   };
 }
 
@@ -539,12 +541,14 @@ export function scoreTrainingPlay() {
       }
 
       const finalState = finalScoreTrainingState(this);
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
       if (finalState) {
-        this.resultsSnapshot = computeStats(finalState, ownerRef);
+        this.resultsSnapshot = {
+          status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+          winningSideKey: finalState.winningSideKey,
+          seats: finalState.seats.map((seat) =>
+            statsFor(seat, this.$store.game.turns),
+          ),
+        };
       }
       this.completionStatus = "succeeded";
     },
