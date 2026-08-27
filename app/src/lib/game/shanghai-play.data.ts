@@ -45,17 +45,26 @@ function targetNumberAt(targetIndex: number): number {
 }
 
 /**
- * The last resolved turn maps 1:1 to the round at its own array index (the
- * engine only ever opens a new turn once the previous one holds 3 darts), so
- * its round's number is always `targetNumberAt(turns.length - 1)` — no
- * separate per-dart target bookkeeping is needed.
+ * The last resolved turn maps 1:1 to the round at its own array index within
+ * that turn's own seat's history — never `turns.length - 1`, which counts
+ * every seat's turns together and is wrong the moment a 1v1 session's turns
+ * interleave (issue #166). `seatRoundIndex` is computed once from a count of
+ * `turns` filtered to the last turn's own `participantRef`, so a solo
+ * session (where every turn already belongs to the one seat) computes the
+ * exact same value `turns.length - 1` always gave it — no behavior change
+ * there.
  */
 function previewSegmentsFor(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
 ): ShanghaiPreviewSegment[] {
+  const lastTurn = turns.at(-1);
+  const seatRoundIndex = lastTurn
+    ? turns.filter((turn) => turn.participantRef === lastTurn.participantRef)
+        .length - 1
+    : 0;
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
-    const targetNumber = targetNumberAt(turns.length - 1);
+    const targetNumber = targetNumberAt(seatRoundIndex);
     return dart.hitTargetNumber === targetNumber ? "hit" : "miss";
   });
 }
