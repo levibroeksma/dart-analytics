@@ -5,6 +5,7 @@ import {
   targetAt,
 } from "@modules/game/board-progression.module";
 import { boardInputData } from "@lib/game/board-input.data";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
   playAbandonAndExit,
   playBack,
@@ -390,8 +391,7 @@ export function singlesTrainingPlay() {
           singles,
           doubles,
           trebles,
-          hitPercentage:
-            darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
+          hitPercentage: accuracyDisplay(hits, darts),
           winningSideKey: finalState.winningSideKey,
           status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
         };

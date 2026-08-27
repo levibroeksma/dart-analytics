@@ -6,6 +6,7 @@ import {
   doublesPathTargetLabel,
 } from "@lib/game/doubles-path-play";
 import { boardInputData } from "@lib/game/board-input.data";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
   playAbandonAndExit,
   playBack,
@@ -65,7 +66,7 @@ function computeStats(
     status: ownerSeat.status === "WON" ? "WON" : "LOST",
     score: ownerSeat.score,
     darts,
-    doubleHitRate: darts === 0 ? "0%" : `${Math.round((hits / darts) * 100)}%`,
+    doubleHitRate: accuracyDisplay(hits, darts),
     highestNumberReached: doublesPathTargetLabel(
       targetAt(doublesPath(), ownerSeat.targetIndex),
     ),

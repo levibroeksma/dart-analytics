@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-08-26
+updated: 2026-08-27
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.6.1 (Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; prior 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.7.0 (Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; prior 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -882,6 +882,45 @@ VisitPreview.astro
 
 Detail lives in `app/src/lib/game/play-lifecycle.ts` and
 `07-Frontend/04-Modules-And-OOP.md`.
+
+---
+
+# Pattern 20 — Shared Accuracy/Hit-Rate Formatting
+
+## Principle
+
+A hits/darts percentage is computed once, not reimplemented per ruleset.
+
+## Pattern
+
+```
+hits, darts
+    ↓
+accuracyDisplay(hits, darts) (play-visit-stats.ts) — hits/darts * 100,
+always 2 decimal places, "0.00%" when darts is 0
+    ↓
+resultsSnapshot.accuracy / .hitPercentage / .doubleHitRate
+    ↓
+result-modal .astro (renders the string directly)
+```
+
+## Application
+
+- Every game whose result reports a hit-rate percentage — Around the
+  Clock, Bob's 27, Doubles Training, Shanghai, Singles Training — calls
+  `accuracyDisplay(hits, darts)` rather than its own `Math.round`/
+  `toFixed` arithmetic. The field name a game exposes (`accuracy`,
+  `hitPercentage`, `doubleHitRate`) is the game's own choice; the
+  formatting behind it is not.
+- Always exactly 2 decimal places, including the zero-darts case
+  (`"0.00%"`) — never a bare `"0%"` fallback written separately from the
+  helper.
+- Result-modal `.astro` components render the field's string value
+  directly; they never reformat or re-round it.
+
+## Rule
+
+Detail lives in `app/src/lib/game/play-visit-stats.ts`.
 
 ---
 

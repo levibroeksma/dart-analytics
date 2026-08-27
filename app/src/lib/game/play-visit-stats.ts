@@ -76,3 +76,15 @@ export function threeDartAverageDisplay(
   const total = completed.reduce((sum, turn) => sum + turn.totalScore, 0);
   return ((total / dartsThrown) * 3).toFixed(1);
 }
+
+/**
+ * `hits`/`darts` as a percentage, formatted to exactly 2 decimal places;
+ * `"0.00%"` before any dart is thrown. The single shared implementation
+ * for every ruleset's hit-rate percentage (Pattern 20,
+ * `04-Architecture-patterns.md`) — never reimplement with a local
+ * `Math.round`/`toFixed` calculation.
+ */
+export function accuracyDisplay(hits: number, darts: number): string {
+  if (darts === 0) return "0.00%";
+  return `${((hits / darts) * 100).toFixed(2)}%`;
+}
