@@ -18,6 +18,7 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
 import type { DartObservation, DoublesTrainingState } from "@modules/types";
 import type {
@@ -216,10 +217,7 @@ export function doublesTrainingPlay() {
             .length,
           on3rd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 3)
             .length,
-          accuracy:
-            dartsThrown === 0
-              ? "0%"
-              : `${Math.round((hitOutcomes.length / dartsThrown) * 100)}%`,
+          accuracy: accuracyDisplay(hitOutcomes.length, dartsThrown),
           misses: ownerSeat.outcomes.filter((outcome) => !outcome.hit).length,
           winningSideKey: finalState.winningSideKey,
           status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
