@@ -219,13 +219,31 @@ export type PlayAgainOverrides<TConfig> = {
   wire: Record<string, unknown>;
 };
 
-/** `winningSideKey` is score-compare (highest total) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats totalled the same score — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
-export type ScoreTrainingResultsSnapshot = {
+/** One seat's own results stats, replayed from its own completed visits in
+ * `turns`. `total` is that seat's final score (from `finalState`, not
+ * recomputed); the rest are derived by the shared `play-visit-stats.ts`
+ * helpers over that seat's own completed visits only. Score-band counts are
+ * exclusive (D238, Pattern 21) — a visit increments exactly one of
+ * `hundredPlus`/`oneTwentyPlus`/`oneFortyPlus`/`oneEighties`, never more
+ * than one. */
+export type ScoreTrainingSeatResult = {
+  participantRef: string;
+  sideKey: string;
   total: number;
-  visits: number;
-  average: number;
-  winningSideKey: string | null;
+  threeDartAverage: string;
+  firstNineAverage: string;
+  highestScore: number;
+  hundredPlus: number;
+  oneTwentyPlus: number;
+  oneFortyPlus: number;
+  oneEighties: number;
+};
+
+/** `winningSideKey` is score-compare (highest total) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats totalled the same score — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. `seats` has one entry per configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
+export type ScoreTrainingResultsSnapshot = {
   status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  seats: ScoreTrainingSeatResult[];
 };
 
 export type ScoreTrainingPlayContext = {
