@@ -1585,7 +1585,7 @@ describe("FiveOhOneEngine dart-path bust boundary", () => {
     const engine = fiveOhOneEngineFactory.create({
       ...config(),
       startingScore: 41,
-    }) as FiveOhOneGameEngine;
+    }) as FiveOhOneEngine;
 
     engine.record({
       hitTargetNumber: 20,
