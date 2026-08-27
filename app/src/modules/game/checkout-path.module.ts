@@ -191,3 +191,18 @@ export function checkoutPathFor(
   if (!Number.isInteger(remainingScore)) return null;
   return CHECKOUT_PATHS[remainingScore] ?? null;
 }
+
+/**
+ * Whether `remainingScore` can be brought to exactly 0 on a double using no
+ * more than `dartsAvailable` darts — `checkoutPathFor`'s minimum route
+ * length gated by however many darts the caller actually has left, rather
+ * than the chart's own fixed 3-dart ceiling. False for every bogey number
+ * regardless of `dartsAvailable`: no route exists to gate.
+ */
+export function isCheckoutReachable(
+  remainingScore: number,
+  dartsAvailable: number,
+): boolean {
+  const path = checkoutPathFor(remainingScore);
+  return path !== null && path.length <= dartsAvailable;
+}

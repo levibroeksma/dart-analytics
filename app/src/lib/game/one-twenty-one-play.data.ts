@@ -1,7 +1,10 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import {
+  checkoutPathFor,
+  isCheckoutReachable,
+} from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import {
   participantsFromSeats,
@@ -87,6 +90,17 @@ function ownerRef(seats: readonly SeatFact[]): string | null {
     seats.find((seat) => seat.participantTypeKey === "PLAYER")
       ?.participantRef ?? null
   );
+}
+
+/**
+ * Darts left in the currently open visit — `DARTS_PER_VISIT` when there is
+ * no open visit (a fresh visit, or every visit under quick score, which
+ * records a whole visit's total in one call and never leaves one open).
+ */
+function dartsLeftInOpenVisit(turns: readonly TurnFact[]): number {
+  const open = turns.at(-1);
+  if (!open || open.completedAt !== null) return DARTS_PER_VISIT;
+  return DARTS_PER_VISIT - open.darts.length;
 }
 
 function computeStats(
@@ -219,8 +233,11 @@ export function oneTwentyOnePlay() {
     },
 
     checkoutHint(this: OneTwentyOnePlayContext): string {
-      const path = checkoutPathFor(this.remainingInAttempt());
-      return path ? path.join(" ") : "";
+      const remaining = this.remainingInAttempt();
+      const dartsLeft = dartsLeftInOpenVisit(this.$store.game.turns);
+      return isCheckoutReachable(remaining, dartsLeft)
+        ? checkoutPathFor(remaining)!.join(" ")
+        : "";
     },
 
     dartsThrownThisSession(this: OneTwentyOnePlayContext): number {

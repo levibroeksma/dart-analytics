@@ -1,6 +1,7 @@
 import type { OneTwentyOneSnapshot, Seated, SeatFact } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
+import { isCheckoutReachable } from "./checkout-path.module";
 import { registerEngineFactory } from "./engine.registry";
 import {
   appendResolvedDart,
@@ -137,6 +138,24 @@ function checkoutDartsRejectionFor(
     input.dartsUsed,
     input.dartsAtDouble,
     DARTS_PER_VISIT,
+  );
+}
+
+/**
+ * Whether the attempt's final (3rd) visit can no longer reach a double-out
+ * finish with the darts still in hand — see `settleVisit`'s own doc for why
+ * only that visit is checked this way. `dartsThrown` is the visit's dart
+ * count so far, so `DARTS_PER_VISIT - dartsThrown` is what remains of it.
+ */
+function finalVisitHasNoFinishLeft(
+  before: OneTwentyOneSeatState,
+  remainingAfter: number,
+  dartsThrown: number,
+): boolean {
+  const isFinalVisit = before.visitsThisAttempt === VISITS_PER_ATTEMPT - 1;
+  return (
+    isFinalVisit &&
+    !isCheckoutReachable(remainingAfter, DARTS_PER_VISIT - dartsThrown)
   );
 }
 
@@ -353,19 +372,19 @@ export class OneTwentyOneEngine implements GameEngine<
   }
 
   /**
-   * What the attempt's remaining score was immediately before `visit`
-   * opened, for the seat that threw it — every turn strictly before `visit`
-   * in `this.turns` is always already closed (an engine only ever has one
-   * open turn, the last one), so folding the whole log up to that point is
-   * safe and exact.
+   * The seat state immediately before `visit` opened, for the seat that
+   * threw it — every turn strictly before `visit` in `this.turns` is always
+   * already closed (an engine only ever has one open turn, the last one), so
+   * folding the whole log up to that point is safe and exact. `settleVisit`
+   * reads both `remainingInAttempt` (to score the visit) and
+   * `visitsThisAttempt` (to know whether `visit` is the attempt's last).
    */
-  private remainingBeforeVisit(visit: TurnFact): number {
+  private seatBeforeVisit(visit: TurnFact): OneTwentyOneSeatState {
     const index = this.turns.indexOf(visit);
     return foldOneTwentyOneState(
       { stages: this.stages, turns: this.turns.slice(0, index) },
       this.config,
-    ).seats.find((seat) => seat.participantRef === visit.participantRef)!
-      .remainingInAttempt;
+    ).seats.find((seat) => seat.participantRef === visit.participantRef)!;
   }
 
   /**
@@ -413,7 +432,14 @@ export class OneTwentyOneEngine implements GameEngine<
 
   /**
    * Applies the bust and checkout rules to a visit that just took a dart,
-   * and stamps `completedAt` when the visit resolves.
+   * and stamps `completedAt` when the visit resolves. A dart in the
+   * attempt's 3rd (final) visit also closes the visit immediately once no
+   * double-out route can still be reached with the darts left in it — the
+   * outcome is already decided at that point (the fail rule below resets
+   * `remainingInAttempt` to `currentTarget` regardless of what a further
+   * dart would score), so nothing is gained by waiting for a dart that
+   * cannot matter. Visits 1 and 2 never take this branch: a dart that
+   * cannot finish those still carries its score into the next visit.
    * @returns whether this dart resolved (closed) the visit — the caller
    *   uses this, not merely "the round changed", to decide whether to open
    *   a new round stage, since an already-in-progress round's
@@ -421,8 +447,9 @@ export class OneTwentyOneEngine implements GameEngine<
    *   first visit has even closed.
    */
   private settleVisit(visit: TurnFact): boolean {
+    const before = this.seatBeforeVisit(visit);
     const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    const remainingAfter = this.remainingBeforeVisit(visit) - thrown;
+    const remainingAfter = before.remainingInAttempt - thrown;
     const lastDart = visit.darts.at(-1)!;
     const checkedOut = remainingAfter === 0 && lastDart.hitZoneKey === "DOUBLE";
     const busted =
@@ -437,7 +464,10 @@ export class OneTwentyOneEngine implements GameEngine<
     }
 
     visit.totalScore = thrown;
-    const resolved = checkedOut || visit.darts.length === DARTS_PER_VISIT;
+    const resolved =
+      checkedOut ||
+      visit.darts.length === DARTS_PER_VISIT ||
+      finalVisitHasNoFinishLeft(before, remainingAfter, visit.darts.length);
     if (resolved) {
       visit.completedAt = new Date().toISOString();
     }
