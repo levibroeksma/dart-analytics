@@ -1,3 +1,4 @@
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { EventsBatchRequestInput } from "@routes/types";
 import {
   isVisualBoardCapture,
@@ -52,9 +53,17 @@ export function isQuickScoreOrVisualBoardCapture(
   );
 }
 
-/** How many turns the batch carries, across every stage in it. */
-function countBatchTurns(batch: EventsBatchRequestInput): number {
-  return batch.stages.reduce((total, stage) => total + stage.turns.length, 0);
+/** How many turns the batch carries per participant, across every stage. */
+function countBatchTurnsByParticipant(
+  batch: EventsBatchRequestInput,
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const stage of batch.stages) {
+    for (const turn of stage.turns) {
+      counts[turn.participantRef] = (counts[turn.participantRef] ?? 0) + 1;
+    }
+  }
+  return counts;
 }
 
 /**
@@ -95,17 +104,30 @@ export function validateQuickScoreTurns(
 }
 
 /**
- * Whether the batch would push a ROUNDS session past the visit count its
- * configuration allows, counting the turns already persisted for it. A MINUTES
- * session is bounded by its countdown rather than by a visit count, so it never
- * exceeds one.
+ * Whether any one seat's own turn count — existing plus this batch — would
+ * exceed the ROUNDS budget. `duration_value` is a per-seat cap: the engine
+ * has every seat play out its own full budget (`durationSeatComplete` in
+ * `modules/game/seat-state.module.ts`), so a 1v1 session's combined turn
+ * count is legitimately up to 2×`duration_value` — checking the combined
+ * total against the single-seat number rejected every 1v1 session at
+ * completion (issue #169). A MINUTES session is bounded by its countdown
+ * rather than a visit count, so it never exceeds one.
  */
 export function exceedsRoundsLimit(
   config: Record<string, unknown>,
   batch: EventsBatchRequestInput,
-  existingTurnCount: number,
+  existingTurnCounts: ExistingTurnCounts,
 ): boolean {
   if (config.duration_type !== "ROUNDS") return false;
   const durationValue = config.duration_value as number;
-  return existingTurnCount + countBatchTurns(batch) > durationValue;
+  const batchCounts = countBatchTurnsByParticipant(batch);
+  const participantRefs = new Set([
+    ...Object.keys(existingTurnCounts),
+    ...Object.keys(batchCounts),
+  ]);
+  for (const ref of participantRefs) {
+    const total = (existingTurnCounts[ref] ?? 0) + (batchCounts[ref] ?? 0);
+    if (total > durationValue) return true;
+  }
+  return false;
 }

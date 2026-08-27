@@ -1,3 +1,4 @@
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   isVisualBoardCapture,
@@ -143,7 +144,7 @@ export function createThreeDartValidator(
     }: {
       config: Record<string, unknown>;
       batch: EventsBatchRequestInput;
-      existingTurnCount: number;
+      existingTurnCounts: ExistingTurnCounts;
       captureModeKey?: string;
       inputModeKey?: string;
     }): BatchValidationResult {

@@ -27,6 +27,7 @@ import type {
   BatchInsertInput,
   ConfigurationTemplateRow,
   CreateSessionRecordsInput,
+  ExistingTurnCounts,
   GameTypeRulesetRow,
   IdempotencyRecord,
   SessionRow,
@@ -218,13 +219,17 @@ export async function findSessionParticipantIds(
 export async function countTurnsForSession(
   db: Db,
   sessionId: string,
-): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
+): Promise<ExistingTurnCounts> {
+  const rows = await db
+    .select({
+      participantId: turns.participantId,
+      count: sql<number>`count(*)::int`,
+    })
     .from(turns)
     .innerJoin(exerciseStages, eq(exerciseStages.id, turns.exerciseStageId))
-    .where(eq(exerciseStages.exerciseSessionId, sessionId));
-  return row?.count ?? 0;
+    .where(eq(exerciseStages.exerciseSessionId, sessionId))
+    .groupBy(turns.participantId);
+  return Object.fromEntries(rows.map((r) => [r.participantId, r.count]));
 }
 
 export async function findIdempotencyRecord(

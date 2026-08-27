@@ -505,7 +505,7 @@ describe("appendBatch", () => {
       duration_value: 10,
       max_darts_per_turn: 3,
     });
-    vi.mocked(repo.countTurnsForSession).mockResolvedValue(0);
+    vi.mocked(repo.countTurnsForSession).mockResolvedValue({});
     vi.mocked(repo.findStageTypeIdMap).mockResolvedValue(
       new Map([["EXERCISE_BLOCK", 5]]),
     );

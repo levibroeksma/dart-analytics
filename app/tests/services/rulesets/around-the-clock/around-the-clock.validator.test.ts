@@ -70,7 +70,7 @@ describe("aroundTheClockValidator.validateBatch", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([[hitDart]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(true);
   });
@@ -88,7 +88,7 @@ describe("aroundTheClockValidator.validateBatch", () => {
           },
         ],
       ]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(true);
   });
@@ -97,7 +97,7 @@ describe("aroundTheClockValidator.validateBatch", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([[]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -106,7 +106,7 @@ describe("aroundTheClockValidator.validateBatch", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([[{ ...hitDart, score: -1 }]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
     });
     expect(result.valid).toBe(false);
   });
@@ -160,7 +160,7 @@ describe("aroundTheClockValidator.validateBatch — visual board", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batch as never,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -172,7 +172,7 @@ describe("aroundTheClockValidator.validateBatch — visual board", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batchWithTurns([[]]),
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -215,7 +215,7 @@ describe("aroundTheClockValidator.validateBatch — visual board", () => {
     const result = aroundTheClockValidator.validateBatch({
       config: validConfig,
       batch: batch as never,
-      existingTurnCount: 0,
+      existingTurnCounts: {},
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });

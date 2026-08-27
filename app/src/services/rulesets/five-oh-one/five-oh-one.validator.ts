@@ -1,4 +1,5 @@
 import { FiveOhOneConfig } from "@lib/types";
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -52,7 +53,7 @@ export const fiveOhOneValidator: RulesetValidator = {
   }: {
     config: Record<string, unknown>;
     batch: EventsBatchRequestInput;
-    existingTurnCount: number;
+    existingTurnCounts: ExistingTurnCounts;
     captureModeKey: string;
     inputModeKey: string;
   }): BatchValidationResult {

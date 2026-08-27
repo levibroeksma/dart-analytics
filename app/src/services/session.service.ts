@@ -628,11 +628,11 @@ export async function appendBatch(
   const validator = getRulesetValidator(session.rulesetVersionKey);
   if (!validator || !config) return { ok: false, code: "INTERNAL_ERROR" };
 
-  const existingTurnCount = await countTurnsForSession(db, sessionId);
+  const existingTurnCounts = await countTurnsForSession(db, sessionId);
   const batchValidation = validator.validateBatch({
     config,
     batch,
-    existingTurnCount,
+    existingTurnCounts,
     captureModeKey: session.captureModeKey,
     inputModeKey: session.inputModeKey,
   });

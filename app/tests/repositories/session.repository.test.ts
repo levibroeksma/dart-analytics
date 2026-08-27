@@ -5,6 +5,7 @@ function fakeSelect(rows: unknown[]) {
     from: vi.fn().mockReturnThis(),
     innerJoin: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    groupBy: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue(rows),
     then: (resolve: (v: unknown[]) => void) => resolve(rows), // supports `await db.select(...).from(...)` without .limit()
   };
@@ -64,20 +65,27 @@ describe("findSessionRow", () => {
 });
 
 describe("countTurnsForSession", () => {
-  it("returns the joined count", async () => {
-    const db = { select: vi.fn(() => fakeSelect([{ count: 3 }])) } as any;
+  it("groups turn counts by participant id", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          { participantId: "p1", count: 2 },
+          { participantId: "p2", count: 1 },
+        ]),
+      ),
+    } as any;
     const { countTurnsForSession } =
       await import("@repositories/session.repository");
     const result = await countTurnsForSession(db, "s1");
-    expect(result).toBe(3);
+    expect(result).toEqual({ p1: 2, p2: 1 });
   });
 
-  it("returns 0 when no rows exist", async () => {
+  it("returns an empty map when no rows exist", async () => {
     const db = { select: vi.fn(() => fakeSelect([])) } as any;
     const { countTurnsForSession } =
       await import("@repositories/session.repository");
     const result = await countTurnsForSession(db, "s1");
-    expect(result).toBe(0);
+    expect(result).toEqual({});
   });
 });
 

@@ -1,3 +1,4 @@
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { EventsBatchRequestInput } from "@routes/types";
 import type { BatchValidationResult, ConfigValidationResult } from "./types";
 
@@ -17,7 +18,7 @@ export interface RulesetValidator {
   validateBatch(input: {
     config: Record<string, unknown>;
     batch: EventsBatchRequestInput;
-    existingTurnCount: number;
+    existingTurnCounts: ExistingTurnCounts;
     captureModeKey?: string;
     inputModeKey?: string;
   }): BatchValidationResult;
