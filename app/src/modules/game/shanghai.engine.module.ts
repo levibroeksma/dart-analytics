@@ -58,7 +58,7 @@ const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
   "OUTER_SINGLE",
 ]);
 
-function zoneBucketOf(
+export function zoneBucketOf(
   zone: DartZoneKey,
 ): "SINGLE" | "DOUBLE" | "TREBLE" | null {
   if (SINGLE_ZONE_KEYS.has(zone)) return "SINGLE";
