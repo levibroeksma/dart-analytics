@@ -401,7 +401,7 @@ describe("recordTap on the BULL visit", () => {
       singles: 61, // 60 prior number-target singles + 1 OUTER_BULL
       doubles: 1, // 1 INNER_BULL
       trebles: 0,
-      hitPercentage: "98%", // round(62/63 * 100)
+      hitPercentage: "98.41%", // (62/63 * 100).toFixed(2)
       winningSideKey: null,
       status: "COMPLETE",
     });
@@ -639,7 +639,7 @@ describe("completion", () => {
       singles: 0,
       doubles: 0,
       trebles: 0,
-      hitPercentage: "0%",
+      hitPercentage: "0.00%",
       winningSideKey: null,
       status: "COMPLETE",
     });
