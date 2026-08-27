@@ -101,11 +101,33 @@ export function highestVisitScore(turns: VisitLike[]): number {
   return Math.max(...completed.map((turn) => turn.totalScore));
 }
 
-/** Count of completed visits scoring >= threshold (cumulative bands — a 180
- * also counts toward a 100 or 140 threshold call). */
-export function visitsAtOrAbove(turns: VisitLike[], threshold: number): number {
-  return completedVisits(turns).filter((turn) => turn.totalScore >= threshold)
-    .length;
+/**
+ * Tallies completed visits into exactly one of the four score bands —
+ * whichever is the *highest* threshold that visit's total meets, never more
+ * than one. A 125 counts only as a `oneTwentyPlus`, not also a
+ * `hundredPlus`; a 180 counts only as a `oneEighties`, not also a
+ * `oneFortyPlus`/`oneTwentyPlus`/`hundredPlus`.
+ */
+export function visitScoreBandCounts(turns: VisitLike[]): {
+  hundredPlus: number;
+  oneTwentyPlus: number;
+  oneFortyPlus: number;
+  oneEighties: number;
+} {
+  const counts = {
+    hundredPlus: 0,
+    oneTwentyPlus: 0,
+    oneFortyPlus: 0,
+    oneEighties: 0,
+  };
+  for (const turn of completedVisits(turns)) {
+    const score = turn.totalScore;
+    if (score === 180) counts.oneEighties += 1;
+    else if (score >= 140) counts.oneFortyPlus += 1;
+    else if (score >= 120) counts.oneTwentyPlus += 1;
+    else if (score >= 100) counts.hundredPlus += 1;
+  }
+  return counts;
 }
 ```
 
@@ -168,10 +190,7 @@ function statsFor(
     threeDartAverage: perVisitAverageDisplay(seatTurns),
     firstNineAverage: firstNineAverageDisplay(seatTurns),
     highestScore: highestVisitScore(seatTurns),
-    hundredPlus: visitsAtOrAbove(seatTurns, 100),
-    oneTwentyPlus: visitsAtOrAbove(seatTurns, 120),
-    oneFortyPlus: visitsAtOrAbove(seatTurns, 140),
-    oneEighties: visitsAtOrAbove(seatTurns, 180),
+    ...visitScoreBandCounts(seatTurns),
   };
 }
 ```
@@ -211,15 +230,17 @@ The `failed`/`playAgainError`/action-buttons sections are unchanged.
 - `play-visit-stats.test.ts` (new or extended, mirrors existing file if one
   exists for this module): `firstNineAverageDisplay` — 0/1/2/3/4+ completed
   visits; `highestVisitScore` — empty, single visit, several with a clear
-  max; `visitsAtOrAbove` — cumulative behavior at each of the four
-  thresholds, including a 180 counting toward all four.
+  max; `visitScoreBandCounts` — a visit in each of the four bands (e.g. 105,
+  125, 145, 180) tallies into exactly one counter each, a below-100 visit
+  tallies into none, and a 125 specifically does **not** increment
+  `hundredPlus` (the exclusive-band case this correction exists for).
 - `score-training-play.data.test.ts`: every existing `resultsSnapshot`
   assertion reshaped from the flat fields to `{status, winningSideKey,
   seats: [...]}` (test subject unchanged — assertion widened, not
   re-pointed, per root `CLAUDE.md`'s test-integrity invariant). New cases: a
   1v1 session asserting both seats' entries independently (including a
-  losing/lower-scoring seat), a session exercising each score band
-  (100/120/140/180) to confirm cumulative counting, and a solo session
+  losing/lower-scoring seat), a session mixing visits across all four bands
+  to confirm exclusive-band counting end to end, and a solo session
   confirming the single-seat shape.
 - No `.astro` component test for either template change (D101) — both
   `ScoreTraining.astro`'s new StatRow and `ScoreTrainingResults.astro`'s
