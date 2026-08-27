@@ -874,6 +874,15 @@ describe("TuodEngine — 1v1", () => {
       ).toBe(true);
     }
   });
+
+  it("does not complete while the other seat still has budget left", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    for (let i = 0; i < twoSeatConfig.durationValue - 1; i += 1) {
+      engine.record({ checkedOut: false });
+    }
+
+    expect(engine.wouldComplete({ checkedOut: false })).toBe(false);
+  });
 });
 
 describe("TUOD mixed-input undo", () => {

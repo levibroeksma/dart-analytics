@@ -13,7 +13,11 @@ import {
   undoLastUnit,
 } from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
-import { completedByIndex, durationSeatComplete } from "./seat-state.module";
+import {
+  completedByIndex,
+  durationSeatComplete,
+  otherSeatsComplete,
+} from "./seat-state.module";
 import { scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
@@ -460,17 +464,18 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
 
     if (!visitResolves) return false;
 
-    const otherSeatsComplete = before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
-      .every((seat) =>
+    const allOtherSeatsComplete = otherSeatsComplete(
+      before.seats,
+      activeSeatState.participantRef,
+      (seat) =>
         durationSeatComplete(this.config, seat.attempts, this.timerExpired),
-      );
+    );
     return (
       durationSeatComplete(
         this.config,
         activeSeatState.attempts + 1,
         this.timerExpired,
-      ) && otherSeatsComplete
+      ) && allOtherSeatsComplete
     );
   }
 
@@ -494,17 +499,18 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
       return false;
     }
 
-    const otherSeatsComplete = before.seats
-      .filter((seat) => seat.participantRef !== activeSeatState.participantRef)
-      .every((seat) =>
+    const allOtherSeatsComplete = otherSeatsComplete(
+      before.seats,
+      activeSeatState.participantRef,
+      (seat) =>
         durationSeatComplete(this.config, seat.attempts, this.timerExpired),
-      );
+    );
     return (
       durationSeatComplete(
         this.config,
         activeSeatState.attempts + 1,
         this.timerExpired,
-      ) && otherSeatsComplete
+      ) && allOtherSeatsComplete
     );
   }
 
