@@ -1038,3 +1038,27 @@ describe("121 board-dart resolution and undo", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("OneTwentyOneEngine dart-path bust boundary", () => {
+  it("busts a board visit that would leave exactly 1, matching the keypad rule", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    });
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    });
+
+    const state = engine.state();
+    expect(state.seats[0].remainingInAttempt).toBe(121);
+  });
+});
