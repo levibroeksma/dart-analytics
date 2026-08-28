@@ -2,6 +2,25 @@
 import Button from "@components/forms/Button.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import IsLoading from "@components/ui/IsLoading.astro";
+
+const STAT_ROWS = [
+  { label: "Legs won", key: "legsWon" },
+  { label: "3 dart avg", key: "threeDartAverage" },
+  { label: "Checkout %", key: "checkoutPercentage", fallback: "'—'" },
+  { label: "60+", key: "sixtyPlus" },
+  { label: "100+", key: "hundredPlus" },
+  { label: "120+", key: "oneTwentyPlus" },
+  { label: "140+", key: "oneFortyPlus" },
+  { label: "180s", key: "oneEighties" },
+] as const;
+
+function seatValueExpr(
+  seatIndex: number,
+  row: (typeof STAT_ROWS)[number],
+): string {
+  const base = `resultsSnapshot?.seats?.[${seatIndex}]?.${row.key}`;
+  return "fallback" in row ? `${base} ?? ${row.fallback}` : base;
+}
 ---
 
 <div
@@ -12,47 +31,62 @@ import IsLoading from "@components/ui/IsLoading.astro";
   <div
     class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
   >
-    <h2 class="font-display text-lg font-semibold text-foreground">
-      Match Summary
+    <h2
+      class="font-display text-lg font-semibold text-foreground"
+      x-text="
+        !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+          ? 'Match Summary'
+          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins the match!')
+      "
+    >
     </h2>
 
-    {/* Stats: live from store while saving, snapshot once succeeded */}
+    {/* Solo: one column of StatRow entries */}
     <dl
       class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-      x-show="completionStatus !== 'succeeded'"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 1"
       x-cloak
     >
-      <StatRow
-        label="Total"
-        value="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0)"
-      />
-      <StatRow
-        label="Legs"
-        value="$store.game.configSnapshot?.legsToWin"
-      />
-      <StatRow
-        label="Average"
-        value="($store.game.turns.reduce((sum, t) => sum + t.totalScore, 0) / Math.max($store.game.turns.length, 1)).toFixed(1)"
-      />
+      {
+        STAT_ROWS.map((row) => (
+          <StatRow
+            label={row.label}
+            value={seatValueExpr(0, row)}
+          />
+        ))
+      }
     </dl>
-    <dl
-      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-      x-show="completionStatus === 'succeeded' && resultsSnapshot"
+
+    {/* 1v1: comparison rows — stat label centered, values on either side */}
+    <div
+      class="mt-4 space-y-2 text-sm"
+      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 2"
       x-cloak
     >
-      <StatRow
-        label="Total"
-        value="resultsSnapshot?.total"
-      />
-      <StatRow
-        label="Legs"
-        value="resultsSnapshot?.legs"
-      />
-      <StatRow
-        label="Average"
-        value="resultsSnapshot?.average.toFixed(1)"
-      />
-    </dl>
+      <div class="flex justify-between text-xs font-semibold text-foreground">
+        <span
+          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
+        ></span>
+        <span
+          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
+        ></span>
+      </div>
+      {
+        STAT_ROWS.map((row) => (
+          <div class="flex justify-between items-center font-display-mono">
+            <dd
+              class="font-mono text-sm font-bold tabular-nums text-foreground"
+              x-text={seatValueExpr(0, row)}
+            />
+            <dt class="text-sm text-muted-foreground">{row.label}</dt>
+            <dd
+              class="font-mono text-sm font-bold tabular-nums text-foreground"
+              x-text={seatValueExpr(1, row)}
+            />
+          </div>
+        ))
+      }
+    </div>
 
     {/* Completion status */}
     <div class="mt-4">
