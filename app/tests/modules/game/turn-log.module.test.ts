@@ -6,6 +6,7 @@ import {
   cloneTurns,
   dartsThrownBy,
   doubleTargetIntent,
+  exerciseBlockStage,
   isDartObservationInput,
   openOrCreateTurn,
   openVisit,
@@ -390,5 +391,20 @@ describe("isDartObservationInput", () => {
   it("is false for a keypad-shaped input", () => {
     const input: KeypadInput | DartObservation = { scoreAttempted: 60 };
     expect(isDartObservationInput(input)).toBe(false);
+  });
+});
+
+describe("exerciseBlockStage", () => {
+  it("builds the single EXERCISE_BLOCK stage every one-stage engine opens", () => {
+    expect(exerciseBlockStage()).toEqual<StageFact>({
+      clientKey: "block-1",
+      stageTypeKey: "EXERCISE_BLOCK",
+      parentClientKey: null,
+      sequence: 1,
+    });
+  });
+
+  it("returns a fresh object each call", () => {
+    expect(exerciseBlockStage()).not.toBe(exerciseBlockStage());
   });
 });
