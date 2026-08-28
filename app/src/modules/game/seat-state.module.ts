@@ -98,13 +98,17 @@ export function completedByIndex<TSeat extends SeatState>(
  * Whether every seat OTHER than `participantRef` has already finished its own
  * session — what separates "this dart completes the active seat" from "this
  * dart completes the whole match" in a `wouldComplete()`. Solo is vacuously
- * true: there is no other seat to wait for.
+ * true: there is no other seat to wait for. `isComplete` is the caller's own
+ * completion rule — a `status` field for the dart-fed engines, a duration
+ * budget (`durationSeatComplete`) for TUOD and Score Training, whose seat
+ * states carry no `status` at all.
  */
-export function otherSeatsComplete(
-  seats: readonly (SeatState & { status: string })[],
+export function otherSeatsComplete<TSeat extends SeatState>(
+  seats: readonly TSeat[],
   participantRef: string,
+  isComplete: (seat: TSeat) => boolean,
 ): boolean {
   return seats
     .filter((seat) => seat.participantRef !== participantRef)
-    .every((seat) => seat.status === "COMPLETE");
+    .every(isComplete);
 }

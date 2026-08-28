@@ -606,6 +606,24 @@ describe("AroundTheClockEngine — 1v1", () => {
     expect(after.status).toBe(state.status);
     expect(after.winningSideKey).toBe(state.winningSideKey);
   });
+
+  it("wouldComplete reads true only once the trailing seat has also completed", () => {
+    const engine = new AroundTheClockEngine(twoSeatConfig);
+    let state = engine.state();
+    let wouldCompleteOnDecisiveDart = false;
+    while (state.status === "IN_PROGRESS") {
+      const activeSeat = state.seats.find(
+        (seat) => seat.participantRef === state.activeParticipantRef,
+      )!;
+      const dart = targetHit(activeSeat);
+      const predicted = engine.wouldComplete(dart);
+      state = engine.record(dart);
+      if (state.status !== "IN_PROGRESS") {
+        wouldCompleteOnDecisiveDart = predicted;
+      }
+    }
+    expect(wouldCompleteOnDecisiveDart).toBe(true);
+  });
 });
 
 describe("Around the Clock dart facts", () => {

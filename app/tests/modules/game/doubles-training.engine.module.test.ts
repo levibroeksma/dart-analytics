@@ -1001,6 +1001,42 @@ describe("DoublesTrainingEngine — 1v1", () => {
     expect(state.status).toBe("TIE");
     expect(state.winningSideKey).toBeNull();
   });
+
+  it("wouldComplete becomes true only on the trailing seat's own final resolving dart", () => {
+    const engine = new DoublesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      const zone = round < 20 ? "DOUBLE" : "INNER_BULL";
+      engine.record({
+        hitTargetNumber: number,
+        hitZoneKey: zone,
+        locationX: null,
+        locationY: null,
+      }); // p1 hits dart 1, visit resolves
+      const dartsForP2 = round < 20 ? 3 : 2;
+      for (let d = 0; d < dartsForP2; d++) {
+        engine.record({
+          hitTargetNumber: number,
+          hitZoneKey: "MISS",
+          locationX: null,
+          locationY: null,
+        }); // p2
+      }
+    }
+
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
+    expect(engine.state().seats[1].status).toBe("IN_PROGRESS");
+    const finalMiss: DartObservation = {
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+    expect(engine.wouldComplete(finalMiss)).toBe(true);
+
+    const finished = engine.record(finalMiss);
+    expect(finished.status).toBe("COMPLETE");
+  });
 });
 
 describe("Doubles Training dart intention", () => {

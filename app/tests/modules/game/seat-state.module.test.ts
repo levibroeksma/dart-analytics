@@ -183,13 +183,27 @@ describe("otherSeatsComplete", () => {
     { participantRef: "p1", sideKey: "A", status: "IN_PROGRESS" },
     { participantRef: "p2", sideKey: "B", status: "COMPLETE" },
   ];
+  const isComplete = (seat: (typeof progress)[number]) =>
+    seat.status === "COMPLETE";
 
   it("ignores the named seat's own status", () => {
-    expect(otherSeatsComplete(progress, "p1")).toBe(true);
-    expect(otherSeatsComplete(progress, "p2")).toBe(false);
+    expect(otherSeatsComplete(progress, "p1", isComplete)).toBe(true);
+    expect(otherSeatsComplete(progress, "p2", isComplete)).toBe(false);
   });
 
   it("is vacuously true for a solo session", () => {
-    expect(otherSeatsComplete([progress[0]], "p1")).toBe(true);
+    expect(otherSeatsComplete([progress[0]], "p1", isComplete)).toBe(true);
+  });
+
+  it("uses the caller's own predicate instead of assuming a status field", () => {
+    const budget = [
+      { participantRef: "p1", sideKey: "A", attempts: 2 },
+      { participantRef: "p2", sideKey: "B", attempts: 5 },
+    ];
+    const budgetComplete = (seat: (typeof budget)[number]) =>
+      seat.attempts >= 5;
+
+    expect(otherSeatsComplete(budget, "p1", budgetComplete)).toBe(true);
+    expect(otherSeatsComplete(budget, "p2", budgetComplete)).toBe(false);
   });
 });

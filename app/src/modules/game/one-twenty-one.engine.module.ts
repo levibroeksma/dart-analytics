@@ -1,6 +1,7 @@
 import type { OneTwentyOneSnapshot, Seated, SeatFact } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
+import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import { isCheckoutReachable } from "./checkout-path.module";
 import { registerEngineFactory } from "./engine.registry";
 import {
@@ -98,14 +99,13 @@ function resolveOneTwentyOneVisit(
   remainingInAttempt: number,
   input: OneTwentyOneVisitInput,
 ): OneTwentyOneVisitOutcome {
-  const wouldRemain = remainingInAttempt - input.scoreAttempted;
-  const reachedZero = wouldRemain === 0;
-  const isBust =
-    wouldRemain < 0 ||
-    wouldRemain === 1 ||
-    (reachedZero && input.finishedOnDouble !== true);
+  const outcome = resolveCheckoutAttempt(
+    remainingInAttempt,
+    input.scoreAttempted,
+    input.finishedOnDouble === true,
+  );
 
-  if (isBust) {
+  if (outcome.busted) {
     return {
       isBust: true,
       scored: 0,
@@ -117,8 +117,8 @@ function resolveOneTwentyOneVisit(
   return {
     isBust: false,
     scored: input.scoreAttempted,
-    checkedOut: reachedZero,
-    remainingAfter: wouldRemain,
+    checkedOut: outcome.checkedOut,
+    remainingAfter: outcome.remainingAfter,
   };
 }
 
@@ -449,13 +449,12 @@ export class OneTwentyOneEngine implements GameEngine<
   private settleVisit(visit: TurnFact): boolean {
     const before = this.seatBeforeVisit(visit);
     const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    const remainingAfter = before.remainingInAttempt - thrown;
     const lastDart = visit.darts.at(-1)!;
-    const checkedOut = remainingAfter === 0 && lastDart.hitZoneKey === "DOUBLE";
-    const busted =
-      remainingAfter < 0 ||
-      remainingAfter === 1 ||
-      (remainingAfter === 0 && !checkedOut);
+    const { remainingAfter, checkedOut, busted } = resolveCheckoutAttempt(
+      before.remainingInAttempt,
+      thrown,
+      lastDart.hitZoneKey === "DOUBLE",
+    );
 
     if (busted) {
       visit.totalScore = 0;
@@ -554,9 +553,12 @@ export class OneTwentyOneEngine implements GameEngine<
     if (activeSeatState.status !== "IN_PROGRESS") return false;
 
     const resolved = resolveObservation(observation);
-    const remainingAfter = activeSeatState.remainingInAttempt - resolved.score;
-    const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
-    return checksOut && activeSeatState.currentTarget === CAP_TARGET;
+    const { checkedOut } = resolveCheckoutAttempt(
+      activeSeatState.remainingInAttempt,
+      resolved.score,
+      resolved.zoneKey === "DOUBLE",
+    );
+    return checkedOut && activeSeatState.currentTarget === CAP_TARGET;
   }
 
   /**

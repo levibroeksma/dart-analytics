@@ -2,6 +2,7 @@ import type { FiveOhOneSnapshot, SeatFact, Seated } from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { activeSeat, seatOf } from "./seat-rota.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
+import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import { registerEngineFactory } from "./engine.registry";
 import {
   appendResolvedDart,
@@ -96,14 +97,13 @@ export function resolveFiveOhOneVisit(
   remainingScore: number,
   input: FiveOhOneVisitInput,
 ): FiveOhOneVisitOutcome {
-  const wouldRemain = remainingScore - input.scoreAttempted;
-  const reachedZero = wouldRemain === 0;
-  const isBust =
-    wouldRemain < 0 ||
-    wouldRemain === 1 ||
-    (reachedZero && input.finishedOnDouble !== true);
+  const outcome = resolveCheckoutAttempt(
+    remainingScore,
+    input.scoreAttempted,
+    input.finishedOnDouble === true,
+  );
 
-  if (isBust) {
+  if (outcome.busted) {
     return {
       isBust: true,
       scored: 0,
@@ -115,8 +115,8 @@ export function resolveFiveOhOneVisit(
   return {
     isBust: false,
     scored: input.scoreAttempted,
-    wonLeg: reachedZero,
-    remainingAfter: wouldRemain,
+    wonLeg: outcome.checkedOut,
+    remainingAfter: outcome.remainingAfter,
   };
 }
 
@@ -458,12 +458,11 @@ export class FiveOhOneEngine implements GameEngine<
    */
   private settleVisit(visit: TurnFact, hitZoneKey: DartZoneKey): boolean {
     const thrown = visit.darts.reduce((sum, dart) => sum + dart.score, 0);
-    const remainingAfter = this.remainingBeforeVisit(visit) - thrown;
-    const checkedOut = remainingAfter === 0 && hitZoneKey === "DOUBLE";
-    const busted =
-      remainingAfter < 0 ||
-      remainingAfter === 1 ||
-      (remainingAfter === 0 && !checkedOut);
+    const { checkedOut, busted } = resolveCheckoutAttempt(
+      this.remainingBeforeVisit(visit),
+      thrown,
+      hitZoneKey === "DOUBLE",
+    );
 
     if (busted) {
       visit.totalScore = 0;
@@ -517,9 +516,12 @@ export class FiveOhOneEngine implements GameEngine<
   ): boolean {
     const resolved = resolveObservation(observation);
 
-    const remainingAfter = this.activeRemaining(before) - resolved.score;
-    const checksOut = remainingAfter === 0 && resolved.zoneKey === "DOUBLE";
-    if (!checksOut) return false;
+    const { checkedOut } = resolveCheckoutAttempt(
+      this.activeRemaining(before),
+      resolved.score,
+      resolved.zoneKey === "DOUBLE",
+    );
+    if (!checkedOut) return false;
 
     const seat = before.seats.find(
       (candidate) => candidate.participantRef === before.activeParticipantRef,

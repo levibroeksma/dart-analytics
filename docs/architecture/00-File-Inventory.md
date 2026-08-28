@@ -26,7 +26,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
-| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22); Pattern 20 shared accuracy/hit-rate formatting via `accuracyDisplay()` (2026-08-27); Pattern 21 exclusive score-band tallying via `visitScoreBandCounts()` (2026-08-27) | canonical | ~6.3k |
+| `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22); Pattern 20 shared accuracy/hit-rate formatting via `accuracyDisplay()` (2026-08-27); Pattern 21 exclusive score-band tallying via `visitScoreBandCounts()` (2026-08-27); Pattern 18 gains `checkout-bust.module.ts` and `otherSeatsComplete`'s completion-predicate parameter (2026-08-27, D240) | canonical | ~6.6k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |
@@ -195,7 +195,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20); F34-F37 added from issue #169's final whole-branch review (2026-08-27) | canonical | ~8.3k |
+| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20); F34-F37 added from issue #169's final whole-branch review (2026-08-27); F39-F42 added from the engine-duplication-cleanup audit (2026-08-27) | canonical | ~10.4k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 31 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings (D239 per-seat ROUNDS turn-count limit, 2026-08-27) | canonical | ~3.6k |

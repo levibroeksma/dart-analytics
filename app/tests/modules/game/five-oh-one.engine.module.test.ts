@@ -1579,3 +1579,22 @@ describe("501 board-dart resolution and undo", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("FiveOhOneEngine dart-path bust boundary", () => {
+  it("busts a board visit that would leave exactly 1, matching the keypad rule", () => {
+    const engine = fiveOhOneEngineFactory.create({
+      ...config(),
+      startingScore: 41,
+    }) as FiveOhOneEngine;
+
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    const state = engine.state();
+    expect(state.seats[0].remainingScore).toBe(41);
+  });
+});

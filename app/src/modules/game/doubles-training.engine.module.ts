@@ -251,7 +251,11 @@ export class DoublesTrainingEngine implements GameEngine<
     );
     if (after.status !== "COMPLETE") return false;
 
-    return otherSeatsComplete(before.seats, seatBefore.participantRef);
+    return otherSeatsComplete(
+      before.seats,
+      seatBefore.participantRef,
+      (seat) => seat.status === "COMPLETE",
+    );
   }
 
   isComplete(): boolean {

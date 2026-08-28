@@ -1095,6 +1095,23 @@ describe("SinglesTrainingEngine — 1v1", () => {
     expect(state.status).toBe("TIE");
     expect(state.winningSideKey).toBeNull();
   });
+
+  it("wouldComplete becomes true only on the trailing seat's own final resolving dart", () => {
+    const engine = new SinglesTrainingEngine(twoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const number = round < 20 ? round + 1 : 25;
+      for (let d = 0; d < 3; d++) engine.record(dart(number, "TREBLE")); // p1
+      const dartsForP2 = round < 20 ? 3 : 2;
+      for (let d = 0; d < dartsForP2; d++) engine.record(dart(number, "MISS")); // p2
+    }
+
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
+    expect(engine.state().seats[1].status).toBe("IN_PROGRESS");
+    expect(engine.wouldComplete(dart(25, "MISS"))).toBe(true);
+
+    const finished = engine.record(dart(25, "MISS"));
+    expect(finished.status).toBe("COMPLETE");
+  });
 });
 
 /**

@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-27
-highest-issued: F38
+highest-issued: F42
 -->
 
 # Findings
@@ -178,3 +178,31 @@ Claim: `docs/superpowers/specs/2026-08-27-score-training-rounds-limit-seat-fix-d
 Evidence: `docs/superpowers/specs/2026-08-27-score-training-rounds-limit-seat-fix-design.md:73` (`// app/src/services/rulesets/types.ts`) vs. `docs/superpowers/plans/2026-08-27-score-training-rounds-limit-seat-fix.md:13` and the shipped `app/src/repositories/interfaces.ts`, which both use the repository location
 Impact: `docs/superpowers/specs/**` is a historical record (`docs/CLAUDE.md`), so this is not corrected in place; a future reader of the spec alone (not the plan) would look for the type in the wrong file
 Proposed: none — historical specs are status notes, never rewritten; noted here only so the discrepancy isn't mistaken for a live doc defect
+
+### F39 — `isDartObservation` is hand-duplicated with an identical body in 3 engines
+Status: Open · Found: 2026-08-27 · Task: claude/engine-module-architecture-5343hv
+Claim: `five-oh-one.engine.module.ts`, `one-twenty-one.engine.module.ts`, and `tuod.engine.module.ts` each declare their own `isDartObservation(input): input is DartObservation` type guard with the identical body `return "hitZoneKey" in input;` — noticed while auditing these same 3 engines for the bust/checkout duplication this task extracted (F1), but left out of that extraction's scope
+Evidence: `app/src/modules/game/five-oh-one.engine.module.ts:51-53`, `app/src/modules/game/one-twenty-one.engine.module.ts:63-65`, `app/src/modules/game/tuod.engine.module.ts:68-70` — same signature shape, same one-line body; `app/src/modules/game/score-training.engine.module.ts`'s own `isDartObservation` (`typeof input !== "number"`) is genuinely different and out of scope for this finding
+Impact: a 4th ruleset adding a dart-observation input shape copies this guard as its 4th near-identical instance rather than reusing one; low severity since the body is one line and unlikely to drift, but it is exactly the kind of small mechanical duplication `turn-log.module.ts`/`seat-state.module.ts` exist to absorb (D232)
+Proposed: extract a generic `isDartObservationInput<T>(input: T | DartObservation): input is DartObservation` (or a non-generic helper keyed on the `hitZoneKey` property check) into `turn-log.module.ts`, and have the 3 engines import it instead of redeclaring it
+
+### F40 — Six engines share an identical literal `STAGE` constant, declared six separate times
+Status: Open · Found: 2026-08-27 · Task: claude/engine-module-architecture-5343hv
+Claim: `around-the-clock.engine.module.ts`, `bobs27.engine.module.ts`, `doubles-training.engine.module.ts`, `score-training.engine.module.ts`, `shanghai.engine.module.ts`, and `singles-training.engine.module.ts` each declare `const STAGE: StageFact = { clientKey: "block-1", stageTypeKey: "EXERCISE_BLOCK", parentClientKey: null, sequence: 1 }` verbatim — every one-`EXERCISE_BLOCK`-stage engine's single stage fact, byte-for-byte identical across all six files
+Evidence: `app/src/modules/game/bobs27.engine.module.ts:30-35`, `app/src/modules/game/doubles-training.engine.module.ts:28-33`, and the same block (checked via grep) in `app/src/modules/game/around-the-clock.engine.module.ts`, `app/src/modules/game/score-training.engine.module.ts`, `app/src/modules/game/shanghai.engine.module.ts`, `app/src/modules/game/singles-training.engine.module.ts`
+Impact: a 7th single-block engine copies this constant as its 7th identical declaration; `fallow` has not flagged it despite the exact duplication (see F27 for its known blind spots), so nothing currently pressures this toward consolidation
+Proposed: export a single `EXERCISE_BLOCK_STAGE: StageFact` (or a zero-argument `exerciseBlockStage()` builder, matching the naming convention `501`'s own `legStage(sequence)`/`121`'s `roundStage(sequence)` already use for their per-sequence stages) from `turn-log.module.ts`, and have the six engines import it instead of redeclaring it
+
+### F41 — Two different techniques compute "the seat's state immediately before this visit," unconsolidated across 3 engines
+Status: Open · Found: 2026-08-27 · Task: claude/engine-module-architecture-5343hv
+Claim: 501's `remainingBeforeVisit` sums every earlier same-seat turn's `totalScore` in the open leg by hand (`.filter().reduce()`); 121's `seatBeforeVisit` and TUOD's `targetBeforeVisit` instead slice `this.turns` up to the visit's own index and re-run the whole `foldOneTwentyOneState`/`foldTuodState` fold over that slice — two different techniques answering the identical question, each private to its own engine
+Evidence: `app/src/modules/game/five-oh-one.engine.module.ts:317-327` (`remainingBeforeVisit`, manual reduce) vs. `app/src/modules/game/one-twenty-one.engine.module.ts:382-388` (`seatBeforeVisit`, slice-and-refold) and `app/src/modules/game/tuod.engine.module.ts:250-258` (`targetBeforeVisit`, slice-and-refold) — noted as F1's design explicitly declined to touch these three methods (see this task's spec, `docs/superpowers/specs/2026-08-27-engine-duplication-cleanup-design.md` § F1 Non-goals)
+Impact: none today — both techniques are correct and independently tested — but a future engine implementer has no single documented pattern to follow, and picks whichever of the two they happen to have read most recently; the slice-and-refold technique is O(n²) over a long session's turns where the manual-reduce technique is O(n) per call, a latent performance divergence neither engine's tests would surface at typical session sizes
+Proposed: a dedicated task should decide which technique is canonical (the slice-and-refold form is more reusable across differently-shaped states; the manual-reduce form is cheaper) and extract it as a third shared helper, or document the split as an intentional two-pattern choice if neither should win
+
+### F42 — Why `fallow`'s duplication gate did not flag the bust/checkout or `otherSeatsComplete` duplication this task extracted was never investigated
+Status: Open · Found: 2026-08-27 · Task: claude/engine-module-architecture-5343hv
+Claim: before this task's Tasks 1-7, the bust/checkout rule was hand-duplicated 5 times across 3 engine files (up to ~15 lines per site) and `otherSeatsComplete`-shaped inline folds were duplicated 3 times — both clone families large enough that `fallow`'s own duplication gate (which caught a comparable-sized clone once already, D232) plausibly should have flagged at least one of them, yet `npx fallow` was passing on `main` the whole time
+Evidence: this task's own design spec, `docs/superpowers/specs/2026-08-27-engine-duplication-cleanup-design.md` (Purpose section, "Explicitly deferred" list, last item); F27's own findings on `fallow`'s threshold sitting at an unconfirmed empirical value rather than a fixed number is a related but distinct question (F27 is about the *threshold*, this is about whether the *clone-detection window/shape* even considers TypeScript method bodies spread across a class the way these 5 sites were)
+Impact: the duplication gate's actual detection boundary (line-count minimum, cross-file vs. same-file bias, whether it tokenizes class-method bodies the same as free functions) is unknown, so nobody can currently answer "would fallow have caught this if it were 20% bigger" — the gate's effectiveness as a preventive control for this exact failure mode is unverified in either direction
+Proposed: a small investigation task — reproduce the pre-fix duplication on a throwaway branch and run `npx fallow dupes` against it directly, to learn empirically whether the gate's silence was a configuration gap (threshold, ignore list) or a structural blind spot (method-body clones across classes) — the answer decides whether `.fallowrc.jsonc` needs a tuning change or the gate itself has a real capability gap worth reporting upstream

@@ -874,6 +874,15 @@ describe("TuodEngine — 1v1", () => {
       ).toBe(true);
     }
   });
+
+  it("does not complete while the other seat still has budget left", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    for (let i = 0; i < twoSeatConfig.durationValue - 1; i += 1) {
+      engine.record({ checkedOut: false });
+    }
+
+    expect(engine.wouldComplete({ checkedOut: false })).toBe(false);
+  });
 });
 
 describe("TUOD mixed-input undo", () => {
@@ -920,5 +929,16 @@ describe("TUOD mixed-input undo", () => {
     });
 
     expect(() => engine.record(CHECKOUT)).toThrow(/Finish the open attempt/);
+  });
+});
+
+describe("TuodEngine final-dart odd-remainder early bust", () => {
+  it("busts on the visit's 2nd dart when only an odd remainder is left with one dart to go", () => {
+    const engine = tuodEngineFactory.create(config());
+
+    engine.record(SINGLE_1);
+    const state = engine.record(SINGLE_1);
+
+    expect(state.seats[0].failures).toBe(1);
   });
 });
