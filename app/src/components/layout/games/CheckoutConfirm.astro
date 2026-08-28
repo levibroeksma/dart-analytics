@@ -97,18 +97,20 @@ const optionClass =
 
   <div
     slot="footer"
-    class="mt-6 flex flex-col gap-3"
+    class="mt-6 flex justify-end gap-3"
   >
     <Button
+      variant="ghost"
+      class="w-1/3"
+      title="Cancel"
+      @click="cancelCheckout()"
+    />
+    <Button
       variant="primary"
+      class="w-1/3"
       title="Confirm"
       @click="confirmDouble()"
       :disabled="dartsAtDouble === null || dartsToFinish === null"
-    />
-    <Button
-      variant="ghost"
-      title="Cancel"
-      @click="cancelCheckout()"
     />
   </div>
 </Modal>
