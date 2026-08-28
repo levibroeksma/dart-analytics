@@ -258,13 +258,69 @@ a legs-race game than for Score Training's fixed-rounds format.
 
 ## Context maintenance
 
-Per root `CLAUDE.md`, run `context-maintenance` before completion:
+Per root `CLAUDE.md`, run `context-maintenance` before completion. Both
+`visitScoreBandCounts` (D238) and `checkout-bust.module.ts` (D240) are
+already-decided shared patterns this task extends, not reverses — so this
+is one new **additive** decision, not a `Supersedes:` entry, mirroring how
+D241 extended D240's own module without superseding it. Concrete edits:
 
-- `04-Architecture-patterns.md` Pattern 21: note the `sixtyPlus` addition
-  (band count is now five, not four) — small wording update, not a new
-  pattern.
-- `decisions/game-engine.md`: D238's description names the four bands
-  explicitly; append a superseding note (or a new decision citing
-  `Supersedes: D238`) recording the fifth band, per the append-only rule.
-- No new shared component — `08-Component-Inventory.md` unchanged.
-- Run `run-all-gates` and confirm every applicable script passes.
+1. **`decisions/game-engine.md`** — append (append-only; do not touch
+   D238/D240's existing text):
+
+   ```markdown
+   ### D242 — `visitScoreBandCounts` gains a `sixtyPlus` band; `checkout-bust.module.ts` gains `checkoutAttemptCount`
+   Status: Accepted · Date: 2026-08-28
+   Decision: `app/src/lib/game/play-visit-stats.ts`'s `visitScoreBandCounts(turns)`
+   (D238/Pattern 21) gains a fifth exclusive band, `sixtyPlus` (60-99, the
+   lowest of the five — a visit still counts into only its single highest
+   qualifying band). `app/src/modules/game/checkout-bust.module.ts` (D240)
+   gains `checkoutAttemptCount(turns)`, counting completed visits whose
+   `totalScore` was zeroed by a bust but whose own darts summed to more
+   than zero — provably, by `resolveCheckoutAttempt`'s own rule, exactly
+   the visits where a checkout was attempted and failed. 501's per-player
+   match summary (issue #167) is the first caller of both.
+   Reason: Issue #167 asked for a 60+ tally alongside the existing four
+   bands, and for a checkout-percentage stat. Checkout % is only
+   computable for VISUAL_BOARD sessions (QUICK_SCORE never persists dart
+   rows, so a bust is indistinguishable from a genuine zero-score visit —
+   `05-Database/06-Spec/04-Runtime-Layer.md`); for VISUAL_BOARD, a bust and
+   a failed checkout attempt are the same event for every X01-style engine
+   sharing `resolveCheckoutAttempt`, so `made = legsWon` and
+   `attempted = legsWon + checkoutAttemptCount(...)` needs no new
+   persisted fact or engine change. Both additions extend existing shared
+   helpers rather than introducing 501-local versions, per D238's and
+   D240's own stated intent that the next caller reuse them.
+   Consequences: Score Training's and Shanghai's existing
+   `visitScoreBandCounts` callers gain an unused `sixtyPlus` field via the
+   object spread they already use (`...visitScoreBandCounts(seatTurns)`) —
+   additive, no call-site change, their modals don't render it. 121 and
+   TUOD could call `checkoutAttemptCount` under the same reasoning later;
+   this task wires it into 501 only. `play-visit-stats.test.ts` and
+   `checkout-bust.module.test.ts` (or a new file, if none exists yet)
+   cover both additions directly.
+   ```
+
+2. **`04-Architecture-patterns.md` Pattern 21** (~line 931) — reword the
+   Principle/Pattern/Application prose from "100+/120+/140+/180-style
+   bands" / "hundredPlus / oneTwentyPlus / oneFortyPlus / oneEighties" to
+   name all five bands including `sixtyPlus`, and add one sentence to
+   Pattern 18's `checkout-bust.module.ts` mention (Application section, the
+   D240 addendum) noting `checkoutAttemptCount` as a second shared export
+   there. Do not renumber patterns — this is a wording update to the
+   existing Pattern 21/18 sections, not a new pattern.
+
+3. **`00-File-Inventory.md`** — update both rows' parenthetical decision
+   lists (`04-Architecture-patterns.md` row: add "; Pattern 21 gains a
+   fifth band, Pattern 18's `checkout-bust.module.ts` gains
+   `checkoutAttemptCount` (2026-08-28, D242)"; `decisions/game-engine.md`
+   row: bump "44 decisions" to "45 decisions" and add "; D242 ..."). Re-run
+   `scripts/check-context-budget.sh` and use whatever `~Nk` it reports for
+   each row — do not hand-estimate the token figures.
+
+4. **`08-Component-Inventory.md`** — no change; no new shared `.astro`
+   component (the modal reshape is a template-only edit to an existing,
+   already-listed-as-out-of-scope per-game result modal).
+
+5. Run `run-all-gates` and confirm every applicable script passes,
+   including `scripts/check-context-map.sh` and
+   `scripts/check-context-budget.sh` after steps 1-3.

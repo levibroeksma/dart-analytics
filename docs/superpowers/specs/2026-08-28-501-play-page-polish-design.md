@@ -138,11 +138,26 @@ layout and left-to-right order change.
 
 ## Context maintenance
 
-Per root `CLAUDE.md`, run `context-maintenance` before completion:
+Per root `CLAUDE.md`, run `context-maintenance` before completion. This part
+has no doc/decision content to add — confirmed, not assumed, by checking
+each maintained doc against what this part actually changes:
 
-- `08-Component-Inventory.md`: `GameLayout.astro` isn't in this table (it's a
-  layout, not a `components/` entry) — no row to update. Note the new
-  `gameTitleExpr` prop only if a future pass adds layouts to that inventory.
-- No new decision needed — this is template/prop-plumbing, not a new
-  architectural rule.
-- Run `run-all-gates` and confirm every applicable script passes.
+1. **`decisions/**`** — no new decision. Every change here is prop-plumbing
+   or layout, with no new rule, pattern, or reusable mechanism a future task
+   would need to discover (`gameTitleExpr` is a one-off sibling to an
+   existing prop, not a new pattern; the dot-pager removal deletes a call
+   site, not the shared component; the button-row fix conforms to the
+   `ConfirmDialog` convention `07-Style-Guide.md` already documents — it
+   doesn't create one).
+2. **`04-Architecture-patterns.md`** — no change; nothing here rises to a
+   named pattern.
+3. **`08-Component-Inventory.md`** — no row to add or edit. `GameLayout.astro`
+   is a layout (`app/src/layouts/`), not a `components/` entry this table
+   tracks; `CheckoutConfirm.astro`'s existing row (`components/layout/games/`
+   table) needs no prop-list edit since its props are unchanged — only its
+   internal footer markup moves.
+4. **`00-File-Inventory.md`** — no row touches this part; nothing here
+   changes a tracked doc's size or scope.
+5. Run `run-all-gates` and confirm every applicable script passes
+   (`scripts/check-astro-conventions.sh` for the three touched `.astro`
+   files is the one most likely to catch a mistake here).
