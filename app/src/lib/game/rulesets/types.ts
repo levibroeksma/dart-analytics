@@ -171,6 +171,48 @@ export const ShanghaiConfig = z.object({}).strict();
 export const OneTwentyOneConfig = z.object({}).strict();
 
 /**
+ * 121 V2 adds three end conditions instead of 121 V1's one: `TARGET` (climb
+ * to cap 170, identical to v1's only mode), `ROUNDS` (stop after N attempts),
+ * `MINUTES` (stop after N minutes). `duration_value` is omitted entirely for
+ * `TARGET` — the cap is fixed at 170, not player-chosen — which is why the
+ * bound is a `superRefine` rather than `.min()`/`.max()` on the field alone:
+ * it needs to read `duration_type` to know whether the field is even allowed.
+ * A new, independent ruleset version rather than an edit to `OneTwentyOneConfig`:
+ * v1's schema is already live against real session data, and changing it would
+ * reinterpret every existing v1 config snapshot's meaning after the fact.
+ */
+export const OneTwentyOneV2Config = z
+  .object({
+    duration_type: z.enum(["TARGET", "ROUNDS", "MINUTES"]),
+    duration_value: z.number().int().optional(),
+  })
+  .strict()
+  .superRefine((val, ctx) => {
+    if (val.duration_type === "TARGET") {
+      if (val.duration_value !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["duration_value"],
+          message: "duration_value must be omitted for TARGET",
+        });
+      }
+      return;
+    }
+    const [min, max] = val.duration_type === "ROUNDS" ? [1, 50] : [3, 30];
+    if (
+      val.duration_value === undefined ||
+      val.duration_value < min ||
+      val.duration_value > max
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration_value"],
+        message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
+      });
+    }
+  });
+
+/**
  * Around the Clock v1 locks every rule (path 1..20 then BULL, any segment
  * advances, mid-visit advancement, BULL ends the session immediately) with
  * nothing left to configure — a genuinely empty `.strict()` object, exactly
@@ -188,6 +230,7 @@ export type RulesetVersionKey =
   | "TUOD_V1"
   | "SHANGHAI_V1"
   | "121_V1"
+  | "121_V2"
   | "AROUND_THE_CLOCK_V1";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
@@ -199,6 +242,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
   "121_V1": OneTwentyOneConfig,
+  "121_V2": OneTwentyOneV2Config,
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
 };
 
@@ -261,6 +305,18 @@ export type ShanghaiSnapshot = Record<string, never>;
 /** 121 v1 has nothing to configure — no fields to carry. */
 export type OneTwentyOneSnapshot = Record<string, never>;
 
+export type OneTwentyOneV2ConfigData = z.infer<typeof OneTwentyOneV2Config>;
+
+/**
+ * `durationValue` stays `number | undefined` (not optional-key) because the
+ * Zod schema's own field is `.optional()` — mirrors how `ScoreTrainingSnapshot`
+ * carries every one of `ScoreTrainingConfigData`'s fields verbatim.
+ */
+export type OneTwentyOneV2Snapshot = {
+  durationType: OneTwentyOneV2ConfigData["duration_type"];
+  durationValue: OneTwentyOneV2ConfigData["duration_value"];
+};
+
 /** Around the Clock v1 has nothing to configure — no fields to carry. */
 export type AroundTheClockSnapshot = Record<string, never>;
 
@@ -281,7 +337,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                 ? ShanghaiSnapshot
                 : K extends "121_V1"
                   ? OneTwentyOneSnapshot
-                  : AroundTheClockSnapshot;
+                  : K extends "121_V2"
+                    ? OneTwentyOneV2Snapshot
+                    : AroundTheClockSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

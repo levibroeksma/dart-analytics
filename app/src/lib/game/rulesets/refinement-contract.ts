@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   DoublesTrainingConfig,
+  OneTwentyOneV2Config,
   ScoreTrainingConfig,
   SinglesConfig,
 } from "./types";
@@ -203,6 +204,86 @@ const doublesTrainingContract: SchemaRefinementContract<DoublesTrainingInput> =
     ],
   };
 
+type OneTwentyOneV2Input = z.input<typeof OneTwentyOneV2Config>;
+
+/**
+ * `OneTwentyOneV2Config.duration_value` is bounded conditionally by
+ * `duration_type` — omitted entirely for TARGET, 1..50 for ROUNDS, 3..30 for
+ * MINUTES — which is why it lives in a whole-object `superRefine` rather than
+ * `.min()`/`.max()` on the field alone. Ceiling and floor probes on both
+ * ROUNDS and MINUTES are load-bearing: nothing else in the schema bounds
+ * them. The TARGET-must-omit-`duration_value` rule is exercised via its own
+ * `duration_type` field entry below, since it is not a bound on
+ * `duration_value`'s own range.
+ */
+const oneTwentyOneV2Contract: SchemaRefinementContract<OneTwentyOneV2Input> = {
+  schemaName: "OneTwentyOneV2Config",
+  schema: OneTwentyOneV2Config,
+  fields: [
+    {
+      field: "duration_value",
+      accept: [
+        {
+          label: "TARGET with no duration_value",
+          config: { duration_type: "TARGET" },
+        },
+      ],
+      reject: [
+        {
+          label: "TARGET carrying a duration_value",
+          config: { duration_type: "TARGET", duration_value: 10 },
+        },
+      ],
+    },
+    {
+      field: "duration_value",
+      accept: [
+        {
+          label: "duration_value 1 for ROUNDS, the floor",
+          config: { duration_type: "ROUNDS", duration_value: 1 },
+        },
+        {
+          label: "duration_value 50 for ROUNDS, the ceiling",
+          config: { duration_type: "ROUNDS", duration_value: 50 },
+        },
+      ],
+      reject: [
+        {
+          label: "duration_value 0 for ROUNDS, one below the floor",
+          config: { duration_type: "ROUNDS", duration_value: 0 },
+        },
+        {
+          label: "duration_value 51 for ROUNDS, one past the ceiling",
+          config: { duration_type: "ROUNDS", duration_value: 51 },
+        },
+      ],
+    },
+    {
+      field: "duration_value",
+      accept: [
+        {
+          label: "duration_value 3 for MINUTES, the floor",
+          config: { duration_type: "MINUTES", duration_value: 3 },
+        },
+        {
+          label: "duration_value 30 for MINUTES, the ceiling",
+          config: { duration_type: "MINUTES", duration_value: 30 },
+        },
+      ],
+      reject: [
+        {
+          label: "duration_value 2 for MINUTES, one below the floor",
+          config: { duration_type: "MINUTES", duration_value: 2 },
+        },
+        {
+          label: "duration_value 31 for MINUTES, one past the ceiling",
+          config: { duration_type: "MINUTES", duration_value: 31 },
+        },
+      ],
+    },
+  ],
+};
+
 /**
  * Every schema in `types.ts` that carries a `.superRefine(`/`.refine(`, with
  * the boundaries each refined field must accept and reject. Adding a
@@ -213,4 +294,5 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   scoreTrainingContract,
   singlesTrainingContract,
   doublesTrainingContract,
+  oneTwentyOneV2Contract,
 ];
