@@ -6,6 +6,7 @@ import {
   cloneTurns,
   dartsThrownBy,
   doubleTargetIntent,
+  isDartObservationInput,
   openOrCreateTurn,
   openVisit,
   resolveObservation,
@@ -370,5 +371,24 @@ describe("undoStagedTurn", () => {
 
   it("returns false on an empty log", () => {
     expect(undoStagedTurn([], [])).toBe(false);
+  });
+});
+
+describe("isDartObservationInput", () => {
+  type KeypadInput = { scoreAttempted: number };
+
+  it("is true for a DartObservation-shaped input", () => {
+    const input: KeypadInput | DartObservation = {
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 0,
+    };
+    expect(isDartObservationInput(input)).toBe(true);
+  });
+
+  it("is false for a keypad-shaped input", () => {
+    const input: KeypadInput | DartObservation = { scoreAttempted: 60 };
+    expect(isDartObservationInput(input)).toBe(false);
   });
 });

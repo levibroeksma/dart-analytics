@@ -159,6 +159,18 @@ export function openVisit(turns: readonly TurnFact[]): TurnFact | null {
 }
 
 /**
+ * Discriminates any ruleset's dual-shaped input by structure, never by
+ * session mode: only `DartObservation` carries `hitZoneKey`, so its presence
+ * is a sound type guard no matter which mode the session was created in.
+ * Shared by every engine whose input is `XxxVisitInput | DartObservation`.
+ */
+export function isDartObservationInput<T>(
+  input: T | DartObservation,
+): input is DartObservation {
+  return typeof input === "object" && input !== null && "hitZoneKey" in input;
+}
+
+/**
  * What one board observation struck, resolved from its coordinates. A miss
  * carries no coordinates, so it resolves to a scoreless hit using the
  * observation's own zone key rather than going through `classify()`.
