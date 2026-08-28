@@ -11,6 +11,7 @@ import {
   openVisit,
   resolveObservation,
   sumDartScores,
+  turnsBeforeVisit,
   undoLastUnit,
 } from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
@@ -249,9 +250,8 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * exact. Mirrors `OneTwentyOneEngine.remainingBeforeVisit`.
    */
   private targetBeforeVisit(visit: TurnFact): number {
-    const index = this.turns.indexOf(visit);
     return foldTuodState(
-      { stages: [this.stage], turns: this.turns.slice(0, index) },
+      { stages: [this.stage], turns: turnsBeforeVisit(this.turns, visit) },
       this.config,
       this.timerExpired,
     ).seats.find((seat) => seat.participantRef === visit.participantRef)!
