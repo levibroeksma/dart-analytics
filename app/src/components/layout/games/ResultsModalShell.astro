@@ -1,0 +1,94 @@
+---
+/**
+ * Shared chrome for every game's results modal: overlay, glass card,
+ * save-status region (loading / failed+retry / optional "Saved!"),
+ * play-again error, and the back/play-again button row. Each game supplies
+ * its own `<h2>` title (`title` slot — win/tie/loss phrasing differs per
+ * game) and its own stat rows (default slot).
+ * @param {boolean} [showSavedMessage] Show "Saved!" once completionStatus succeeds
+ */
+interface Props {
+  showSavedMessage?: boolean;
+}
+
+// Props
+const { showSavedMessage = false }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import IsLoading from "@components/ui/IsLoading.astro";
+---
+
+<div
+  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
+  x-show="finished"
+  x-cloak
+>
+  <div
+    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+  >
+    <slot name="title" />
+
+    <slot />
+
+    {/* Completion status */}
+    <div class="mt-4">
+      <IsLoading
+        title="Saving..."
+        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+        x-cloak
+      />
+      <div
+        x-show="completionStatus === 'failed'"
+        x-cloak
+      >
+        <ErrorAlert
+          textExpr="completionError"
+          alwaysVisible
+        />
+        <Button
+          class="mt-2"
+          @click="uploadAndCompleteSession()"
+          title="Retry"
+        />
+      </div>
+      {
+        showSavedMessage && (
+          <p
+            class="text-sm text-success"
+            x-show="completionStatus === 'succeeded'"
+            x-cloak
+          >
+            Saved!
+          </p>
+        )
+      }
+    </div>
+
+    {
+      /* Play-again failure: separate from completion status, buttons stay enabled */
+    }
+    <ErrorAlert
+      showExpr="playAgainError"
+      textExpr="playAgainError"
+      class="mt-2"
+    />
+
+    {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
+    <div class="mt-6 flex justify-end gap-3">
+      <Button
+        variant="secondary"
+        @click="back()"
+        :disabled="completionStatus !== 'succeeded'"
+        title="Back to games"
+      />
+      <Button
+        @click="playAgain()"
+        :disabled="completionStatus !== 'succeeded' || playAgainLoading"
+        loadingExpr="playAgainLoading"
+        title="Play again"
+      />
+    </div>
+  </div>
+</div>
