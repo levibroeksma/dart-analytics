@@ -1,8 +1,7 @@
 ---
-import Button from "@components/forms/Button.astro";
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 
 const STAT_ROWS = [
   { label: "Score", key: "score" },
@@ -14,121 +13,62 @@ const STAT_ROWS = [
 ] as const;
 ---
 
-<div
-  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
-  x-show="finished"
-  x-cloak
->
-  <div
-    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+<ResultsModalShell>
+  <h2
+    slot="title"
+    class="font-display text-lg font-semibold text-foreground"
+    x-text="
+      !(completionStatus === 'succeeded' && resultsSnapshot)
+        ? 'Session complete'
+        : resultsSnapshot?.status === 'TIE'
+          ? 'Tie — same score!'
+          : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+            ? (resultsSnapshot?.status === 'SHANGHAI' ? 'Shanghai!' : 'Session complete')
+            : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + (resultsSnapshot.status === 'SHANGHAI' ? ' hits a Shanghai!' : ' wins!'))
+    "
   >
-    <h2
-      class="font-display text-lg font-semibold text-foreground"
-      x-text="
-        !(completionStatus === 'succeeded' && resultsSnapshot)
-          ? 'Session complete'
-          : resultsSnapshot?.status === 'TIE'
-            ? 'Tie — same score!'
-            : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-              ? (resultsSnapshot?.status === 'SHANGHAI' ? 'Shanghai!' : 'Session complete')
-              : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + (resultsSnapshot.status === 'SHANGHAI' ? ' hits a Shanghai!' : ' wins!'))
-      "
-    >
-    </h2>
+  </h2>
 
-    {/* Solo: one column of StatRow entries, same shape as before, more rows */}
-    <dl
-      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 1"
-      x-cloak
-    >
+  {/* Solo: one column of StatRow entries, same shape as before, more rows */}
+  <dl
+    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
+    x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 1"
+    x-cloak
+  >
+    {
+      STAT_ROWS.map((row) => (
+        <StatRow
+          label={row.label}
+          value={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+        />
+      ))
+    }
+  </dl>
+
+  {/* 1v1: comparison rows — stat label centered, values on either side */}
+  <div
+    class="mt-4 space-y-2 text-sm"
+    x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 2"
+    x-cloak
+  >
+    <div class="flex justify-between text-xs font-semibold text-foreground">
+      <span
+        x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
+      ></span>
+      <span
+        x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
+      ></span>
+    </div>
+    <dl class="space-y-2">
       {
         STAT_ROWS.map((row) => (
-          <StatRow
+          <StatRowComparison
             label={row.label}
-            value={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+            leftValue={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+            rightValue={`resultsSnapshot?.seats?.[1]?.${row.key}`}
           />
         ))
       }
     </dl>
-
-    {/* 1v1: comparison rows — stat label centered, values on either side */}
-    <div
-      class="mt-4 space-y-2 text-sm"
-      x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 2"
-      x-cloak
-    >
-      <div class="flex justify-between text-xs font-semibold text-foreground">
-        <span
-          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
-        ></span>
-        <span
-          x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
-        ></span>
-      </div>
-      <dl class="space-y-2">
-        {
-          STAT_ROWS.map((row) => (
-            <StatRowComparison
-              label={row.label}
-              leftValue={`resultsSnapshot?.seats?.[0]?.${row.key}`}
-              rightValue={`resultsSnapshot?.seats?.[1]?.${row.key}`}
-            />
-          ))
-        }
-      </dl>
-    </div>
-
-    {/* Completion status */}
-    <div class="mt-4">
-      <IsLoading
-        title="Saving..."
-        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-        x-cloak
-      />
-      <div
-        x-show="completionStatus === 'failed'"
-        x-cloak
-      >
-        <p
-          class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-          role="alert"
-          x-text="completionError"
-        >
-        </p>
-        <Button
-          class="mt-2"
-          @click="uploadAndCompleteSession()"
-          title="Retry"
-        />
-      </div>
-    </div>
-
-    {
-      /* Play-again failure: separate from completion status, buttons stay enabled */
-    }
-    <p
-      class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-      role="alert"
-      x-text="playAgainError"
-      x-show="playAgainError"
-      x-cloak
-    >
-    </p>
-
-    {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-    <div class="mt-6 flex justify-end gap-3">
-      <Button
-        variant="secondary"
-        @click="back()"
-        :disabled="completionStatus !== 'succeeded'"
-        title="Back to games"
-      />
-      <Button
-        @click="playAgain()"
-        :disabled="completionStatus !== 'succeeded' || playAgainLoading"
-        title="Play again"
-      />
-    </div>
   </div>
-</div>
+</ResultsModalShell>
