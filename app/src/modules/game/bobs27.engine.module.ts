@@ -12,6 +12,7 @@ import {
   appendObservedDart,
   cloneTurns,
   doubleTargetIntent,
+  exerciseBlockStage,
   openOrCreateTurn,
   undoLastDart,
 } from "./turn-log.module";
@@ -23,16 +24,10 @@ import type {
   Bobs27State,
   DartObservation,
   EngineFacts,
-  StageFact,
   TurnFact,
 } from "./types";
 
-const STAGE: StageFact = {
-  clientKey: "block-1",
-  stageTypeKey: "EXERCISE_BLOCK",
-  parentClientKey: null,
-  sequence: 1,
-};
+const STAGE = exerciseBlockStage();
 
 /** One seat's starting progress: the ruleset's starting score, aimed at the first double, no darts thrown. */
 function initialSeatState(

@@ -664,3 +664,17 @@ describe("Around the Clock dart facts", () => {
     expect(turn.completedAt).toBeNull();
   });
 });
+
+describe("AroundTheClockEngine — exerciseBlockStage wiring (F40)", () => {
+  it("still opens the log under the EXERCISE_BLOCK stage", () => {
+    const engine = aroundTheClockEngineFactory.create(config);
+    expect(engine.facts().stages).toEqual([
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+      },
+    ]);
+  });
+});

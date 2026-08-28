@@ -1224,3 +1224,17 @@ describe("Singles Training dart facts", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("SinglesTrainingEngine — exerciseBlockStage wiring (F40)", () => {
+  it("still opens the log under the EXERCISE_BLOCK stage", () => {
+    const engine = singlesTrainingEngineFactory.create(config);
+    expect(engine.facts().stages).toEqual([
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+      },
+    ]);
+  });
+});

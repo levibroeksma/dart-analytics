@@ -14,6 +14,7 @@ import {
 import {
   appendObservedDart,
   cloneTurns,
+  exerciseBlockStage,
   openOrCreateTurn,
   undoLastDart,
 } from "./turn-log.module";
@@ -26,16 +27,10 @@ import type {
   EngineFacts,
   SinglesTrainingSeatState,
   SinglesTrainingState,
-  StageFact,
   TurnFact,
 } from "./types";
 
-const STAGE: StageFact = {
-  clientKey: "block-1",
-  stageTypeKey: "EXERCISE_BLOCK",
-  parentClientKey: null,
-  sequence: 1,
-};
+const STAGE = exerciseBlockStage();
 
 function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
   return {

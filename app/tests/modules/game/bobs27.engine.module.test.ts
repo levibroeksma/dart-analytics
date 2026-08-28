@@ -960,3 +960,17 @@ describe("Bob's 27 dart intention", () => {
     expect(engine.undo()).toBe(false);
   });
 });
+
+describe("Bobs27Engine — exerciseBlockStage wiring (F40)", () => {
+  it("still opens the log under the EXERCISE_BLOCK stage", () => {
+    const engine = bobs27EngineFactory.create(config);
+    expect(engine.facts().stages).toEqual([
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+      },
+    ]);
+  });
+});

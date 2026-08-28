@@ -928,3 +928,17 @@ describe("Score Training mixed-input undo", () => {
     expect(() => engine.record(60)).toThrow(/Finish the open visit/);
   });
 });
+
+describe("ScoreTrainingEngine — exerciseBlockStage wiring (F40)", () => {
+  it("still opens the log under the EXERCISE_BLOCK stage", () => {
+    const engine = scoreTrainingEngineFactory.create(ROUNDS_10);
+    expect(engine.facts().stages).toEqual([
+      {
+        clientKey: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentClientKey: null,
+        sequence: 1,
+      },
+    ]);
+  });
+});
