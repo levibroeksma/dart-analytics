@@ -94,6 +94,21 @@ export function doubleTargetIntent(target: BoardTarget): DartIntent {
 }
 
 /**
+ * The single stage every one-`EXERCISE_BLOCK`-stage engine opens: Around the
+ * Clock, Bob's 27, Doubles/Singles Training, Score Training, Shanghai. A
+ * ruleset with per-sequence stages (501's legs, 121's rounds) builds its own
+ * with a real `sequence`, so this always returns `sequence: 1`.
+ */
+export function exerciseBlockStage(): StageFact {
+  return {
+    clientKey: "block-1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentClientKey: null,
+    sequence: 1,
+  };
+}
+
+/**
  * Appends one observed dart to `turn` and recomputes the visit's total from
  * the darts it now holds. `score` is always the board score of what was hit,
  * whatever the ruleset makes of it. Does not stamp `completedAt` — when a
