@@ -1,6 +1,7 @@
 ---
 import Button from "@components/forms/Button.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
+import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
 import IsLoading from "@components/ui/IsLoading.astro";
 
 const STAT_ROWS = [
@@ -65,21 +66,17 @@ const STAT_ROWS = [
           x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
         ></span>
       </div>
-      {
-        STAT_ROWS.map((row) => (
-          <div class="flex justify-between items-center font-display-mono">
-            <dd
-              class="font-mono text-sm font-bold tabular-nums text-foreground"
-              x-text={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+      <dl class="space-y-2">
+        {
+          STAT_ROWS.map((row) => (
+            <StatRowComparison
+              label={row.label}
+              leftValue={`resultsSnapshot?.seats?.[0]?.${row.key}`}
+              rightValue={`resultsSnapshot?.seats?.[1]?.${row.key}`}
             />
-            <dt class="text-sm text-muted-foreground">{row.label}</dt>
-            <dd
-              class="font-mono text-sm font-bold tabular-nums text-foreground"
-              x-text={`resultsSnapshot?.seats?.[1]?.${row.key}`}
-            />
-          </div>
-        ))
-      }
+          ))
+        }
+      </dl>
     </div>
 
     {/* Completion status */}

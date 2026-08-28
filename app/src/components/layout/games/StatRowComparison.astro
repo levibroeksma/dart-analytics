@@ -1,0 +1,22 @@
+---
+interface Props {
+  label: string;
+  leftValue: string;
+  rightValue: string;
+}
+const { label, leftValue, rightValue }: Props = Astro.props;
+---
+
+<div class="flex justify-between items-center font-display-mono">
+  <dd
+    class="font-mono text-sm font-bold tabular-nums text-foreground"
+    x-text={leftValue}
+  >
+  </dd>
+  <dt class="text-sm text-muted-foreground">{label}</dt>
+  <dd
+    class="font-mono text-sm font-bold tabular-nums text-foreground"
+    x-text={rightValue}
+  >
+  </dd>
+</div>
