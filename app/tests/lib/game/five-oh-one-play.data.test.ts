@@ -714,6 +714,8 @@ describe("uploadAndCompleteSession", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot?.seats[0]?.legsWon).toBe(3);
+    // Solo session: no side to compare against, so no winner is declared.
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
   });
 
   it("computes independent per-seat stats for a 1v1 QUICK_SCORE match", async () => {
