@@ -71,7 +71,7 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 **Resolved (V1):** a bust consumes the whole attempt and applies the −1, exactly like any other failure. There is no re-throw and no partial credit; the engine records a busted attempt as a zero-scoring turn, indistinguishable from a plain miss. <!-- 2026-07-26 -->
 
-**Early bust on an unfinishable odd remainder (V1, ANALYTICS + VISUAL_BOARD):** once only one dart remains in the visit, a remaining target that is odd (and above 1) can never be checked out — every double scores an even number — so the visit busts immediately instead of requiring the last dart to be thrown. This is TUOD-specific: 501 and 121 still require every dart in the visit to be thrown regardless of whether checkout remains mathematically possible. <!-- 2026-08-26 -->
+**Early bust on an unfinishable remainder (V1, ANALYTICS + VISUAL_BOARD):** once only one dart remains in the visit, a remaining target that no double can reach can never be checked out, so the visit busts immediately instead of requiring the last dart to be thrown. Two shapes of remainder qualify: odd (and above 1) — every double scores an even number — and even but above **40** and not **50** — the highest double is D20 (40), and the only score above it a single dart can still finish on is the bull (50). This is TUOD-specific: 501 and 121 still require every dart in the visit to be thrown regardless of whether checkout remains mathematically possible. <!-- 2026-08-26; even-remainder-above-40 case added 2026-08-28 -->
 
 ## Capture
 
