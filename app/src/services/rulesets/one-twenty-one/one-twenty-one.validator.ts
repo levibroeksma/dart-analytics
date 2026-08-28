@@ -1,4 +1,5 @@
-import { OneTwentyOneConfig } from "@lib/types";
+import { OneTwentyOneConfig, OneTwentyOneV2Config } from "@lib/types";
+import type { z } from "zod";
 import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
@@ -21,54 +22,67 @@ import type {
 const MAX_VISIT_SCORE = 180;
 
 /**
- * 121 supports two mode pairs. Under RECREATIONAL + QUICK_SCORE every turn is
- * a visit total with no dart rows, capped at 180. Under
- * ANALYTICS + VISUAL_BOARD every dart carries a landing coordinate,
- * re-derived and cross-checked by `validateVisualBoardTurns` — mirrors
- * `five-oh-one.validator.ts`.
+ * 121 supports two mode pairs, unchanged between ruleset versions. Under
+ * RECREATIONAL + QUICK_SCORE every turn is a visit total with no dart rows,
+ * capped at 180. Under ANALYTICS + VISUAL_BOARD every dart carries a landing
+ * coordinate, re-derived and cross-checked by `validateVisualBoardTurns` —
+ * mirrors `five-oh-one.validator.ts`. `validateBatch` never reads `config`
+ * against a schema — only `validateConfig` does — so `121_V1` and `121_V2`
+ * share this one implementation, parameterised only by which config schema
+ * `validateConfig` parses against.
  */
-export const oneTwentyOneValidator: RulesetValidator = {
-  validateConfig({
-    config,
-    captureModeKey,
-    inputModeKey,
-  }): ConfigValidationResult {
-    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        issues: [`121 V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
-      };
-    }
-    const parsed = OneTwentyOneConfig.safeParse(config);
-    if (!parsed.success) {
-      return { valid: false, issues: parsed.error.issues };
-    }
-    return { valid: true, config: parsed.data };
-  },
+export function createOneTwentyOneValidator(
+  configSchema: z.ZodTypeAny,
+): RulesetValidator {
+  return {
+    validateConfig({
+      config,
+      captureModeKey,
+      inputModeKey,
+    }): ConfigValidationResult {
+      if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
+        return {
+          valid: false,
+          issues: [`121 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
+        };
+      }
+      const parsed = configSchema.safeParse(config);
+      if (!parsed.success) {
+        return { valid: false, issues: parsed.error.issues };
+      }
+      return { valid: true, config: parsed.data };
+    },
 
-  validateBatch({
-    batch,
-    captureModeKey,
-    inputModeKey,
-  }: {
-    config: Record<string, unknown>;
-    batch: EventsBatchRequestInput;
-    existingTurnCounts: ExistingTurnCounts;
-    captureModeKey: string;
-    inputModeKey: string;
-  }): BatchValidationResult {
-    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return validateVisualBoardTurns(batch, MAX_VISIT_SCORE);
-    }
+    validateBatch({
+      batch,
+      captureModeKey,
+      inputModeKey,
+    }: {
+      config: Record<string, unknown>;
+      batch: EventsBatchRequestInput;
+      existingTurnCounts: ExistingTurnCounts;
+      captureModeKey: string;
+      inputModeKey: string;
+    }): BatchValidationResult {
+      if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
+        return validateVisualBoardTurns(batch, MAX_VISIT_SCORE);
+      }
 
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
-      };
-    }
+      if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
+        return {
+          valid: false,
+          code: "VALIDATION_FAILED",
+          issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
+        };
+      }
 
-    return validateQuickScoreTurns(batch, MAX_VISIT_SCORE);
-  },
-};
+      return validateQuickScoreTurns(batch, MAX_VISIT_SCORE);
+    },
+  };
+}
+
+export const oneTwentyOneValidator: RulesetValidator =
+  createOneTwentyOneValidator(OneTwentyOneConfig);
+
+export const oneTwentyOneV2Validator: RulesetValidator =
+  createOneTwentyOneValidator(OneTwentyOneV2Config);
