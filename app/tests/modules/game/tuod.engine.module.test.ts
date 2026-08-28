@@ -942,3 +942,20 @@ describe("TuodEngine final-dart odd-remainder early bust", () => {
     expect(state.seats[0].failures).toBe(1);
   });
 });
+
+describe("TuodEngine — isDartObservationInput wiring (F39)", () => {
+  it("still routes a board dart to the dart path", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+    const state = engine.record(DOUBLE_20);
+
+    expect(state.seats[0].currentTarget).toBe(50);
+    expect(state.seats[0].successes).toBe(1);
+  });
+
+  it("still routes a keypad attempt to the attempt path", () => {
+    const engine = tuodEngineFactory.create(config());
+    const state = engine.record(CHECKOUT);
+
+    expect(state.seats[0].currentTarget).toBe(51);
+  });
+});

@@ -7,6 +7,7 @@ import { registerEngineFactory } from "./engine.registry";
 import {
   appendResolvedDart,
   cloneTurns,
+  isDartObservationInput,
   openVisit,
   resolveObservation,
   undoStagedTurn,
@@ -53,16 +54,6 @@ function isPlayableVisitScore(scoreAttempted: number): boolean {
     scoreAttempted >= 0 &&
     scoreAttempted <= MAX_VISIT_SCORE
   );
-}
-
-/**
- * Discriminates `OneTwentyOneInput` by shape, never by session mode: only
- * `DartObservation` carries `hitZoneKey`, so its presence is a sound type
- * guard no matter which mode the session was created in — mirrors
- * `five-oh-one.engine.module.ts`'s `isDartObservation`.
- */
-function isDartObservation(input: OneTwentyOneInput): input is DartObservation {
-  return "hitZoneKey" in input;
 }
 
 function initialSeatState(seat: SeatFact): OneTwentyOneSeatState {
@@ -518,7 +509,7 @@ export class OneTwentyOneEngine implements GameEngine<
   }
 
   record(input: OneTwentyOneInput): OneTwentyOneState {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.recordDart(input);
     }
     return this.recordVisitTotal(input);
@@ -568,7 +559,7 @@ export class OneTwentyOneEngine implements GameEngine<
    * the match itself, not merely the active seat, is still `IN_PROGRESS`.
    */
   wouldComplete(input: OneTwentyOneInput): boolean {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.wouldCompleteDart(input);
     }
 

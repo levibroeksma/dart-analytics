@@ -1062,3 +1062,32 @@ describe("OneTwentyOneEngine dart-path bust boundary", () => {
     expect(state.seats[0].remainingInAttempt).toBe(121);
   });
 });
+
+describe("OneTwentyOneEngine — isDartObservationInput wiring (F39)", () => {
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: x, locationY: y });
+
+  it("still routes a board dart to the dart path", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+      undefined,
+    ) as OneTwentyOneEngine;
+
+    engine.record(dartAt(0, -102, "TREBLE", 20));
+    expect(engine.state().seats[0].remainingInAttempt).toBe(61);
+  });
+
+  it("still routes a keypad total to the visit path", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+      undefined,
+    ) as OneTwentyOneEngine;
+
+    const state = engine.record({ scoreAttempted: 45 });
+    expect(state.seats[0].remainingInAttempt).toBe(76);
+  });
+});
