@@ -6,6 +6,7 @@ import {
   appendCompletedTurn,
   appendResolvedDart,
   cloneTurns,
+  isDartObservationInput,
   openOrCreateTurn,
   openVisit,
   resolveObservation,
@@ -62,16 +63,6 @@ function blockStage(): StageFact {
  */
 function isTuodSuccess(input: TuodAttemptInput): boolean {
   return input.checkedOut && input.finishedOnDouble === true;
-}
-
-/**
- * Discriminates `TuodInput` by shape, never by session mode: only
- * `DartObservation` carries `hitZoneKey`, so its presence is a sound type
- * guard no matter which mode the session was created in — mirrors
- * `one-twenty-one.engine.module.ts`'s `isDartObservation`.
- */
-function isDartObservation(input: TuodInput): input is DartObservation {
-  return "hitZoneKey" in input;
 }
 
 /**
@@ -407,7 +398,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   }
 
   record(input: TuodInput): TuodState {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.recordDart(input);
     }
     return this.recordAttemptTotal(input);
@@ -487,7 +478,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * own budget too, exactly as `AroundTheClockEngine.wouldComplete` reads it.
    */
   wouldComplete(input: TuodInput): boolean {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.wouldCompleteDart(input);
     }
 

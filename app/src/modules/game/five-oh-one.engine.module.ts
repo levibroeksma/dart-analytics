@@ -7,6 +7,7 @@ import { registerEngineFactory } from "./engine.registry";
 import {
   appendResolvedDart,
   cloneTurns,
+  isDartObservationInput,
   openVisit,
   resolveObservation,
   undoStagedTurn,
@@ -39,18 +40,6 @@ function legStage(sequence: number): StageFact {
     parentClientKey: null,
     sequence,
   };
-}
-
-/**
- * Discriminates `FiveOhOneInput` by shape, never by session mode: only
- * `DartObservation` carries `hitZoneKey`, so its presence is a sound type
- * guard no matter which mode the session was created in. `record()` and
- * `wouldComplete()` both dispatch on this, so a keypad-shaped input can never
- * reach `resolveObservation` and get misclassified as a dart. The engine
- * holds no mode of its own to disagree with the input it is handed.
- */
-function isDartObservation(input: FiveOhOneInput): input is DartObservation {
-  return "hitZoneKey" in input;
 }
 
 /** A visit score is playable only as a whole number in `0..maxVisitScore`. */
@@ -334,7 +323,7 @@ export class FiveOhOneEngine implements GameEngine<
    *   the fact log is left untouched.
    */
   record(input: FiveOhOneInput): FiveOhOneState {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.recordDart(input);
     }
     return this.recordVisitTotal(input);
@@ -554,7 +543,7 @@ export class FiveOhOneEngine implements GameEngine<
    * contradicts included: this predicate answers, it never throws.
    */
   wouldComplete(input: FiveOhOneInput): boolean {
-    if (isDartObservation(input)) {
+    if (isDartObservationInput(input)) {
       return this.wouldCompleteDart(input);
     }
 
