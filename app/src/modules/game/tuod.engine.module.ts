@@ -66,14 +66,35 @@ function isTuodSuccess(input: TuodAttemptInput): boolean {
   return input.checkedOut && input.finishedOnDouble === true;
 }
 
+/** The highest number a single dart can double out on (D20 = 40). */
+const MAX_SINGLE_DART_DOUBLE = 40;
+
+/** The inner bull, scored as a double (worth 50, not on the D1-D20 ladder). */
+const BULL_FINISH = 50;
+
+/**
+ * Whether `remainder` can still be finished by exactly one dart landing on a
+ * double: the D1-D20 ladder (an even number from 2 to 40) or the bull (50).
+ * Every odd remainder fails this, since no double scores odd; so does every
+ * even remainder above 40 other than 50, since no double scores above 40 and
+ * the bull is the sole exception.
+ */
+function finishableWithOneDart(remainder: number): boolean {
+  return (
+    (remainder % 2 === 0 && remainder <= MAX_SINGLE_DART_DOUBLE) ||
+    remainder === BULL_FINISH
+  );
+}
+
 /**
  * Whether a visit that scored `scored` off `remainingBefore`, with its last
  * dart landing in `lastZoneKey` and `dartsRemaining` darts still to throw,
  * has checked out or busted. Shared by `settleVisit` (which stamps the
  * resolved fact) and `wouldCompleteDart` (which only asks whether it would
  * resolve) so the bust/checkout rule — overshoot, exactly 1 left, reaching 0
- * without a double, or a last dart's remainder that no double can ever
- * finish (odd, since every double scores even) — is written once.
+ * without a double, or a last dart's remainder that no double can ever finish
+ * (odd, since every double scores even; or even but above 40 and not the
+ * bull, since no double scores that high) — is written once.
  */
 function visitOutcome(
   remainingBefore: number,
@@ -90,7 +111,7 @@ function visitOutcome(
     outcome.busted ||
     (dartsRemaining === 1 &&
       outcome.remainingAfter > 1 &&
-      outcome.remainingAfter % 2 !== 0);
+      !finishableWithOneDart(outcome.remainingAfter));
   return { ...outcome, busted };
 }
 

@@ -695,6 +695,39 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     expect(turn.darts).toHaveLength(1);
   });
 
+  it("busts immediately after dart 2 when the remainder is an even number above 40 — no double scores that high except the bull, so dart 3 is never thrown", () => {
+    // startingTarget 144: two SINGLE_1 darts leave a 142 remainder, which is
+    // even but above 40 and not the bull — no double reaches it, so the
+    // visit is unfinishable with the one dart left and must close right away.
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 144,
+    });
+    engine.record(SINGLE_1);
+    const state = engine.record(SINGLE_1);
+
+    expect(state.seats[0].failures).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.completedAt).not.toBeNull();
+    expect(turn.totalScore).toBe(0);
+    expect(turn.darts).toHaveLength(2);
+  });
+
+  it("does not bust when the remainder after dart 2 is exactly 50 — the bull can still finish it", () => {
+    // startingTarget 52: two SINGLE_1 darts leave a 50 remainder, reachable
+    // by the bull even though it is above the D1-D20 ladder's own ceiling.
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 52,
+    });
+    engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+
+    const turn = engine.facts().turns[0];
+    expect(turn.completedAt).toBeNull();
+    expect(turn.darts).toHaveLength(2);
+  });
+
   it("records an unseen dart as a scoreless, real dart row", () => {
     const engine = tuodEngineFactory.create(boardConfig());
     engine.record(UNSEEN);
@@ -800,6 +833,16 @@ describe("TuodEngine.wouldComplete — dart path, pure", () => {
 
   it("is true for the 2nd dart of the last permitted attempt when it leaves an unfinishable odd remainder", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
+    engine.record(SINGLE_1);
+    expect(engine.wouldComplete(SINGLE_1)).toBe(true);
+  });
+
+  it("is true for the 2nd dart of the last permitted attempt when it leaves an unfinishable even remainder above 40", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 144,
+      durationValue: 1,
+    });
     engine.record(SINGLE_1);
     expect(engine.wouldComplete(SINGLE_1)).toBe(true);
   });
