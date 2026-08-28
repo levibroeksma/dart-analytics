@@ -22,6 +22,22 @@ export function sumDartScores(darts: readonly DartFact[]): number {
 }
 
 /**
+ * Every turn strictly before `visit` in `turns` — for folding the log up to
+ * the moment `visit` opened. Safe and exact because an engine only ever has
+ * one open turn (the last one), so every earlier turn in `turns` is always
+ * already closed. Shared by any engine that resolves "the seat's state
+ * immediately before this visit" by slicing and refolding, rather than by a
+ * running reduce (`five-oh-one.engine.module.ts`'s `remainingBeforeVisit`
+ * uses the latter and does not need this).
+ */
+export function turnsBeforeVisit(
+  turns: readonly TurnFact[],
+  visit: TurnFact,
+): TurnFact[] {
+  return turns.slice(0, turns.indexOf(visit));
+}
+
+/**
  * A detached copy of a turn log, darts included. Every engine rehydrates from
  * `prior` facts through this and returns `facts()` through it too, so no
  * caller ever holds a reference into an engine's live log.
