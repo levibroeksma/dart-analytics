@@ -519,9 +519,11 @@ export type PresetSetupContext = {
 /**
  * What `createPresetSetupController` needs to know about one game. Everything
  * here is a fact about the game and nothing here is a behaviour switch — the
- * single exception, `configOverrides`, exists because Singles and Doubles
- * Training inject their chosen target order into both the config snapshot and
- * the create-session overrides, and nothing else in the six deviates at all.
+ * exception, `configOverrides`, exists because Singles Training, Doubles
+ * Training, and Shanghai (V2's difficulty toggle) each inject one player-
+ * chosen field into both the config snapshot and the create-session
+ * overrides; nothing else among the games still on this controller deviates
+ * at all.
  *
  * `label` is not derived from a key. The shipped copy reads `Bob's 27`, not
  * `BOBS27`, and a derivation would silently reword a user-visible message.
@@ -840,7 +842,9 @@ export type DoublesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
 };
 
-export type ShanghaiSetupContext = PresetSetupContext;
+export type ShanghaiSetupContext = PresetSetupContext & {
+  difficulty: "NORMAL" | "HARD";
+};
 
 /**
  * 121 keeps a hand-written setup context, like `501`/Score Training, rather
