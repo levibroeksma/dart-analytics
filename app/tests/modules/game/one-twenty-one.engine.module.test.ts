@@ -1297,14 +1297,18 @@ describe("oneTwentyOneV2EngineFactory", () => {
     });
 
     it("stays false mid-attempt after the timer expires — finishes the in-flight attempt first", () => {
-      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      const engine = oneTwentyOneV2EngineFactory.create(
+        v2Config("MINUTES", 5),
+      ) as OneTwentyOneEngine;
       engine.record({ scoreAttempted: 40 });
       engine.expireTimer();
       expect(engine.isComplete()).toBe(false);
     });
 
     it("flips true the instant the in-flight attempt closes, once the timer has expired", () => {
-      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      const engine = oneTwentyOneV2EngineFactory.create(
+        v2Config("MINUTES", 5),
+      ) as OneTwentyOneEngine;
       engine.record({ scoreAttempted: 40 });
       engine.expireTimer();
       engine.record({ scoreAttempted: 60 });
@@ -1313,7 +1317,9 @@ describe("oneTwentyOneV2EngineFactory", () => {
     });
 
     it("wouldComplete predicts a checkout that closes the attempt once the timer has expired", () => {
-      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      const engine = oneTwentyOneV2EngineFactory.create(
+        v2Config("MINUTES", 5),
+      ) as OneTwentyOneEngine;
       engine.expireTimer();
       expect(
         engine.wouldComplete({ scoreAttempted: 121, finishedOnDouble: true }),
@@ -1328,7 +1334,9 @@ describe("oneTwentyOneV2EngineFactory", () => {
     });
 
     it("does not complete on the very next non-closing record after two attempts had already resolved before expiry", () => {
-      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      const engine = oneTwentyOneV2EngineFactory.create(
+        v2Config("MINUTES", 5),
+      ) as OneTwentyOneEngine;
       bustAttempt(engine as unknown as OneTwentyOneGameEngine);
       bustAttempt(engine as unknown as OneTwentyOneGameEngine);
       engine.expireTimer();

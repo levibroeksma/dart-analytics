@@ -764,6 +764,15 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
         expect.objectContaining({ rulesetVersionKey: "121_V1" }),
       );
     });
+
+    it("does nothing for a ruleset key this shared play page cannot resume", async () => {
+      store.game.rulesetVersionKey = "SCORE_TRAINING_V1" as any;
+      const play = createPlay();
+
+      await play.playAgain();
+
+      expect(sessionsApi.createSession).not.toHaveBeenCalled();
+    });
   });
 
   describe("durationType / attemptLabel / remainingLabel", () => {

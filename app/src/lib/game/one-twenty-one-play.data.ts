@@ -177,6 +177,95 @@ function startCountdown(
   return timer;
 }
 
+/**
+ * `init()`'s own MINUTES branch, extracted so the caller reads as one
+ * decision (resume, mark already-expired, or do nothing) instead of three
+ * nested conditionals. Marks the engine expired in place — via a side
+ * effect, not a return value — since that outcome has nothing to hand back
+ * to the caller.
+ */
+function maybeResumeCountdown(
+  game: OneTwentyOnePlayContext["$store"]["game"],
+  config: NonNullable<
+    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
+  >,
+  engine: OneTwentyOneEngine,
+): SegmentTimer | null {
+  if (durationTypeOf(config) !== "MINUTES") return null;
+  if (game.timerExpired) {
+    engine.expireTimer();
+    return null;
+  }
+  const durationValue = durationValueOf(config);
+  if (durationValue == null) return null;
+  return startCountdown(game, durationValue, engine);
+}
+
+/**
+ * `playAgain()`'s own MINUTES branch — always a fresh segment, since the
+ * caller has already cleared the store's timer fields for the new session.
+ */
+function maybeStartFreshCountdown(
+  game: OneTwentyOnePlayContext["$store"]["game"],
+  config: NonNullable<
+    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
+  >,
+  engine: OneTwentyOneEngine,
+): SegmentTimer | null {
+  if (durationTypeOf(config) !== "MINUTES") return null;
+  const durationValue = durationValueOf(config);
+  if (durationValue == null) return null;
+  return startCountdown(game, durationValue, engine);
+}
+
+/**
+ * Whether `playAgain` may proceed once a config, template, and ruleset key
+ * are already known to exist: the ruleset is one this shared play page can
+ * resume, and no replay is already in flight. Named so the call site reads
+ * as one decision rather than folding these two checks into the same
+ * five-term condition as the null guards above it.
+ */
+function canReplay(
+  rulesetVersionKey: RulesetVersionKey,
+  playAgainLoading: boolean,
+): boolean {
+  return RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) && !playAgainLoading;
+}
+
+/**
+ * Resets every piece of local and store UI state a replay leaves behind
+ * from the finished session, before the new engine is built. Extracted so
+ * `playAgain` reads as its three real steps (create session, reset state,
+ * build engine) rather than interleaving them with two dozen assignments.
+ */
+function resetForReplay(
+  context: OneTwentyOnePlayContext,
+  session: { sessionId: string },
+  seatedSnapshot: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
+  modePair: { captureModeKey: string; inputModeKey: string },
+): void {
+  context.$store.game.sessionId = session.sessionId;
+  context.$store.game.configSnapshot = seatedSnapshot;
+  context.$store.game.idempotencyKey = null;
+  context.$store.game.setSessionModes(modePair);
+  context.$store.game.timerRemainingMs = null;
+  context.$store.game.timerStartedAt = null;
+  context.$store.game.timerExpired = false;
+
+  context.finished = false;
+  context.completionStatus = "pending";
+  context.completionError = "";
+  context.resultsSnapshot = null;
+  context.pendingCheckoutScore = null;
+  context.pendingDartObservation = null;
+  context.showDoubleConfirm = false;
+  context.showSessionFinishConfirm = false;
+  clearHiddenTimer(context);
+  context.scoreInput.clear();
+  context.error = "";
+  context.hasActiveSession = true;
+}
+
 function computeStats(
   state: OneTwentyOneState,
   turns: TurnFact[],
@@ -375,22 +464,7 @@ export function oneTwentyOnePlay() {
         }
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
-
-        const durationType = durationTypeOf(config);
-        if (durationType === "MINUTES") {
-          if (this.$store.game.timerExpired) {
-            engine.expireTimer();
-          } else {
-            const durationValue = durationValueOf(config);
-            if (durationValue != null) {
-              this.timer = startCountdown(
-                this.$store.game,
-                durationValue,
-                engine,
-              );
-            }
-          }
-        }
+        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
 
         this.hasActiveSession = true;
       } catch {
@@ -737,14 +811,8 @@ export function oneTwentyOnePlay() {
       const config = this.$store.game.configSnapshot;
       const templateRef = this.$store.game.templateRef;
       const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (
-        !config ||
-        !templateRef ||
-        !rulesetVersionKey ||
-        !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) ||
-        this.playAgainLoading
-      )
-        return;
+      if (!config || !templateRef || !rulesetVersionKey) return;
+      if (!canReplay(rulesetVersionKey, this.playAgainLoading)) return;
       const factory = getEngineFactory(rulesetVersionKey);
       if (!factory) return;
 
@@ -773,44 +841,21 @@ export function oneTwentyOnePlay() {
         }
 
         const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-        this.$store.game.timerRemainingMs = null;
-        this.$store.game.timerStartedAt = null;
-        this.$store.game.timerExpired = false;
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingCheckoutScore = null;
-        this.pendingDartObservation = null;
-        this.showDoubleConfirm = false;
-        this.showSessionFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.scoreInput.clear();
-        this.error = "";
-        this.hasActiveSession = true;
+        resetForReplay(this, session, seatedSnapshot, modePair);
 
         const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof OneTwentyOneEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
 
-        const durationType = durationTypeOf(seatedSnapshot);
-        if (durationType === "MINUTES") {
-          const durationValue = durationValueOf(seatedSnapshot);
-          if (durationValue != null) {
-            this.timer?.stop();
-            this.timer = startCountdown(
-              this.$store.game,
-              durationValue,
-              engine,
-            );
-          }
+        const freshTimer = maybeStartFreshCountdown(
+          this.$store.game,
+          seatedSnapshot,
+          engine,
+        );
+        if (freshTimer) {
+          this.timer?.stop();
+          this.timer = freshTimer;
         }
       } finally {
         this.playAgainLoading = false;

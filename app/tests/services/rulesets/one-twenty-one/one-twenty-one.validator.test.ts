@@ -252,3 +252,22 @@ describe("oneTwentyOneV2Validator.validateBatch", () => {
     expect(result.valid).toBe(true);
   });
 });
+
+describe("createOneTwentyOneValidator builder", () => {
+  it("gives oneTwentyOneValidator and oneTwentyOneV2Validator independent validateConfig closures", () => {
+    expect(
+      oneTwentyOneValidator.validateConfig({
+        config: { duration_type: "TARGET" },
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(false);
+    expect(
+      oneTwentyOneV2Validator.validateConfig({
+        config: { duration_type: "TARGET" },
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(true);
+  });
+});

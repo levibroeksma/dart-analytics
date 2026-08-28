@@ -111,6 +111,7 @@ export function initialOneTwentyOneState(
     activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
     winningSideKey: null,
+    timerExpired: false,
     seats: config.seats.map(initialSeatState),
   };
 }
@@ -600,6 +601,26 @@ export class OneTwentyOneEngine implements GameEngine<
   }
 
   /**
+   * Whether a checkout that leaves the sole seat's `attemptsCompleted` at
+   * `attemptsCompletedAfter` also satisfies the session's own completion
+   * rule for its `durationType` — the tail both `wouldComplete` and
+   * `wouldCompleteDart` share once they already know the input in front of
+   * them is a checkout below the cap target.
+   */
+  private durationSatisfiedAfterCheckout(
+    attemptsCompletedAfter: number,
+  ): boolean {
+    const { durationType, durationValue } = durationOf(this.config);
+    if (durationType === "ROUNDS") {
+      return attemptsCompletedAfter >= (durationValue ?? 0);
+    }
+    if (durationType === "MINUTES") {
+      return this.timerExpired;
+    }
+    return false;
+  }
+
+  /**
    * The dart-input counterpart to `wouldComplete`'s visit branch — same
    * checkout-only prediction, same reasoning for why a non-checkout closing
    * dart is not predicted here.
@@ -621,14 +642,9 @@ export class OneTwentyOneEngine implements GameEngine<
     if (!checkedOut) return false;
     if (activeSeatState.currentTarget === CAP_TARGET) return true;
 
-    const { durationType, durationValue } = durationOf(this.config);
-    if (durationType === "ROUNDS") {
-      return activeSeatState.attemptsCompleted + 1 >= (durationValue ?? 0);
-    }
-    if (durationType === "MINUTES") {
-      return this.timerExpired;
-    }
-    return false;
+    return this.durationSatisfiedAfterCheckout(
+      activeSeatState.attemptsCompleted + 1,
+    );
   }
 
   /**
@@ -664,14 +680,7 @@ export class OneTwentyOneEngine implements GameEngine<
     );
     if (!outcome.checkedOut) return false;
 
-    const { durationType, durationValue } = durationOf(this.config);
-    if (durationType === "ROUNDS") {
-      return after.attemptsCompleted >= (durationValue ?? 0);
-    }
-    if (durationType === "MINUTES") {
-      return this.timerExpired;
-    }
-    return false;
+    return this.durationSatisfiedAfterCheckout(after.attemptsCompleted);
   }
 
   /**

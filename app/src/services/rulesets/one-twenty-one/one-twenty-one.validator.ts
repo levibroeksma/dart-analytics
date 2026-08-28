@@ -31,7 +31,7 @@ const MAX_VISIT_SCORE = 180;
  * share this one implementation, parameterised only by which config schema
  * `validateConfig` parses against.
  */
-export function createOneTwentyOneValidator(
+function createOneTwentyOneValidator(
   configSchema: z.ZodTypeAny,
 ): RulesetValidator {
   return {
