@@ -7,7 +7,7 @@ updated: 2026-08-28
 
 # Architecture Patterns
 
-> **Version:** 1.8.2 (Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.8.3 (Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242; prior 1.8.2: Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -809,7 +809,7 @@ A score-compare engine calls `scoreCompareOutcome(seats, direction, soloStatus)`
 
 The mechanical half of an engine — everything with no ruleset content in it — is composed from two shared pure modules rather than copied per engine (D232). `modules/game/turn-log.module.ts` owns the `TurnFact`/`DartFact` log: `cloneTurns`, `sumDartScores`, `dartsThrownBy`, `openOrCreateTurn` (the caller supplies the reuse rule), `appendCompletedTurn`, `openVisit`, `resolveObservation`/`appendResolvedDart`, `appendObservedDart`/`doubleTargetIntent`, and the three undo shapes `undoLastDart` / `undoLastUnit` / `undoStagedTurn`. `modules/game/seat-state.module.ts` owns per-seat derivation: `foldSeatStates`, `activeSeatState`, `otherSeatsComplete` (a completion predicate `(seat: TSeat) => boolean` as its 3rd argument — a `status` check for the dart-fed engines, `durationSeatComplete` for TUOD and Score Training), `durationSeatComplete`, `completedByIndex`. A new engine composes these; what stays in the engine is what its ruleset actually decides.
 
-`modules/game/checkout-bust.module.ts` owns the double-out bust/checkout rule shared by every X01-style ladder game: `resolveCheckoutAttempt(remainingBefore, scored, endedOnDouble)` returns `{ remainingAfter, checkedOut, busted }` for an overshoot, leaving exactly 1, or reaching exactly 0 without a double. 501, 121, and TUOD each call it and OR their own ruleset-specific escalation (121's final-visit unreachable-remainder rule, TUOD's odd-remainder-with-one-dart-left rule) onto its result rather than folding that escalation into the shared function (D240).
+`modules/game/checkout-bust.module.ts` owns the double-out bust/checkout rule shared by every X01-style ladder game: `resolveCheckoutAttempt(remainingBefore, scored, endedOnDouble)` returns `{ remainingAfter, checkedOut, busted }` for an overshoot, leaving exactly 1, or reaching exactly 0 without a double. 501, 121, and TUOD each call it and OR their own ruleset-specific escalation (121's final-visit unreachable-remainder rule, TUOD's odd-remainder-with-one-dart-left rule) onto its result rather than folding that escalation into the shared function (D240). `checkout-bust.module.ts` also exports `checkoutAttemptCount(turns)` (D242), counting failed checkout attempts from a completed VISUAL_BOARD turn log.
 
 Resolving "the seat's state immediately before this visit" has two legitimate techniques, not one duplicated three times: `turnsBeforeVisit` (`turn-log.module.ts`) slices the log up to the visit and refolds it through the engine's own `foldXxxState`, for when the caller needs the seat's whole derived state (121's `seatBeforeVisit`, TUOD's `targetBeforeVisit`); a plain `.filter().reduce()` over `totalScore` is used instead when only a running total is needed and a full state fold would be wasted work (501's `remainingBeforeVisit`). Pick whichever the caller actually needs — do not force a scalar-only case through a full-state fold, or vice versa (D241).
 
@@ -932,10 +932,10 @@ Detail lives in `app/src/lib/game/play-visit-stats.ts`.
 
 ## Principle
 
-A visit-score milestone count (100+/120+/140+/180-style bands) is computed
-once, not reimplemented per ruleset, and every band is mutually exclusive: a
-visit counts toward its single highest qualifying band only, never toward
-any lower band it also happens to clear.
+A visit-score milestone count (60+/100+/120+/140+/180-style bands) is
+computed once, not reimplemented per ruleset, and every band is mutually
+exclusive: a visit counts toward its single highest qualifying band only,
+never toward any lower band it also happens to clear.
 
 ## Pattern
 
@@ -943,11 +943,11 @@ any lower band it also happens to clear.
 completed visits
     ↓
 visitScoreBandCounts(turns) (play-visit-stats.ts) — one pass, each visit
-tallied into exactly one of hundredPlus / oneTwentyPlus / oneFortyPlus /
-oneEighties (highest threshold met, e.g. 125 → oneTwentyPlus only, never
-also hundredPlus; 180 → oneEighties only)
+tallied into exactly one of sixtyPlus / hundredPlus / oneTwentyPlus /
+oneFortyPlus / oneEighties (highest threshold met, e.g. 125 → oneTwentyPlus
+only, never also hundredPlus; 180 → oneEighties only)
     ↓
-resultsSnapshot.seats[].{hundredPlus, oneTwentyPlus, oneFortyPlus, oneEighties}
+resultsSnapshot.seats[].{sixtyPlus, hundredPlus, oneTwentyPlus, oneFortyPlus, oneEighties}
     ↓
 result-modal .astro (renders each count directly)
 ```
@@ -958,7 +958,7 @@ result-modal .astro (renders each count directly)
   `visitScoreBandCounts(turns)` rather than four independent
   threshold-or-above tallies.
 - Bands are exclusive, not cumulative: a single visit increments exactly one
-  counter (or none, below 100).
+  counter (or none, below 60).
 - Result-modal `.astro` components render each count directly; they never
   re-tally or re-bucket it.
 
