@@ -57,6 +57,8 @@ export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
 
 export type TuodDurationType = "ROUNDS" | "MINUTES";
 
+export type OneTwentyOneDurationType = "TARGET" | "ROUNDS" | "MINUTES";
+
 export type TuodSetupContext = {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
