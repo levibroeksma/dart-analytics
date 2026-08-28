@@ -1,4 +1,10 @@
-import type { OneTwentyOneSnapshot, Seated, SeatFact } from "@lib/types";
+import type {
+  OneTwentyOneSnapshot,
+  OneTwentyOneV2Snapshot,
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+} from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
@@ -35,6 +41,34 @@ const DARTS_PER_VISIT = 3;
 const MAX_VISIT_SCORE = 180;
 
 /**
+ * Both ruleset versions' seated config, unioned. `121_V1`'s carries no
+ * duration fields at all (its schema is `{}`); `121_V2`'s always carries
+ * `durationType`, and `durationValue` when the mode needs one.
+ */
+type OneTwentyOneEngineConfig =
+  Seated<OneTwentyOneSnapshot> | Seated<OneTwentyOneV2Snapshot>;
+
+/**
+ * Normalizes either ruleset version's config into one shape. `"durationType"
+ * in config` is false for every `121_V1` config (an empty `{seats}` — the
+ * key is genuinely absent, not merely `undefined`), so a `121_V1`-created
+ * engine always reads `TARGET` here regardless of what config it is handed —
+ * behaviour identical to today, byte for byte.
+ */
+function durationOf(config: OneTwentyOneEngineConfig): {
+  durationType: "TARGET" | "ROUNDS" | "MINUTES";
+  durationValue?: number;
+} {
+  if ("durationType" in config) {
+    return {
+      durationType: config.durationType,
+      durationValue: config.durationValue,
+    };
+  }
+  return { durationType: "TARGET" };
+}
+
+/**
  * Builds the `ROUND` stage for attempt `sequence`. Rounds are root stages —
  * 121 has no enclosing MATCH or SET stage, so every round's `parentClientKey`
  * is null and its `sequence` is its position in the session.
@@ -65,6 +99,7 @@ function initialSeatState(seat: SeatFact): OneTwentyOneSeatState {
     remainingInAttempt: START_TARGET,
     visitsThisAttempt: 0,
     status: "IN_PROGRESS",
+    attemptsCompleted: 0,
   };
 }
 
@@ -195,6 +230,7 @@ export function applyOneTwentyOneVisit(
         remainingInAttempt: 0,
         visitsThisAttempt: 0,
         status: "WON",
+        attemptsCompleted: state.attemptsCompleted + 1,
       };
     }
     const nextTarget = state.currentTarget + 1;
@@ -204,6 +240,7 @@ export function applyOneTwentyOneVisit(
       remainingInAttempt: nextTarget,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: state.attemptsCompleted + 1,
     };
   }
 
@@ -220,6 +257,7 @@ export function applyOneTwentyOneVisit(
     ...state,
     remainingInAttempt: state.currentTarget,
     visitsThisAttempt: 0,
+    attemptsCompleted: state.attemptsCompleted + 1,
   };
 }
 
@@ -261,10 +299,18 @@ function deriveClosedSeatState(
  * so it would report that seat's own side as having beaten nobody. Solo
  * completion is read off `status` instead, the same `seats.length === 1`
  * gate every other multi-seat engine's win condition already carries.
+ *
+ * `timerExpired` is threaded through purely so `state().timerExpired` is
+ * readable — mirrors `foldScoreTrainingState`'s own third parameter. It
+ * plays no role in this fold's own `status`/`winningSideKey` computation:
+ * `ROUNDS`/`MINUTES` completion is an engine-level concern
+ * (`isComplete()`/`wouldComplete()`), not a fold-level one, because it is
+ * solo-only and has no seat-level `status` value of its own.
  */
 export function foldOneTwentyOneState(
   facts: EngineFacts,
-  config: Seated<OneTwentyOneSnapshot>,
+  config: OneTwentyOneEngineConfig,
+  timerExpired: boolean,
 ): OneTwentyOneState {
   const openVisit =
     facts.turns.at(-1)?.completedAt === null ? facts.turns.at(-1)! : null;
@@ -295,6 +341,7 @@ export function foldOneTwentyOneState(
       .participantRef,
     status: seats.some((seat) => seat.status === "WON") ? "WON" : "IN_PROGRESS",
     winningSideKey,
+    timerExpired,
     seats,
   };
 }
@@ -311,15 +358,19 @@ export class OneTwentyOneEngine implements GameEngine<
   OneTwentyOneInput,
   OneTwentyOneState
 > {
-  readonly rulesetVersionKey = "121_V1";
+  readonly rulesetVersionKey: RulesetVersionKey;
   readonly stageOwnership = "PER_SEAT" as const;
   private readonly stages: StageFact[];
   private readonly turns: TurnFact[];
+  private timerExpired = false;
+  private attemptsCompletedAtExpiry = 0;
 
   constructor(
-    private readonly config: Seated<OneTwentyOneSnapshot>,
+    private readonly config: OneTwentyOneEngineConfig,
     prior?: EngineFacts,
+    rulesetVersionKey: RulesetVersionKey = "121_V1",
   ) {
+    this.rulesetVersionKey = rulesetVersionKey;
     this.stages =
       prior && prior.stages.length > 0
         ? prior.stages.map((stage) => ({ ...stage }))
@@ -331,6 +382,7 @@ export class OneTwentyOneEngine implements GameEngine<
     return foldOneTwentyOneState(
       { stages: this.stages, turns: this.turns },
       this.config,
+      this.timerExpired,
     );
   }
 
@@ -375,6 +427,7 @@ export class OneTwentyOneEngine implements GameEngine<
     return foldOneTwentyOneState(
       { stages: this.stages, turns: turnsBeforeVisit(this.turns, visit) },
       this.config,
+      this.timerExpired,
     ).seats.find((seat) => seat.participantRef === visit.participantRef)!;
   }
 
@@ -508,6 +561,24 @@ export class OneTwentyOneEngine implements GameEngine<
     return this.deriveState();
   }
 
+  /**
+   * Records that the MINUTES countdown has elapsed. The countdown itself
+   * lives in `game.store.ts`, not the engine, so expiry arrives as an
+   * explicit call — mirrors `ScoreTrainingEngine.expireTimer()`. No-op in
+   * effect unless `durationOf(this.config).durationType === "MINUTES"`;
+   * nothing reads the flag otherwise. Snapshots the sole seat's
+   * `attemptsCompleted` at the moment of expiry so `isComplete()` can tell
+   * "the attempt open right now has since closed" apart from "some attempt,
+   * possibly one that already closed before expiry, exists" — the latter
+   * would flip `isComplete()` true on the very next non-closing `record()`
+   * once two or more attempts had already resolved earlier in the session.
+   */
+  expireTimer(): void {
+    this.timerExpired = true;
+    this.attemptsCompletedAtExpiry =
+      this.deriveState().seats[0].attemptsCompleted;
+  }
+
   record(input: OneTwentyOneInput): OneTwentyOneState {
     if (isDartObservationInput(input)) {
       return this.recordDart(input);
@@ -529,11 +600,9 @@ export class OneTwentyOneEngine implements GameEngine<
   }
 
   /**
-   * Whether the dart under consideration would check out the cap target —
-   * the one way a 121 seat can win its own race on a single dart. Match
-   * -level and seat-level completion are both checked before evaluating the
-   * dart, so a trailing seat's own near-checkout never misreads as still
-   * being able to end an already-decided match.
+   * The dart-input counterpart to `wouldComplete`'s visit branch — same
+   * checkout-only prediction, same reasoning for why a non-checkout closing
+   * dart is not predicted here.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
     const before = this.deriveState();
@@ -549,14 +618,27 @@ export class OneTwentyOneEngine implements GameEngine<
       resolved.score,
       resolved.zoneKey === "DOUBLE",
     );
-    return checkedOut && activeSeatState.currentTarget === CAP_TARGET;
+    if (!checkedOut) return false;
+    if (activeSeatState.currentTarget === CAP_TARGET) return true;
+
+    const { durationType, durationValue } = durationOf(this.config);
+    if (durationType === "ROUNDS") {
+      return activeSeatState.attemptsCompleted + 1 >= (durationValue ?? 0);
+    }
+    if (durationType === "MINUTES") {
+      return this.timerExpired;
+    }
+    return false;
   }
 
   /**
-   * Answers whether recording `input` would win the active seat's own race,
-   * without mutating the fact log or the derived state. Only a checkout at
-   * the cap target (170) can ever complete a seat's race — and only while
-   * the match itself, not merely the active seat, is still `IN_PROGRESS`.
+   * Whether recording `input` would close the active seat's current attempt
+   * via a checkout (climb or cap) that also satisfies the session's
+   * completion rule for its own `durationType`. Only a checkout is predicted
+   * here — a 3rd-visit fail-reset that happens to be the session's final
+   * closing action completes silently through the post-record `isComplete()`
+   * check `recordVisit`/`commitDart` already run, mirroring the existing
+   * asymmetry that a bust never opens a finish-confirm dialog.
    */
   wouldComplete(input: OneTwentyOneInput): boolean {
     if (isDartObservationInput(input)) {
@@ -573,11 +655,49 @@ export class OneTwentyOneEngine implements GameEngine<
     if (checkoutDartsRejectionFor(activeSeatState, input) !== null)
       return false;
 
-    return applyOneTwentyOneVisit(activeSeatState, input).status === "WON";
+    const after = applyOneTwentyOneVisit(activeSeatState, input);
+    if (after.status === "WON") return true;
+
+    const outcome = resolveOneTwentyOneVisit(
+      activeSeatState.remainingInAttempt,
+      input,
+    );
+    if (!outcome.checkedOut) return false;
+
+    const { durationType, durationValue } = durationOf(this.config);
+    if (durationType === "ROUNDS") {
+      return after.attemptsCompleted >= (durationValue ?? 0);
+    }
+    if (durationType === "MINUTES") {
+      return this.timerExpired;
+    }
+    return false;
   }
 
+  /**
+   * A cap checkout always ends the session, in every `durationType` — this
+   * mechanic is untouched from `121_V1`. `ROUNDS`/`MINUTES` add an earlier
+   * stop condition on top of it: `ROUNDS` once the sole seat's
+   * `attemptsCompleted` reaches `duration_value`; `MINUTES` once the
+   * countdown has expired AND the in-flight attempt has closed (so the
+   * current attempt always finishes before the session stops). Read off the
+   * sole seat — `ROUNDS`/`MINUTES` are solo-only by setup-UI convention, not
+   * an engine-level guard.
+   */
   isComplete(): boolean {
-    return this.deriveState().status === "WON";
+    const state = this.deriveState();
+    if (state.status === "WON") return true;
+
+    const { durationType, durationValue } = durationOf(this.config);
+    if (durationType === "TARGET") return false;
+    const seat = state.seats[0];
+    if (durationType === "ROUNDS") {
+      return seat.attemptsCompleted >= (durationValue ?? 0);
+    }
+    return (
+      this.timerExpired &&
+      seat.attemptsCompleted > this.attemptsCompletedAtExpiry
+    );
   }
 
   state(): OneTwentyOneState {
@@ -605,3 +725,17 @@ export const oneTwentyOneEngineFactory: GameEngineFactory<
 };
 
 registerEngineFactory(oneTwentyOneEngineFactory);
+
+export const oneTwentyOneV2EngineFactory: GameEngineFactory<
+  Seated<OneTwentyOneV2Snapshot>,
+  OneTwentyOneInput,
+  OneTwentyOneState
+> = {
+  rulesetVersionKey: "121_V2",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<OneTwentyOneV2Snapshot>, prior?: EngineFacts) {
+    return new OneTwentyOneEngine(config, prior, "121_V2");
+  },
+};
+
+registerEngineFactory(oneTwentyOneV2EngineFactory);

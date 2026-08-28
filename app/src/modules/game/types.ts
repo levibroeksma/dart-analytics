@@ -213,18 +213,24 @@ export type OneTwentyOneVisitOutcome = {
  * `FiveOhOneState.remainingScore` resets to `startingScore` per leg.
  * `visitsThisAttempt` counts visits used in the open attempt (0..2 while
  * in progress — it resets the instant the 3rd resolves). All three are folds
- * over the fact log, never accumulated fields.
+ * over the fact log, never accumulated fields. `attemptsCompleted` counts
+ * attempts that have fully resolved — checkout climb, checkout at the cap,
+ * or a 3rd-visit fail-reset — never a mid-attempt (visit 1 or 2) reduction or
+ * bust. Drives `ROUNDS`/`MINUTES` completion in `121_V2`; always 0-and-climbing
+ * under `121_V1` too, simply unread there.
  */
 export type OneTwentyOneSeatState = SeatState & {
   currentTarget: number;
   remainingInAttempt: number;
   visitsThisAttempt: number;
   status: "IN_PROGRESS" | "WON";
+  attemptsCompleted: number;
 };
 
 export type OneTwentyOneState = MultiSeatState<OneTwentyOneSeatState> & {
   status: "IN_PROGRESS" | "WON";
   winningSideKey: string | null;
+  timerExpired: boolean;
 };
 
 /**

@@ -3,6 +3,7 @@ import {
   applyOneTwentyOneVisit,
   OneTwentyOneEngine,
   oneTwentyOneEngineFactory,
+  oneTwentyOneV2EngineFactory,
   initialOneTwentyOneState,
 } from "@modules/game/one-twenty-one.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -16,7 +17,11 @@ import type {
   OneTwentyOneState,
   OneTwentyOneVisitInput,
 } from "@modules/types";
-import type { OneTwentyOneSnapshot, Seated } from "@lib/types";
+import type {
+  OneTwentyOneSnapshot,
+  OneTwentyOneV2Snapshot,
+  Seated,
+} from "@lib/types";
 
 const SEATS = [
   {
@@ -66,6 +71,7 @@ describe("initialOneTwentyOneState", () => {
       currentTarget: 121,
       remainingInAttempt: 121,
       visitsThisAttempt: 0,
+      attemptsCompleted: 0,
       status: "IN_PROGRESS",
     });
   });
@@ -93,6 +99,7 @@ describe("applyOneTwentyOneVisit — legal reduction", () => {
       remainingInAttempt: 100,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, {
       scoreAttempted: 60,
@@ -135,6 +142,7 @@ describe("applyOneTwentyOneVisit — bust matrix", () => {
     remainingInAttempt,
     visitsThisAttempt: 0,
     status: "IN_PROGRESS",
+    attemptsCompleted: 0,
   });
 
   it("busts on an overshoot and leaves the remaining score unchanged", () => {
@@ -169,6 +177,7 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       remainingInAttempt: 40,
       visitsThisAttempt: 1,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, {
       scoreAttempted: 40,
@@ -181,6 +190,7 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 
@@ -192,6 +202,7 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       remainingInAttempt: 40,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, {
       scoreAttempted: 40,
@@ -204,6 +215,7 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       remainingInAttempt: 0,
       visitsThisAttempt: 0,
       status: "WON",
+      attemptsCompleted: 1,
     });
   });
 
@@ -215,6 +227,7 @@ describe("applyOneTwentyOneVisit — checkout climbs the ladder", () => {
       remainingInAttempt: 40,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, {
       scoreAttempted: 40,
@@ -235,6 +248,7 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
       remainingInAttempt: 30,
       visitsThisAttempt: 2,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, { scoreAttempted: 40 });
     expect(next).toEqual({
@@ -244,6 +258,7 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
       remainingInAttempt: 130,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 
@@ -255,6 +270,7 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
       remainingInAttempt: 50,
       visitsThisAttempt: 2,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     };
     const next = applyOneTwentyOneVisit(state, { scoreAttempted: 10 });
     expect(next).toEqual({
@@ -264,6 +280,7 @@ describe("applyOneTwentyOneVisit — fail rule (v1: stay)", () => {
       remainingInAttempt: 130,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 });
@@ -277,6 +294,7 @@ describe("applyOneTwentyOneVisit — terminal state guard", () => {
       remainingInAttempt: 0,
       visitsThisAttempt: 0,
       status: "WON",
+      attemptsCompleted: 50,
     };
     expect(() =>
       applyOneTwentyOneVisit(wonState, { scoreAttempted: 20 }),
@@ -416,6 +434,7 @@ describe("OneTwentyOneEngine.undo", () => {
       remainingInAttempt: 40,
       visitsThisAttempt: 1,
       status: "IN_PROGRESS",
+      attemptsCompleted: 0,
     });
   });
 
@@ -544,6 +563,7 @@ describe("visual board capture", () => {
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 
@@ -613,6 +633,7 @@ describe("visual board capture", () => {
       remainingInAttempt: 121,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 
@@ -686,6 +707,7 @@ describe("visual board capture", () => {
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
     });
   });
 });
@@ -1125,6 +1147,205 @@ describe("OneTwentyOneEngine — turnsBeforeVisit wiring (F41)", () => {
       remainingInAttempt: 122,
       visitsThisAttempt: 0,
       status: "IN_PROGRESS",
+      attemptsCompleted: 1,
+    });
+  });
+});
+
+describe("attemptsCompleted folding", () => {
+  it("stays 0 through a mid-attempt reduction", () => {
+    const next = applyOneTwentyOneVisit(
+      initialOneTwentyOneState(config()).seats[0],
+      { scoreAttempted: 45 },
+    );
+    expect(next.attemptsCompleted).toBe(0);
+  });
+
+  it("increments on a sub-cap checkout", () => {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 121,
+      remainingInAttempt: 40,
+      visitsThisAttempt: 1,
+      status: "IN_PROGRESS",
+      attemptsCompleted: 3,
+    };
+    const next = applyOneTwentyOneVisit(state, {
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+    });
+    expect(next.attemptsCompleted).toBe(4);
+  });
+
+  it("increments on a cap checkout (WON)", () => {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 170,
+      remainingInAttempt: 40,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+      attemptsCompleted: 49,
+    };
+    const next = applyOneTwentyOneVisit(state, {
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+    });
+    expect(next.attemptsCompleted).toBe(50);
+  });
+
+  it("increments on a 3rd-visit fail-reset", () => {
+    const state: OneTwentyOneSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 130,
+      remainingInAttempt: 30,
+      visitsThisAttempt: 2,
+      status: "IN_PROGRESS",
+      attemptsCompleted: 2,
+    };
+    const next = applyOneTwentyOneVisit(state, { scoreAttempted: 40 });
+    expect(next.attemptsCompleted).toBe(3);
+  });
+});
+
+describe("oneTwentyOneV2EngineFactory", () => {
+  const v2Config = (
+    durationType: OneTwentyOneV2Snapshot["durationType"],
+    durationValue?: number,
+  ): Seated<OneTwentyOneV2Snapshot> => ({
+    seats: SEATS,
+    durationType,
+    durationValue,
+  });
+
+  it("registers itself under 121_V2", () => {
+    expect(oneTwentyOneV2EngineFactory.rulesetVersionKey).toBe("121_V2");
+    expect(getEngineFactory("121_V2")).toBe(oneTwentyOneV2EngineFactory);
+  });
+
+  it("builds an engine reporting rulesetVersionKey 121_V2", () => {
+    const engine = oneTwentyOneV2EngineFactory.create(v2Config("TARGET"));
+    expect(engine).toBeInstanceOf(OneTwentyOneEngine);
+    expect(engine.rulesetVersionKey).toBe("121_V2");
+  });
+
+  it("121_V1's own factory keeps reporting rulesetVersionKey 121_V1", () => {
+    const engine = oneTwentyOneEngineFactory.create(config());
+    expect(engine.rulesetVersionKey).toBe("121_V1");
+  });
+
+  describe("TARGET — identical to 121_V1", () => {
+    it("only completes on a cap checkout, exactly like 121_V1", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("TARGET"));
+      expect(engine.isComplete()).toBe(false);
+      engine.record({ scoreAttempted: 60 });
+      expect(engine.isComplete()).toBe(false);
+    });
+  });
+
+  describe("ROUNDS", () => {
+    it("is not complete before the round budget is reached", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 2));
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      expect(engine.isComplete()).toBe(false);
+    });
+
+    it("completes once attemptsCompleted reaches duration_value, via a fail-reset", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 2));
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      expect(engine.isComplete()).toBe(true);
+      expect(engine.state().seats[0].attemptsCompleted).toBe(2);
+    });
+
+    it("completes early via a checkout that reaches the round budget, and wouldComplete predicts it", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 1));
+      expect(
+        engine.wouldComplete({ scoreAttempted: 121, finishedOnDouble: true }),
+      ).toBe(true);
+      const after = engine.record({
+        scoreAttempted: 121,
+        finishedOnDouble: true,
+      });
+      expect(engine.isComplete()).toBe(true);
+      expect(after.seats[0].attemptsCompleted).toBe(1);
+      expect(after.seats[0].currentTarget).toBe(122);
+    });
+
+    it("a checkout still climbs to the cap and wins the session even mid-ROUNDS-budget", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 50));
+      for (let target = 121; target < 170; target++) {
+        engine.record({ scoreAttempted: target, finishedOnDouble: true });
+      }
+      const won = engine.record({
+        scoreAttempted: 170,
+        finishedOnDouble: true,
+      });
+      expect(won.status).toBe("WON");
+      expect(engine.isComplete()).toBe(true);
+    });
+  });
+
+  describe("MINUTES", () => {
+    it("is not complete before the timer expires, even after several attempts", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      expect(engine.isComplete()).toBe(false);
+    });
+
+    it("stays false mid-attempt after the timer expires — finishes the in-flight attempt first", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      engine.record({ scoreAttempted: 40 });
+      engine.expireTimer();
+      expect(engine.isComplete()).toBe(false);
+    });
+
+    it("flips true the instant the in-flight attempt closes, once the timer has expired", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      engine.record({ scoreAttempted: 40 });
+      engine.expireTimer();
+      engine.record({ scoreAttempted: 60 });
+      engine.record({ scoreAttempted: 60 });
+      expect(engine.isComplete()).toBe(true);
+    });
+
+    it("wouldComplete predicts a checkout that closes the attempt once the timer has expired", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      engine.expireTimer();
+      expect(
+        engine.wouldComplete({ scoreAttempted: 121, finishedOnDouble: true }),
+      ).toBe(true);
+    });
+
+    it("wouldComplete is false for a checkout before the timer has expired", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      expect(
+        engine.wouldComplete({ scoreAttempted: 121, finishedOnDouble: true }),
+      ).toBe(false);
+    });
+
+    it("does not complete on the very next non-closing record after two attempts had already resolved before expiry", () => {
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("MINUTES", 5));
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      bustAttempt(engine as unknown as OneTwentyOneGameEngine);
+      engine.expireTimer();
+      engine.record({ scoreAttempted: 40 });
+      expect(engine.isComplete()).toBe(false);
+    });
+  });
+
+  describe("rehydration carries duration config", () => {
+    it("a resumed 121_V2 ROUNDS engine keeps evaluating against the same budget", () => {
+      const first = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 1));
+      first.record({ scoreAttempted: 121, finishedOnDouble: true });
+      const resumed = oneTwentyOneV2EngineFactory.create(
+        v2Config("ROUNDS", 1),
+        first.facts(),
+      );
+      expect(resumed.isComplete()).toBe(true);
     });
   });
 });
