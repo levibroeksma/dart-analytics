@@ -140,10 +140,20 @@ New `database/seeds/0012_shanghai_v2_game_engine_reference.sql`:
 
 - `ruleset_versions` row — implementation key `SHANGHAI_V2`, same
   `game_type_id` as `SHANGHAI_V1` (no new `game_types` row).
-- `configuration_templates` — one system preset, `configuration: {"difficulty":
-  "NORMAL"}`.
-- Mirrors `0011_one_twenty_one_v2_game_engine_reference.sql`'s shape and
-  comment structure (UUID allocation continuing the established range, no
+- No new `configuration_templates` row. `configuration_templates` carries no
+  `ruleset_version_id` column at all — `session.service.ts`'s `createSession`
+  resolves `config.templateRef` scoped only by `game_type_id`, then merges
+  `template.configuration` with `config.overrides` and validates the *merged*
+  result. Since the setup controller (below) always supplies `difficulty` via
+  `configOverrides`, reusing V1's existing empty (`{}`) "Shanghai — Standard"
+  preset as `SHANGHAI_V2`'s `templateRef` already produces a valid merged
+  config. A second preset row would only add risk: `GET
+  /api/configuration-templates?gameType=SHANGHAI` would then return two rows,
+  and `createPresetSetupController`'s `presets[0]` pick has no field to
+  disambiguate them by (unlike `121_V2`, which filters its own several
+  presets on `duration_type`).
+- Mirrors `0011_one_twenty_one_v2_game_engine_reference.sql`'s comment
+  structure otherwise (UUID allocation continuing the established range, no
   `game_type_features` row — same reasoning as V1's).
 
 Capability rows (`SHANGHAI_V2` + `RECREATIONAL`/`DETAILED_DARTS`, `SHANGHAI_V2`
