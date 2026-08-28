@@ -119,6 +119,35 @@ function statsFor(
 }
 
 /**
+ * The match-summary modal's whole snapshot: every seat's own `statsFor`,
+ * plus the winning side — `null` for a solo session (one seat can't have a
+ * side to compare against, so there is nothing to declare a winner over)
+ * even though the engine's own fold always names a `sideKey` once that
+ * seat's side reaches `legsToWin`.
+ */
+function buildResultsSnapshot(
+  context: FiveOhOnePlayContext,
+): FiveOhOneResultsSnapshot {
+  const seats = context.$store.game.seats;
+  const maxDartsPerTurn =
+    context.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+  const inputModeKey = context.$store.game.inputModeKey;
+  return {
+    winningSideKey:
+      seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
+    seats: seats.map((seat) =>
+      statsFor(
+        seat,
+        context.$store.game.turns,
+        context.legsWonFor(seat.participantRef),
+        maxDartsPerTurn,
+        inputModeKey,
+      ),
+    ),
+  };
+}
+
+/**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` Alpine binds to
  * every directive-driven call (`@click="…"`, `init()`). `onCommit` is built
@@ -626,23 +655,7 @@ export function fiveOhOnePlay() {
         }
       }
 
-      const seats = this.$store.game.seats;
-      const maxDartsPerTurn =
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      const inputModeKey = this.$store.game.inputModeKey;
-      this.resultsSnapshot = {
-        winningSideKey:
-          seats.length >= 2 ? (this.state()?.winningSideKey ?? null) : null,
-        seats: seats.map((seat) =>
-          statsFor(
-            seat,
-            this.$store.game.turns,
-            this.legsWonFor(seat.participantRef),
-            maxDartsPerTurn,
-            inputModeKey,
-          ),
-        ),
-      };
+      this.resultsSnapshot = buildResultsSnapshot(this);
       this.completionStatus = "succeeded";
     },
 
