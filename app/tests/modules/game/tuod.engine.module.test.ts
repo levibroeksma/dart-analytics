@@ -959,3 +959,21 @@ describe("TuodEngine — isDartObservationInput wiring (F39)", () => {
     expect(state.seats[0].currentTarget).toBe(51);
   });
 });
+
+describe("TuodEngine — turnsBeforeVisit wiring (F41)", () => {
+  it("still resolves a second dart-based attempt using the first attempt's outcome as its target, not the starting target", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+
+    // Attempt 1: checks out at 40, climbs to 50.
+    engine.record(DOUBLE_20);
+    expect(engine.state().seats[0].currentTarget).toBe(50);
+
+    // Attempt 2: settleVisit's target must come from
+    // turnsBeforeVisit(this.turns, visit) — attempt 1's outcome (50), not
+    // boardConfig()'s starting target (40) — so a TREBLE_20 (60) overshoots
+    // and busts down to 49, not up from a stale 40.
+    const state = engine.record(TREBLE_20);
+    expect(state.seats[0].currentTarget).toBe(49);
+    expect(state.seats[0].failures).toBe(1);
+  });
+});

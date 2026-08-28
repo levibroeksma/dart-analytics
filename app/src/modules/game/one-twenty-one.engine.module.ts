@@ -10,6 +10,7 @@ import {
   isDartObservationInput,
   openVisit,
   resolveObservation,
+  turnsBeforeVisit,
   undoStagedTurn,
 } from "./turn-log.module";
 import { activeSeat } from "./seat-rota.module";
@@ -371,9 +372,8 @@ export class OneTwentyOneEngine implements GameEngine<
    * `visitsThisAttempt` (to know whether `visit` is the attempt's last).
    */
   private seatBeforeVisit(visit: TurnFact): OneTwentyOneSeatState {
-    const index = this.turns.indexOf(visit);
     return foldOneTwentyOneState(
-      { stages: this.stages, turns: this.turns.slice(0, index) },
+      { stages: this.stages, turns: turnsBeforeVisit(this.turns, visit) },
       this.config,
     ).seats.find((seat) => seat.participantRef === visit.participantRef)!;
   }

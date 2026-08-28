@@ -1091,3 +1091,40 @@ describe("OneTwentyOneEngine — isDartObservationInput wiring (F39)", () => {
     expect(state.seats[0].remainingInAttempt).toBe(76);
   });
 });
+
+describe("OneTwentyOneEngine — turnsBeforeVisit wiring (F41)", () => {
+  const dartAt = (
+    x: number,
+    y: number,
+    hitZoneKey: DartZoneKey,
+    hitTargetNumber: number | null,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: x,
+    locationY: y,
+  });
+
+  it("still resolves a dart-based checkout using the PRIOR (closed) visit's remaining, not the starting target", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+
+    // Turn 1 (keypad): 121 - 41 = 80 remaining, visit closed.
+    engine.record({ scoreAttempted: 41, finishedOnDouble: false });
+    // Turn 2 (dart-based, 2 darts): settleVisit's `before` must come from
+    // turnsBeforeVisit(this.turns, visit) — turn 1 only, not the empty log —
+    // so 80 - 40 - 40 = 0 on a double checks out.
+    engine.record(dartAt(0, -166, "DOUBLE", 20));
+    const state = engine.record(dartAt(0, -166, "DOUBLE", 20));
+
+    expect(state.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 122,
+      remainingInAttempt: 122,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+    });
+  });
+});
