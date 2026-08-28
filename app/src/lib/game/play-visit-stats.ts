@@ -112,17 +112,20 @@ export function highestVisitScore(turns: VisitLike[]): number {
 /**
  * Tallies completed visits into exactly one of four score bands — whichever
  * is the *highest* threshold that visit's total meets, never more than one
- * (D238, Pattern 21). A 125 counts only as `oneTwentyPlus`, not also
- * `hundredPlus`; a 180 counts only as `oneEighties`, not also
- * `oneFortyPlus`/`oneTwentyPlus`/`hundredPlus`.
+ * (D238/D242, Pattern 21). A 125 counts only as `oneTwentyPlus`, not also
+ * `sixtyPlus`/`hundredPlus`; a 65 counts only as `sixtyPlus`; a 180 counts
+ * only as `oneEighties`, not also `oneFortyPlus`/`oneTwentyPlus`/
+ * `hundredPlus`/`sixtyPlus`.
  */
 export function visitScoreBandCounts(turns: VisitLike[]): {
+  sixtyPlus: number;
   hundredPlus: number;
   oneTwentyPlus: number;
   oneFortyPlus: number;
   oneEighties: number;
 } {
   const counts = {
+    sixtyPlus: 0,
     hundredPlus: 0,
     oneTwentyPlus: 0,
     oneFortyPlus: 0,
@@ -134,6 +137,7 @@ export function visitScoreBandCounts(turns: VisitLike[]): {
     else if (score >= 140) counts.oneFortyPlus += 1;
     else if (score >= 120) counts.oneTwentyPlus += 1;
     else if (score >= 100) counts.hundredPlus += 1;
+    else if (score >= 60) counts.sixtyPlus += 1;
   }
   return counts;
 }
