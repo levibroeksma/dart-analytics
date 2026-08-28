@@ -217,6 +217,25 @@ beforeEach(() => {
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
+describe("matchTitle", () => {
+  it("falls back to 501 before a session's config has loaded", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.matchTitle()).toBe("501");
+  });
+
+  it("reads the configured leg count once loaded", () => {
+    const play = makePlay({ configSnapshot: bestOf5Config() });
+    expect(play.matchTitle()).toBe("First to 3 legs");
+  });
+
+  it("updates when a different leg count is configured", () => {
+    const play = makePlay({
+      configSnapshot: { ...bestOf5Config(), legsToWin: 5 },
+    });
+    expect(play.matchTitle()).toBe("First to 5 legs");
+  });
+});
+
 describe("init", () => {
   it("resumes the engine and mirrors its facts into the store", async () => {
     const play = makePlay();

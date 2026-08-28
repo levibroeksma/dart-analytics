@@ -570,6 +570,7 @@ export type FiveOhOnePlayContext = {
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
   averageFor(this: FiveOhOnePlayContext, seatRef: string): string;
   average(this: FiveOhOnePlayContext): string;
+  matchTitle(this: FiveOhOnePlayContext): string;
   previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
   legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;

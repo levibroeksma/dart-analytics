@@ -7,9 +7,12 @@ import ExitIcon from "@icons/exit.svg";
 interface Props {
   title?: string;
   gameTitle?: string;
+  /** Alpine expression string, evaluated live via x-text; takes
+   * precedence over the static `gameTitle` when both are given. */
+  gameTitleExpr?: string;
 }
 
-const { title, gameTitle }: Props = Astro.props;
+const { title, gameTitle, gameTitleExpr }: Props = Astro.props;
 ---
 
 <BaseLayout title={title}>
@@ -35,7 +38,12 @@ const { title, gameTitle }: Props = Astro.props;
       </div>
       <div class="w-6/8">
         {
-          gameTitle ? (
+          gameTitleExpr ? (
+            <h1
+              class="pointer-events-none uppercase font-mono  inset-0 flex items-center justify-center text-lg font-semibold text-foreground"
+              x-text={gameTitleExpr}
+            />
+          ) : gameTitle ? (
             <h1 class="pointer-events-none uppercase font-mono  inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
               {gameTitle}
             </h1>

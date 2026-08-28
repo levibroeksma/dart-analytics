@@ -198,6 +198,17 @@ export function fiveOhOnePlay() {
       );
     },
 
+    /**
+     * The play-page header's title. Falls back to the plain "501" before a
+     * session's config has loaded; once loaded, names the match format the
+     * session was actually configured with. A future task adding sets
+     * extends this one function rather than the header template.
+     */
+    matchTitle(this: FiveOhOnePlayContext): string {
+      const legsToWin = this.$store.game.configSnapshot?.legsToWin;
+      return legsToWin ? `First to ${legsToWin} legs` : "501";
+    },
+
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
       const state = this.state();
       if (!state) return 0;
