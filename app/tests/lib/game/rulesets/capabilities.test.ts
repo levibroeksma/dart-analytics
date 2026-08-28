@@ -17,6 +17,7 @@ describe("RULESET_CAPABILITIES", () => {
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
+      "SHANGHAI_V2",
       "SINGLES_V1",
       "TUOD_V1",
     ]);
@@ -68,6 +69,7 @@ describe("supportsMode", () => {
     "BOBS27_V1",
     "DOUBLES_TRAINING_V1",
     "SHANGHAI_V1",
+    "SHANGHAI_V2",
     "AROUND_THE_CLOCK_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
@@ -84,6 +86,13 @@ describe("supportsMode", () => {
   it("gives 121_V2 the same pairs as 121_V1", () => {
     expect(supportsMode("121_V2", "RECREATIONAL", "QUICK_SCORE")).toBe(true);
     expect(supportsMode("121_V2", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
+  });
+
+  it("gives SHANGHAI_V2 the same pairs as SHANGHAI_V1", () => {
+    expect(supportsMode("SHANGHAI_V2", "RECREATIONAL", "DETAILED_DARTS")).toBe(
+      true,
+    );
+    expect(supportsMode("SHANGHAI_V2", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
   });
 });
 
@@ -120,6 +129,7 @@ describe("capableRulesets", () => {
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
+      "SHANGHAI_V2",
       "SINGLES_V1",
       "TUOD_V1",
     ]);

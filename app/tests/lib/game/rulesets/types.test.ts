@@ -5,6 +5,7 @@ import {
   OneTwentyOneV2Config,
   RULESET_CONFIGS,
   ScoreTrainingConfig,
+  ShanghaiV2Config,
   TuodConfig,
 } from "@lib/types";
 
@@ -297,5 +298,41 @@ describe("OneTwentyOneV2Config", () => {
 describe("RULESET_CONFIGS 121_V2", () => {
   it("registers 121_V2", () => {
     expect(RULESET_CONFIGS["121_V2"]).toBe(OneTwentyOneV2Config);
+  });
+});
+
+describe("ShanghaiV2Config", () => {
+  it("accepts NORMAL", () => {
+    expect(ShanghaiV2Config.safeParse({ difficulty: "NORMAL" }).success).toBe(
+      true,
+    );
+  });
+
+  it("accepts HARD", () => {
+    expect(ShanghaiV2Config.safeParse({ difficulty: "HARD" }).success).toBe(
+      true,
+    );
+  });
+
+  it("rejects an unrecognized difficulty value", () => {
+    expect(
+      ShanghaiV2Config.safeParse({ difficulty: "IMPOSSIBLE" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a config missing difficulty", () => {
+    expect(ShanghaiV2Config.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects an unknown key (the schema is .strict())", () => {
+    expect(
+      ShanghaiV2Config.safeParse({ difficulty: "NORMAL", rounds: 7 }).success,
+    ).toBe(false);
+  });
+});
+
+describe("RULESET_CONFIGS SHANGHAI_V2", () => {
+  it("registers SHANGHAI_V2", () => {
+    expect(RULESET_CONFIGS.SHANGHAI_V2).toBe(ShanghaiV2Config);
   });
 });
