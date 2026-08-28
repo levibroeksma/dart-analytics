@@ -19,6 +19,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Disable instant-win (score only)                | TBD     |
 | Visit = 3 darts per round                       | v1      |
 | Track per-round score                           | v1      |
+| Target Needed difficulty (Normal/Hard)          | V2      |
 | Standard dartboard scoring (assumed)            | v1      |
 
 ## Identity
@@ -71,6 +72,15 @@ If no Shanghai occurs, after the last round the **highest total** wins (solo: pe
 N/A.
 
 ## Later versions (V2+)
+
+### Target Needed (V2 — implemented)
+
+A difficulty toggle, **Normal** (default) or **Hard**:
+
+- **Normal:** identical to V1 — only hits on the round's own number score; anything else scores 0 for that dart.
+- **Hard:** a round must land at least one dart in the round's own single, double, or treble. A round with zero target hits halves the player's running total score (round-half-up) instead of merely adding 0. A round with at least one target hit is never penalized, whatever it scores.
+
+Available under both Recreational and Analytical capture modes, same as V1.
 
 ### Variants
 
