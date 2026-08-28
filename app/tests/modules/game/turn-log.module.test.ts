@@ -12,6 +12,7 @@ import {
   openVisit,
   resolveObservation,
   sumDartScores,
+  turnsBeforeVisit,
   undoLastDart,
   undoLastUnit,
   undoStagedTurn,
@@ -406,5 +407,21 @@ describe("exerciseBlockStage", () => {
 
   it("returns a fresh object each call", () => {
     expect(exerciseBlockStage()).not.toBe(exerciseBlockStage());
+  });
+});
+
+describe("turnsBeforeVisit", () => {
+  it("returns every turn strictly before the visit", () => {
+    const first = turn({ clientKey: "t1", sequence: 1 });
+    const second = turn({ clientKey: "t2", sequence: 2 });
+    const third = turn({ clientKey: "t3", sequence: 3 });
+    const turns = [first, second, third];
+
+    expect(turnsBeforeVisit(turns, third)).toEqual([first, second]);
+  });
+
+  it("returns an empty array for the first visit", () => {
+    const first = turn({ clientKey: "t1", sequence: 1 });
+    expect(turnsBeforeVisit([first], first)).toEqual([]);
   });
 });
