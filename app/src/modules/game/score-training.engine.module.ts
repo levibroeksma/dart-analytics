@@ -4,6 +4,7 @@ import {
   appendCompletedTurn,
   appendResolvedDart,
   cloneTurns,
+  exerciseBlockStage,
   openOrCreateTurn,
   openVisit,
   resolveObservation,
@@ -24,16 +25,10 @@ import type {
   ScoreTrainingInput,
   ScoreTrainingSeatState,
   ScoreTrainingState,
-  StageFact,
   TurnFact,
 } from "./types";
 
-const STAGE: StageFact = {
-  clientKey: "block-1",
-  stageTypeKey: "EXERCISE_BLOCK",
-  parentClientKey: null,
-  sequence: 1,
-};
+const STAGE = exerciseBlockStage();
 const DARTS_PER_VISIT = 3;
 
 /**

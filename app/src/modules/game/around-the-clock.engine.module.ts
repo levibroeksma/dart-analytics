@@ -15,6 +15,7 @@ import {
   appendObservedDart,
   cloneTurns,
   dartsThrownBy,
+  exerciseBlockStage,
   openOrCreateTurn,
   undoLastDart,
 } from "./turn-log.module";
@@ -26,16 +27,10 @@ import type {
   BoardTarget,
   DartObservation,
   EngineFacts,
-  StageFact,
   TurnFact,
 } from "./types";
 
-const STAGE: StageFact = {
-  clientKey: "block-1",
-  stageTypeKey: "EXERCISE_BLOCK",
-  parentClientKey: null,
-  sequence: 1,
-};
+const STAGE = exerciseBlockStage();
 
 const LAST_TARGET_INDEX = 20;
 

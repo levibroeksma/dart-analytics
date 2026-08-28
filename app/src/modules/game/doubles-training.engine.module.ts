@@ -11,6 +11,7 @@ import {
   appendObservedDart,
   cloneTurns,
   doubleTargetIntent,
+  exerciseBlockStage,
   openOrCreateTurn,
   undoLastDart,
 } from "./turn-log.module";
@@ -23,16 +24,10 @@ import type {
   DoublesTrainingState,
   DoublesVisitOutcome,
   EngineFacts,
-  StageFact,
   TurnFact,
 } from "./types";
 
-const STAGE: StageFact = {
-  clientKey: "block-1",
-  stageTypeKey: "EXERCISE_BLOCK",
-  parentClientKey: null,
-  sequence: 1,
-};
+const STAGE = exerciseBlockStage();
 
 function initialSeatState(seat: SeatFact): DoublesTrainingSeatState {
   return {
