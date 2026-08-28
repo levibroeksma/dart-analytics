@@ -10,6 +10,7 @@ import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
@@ -86,14 +87,7 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     </SplitScoreboard>
   </template>
 
-  <p
-    class="alert alert-error mx-3 mt-2 rounded-md border border-error/40 px-4 py-3 text-xs text-error-foreground"
-    role="alert"
-    x-show="error"
-    x-text="error"
-    x-cloak
-  >
-  </p>
+  <ErrorAlert class="mx-3 mt-2 text-xs" />
 
   <VisitPreview />
 
