@@ -5,6 +5,7 @@ import {
   initialShanghaiState,
   ShanghaiEngine,
   shanghaiEngineFactory,
+  shanghaiV2EngineFactory,
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
@@ -16,7 +17,7 @@ import type {
   ShanghaiSeatState,
   TurnFact,
 } from "@modules/types";
-import type { ShanghaiSnapshot, Seated } from "@lib/types";
+import type { ShanghaiSnapshot, ShanghaiV2Snapshot, Seated } from "@lib/types";
 
 const SEATS = [
   {
@@ -280,6 +281,120 @@ describe("applyShanghaiDart — completion at round 20", () => {
     state = applyShanghaiDart(state, hitObservationFor(state, "TREBLE"));
     expect(state.status).toBe("SHANGHAI");
     expect(state.totalScore).toBe(570 + 20 + 40 + 60);
+  });
+});
+
+describe("applyShanghaiDart — Hard mode (Target Needed)", () => {
+  function midGameState(totalScore: number): ShanghaiSeatState {
+    return {
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 1,
+      totalScore,
+      dartsThisVisit: [],
+      status: "IN_PROGRESS",
+    };
+  }
+
+  it("halves the running total, round-half-up, when a round lands zero target hits", () => {
+    let state = midGameState(15);
+    state = applyShanghaiDart(state, missObservation(), "HARD");
+    state = applyShanghaiDart(state, missObservation(), "HARD");
+    state = applyShanghaiDart(state, missObservation(), "HARD");
+    expect(state.totalScore).toBe(8);
+    expect(state.targetIndex).toBe(2);
+    expect(state.status).toBe("IN_PROGRESS");
+  });
+
+  it("never halves a round with at least one target hit, however little it scores", () => {
+    let state = midGameState(15);
+    state = applyShanghaiDart(
+      state,
+      hitObservationFor(state, "SINGLE"),
+      "HARD",
+    );
+    state = applyShanghaiDart(state, missObservation(), "HARD");
+    state = applyShanghaiDart(state, missObservation(), "HARD");
+    expect(state.totalScore).toBe(17);
+  });
+
+  it("is a no-op under NORMAL difficulty — a zero-hit round just adds 0, same as today", () => {
+    let state = midGameState(15);
+    state = applyShanghaiDart(state, missObservation(), "NORMAL");
+    state = applyShanghaiDart(state, missObservation(), "NORMAL");
+    state = applyShanghaiDart(state, missObservation(), "NORMAL");
+    expect(state.totalScore).toBe(15);
+  });
+
+  it("defaults to NORMAL when no difficulty argument is passed (every V1 call site unaffected)", () => {
+    let state = midGameState(15);
+    state = applyShanghaiDart(state, missObservation());
+    state = applyShanghaiDart(state, missObservation());
+    state = applyShanghaiDart(state, missObservation());
+    expect(state.totalScore).toBe(15);
+  });
+
+  it("a Shanghai is unaffected by difficulty, since it can never coincide with a zero-hit visit", () => {
+    let state = initialShanghaiState(config).seats[0];
+    state = applyShanghaiDart(
+      state,
+      hitObservationFor(state, "SINGLE"),
+      "HARD",
+    );
+    state = applyShanghaiDart(
+      state,
+      hitObservationFor(state, "DOUBLE"),
+      "HARD",
+    );
+    state = applyShanghaiDart(
+      state,
+      hitObservationFor(state, "TREBLE"),
+      "HARD",
+    );
+    expect(state.status).toBe("SHANGHAI");
+    expect(state.totalScore).toBe(6);
+  });
+});
+
+describe("shanghaiV2EngineFactory", () => {
+  it("registers itself under SHANGHAI_V2", () => {
+    expect(shanghaiV2EngineFactory.rulesetVersionKey).toBe("SHANGHAI_V2");
+    expect(getEngineFactory("SHANGHAI_V2")).toBe(shanghaiV2EngineFactory);
+  });
+
+  it("builds a ShanghaiEngine bound to SHANGHAI_V2, applying Hard-mode halving end to end", () => {
+    const hardConfig: Seated<ShanghaiV2Snapshot> = {
+      seats: SEATS,
+      difficulty: "HARD",
+    };
+    const engine = shanghaiV2EngineFactory.create(hardConfig);
+    expect(engine).toBeInstanceOf(ShanghaiEngine);
+    expect(engine.rulesetVersionKey).toBe("SHANGHAI_V2");
+
+    for (let round = 0; round < 2; round++) {
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+      engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    }
+    expect(engine.state().seats[0].totalScore).toBe(9);
+
+    engine.record(missObservation());
+    engine.record(missObservation());
+    engine.record(missObservation());
+    expect(engine.state().seats[0].totalScore).toBe(5);
+  });
+
+  it("a SHANGHAI_V2 engine with NORMAL difficulty behaves exactly like V1", () => {
+    const normalConfig: Seated<ShanghaiV2Snapshot> = {
+      seats: SEATS,
+      difficulty: "NORMAL",
+    };
+    const engine = shanghaiV2EngineFactory.create(normalConfig);
+    engine.record(missObservation());
+    engine.record(missObservation());
+    engine.record(missObservation());
+    expect(engine.state().seats[0].totalScore).toBe(0);
+    expect(engine.state().seats[0].targetIndex).toBe(1);
   });
 });
 

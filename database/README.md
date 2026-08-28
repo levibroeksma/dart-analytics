@@ -56,6 +56,7 @@ astro check
 9. `seeds/0009_121_game_engine_reference.sql`
 10. `seeds/0010_around_the_clock_game_engine_reference.sql`
 11. `seeds/0011_one_twenty_one_v2_game_engine_reference.sql`
+12. `seeds/0012_shanghai_v2_game_engine_reference.sql`
 
 ## Verification Scripts
 
@@ -84,6 +85,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0010_around_the_clock_capability_checks.sql` | `seeds/0010`+`0007` combined: `AROUND_THE_CLOCK_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, zero undeclared `exercise_sessions` (2 checks) |
 | `verification/0023_owner_scoped_dart_view_checks.sql` | `v_dart_analytics`/`v_dart_locations` return only the session owner's own dart for a PLAYER+GUEST fixture, `v_game_replay` deliberately returns both participants' turns, anti-vacuity guard (7 checks) |
 | `verification/0011_one_twenty_one_v2_capability_checks.sql` | `seeds/0011`+`0007` combined: `121_V2`/`RECREATIONAL`/`QUICK_SCORE` and `121_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, all three `121_V2` presets carry the right `duration_type`, zero undeclared `exercise_sessions` (4 checks) |
+| `verification/0012_shanghai_v2_capability_checks.sql` | `seeds/0012`+`0007` combined: `SHANGHAI_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SHANGHAI_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 
 ## References
 

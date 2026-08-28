@@ -1,4 +1,10 @@
-import type { ShanghaiSnapshot, Seated, SeatFact } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+  ShanghaiSnapshot,
+  ShanghaiV2Snapshot,
+} from "@lib/types";
 import { boardScore, numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
@@ -24,6 +30,21 @@ import type {
 const STAGE = exerciseBlockStage();
 const LAST_TARGET_INDEX = 19;
 
+type ShanghaiEngineConfig =
+  Seated<ShanghaiSnapshot> | Seated<ShanghaiV2Snapshot>;
+
+type ShanghaiDifficulty = ShanghaiV2Snapshot["difficulty"];
+
+/**
+ * Reads the Hard-mode toggle off either ruleset version's config.
+ * `"difficulty" in config` is false for every SHANGHAI_V1 config (its
+ * schema has no such key at all), so a V1-created engine always folds as
+ * `"NORMAL"` — byte-identical to today's behaviour.
+ */
+function difficultyOf(config: ShanghaiEngineConfig): ShanghaiDifficulty {
+  return "difficulty" in config ? config.difficulty : "NORMAL";
+}
+
 function initialSeatState(seat: SeatFact): ShanghaiSeatState {
   return {
     participantRef: seat.participantRef,
@@ -37,7 +58,7 @@ function initialSeatState(seat: SeatFact): ShanghaiSeatState {
 
 /** Shanghai starting state: every configured seat at round 1, zero score, no darts thrown. */
 export function initialShanghaiState(
-  config: Seated<ShanghaiSnapshot>,
+  config: ShanghaiEngineConfig,
 ): ShanghaiState {
   return {
     activeParticipantRef: config.seats[0].participantRef,
@@ -83,11 +104,21 @@ function isShanghai(dartsThisVisit: readonly (DartZoneKey | null)[]): boolean {
 
 /**
  * Pure reducer: folds one dart observation onto one seat's `ShanghaiSeatState`.
+ * `difficulty` defaults to `"NORMAL"` so every V1 call site (including this
+ * file's own `foldShanghaiState` for a V1 config) is unaffected. Under
+ * `"HARD"`, a visit that lands zero target hits — every entry in
+ * `dartsThisVisit` is `null` once it reaches length 3 — halves `totalScore`
+ * (round-half-up) instead of leaving it unchanged; a visit with at least one
+ * hit is never penalized. This can never coincide with a Shanghai (which
+ * needs all three zone kinds present), so the halving check runs ahead of
+ * the Shanghai/complete/advance branch without affecting which of those
+ * three a visit resolves to.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applyShanghaiDart(
   state: ShanghaiSeatState,
   observation: DartObservation,
+  difficulty: ShanghaiDifficulty = "NORMAL",
 ): ShanghaiSeatState {
   if (state.status !== "IN_PROGRESS") {
     throw new Error(
@@ -110,15 +141,32 @@ export function applyShanghaiDart(
   if (dartsThisVisit.length < 3) {
     return { ...state, totalScore, dartsThisVisit };
   }
+
+  const missedEveryDart = dartsThisVisit.every((zone) => zone === null);
+  const resolvedTotal =
+    difficulty === "HARD" && missedEveryDart
+      ? Math.round(totalScore / 2)
+      : totalScore;
+
   if (isShanghai(dartsThisVisit)) {
-    return { ...state, totalScore, dartsThisVisit: [], status: "SHANGHAI" };
+    return {
+      ...state,
+      totalScore: resolvedTotal,
+      dartsThisVisit: [],
+      status: "SHANGHAI",
+    };
   }
   if (state.targetIndex === LAST_TARGET_INDEX) {
-    return { ...state, totalScore, dartsThisVisit: [], status: "COMPLETE" };
+    return {
+      ...state,
+      totalScore: resolvedTotal,
+      dartsThisVisit: [],
+      status: "COMPLETE",
+    };
   }
   return {
     ...state,
-    totalScore,
+    totalScore: resolvedTotal,
     dartsThisVisit: [],
     targetIndex: state.targetIndex + 1,
   };
@@ -134,13 +182,14 @@ export function applyShanghaiDart(
  */
 export function foldShanghaiState(
   facts: EngineFacts,
-  config: Seated<ShanghaiSnapshot>,
+  config: ShanghaiEngineConfig,
 ): ShanghaiState {
+  const difficulty = difficultyOf(config);
   const seats = foldSeatStates(
     facts.turns,
     config.seats,
     initialSeatState,
-    applyShanghaiDart,
+    (state, observation) => applyShanghaiDart(state, observation, difficulty),
   );
 
   const raceResult = raceWinner(
@@ -192,14 +241,16 @@ export class ShanghaiEngine implements GameEngine<
   DartObservation,
   ShanghaiState
 > {
-  readonly rulesetVersionKey = "SHANGHAI_V1";
+  readonly rulesetVersionKey: RulesetVersionKey;
   readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: Seated<ShanghaiSnapshot>,
+    private readonly config: ShanghaiEngineConfig,
     prior?: EngineFacts,
+    rulesetVersionKey: RulesetVersionKey = "SHANGHAI_V1",
   ) {
+    this.rulesetVersionKey = rulesetVersionKey;
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
@@ -311,3 +362,17 @@ export const shanghaiEngineFactory: GameEngineFactory<
 };
 
 registerEngineFactory(shanghaiEngineFactory);
+
+export const shanghaiV2EngineFactory: GameEngineFactory<
+  Seated<ShanghaiV2Snapshot>,
+  DartObservation,
+  ShanghaiState
+> = {
+  rulesetVersionKey: "SHANGHAI_V2",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<ShanghaiV2Snapshot>, prior?: EngineFacts) {
+    return new ShanghaiEngine(config, prior, "SHANGHAI_V2");
+  },
+};
+
+registerEngineFactory(shanghaiV2EngineFactory);

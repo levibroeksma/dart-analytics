@@ -45,6 +45,11 @@ describe("shanghaiSetup", () => {
   }
 
   describe("init", () => {
+    it("loads the single seeded preset and starts on NORMAL difficulty", () => {
+      const setup = createSetup();
+      expect(setup.difficulty).toBe("NORMAL");
+    });
+
     it("loads the single seeded preset", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
@@ -159,7 +164,7 @@ describe("shanghaiSetup", () => {
   });
 
   describe("start", () => {
-    it("creates a session from the seeded preset with no overrides and redirects", async () => {
+    it("creates a SHANGHAI_V2 session on NORMAL difficulty by default and redirects", async () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -178,18 +183,20 @@ describe("shanghaiSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "SHANGHAI",
-        rulesetVersionKey: "SHANGHAI_V1",
+        rulesetVersionKey: "SHANGHAI_V2",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         config: {
           source: "template",
           templateRef: "tmpl-shanghai-standard",
+          overrides: { difficulty: "NORMAL" },
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
           templateRef: "tmpl-shanghai-standard",
           configSnapshot: {
+            difficulty: "NORMAL",
             seats: [
               {
                 participantRef: "participant-1",
@@ -202,6 +209,39 @@ describe("shanghaiSetup", () => {
         }),
       );
       expect(locationSpy.href).toBe("/games/shanghai/play");
+    });
+
+    it("applies HARD difficulty when chosen", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        difficulty: "HARD",
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            overrides: { difficulty: "HARD" },
+          }),
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
+        }),
+      );
     });
 
     it("falls back to Shanghai's declared pair when settings holds a pair it does not declare", async () => {

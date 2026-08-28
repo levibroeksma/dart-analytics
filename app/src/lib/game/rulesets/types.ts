@@ -163,6 +163,22 @@ export const TuodConfig = z
 export const ShanghaiConfig = z.object({}).strict();
 
 /**
+ * Shanghai V2 adds exactly one setting over V1: Target Needed. `NORMAL`
+ * (default) is byte-identical to V1's rules; `HARD` requires at least one
+ * dart of the round's own single/double/treble to land, or the running
+ * total is halved (round-half-up) for that round — see
+ * `modules/game/shanghai.engine.module.ts`'s `applyShanghaiDart`. A new
+ * ruleset version rather than an edit to `ShanghaiConfig`: V1 is already
+ * live against real session data, exactly the same reasoning
+ * `OneTwentyOneV2Config` documents for 121.
+ */
+export const ShanghaiV2Config = z
+  .object({
+    difficulty: z.enum(["NORMAL", "HARD"]),
+  })
+  .strict();
+
+/**
  * 121 v1 locks every rule (start target, cap, dart budget, fail rule) with
  * nothing left to configure — a genuinely empty `.strict()` object, exactly
  * like `ShanghaiConfig`. A future version that adds a selectable dart budget
@@ -229,6 +245,7 @@ export type RulesetVersionKey =
   | "501_V1"
   | "TUOD_V1"
   | "SHANGHAI_V1"
+  | "SHANGHAI_V2"
   | "121_V1"
   | "121_V2"
   | "AROUND_THE_CLOCK_V1";
@@ -241,6 +258,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   "501_V1": FiveOhOneConfig,
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
+  SHANGHAI_V2: ShanghaiV2Config,
   "121_V1": OneTwentyOneConfig,
   "121_V2": OneTwentyOneV2Config,
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
@@ -252,6 +270,7 @@ export type SinglesConfigData = z.infer<typeof SinglesConfig>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
+export type ShanghaiV2ConfigData = z.infer<typeof ShanghaiV2Config>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -302,6 +321,14 @@ export type TuodSnapshot = {
 /** Shanghai v1 has nothing to configure — no fields to carry. */
 export type ShanghaiSnapshot = Record<string, never>;
 
+/**
+ * Shanghai V2 carries exactly the one field its schema adds over V1: the
+ * Target Needed difficulty toggle.
+ */
+export type ShanghaiV2Snapshot = {
+  difficulty: ShanghaiV2ConfigData["difficulty"];
+};
+
 /** 121 v1 has nothing to configure — no fields to carry. */
 export type OneTwentyOneSnapshot = Record<string, never>;
 
@@ -335,11 +362,13 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
               ? TuodSnapshot
               : K extends "SHANGHAI_V1"
                 ? ShanghaiSnapshot
-                : K extends "121_V1"
-                  ? OneTwentyOneSnapshot
-                  : K extends "121_V2"
-                    ? OneTwentyOneV2Snapshot
-                    : AroundTheClockSnapshot;
+                : K extends "SHANGHAI_V2"
+                  ? ShanghaiV2Snapshot
+                  : K extends "121_V1"
+                    ? OneTwentyOneSnapshot
+                    : K extends "121_V2"
+                      ? OneTwentyOneV2Snapshot
+                      : AroundTheClockSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

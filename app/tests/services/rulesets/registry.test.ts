@@ -30,6 +30,10 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("121_V2")).toBeDefined();
   });
 
+  it("returns the Shanghai V2 validator for SHANGHAI_V2", () => {
+    expect(getRulesetValidator("SHANGHAI_V2")).toBeDefined();
+  });
+
   it("returns undefined for an unknown ruleset key", () => {
     expect(getRulesetValidator("NOT_A_RULESET")).toBeUndefined();
   });

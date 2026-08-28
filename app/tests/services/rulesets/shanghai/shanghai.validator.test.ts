@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { shanghaiValidator } from "@services/rulesets/shanghai/shanghai.validator";
+import {
+  shanghaiValidator,
+  shanghaiV2Validator,
+} from "@services/rulesets/shanghai/shanghai.validator";
 import type { DartFactInput } from "@routes/types";
 
 const validConfig = {};
@@ -203,5 +206,61 @@ describe("shanghaiValidator.validateBatch — visual board", () => {
     });
 
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("shanghaiV2Validator.validateConfig", () => {
+  it("accepts RECREATIONAL + DETAILED_DARTS with a NORMAL difficulty config", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: { difficulty: "NORMAL" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts a HARD difficulty config", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: { difficulty: "HARD" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects a config missing difficulty (the schema requires it)", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects an unrecognized difficulty value", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: { difficulty: "IMPOSSIBLE" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a config carrying an unrecognized key (the schema is .strict())", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: { difficulty: "NORMAL", rounds: 7 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts ANALYTICS + VISUAL_BOARD with a valid difficulty config", () => {
+    const result = shanghaiV2Validator.validateConfig({
+      config: { difficulty: "NORMAL" },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
   });
 });
