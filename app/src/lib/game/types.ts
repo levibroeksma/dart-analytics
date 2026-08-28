@@ -46,6 +46,7 @@ import type {
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
   OneTwentyOneSnapshot,
+  OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
   TuodSnapshot,
 } from "./rulesets/types";
@@ -638,12 +639,13 @@ export type FiveOhOnePlayContext = {
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };
 
-/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. */
+/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES session that stopped without reaching the cap reports `"COMPLETE"`. */
 export type OneTwentyOneResultsSnapshot = {
   target: number;
   visits: number;
   average: number;
   winningSideKey: string | null;
+  status: "WON" | "COMPLETE";
 };
 
 export type OneTwentyOnePlayContext = {
@@ -665,8 +667,9 @@ export type OneTwentyOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
-  $store: PlayStoreContext<OneTwentyOneSnapshot>;
+  $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot>;
   engine: OneTwentyOneEngine | null;
+  timer: SegmentTimer | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[];
@@ -679,6 +682,9 @@ export type OneTwentyOnePlayContext = {
   visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
   dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
+  durationType(this: OneTwentyOnePlayContext): OneTwentyOneDurationType;
+  attemptLabel(this: OneTwentyOnePlayContext): string;
+  remainingLabel(this: OneTwentyOnePlayContext): string;
   init(this: OneTwentyOnePlayContext): Promise<void>;
   retryReconciliation(this: OneTwentyOnePlayContext): Promise<void>;
   submitVisit(this: OneTwentyOnePlayContext): Promise<void>;
@@ -705,6 +711,7 @@ export type OneTwentyOnePlayContext = {
   back(this: OneTwentyOnePlayContext): Promise<void>;
   playAgain(this: OneTwentyOnePlayContext): Promise<void>;
   abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;
+  destroy(this: OneTwentyOnePlayContext): void;
 };
 
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */

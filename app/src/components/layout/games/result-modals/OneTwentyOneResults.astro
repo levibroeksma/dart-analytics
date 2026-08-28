@@ -15,9 +15,11 @@ import IsLoading from "@components/ui/IsLoading.astro";
     <h2
       class="font-display text-lg font-semibold text-foreground"
       x-text="
-        !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-          ? '170 checked out!'
-          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' checks out 170!')
+        resultsSnapshot?.status !== 'WON'
+          ? 'Session complete'
+          : (!resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+              ? '170 checked out!'
+              : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' checks out 170!'))
       "
     >
     </h2>

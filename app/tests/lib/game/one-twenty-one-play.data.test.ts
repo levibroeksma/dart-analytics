@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
-import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
+import {
+  oneTwentyOneEngineFactory,
+  oneTwentyOneV2EngineFactory,
+} from "@modules/game/one-twenty-one.engine.module";
 import type { OneTwentyOnePlayContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 
@@ -41,6 +44,9 @@ function baseStore(): OneTwentyOnePlayContext["$store"] {
       inputModeKey: "QUICK_SCORE",
       stages: [],
       turns: [],
+      timerRemainingMs: null,
+      timerStartedAt: null,
+      timerExpired: false,
       idempotencyKey: null,
       loading: false,
       recordFacts: vi.fn(function (
@@ -643,5 +649,207 @@ describe("oneTwentyOnePlay — per-seat accessors", () => {
     };
     ctx.$store = { game: { configSnapshot: null } };
     expect(ctx.state()).toBeNull();
+  });
+});
+
+describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
+  let store: OneTwentyOnePlayContext["$store"];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    store = baseStore();
+  });
+
+  function createPlay(
+    overrides: Partial<OneTwentyOnePlayContext> = {},
+  ): OneTwentyOnePlayContext {
+    return {
+      ...oneTwentyOnePlay(),
+      $store: store,
+      ...overrides,
+    } as OneTwentyOnePlayContext;
+  }
+
+  describe("resumeEngine — version-aware", () => {
+    it("resumes a 121_V2 session", async () => {
+      store.game.rulesetVersionKey = "121_V2";
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "ROUNDS",
+        durationValue: 10,
+      } as any;
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+        { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+      ]);
+      const play = createPlay();
+
+      await play.init();
+
+      expect(play.hasActiveSession).toBe(true);
+      expect(play.engine).not.toBeNull();
+    });
+
+    it("refuses to resume a session under a different game's ruleset key", async () => {
+      store.game.rulesetVersionKey = "SCORE_TRAINING_V1" as any;
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+        { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+      ]);
+      const play = createPlay();
+
+      await play.init();
+
+      expect(play.hasActiveSession).toBe(false);
+    });
+  });
+
+  describe("playAgain — version-aware", () => {
+    it("replays a 121_V2 session against 121_V2, carrying its own duration config", async () => {
+      store.game.rulesetVersionKey = "121_V2";
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "ROUNDS",
+        durationValue: 10,
+      } as any;
+      const play = createPlay({
+        resultsSnapshot: {
+          target: 130,
+          visits: 5,
+          average: 40,
+          winningSideKey: null,
+          status: "COMPLETE",
+        },
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ rulesetVersionKey: "121_V2" }),
+      );
+    });
+
+    it("replays a 121_V1 session against 121_V1", async () => {
+      const play = createPlay({
+        resultsSnapshot: {
+          target: 170,
+          visits: 5,
+          average: 40,
+          winningSideKey: null,
+          status: "WON",
+        },
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ rulesetVersionKey: "121_V1" }),
+      );
+    });
+  });
+
+  describe("durationType / attemptLabel / remainingLabel", () => {
+    it("durationType reads TARGET for a 121_V1 session", () => {
+      const play = createPlay();
+      expect(play.durationType()).toBe("TARGET");
+    });
+
+    it("durationType reads the config for a 121_V2 session", () => {
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "ROUNDS",
+        durationValue: 10,
+      } as any;
+      const play = createPlay();
+      expect(play.durationType()).toBe("ROUNDS");
+    });
+
+    it("attemptLabel reads attemptsCompleted against duration_value", () => {
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "ROUNDS",
+        durationValue: 10,
+      } as any;
+      const play = createPlay();
+      play.engine = oneTwentyOneV2EngineFactory.create(
+        store.game.configSnapshot as any,
+      ) as any;
+      play.engine!.record({ scoreAttempted: 121, finishedOnDouble: true });
+      store.game.recordFacts(play.engine!.facts());
+      expect(play.attemptLabel()).toBe("2 of 10");
+    });
+
+    it("remainingLabel formats $store.game.timerRemainingMs as mm:ss", () => {
+      store.game.timerRemainingMs = 65000;
+      const play = createPlay();
+      expect(play.remainingLabel()).toBe("01:05");
+    });
+  });
+
+  describe("computeStats target — generalizes off the owner seat's ladder position", () => {
+    it("reports the ladder position reached at a ROUNDS completion, not a hardcoded 170", async () => {
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "ROUNDS",
+        durationValue: 1,
+      } as any;
+      store.game.rulesetVersionKey = "121_V2";
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-08-14T10:00:00Z",
+      });
+      const play = createPlay();
+      play.engine = oneTwentyOneV2EngineFactory.create(
+        store.game.configSnapshot as any,
+      ) as any;
+      play.engine!.record({ scoreAttempted: 121, finishedOnDouble: true });
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.target).toBe(122);
+      expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+    });
+
+    it("still reports 170 and status WON for a genuine cap checkout", async () => {
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-08-14T10:00:00Z",
+      });
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+      for (let target = 121; target < 170; target++) {
+        play.engine!.record({ scoreAttempted: target, finishedOnDouble: true });
+      }
+      play.engine!.record({ scoreAttempted: 170, finishedOnDouble: true });
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.target).toBe(170);
+      expect(play.resultsSnapshot?.status).toBe("WON");
+    });
   });
 });
