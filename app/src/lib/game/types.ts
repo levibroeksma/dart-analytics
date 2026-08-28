@@ -462,15 +462,16 @@ export type FiveOhOneSetupContext = {
 };
 
 /**
- * The setup-page contract every preset-driven game shares. Six games declare
- * exactly this shape (Bob's 27, Shanghai, 121, Around the Clock, and — plus
+ * The setup-page contract every preset-driven game shares. Five games declare
+ * exactly this shape (Bob's 27, Shanghai, Around the Clock, and — plus
  * an `orderMode` field — Singles and Doubles Training), which is why
- * `createPresetSetupController` can serve all six from one implementation.
+ * `createPresetSetupController` can serve all five from one implementation.
  *
- * `501` and Score Training deliberately keep hand-written contexts: both
- * replace `start` wholesale (preset selection, leg counts, a clamped custom
- * starting score), so routing them through the factory would need one hook
- * per branch. See `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
+ * `501`, Score Training, and 121 (V2 onward) deliberately keep hand-written
+ * contexts: each replaces `start` wholesale (preset selection, leg counts, a
+ * clamped custom starting score or duration value), so routing them through
+ * the factory would need one hook per branch. See
+ * `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
  *
  * The `this` parameters name this base type rather than a self-type
  * parameter: `type X = PresetSetupContext<X>` is rejected by TypeScript
@@ -834,7 +835,62 @@ export type DoublesTrainingSetupContext = PresetSetupContext & {
 
 export type ShanghaiSetupContext = PresetSetupContext;
 
-export type OneTwentyOneSetupContext = PresetSetupContext;
+/**
+ * 121 keeps a hand-written setup context, like `501`/Score Training, rather
+ * than `PresetSetupContext`: `121_V2` needs a TARGET/ROUNDS/MINUTES picker
+ * with a clamped `duration_value`, the same shape Score Training's own
+ * hand-written context already carries.
+ */
+export type OneTwentyOneSetupContext = {
+  presets: ConfigurationPresetData[];
+  durationType: OneTwentyOneDurationType;
+  durationValue: number | string | null;
+  clampNotice: string;
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  $watch(
+    key: "durationType",
+    callback: (value: OneTwentyOneDurationType) => void,
+  ): void;
+  init(this: OneTwentyOneSetupContext): Promise<void>;
+  reconcile(
+    this: OneTwentyOneSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: OneTwentyOneSetupContext): Promise<void>;
+  continueSession(this: OneTwentyOneSetupContext): void;
+  abandonSession(this: OneTwentyOneSetupContext): Promise<void>;
+  selectMode(
+    this: OneTwentyOneSetupContext,
+    type: OneTwentyOneDurationType,
+  ): void;
+  presetForMode(
+    this: OneTwentyOneSetupContext,
+    type: OneTwentyOneDurationType,
+  ): ConfigurationPresetData | undefined;
+  addGuest(this: OneTwentyOneSetupContext): void;
+  removeGuest(this: OneTwentyOneSetupContext, index: number): void;
+  forceTargetIfGuested(this: OneTwentyOneSetupContext): void;
+  start(this: OneTwentyOneSetupContext): Promise<void>;
+};
 
 export type AroundTheClockSetupContext = PresetSetupContext;
 
