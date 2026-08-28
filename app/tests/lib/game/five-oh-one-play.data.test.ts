@@ -600,7 +600,7 @@ describe("seat-parameterized getters — two-seat isolation", () => {
 });
 
 describe("uploadAndCompleteSession", () => {
-  it("summarises only the owning player's own visits", async () => {
+  it("computes each seat's own stats from only its own visits, not the other seat's", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 3, darts: 0 },
     });
@@ -636,10 +636,38 @@ describe("uploadAndCompleteSession", () => {
 
     await play.uploadAndCompleteSession.call(play);
 
-    expect(play.resultsSnapshot).toEqual({ total: 160, legs: 1, average: 80 });
+    expect(play.resultsSnapshot).toEqual({
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "seat-a",
+          sideKey: "A",
+          legsWon: 0,
+          threeDartAverage: "80.0",
+          checkoutPercentage: null,
+          sixtyPlus: 1,
+          hundredPlus: 1,
+          oneTwentyPlus: 0,
+          oneFortyPlus: 0,
+          oneEighties: 0,
+        },
+        {
+          participantRef: "seat-b",
+          sideKey: "B",
+          legsWon: 0,
+          threeDartAverage: "40.0",
+          checkoutPercentage: null,
+          sixtyPlus: 0,
+          hundredPlus: 0,
+          oneTwentyPlus: 0,
+          oneFortyPlus: 0,
+          oneEighties: 0,
+        },
+      ],
+    });
   });
 
-  it("uploads the batch, completes the session, and snapshots match-wide results", async () => {
+  it("uploads the batch, completes the session, and snapshots per-seat results", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 2, darts: 0 },
     });
@@ -658,9 +686,21 @@ describe("uploadAndCompleteSession", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot).toEqual({
-      total: 501,
-      legs: 1,
-      average: 250.5,
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          legsWon: 1,
+          threeDartAverage: "250.5",
+          checkoutPercentage: null,
+          sixtyPlus: 0,
+          hundredPlus: 0,
+          oneTwentyPlus: 0,
+          oneFortyPlus: 1,
+          oneEighties: 0,
+        },
+      ],
     });
   });
 
@@ -692,7 +732,115 @@ describe("uploadAndCompleteSession", () => {
 
     await play.uploadAndCompleteSession.call(play);
 
-    expect(play.resultsSnapshot?.legs).toBe(3);
+    expect(play.resultsSnapshot?.seats[0]?.legsWon).toBe(3);
+  });
+
+  it("computes independent per-seat stats for a 1v1 QUICK_SCORE match", async () => {
+    vi.mocked(appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(completeSession).mockResolvedValue(undefined as never);
+
+    const play = makePlay({
+      configSnapshot: { ...quickPlayConfig(), legsToWin: 1, seats: TWO_SEATS },
+      inputModeKey: "QUICK_SCORE",
+    });
+    await play.init.call(play);
+
+    // Turn 0 (participant-1, remaining 501 -> 380)
+    play.scoreInput.setValue("121");
+    await play.submitVisit.call(play);
+    // Turn 1 (participant-2, remaining 501 -> 401)
+    play.scoreInput.setValue("100");
+    await play.submitVisit.call(play);
+    // Turn 2 (participant-1, remaining 380 -> 200)
+    play.scoreInput.setValue("180");
+    await play.submitVisit.call(play);
+    // Turn 3 (participant-2, remaining 401 -> 301)
+    play.scoreInput.setValue("100");
+    await play.submitVisit.call(play);
+    // Turn 4 (participant-1, remaining 200 -> 20)
+    play.scoreInput.setValue("180");
+    await play.submitVisit.call(play);
+    // Turn 5 (participant-2, remaining 301 -> 201)
+    play.scoreInput.setValue("100");
+    await play.submitVisit.call(play);
+    // Turn 6 (participant-1, remaining 20 -> 0 on D10): opens the
+    // double-out confirm, then the match-finish confirm (this is the only
+    // leg, legsToWin: 1, so checking it out wins the whole match).
+    play.scoreInput.setValue("20");
+    await play.submitVisit.call(play);
+    expect(play.showDoubleConfirm).toBe(true);
+    await play.confirmDouble.call(play);
+    expect(play.showMatchFinishConfirm).toBe(true);
+    await play.confirmMatchFinish.call(play);
+
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsSnapshot?.seats).toHaveLength(2);
+    const [seatA, seatB] = play.resultsSnapshot!.seats;
+    expect(seatA.participantRef).toBe("participant-1");
+    expect(seatA.legsWon).toBe(1);
+    expect(seatB.participantRef).toBe("participant-2");
+    expect(seatB.legsWon).toBe(0);
+    expect(seatA.checkoutPercentage).toBeNull();
+    expect(seatB.checkoutPercentage).toBeNull();
+  });
+
+  it("computes a VISUAL_BOARD checkout percentage from a busted attempt and two won legs", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    vi.mocked(appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(completeSession).mockResolvedValue(undefined as never);
+
+    const play = makePlay({
+      configSnapshot: {
+        ...quickPlayConfig(),
+        startingScore: 40,
+        legsToWin: 2,
+      },
+      inputModeKey: "VISUAL_BOARD",
+    });
+    await play.init.call(play);
+
+    // Leg 1, visit 1: a single TREBLE_20 (60) overshoots 40 by 20 -> busts
+    // immediately (remainingAfter -20). This is the one failed checkout
+    // attempt: darts summed to 60 (> 0) but totalScore records 0.
+    await play.recordDart.call(play, TREBLE_20);
+    // Leg 1, visit 2: a single DOUBLE_20 (40) zeroes the remaining 40
+    // exactly on a double -> checks out, wins leg 1. Does not complete the
+    // whole match (legsToWin: 2), so this commits immediately with no
+    // confirm dialog.
+    await play.recordDart.call(play, DOUBLE_20);
+    // Leg 2 opens fresh at remaining 40 (same startingScore every leg).
+    // A DOUBLE_20 here would win the whole match, so recordDart defers to
+    // the match-finish confirm instead of committing immediately.
+    await play.recordDart.call(play, DOUBLE_20);
+    expect(play.showMatchFinishConfirm).toBe(true);
+    await play.confirmMatchFinish.call(play);
+
+    const [seatA] = play.resultsSnapshot!.seats;
+    expect(seatA.legsWon).toBe(2);
+    // made = legsWon = 2, attempted = 2 + checkoutAttemptCount (1 bust) = 3
+    expect(seatA.checkoutPercentage).toBe("66.67%");
+  });
+
+  it("returns the single-seat shape for a solo session", async () => {
+    vi.mocked(appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(completeSession).mockResolvedValue(undefined as never);
+
+    const play = makePlay({
+      configSnapshot: { ...quickPlayConfig(), startingScore: 20, legsToWin: 1 },
+    });
+    await play.init.call(play);
+
+    // remaining 20 -> 0 on D10 in one visit, wins the only leg and the match.
+    play.scoreInput.setValue("20");
+    await play.submitVisit.call(play);
+    await play.confirmDouble.call(play);
+    await play.confirmMatchFinish.call(play);
+
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsSnapshot?.seats).toHaveLength(1);
+    expect(play.resultsSnapshot?.seats[0].legsWon).toBe(1);
   });
 
   it("treats SESSION_ALREADY_COMPLETED as success", async () => {
