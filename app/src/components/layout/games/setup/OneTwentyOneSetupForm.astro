@@ -1,12 +1,21 @@
 ---
+import Input from "@components/forms/Input.astro";
+import Toggle from "./Toggle.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+
+const formatOpts = [
+  { value: "TARGET", label: "170" },
+  { value: "ROUNDS", label: "Rounds" },
+  { value: "MINUTES", label: "Time" },
+];
 
 const infoSection = {
   title: "121 rules",
   description:
-    "Start at 121 and check out to exactly zero on a double, using up to 3 visits (9 darts). Check out and the target climbs by one — 122, 123, and so on. Miss all 3 visits and you try the same target again. Check out 170 to win.",
+    "Start at 121 and check out to exactly zero on a double, using up to 3 visits (9 darts). Check out and the target climbs by one — 122, 123, and so on. Miss all 3 visits and you try the same target again. Check out 170 to win, or stop after your chosen number of rounds or minutes.",
 };
 ---
 
@@ -16,6 +25,50 @@ const infoSection = {
     title={infoSection.title}
     description={infoSection.description}
   />
+  <SettingSectionShell>
+    <template x-if="guests.length === 0">
+      <Fragment>
+        <Toggle
+          orientation="horizontal"
+          options={formatOpts}
+          x-model="durationType"
+          class="w-full"
+        />
+        <template x-if="durationType !== 'TARGET'">
+          <Fragment>
+            <Input
+              id="durationValue"
+              name="durationValue"
+              type="text"
+              inputmode="numeric"
+              :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
+              x-model.number="durationValue"
+              @input="clampNotice = ''"
+              class="glass border-tab-border rounded-full mt-4"
+            />
+            <label
+              for="durationValue"
+              class="text-xs text-muted-foreground px-4 py-0 italic"
+              x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+            ></label>
+            <p
+              class="text-sm text-muted-foreground px-4 py-0"
+              role="status"
+              x-show="clampNotice"
+              x-text="clampNotice"
+              x-cloak
+            >
+            </p>
+          </Fragment>
+        </template>
+      </Fragment>
+    </template>
+    <template x-if="guests.length > 0">
+      <p class="text-sm text-muted-foreground px-4 py-0">
+        Check out 170 to win — Rounds and Time modes are solo only.
+      </p>
+    </template>
+  </SettingSectionShell>
 
   <p
     class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { oneTwentyOneValidator } from "@services/rulesets/one-twenty-one/one-twenty-one.validator";
+import {
+  oneTwentyOneValidator,
+  oneTwentyOneV2Validator,
+} from "@services/rulesets/one-twenty-one/one-twenty-one.validator";
 import type { DartFactInput } from "@routes/types";
 
 function batchWithTurns(totalScores: number[]) {
@@ -196,5 +199,75 @@ describe("oneTwentyOneValidator.validateBatch — visual board", () => {
     });
 
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("oneTwentyOneV2Validator.validateConfig", () => {
+  it("accepts TARGET with no duration_value", () => {
+    const result = oneTwentyOneV2Validator.validateConfig({
+      config: { duration_type: "TARGET" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts ROUNDS with a duration_value in range", () => {
+    const result = oneTwentyOneV2Validator.validateConfig({
+      config: { duration_type: "ROUNDS", duration_value: 10 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects ROUNDS with duration_value out of range", () => {
+    const result = oneTwentyOneV2Validator.validateConfig({
+      config: { duration_type: "ROUNDS", duration_value: 51 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a capture/input mode combination the ruleset does not support", () => {
+    const result = oneTwentyOneV2Validator.validateConfig({
+      config: { duration_type: "TARGET" },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("oneTwentyOneV2Validator.validateBatch", () => {
+  it("accepts the same batch shapes as oneTwentyOneValidator (shared implementation)", () => {
+    const result = oneTwentyOneV2Validator.validateBatch({
+      config: { duration_type: "ROUNDS", duration_value: 10 },
+      batch: batchWithTurns([0, 0, 121]),
+      existingTurnCounts: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+});
+
+describe("createOneTwentyOneValidator builder", () => {
+  it("gives oneTwentyOneValidator and oneTwentyOneV2Validator independent validateConfig closures", () => {
+    expect(
+      oneTwentyOneValidator.validateConfig({
+        config: { duration_type: "TARGET" },
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(false);
+    expect(
+      oneTwentyOneV2Validator.validateConfig({
+        config: { duration_type: "TARGET" },
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(true);
   });
 });

@@ -10,6 +10,7 @@ describe("RULESET_CAPABILITIES", () => {
   it("declares a pair for every ruleset version", () => {
     expect(Object.keys(RULESET_CAPABILITIES).sort()).toEqual([
       "121_V1",
+      "121_V2",
       "501_V1",
       "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",
@@ -79,6 +80,11 @@ describe("supportsMode", () => {
       ).toBe(false);
     },
   );
+
+  it("gives 121_V2 the same pairs as 121_V1", () => {
+    expect(supportsMode("121_V2", "RECREATIONAL", "QUICK_SCORE")).toBe(true);
+    expect(supportsMode("121_V2", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
+  });
 });
 
 describe("supportsCaptureMode", () => {
@@ -107,6 +113,7 @@ describe("capableRulesets", () => {
   it("lists every visual-capable ruleset", () => {
     expect([...capableRulesets("ANALYTICS", "VISUAL_BOARD")].sort()).toEqual([
       "121_V1",
+      "121_V2",
       "501_V1",
       "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",

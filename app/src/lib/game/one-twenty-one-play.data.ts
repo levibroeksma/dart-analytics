@@ -1,6 +1,7 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
+import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
   checkoutPathFor,
   isCheckoutReachable,
@@ -35,29 +36,40 @@ import type {
   OneTwentyOneState,
   TurnFact,
 } from "@modules/types";
-import type { BoardMarker, OneTwentyOnePlayContext } from "./types";
+import type {
+  BoardMarker,
+  OneTwentyOneDurationType,
+  OneTwentyOnePlayContext,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
-// oneTwentyOneEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
+// oneTwentyOneEngineFactory so the registry can resolve either ruleset
+// version this shared play page might be resuming.
 import { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
 
 const GAME_TYPE_KEY = "ONE_TWENTY_ONE";
-const RULESET_VERSION_KEY: RulesetVersionKey = "121_V1";
 const DARTS_PER_VISIT = 3;
+
+const RESUMABLE_RULESET_VERSIONS = new Set(["121_V1", "121_V2"]);
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
- * log so a reload restores the game exactly. Mirrors `five-oh-one-play.data
- * .ts`'s `resumeEngine`.
+ * log so a reload restores the game exactly. Accepts either ruleset version
+ * — both build the same `OneTwentyOneEngine` class (Pattern 18) — since
+ * `/games/121/play` is shared between them.
  */
 function resumeEngine(
   game: OneTwentyOnePlayContext["$store"]["game"],
 ): OneTwentyOneEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+  )
+    return null;
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -103,6 +115,157 @@ function dartsLeftInOpenVisit(turns: readonly TurnFact[]): number {
   return DARTS_PER_VISIT - open.darts.length;
 }
 
+/**
+ * Normalizes either ruleset version's config into `durationType`, mirroring
+ * the engine's own `durationOf()` — `121_V1`'s snapshot carries no duration
+ * fields at all, so it always reads `TARGET`.
+ */
+function durationTypeOf(
+  config: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
+): OneTwentyOneDurationType {
+  if (config && "durationType" in config) return config.durationType;
+  return "TARGET";
+}
+
+function durationValueOf(
+  config: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
+): number | null {
+  if (config && "durationType" in config && config.durationType !== "TARGET") {
+    return config.durationValue ?? null;
+  }
+  return null;
+}
+
+function formatRemaining(ms: number | null | undefined): string {
+  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+/**
+ * Starts the MINUTES countdown, resuming from the persisted remaining time
+ * when a prior session left one and starting a fresh segment otherwise.
+ * Mirrors `score-training-play.data.ts`'s own `startCountdown`.
+ */
+function startCountdown(
+  game: OneTwentyOnePlayContext["$store"]["game"],
+  durationValue: number,
+  engine: OneTwentyOneEngine,
+): SegmentTimer {
+  const resumedRemainingMs = game.timerRemainingMs;
+  const durationMinutes =
+    resumedRemainingMs != null ? resumedRemainingMs / 60000 : durationValue;
+
+  game.timerRemainingMs = durationMinutes * 60000;
+  if (resumedRemainingMs == null) {
+    game.timerStartedAt = new Date().toISOString();
+  }
+
+  const timer = new SegmentTimer({
+    totalMinutes: durationMinutes,
+    intervalMinutes: durationMinutes,
+    onTick: (secondsRemaining) => {
+      game.timerRemainingMs = secondsRemaining * 1000;
+    },
+    onComplete: () => {
+      game.timerExpired = true;
+      engine.expireTimer();
+    },
+  });
+  timer.start();
+  return timer;
+}
+
+/**
+ * `init()`'s own MINUTES branch, extracted so the caller reads as one
+ * decision (resume, mark already-expired, or do nothing) instead of three
+ * nested conditionals. Marks the engine expired in place — via a side
+ * effect, not a return value — since that outcome has nothing to hand back
+ * to the caller.
+ */
+function maybeResumeCountdown(
+  game: OneTwentyOnePlayContext["$store"]["game"],
+  config: NonNullable<
+    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
+  >,
+  engine: OneTwentyOneEngine,
+): SegmentTimer | null {
+  if (durationTypeOf(config) !== "MINUTES") return null;
+  if (game.timerExpired) {
+    engine.expireTimer();
+    return null;
+  }
+  const durationValue = durationValueOf(config);
+  if (durationValue == null) return null;
+  return startCountdown(game, durationValue, engine);
+}
+
+/**
+ * `playAgain()`'s own MINUTES branch — always a fresh segment, since the
+ * caller has already cleared the store's timer fields for the new session.
+ */
+function maybeStartFreshCountdown(
+  game: OneTwentyOnePlayContext["$store"]["game"],
+  config: NonNullable<
+    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
+  >,
+  engine: OneTwentyOneEngine,
+): SegmentTimer | null {
+  if (durationTypeOf(config) !== "MINUTES") return null;
+  const durationValue = durationValueOf(config);
+  if (durationValue == null) return null;
+  return startCountdown(game, durationValue, engine);
+}
+
+/**
+ * Whether `playAgain` may proceed once a config, template, and ruleset key
+ * are already known to exist: the ruleset is one this shared play page can
+ * resume, and no replay is already in flight. Named so the call site reads
+ * as one decision rather than folding these two checks into the same
+ * five-term condition as the null guards above it.
+ */
+function canReplay(
+  rulesetVersionKey: RulesetVersionKey,
+  playAgainLoading: boolean,
+): boolean {
+  return RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) && !playAgainLoading;
+}
+
+/**
+ * Resets every piece of local and store UI state a replay leaves behind
+ * from the finished session, before the new engine is built. Extracted so
+ * `playAgain` reads as its three real steps (create session, reset state,
+ * build engine) rather than interleaving them with two dozen assignments.
+ */
+function resetForReplay(
+  context: OneTwentyOnePlayContext,
+  session: { sessionId: string },
+  seatedSnapshot: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
+  modePair: { captureModeKey: string; inputModeKey: string },
+): void {
+  context.$store.game.sessionId = session.sessionId;
+  context.$store.game.configSnapshot = seatedSnapshot;
+  context.$store.game.idempotencyKey = null;
+  context.$store.game.setSessionModes(modePair);
+  context.$store.game.timerRemainingMs = null;
+  context.$store.game.timerStartedAt = null;
+  context.$store.game.timerExpired = false;
+
+  context.finished = false;
+  context.completionStatus = "pending";
+  context.completionError = "";
+  context.resultsSnapshot = null;
+  context.pendingCheckoutScore = null;
+  context.pendingDartObservation = null;
+  context.showDoubleConfirm = false;
+  context.showSessionFinishConfirm = false;
+  clearHiddenTimer(context);
+  context.scoreInput.clear();
+  context.error = "";
+  context.hasActiveSession = true;
+}
+
 function computeStats(
   state: OneTwentyOneState,
   turns: TurnFact[],
@@ -112,17 +275,21 @@ function computeStats(
   visits: number;
   average: number;
   winningSideKey: string | null;
+  status: "WON" | "COMPLETE";
 } {
   const ownerTurns =
     owner === null
       ? turns
       : turns.filter((turn) => turn.participantRef === owner);
   const total = ownerTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
+  const ownerSeat =
+    state.seats.find((seat) => seat.participantRef === owner) ?? state.seats[0];
   return {
-    target: 170,
+    target: ownerSeat.currentTarget,
     visits: ownerTurns.length,
     average: ownerTurns.length === 0 ? 0 : total / ownerTurns.length,
     winningSideKey: state.winningSideKey,
+    status: state.status === "WON" ? "WON" : "COMPLETE",
   };
 }
 
@@ -153,6 +320,7 @@ export function oneTwentyOnePlay() {
       visits: number;
       average: number;
       winningSideKey: string | null;
+      status: "WON" | "COMPLETE";
     } | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
@@ -161,6 +329,7 @@ export function oneTwentyOnePlay() {
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
     engine: null as OneTwentyOneEngine | null,
+    timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData((observation) => self.recordDart(observation)),
@@ -178,6 +347,7 @@ export function oneTwentyOnePlay() {
       return foldOneTwentyOneState(
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
+        this.$store.game.timerExpired ?? false,
       );
     },
 
@@ -244,6 +414,22 @@ export function oneTwentyOnePlay() {
       return dartsThrownCount(this.$store.game.turns, DARTS_PER_VISIT);
     },
 
+    durationType(this: OneTwentyOnePlayContext): OneTwentyOneDurationType {
+      return durationTypeOf(this.$store.game.configSnapshot);
+    },
+
+    attemptLabel(this: OneTwentyOnePlayContext): string {
+      const state = this.state();
+      const durationValue = durationValueOf(this.$store.game.configSnapshot);
+      if (!state || durationValue == null) return "";
+      const attemptsCompleted = state.seats[0].attemptsCompleted;
+      return `${Math.min(attemptsCompleted + 1, durationValue)} of ${durationValue}`;
+    },
+
+    remainingLabel(this: OneTwentyOnePlayContext): string {
+      return formatRemaining(this.$store.game.timerRemainingMs);
+    },
+
     async init(this: OneTwentyOnePlayContext) {
       self = this;
       this.loadingReconciliation = true;
@@ -278,6 +464,8 @@ export function oneTwentyOnePlay() {
         }
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
+        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+
         this.hasActiveSession = true;
       } catch {
         this.reconciliationFailed = true;
@@ -289,6 +477,10 @@ export function oneTwentyOnePlay() {
 
     async retryReconciliation(this: OneTwentyOnePlayContext) {
       await this.init();
+    },
+
+    destroy(this: OneTwentyOnePlayContext) {
+      this.timer?.stop();
     },
 
     /**
@@ -600,6 +792,7 @@ export function oneTwentyOnePlay() {
           await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
         }
         await completeSession(sessionId, "ABANDONED");
+        this.timer?.stop();
         this.$store.game.reset();
         globalThis.location.href = "/games";
       } catch {
@@ -609,21 +802,25 @@ export function oneTwentyOnePlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used — 121
-     * has zero editable settings, so no overrides.
+     * Replays the same configuration template the first session used, against
+     * whichever ruleset version that session actually used — `121_V1` stays
+     * on `121_V1`, `121_V2` stays on `121_V2` and its own `duration_type`/
+     * `duration_value`.
      */
     async playAgain(this: OneTwentyOnePlayContext) {
       const config = this.$store.game.configSnapshot;
       const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
+      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+      if (!config || !templateRef || !rulesetVersionKey) return;
+      if (!canReplay(rulesetVersionKey, this.playAgainLoading)) return;
+      const factory = getEngineFactory(rulesetVersionKey);
       if (!factory) return;
 
       this.playAgainLoading = true;
       this.playAgainError = "";
 
       const modePair = resolveSessionModePair(
-        RULESET_VERSION_KEY,
+        rulesetVersionKey,
         this.$store.settings,
       );
 
@@ -632,7 +829,7 @@ export function oneTwentyOnePlay() {
         try {
           session = await createSession({
             gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
+            rulesetVersionKey,
             captureModeKey: modePair.captureModeKey,
             inputModeKey: modePair.inputModeKey,
             config: { source: "template", templateRef },
@@ -644,29 +841,22 @@ export function oneTwentyOnePlay() {
         }
 
         const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingCheckoutScore = null;
-        this.pendingDartObservation = null;
-        this.showDoubleConfirm = false;
-        this.showSessionFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.scoreInput.clear();
-        this.error = "";
-        this.hasActiveSession = true;
+        resetForReplay(this, session, seatedSnapshot, modePair);
 
         const engine = factory.create(seatedSnapshot);
         if (!(engine instanceof OneTwentyOneEngine)) return;
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
+
+        const freshTimer = maybeStartFreshCountdown(
+          this.$store.game,
+          seatedSnapshot,
+          engine,
+        );
+        if (freshTimer) {
+          this.timer?.stop();
+          this.timer = freshTimer;
+        }
       } finally {
         this.playAgainLoading = false;
       }

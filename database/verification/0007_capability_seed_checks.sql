@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 18 declared rows',
+    'seed inserted exactly the 20 declared rows',
     CASE
-        WHEN count(*) = 18 THEN 'PASS'
+        WHEN count(*) = 20 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 18, found %s', count(*))
+    format('expected 20, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -104,6 +104,8 @@ FROM (
             ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('121_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
@@ -119,12 +121,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 18 declared triples were actually checked',
+    'all 20 declared triples were actually checked',
     CASE
-        WHEN count(*) = 18 THEN 'PASS'
+        WHEN count(*) = 20 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 18 triple checks ran', count(*))
+    format('%s of 20 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -201,6 +203,8 @@ WHERE NOT EXISTS (
                     ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+                    ('121_V2', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD')
             ) AS declared(ruleset_key, capture_key, input_key)

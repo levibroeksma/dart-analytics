@@ -15,6 +15,12 @@ describe("ruleset refinement contract", () => {
     expect(REFINEMENT_CONTRACTS.length).toBeGreaterThan(0);
   });
 
+  it("covers OneTwentyOneV2Config's TARGET/ROUNDS/MINUTES bounds", () => {
+    expect(
+      REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),
+    ).toContain("OneTwentyOneV2Config");
+  });
+
   for (const contract of REFINEMENT_CONTRACTS) {
     describe(contract.schemaName, () => {
       it("names a schema that types.ts actually exports under that name", () => {

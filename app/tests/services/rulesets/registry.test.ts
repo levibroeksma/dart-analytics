@@ -26,6 +26,10 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("TUOD_V1")).toBeDefined();
   });
 
+  it("returns the 121 V2 validator for 121_V2", () => {
+    expect(getRulesetValidator("121_V2")).toBeDefined();
+  });
+
   it("returns undefined for an unknown ruleset key", () => {
     expect(getRulesetValidator("NOT_A_RULESET")).toBeUndefined();
   });

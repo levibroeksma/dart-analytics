@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   FiveOhOneConfig,
+  OneTwentyOneV2Config,
   RULESET_CONFIGS,
   ScoreTrainingConfig,
   TuodConfig,
@@ -200,5 +201,101 @@ describe("AroundTheClockConfig", () => {
 describe("RULESET_CONFIGS", () => {
   it("registers AROUND_THE_CLOCK_V1", () => {
     expect(RULESET_CONFIGS.AROUND_THE_CLOCK_V1).toBe(AroundTheClockConfig);
+  });
+});
+
+describe("OneTwentyOneV2Config", () => {
+  it("accepts TARGET with no duration_value", () => {
+    const result = OneTwentyOneV2Config.safeParse({ duration_type: "TARGET" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects TARGET carrying a duration_value", () => {
+    const result = OneTwentyOneV2Config.safeParse({
+      duration_type: "TARGET",
+      duration_value: 10,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts ROUNDS at the bounds (1 and 50)", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "ROUNDS",
+        duration_value: 1,
+      }).success,
+    ).toBe(true);
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "ROUNDS",
+        duration_value: 50,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects ROUNDS outside 1..50", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "ROUNDS",
+        duration_value: 0,
+      }).success,
+    ).toBe(false);
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "ROUNDS",
+        duration_value: 51,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts MINUTES at the bounds (3 and 30)", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "MINUTES",
+        duration_value: 3,
+      }).success,
+    ).toBe(true);
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "MINUTES",
+        duration_value: 30,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects MINUTES outside 3..30", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "MINUTES",
+        duration_value: 2,
+      }).success,
+    ).toBe(false);
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "MINUTES",
+        duration_value: 31,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects ROUNDS/MINUTES with duration_value omitted", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({ duration_type: "ROUNDS" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects an unknown key (the schema is .strict())", () => {
+    expect(
+      OneTwentyOneV2Config.safeParse({
+        duration_type: "TARGET",
+        extra: 1,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("RULESET_CONFIGS 121_V2", () => {
+  it("registers 121_V2", () => {
+    expect(RULESET_CONFIGS["121_V2"]).toBe(OneTwentyOneV2Config);
   });
 });

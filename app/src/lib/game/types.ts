@@ -46,6 +46,7 @@ import type {
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
   OneTwentyOneSnapshot,
+  OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
   TuodSnapshot,
 } from "./rulesets/types";
@@ -56,6 +57,8 @@ export * from "./board/types";
 export type ScoreTrainingDurationType = "ROUNDS" | "MINUTES";
 
 export type TuodDurationType = "ROUNDS" | "MINUTES";
+
+export type OneTwentyOneDurationType = "TARGET" | "ROUNDS" | "MINUTES";
 
 export type TuodSetupContext = {
   presets: ConfigurationPresetData[];
@@ -460,15 +463,16 @@ export type FiveOhOneSetupContext = {
 };
 
 /**
- * The setup-page contract every preset-driven game shares. Six games declare
- * exactly this shape (Bob's 27, Shanghai, 121, Around the Clock, and — plus
+ * The setup-page contract every preset-driven game shares. Five games declare
+ * exactly this shape (Bob's 27, Shanghai, Around the Clock, and — plus
  * an `orderMode` field — Singles and Doubles Training), which is why
- * `createPresetSetupController` can serve all six from one implementation.
+ * `createPresetSetupController` can serve all five from one implementation.
  *
- * `501` and Score Training deliberately keep hand-written contexts: both
- * replace `start` wholesale (preset selection, leg counts, a clamped custom
- * starting score), so routing them through the factory would need one hook
- * per branch. See `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
+ * `501`, Score Training, and 121 (V2 onward) deliberately keep hand-written
+ * contexts: each replaces `start` wholesale (preset selection, leg counts, a
+ * clamped custom starting score or duration value), so routing them through
+ * the factory would need one hook per branch. See
+ * `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
  *
  * The `this` parameters name this base type rather than a self-type
  * parameter: `type X = PresetSetupContext<X>` is rejected by TypeScript
@@ -635,12 +639,13 @@ export type FiveOhOnePlayContext = {
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };
 
-/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. */
+/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES session that stopped without reaching the cap reports `"COMPLETE"`. */
 export type OneTwentyOneResultsSnapshot = {
   target: number;
   visits: number;
   average: number;
   winningSideKey: string | null;
+  status: "WON" | "COMPLETE";
 };
 
 export type OneTwentyOnePlayContext = {
@@ -662,8 +667,9 @@ export type OneTwentyOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
-  $store: PlayStoreContext<OneTwentyOneSnapshot>;
+  $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot>;
   engine: OneTwentyOneEngine | null;
+  timer: SegmentTimer | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[];
@@ -676,6 +682,9 @@ export type OneTwentyOnePlayContext = {
   visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
   dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
+  durationType(this: OneTwentyOnePlayContext): OneTwentyOneDurationType;
+  attemptLabel(this: OneTwentyOnePlayContext): string;
+  remainingLabel(this: OneTwentyOnePlayContext): string;
   init(this: OneTwentyOnePlayContext): Promise<void>;
   retryReconciliation(this: OneTwentyOnePlayContext): Promise<void>;
   submitVisit(this: OneTwentyOnePlayContext): Promise<void>;
@@ -702,6 +711,7 @@ export type OneTwentyOnePlayContext = {
   back(this: OneTwentyOnePlayContext): Promise<void>;
   playAgain(this: OneTwentyOnePlayContext): Promise<void>;
   abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;
+  destroy(this: OneTwentyOnePlayContext): void;
 };
 
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */
@@ -832,7 +842,62 @@ export type DoublesTrainingSetupContext = PresetSetupContext & {
 
 export type ShanghaiSetupContext = PresetSetupContext;
 
-export type OneTwentyOneSetupContext = PresetSetupContext;
+/**
+ * 121 keeps a hand-written setup context, like `501`/Score Training, rather
+ * than `PresetSetupContext`: `121_V2` needs a TARGET/ROUNDS/MINUTES picker
+ * with a clamped `duration_value`, the same shape Score Training's own
+ * hand-written context already carries.
+ */
+export type OneTwentyOneSetupContext = {
+  presets: ConfigurationPresetData[];
+  durationType: OneTwentyOneDurationType;
+  durationValue: number | string | null;
+  clampNotice: string;
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  $watch(
+    key: "durationType",
+    callback: (value: OneTwentyOneDurationType) => void,
+  ): void;
+  init(this: OneTwentyOneSetupContext): Promise<void>;
+  reconcile(
+    this: OneTwentyOneSetupContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: OneTwentyOneSetupContext): Promise<void>;
+  continueSession(this: OneTwentyOneSetupContext): void;
+  abandonSession(this: OneTwentyOneSetupContext): Promise<void>;
+  selectMode(
+    this: OneTwentyOneSetupContext,
+    type: OneTwentyOneDurationType,
+  ): void;
+  presetForMode(
+    this: OneTwentyOneSetupContext,
+    type: OneTwentyOneDurationType,
+  ): ConfigurationPresetData | undefined;
+  addGuest(this: OneTwentyOneSetupContext): void;
+  removeGuest(this: OneTwentyOneSetupContext, index: number): void;
+  forceTargetIfGuested(this: OneTwentyOneSetupContext): void;
+  start(this: OneTwentyOneSetupContext): Promise<void>;
+};
 
 export type AroundTheClockSetupContext = PresetSetupContext;
 

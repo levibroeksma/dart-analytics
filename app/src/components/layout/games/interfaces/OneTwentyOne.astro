@@ -46,6 +46,18 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
             label="Darts"
             value="dartsThrownThisSession()"
           />
+          <template x-if="durationType() === 'ROUNDS'">
+            <StatRow
+              label="Attempt"
+              value="attemptLabel()"
+            />
+          </template>
+          <template x-if="durationType() === 'MINUTES'">
+            <StatRow
+              label="Time"
+              value="remainingLabel()"
+            />
+          </template>
         </dl>
       </div>
     </SinglePlayerDisplay>

@@ -50,6 +50,8 @@ FROM (
             ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('121_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
