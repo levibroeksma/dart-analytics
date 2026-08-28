@@ -19,6 +19,7 @@ const { title, ...props }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 // Icons
 import ChevronDownIcon from "@icons/chevron-down.svg";
@@ -51,6 +52,8 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
     @submit.prevent="start()"
   >
     <slot />
+
+    <ErrorAlert class="mt-2" />
 
     <Button
       type="submit"

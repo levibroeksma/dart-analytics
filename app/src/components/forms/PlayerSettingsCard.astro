@@ -17,6 +17,7 @@ const { class: classNameProp = "", ...props }: Props = Astro.props;
 // Components
 import SettingRow from "@components/forms/SettingRow.astro";
 import HandednessForm from "@components/forms/HandednessForm.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 // Lib
 import { cn } from "@client/cn";
@@ -78,12 +79,9 @@ const handedLabelClass = "text-xs text-muted-foreground italic";
     </div>
   </div>
 
-  <p
-    class="alert alert-error mt-3 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-    role="alert"
-    x-show="$store.profile.error"
-    x-text="$store.profile.error"
-    x-cloak
-  >
-  </p>
+  <ErrorAlert
+    class="mt-3"
+    showExpr="$store.profile.error"
+    textExpr="$store.profile.error"
+  />
 </div>

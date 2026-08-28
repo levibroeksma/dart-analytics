@@ -1,0 +1,48 @@
+---
+/**
+ * Alert-styled error message. Base classes are fixed; layout overrides
+ * (spacing, size) merge in via `class`. `showExpr`/`textExpr` default to
+ * the `error` expression the majority of call sites already bind to.
+ * `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor
+ * already gates visibility (e.g. a `completionStatus === 'failed'` wrapper).
+ * @param {string} [class] Extra classes merged over the base
+ * @param {string} [showExpr] Alpine expression bound to x-show; ignored when alwaysVisible
+ * @param {string} [textExpr] Alpine expression bound to x-text
+ * @param {boolean} [alwaysVisible] Omit x-show/x-cloak
+ */
+interface Props {
+  class?: string;
+  showExpr?: string;
+  textExpr?: string;
+  alwaysVisible?: boolean;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  class: classNameProp,
+  showExpr = "error",
+  textExpr = "error",
+  alwaysVisible = false,
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground",
+  classNameProp,
+);
+---
+
+<p
+  class={className}
+  role="alert"
+  x-show={alwaysVisible ? undefined : showExpr}
+  x-text={textExpr}
+  x-cloak={alwaysVisible ? undefined : true}
+  {...props}
+>
+</p>

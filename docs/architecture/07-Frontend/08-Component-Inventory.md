@@ -29,6 +29,7 @@ evaluated in the page's own Alpine scope.
 | `CardWrapper.astro` | Bordered card, optionally a link | `href`, `title`, `description`, `color`, `external` |
 | `ConfirmDialog.astro` | Modal with cancel/confirm actions | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `confirmVariant`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
+| `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
@@ -60,6 +61,7 @@ evaluated in the page's own Alpine scope.
 | `InputButton.astro` | Single key in a tap/keypad input row | `type` |
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
+| `ResultsModalShell.astro` | Shared results-modal chrome: overlay, glass card, save-status region, play-again error, back/play-again buttons; named `title` slot plus a default slot for stat rows | `showSavedMessage` |
 | `ScoreInput.astro` | Numeric keypad with submit/delete/undo | `value`, `digitHandler`, `onDelete`, `onSubmit`, `submitDisabled`, `padDisabled`, `undoClick`, `undoDisabled` |
 | `SinglePlayerDisplay.astro` | Score-or-target panel with `above`/`progress` slots | `score`, `target`, `isTarget`, `size` (`lg`/`sm`), `activeExpr` (accent border while true) |
 | `SinglesRecreationalInput.astro` | Target-aware S/D/T or Bull tap row | none |
@@ -77,7 +79,7 @@ evaluated in the page's own Alpine scope.
 | `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
 | `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `SettingSectionShell.astro` | Bordered section wrapper inside a setup form | none |
-| `SetupShell.astro` | Page shell for every game setup screen | `title` |
+| `SetupShell.astro` | Page shell for every game setup screen; owns the form's error alert | `title` |
 | `Toggle.astro` | Segmented option control bound via `x-modelable` | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
 | `ToggleListItem.astro` | One option inside a vertical `Toggle` | `value`, `label` |
 | `UserIconDisplay.astro` | Avatar/initial badge | `name`, `nameExpr` |

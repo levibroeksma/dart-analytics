@@ -19,11 +19,14 @@ interface Props {
 // Props
 const { class: classNameProp, ...props }: Props = Astro.props;
 
-// Lib
-import { cn } from "@client/cn";
+// Components
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 // Icons
 import CheckIcon from "@icons/check.svg";
+
+// Lib
+import { cn } from "@client/cn";
 
 // Styles
 const className = cn(
@@ -140,12 +143,8 @@ const checkClass =
     </div>
   </div>
 
-  <p
-    class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-    role="alert"
-    x-show="$store.settings.error"
-    x-text="$store.settings.error"
-    x-cloak
-  >
-  </p>
+  <ErrorAlert
+    showExpr="$store.settings.error"
+    textExpr="$store.settings.error"
+  />
 </section>

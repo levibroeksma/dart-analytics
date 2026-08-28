@@ -1,96 +1,34 @@
 ---
-import Button from "@components/forms/Button.astro";
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
-<div
-  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
-  x-show="finished"
-  x-cloak
->
-  <div
-    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+<ResultsModalShell showSavedMessage>
+  <h2
+    slot="title"
+    class="font-display text-lg font-semibold text-foreground"
+    x-text="
+      resultsSnapshot?.status !== 'WON'
+        ? 'Session complete'
+        : (!resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+            ? '170 checked out!'
+            : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' checks out 170!'))
+    "
   >
-    <h2
-      class="font-display text-lg font-semibold text-foreground"
-      x-text="
-        resultsSnapshot?.status !== 'WON'
-          ? 'Session complete'
-          : (!resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-              ? '170 checked out!'
-              : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' checks out 170!'))
-      "
-    >
-    </h2>
+  </h2>
 
-    <dl
-      class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-      x-show="completionStatus === 'succeeded' && resultsSnapshot"
-      x-cloak
-    >
-      <StatRow
-        label="Visits"
-        value="resultsSnapshot?.visits"
-      />
-      <StatRow
-        label="Average"
-        value="resultsSnapshot?.average.toFixed(1)"
-      />
-    </dl>
-
-    <div class="mt-4">
-      <IsLoading
-        title="Saving..."
-        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-        x-cloak
-      />
-      <div
-        x-show="completionStatus === 'failed'"
-        x-cloak
-      >
-        <p
-          class="alert alert-error rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-          role="alert"
-          x-text="completionError"
-        >
-        </p>
-        <Button
-          class="mt-2"
-          @click="uploadAndCompleteSession()"
-          title="Retry"
-        />
-      </div>
-      <p
-        class="text-sm text-success"
-        x-show="completionStatus === 'succeeded'"
-        x-cloak
-      >
-        Saved!
-      </p>
-    </div>
-
-    <p
-      class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-sm text-error-foreground"
-      role="alert"
-      x-text="playAgainError"
-      x-show="playAgainError"
-      x-cloak
-    >
-    </p>
-
-    <div class="mt-6 flex justify-end gap-3">
-      <Button
-        variant="secondary"
-        @click="back()"
-        :disabled="completionStatus !== 'succeeded'"
-        title="Back to games"
-      />
-      <Button
-        @click="playAgain()"
-        :disabled="completionStatus !== 'succeeded' || playAgainLoading"
-        title="Play again"
-      />
-    </div>
-  </div>
-</div>
+  <dl
+    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
+    x-show="completionStatus === 'succeeded' && resultsSnapshot"
+    x-cloak
+  >
+    <StatRow
+      label="Visits"
+      value="resultsSnapshot?.visits"
+    />
+    <StatRow
+      label="Average"
+      value="resultsSnapshot?.average.toFixed(1)"
+    />
+  </dl>
+</ResultsModalShell>
