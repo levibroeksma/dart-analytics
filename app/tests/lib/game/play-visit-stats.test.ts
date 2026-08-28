@@ -205,6 +205,7 @@ describe("highestVisitScore", () => {
 describe("visitScoreBandCounts", () => {
   it("returns all-zero counts for no completed visits", () => {
     expect(visitScoreBandCounts([])).toEqual({
+      sixtyPlus: 0,
       hundredPlus: 0,
       oneTwentyPlus: 0,
       oneFortyPlus: 0,
@@ -212,8 +213,19 @@ describe("visitScoreBandCounts", () => {
     });
   });
 
-  it("does not count a visit below 100 in any band", () => {
-    expect(visitScoreBandCounts([done(99)])).toEqual({
+  it("does not count a visit below 60 in any band", () => {
+    expect(visitScoreBandCounts([done(59)])).toEqual({
+      sixtyPlus: 0,
+      hundredPlus: 0,
+      oneTwentyPlus: 0,
+      oneFortyPlus: 0,
+      oneEighties: 0,
+    });
+  });
+
+  it("counts a 60-99 visit as sixtyPlus only", () => {
+    expect(visitScoreBandCounts([done(65)])).toEqual({
+      sixtyPlus: 1,
       hundredPlus: 0,
       oneTwentyPlus: 0,
       oneFortyPlus: 0,
@@ -223,8 +235,19 @@ describe("visitScoreBandCounts", () => {
 
   it("counts a visit in exactly its own band, not any lower one — the exclusive-band case (D238)", () => {
     expect(visitScoreBandCounts([done(125)])).toEqual({
+      sixtyPlus: 0,
       hundredPlus: 0,
       oneTwentyPlus: 1,
+      oneFortyPlus: 0,
+      oneEighties: 0,
+    });
+  });
+
+  it("a 100+ visit does not also increment sixtyPlus — the exclusive-band case extended", () => {
+    expect(visitScoreBandCounts([done(105)])).toEqual({
+      sixtyPlus: 0,
+      hundredPlus: 1,
+      oneTwentyPlus: 0,
       oneFortyPlus: 0,
       oneEighties: 0,
     });
@@ -233,6 +256,7 @@ describe("visitScoreBandCounts", () => {
   it("tallies one visit into each of the four bands independently", () => {
     const turns = [done(105), done(125), done(145), done(180)];
     expect(visitScoreBandCounts(turns)).toEqual({
+      sixtyPlus: 0,
       hundredPlus: 1,
       oneTwentyPlus: 1,
       oneFortyPlus: 1,
@@ -242,6 +266,7 @@ describe("visitScoreBandCounts", () => {
 
   it("a 180 counts only as oneEighties, not also the lower three bands", () => {
     expect(visitScoreBandCounts([done(180)])).toEqual({
+      sixtyPlus: 0,
       hundredPlus: 0,
       oneTwentyPlus: 0,
       oneFortyPlus: 0,
@@ -252,6 +277,7 @@ describe("visitScoreBandCounts", () => {
   it("ignores an open visit even if its running total would clear a band", () => {
     const turns = [{ totalScore: 180, completedAt: null, darts: [{}] }];
     expect(visitScoreBandCounts(turns)).toEqual({
+      sixtyPlus: 0,
       hundredPlus: 0,
       oneTwentyPlus: 0,
       oneFortyPlus: 0,

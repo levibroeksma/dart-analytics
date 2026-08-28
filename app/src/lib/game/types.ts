@@ -536,6 +536,39 @@ export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
 };
 
+/** One seat's own results stats, replayed from its own completed visits in
+ * `turns`. `legsWon` comes from `state().sides`, never counted from
+ * `turns` directly — a stage exists per leg *played*, not per leg *won*.
+ * `checkoutPercentage` is `null` for a QUICK_SCORE session (checkout %
+ * cannot be computed without per-dart data,
+ * `05-Database/06-Spec/04-Runtime-Layer.md`); for VISUAL_BOARD it is
+ * `legsWon` over `legsWon + checkoutAttemptCount(seatTurns)`, formatted by
+ * `accuracyDisplay` (Pattern 20). Score-band counts are exclusive
+ * (D238/D242, Pattern 21) — a visit increments exactly one of
+ * `sixtyPlus`/`hundredPlus`/`oneTwentyPlus`/`oneFortyPlus`/`oneEighties`,
+ * never more than one. */
+export type FiveOhOneSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  legsWon: number;
+  threeDartAverage: string;
+  checkoutPercentage: string | null;
+  sixtyPlus: number;
+  hundredPlus: number;
+  oneTwentyPlus: number;
+  oneFortyPlus: number;
+  oneEighties: number;
+};
+
+/** `winningSideKey` is `null` for a solo session — 501 has no tie outcome
+ * (double-out racing to a fixed leg count always decides a winner), unlike
+ * Score Training's fixed-rounds format. `seats` has one entry per
+ * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
+export type FiveOhOneResultsSnapshot = {
+  winningSideKey: string | null;
+  seats: FiveOhOneSeatResult[];
+};
+
 export type FiveOhOnePlayContext = {
   scoreInput: ScoreInputBuffer;
   loading: boolean;
@@ -548,7 +581,7 @@ export type FiveOhOnePlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: { total: number; legs: number; average: number } | null;
+  resultsSnapshot: FiveOhOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
   dartsAtDouble: DartCount | null;
   dartsToFinish: DartCount | null;
@@ -570,6 +603,7 @@ export type FiveOhOnePlayContext = {
   dartsThrownThisLeg(this: FiveOhOnePlayContext): number;
   averageFor(this: FiveOhOnePlayContext, seatRef: string): string;
   average(this: FiveOhOnePlayContext): string;
+  matchTitle(this: FiveOhOnePlayContext): string;
   previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
   legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;

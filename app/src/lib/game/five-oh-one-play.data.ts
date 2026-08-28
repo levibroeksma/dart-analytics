@@ -23,10 +23,13 @@ import {
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import {
+  accuracyDisplay,
   dartsThrownCount,
   previousScoreDisplay,
   threeDartAverageDisplay,
+  visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
+import { checkoutAttemptCount } from "@modules/game/checkout-bust.module";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
@@ -36,7 +39,12 @@ import type {
   FiveOhOneState,
   TurnFact,
 } from "@modules/types";
-import type { BoardMarker, FiveOhOnePlayContext } from "./types";
+import type {
+  BoardMarker,
+  FiveOhOnePlayContext,
+  FiveOhOneSeatResult,
+  FiveOhOneResultsSnapshot,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -82,40 +90,60 @@ function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
 }
 
 /**
- * Match-wide summary for the results modal.
- *
- * `legsWon` is the caller's `config.legsToWin`, never `stages.length`: a stage
- * exists per leg *played*, and a Best-of-5 won 3-1 played four legs while
- * winning three. This function only ever runs on the completion path, which
- * `record()` reaches exactly when `legsWon` hits `legsToWin` — so the
- * configured target is the legs actually won, by definition.
- *
- * `average` is per-visit, matching Score Training. For 501 that equals the
- * 3-dart average for every full visit; the checkout visit may have used fewer
- * than three darts, which this slightly under-weights. Recovering it needs
- * per-dart capture, which 501 does not have (`06-Spec/04-Runtime-Layer.md`).
+ * One seat's own results stats, replayed from its own completed visits in
+ * `turns`. `legsWon` is read off `state().sides` by the caller — never
+ * counted from `turns` directly (a stage exists per leg *played*, not per
+ * leg *won*). `checkoutPercentage` is `null` outside VISUAL_BOARD capture.
  */
-/**
- * The seat the session belongs to — the one PLAYER participant. Guest visits
- * land in the same fact log, so a results summary that sums every turn mixes
- * two throwers into one average.
- */
-function ownerRef(seats: readonly SeatFact[]): string | null {
-  return (
-    seats.find((seat) => seat.participantTypeKey === "PLAYER")
-      ?.participantRef ?? null
+function statsFor(
+  seat: SeatFact,
+  turns: readonly TurnFact[],
+  legsWon: number,
+  maxDartsPerTurn: number,
+  inputModeKey: string | null,
+): FiveOhOneSeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
   );
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    legsWon,
+    threeDartAverage: threeDartAverageDisplay(seatTurns, maxDartsPerTurn),
+    checkoutPercentage:
+      inputModeKey === "VISUAL_BOARD"
+        ? accuracyDisplay(legsWon, legsWon + checkoutAttemptCount(seatTurns))
+        : null,
+    ...visitScoreBandCounts(seatTurns),
+  };
 }
 
-function computeStats(
-  turns: TurnFact[],
-  legsWon: number,
-): { total: number; legs: number; average: number } {
-  const total = turns.reduce((sum, turn) => sum + turn.totalScore, 0);
+/**
+ * The match-summary modal's whole snapshot: every seat's own `statsFor`,
+ * plus the winning side — `null` for a solo session (one seat can't have a
+ * side to compare against, so there is nothing to declare a winner over)
+ * even though the engine's own fold always names a `sideKey` once that
+ * seat's side reaches `legsToWin`.
+ */
+function buildResultsSnapshot(
+  context: FiveOhOnePlayContext,
+): FiveOhOneResultsSnapshot {
+  const seats = context.$store.game.seats;
+  const maxDartsPerTurn =
+    context.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+  const inputModeKey = context.$store.game.inputModeKey;
   return {
-    total,
-    legs: legsWon,
-    average: turns.length === 0 ? 0 : total / turns.length,
+    winningSideKey:
+      seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
+    seats: seats.map((seat) =>
+      statsFor(
+        seat,
+        context.$store.game.turns,
+        context.legsWonFor(seat.participantRef),
+        maxDartsPerTurn,
+        inputModeKey,
+      ),
+    ),
   };
 }
 
@@ -151,11 +179,7 @@ export function fiveOhOnePlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      total: number;
-      legs: number;
-      average: number;
-    } | null,
+    resultsSnapshot: null as FiveOhOneResultsSnapshot | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
@@ -196,6 +220,17 @@ export function fiveOhOnePlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /**
+     * The play-page header's title. Falls back to the plain "501" before a
+     * session's config has loaded; once loaded, names the match format the
+     * session was actually configured with. A future task adding sets
+     * extends this one function rather than the header template.
+     */
+    matchTitle(this: FiveOhOnePlayContext): string {
+      const legsToWin = this.$store.game.configSnapshot?.legsToWin;
+      return legsToWin ? `First to ${legsToWin} legs` : "501";
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
@@ -620,15 +655,7 @@ export function fiveOhOnePlay() {
         }
       }
 
-      const owner = ownerRef(this.$store.game.seats);
-      this.resultsSnapshot = computeStats(
-        owner === null
-          ? this.$store.game.turns
-          : this.$store.game.turns.filter(
-              (turn) => turn.participantRef === owner,
-            ),
-        this.$store.game.configSnapshot!.legsToWin,
-      );
+      this.resultsSnapshot = buildResultsSnapshot(this);
       this.completionStatus = "succeeded";
     },
 
