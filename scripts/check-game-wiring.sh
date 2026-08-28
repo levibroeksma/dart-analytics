@@ -16,6 +16,9 @@
 #   3b. Engine-only games (absent from GAME_CARDS): neither data file exists
 #       and no pages/games/<code-slug>/ directory exists. Half a row is a
 #       failure whichever half it fell on.
+#   3c. Shared-card games (absent from GAME_CARDS, but the same code slug as
+#       a key that IS carded): treated as wired via the sibling key — nothing
+#       further to check, since the sibling's own pass already verified it.
 # Plus the reverse direction: every GAME_CARDS key has a registry entry, and
 # every @lib/game/<slug>-setup.data import in register-route-data.ts belongs
 # to some registry key.
@@ -128,6 +131,16 @@ data_imports = dict(
     )
 )
 
+code_slug_of = {}
+for key, binding in entries:
+    module = imports.get(binding)
+    if module:
+        code_slug_of[key] = module.split("/")[0]
+
+carded_code_slugs = {
+    code_slug_of[k] for k in cards if k in code_slug_of
+}
+
 code_slugs = set()
 checked = 0
 
@@ -150,6 +163,16 @@ for key, binding in entries:
     play_data = app / f"src/lib/game/{code_slug}-play.data.ts"
 
     if key not in cards:
+        if code_slug in carded_code_slugs:
+            # This ruleset version has no card of its own, but shares its code
+            # slug (data files, pages, Alpine registration) with a sibling key
+            # that does — e.g. 121_V2 shares 121_V1's card/route. The sibling
+            # key's own pass through this loop already verified pages/Alpine
+            # wiring for this code slug; there is nothing stray to check here,
+            # and requiring an absent data file would be wrong.
+            ok(f"{key} shares code slug `{code_slug}` with a carded ruleset version")
+            checked += 1
+            continue
         for stray in (setup_data, play_data):
             if stray.is_file():
                 err(
