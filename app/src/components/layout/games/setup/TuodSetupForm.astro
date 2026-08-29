@@ -9,8 +9,8 @@ import UserSection from "./UserSection.astro";
 
 // Data
 const durationOpts = [
-  { value: "ROUNDS", label: "10 Rounds" },
-  { value: "MINUTES", label: "10 Minutes" },
+  { value: "ROUNDS", label: "Rounds" },
+  { value: "MINUTES", label: "Time" },
 ];
 
 const infoSection = {
@@ -28,12 +28,37 @@ const infoSection = {
   />
   <SettingSectionShell>
     <template x-if="guests.length === 0">
-      <Toggle
-        orientation="horizontal"
-        options={durationOpts}
-        x-model="durationType"
-        class="w-full"
-      />
+      <div class="contents">
+        <Toggle
+          orientation="horizontal"
+          options={durationOpts}
+          x-model="durationType"
+          class="w-full"
+        />
+        <Input
+          id="durationValue"
+          name="durationValue"
+          type="text"
+          inputmode="numeric"
+          :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
+          x-model.number="durationValue"
+          @input="clampNotice = ''"
+          class="glass border-tab-border rounded-full mt-4"
+        />
+        <label
+          for="durationValue"
+          class="text-xs text-muted-foreground px-4 py-0 italic"
+          x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
+        ></label>
+        <p
+          class="text-sm text-muted-foreground px-4 py-0"
+          role="status"
+          x-show="clampNotice"
+          x-text="clampNotice"
+          x-cloak
+        >
+        </p>
+      </div>
     </template>
     <template x-if="guests.length > 0">
       <div class="contents">
