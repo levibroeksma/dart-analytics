@@ -38,7 +38,10 @@ import {
 } from "@modules/game/shanghai.engine.module";
 
 const GAME_TYPE_KEY = "SHANGHAI";
-const RULESET_VERSION_KEY: RulesetVersionKey = "SHANGHAI_V1";
+const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
+  "SHANGHAI_V1",
+  "SHANGHAI_V2",
+]);
 
 /**
  * Rounds 1..20 never reach `numbersPath()`'s 21st (BULL) entry — mirrors the
@@ -123,12 +126,23 @@ function statsFor(
   };
 }
 
+/**
+ * Rebuilds the engine for the persisted session, replaying the store's fact
+ * log so a reload restores the game exactly. Accepts either ruleset version
+ * — both build the same `ShanghaiEngine` class (Pattern 18) — since
+ * `/games/shanghai/play` is shared between them.
+ */
 function resumeEngine(
   game: ShanghaiPlayContext["$store"]["game"],
 ): ShanghaiEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+  )
+    return null;
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -285,7 +299,13 @@ export function shanghaiPlay() {
     },
 
     playAgain(this: ShanghaiPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+      if (
+        !rulesetVersionKey ||
+        !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+      )
+        return;
+      return runPlayAgain(this, GAME_TYPE_KEY, rulesetVersionKey, (engine) =>
         engine instanceof ShanghaiEngine ? engine : null,
       );
     },

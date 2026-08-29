@@ -78,6 +78,19 @@ npm run db:status
 # Expected: all migrations applied
 ```
 
+**This phase is not one-time.** Phase 4's CI deploy runs on every merge to `main` and ships code only — it never touches the database. A PR that adds a migration and/or edits `database/seeds/**` (e.g. a new ruleset version, capability rows) merges and auto-deploys its code with production's schema/reference data unchanged; nothing fails or warns. Before or right after merging such a PR, re-run the relevant commands from Phase 1.3 against `.env.production`:
+
+```bash
+set -a
+source .env.production
+set +a
+
+npm run db:migrate   # only if the PR added a migration
+npm run db:seed       # if the PR touched database/seeds/** at all — always safe, idempotent
+```
+
+Seeds are idempotent (`ON CONFLICT DO NOTHING`), so re-running `db:seed` on every seed-touching PR is cheap insurance even when unsure whether it already ran.
+
 ---
 
 ## Phase 2: Cloudflare Worker Secrets (one-time, manual)
