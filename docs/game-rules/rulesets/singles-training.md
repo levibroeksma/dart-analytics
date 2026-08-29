@@ -15,8 +15,8 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Order: randomized (each target once)          | v1      |
 | Points: S=1, D=2, T=3 per dart on target      | v1      |
 | Easy: score whatever you hit (misses allowed) | v1      |
-| Hard: at least 1 dart must hit the target     | TBD     |
-| Extreme: at least 2 darts must hit            | TBD     |
+| Hard: at least 1 dart must hit the target     | v1      |
+| Extreme: at least 2 darts must hit            | v1      |
 | Professional: all 3 darts must hit            | TBD     |
 | Visit = 3 darts per target                    | v1      |
 | Track score / hit quality                     | v1      |
@@ -40,7 +40,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 | ---------- | --------------------------------------------------------------- | --------------------- |
 | Players    | Single player                                                   | Shown, locked         |
 | Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
-| Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
+| Difficulty | Easy (default), Hard, or Extreme — player's choice; see Bust below | Editable |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 
 ## How to play (V1)
@@ -69,14 +69,12 @@ Session ends when every target in the order has been visited once.
 
 ### Bust
 
-N/A.
+Hard/Extreme only: at a visit's 3rd dart, if fewer than the required number of darts landed on the current section (Hard: 1, Extreme: 2), the run ends immediately. Solo: the session ends as a loss. 1v1: the match ends immediately and the other player wins, regardless of either player's own progress or points. Easy has no bust condition.
 
 ## Later versions (V2+)
 
 ### Variants
 
-- **Hard:** at least 1 dart must hit the target each visit
-- **Extreme:** at least 2 darts must hit
 - **Professional:** all 3 darts must hit
 
 ### Match structure
