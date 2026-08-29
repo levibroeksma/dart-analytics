@@ -419,7 +419,7 @@ describe("recordTap on the BULL visit", () => {
       singles: 61, // 60 prior number-target singles + 1 OUTER_BULL
       doubles: 1, // 1 INNER_BULL
       trebles: 0,
-      hitPercentage: "98.41%", // (62/63 * 100).toFixed(2)
+      accuracy: "98.41%", // (62/63 * 100).toFixed(2)
       winningSideKey: null,
       status: "COMPLETE",
     });
@@ -592,6 +592,22 @@ describe("missCount / singleCount / doubleCount / trebleCount", () => {
     expect(play.trebleCount.call(play)).toBe("0");
   });
 
+  it("counts a bounce-out or wrong-number hit as a miss, never toward the ring it landed in", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    // target is 1: a SINGLE landing on a different number is not a hit.
+    await play.commitDart.call(play, {
+      hitTargetNumber: 5,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(play.singleCount.call(play)).toBe("0");
+    expect(play.missCount.call(play)).toBe("1");
+  });
+
   it("sums the four counters to the total darts thrown so far", async () => {
     const play = makePlay();
     await play.init.call(play);
@@ -637,6 +653,41 @@ describe("completion", () => {
     expect(play.completionStatus).toBe("succeeded");
   });
 
+  it("excludes an off-target hit from singles/doubles/trebles, counting it as a miss in the accuracy snapshot", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    await play.init.call(play);
+
+    // Final visit targets BULL: a SINGLE landing on number 7 is off-target,
+    // not a genuine single hit, even though the zone key is "SINGLE".
+    await play.commitDart.call(play, {
+      hitTargetNumber: 7,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    await play.recordTap.call(play, "DOUBLE");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.resultsSnapshot).toEqual({
+      points: 62, // 60 + 0 (off-target) + 2 + 0
+      misses: 2, // 1 off-target + 1 literal miss
+      singles: 60, // prior number-target singles only
+      doubles: 1, // 1 INNER_BULL
+      trebles: 0,
+      accuracy: "96.83%", // (61/63 * 100).toFixed(2)
+      winningSideKey: null,
+      status: "COMPLETE",
+    });
+  });
+
   it("captures a zero-darts session as a 0% hit percentage, not NaN or division by zero", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 0, turns: 0, darts: 0 },
@@ -657,7 +708,7 @@ describe("completion", () => {
       singles: 0,
       doubles: 0,
       trebles: 0,
-      hitPercentage: "0.00%",
+      accuracy: "0.00%",
       winningSideKey: null,
       status: "COMPLETE",
     });

@@ -795,7 +795,7 @@ export type SinglesTrainingPlayContext = {
     singles: number;
     doubles: number;
     trebles: number;
-    hitPercentage: string;
+    accuracy: string;
     winningSideKey: string | null;
     status: "COMPLETE" | "TIE" | "WON" | "LOST";
   } | null;
