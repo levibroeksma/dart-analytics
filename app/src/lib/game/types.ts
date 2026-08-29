@@ -86,6 +86,10 @@ export type TuodSetupContext = {
       inputModeKey: string;
     };
   };
+  $watch(
+    key: "durationType",
+    callback: (value: TuodDurationType) => void,
+  ): void;
   init(this: TuodSetupContext): Promise<void>;
   reconcile(
     this: TuodSetupContext,
@@ -94,6 +98,7 @@ export type TuodSetupContext = {
   retryReconciliation(this: TuodSetupContext): Promise<void>;
   continueSession(this: TuodSetupContext): void;
   abandonSession(this: TuodSetupContext): Promise<void>;
+  selectMode(this: TuodSetupContext, type: TuodDurationType): void;
   presetForMode(
     this: TuodSetupContext,
     type: TuodDurationType,
