@@ -18,6 +18,8 @@ const orderModeOpts = [
   { value: "HIGH_TO_LOW", label: "High → Low" },
   { value: "RANDOM", label: "Random" },
 ];
+
+const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Doubles training">
@@ -27,6 +29,7 @@ const orderModeOpts = [
     description={infoSection.description}
   />
   <SettingSectionShell>
+    <label class={labelClass}>Target order</label>
     <Toggle
       orientation="horizontal"
       options={orderModeOpts}

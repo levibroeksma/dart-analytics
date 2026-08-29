@@ -46,25 +46,25 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     rulesetVersionKey: "SHANGHAI_V1",
     href: "/games/shanghai/setup",
     title: "Shanghai",
-    caption: "Chase the highest total, or win instantly with a Shanghai.",
+    caption: "Single, double, treble, Shanghai!",
   },
   {
     rulesetVersionKey: "121_V1",
     href: "/games/121/setup",
     title: "121",
-    caption: "Climb the checkout ladder from 121 to 170.",
+    caption: "Climb the checkout ladder.",
   },
   {
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
     href: "/games/around-the-clock/setup",
     title: "Around the Clock",
-    caption: "Hit every number in order, then the bull, to finish.",
+    caption: "A pub classic, and great practice.",
   },
   {
     rulesetVersionKey: "TUOD_V1",
     href: "/games/tuod/setup",
     title: "Ten Up One Down",
-    caption: "Climb the checkout ladder — +10 on a finish, −1 on a miss.",
+    caption: "Climb the checkout ladder.",
   },
 ];
 

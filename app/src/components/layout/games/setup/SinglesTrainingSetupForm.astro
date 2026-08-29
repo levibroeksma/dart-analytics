@@ -24,6 +24,7 @@ const difficultyOpts = [
   { value: "HARD", label: "Hard" },
   { value: "EXTREME", label: "Extreme" },
 ];
+const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Singles training">
@@ -33,19 +34,25 @@ const difficultyOpts = [
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={orderModeOpts}
-      x-model="orderMode"
-      class="w-full"
-    />
-  </SettingSectionShell>
-  <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={difficultyOpts}
-      x-model="difficulty"
-      class="w-full"
-    />
+    <div class="flex flex-col gap-3">
+      <div>
+        <label class={labelClass}>Target order</label>
+        <Toggle
+          orientation="horizontal"
+          options={orderModeOpts}
+          x-model="orderMode"
+          class="w-full"
+        />
+      </div>
+      <div>
+        <label class={labelClass}>Difficulty</label>
+        <Toggle
+          orientation="horizontal"
+          options={difficultyOpts}
+          x-model="difficulty"
+          class="w-full"
+        />
+      </div>
+    </div>
   </SettingSectionShell>
 </SetupShell>

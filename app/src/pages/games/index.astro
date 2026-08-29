@@ -5,6 +5,7 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Badge from "@components/ui/Badge.astro";
 import GameCard from "@components/layout/games/GameCard.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import DartIcon from "@icons/dart.svg";
 ---
 
 <AppLayout title="Games">
@@ -68,13 +69,13 @@ import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
       aria-hidden="true"
     >
       {
-        [0, 1, 2].map(() => (
-          <div class="card-wrapper glass flex flex-row items-center justify-between gap-3 rounded-2xl p-5 animate-pulse">
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => (
+          <div class="card-wrapper glass flex flex-row items-center justify-between gap-3 rounded-2xl p-3.5 animate-pulse">
             <div class="flex flex-col gap-2">
               <div class="h-4 w-32 rounded bg-surface-raised" />
               <div class="h-3 w-48 rounded bg-surface-raised" />
             </div>
-            <div class="size-8 shrink-0 rounded-md bg-surface-raised" />
+            <DartIcon class="-rotate-45 size-8 text-accent" />
           </div>
         ))
       }
