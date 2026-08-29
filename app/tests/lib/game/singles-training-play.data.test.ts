@@ -17,7 +17,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
+import {
+  singlesTrainingEngineFactory,
+  singlesTrainingV2EngineFactory,
+} from "@modules/game/singles-training.engine.module";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
 import type {
   SinglesSnapshot,
@@ -157,6 +160,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(singlesTrainingEngineFactory);
+  registerEngineFactory(singlesTrainingV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -166,6 +170,20 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes the engine for a SINGLES_V2 session just as it does for SINGLES_V1", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "SINGLES_V2" },
+    ]);
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V2",
+      configSnapshot: { ...defaultConfig(), difficulty: "HARD" },
+    });
+    await play.init.call(play);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
+    expect(play.engine?.rulesetVersionKey).toBe("SINGLES_V2");
   });
 
   it("leaves hasActiveSession false when there is no server session for this game", async () => {
@@ -725,6 +743,113 @@ describe("completion — 1v1", () => {
   });
 });
 
+describe("completion — HARD/EXTREME elimination", () => {
+  it("solo: failing a visit under HARD finishes the session with status LOST", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: { ...defaultConfig(), difficulty: "HARD" },
+    });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot?.status).toBe("LOST");
+    expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+  });
+
+  it("1v1: the surviving seat's owner sees status WON when the opponent fails under HARD", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 6 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: {
+        ...defaultConfig(),
+        difficulty: "HARD",
+        seats: [
+          {
+            participantRef: "participant-1",
+            displayName: "Levi",
+            sideKey: "A",
+            participantTypeKey: "PLAYER" as const,
+          },
+          {
+            participantRef: "participant-2",
+            displayName: "Opponent",
+            sideKey: "B",
+            participantTypeKey: "GUEST" as const,
+          },
+        ],
+      },
+    });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE"); // owner (A) hits, survives
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "MISS"); // opponent (B) fails
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot?.status).toBe("WON");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+  });
+
+  it("1v1: the failing seat's own owner sees status LOST", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: {
+        ...defaultConfig(),
+        difficulty: "HARD",
+        seats: [
+          {
+            participantRef: "participant-1",
+            displayName: "Levi",
+            sideKey: "A",
+            participantTypeKey: "PLAYER" as const,
+          },
+          {
+            participantRef: "participant-2",
+            displayName: "Opponent",
+            sideKey: "B",
+            participantTypeKey: "GUEST" as const,
+          },
+        ],
+      },
+    });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "MISS"); // owner (A) fails first
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot?.status).toBe("LOST");
+  });
+});
+
 describe("back", () => {
   it("resets the store and navigates to /games", async () => {
     const locationSpy = { href: "" };
@@ -807,7 +932,11 @@ describe("playAgain", () => {
       config: {
         source: "template",
         templateRef: "tpl-1",
-        overrides: { order_mode: "LOW_TO_HIGH", target_order: ascending },
+        overrides: {
+          order_mode: "LOW_TO_HIGH",
+          target_order: ascending,
+          difficulty: "EASY",
+        },
       },
     });
     expect(play.$store.game.sessionId).toBe("new-session");
@@ -816,6 +945,38 @@ describe("playAgain", () => {
     expect(play.completionStatus).toBe("pending");
     expect(play.resultsSnapshot).toBeNull();
     expect(play.hasActiveSession).toBe(true);
+  });
+
+  it("preserves the session's own ruleset version (SINGLES_V2) rather than hardcoding SINGLES_V1", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V2",
+      turns: priorTurnsThroughNumber(20),
+      configSnapshot: { ...defaultConfig(), difficulty: "HARD" },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "SINGLES_V2",
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ difficulty: "HARD" }),
+        }),
+      }),
+    );
   });
 
   it("mints a fresh shuffle for a RANDOM order mode, not the just-finished session's order", async () => {

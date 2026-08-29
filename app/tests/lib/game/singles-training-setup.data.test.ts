@@ -188,13 +188,17 @@ describe("singlesTrainingSetup", () => {
       ];
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "SINGLES_TRAINING",
-        rulesetVersionKey: "SINGLES_V1",
+        rulesetVersionKey: "SINGLES_V2",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         config: {
           source: "template",
           templateRef: "tmpl-singles-standard",
-          overrides: { order_mode: "LOW_TO_HIGH", target_order: ascending },
+          overrides: {
+            order_mode: "LOW_TO_HIGH",
+            target_order: ascending,
+            difficulty: "EASY",
+          },
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
@@ -239,7 +243,39 @@ describe("singlesTrainingSetup", () => {
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({
-            overrides: { order_mode: "HIGH_TO_LOW", target_order: descending },
+            overrides: {
+              order_mode: "HIGH_TO_LOW",
+              target_order: descending,
+              difficulty: "EASY",
+            },
+          }),
+        }),
+      );
+    });
+
+    it("sends the selected difficulty override", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        difficulty: "HARD",
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            overrides: expect.objectContaining({ difficulty: "HARD" }),
           }),
         }),
       );
@@ -287,7 +323,7 @@ describe("singlesTrainingSetup", () => {
             ...STANDARD_PRESET,
             configuration: {
               ...STANDARD_PRESET.configuration,
-              difficulty: "SIDEWAYS",
+              points_single: "not-a-number",
             },
           },
         ],

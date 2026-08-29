@@ -90,6 +90,43 @@ export const SinglesConfig = z
     }
   });
 
+/**
+ * Singles Training V2 adds two mandatory-hit difficulties over V1: `HARD`
+ * (at least 1 of a visit's 3 darts must land on the current section) and
+ * `EXTREME` (at least 2), on top of the unchanged `EASY` (no bust
+ * condition). Failing the requirement ends the match immediately by
+ * elimination (Bob's 27 pattern) — see
+ * `modules/game/singles-training.engine.module.ts`. A new ruleset version
+ * rather than an edit to `SinglesConfig`: V1 is already live against real
+ * session data, exactly the same reasoning `ShanghaiV2Config`/
+ * `OneTwentyOneV2Config` document for their own difficulty/duration
+ * additions. Every other field is carried unchanged from V1 — the schema
+ * duplicates them rather than being expressed as a diff, since Zod object
+ * schemas do not compose that way and `target_order`'s own `superRefine`
+ * must be re-declared per `check-refinement-coverage.sh`'s "nearest
+ * preceding export" attribution rule.
+ */
+export const SinglesV2Config = z
+  .object({
+    order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
+    target_order: z.array(z.number().int()).length(21),
+    difficulty: z.enum(["EASY", "HARD", "EXTREME"]),
+    points_single: z.number().int().default(1),
+    points_double: z.number().int().default(2),
+    points_treble: z.number().int().default(3),
+  })
+  .strict()
+  .superRefine((val, ctx) => {
+    if (!isValidTargetOrder(val.target_order)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["target_order"],
+        message:
+          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
+      });
+    }
+  });
+
 export const DoublesTrainingConfig = z
   .object({
     mode: z.enum(["EASY"]),
@@ -255,6 +292,7 @@ export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
   | "SINGLES_V1"
+  | "SINGLES_V2"
   | "DOUBLES_TRAINING_V1"
   | "501_V1"
   | "TUOD_V1"
@@ -268,6 +306,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
   BOBS27_V1: Bobs27Config,
   SINGLES_V1: SinglesConfig,
+  SINGLES_V2: SinglesV2Config,
   DOUBLES_TRAINING_V1: DoublesTrainingConfig,
   "501_V1": FiveOhOneConfig,
   TUOD_V1: TuodConfig,
@@ -281,6 +320,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
 export type Bobs27ConfigData = z.infer<typeof Bobs27Config>;
 export type SinglesConfigData = z.infer<typeof SinglesConfig>;
+export type SinglesV2ConfigData = z.infer<typeof SinglesV2Config>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
@@ -306,6 +346,20 @@ export type SinglesSnapshot = {
   pointsSingle: SinglesConfigData["points_single"];
   pointsDouble: SinglesConfigData["points_double"];
   pointsTreble: SinglesConfigData["points_treble"];
+};
+
+/**
+ * Singles Training V2 carries the exact same fields as V1 — only
+ * `difficulty`'s own literal union widens (`SinglesV2ConfigData`, not
+ * `SinglesConfigData`).
+ */
+export type SinglesV2Snapshot = {
+  orderMode: SinglesV2ConfigData["order_mode"];
+  targetOrder: SinglesV2ConfigData["target_order"];
+  difficulty: SinglesV2ConfigData["difficulty"];
+  pointsSingle: SinglesV2ConfigData["points_single"];
+  pointsDouble: SinglesV2ConfigData["points_double"];
+  pointsTreble: SinglesV2ConfigData["points_treble"];
 };
 
 export type DoublesTrainingSnapshot = {
@@ -368,21 +422,23 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
       ? Bobs27Snapshot
       : K extends "SINGLES_V1"
         ? SinglesSnapshot
-        : K extends "DOUBLES_TRAINING_V1"
-          ? DoublesTrainingSnapshot
-          : K extends "501_V1"
-            ? FiveOhOneSnapshot
-            : K extends "TUOD_V1"
-              ? TuodSnapshot
-              : K extends "SHANGHAI_V1"
-                ? ShanghaiSnapshot
-                : K extends "SHANGHAI_V2"
-                  ? ShanghaiV2Snapshot
-                  : K extends "121_V1"
-                    ? OneTwentyOneSnapshot
-                    : K extends "121_V2"
-                      ? OneTwentyOneV2Snapshot
-                      : AroundTheClockSnapshot;
+        : K extends "SINGLES_V2"
+          ? SinglesV2Snapshot
+          : K extends "DOUBLES_TRAINING_V1"
+            ? DoublesTrainingSnapshot
+            : K extends "501_V1"
+              ? FiveOhOneSnapshot
+              : K extends "TUOD_V1"
+                ? TuodSnapshot
+                : K extends "SHANGHAI_V1"
+                  ? ShanghaiSnapshot
+                  : K extends "SHANGHAI_V2"
+                    ? ShanghaiV2Snapshot
+                    : K extends "121_V1"
+                      ? OneTwentyOneSnapshot
+                      : K extends "121_V2"
+                        ? OneTwentyOneV2Snapshot
+                        : AroundTheClockSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

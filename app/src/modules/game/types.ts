@@ -52,11 +52,12 @@ export type SinglesTrainingSeatState = SeatState & {
   targetIndex: number;
   totalPoints: number;
   dartsThisVisit: number;
-  status: "IN_PROGRESS" | "COMPLETE";
+  hitsThisVisit: number;
+  status: "IN_PROGRESS" | "COMPLETE" | "LOST";
 };
 
 export type SinglesTrainingState = MultiSeatState<SinglesTrainingSeatState> & {
-  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE" | "LOST";
   winningSideKey: string | null;
 };
 

@@ -19,6 +19,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SHANGHAI_V1",
       "SHANGHAI_V2",
       "SINGLES_V1",
+      "SINGLES_V2",
       "TUOD_V1",
     ]);
   });
@@ -66,6 +67,7 @@ describe("supportsMode", () => {
 
   it.each([
     "SINGLES_V1",
+    "SINGLES_V2",
     "BOBS27_V1",
     "DOUBLES_TRAINING_V1",
     "SHANGHAI_V1",
@@ -131,6 +133,7 @@ describe("capableRulesets", () => {
       "SHANGHAI_V1",
       "SHANGHAI_V2",
       "SINGLES_V1",
+      "SINGLES_V2",
       "TUOD_V1",
     ]);
   });

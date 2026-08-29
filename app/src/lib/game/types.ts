@@ -43,6 +43,7 @@ import type {
   FiveOhOneSnapshot,
   Bobs27Snapshot,
   SinglesSnapshot,
+  SinglesV2Snapshot,
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
@@ -546,6 +547,7 @@ export type Bobs27SetupContext = PresetSetupContext;
 
 export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
+  difficulty: "EASY" | "HARD" | "EXTREME";
 };
 
 /** One seat's own results stats, replayed from its own completed visits in
@@ -795,11 +797,11 @@ export type SinglesTrainingPlayContext = {
     trebles: number;
     hitPercentage: string;
     winningSideKey: string | null;
-    status: "COMPLETE" | "TIE";
+    status: "COMPLETE" | "TIE" | "WON" | "LOST";
   } | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
-  $store: PlayStoreContext<SinglesSnapshot>;
+  $store: PlayStoreContext<SinglesSnapshot | SinglesV2Snapshot>;
   engine: SinglesTrainingEngine | null;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];

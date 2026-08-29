@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { singlesTrainingValidator } from "@services/rulesets/singles-training/singles-training.validator";
+import {
+  singlesTrainingValidator,
+  singlesTrainingV2Validator,
+} from "@services/rulesets/singles-training/singles-training.validator";
 import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
@@ -67,6 +70,62 @@ describe("singlesTrainingValidator.validateConfig", () => {
   it("rejects an invalid config shape", () => {
     const result = singlesTrainingValidator.validateConfig({
       config: { ...validConfig, order_mode: "SIDEWAYS" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects HARD difficulty — V1 never widens in place", () => {
+    const result = singlesTrainingValidator.validateConfig({
+      config: { ...validConfig, difficulty: "HARD" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a difficulty value outside EASY", () => {
+    const result = singlesTrainingValidator.validateConfig({
+      config: { ...validConfig, difficulty: "PROFESSIONAL" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("singlesTrainingV2Validator.validateConfig", () => {
+  it("accepts RECREATIONAL + DETAILED_DARTS with a valid EASY config", () => {
+    const result = singlesTrainingV2Validator.validateConfig({
+      config: validConfig,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts HARD difficulty", () => {
+    const result = singlesTrainingV2Validator.validateConfig({
+      config: { ...validConfig, difficulty: "HARD" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts EXTREME difficulty", () => {
+    const result = singlesTrainingV2Validator.validateConfig({
+      config: { ...validConfig, difficulty: "EXTREME" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects a difficulty value outside EASY/HARD/EXTREME", () => {
+    const result = singlesTrainingV2Validator.validateConfig({
+      config: { ...validConfig, difficulty: "PROFESSIONAL" },
       captureModeKey: "RECREATIONAL",
       inputModeKey: "DETAILED_DARTS",
     });
