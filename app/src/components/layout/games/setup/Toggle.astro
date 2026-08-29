@@ -89,6 +89,8 @@ const listStyle =
 </div>
 {
   hint && (
-    <span class="text-xs text-muted-foreground px-4 py-0 italic">{hint}</span>
+    <div class="text-xs text-muted-foreground px-4 py-0 italic">
+      <span x-text={`${hint}`}></span>
+    </div>
   )
 }
