@@ -576,8 +576,11 @@ export function tuodPlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used — V1
-     * has nothing to override, unlike Score Training's `duration_value`.
+     * Replays with the session's own duration as an override — the same
+     * carry-over `score-training-play.data.ts`'s `playAgain()` does. Without
+     * it, a replayed custom-duration session would silently persist the
+     * template's default `duration_value` instead of the value actually
+     * played.
      */
     async playAgain(this: TuodPlayContext) {
       const config = this.$store.game.configSnapshot;
@@ -605,6 +608,7 @@ export function tuodPlay() {
             config: {
               source: "template",
               templateRef,
+              overrides: { duration_value: config.durationValue },
             },
             participants: participantsFromSeats(config.seats),
           });

@@ -652,7 +652,7 @@ describe("tuodPlay", () => {
       expect(play.$store.game.idempotencyKey).toBe(firstKey);
     });
 
-    it("ST4: playAgain reuses the original template, no overrides", async () => {
+    it("ST4: playAgain reuses the original template with the session's own duration as an override", async () => {
       const play = makePlay({
         idempotencyKey: "old-key",
         timerRemainingMs: 1000,
@@ -692,6 +692,7 @@ describe("tuodPlay", () => {
         config: {
           source: "template",
           templateRef: "tpl-1",
+          overrides: { duration_value: 20 },
         },
       });
       expect(play.$store.game.sessionId).toBe("new-session");
@@ -705,6 +706,60 @@ describe("tuodPlay", () => {
       expect(play.completionStatus).toBe("pending");
       expect(play.resultsSnapshot).toBeNull();
       expect(play.hasActiveSession).toBe(true);
+    });
+
+    it("replays with the session's own round count, not the template default", async () => {
+      const play = makePlay({ configSnapshot: rounds(25) });
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: {
+            source: "template",
+            templateRef: "tpl-1",
+            overrides: { duration_value: 25 },
+          },
+        }),
+      );
+    });
+
+    it("replays with the session's own minute count, not the template default", async () => {
+      const play = makePlay({ configSnapshot: minutes(12) });
+
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: {
+            source: "template",
+            templateRef: "tpl-1",
+            overrides: { duration_value: 12 },
+          },
+        }),
+      );
     });
 
     it("playAgain failure sets playAgainError only, leaves completionStatus untouched", async () => {
