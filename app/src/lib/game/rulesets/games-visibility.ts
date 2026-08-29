@@ -46,13 +46,13 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     rulesetVersionKey: "SHANGHAI_V1",
     href: "/games/shanghai/setup",
     title: "Shanghai",
-    caption: "Chase the high score, or end it with a Shanghai.",
+    caption: "Single, double, treble, Shanghai!",
   },
   {
     rulesetVersionKey: "121_V1",
     href: "/games/121/setup",
     title: "121",
-    caption: "Climb the checkout ladder from 121 to 170.",
+    caption: "Climb the checkout ladder.",
   },
   {
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
