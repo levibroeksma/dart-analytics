@@ -27,7 +27,7 @@ const infoSection = {
   />
   <SettingSectionShell>
     <template x-if="guests.length === 0">
-      <Fragment>
+      <div class="contents">
         <Toggle
           orientation="horizontal"
           options={formatOpts}
@@ -35,7 +35,7 @@ const infoSection = {
           class="w-full"
         />
         <template x-if="durationType !== 'TARGET'">
-          <Fragment>
+          <div class="contents">
             <Input
               id="durationValue"
               name="durationValue"
@@ -59,9 +59,9 @@ const infoSection = {
               x-cloak
             >
             </p>
-          </Fragment>
+          </div>
         </template>
-      </Fragment>
+      </div>
     </template>
     <template x-if="guests.length > 0">
       <p class="text-sm text-muted-foreground px-4 py-0">
