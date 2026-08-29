@@ -8,11 +8,17 @@ import StatRow from "@components/layout/games/StatRow.astro";
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
     x-text="
-      resultsSnapshot?.status === 'TIE'
-        ? 'Tie — same points!'
-        : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-          ? 'Session complete'
-          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — highest points!')
+      resultsSnapshot?.status === 'LOST'
+        ? (($store.game.seats?.length ?? 1) < 2
+            ? 'Game over — missed the target'
+            : 'Game over — you missed the target')
+        : resultsSnapshot?.status === 'WON'
+          ? ($store.game.seats.find((s) => s.sideKey !== resultsSnapshot.winningSideKey)?.displayName + ' missed the target — you win!')
+          : resultsSnapshot?.status === 'TIE'
+            ? 'Tie — same points!'
+            : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
+              ? 'Session complete'
+              : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — highest points!')
     "
   >
   </h2>

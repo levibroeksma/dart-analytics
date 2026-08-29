@@ -25,6 +25,7 @@ import type {
   DartFact,
   DartObservation,
   DartZoneKey,
+  SinglesTrainingSeatState,
   SinglesTrainingState,
   TurnFact,
 } from "@modules/types";
@@ -155,6 +156,22 @@ function previewSegmentsFor(
   });
 }
 
+/**
+ * The owning player's own outcome label for the results screen. `LOST`
+ * covers both a solo HARD/EXTREME failure and the failing seat's own owner
+ * in 1v1; `WON` is the surviving seat's owner when elimination (not
+ * score-compare) decided the match. Both are new terminal outcomes
+ * alongside the existing score-compare-only `COMPLETE`/`TIE`.
+ */
+function resultStatusFor(
+  finalState: SinglesTrainingState,
+  ownerSeat: SinglesTrainingSeatState,
+): "COMPLETE" | "TIE" | "WON" | "LOST" {
+  if (ownerSeat.status === "LOST") return "LOST";
+  if (finalState.seats.some((seat) => seat.status === "LOST")) return "WON";
+  return finalState.status === "TIE" ? "TIE" : "COMPLETE";
+}
+
 function resumeEngine(
   game: SinglesTrainingPlayContext["$store"]["game"],
 ): SinglesTrainingEngine | null {
@@ -192,7 +209,7 @@ export function singlesTrainingPlay() {
       trebles: number;
       hitPercentage: string;
       winningSideKey: string | null;
-      status: "COMPLETE" | "TIE";
+      status: "COMPLETE" | "TIE" | "WON" | "LOST";
     } | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
@@ -393,7 +410,7 @@ export function singlesTrainingPlay() {
           trebles,
           hitPercentage: accuracyDisplay(hits, darts),
           winningSideKey: finalState.winningSideKey,
-          status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+          status: resultStatusFor(finalState, ownerSeat),
         };
       });
     },
@@ -419,6 +436,7 @@ export function singlesTrainingPlay() {
             wire: {
               order_mode: priorConfig.orderMode,
               target_order: targetOrder,
+              difficulty: priorConfig.difficulty,
             },
           };
         },
