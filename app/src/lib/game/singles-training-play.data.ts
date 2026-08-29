@@ -68,30 +68,57 @@ const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
   "OUTER_SINGLE",
 ]);
 
-const MISS_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set(["MISS"]);
-const SINGLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
-  "SINGLE",
-  "INNER_SINGLE",
-  "OUTER_SINGLE",
-  "OUTER_BULL",
-]);
-const DOUBLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
-  "DOUBLE",
-  "INNER_BULL",
-]);
-const TREBLE_COUNT_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set(["TREBLE"]);
+type TargetHitCategory = "SINGLE" | "DOUBLE" | "TREBLE";
 
-function countZoneKey(
-  turns: readonly TurnFact[],
-  zoneKeys: ReadonlySet<DartZoneKey>,
-): number {
-  let count = 0;
-  for (const turn of turns) {
-    for (const dart of turn.darts) {
-      if (zoneKeys.has(dart.hitZoneKey)) count += 1;
-    }
+/**
+ * Which ring `dart` hit on `target`, or `null` when it landed on a different
+ * number, a bounce-out/outer-ring zone, or missed the board entirely — the
+ * same "on target" rule `trainingPointsFor` scores by, but independent of
+ * configured point values so a 0-point ring still counts as a hit.
+ */
+function targetHitCategory(
+  target: BoardTarget,
+  dart: DartFact,
+): TargetHitCategory | null {
+  if (target.kind === "BULL") {
+    if (dart.hitTargetNumber !== BULL_TARGET_NUMBER) return null;
+    if (dart.hitZoneKey === "OUTER_BULL") return "SINGLE";
+    if (dart.hitZoneKey === "INNER_BULL") return "DOUBLE";
+    return null;
   }
-  return count;
+  if (dart.hitTargetNumber !== target.number) return null;
+  if (SINGLE_ZONE_KEYS.has(dart.hitZoneKey)) return "SINGLE";
+  if (dart.hitZoneKey === "DOUBLE") return "DOUBLE";
+  if (dart.hitZoneKey === "TREBLE") return "TREBLE";
+  return null;
+}
+
+/**
+ * Per-ring on-target hit counts across `turns`, plus `misses` for every dart
+ * that did not hit its own turn's target — a bounce-out, an outer-ring hit,
+ * or a different number all count as a miss here, never toward a ring they
+ * didn't actually complete. Assumes each turn maps 1:1 to the target at its
+ * own array index (see `previewSegmentsFor`).
+ */
+function targetHitCounts(
+  turns: readonly TurnFact[],
+  config: SinglesConfigSnapshot,
+): { singles: number; doubles: number; trebles: number; misses: number } {
+  let singles = 0;
+  let doubles = 0;
+  let trebles = 0;
+  let misses = 0;
+  turns.forEach((turn, index) => {
+    const target = targetAt(numbersPath(config.targetOrder), index);
+    for (const dart of turn.darts) {
+      const category = targetHitCategory(target, dart);
+      if (category === "SINGLE") singles += 1;
+      else if (category === "DOUBLE") doubles += 1;
+      else if (category === "TREBLE") trebles += 1;
+      else misses += 1;
+    }
+  });
+  return { singles, doubles, trebles, misses };
 }
 
 function trainingPointsFor(
@@ -227,7 +254,7 @@ export function singlesTrainingPlay() {
       singles: number;
       doubles: number;
       trebles: number;
-      hitPercentage: string;
+      accuracy: string;
       winningSideKey: string | null;
       status: "COMPLETE" | "TIE" | "WON" | "LOST";
     } | null,
@@ -301,57 +328,67 @@ export function singlesTrainingPlay() {
     },
 
     missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
       return String(
-        countZoneKey(
+        targetHitCounts(
           this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          MISS_COUNT_ZONE_KEYS,
-        ),
+          config,
+        ).misses,
       );
     },
     missCount(this: SinglesTrainingPlayContext): string {
-      return String(countZoneKey(this.$store.game.turns, MISS_COUNT_ZONE_KEYS));
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
+      return String(targetHitCounts(this.$store.game.turns, config).misses);
     },
 
     singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
       return String(
-        countZoneKey(
+        targetHitCounts(
           this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          SINGLE_COUNT_ZONE_KEYS,
-        ),
+          config,
+        ).singles,
       );
     },
     singleCount(this: SinglesTrainingPlayContext): string {
-      return String(
-        countZoneKey(this.$store.game.turns, SINGLE_COUNT_ZONE_KEYS),
-      );
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
+      return String(targetHitCounts(this.$store.game.turns, config).singles);
     },
 
     doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
       return String(
-        countZoneKey(
+        targetHitCounts(
           this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          DOUBLE_COUNT_ZONE_KEYS,
-        ),
+          config,
+        ).doubles,
       );
     },
     doubleCount(this: SinglesTrainingPlayContext): string {
-      return String(
-        countZoneKey(this.$store.game.turns, DOUBLE_COUNT_ZONE_KEYS),
-      );
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
+      return String(targetHitCounts(this.$store.game.turns, config).doubles);
     },
 
     trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
       return String(
-        countZoneKey(
+        targetHitCounts(
           this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          TREBLE_COUNT_ZONE_KEYS,
-        ),
+          config,
+        ).trebles,
       );
     },
     trebleCount(this: SinglesTrainingPlayContext): string {
-      return String(
-        countZoneKey(this.$store.game.turns, TREBLE_COUNT_ZONE_KEYS),
-      );
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "0";
+      return String(targetHitCounts(this.$store.game.turns, config).trebles);
     },
 
     init(this: SinglesTrainingPlayContext) {
@@ -416,10 +453,10 @@ export function singlesTrainingPlay() {
         const turns = this.$store.game.turns.filter(
           (t) => t.participantRef === ownerSeat.participantRef,
         );
-        const misses = countZoneKey(turns, MISS_COUNT_ZONE_KEYS);
-        const singles = countZoneKey(turns, SINGLE_COUNT_ZONE_KEYS);
-        const doubles = countZoneKey(turns, DOUBLE_COUNT_ZONE_KEYS);
-        const trebles = countZoneKey(turns, TREBLE_COUNT_ZONE_KEYS);
+        const config = this.$store.game.configSnapshot;
+        const { singles, doubles, trebles, misses } = config
+          ? targetHitCounts(turns, config)
+          : { singles: 0, doubles: 0, trebles: 0, misses: 0 };
         const hits = singles + doubles + trebles;
         const darts = hits + misses;
         return {
@@ -428,7 +465,7 @@ export function singlesTrainingPlay() {
           singles,
           doubles,
           trebles,
-          hitPercentage: accuracyDisplay(hits, darts),
+          accuracy: accuracyDisplay(hits, darts),
           winningSideKey: finalState.winningSideKey,
           status: resultStatusFor(finalState, ownerSeat),
         };
