@@ -30,21 +30,23 @@ Checkout ladder under pressure: start at **41**, try to finish in **one visit (3
 
 - **Attempt:** from the current target, reach **exactly 0** on a **double** within **three darts**.
 - **Session (V1):** keep climbing (+10) on success and slipping (−1) on failure until the player stops or hits a later end condition.
-- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 --> The round count is player-configurable (1–100) rather than fixed at the 10-round preset. <!-- 2026-08-26 -->
+- **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 --> The round count is player-configurable (1–100) rather than fixed at the 10-round preset. <!-- 2026-08-26 --> Solo play is configurable the same way: either mode's `duration_value` is player-typed (ROUNDS 1–100, MINUTES 3–30), not a locked preset pick. <!-- 2026-08-29 -->
 
 ## Config & presets (V1)
 
-Before play, a **config screen** shows the session presets.
+Before play, a **config screen** shows the session config. Setup radios select the **mode** (Rounds / Time), not preset names.
 
-| Setting           | V1 preset          | On config screen (V1) |
-| ----------------- | ------------------ | --------------------- |
-| Players           | Single player      | Shown, locked         |
-| Start target      | 41                 | Shown, locked         |
-| Darts per attempt | 3 (one visit)      | Shown, locked         |
-| Out               | Double out         | Shown, locked         |
-| On success        | +10 to next target | Shown, locked         |
-| On failure        | −1 to next target  | Shown, locked         |
-| Session length    | 10 rounds *or* 10 minutes | Preset choice  |
+| Setting           | V1 default          | On config screen (V1) |
+| ----------------- | -------------------- | ---------------------- |
+| Players           | Single player        | Shown, locked          |
+| Start target      | 41                    | Shown, locked           |
+| Darts per attempt | 3 (one visit)         | Shown, locked           |
+| Out               | Double out            | Shown, locked           |
+| On success        | +10 to next target    | Shown, locked           |
+| On failure        | −1 to next target     | Shown, locked           |
+| Mode              | Rounds or Time        | Toggle                  |
+| Rounds (N)        | Default **10** (min **1**, max **100**) | Editable when Rounds |
+| Minutes           | Default **10** (min **3**, max **30**)  | Editable when Time   |
 
 ## How to play (V1)
 
