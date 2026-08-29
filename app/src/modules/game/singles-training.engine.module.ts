@@ -1,4 +1,10 @@
-import type { SinglesSnapshot, Seated, SeatFact } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+  SinglesSnapshot,
+  SinglesV2Snapshot,
+} from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
   numbersPath,
@@ -32,6 +38,8 @@ import type {
 
 const STAGE = exerciseBlockStage();
 
+type SinglesEngineConfig = Seated<SinglesSnapshot> | Seated<SinglesV2Snapshot>;
+
 function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
   return {
     participantRef: seat.participantRef,
@@ -46,7 +54,7 @@ function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
 
 /** Singles Training starting state: every configured seat aimed at NUMBER 1, no darts thrown. */
 export function initialSinglesTrainingState(
-  config: Seated<SinglesSnapshot>,
+  config: SinglesEngineConfig,
 ): SinglesTrainingState {
   return {
     activeParticipantRef: config.seats[0].participantRef,
@@ -68,7 +76,9 @@ const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
   "OUTER_SINGLE",
 ]);
 
-function requiredHitsFor(difficulty: SinglesSnapshot["difficulty"]): number {
+function requiredHitsFor(
+  difficulty: SinglesEngineConfig["difficulty"],
+): number {
   if (difficulty === "HARD") return 1;
   if (difficulty === "EXTREME") return 2;
   return 0;
@@ -101,7 +111,7 @@ function isHitOnTarget(
 
 function trainingPointsFor(
   target: BoardTarget,
-  config: SinglesSnapshot,
+  config: SinglesEngineConfig,
   observation: DartObservation,
 ): number {
   if (target.kind === "BULL") {
@@ -123,7 +133,7 @@ function trainingPointsFor(
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applySinglesTrainingDart(
-  config: SinglesSnapshot,
+  config: SinglesEngineConfig,
   state: SinglesTrainingSeatState,
   observation: DartObservation,
 ): SinglesTrainingSeatState {
@@ -180,7 +190,7 @@ export function applySinglesTrainingDart(
  */
 function foldSinglesTrainingState(
   facts: EngineFacts,
-  config: Seated<SinglesSnapshot>,
+  config: SinglesEngineConfig,
 ): SinglesTrainingState {
   const seats = foldSeatStates(
     facts.turns,
@@ -228,22 +238,28 @@ function foldSinglesTrainingState(
 
 /**
  * Singles Training: a fixed path of 21 targets (1..20, then BULL), each
- * visit scored by ring quality relative to its own target, per seat.
- * Score-compare: both seats always play the fixed number of visits, then
- * whichever totalled the higher training-point score wins.
+ * visit scored by ring quality relative to its own target, per seat. Under
+ * EASY (V1 and V2), score-compare decides the match: both seats always play
+ * the fixed number of visits, then whichever totalled the higher
+ * training-point score wins. Under V2's HARD/EXTREME, a seat can instead
+ * fail its mandatory-hit requirement and end the match immediately by
+ * elimination. Both ruleset versions are served by this one class (Pattern
+ * 18), exactly like `ShanghaiEngine`'s V1/V2 split.
  */
 export class SinglesTrainingEngine implements GameEngine<
   DartObservation,
   SinglesTrainingState
 > {
-  readonly rulesetVersionKey = "SINGLES_V1";
+  readonly rulesetVersionKey: RulesetVersionKey;
   readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: Seated<SinglesSnapshot>,
+    private readonly config: SinglesEngineConfig,
     prior?: EngineFacts,
+    rulesetVersionKey: RulesetVersionKey = "SINGLES_V1",
   ) {
+    this.rulesetVersionKey = rulesetVersionKey;
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
@@ -385,3 +401,17 @@ export const singlesTrainingEngineFactory: GameEngineFactory<
 };
 
 registerEngineFactory(singlesTrainingEngineFactory);
+
+export const singlesTrainingV2EngineFactory: GameEngineFactory<
+  Seated<SinglesV2Snapshot>,
+  DartObservation,
+  SinglesTrainingState
+> = {
+  rulesetVersionKey: "SINGLES_V2",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<SinglesV2Snapshot>, prior?: EngineFacts) {
+    return new SinglesTrainingEngine(config, prior, "SINGLES_V2");
+  },
+};
+
+registerEngineFactory(singlesTrainingV2EngineFactory);

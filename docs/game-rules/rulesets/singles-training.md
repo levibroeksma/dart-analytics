@@ -15,8 +15,8 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Order: randomized (each target once)          | v1      |
 | Points: S=1, D=2, T=3 per dart on target      | v1      |
 | Easy: score whatever you hit (misses allowed) | v1      |
-| Hard: at least 1 dart must hit the target     | v1      |
-| Extreme: at least 2 darts must hit            | v1      |
+| Hard: at least 1 dart must hit the target     | V2      |
+| Extreme: at least 2 darts must hit            | V2      |
 | Professional: all 3 darts must hit            | TBD     |
 | Visit = 3 darts per target                    | v1      |
 | Track score / hit quality                     | v1      |
@@ -34,13 +34,13 @@ Section training: one target at a time, three darts each, scoring by ring qualit
 
 ## Config & presets (V1)
 
-Before play, a **config screen** shows the session presets. In V1 most values are visible but locked; order may be the editable knob later.
+Before play, a **config screen** shows the session presets. In V1 most values are visible but locked; order is the one editable knob.
 
 | Setting    | V1 preset                                                       | On config screen (V1) |
 | ---------- | --------------------------------------------------------------- | --------------------- |
 | Players    | Single player                                                   | Shown, locked         |
 | Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
-| Difficulty | Easy (default), Hard, or Extreme — player's choice; see Bust below | Editable |
+| Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 
 ## How to play (V1)
@@ -69,9 +69,19 @@ Session ends when every target in the order has been visited once.
 
 ### Bust
 
-Hard/Extreme only: at a visit's 3rd dart, if fewer than the required number of darts landed on the current section (Hard: 1, Extreme: 2), the run ends immediately. Solo: the session ends as a loss. 1v1: the match ends immediately and the other player wins, regardless of either player's own progress or points. Easy has no bust condition.
+N/A.
 
 ## Later versions (V2+)
+
+### Hard / Extreme difficulty (V2 — implemented)
+
+A difficulty toggle, **Easy** (default), **Hard**, or **Extreme**, editable on the config screen alongside order:
+
+- **Easy:** identical to V1 — score whatever ring is hit; misses just score 0 for that dart. No bust condition.
+- **Hard:** a visit must land at least 1 of its 3 darts on the current section (single, double, or treble on a NUMBER target; outer or inner on BULL) — independent of the ring's point value. Failing at the visit's 3rd dart ends the run immediately: solo, the session ends as a loss; 1v1, the match ends immediately and the other player wins, regardless of either player's own progress or points (Bob's 27-style elimination).
+- **Extreme:** same rule, but at least 2 of the visit's 3 darts must land on the current section.
+
+Available under both Recreational and Analytical capture modes, same as V1.
 
 ### Variants
 

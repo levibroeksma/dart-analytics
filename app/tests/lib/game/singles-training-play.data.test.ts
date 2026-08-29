@@ -17,7 +17,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
+import {
+  singlesTrainingEngineFactory,
+  singlesTrainingV2EngineFactory,
+} from "@modules/game/singles-training.engine.module";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
 import type {
   SinglesSnapshot,
@@ -157,6 +160,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(singlesTrainingEngineFactory);
+  registerEngineFactory(singlesTrainingV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -166,6 +170,20 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes the engine for a SINGLES_V2 session just as it does for SINGLES_V1", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "SINGLES_V2" },
+    ]);
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V2",
+      configSnapshot: { ...defaultConfig(), difficulty: "HARD" },
+    });
+    await play.init.call(play);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
+    expect(play.engine?.rulesetVersionKey).toBe("SINGLES_V2");
   });
 
   it("leaves hasActiveSession false when there is no server session for this game", async () => {
@@ -927,6 +945,38 @@ describe("playAgain", () => {
     expect(play.completionStatus).toBe("pending");
     expect(play.resultsSnapshot).toBeNull();
     expect(play.hasActiveSession).toBe(true);
+  });
+
+  it("preserves the session's own ruleset version (SINGLES_V2) rather than hardcoding SINGLES_V1", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V2",
+      turns: priorTurnsThroughNumber(20),
+      configSnapshot: { ...defaultConfig(), difficulty: "HARD" },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "SINGLES_V2",
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ difficulty: "HARD" }),
+        }),
+      }),
+    );
   });
 
   it("mints a fresh shuffle for a RANDOM order mode, not the just-finished session's order", async () => {

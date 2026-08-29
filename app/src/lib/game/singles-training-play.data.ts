@@ -19,7 +19,11 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
-import type { RulesetVersionKey, SinglesSnapshot } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  SinglesSnapshot,
+  SinglesV2Snapshot,
+} from "@lib/types";
 import type {
   BoardTarget,
   DartFact,
@@ -42,7 +46,12 @@ import type {
 import { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 
 const GAME_TYPE_KEY = "SINGLES_TRAINING";
-const RULESET_VERSION_KEY: RulesetVersionKey = "SINGLES_V1";
+const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
+  "SINGLES_V1",
+  "SINGLES_V2",
+]);
+
+type SinglesConfigSnapshot = SinglesSnapshot | SinglesV2Snapshot;
 
 const EMPTY_SEGMENTS: readonly SinglesPreviewSegment[] = [
   { status: "empty" },
@@ -87,7 +96,7 @@ function countZoneKey(
 
 function trainingPointsFor(
   target: BoardTarget,
-  config: SinglesSnapshot,
+  config: SinglesConfigSnapshot,
   dart: DartFact,
 ): number {
   if (target.kind === "BULL") {
@@ -146,7 +155,7 @@ function tapObservation(
  */
 function previewSegmentsFor(
   turns: readonly TurnFact[],
-  config: SinglesSnapshot | null,
+  config: SinglesConfigSnapshot | null,
   hiddenTurnKey: string | null,
 ): SinglesPreviewSegment[] {
   if (!config) return [...EMPTY_SEGMENTS];
@@ -172,12 +181,23 @@ function resultStatusFor(
   return finalState.status === "TIE" ? "TIE" : "COMPLETE";
 }
 
+/**
+ * Rebuilds the engine for the persisted session, replaying the store's fact
+ * log so a reload restores the game exactly. Accepts either ruleset version
+ * — both build the same `SinglesTrainingEngine` class (Pattern 18) — since
+ * `/games/singles-training/play` is shared between them.
+ */
 function resumeEngine(
   game: SinglesTrainingPlayContext["$store"]["game"],
 ): SinglesTrainingEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+  )
+    return null;
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -424,10 +444,16 @@ export function singlesTrainingPlay() {
     },
 
     playAgain(this: SinglesTrainingPlayContext) {
+      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+      if (
+        !rulesetVersionKey ||
+        !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+      )
+        return;
       return runPlayAgain(
         this,
         GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
+        rulesetVersionKey,
         (engine) => (engine instanceof SinglesTrainingEngine ? engine : null),
         (priorConfig) => {
           const targetOrder = targetOrderFor(priorConfig.orderMode);

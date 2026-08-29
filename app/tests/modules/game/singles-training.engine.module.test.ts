@@ -4,6 +4,7 @@ import {
   initialSinglesTrainingState,
   SinglesTrainingEngine,
   singlesTrainingEngineFactory,
+  singlesTrainingV2EngineFactory,
 } from "@modules/game/singles-training.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -13,7 +14,7 @@ import type {
   EngineFacts,
   SinglesTrainingSeatState,
 } from "@modules/types";
-import type { SinglesSnapshot, Seated } from "@lib/types";
+import type { SinglesSnapshot, SinglesV2Snapshot, Seated } from "@lib/types";
 
 const SEATS = [
   {
@@ -96,6 +97,22 @@ describe("singlesTrainingEngineFactory", () => {
     const engine = singlesTrainingEngineFactory.create(config);
     expect(engine).toBeInstanceOf(SinglesTrainingEngine);
     expect(engine.rulesetVersionKey).toBe("SINGLES_V1");
+  });
+
+  it("registers singlesTrainingV2EngineFactory under SINGLES_V2", () => {
+    expect(singlesTrainingV2EngineFactory.rulesetVersionKey).toBe("SINGLES_V2");
+    expect(getEngineFactory("SINGLES_V2")).toBe(singlesTrainingV2EngineFactory);
+  });
+
+  it("builds a SinglesTrainingEngine bound to SINGLES_V2, with EASY behaving exactly like V1", () => {
+    const v2Config: Seated<SinglesV2Snapshot> = {
+      ...config,
+      difficulty: "EASY",
+    };
+    const engine = singlesTrainingV2EngineFactory.create(v2Config);
+    expect(engine).toBeInstanceOf(SinglesTrainingEngine);
+    expect(engine.rulesetVersionKey).toBe("SINGLES_V2");
+    expect(engine.state()).toEqual(initialSinglesTrainingState(v2Config));
   });
 });
 
@@ -1249,8 +1266,11 @@ describe("SinglesTrainingEngine — exerciseBlockStage wiring (F40)", () => {
 });
 
 describe("applySinglesTrainingDart — HARD/EXTREME mandatory-hit failure", () => {
-  const hardConfig: Seated<SinglesSnapshot> = { ...config, difficulty: "HARD" };
-  const extremeConfig: Seated<SinglesSnapshot> = {
+  const hardConfig: Seated<SinglesV2Snapshot> = {
+    ...config,
+    difficulty: "HARD",
+  };
+  const extremeConfig: Seated<SinglesV2Snapshot> = {
     ...config,
     difficulty: "EXTREME",
   };
@@ -1359,7 +1379,10 @@ describe("applySinglesTrainingDart — HARD/EXTREME mandatory-hit failure", () =
 });
 
 describe("SinglesTrainingEngine — HARD/EXTREME solo elimination", () => {
-  const hardConfig: Seated<SinglesSnapshot> = { ...config, difficulty: "HARD" };
+  const hardConfig: Seated<SinglesV2Snapshot> = {
+    ...config,
+    difficulty: "HARD",
+  };
 
   function missDart(number: number): DartObservation {
     return {
@@ -1436,7 +1459,7 @@ describe("SinglesTrainingEngine — HARD/EXTREME 1v1 elimination", () => {
       participantTypeKey: "GUEST" as const,
     },
   ];
-  const hardTwoSeatConfig: Seated<SinglesSnapshot> = {
+  const hardTwoSeatConfig: Seated<SinglesV2Snapshot> = {
     orderMode: "LOW_TO_HIGH",
     targetOrder: Array.from({ length: 20 }, (_, i) => i + 1).concat(25),
     difficulty: "HARD",

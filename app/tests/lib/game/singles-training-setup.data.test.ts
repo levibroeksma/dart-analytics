@@ -188,7 +188,7 @@ describe("singlesTrainingSetup", () => {
       ];
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "SINGLES_TRAINING",
-        rulesetVersionKey: "SINGLES_V1",
+        rulesetVersionKey: "SINGLES_V2",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         config: {

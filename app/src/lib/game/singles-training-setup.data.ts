@@ -8,7 +8,7 @@ export function singlesTrainingSetup() {
     difficulty: "EASY" as SinglesTrainingSetupContext["difficulty"],
     ...createPresetSetupController<SinglesTrainingSetupContext>({
       gameTypeKey: "SINGLES_TRAINING",
-      rulesetVersionKey: "SINGLES_V1",
+      rulesetVersionKey: "SINGLES_V2",
       playHref: "/games/singles-training/play",
       label: "Singles Training",
       configOverrides: (ctx) => ({

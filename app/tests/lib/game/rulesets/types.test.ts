@@ -7,6 +7,7 @@ import {
   ScoreTrainingConfig,
   ShanghaiV2Config,
   SinglesConfig,
+  SinglesV2Config,
   TuodConfig,
 } from "@lib/types";
 
@@ -413,21 +414,50 @@ describe("SinglesConfig difficulty", () => {
     ).toBe(true);
   });
 
-  it("accepts HARD", () => {
+  it("rejects HARD — a V1 config is never widened in place", () => {
     expect(
       SinglesConfig.safeParse({ ...validRest, difficulty: "HARD" }).success,
-    ).toBe(true);
-  });
-
-  it("accepts EXTREME", () => {
-    expect(
-      SinglesConfig.safeParse({ ...validRest, difficulty: "EXTREME" }).success,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("rejects an unrecognized difficulty value", () => {
     expect(
       SinglesConfig.safeParse({ ...validRest, difficulty: "PROFESSIONAL" })
+        .success,
+    ).toBe(false);
+  });
+});
+
+describe("SinglesV2Config difficulty", () => {
+  const validRest = {
+    order_mode: "LOW_TO_HIGH",
+    target_order: [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ],
+  };
+
+  it("accepts EASY", () => {
+    expect(
+      SinglesV2Config.safeParse({ ...validRest, difficulty: "EASY" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts HARD", () => {
+    expect(
+      SinglesV2Config.safeParse({ ...validRest, difficulty: "HARD" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts EXTREME", () => {
+    expect(
+      SinglesV2Config.safeParse({ ...validRest, difficulty: "EXTREME" })
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects an unrecognized difficulty value", () => {
+    expect(
+      SinglesV2Config.safeParse({ ...validRest, difficulty: "PROFESSIONAL" })
         .success,
     ).toBe(false);
   });

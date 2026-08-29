@@ -34,6 +34,10 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("SHANGHAI_V2")).toBeDefined();
   });
 
+  it("returns the Singles Training V2 validator for SINGLES_V2", () => {
+    expect(getRulesetValidator("SINGLES_V2")).toBeDefined();
+  });
+
   it("returns undefined for an unknown ruleset key", () => {
     expect(getRulesetValidator("NOT_A_RULESET")).toBeUndefined();
   });
