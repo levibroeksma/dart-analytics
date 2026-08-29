@@ -131,6 +131,10 @@ export const FiveOhOneConfig = z
  * Ten Up One Down: a checkout ladder that climbs by `finish_bonus` on a
  * successful attempt and falls by `miss_penalty` on a failed one, played for a
  * `duration_type`/`duration_value` session exactly as Score Training is.
+ * `duration_value` is bounded conditionally by `duration_type` — ROUNDS 1..100,
+ * MINUTES 3..30 — identical to `ScoreTrainingConfig`'s own bound, which is why
+ * it lives in a whole-object `superRefine` rather than `.min()`/`.max()` on the
+ * field alone.
  *
  * `starting_target` shares `FiveOhOneConfig.starting_score`'s floor of 2, the
  * minimum a double-out attempt can ever finish from (D1 = 2). `finish_bonus`
@@ -152,7 +156,17 @@ export const TuodConfig = z
     duration_value: z.number().int().min(1),
     max_darts_per_turn: z.number().int().min(1).max(3),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    const [min, max] = val.duration_type === "ROUNDS" ? [1, 100] : [3, 30];
+    if (val.duration_value < min || val.duration_value > max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration_value"],
+        message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
+      });
+    }
+  });
 
 /**
  * Shanghai v1 locks every rule (round range, scoring, Shanghai instant-win)

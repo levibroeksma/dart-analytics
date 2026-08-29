@@ -161,6 +161,73 @@ describe("TuodConfig bounds", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rejects duration_value: 0 for ROUNDS, one below the floor", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_value: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts duration_value: 100 for ROUNDS, the ceiling", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_value: 100,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duration_value: 101 for ROUNDS, one past the ceiling", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_value: 101,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration_value: 2 for MINUTES, one below the floor", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_type: "MINUTES",
+      duration_value: 2,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts duration_value: 3 for MINUTES, the floor", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_type: "MINUTES",
+      duration_value: 3,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts duration_value: 30 for MINUTES, the ceiling", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_type: "MINUTES",
+      duration_value: 30,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duration_value: 31 for MINUTES, one past the ceiling", () => {
+    const result = TuodConfig.safeParse({
+      ...validRest,
+      starting_target: 41,
+      duration_type: "MINUTES",
+      duration_value: 31,
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("RULESET_CONFIGS strictness", () => {
