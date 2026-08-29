@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-08-28
-highest-issued: F42
+updated: 2026-08-29
+highest-issued: F43
 -->
 
 # Findings
@@ -178,3 +178,10 @@ Claim: before this task's Tasks 1-7, the bust/checkout rule was hand-duplicated 
 Evidence: this task's own design spec, `docs/superpowers/specs/2026-08-27-engine-duplication-cleanup-design.md` (Purpose section, "Explicitly deferred" list, last item); F27's own findings on `fallow`'s threshold sitting at an unconfirmed empirical value rather than a fixed number is a related but distinct question (F27 is about the *threshold*, this is about whether the *clone-detection window/shape* even considers TypeScript method bodies spread across a class the way these 5 sites were)
 Impact: the duplication gate's actual detection boundary (line-count minimum, cross-file vs. same-file bias, whether it tokenizes class-method bodies the same as free functions) is unknown, so nobody can currently answer "would fallow have caught this if it were 20% bigger" — the gate's effectiveness as a preventive control for this exact failure mode is unverified in either direction
 Proposed: a small investigation task — reproduce the pre-fix duplication on a throwaway branch and run `npx fallow dupes` against it directly, to learn empirically whether the gate's silence was a configuration gap (threshold, ignore list) or a structural blind spot (method-body clones across classes) — the answer decides whether `.fallowrc.jsonc` needs a tuning change or the gate itself has a real capability gap worth reporting upstream
+
+### F43 — No gate enforces that a new resumable ruleset version is wired into its shared play page
+Status: Open · Found: 2026-08-29 · Task: fix/prod-seed-drift-shanghai-v2
+Claim: `scripts/check-game-engines.sh` enforces that a new engine's `rulesetVersionKey` and its server-side validator land in the same commit (`app/CLAUDE.md`'s Game engines section), but nothing enforces that a shared play page (`*-play.data.ts`) resolves a game's newest ruleset version dynamically rather than a single hardcoded one
+Evidence: SHANGHAI_V2 shipped its engine module, validator, registry entry, and setup-screen wiring across commits `8ac3d38`, `b1c9a70`, `de96fae`, `5b61cb7`, but never touched `app/src/lib/game/shanghai-play.data.ts`'s `resumeEngine`, which hardcoded `RULESET_VERSION_KEY: RulesetVersionKey = "SHANGHAI_V1"` (fixed on this branch). `app/src/lib/game/one-twenty-one-play.data.ts` shows the correct pattern for a game with two ruleset versions — a `RESUMABLE_RULESET_VERSIONS` set plus dynamic `getEngineFactory(rulesetVersionKey)` — that Shanghai's play page never received
+Impact: every session created under the new ruleset version silently failed to resume — the play page reported "no active session" (`hasActiveSession = false`) with no error surfaced, while the setup screen simultaneously reported the session as still active (`SESSION_ALREADY_ACTIVE`), producing an unrecoverable continue/abandon loop for the player. Reached production once the corresponding seed row was applied (this task)
+Proposed: extend `scripts/check-game-engines.sh` (or a new check) to flag a `*-play.data.ts` file whose resume/replay logic references only one `RulesetVersionKey` literal when its game type has more than one `ruleset_versions` row registered in the engine registry — or at minimum, add this exact failure mode to `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list for "adding a second ruleset version to an existing game"

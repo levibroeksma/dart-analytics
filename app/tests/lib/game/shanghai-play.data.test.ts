@@ -17,9 +17,17 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
+import {
+  shanghaiEngineFactory,
+  shanghaiV2EngineFactory,
+} from "@modules/game/shanghai.engine.module";
 import { shanghaiPlay } from "@lib/game/shanghai-play.data";
-import type { ShanghaiSnapshot, Seated, ShanghaiPlayContext } from "@lib/types";
+import type {
+  ShanghaiSnapshot,
+  ShanghaiV2Snapshot,
+  Seated,
+  ShanghaiPlayContext,
+} from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
 
 const SEATS = [
@@ -143,12 +151,30 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(shanghaiEngineFactory);
+  registerEngineFactory(shanghaiV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
 describe("init", () => {
   it("resumes the engine and mirrors its facts into the store on a match", async () => {
     const play = makePlay();
+    await play.init.call(play);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes a SHANGHAI_V2 session via its own engine factory, not just SHANGHAI_V1 — reported: play page stuck on 'no active session' for every V2 session", async () => {
+    const v2Config: Seated<ShanghaiV2Snapshot> = {
+      seats: SEATS,
+      difficulty: "HARD",
+    };
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "SHANGHAI_V2" },
+    ]);
+    const play = makePlay({
+      rulesetVersionKey: "SHANGHAI_V2",
+      configSnapshot: v2Config,
+    });
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
@@ -915,6 +941,46 @@ describe("playAgain", () => {
     expect(play.completionStatus).toBe("pending");
     expect(play.resultsSnapshot).toBeNull();
     expect(play.hasActiveSession).toBe(true);
+  });
+
+  it("replays under the session's own SHANGHAI_V2 ruleset, not a hardcoded SHANGHAI_V1", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SHANGHAI_V2",
+      turns: priorRoundsThroughNumber(19),
+      configSnapshot: { seats: SEATS, difficulty: "HARD" },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({ rulesetVersionKey: "SHANGHAI_V2" }),
+    );
+    expect(play.$store.game.sessionId).toBe("new-session");
+    expect(play.hasActiveSession).toBe(true);
+  });
+
+  it("no-ops when the store has no ruleset version key to replay under", async () => {
+    const play = makePlay({ rulesetVersionKey: null });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    await play.playAgain.call(play);
+
+    expect(createSession).not.toHaveBeenCalled();
+    expect(play.finished).toBe(true);
   });
 
   it("surfaces an error and leaves the modal open when session creation fails", async () => {

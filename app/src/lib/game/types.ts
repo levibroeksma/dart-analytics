@@ -45,6 +45,7 @@ import type {
   SinglesSnapshot,
   DoublesTrainingSnapshot,
   ShanghaiSnapshot,
+  ShanghaiV2Snapshot,
   OneTwentyOneSnapshot,
   OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
@@ -1010,7 +1011,7 @@ export type ShanghaiPlayContext = {
   resultsSnapshot: ShanghaiResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
-  $store: PlayStoreContext<ShanghaiSnapshot>;
+  $store: PlayStoreContext<ShanghaiSnapshot | ShanghaiV2Snapshot>;
   engine: ShanghaiEngine | null;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
   recordDart(
