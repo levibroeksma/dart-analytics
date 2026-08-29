@@ -28,7 +28,7 @@ const infoSection = {
   />
   <SettingSectionShell>
     <template x-if="guests.length === 0">
-      <Fragment>
+      <div class="contents">
         <Toggle
           orientation="horizontal"
           options={formatOpts}
@@ -58,7 +58,7 @@ const infoSection = {
           x-cloak
         >
         </p>
-      </Fragment>
+      </div>
     </template>
     <template x-if="guests.length > 0">
       <Input
