@@ -18,7 +18,7 @@ import {
   openOrCreateTurn,
   undoLastDart,
 } from "./turn-log.module";
-import { scoreCompareOutcome } from "./match-outcome.module";
+import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
   BoardTarget,
@@ -39,6 +39,7 @@ function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
     targetIndex: 0,
     totalPoints: 0,
     dartsThisVisit: 0,
+    hitsThisVisit: 0,
     status: "IN_PROGRESS",
   };
 }
@@ -66,6 +67,37 @@ const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
   "INNER_SINGLE",
   "OUTER_SINGLE",
 ]);
+
+function requiredHitsFor(difficulty: SinglesSnapshot["difficulty"]): number {
+  if (difficulty === "HARD") return 1;
+  if (difficulty === "EXTREME") return 2;
+  return 0;
+}
+
+/**
+ * Whether `observation` landed on `target`'s section at all — single, double
+ * or treble on a NUMBER target, outer or inner on BULL — independent of the
+ * ring's point value, so a HARD/EXTREME mandatory-hit count never depends on
+ * a configured `pointsSingle`/`pointsDouble`/`pointsTreble` staying nonzero.
+ */
+function isHitOnTarget(
+  target: BoardTarget,
+  observation: DartObservation,
+): boolean {
+  if (target.kind === "BULL") {
+    return (
+      observation.hitTargetNumber === BULL_TARGET_NUMBER &&
+      (observation.hitZoneKey === "OUTER_BULL" ||
+        observation.hitZoneKey === "INNER_BULL")
+    );
+  }
+  return (
+    observation.hitTargetNumber === target.number &&
+    (SINGLE_ZONE_KEYS.has(observation.hitZoneKey) ||
+      observation.hitZoneKey === "DOUBLE" ||
+      observation.hitZoneKey === "TREBLE")
+  );
+}
 
 function trainingPointsFor(
   target: BoardTarget,
@@ -105,27 +137,46 @@ export function applySinglesTrainingDart(
   const totalPoints =
     state.totalPoints + trainingPointsFor(target, config, observation);
   const dartsThisVisit = state.dartsThisVisit + 1;
+  const hitsThisVisit =
+    state.hitsThisVisit + (isHitOnTarget(target, observation) ? 1 : 0);
 
   if (dartsThisVisit < 3) {
-    return { ...state, totalPoints, dartsThisVisit };
+    return { ...state, totalPoints, dartsThisVisit, hitsThisVisit };
+  }
+  if (hitsThisVisit < requiredHitsFor(config.difficulty)) {
+    return {
+      ...state,
+      totalPoints,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+      status: "LOST",
+    };
   }
   if (state.targetIndex === 20) {
-    return { ...state, totalPoints, dartsThisVisit: 0, status: "COMPLETE" };
+    return {
+      ...state,
+      totalPoints,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+      status: "COMPLETE",
+    };
   }
   return {
     ...state,
     totalPoints,
     dartsThisVisit: 0,
+    hitsThisVisit: 0,
     targetIndex: state.targetIndex + 1,
   };
 }
 
 /**
  * Folds the whole fact log into the session's state, mirroring
- * `foldAroundTheClockState`. Score-compare, highest training-point total
- * wins: unlike Around the Clock, every visit here is exactly 3 darts
- * regardless of hit or miss, so both seats always take the same number of
- * visits and `activeSeat` needs no completion predicate.
+ * `foldAroundTheClockState`. Under EASY, score-compare (highest
+ * training-point total) decides the match exactly as before. Under
+ * HARD/EXTREME, the instant any seat fails its mandatory-hit requirement
+ * (`status: "LOST"`), the match ends immediately via `eliminationWinner` —
+ * the same Bob's-27 pattern — regardless of any other seat's own progress.
  */
 function foldSinglesTrainingState(
   facts: EngineFacts,
@@ -139,15 +190,32 @@ function foldSinglesTrainingState(
       applySinglesTrainingDart(config, state, observation),
   );
 
-  const outcome = scoreCompareOutcome(
-    seats.map((seat) => ({
-      sideKey: seat.sideKey,
-      completed: seat.status === "COMPLETE",
-      metric: seat.totalPoints,
-    })),
-    "HIGHEST",
-    seats[0].status,
-  );
+  const failedSeats = seats.filter((seat) => seat.status === "LOST");
+  const outcome: {
+    status: SinglesTrainingState["status"];
+    winningSideKey: string | null;
+  } =
+    seats.length === 1
+      ? { status: seats[0].status, winningSideKey: null }
+      : failedSeats.length > 0
+        ? {
+            status: "COMPLETE",
+            winningSideKey: eliminationWinner(
+              seats.map((seat) => ({
+                sideKey: seat.sideKey,
+                failed: seat.status === "LOST",
+              })),
+            ),
+          }
+        : scoreCompareOutcome(
+            seats.map((seat) => ({
+              sideKey: seat.sideKey,
+              completed: seat.status === "COMPLETE",
+              metric: seat.totalPoints,
+            })),
+            "HIGHEST",
+            "IN_PROGRESS",
+          );
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
@@ -214,22 +282,27 @@ export class SinglesTrainingEngine implements GameEngine<
    * dart that resolves the visit — the client-observed end of it — so an
    * open visit carries none.
    *
-   * Guarded only by the ACTIVE seat's own `status`: every seat's own visit
-   * count is fixed (21) and every visit is exactly 3 darts win or miss, so
-   * both seats always finish in strict lockstep alternation with no
-   * race/instant-win shortcut (unlike `ShanghaiEngine`, whose Shanghai race
-   * can end the whole match while the OTHER seat's own status still reads
-   * `IN_PROGRESS`) — the match can only ever turn `COMPLETE`/`TIE` once
-   * EVERY seat is individually `COMPLETE`, so whichever seat `activeSeat()`
-   * names next is necessarily `COMPLETE` too by then, and this check alone
-   * throws. No separate match-level guard is needed, unlike
-   * `ScoreTrainingEngine.isMatchDecided()` (whose seat state carries no
-   * `status` field to check in the first place).
-   * @throws when the active seat has already completed its own session; the
-   *   fact log is left untouched.
+   * Guarded at both the match and seat level. EASY difficulty alone would
+   * let the per-seat guard suffice (every seat's own visit count is fixed at
+   * 21 and every visit is exactly 3 darts, so both seats always finish in
+   * strict lockstep with no race/instant-win shortcut). HARD/EXTREME's
+   * elimination breaks that: the match can now end the instant one seat
+   * fails while the OTHER seat's own status still reads `IN_PROGRESS` —
+   * exactly the `ShanghaiEngine`-style race this file used to disclaim. The
+   * top-level `before.status !== "IN_PROGRESS"` check below (mirroring
+   * `Bobs27Engine.record()`) catches that case; the seat-level check still
+   * rejects a stray call once the match has normally decided by
+   * score-compare.
+   * @throws when the match has already ended, or the active seat has already
+   *   completed its own session; the fact log is left untouched.
    */
   record(observation: DartObservation): SinglesTrainingState {
     const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") {
+      throw new Error(
+        "Cannot record a dart once the match has ended; undo first to correct it.",
+      );
+    }
     const seatBefore = activeSeatState(before);
     if (seatBefore.status !== "IN_PROGRESS") {
       throw new Error(
@@ -260,10 +333,13 @@ export class SinglesTrainingEngine implements GameEngine<
   /**
    * Answers whether recording `observation` would end the WHOLE session —
    * this dart is the active seat's 21st target's 3rd dart, and every other
-   * seat has already reached COMPLETE.
+   * seat has already reached COMPLETE. Also reports true for a dart that
+   * would eliminate the active seat under HARD/EXTREME — the match ends the
+   * instant that happens, regardless of any other seat's own status.
    */
   wouldComplete(observation: DartObservation): boolean {
     const before = this.deriveState();
+    if (before.status !== "IN_PROGRESS") return false;
     const seatBefore = activeSeatState(before);
     if (seatBefore.status !== "IN_PROGRESS") return false;
     if (seatBefore.dartsThisVisit < 2) return false;
@@ -273,6 +349,7 @@ export class SinglesTrainingEngine implements GameEngine<
       seatBefore,
       observation,
     );
+    if (after.status === "LOST") return true;
     if (after.status !== "COMPLETE") return false;
 
     return otherSeatsComplete(

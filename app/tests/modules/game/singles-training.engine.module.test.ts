@@ -112,6 +112,7 @@ describe("initialSinglesTrainingState", () => {
         targetIndex: 0,
         totalPoints: 0,
         dartsThisVisit: 0,
+        hitsThisVisit: 0,
         status: "IN_PROGRESS",
       },
     ]);
@@ -253,6 +254,7 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
     targetIndex: 20,
     totalPoints: 0,
     dartsThisVisit: 0,
+    hitsThisVisit: 0,
     status: "IN_PROGRESS",
   };
 
@@ -293,6 +295,7 @@ describe("applySinglesTrainingDart — BULL target scoring", () => {
       targetIndex: 20,
       totalPoints: 10,
       dartsThisVisit: 2,
+      hitsThisVisit: 0,
       status: "IN_PROGRESS",
     };
     const next = applySinglesTrainingDart(config, twoDartsIn, {
@@ -324,6 +327,7 @@ describe("applySinglesTrainingDart — terminal state guard", () => {
       targetIndex: 20,
       totalPoints: 186,
       dartsThisVisit: 0,
+      hitsThisVisit: 0,
       status: "COMPLETE",
     };
     expect(() =>
@@ -986,6 +990,7 @@ describe("applySinglesTrainingDart — order-dependent completion", () => {
       targetIndex: 20,
       totalPoints: 0,
       dartsThisVisit: 2,
+      hitsThisVisit: 0,
       status: "IN_PROGRESS",
     };
     const next = applySinglesTrainingDart(randomConfig, twoDartsIn, {
@@ -1129,7 +1134,11 @@ describe("SinglesTrainingEngine — 1v1", () => {
  * for the same reason, and the opposite of `ShanghaiEngine`, whose race
  * short-circuit needs one because a race can end the match while the OTHER
  * seat's own status still reads `IN_PROGRESS`. Singles Training composes no
- * `raceWinner` — score-compare only — so that gap does not apply here.
+ * `raceWinner` — score-compare only — so that gap does not apply to the
+ * no-fail path exercised here. HARD/EXTREME's elimination reintroduces
+ * exactly that gap once a seat fails, which is why `record()`/
+ * `wouldComplete()` now also carry Bob's-27-style top-level match-status
+ * guards (see `SinglesTrainingEngine — HARD/EXTREME 1v1 elimination`).
  */
 describe("SinglesTrainingEngine — 1v1 completion guard", () => {
   const twoSeats = [
@@ -1236,5 +1245,252 @@ describe("SinglesTrainingEngine — exerciseBlockStage wiring (F40)", () => {
         sequence: 1,
       },
     ]);
+  });
+});
+
+describe("applySinglesTrainingDart — HARD/EXTREME mandatory-hit failure", () => {
+  const hardConfig: Seated<SinglesSnapshot> = { ...config, difficulty: "HARD" };
+  const extremeConfig: Seated<SinglesSnapshot> = {
+    ...config,
+    difficulty: "EXTREME",
+  };
+
+  it("HARD: a visit with zero hits ends the seat as LOST", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      missObservationFor(state),
+    );
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      missObservationFor(state),
+    );
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      missObservationFor(state),
+    );
+    expect(state.status).toBe("LOST");
+    expect(state.hitsThisVisit).toBe(0);
+  });
+
+  it("HARD: a visit with exactly one hit survives and advances", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      missObservationFor(state),
+    );
+    state = applySinglesTrainingDart(
+      hardConfig,
+      state,
+      missObservationFor(state),
+    );
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.targetIndex).toBe(1);
+  });
+
+  it("EXTREME: a visit with exactly one hit still ends the seat as LOST", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      missObservationFor(state),
+    );
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      missObservationFor(state),
+    );
+    expect(state.status).toBe("LOST");
+  });
+
+  it("EXTREME: a visit with two hits survives and advances", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      hitObservationFor(state, "DOUBLE"),
+    );
+    state = applySinglesTrainingDart(
+      extremeConfig,
+      state,
+      missObservationFor(state),
+    );
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.targetIndex).toBe(1);
+  });
+
+  it("HARD: failing on the final BULL visit ends LOST, not COMPLETE", () => {
+    const bullTwoDartsIn: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 20,
+      totalPoints: 100,
+      dartsThisVisit: 2,
+      hitsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applySinglesTrainingDart(hardConfig, bullTwoDartsIn, {
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.status).toBe("LOST");
+  });
+});
+
+describe("SinglesTrainingEngine — HARD/EXTREME solo elimination", () => {
+  const hardConfig: Seated<SinglesSnapshot> = { ...config, difficulty: "HARD" };
+
+  function missDart(number: number): DartObservation {
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  it("ends the whole session as LOST when the solo seat fails a visit", () => {
+    const engine = new SinglesTrainingEngine(hardConfig);
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    const state = engine.record(missDart(1));
+
+    expect(state.status).toBe("LOST");
+    expect(state.winningSideKey).toBeNull();
+    expect(state.seats[0].status).toBe("LOST");
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("rejects a stray record() once the solo seat has failed, leaving the fact log untouched", () => {
+    const engine = new SinglesTrainingEngine(hardConfig);
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    const factsBefore = engine.facts();
+
+    expect(() => engine.record(missDart(2))).toThrow();
+    expect(engine.facts()).toEqual(factsBefore);
+  });
+
+  it("undo reverts a LOST solo session back to IN_PROGRESS", () => {
+    const engine = new SinglesTrainingEngine(hardConfig);
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    expect(engine.isComplete()).toBe(true);
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.isComplete()).toBe(false);
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
+
+    const resumed = engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(resumed.seats[0].status).toBe("IN_PROGRESS");
+  });
+
+  it("wouldComplete reports true for the dart that would trigger elimination", () => {
+    const engine = new SinglesTrainingEngine(hardConfig);
+    engine.record(missDart(1));
+    engine.record(missDart(1));
+    expect(engine.wouldComplete(missDart(1))).toBe(true);
+  });
+});
+
+describe("SinglesTrainingEngine — HARD/EXTREME 1v1 elimination", () => {
+  const twoSeats = [
+    {
+      participantRef: "p1",
+      displayName: "A",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "B",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const hardTwoSeatConfig: Seated<SinglesSnapshot> = {
+    orderMode: "LOW_TO_HIGH",
+    targetOrder: Array.from({ length: 20 }, (_, i) => i + 1).concat(25),
+    difficulty: "HARD",
+    pointsSingle: 1,
+    pointsDouble: 2,
+    pointsTreble: 3,
+    seats: twoSeats,
+  };
+
+  function dart(number: number, zone: DartZoneKey): DartObservation {
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: zone,
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  it("ends the match immediately when one seat fails, even though the other seat is still IN_PROGRESS", () => {
+    const engine = new SinglesTrainingEngine(hardTwoSeatConfig);
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "SINGLE")); // p1 survives target 1
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS")); // p2 fails target 1
+
+    const state = engine.state();
+    expect(state.seats[1].status).toBe("LOST");
+    expect(state.seats[0].status).toBe("IN_PROGRESS");
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+  });
+
+  it("rejects a stray record() from the surviving seat once the match has ended by elimination", () => {
+    const engine = new SinglesTrainingEngine(hardTwoSeatConfig);
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "SINGLE"));
+    for (let d = 0; d < 3; d++) engine.record(dart(1, "MISS"));
+    const factsBefore = engine.facts();
+
+    expect(() => engine.record(dart(2, "SINGLE"))).toThrow();
+    expect(engine.facts()).toEqual(factsBefore);
+  });
+
+  it("normal score-compare behavior is unchanged when nobody fails under HARD", () => {
+    const engine = new SinglesTrainingEngine(hardTwoSeatConfig);
+    for (let round = 0; round < 21; round++) {
+      const seatA = engine.state().seats[0];
+      for (let d = 0; d < 3; d++) {
+        engine.record(hitObservationFor(seatA, "DOUBLE"));
+      }
+      const seatB = engine.state().seats[1];
+      for (let d = 0; d < 3; d++) {
+        engine.record(hitObservationFor(seatB, "SINGLE"));
+      }
+    }
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
   });
 });
