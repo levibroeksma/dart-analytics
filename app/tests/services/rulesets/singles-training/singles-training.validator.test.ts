@@ -72,6 +72,33 @@ describe("singlesTrainingValidator.validateConfig", () => {
     });
     expect(result.valid).toBe(false);
   });
+
+  it("accepts HARD difficulty", () => {
+    const result = singlesTrainingValidator.validateConfig({
+      config: { ...validConfig, difficulty: "HARD" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts EXTREME difficulty", () => {
+    const result = singlesTrainingValidator.validateConfig({
+      config: { ...validConfig, difficulty: "EXTREME" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects a difficulty value outside EASY/HARD/EXTREME", () => {
+    const result = singlesTrainingValidator.validateConfig({
+      config: { ...validConfig, difficulty: "PROFESSIONAL" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
 });
 
 describe("singlesTrainingValidator.validateBatch", () => {

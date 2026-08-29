@@ -73,7 +73,7 @@ export const SinglesConfig = z
   .object({
     order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
     target_order: z.array(z.number().int()).length(21),
-    difficulty: z.enum(["EASY"]),
+    difficulty: z.enum(["EASY", "HARD", "EXTREME"]),
     points_single: z.number().int().default(1),
     points_double: z.number().int().default(2),
     points_treble: z.number().int().default(3),

@@ -6,6 +6,7 @@ import {
   RULESET_CONFIGS,
   ScoreTrainingConfig,
   ShanghaiV2Config,
+  SinglesConfig,
   TuodConfig,
 } from "@lib/types";
 
@@ -394,6 +395,40 @@ describe("ShanghaiV2Config", () => {
   it("rejects an unknown key (the schema is .strict())", () => {
     expect(
       ShanghaiV2Config.safeParse({ difficulty: "NORMAL", rounds: 7 }).success,
+    ).toBe(false);
+  });
+});
+
+describe("SinglesConfig difficulty", () => {
+  const validRest = {
+    order_mode: "LOW_TO_HIGH",
+    target_order: [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ],
+  };
+
+  it("accepts EASY", () => {
+    expect(
+      SinglesConfig.safeParse({ ...validRest, difficulty: "EASY" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts HARD", () => {
+    expect(
+      SinglesConfig.safeParse({ ...validRest, difficulty: "HARD" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts EXTREME", () => {
+    expect(
+      SinglesConfig.safeParse({ ...validRest, difficulty: "EXTREME" }).success,
+    ).toBe(true);
+  });
+
+  it("rejects an unrecognized difficulty value", () => {
+    expect(
+      SinglesConfig.safeParse({ ...validRest, difficulty: "PROFESSIONAL" })
+        .success,
     ).toBe(false);
   });
 });
