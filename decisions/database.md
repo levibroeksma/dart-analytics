@@ -5,7 +5,7 @@ read-when: why a schema/migration/view/index/seed choice was made
 load-when: schema, migration, table, column, constraint, index, view, Neon, seed, replay, ID strategy, denormalisation
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/game-engine.md
-updated: 2026-08-15
+updated: 2026-08-29
 -->
 
 | # | Source | Decision | Rationale |
@@ -52,3 +52,9 @@ Status: Accepted · Date: 2026-08-21
 Decision: Migration `0023` adds `JOIN participants p ON p.id = t.participant_id` and `AND p.player_id = es.player_id` to both `v_dart_analytics` and `v_dart_locations`. `v_game_replay` is deliberately left unfiltered.
 Reason: Guest participants (D220/D221) throw into the same `turns`/`darts` tables as the owning player, and both views project `es.player_id` with no participant filter — so a guest's darts would have entered the owner's accuracy statistics the moment a second seat could exist. Multiplayer is what makes the omission wrong, which is why it was fixed as part of that work rather than logged as a finding. `v_game_replay` is the opposite case: it projects `p.display_name` and exists to replay a session as it was played, every participant included.
 Consequences: Behaviour-preserving for every existing session — a single-participant session has exactly one participant, the `PLAYER` whose `player_id` equals `es.player_id`, so no existing row is dropped. The play-time stat row on the 501 screen is deliberately NOT scoped: on a pass-and-play device that row belongs to whoever is throwing, and how it should be presented for several seats is the drawing spec's question. The results snapshot IS scoped, in the client, by filtering the fact log to the one `PLAYER` seat.
+
+### D248 — `npm run db:seed` runs the full seed list twice, not once
+Status: Accepted · Date: 2026-08-29
+Decision: `app/scripts/seed.ts`'s `run()` executes every file returned by `seedFiles()` twice in the same invocation (`buildExecutionPlan`), instead of once.
+Reason: `seeds/0007_ruleset_version_capabilities.sql` is a running ledger — every new ruleset version's capability rows are appended to it, joined against `ruleset_versions` by `implementation_key` — but a new ruleset's own `ruleset_versions` row is created by whichever seed introduces it, which sorts after `0007` whenever its number is higher (e.g. `0013`). Production hit this directly: seeding #204's `SINGLES_V2` ruleset (`0013`) after `0007` was extended with its two capability rows meant the first pass's join matched nothing when `0007` ran, `ON CONFLICT DO NOTHING` gave no error, and `SINGLES_V2` sessions failed on `fk_sessions_capability` (migration `0020`) until a second manual `db:seed` run resolved it. Two alternatives were rejected: renumbering `0007` to sort last doesn't hold, since a ledger appended to indefinitely will always eventually receive an entry whose dependency is numbered higher than whatever "last" is at the time; a dependency graph between seed files was rejected as more machinery than a single ordering bug — that has recurred exactly once in thirteen files — justifies.
+Consequences: Every seed file must stay `ON CONFLICT DO NOTHING` (already required) so a second pass is a safe no-op rather than a duplicate insert or error; this was already true of every existing seed. Production seeding cost roughly doubles, which is negligible at this table size. `app/tests/scripts/seed.test.ts` asserts `buildExecutionPlan` doubles the file list; it does not exercise the join failure itself, since that requires a live database (see D193).
