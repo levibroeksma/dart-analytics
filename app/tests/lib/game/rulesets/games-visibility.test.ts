@@ -75,6 +75,7 @@ describe("visibleGames", () => {
       expect(game.href).toMatch(/^\/games\/.+\/setup$/);
       expect(game.title.length).toBeGreaterThan(0);
       expect(game.caption.length).toBeGreaterThan(0);
+      expect(game.caption).not.toMatch(/\n/);
     }
   });
 });
