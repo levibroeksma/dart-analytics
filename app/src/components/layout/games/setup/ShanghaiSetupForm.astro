@@ -17,6 +17,11 @@ const difficultyOpts = [
   { value: "NORMAL", label: "Normal" },
   { value: "HARD", label: "Hard" },
 ];
+
+const hints = {
+  NORMAL: "Aim for the highest score or win with a Shanghai.",
+  HARD: "Just like normal, but miss a target completely and your score is halved",
+}
 ---
 
 <SetupShell title="Shanghai">
@@ -30,7 +35,7 @@ const difficultyOpts = [
       orientation="horizontal"
       options={difficultyOpts}
       x-model="difficulty"
-      hint="Hard: whiff every dart in a round and your total is halved."
+      hint={`difficulty === 'HARD' ? '${hints.HARD}' : '${hints.NORMAL}'`}
       class="w-full"
     />
   </SettingSectionShell>
