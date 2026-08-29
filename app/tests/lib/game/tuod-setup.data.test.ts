@@ -57,6 +57,7 @@ describe("tuodSetup", () => {
     return {
       ...tuodSetup(),
       $store: store,
+      $watch: () => {},
       ...overrides,
     } as TuodSetupContext;
   }
@@ -191,11 +192,40 @@ describe("tuodSetup", () => {
     });
   });
 
+  describe("selectMode", () => {
+    it("switches mode, resets durationValue to that mode's preset default, and clears clampNotice", () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 25,
+        clampNotice: "Allowed range: 1–100 rounds",
+      });
+
+      setup.selectMode("MINUTES");
+
+      expect(setup.durationType).toBe("MINUTES");
+      expect(setup.durationValue).toBe(10);
+      expect(setup.clampNotice).toBe("");
+    });
+
+    it("falls back to the literal default when no preset matches the mode", () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET],
+        durationType: "ROUNDS",
+      });
+
+      setup.selectMode("MINUTES");
+
+      expect(setup.durationValue).toBe(10);
+    });
+  });
+
   describe("start", () => {
-    it("creates a session from the selected preset's template, unmodified", async () => {
+    it("creates a session from the selected preset's template, with the (unclamped) typed value as override", async () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "MINUTES",
+        durationValue: 10,
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -220,6 +250,7 @@ describe("tuodSetup", () => {
         config: {
           source: "template",
           templateRef: "tmpl-minutes",
+          overrides: { duration_value: 10 },
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
@@ -390,7 +421,7 @@ describe("tuodSetup", () => {
       expect(setup.clampNotice).toBe("Allowed range: 1–100 rounds");
     });
 
-    it("does not override duration_value for a solo session", async () => {
+    it("clamps and overrides duration_value for a solo session too", async () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
@@ -412,9 +443,37 @@ describe("tuodSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          config: { source: "template", templateRef: "tmpl-rounds" },
+          config: {
+            source: "template",
+            templateRef: "tmpl-rounds",
+            overrides: { duration_value: 25 },
+          },
         }),
       );
+    });
+
+    it("clamps an out-of-range typed value and sets a notice for a solo MINUTES session", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "MINUTES",
+        durationValue: 45,
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(setup.durationValue).toBe(30);
+      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
     });
 
     it("threads a PLAYER seat A and the guest as seat B once a guest is added", async () => {

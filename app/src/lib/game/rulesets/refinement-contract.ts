@@ -4,6 +4,7 @@ import {
   OneTwentyOneV2Config,
   ScoreTrainingConfig,
   SinglesConfig,
+  TuodConfig,
 } from "./types";
 import type { SchemaRefinementContract } from "./types";
 
@@ -284,6 +285,90 @@ const oneTwentyOneV2Contract: SchemaRefinementContract<OneTwentyOneV2Input> = {
   ],
 };
 
+type TuodInput = z.input<typeof TuodConfig>;
+
+const tuodBase = {
+  starting_target: 41,
+  finish_bonus: 10,
+  miss_penalty: 1,
+  duration_type: "ROUNDS",
+  duration_value: 1,
+  max_darts_per_turn: 3,
+} satisfies TuodInput;
+
+const tuodMinutesBase = {
+  ...tuodBase,
+  duration_type: "MINUTES",
+  duration_value: 5,
+} satisfies TuodInput;
+
+/**
+ * `TuodConfig.duration_value` is bounded conditionally by `duration_type` —
+ * identical to `ScoreTrainingConfig`'s own bound (ROUNDS 1..100, MINUTES
+ * 3..30) — which is why it lives in a whole-object `superRefine` instead of
+ * `.min()`/`.max()` on the field alone.
+ *
+ * Same blind spot as `scoreTrainingContract`: ROUNDS floor (1) duplicates the
+ * field-level `.min(1)`, so `duration_value: 0` for ROUNDS is rejected either
+ * way and that reject probe is not load-bearing on its own. MINUTES floor (3)
+ * is strictly above `.min(1)`, so `duration_value: 2` for MINUTES clears
+ * `.min(1)` and is rejected only by this `superRefine` — that probe is the
+ * first genuinely load-bearing floor probe in this contract. Ceiling probes
+ * on both duration types are load-bearing: nothing else bounds the top.
+ */
+const tuodContract: SchemaRefinementContract<TuodInput> = {
+  schemaName: "TuodConfig",
+  schema: TuodConfig,
+  fields: [
+    {
+      field: "duration_value",
+      accept: [
+        {
+          label: "duration_value 1 for ROUNDS, the floor",
+          config: { ...tuodBase, duration_value: 1 },
+        },
+        {
+          label: "duration_value 100 for ROUNDS, the ceiling",
+          config: { ...tuodBase, duration_value: 100 },
+        },
+      ],
+      reject: [
+        {
+          label: "duration_value 0 for ROUNDS, one below the floor",
+          config: { ...tuodBase, duration_value: 0 },
+        },
+        {
+          label: "duration_value 101 for ROUNDS, one past the ceiling",
+          config: { ...tuodBase, duration_value: 101 },
+        },
+      ],
+    },
+    {
+      field: "duration_value",
+      accept: [
+        {
+          label: "duration_value 3 for MINUTES, the floor",
+          config: { ...tuodMinutesBase, duration_value: 3 },
+        },
+        {
+          label: "duration_value 30 for MINUTES, the ceiling",
+          config: { ...tuodMinutesBase, duration_value: 30 },
+        },
+      ],
+      reject: [
+        {
+          label: "duration_value 2 for MINUTES, one below the floor",
+          config: { ...tuodMinutesBase, duration_value: 2 },
+        },
+        {
+          label: "duration_value 31 for MINUTES, one past the ceiling",
+          config: { ...tuodMinutesBase, duration_value: 31 },
+        },
+      ],
+    },
+  ],
+};
+
 /**
  * Every schema in `types.ts` that carries a `.superRefine(`/`.refine(`, with
  * the boundaries each refined field must accept and reject. Adding a
@@ -295,4 +380,5 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   singlesTrainingContract,
   doublesTrainingContract,
   oneTwentyOneV2Contract,
+  tuodContract,
 ];

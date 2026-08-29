@@ -70,6 +70,51 @@ describe("tuodValidator.validateConfig", () => {
     });
     expect(result.valid).toBe(false);
   });
+
+  it("accepts duration_value: 100, the ROUNDS ceiling", () => {
+    const result = tuodValidator.validateConfig({
+      config: { ...validConfig, duration_value: 100 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects duration_value: 101, one past the ROUNDS ceiling", () => {
+    const result = tuodValidator.validateConfig({
+      config: { ...validConfig, duration_value: 101 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects duration_value: 2, one below the MINUTES floor", () => {
+    const result = tuodValidator.validateConfig({
+      config: { ...minutesConfig, duration_value: 2 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts duration_value: 30, the MINUTES ceiling", () => {
+    const result = tuodValidator.validateConfig({
+      config: { ...minutesConfig, duration_value: 30 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects duration_value: 31, one past the MINUTES ceiling", () => {
+    const result = tuodValidator.validateConfig({
+      config: { ...minutesConfig, duration_value: 31 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+    });
+    expect(result.valid).toBe(false);
+  });
 });
 
 describe("tuodValidator.validateBatch", () => {

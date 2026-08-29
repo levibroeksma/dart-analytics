@@ -1,23 +1,25 @@
+import type { TuodDurationType } from "./types";
+
 /**
- * TUOD's 1v1 round count is the only free-typed duration value the ruleset
- * exposes — solo play only ever picks between the two fixed presets, and 1v1
- * is ROUNDS-only (`forceRoundsIfGuested` in `tuod-setup.data.ts`) — so this
- * mirrors `score-training-duration.ts`'s ROUNDS bounds without a MINUTES
- * branch there is nothing to configure.
+ * `duration_value` bounds by mode, identical to
+ * `score-training-duration.ts`'s own bounds: ROUNDS 1..100, MINUTES 3..30.
  */
-export function tuodRoundsBounds(): { min: number; max: number } {
-  return { min: 1, max: 100 };
+export function tuodDurationBounds(type: TuodDurationType): {
+  min: number;
+  max: number;
+} {
+  return type === "ROUNDS" ? { min: 1, max: 100 } : { min: 3, max: 30 };
 }
 
 /**
- * Floors finite numbers, then clamps into the ROUNDS bounds. Non-finite /
- * non-number inputs clamp to the minimum.
+ * Floors finite numbers, then clamps into the mode's inclusive bounds.
+ * Non-finite / non-number inputs clamp to the mode minimum.
  */
-export function clampTuodRounds(value: unknown): {
-  value: number;
-  clamped: boolean;
-} {
-  const { min, max } = tuodRoundsBounds();
+export function clampTuodDuration(
+  type: TuodDurationType,
+  value: unknown,
+): { value: number; clamped: boolean } {
+  const { min, max } = tuodDurationBounds(type);
   const numeric = typeof value === "number" ? value : Number.NaN;
   if (!Number.isFinite(numeric)) {
     return { value: min, clamped: true };
@@ -30,6 +32,8 @@ export function clampTuodRounds(value: unknown): {
   };
 }
 
-export function tuodRoundsClampNotice(): string {
-  return "Allowed range: 1–100 rounds";
+export function tuodDurationClampNotice(type: TuodDurationType): string {
+  return type === "ROUNDS"
+    ? "Allowed range: 1–100 rounds"
+    : "Allowed range: 3–30 minutes";
 }

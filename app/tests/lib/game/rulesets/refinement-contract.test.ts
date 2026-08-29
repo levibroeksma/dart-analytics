@@ -21,6 +21,12 @@ describe("ruleset refinement contract", () => {
     ).toContain("OneTwentyOneV2Config");
   });
 
+  it("covers TuodConfig's ROUNDS/MINUTES bounds", () => {
+    expect(
+      REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),
+    ).toContain("TuodConfig");
+  });
+
   for (const contract of REFINEMENT_CONTRACTS) {
     describe(contract.schemaName, () => {
       it("names a schema that types.ts actually exports under that name", () => {
