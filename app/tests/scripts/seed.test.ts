@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { buildExecutionPlan } from "../../scripts/seed";
 
 const seedsDir = fileURLToPath(
   new URL("../../../database/seeds", import.meta.url),
@@ -44,5 +45,10 @@ describe("seed runner", () => {
   it("numbers seeds contiguously from 0001", () => {
     const numbers = seedNames.map((name) => Number(name.slice(0, 4)));
     expect(numbers).toEqual(numbers.map((_, i) => i + 1));
+  });
+
+  it("runs every file twice, so a ledger seed's forward reference to a later-numbered file's row resolves on the second pass", () => {
+    const files = ["0007_ruleset_version_capabilities.sql", "0013_new.sql"];
+    expect(buildExecutionPlan(files)).toEqual([...files, ...files]);
   });
 });

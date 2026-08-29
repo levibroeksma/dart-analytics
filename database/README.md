@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-08-26
+updated: 2026-08-29
 -->
 
 # Database SQL Artifacts
@@ -58,6 +58,8 @@ astro check
 11. `seeds/0011_one_twenty_one_v2_game_engine_reference.sql`
 12. `seeds/0012_shanghai_v2_game_engine_reference.sql`
 13. `seeds/0013_singles_training_v2_game_engine_reference.sql`
+
+`npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
 ## Verification Scripts
 
