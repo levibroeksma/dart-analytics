@@ -5,7 +5,8 @@ import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 // asserted here is a card that can actually render. Visibility is keyed on
 // capture mode alone, not the exact declared pair (see `visibleGames`'s own
 // doc comment for why). Every carded ruleset now declares a pair under both
-// RECREATIONAL and ANALYTICS.
+// RECREATIONAL and ANALYTICS. Descriptions are meant to be short, so they stay
+// on a single line in the ui
 
 describe("visibleGames", () => {
   it("shows every carded game under recreational", () => {
