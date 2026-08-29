@@ -10,13 +10,19 @@ import UserSection from "./UserSection.astro";
 const infoSection = {
   title: "Singles training rules",
   description:
-    "One target at a time, three darts each: 1 through 20 and bull, in the order you choose below. Single = 1 point, double = 2, treble = 3 — only on the current target. On the bull, outer = 1 point, inner = 2, no treble. Misses score 0. The session ends once every target has been visited once.",
+    "One target at a time, three darts each: 1 through 20 and bull, in the order you choose below. Single = 1 point, double = 2, treble = 3 — only on the current target. On the bull, outer = 1 point, inner = 2, no treble. Misses score 0. The session ends once every target has been visited once. Hard requires at least 1 dart on target each visit, Extreme at least 2 — miss the requirement and it's game over.",
 };
 
 const orderModeOpts = [
   { value: "LOW_TO_HIGH", label: "Low → High" },
   { value: "HIGH_TO_LOW", label: "High → Low" },
   { value: "RANDOM", label: "Random" },
+];
+
+const difficultyOpts = [
+  { value: "EASY", label: "Easy" },
+  { value: "HARD", label: "Hard" },
+  { value: "EXTREME", label: "Extreme" },
 ];
 ---
 
@@ -31,6 +37,14 @@ const orderModeOpts = [
       orientation="horizontal"
       options={orderModeOpts}
       x-model="orderMode"
+      class="w-full"
+    />
+  </SettingSectionShell>
+  <SettingSectionShell>
+    <Toggle
+      orientation="horizontal"
+      options={difficultyOpts}
+      x-model="difficulty"
       class="w-full"
     />
   </SettingSectionShell>

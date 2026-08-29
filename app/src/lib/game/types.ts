@@ -546,6 +546,7 @@ export type Bobs27SetupContext = PresetSetupContext;
 
 export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
+  difficulty: SinglesSnapshot["difficulty"];
 };
 
 /** One seat's own results stats, replayed from its own completed visits in
