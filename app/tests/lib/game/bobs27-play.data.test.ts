@@ -378,6 +378,7 @@ describe("completion", () => {
       ],
     });
     expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsTitle.call(play)).toBe("Winner!");
   });
 
   it("loses when a full-miss visit drops the score to zero or below", async () => {
@@ -418,6 +419,7 @@ describe("completion", () => {
         },
       ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Game over!");
   });
 
   it("marks completionStatus failed on a real upload error", async () => {
@@ -550,6 +552,7 @@ describe("completion — 1v1", () => {
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot?.status).toBe("COMPLETE");
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(play.resultsTitle.call(play)).toBe("Levi wins!");
   });
 });
 

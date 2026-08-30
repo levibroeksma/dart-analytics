@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
   doublesPathObservation,
@@ -215,6 +216,15 @@ export function bobs27Play() {
       return playUploadAndCompleteSession(this, (finalState) =>
         computeStats(finalState, this.$store.game.turns),
       );
+    },
+
+    resultsTitle(this: Bobs27PlayContext): string {
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      if (winner) return `${winner} wins!`;
+      return this.resultsSnapshot?.status === "LOST" ? "Game over!" : "Winner!";
     },
 
     back(this: Bobs27PlayContext) {

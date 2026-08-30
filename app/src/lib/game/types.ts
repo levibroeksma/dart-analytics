@@ -810,6 +810,7 @@ export type Bobs27PlayContext = {
   ): Promise<void>;
   undoVisit(this: Bobs27PlayContext): void;
   uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void>;
+  resultsTitle(this: Bobs27PlayContext): string;
   back(this: Bobs27PlayContext): Promise<void>;
   playAgain(this: Bobs27PlayContext): Promise<void>;
   abandonAndExit(this: Bobs27PlayContext): Promise<void>;

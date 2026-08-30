@@ -12,27 +12,12 @@ const STAT_ROWS = [
 ---
 
 <ResultsModalShell showSavedMessage>
-  <div slot="title">
-    {/* TODO: extract x-text logic into alpine function */}
-    <h2
-      class="font-display text-lg font-semibold text-foreground"
-      x-text="
-        !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-          ? (resultsSnapshot?.status === 'LOST' ? 'Game over!' : 'Winner!')
-          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins!')
-      "
-      x-show="completionStatus === 'succeeded' && resultsSnapshot"
-      x-cloak
-    >
-    </h2>
-    <h2
-      class="font-display text-lg font-semibold text-foreground"
-      x-show="!(completionStatus === 'succeeded' && resultsSnapshot)"
-      x-cloak
-    >
-      Match Summary
-    </h2>
-  </div>
+  <h2
+    slot="title"
+    class="font-display text-lg font-semibold text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
 
   <SinglePlayerSummary statRows={STAT_ROWS} />
   <ComparisonSummary statRows={STAT_ROWS} />
