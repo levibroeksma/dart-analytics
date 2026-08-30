@@ -1,0 +1,15 @@
+---
+interface Props {
+  label: string;
+}
+const { label }: Props = Astro.props;
+---
+
+<div class="flex justify-between items-center font-display-mono">
+  <dt
+    class="text-sm text-muted-foreground font-mono"
+    x-text={`'${label}'`}
+  >
+  </dt>
+  <dd class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded"></dd>
+</div>
