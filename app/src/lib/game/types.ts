@@ -383,6 +383,7 @@ export type TuodPlayContext = {
   cancelFinish(this: TuodPlayContext): void;
   undoVisit(this: TuodPlayContext): void;
   uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
+  resultsTitle(this: TuodPlayContext): string;
   back(this: TuodPlayContext): Promise<void>;
   playAgain(this: TuodPlayContext): Promise<void>;
   abandonAndExit(this: TuodPlayContext): Promise<void>;

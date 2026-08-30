@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
@@ -538,6 +539,15 @@ export function tuodPlay() {
         this.resultsSnapshot = computeStats(finalState);
       }
       this.completionStatus = "succeeded";
+    },
+
+    resultsTitle(this: TuodPlayContext): string {
+      if (this.resultsSnapshot?.status === "TIE") return "Tie — same target!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — highest target!` : "Game Summary";
     },
 
     async back(this: TuodPlayContext) {

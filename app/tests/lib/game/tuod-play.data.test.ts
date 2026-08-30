@@ -582,6 +582,7 @@ describe("tuodPlay", () => {
           },
         ],
       });
+      expect(play.resultsTitle()).toBe("Game Summary");
     });
 
     it("folds a mixed attempt log into the correct final target", async () => {
@@ -1310,6 +1311,7 @@ describe("session completion — 1v1", () => {
         failures: 1,
       },
     ]);
+    expect(component.resultsTitle.call(component)).toBe("Tie — same target!");
   });
 
   it("marks status COMPLETE, with the owning seat's sideKey, when one seat reaches the higher target", async () => {
@@ -1357,6 +1359,9 @@ describe("session completion — 1v1", () => {
         failures: 1,
       },
     ]);
+    expect(component.resultsTitle.call(component)).toBe(
+      "Levi wins — highest target!",
+    );
   });
 
   it("undoVisit pops the last recorded attempt regardless of which seat threw it", async () => {
