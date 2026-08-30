@@ -94,7 +94,10 @@ function finishableWithOneDart(remainder: number): boolean {
  * resolve) so the bust/checkout rule — overshoot, exactly 1 left, reaching 0
  * without a double, or a last dart's remainder that no double can ever finish
  * (odd, since every double scores even; or even but above 40 and not the
- * bull, since no double scores that high) — is written once.
+ * bull, since no double scores that high) — is written once. The inner bull
+ * is the double for its own remainder (50) exactly as `BULL_FINISH` and
+ * `finishableWithOneDart` treat it, so `INNER_BULL` counts alongside
+ * `DOUBLE` as the last dart landing on a double.
  */
 function visitOutcome(
   remainingBefore: number,
@@ -105,7 +108,7 @@ function visitOutcome(
   const outcome = resolveCheckoutAttempt(
     remainingBefore,
     scored,
-    lastZoneKey === "DOUBLE",
+    lastZoneKey === "DOUBLE" || lastZoneKey === "INNER_BULL",
   );
   const busted =
     outcome.busted ||
