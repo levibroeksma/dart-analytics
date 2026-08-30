@@ -939,6 +939,23 @@ export type OneTwentyOneSetupContext = {
 
 export type AroundTheClockSetupContext = PresetSetupContext;
 
+export type DoublesTrainingSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  hits: number;
+  on1st: number;
+  on2nd: number;
+  on3rd: number;
+  accuracy: string;
+  misses: number;
+};
+
+export type DoublesTrainingResultsSnapshot = {
+  status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  seats: DoublesTrainingSeatResult[];
+};
+
 export type DoublesTrainingPlayContext = {
   loading: boolean;
   error: string;
@@ -950,16 +967,7 @@ export type DoublesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    hits: number;
-    on1st: number;
-    on2nd: number;
-    on3rd: number;
-    accuracy: string;
-    misses: number;
-    winningSideKey: string | null;
-    status: "COMPLETE" | "TIE";
-  } | null;
+  resultsSnapshot: DoublesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;

@@ -20,11 +20,17 @@ import {
 import { targetOrderFor } from "@lib/game/target-order";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { RulesetVersionKey } from "@lib/types";
-import type { DartObservation, DoublesTrainingState } from "@modules/types";
+import type {
+  DartObservation,
+  DoublesTrainingSeatState,
+  DoublesTrainingState,
+} from "@modules/types";
 import type {
   BoardMarker,
   DoublesPreviewSegment,
   DoublesTrainingPlayContext,
+  DoublesTrainingResultsSnapshot,
+  DoublesTrainingSeatResult,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -35,6 +41,24 @@ import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.mod
 
 const GAME_TYPE_KEY = "DOUBLES_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "DOUBLES_TRAINING_V1";
+
+function statsFor(seat: DoublesTrainingSeatState): DoublesTrainingSeatResult {
+  const hitOutcomes = seat.outcomes.filter((outcome) => outcome.hit);
+  const dartsThrown = seat.outcomes.reduce(
+    (sum, outcome) => sum + (outcome.hitDartNumber ?? 3),
+    0,
+  );
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    hits: hitOutcomes.length,
+    on1st: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 1).length,
+    on2nd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 2).length,
+    on3rd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 3).length,
+    accuracy: accuracyDisplay(hitOutcomes.length, dartsThrown),
+    misses: seat.outcomes.filter((outcome) => !outcome.hit).length,
+  };
+}
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
@@ -70,16 +94,7 @@ export function doublesTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      hits: number;
-      on1st: number;
-      on2nd: number;
-      on3rd: number;
-      accuracy: string;
-      misses: number;
-      winningSideKey: string | null;
-      status: "COMPLETE" | "TIE";
-    } | null,
+    resultsSnapshot: null as DoublesTrainingResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as DoublesTrainingEngine | null,
@@ -196,33 +211,11 @@ export function doublesTrainingPlay() {
     },
 
     uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
-      return playUploadAndCompleteSession(this, (finalState) => {
-        const ownerSeat =
-          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
-          finalState.seats[0];
-        const hitOutcomes = ownerSeat.outcomes.filter((outcome) => outcome.hit);
-        const dartsThrown = ownerSeat.outcomes.reduce(
-          (sum, outcome) => sum + (outcome.hitDartNumber ?? 3),
-          0,
-        );
-        return {
-          hits: hitOutcomes.length,
-          on1st: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 1)
-            .length,
-          on2nd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 2)
-            .length,
-          on3rd: hitOutcomes.filter((outcome) => outcome.hitDartNumber === 3)
-            .length,
-          accuracy: accuracyDisplay(hitOutcomes.length, dartsThrown),
-          misses: ownerSeat.outcomes.filter((outcome) => !outcome.hit).length,
-          winningSideKey: finalState.winningSideKey,
-          status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
-        };
-      });
+      return playUploadAndCompleteSession(this, (finalState) => ({
+        status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+        winningSideKey: finalState.winningSideKey,
+        seats: finalState.seats.map((seat) => statsFor(seat)),
+      }));
     },
 
     back(this: DoublesTrainingPlayContext) {

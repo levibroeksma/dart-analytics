@@ -1,9 +1,20 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Hits", key: "hits" },
+  { label: "On 1st", key: "on1st" },
+  { label: "On 2nd", key: "on2nd" },
+  { label: "On 3rd", key: "on3rd" },
+  { label: "Accuracy", key: "accuracy" },
+  { label: "Misses", key: "misses" },
+] as const;
 ---
 
-<ResultsModalShell>
+<ResultsModalShell showSavedMessage>
+  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
@@ -17,34 +28,6 @@ import StatRow from "@components/layout/games/StatRow.astro";
   >
   </h2>
 
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Hits"
-      value="resultsSnapshot?.hits"
-    />
-    <StatRow
-      label="On 1st"
-      value="resultsSnapshot?.on1st"
-    />
-    <StatRow
-      label="On 2nd"
-      value="resultsSnapshot?.on2nd"
-    />
-    <StatRow
-      label="On 3rd"
-      value="resultsSnapshot?.on3rd"
-    />
-    <StatRow
-      label="Accuracy"
-      value="resultsSnapshot?.accuracy"
-    />
-    <StatRow
-      label="Misses"
-      value="resultsSnapshot?.misses"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>
