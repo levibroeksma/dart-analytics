@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   BULL_TARGET_NUMBER,
   numbersPath,
@@ -470,6 +471,34 @@ export function singlesTrainingPlay() {
           statsFor(seat, finalState, this.$store.game.turns, config),
         ),
       }));
+    },
+
+    resultsTitle(this: SinglesTrainingPlayContext): string {
+      const ownerRef = this.$store.game.seats.find(
+        (seat) => seat.participantTypeKey === "PLAYER",
+      )?.participantRef;
+      const ownerResult = this.resultsSnapshot?.seats.find(
+        (seat) => seat.participantRef === ownerRef,
+      );
+
+      if (ownerResult?.status === "LOST") {
+        return this.$store.game.seats.length < 2
+          ? "Game over — missed the target"
+          : "Game over — you missed the target";
+      }
+      if (ownerResult?.status === "WON") {
+        const loser = this.$store.game.seats.find(
+          (seat) => seat.sideKey !== this.resultsSnapshot?.winningSideKey,
+        );
+        return `${loser?.displayName} missed the target — you win!`;
+      }
+      if (ownerResult?.status === "TIE") return "Tie — same points!";
+
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — highest points!` : "Session complete";
     },
 
     back(this: SinglesTrainingPlayContext) {

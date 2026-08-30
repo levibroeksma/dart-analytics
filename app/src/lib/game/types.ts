@@ -893,6 +893,7 @@ export type SinglesTrainingPlayContext = {
   ): Promise<void>;
   undoVisit(this: SinglesTrainingPlayContext): void;
   uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void>;
+  resultsTitle(this: SinglesTrainingPlayContext): string;
   back(this: SinglesTrainingPlayContext): Promise<void>;
   playAgain(this: SinglesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: SinglesTrainingPlayContext): Promise<void>;

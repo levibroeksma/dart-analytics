@@ -430,6 +430,7 @@ describe("recordTap on the BULL visit", () => {
       ],
     });
     expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 });
 
@@ -777,6 +778,7 @@ describe("completion — 1v1", () => {
     expect(play.resultsSnapshot?.seats[0]?.status).toBe("TIE");
     expect(play.resultsSnapshot?.seats[1]?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsTitle.call(play)).toBe("Tie — same points!");
   });
 
   it("names the higher-scoring seat as winner and scopes stats to the owner (PLAYER) seat", async () => {
@@ -818,6 +820,7 @@ describe("completion — 1v1", () => {
     );
     expect(opponentResult?.status).toBe("COMPLETE");
     expect(opponentResult?.points).toBe(0);
+    expect(play.resultsTitle.call(play)).toBe("Levi wins — highest points!");
   });
 });
 
@@ -843,6 +846,7 @@ describe("completion — HARD/EXTREME elimination", () => {
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot?.seats[0]?.status).toBe("LOST");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsTitle.call(play)).toBe("Game over — missed the target");
   });
 
   it("1v1: the surviving seat is WON and the failing seat is LOST, from either seat's own entry", async () => {
@@ -895,6 +899,9 @@ describe("completion — HARD/EXTREME elimination", () => {
         (s) => s.participantRef === "participant-2",
       )?.status,
     ).toBe("LOST");
+    expect(play.resultsTitle.call(play)).toBe(
+      "Opponent missed the target — you win!",
+    );
   });
 
   it("1v1: the failing seat's own owner sees status LOST", async () => {
@@ -938,6 +945,9 @@ describe("completion — HARD/EXTREME elimination", () => {
         (s) => s.participantRef === "participant-1",
       )?.status,
     ).toBe("LOST");
+    expect(play.resultsTitle.call(play)).toBe(
+      "Game over — you missed the target",
+    );
   });
 });
 
