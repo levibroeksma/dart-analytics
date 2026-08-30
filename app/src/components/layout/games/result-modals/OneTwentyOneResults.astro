@@ -10,17 +10,10 @@ const STAT_ROWS = [
 ---
 
 <ResultsModalShell showSavedMessage>
-  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
-    x-text="
-      resultsSnapshot?.status !== 'WON'
-        ? 'Session complete'
-        : (!resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-            ? '170 checked out!'
-            : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' checks out 170!'))
-    "
+    x-text="resultsTitle()"
   >
   </h2>
   <SinglePlayerSummary statRows={STAT_ROWS} />

@@ -852,6 +852,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
 
       expect(play.resultsSnapshot?.target).toBe(122);
       expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+      expect(play.resultsTitle()).toBe("Session complete");
     });
 
     it("still reports 170 and status WON for a genuine cap checkout", async () => {
@@ -873,6 +874,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
 
       expect(play.resultsSnapshot?.target).toBe(170);
       expect(play.resultsSnapshot?.status).toBe("WON");
+      expect(play.resultsTitle()).toBe("170 checked out!");
     });
 
     it("computes both seats' own visits/average/target independently in a 1v1 match", async () => {

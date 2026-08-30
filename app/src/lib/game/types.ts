@@ -745,6 +745,7 @@ export type OneTwentyOnePlayContext = {
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
+  resultsTitle(this: OneTwentyOnePlayContext): string;
   back(this: OneTwentyOnePlayContext): Promise<void>;
   playAgain(this: OneTwentyOnePlayContext): Promise<void>;
   abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;

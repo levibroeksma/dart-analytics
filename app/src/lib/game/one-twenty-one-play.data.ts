@@ -27,6 +27,7 @@ import {
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
@@ -749,6 +750,15 @@ export function oneTwentyOnePlay() {
         this.resultsSnapshot = computeStats(finalState, this.$store.game.turns);
       }
       this.completionStatus = "succeeded";
+    },
+
+    resultsTitle(this: OneTwentyOnePlayContext): string {
+      if (this.resultsSnapshot?.status !== "WON") return "Session complete";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} checks out 170!` : "170 checked out!";
     },
 
     async back(this: OneTwentyOnePlayContext) {
