@@ -17,16 +17,15 @@ const { showSavedMessage = false }: Props = Astro.props;
 // Components
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import IsLoading from "@components/ui/IsLoading.astro";
 ---
 
 <div
-  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full"
+  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full p-4"
   x-show="finished"
   x-cloak
 >
   <div
-    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm"
+    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm w-full"
   >
     <slot name="title" />
 
@@ -34,11 +33,6 @@ import IsLoading from "@components/ui/IsLoading.astro";
 
     {/* Completion status */}
     <div class="mt-4">
-      <IsLoading
-        title="Saving..."
-        x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-        x-cloak
-      />
       <div
         x-show="completionStatus === 'failed'"
         x-cloak
@@ -76,18 +70,20 @@ import IsLoading from "@components/ui/IsLoading.astro";
     />
 
     {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-    <div class="mt-6 flex justify-end gap-3">
+    <div class="mt-6 flex gap-3">
       <Button
         variant="secondary"
         @click="back()"
         :disabled="completionStatus !== 'succeeded'"
         title="Back to games"
+        grow
       />
       <Button
         @click="playAgain()"
         :disabled="completionStatus !== 'succeeded' || playAgainLoading"
         loadingExpr="playAgainLoading"
         title="Play again"
+        grow
       />
     </div>
   </div>
