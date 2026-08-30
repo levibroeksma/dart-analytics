@@ -1,5 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { singlesTrainingResultsTitle } from "@lib/game/match-result-text";
+import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
   numbersPath,
