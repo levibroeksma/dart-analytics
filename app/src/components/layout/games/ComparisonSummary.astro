@@ -1,0 +1,46 @@
+---
+import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
+
+interface Props {
+  statRows: readonly { label: string; key: string; fallback?: string }[];
+}
+
+const { statRows }: Props = Astro.props;
+
+function seatValueExpr(
+  seatIndex: 0 | 1,
+  row: (typeof statRows)[number],
+): string {
+  const base = `resultsSnapshot?.seats?.[${seatIndex}]?.${row.key}`;
+  return "fallback" in row && row.fallback !== undefined
+    ? `${base} ?? ${row.fallback}`
+    : base;
+}
+---
+
+{/* 1v1: comparison rows — stat label centered, values on either side */}
+<div
+  class="mt-4 space-y-2 text-sm"
+  x-show="completionStatus === 'succeeded' && resultsSnapshot?.seats?.length === 2"
+  x-cloak
+>
+  <div class="flex justify-between font-semibold text-accent">
+    <span
+      x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
+    ></span>
+    <span
+      x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
+    ></span>
+  </div>
+  <dl class="space-y-2">
+    {
+      statRows.map((row) => (
+        <StatRowComparison
+          label={row.label}
+          leftValue={seatValueExpr(0, row)}
+          rightValue={seatValueExpr(1, row)}
+        />
+      ))
+    }
+  </dl>
+</div>
