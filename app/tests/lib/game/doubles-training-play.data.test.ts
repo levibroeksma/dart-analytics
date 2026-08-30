@@ -462,6 +462,7 @@ describe("completion", () => {
         },
       ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 
   it("splits hits across on1st/on2nd/on3rd and divides accuracy by darts actually thrown", async () => {
@@ -619,6 +620,7 @@ describe("completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsTitle.call(play)).toBe("Tie — same doubles hit!");
   });
 
   it("names the most-doubles-hit seat as winner, with both seats' own stats present", async () => {
@@ -670,6 +672,7 @@ describe("completion — 1v1", () => {
         misses: 21,
       },
     ]);
+    expect(play.resultsTitle.call(play)).toBe("Levi wins — most doubles hit!");
   });
 });
 

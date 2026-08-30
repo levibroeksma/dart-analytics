@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
   doublesPathObservation,
@@ -216,6 +217,16 @@ export function doublesTrainingPlay() {
         winningSideKey: finalState.winningSideKey,
         seats: finalState.seats.map((seat) => statsFor(seat)),
       }));
+    },
+
+    resultsTitle(this: DoublesTrainingPlayContext): string {
+      if (this.resultsSnapshot?.status === "TIE")
+        return "Tie — same doubles hit!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — most doubles hit!` : "Session complete";
     },
 
     back(this: DoublesTrainingPlayContext) {

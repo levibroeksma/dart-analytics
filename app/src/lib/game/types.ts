@@ -1026,6 +1026,7 @@ export type DoublesTrainingPlayContext = {
   ): Promise<void>;
   undoVisit(this: DoublesTrainingPlayContext): void;
   uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void>;
+  resultsTitle(this: DoublesTrainingPlayContext): string;
   back(this: DoublesTrainingPlayContext): Promise<void>;
   playAgain(this: DoublesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: DoublesTrainingPlayContext): Promise<void>;
