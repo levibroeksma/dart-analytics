@@ -649,13 +649,26 @@ export type FiveOhOnePlayContext = {
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };
 
-/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES session that stopped without reaching the cap reports `"COMPLETE"`. */
-export type OneTwentyOneResultsSnapshot = {
+/** `target` is each seat's own current ladder position at completion. */
+export type OneTwentyOneSeatResult = {
+  participantRef: string;
+  sideKey: string;
   target: number;
   visits: number;
   average: number;
-  winningSideKey: string | null;
+};
+
+/** `attempt` is 1-indexed: which attempt at the winning target succeeded —
+ * always the attempt whose 3rd-or-earlier visit checked out at 170.
+ * `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES
+ * session that stopped without reaching the cap reports `"COMPLETE"`. `seats`
+ * has one entry per configured seat (1 for solo, 2 for 1v1), in
+ * `$store.game.seats` order. */
+export type OneTwentyOneResultsSnapshot = {
+  target: number;
   status: "WON" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: OneTwentyOneSeatResult[];
 };
 
 export type OneTwentyOnePlayContext = {

@@ -1,9 +1,16 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Visits", key: "visits" },
+  { label: "Average", key: "average.toFixed(2)" },
+] as const;
 ---
 
 <ResultsModalShell showSavedMessage>
+  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
@@ -16,19 +23,6 @@ import StatRow from "@components/layout/games/StatRow.astro";
     "
   >
   </h2>
-
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Visits"
-      value="resultsSnapshot?.visits"
-    />
-    <StatRow
-      label="Average"
-      value="resultsSnapshot?.average.toFixed(1)"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

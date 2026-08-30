@@ -27,12 +27,13 @@ import {
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
   EngineFacts,
+  OneTwentyOneSeatState,
   OneTwentyOneState,
   TurnFact,
 } from "@modules/types";
@@ -40,6 +41,8 @@ import type {
   BoardMarker,
   OneTwentyOneDurationType,
   OneTwentyOnePlayContext,
+  OneTwentyOneResultsSnapshot,
+  OneTwentyOneSeatResult,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -90,17 +93,6 @@ function currentFacts(context: OneTwentyOnePlayContext): EngineFacts {
       stages: context.$store.game.stages,
       turns: context.$store.game.turns,
     }
-  );
-}
-
-/**
- * The seat this session belongs to — the one PLAYER participant. Mirrors
- * `five-oh-one-play.data.ts`'s `ownerRef`.
- */
-function ownerRef(seats: readonly SeatFact[]): string | null {
-  return (
-    seats.find((seat) => seat.participantTypeKey === "PLAYER")
-      ?.participantRef ?? null
   );
 }
 
@@ -266,30 +258,32 @@ function resetForReplay(
   context.hasActiveSession = true;
 }
 
+function statsFor(
+  seat: OneTwentyOneSeatState,
+  turns: readonly TurnFact[],
+): OneTwentyOneSeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
+  const total = seatTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    target: seat.currentTarget,
+    visits: seatTurns.length,
+    average: seatTurns.length === 0 ? 0 : total / seatTurns.length,
+  };
+}
+
 function computeStats(
   state: OneTwentyOneState,
-  turns: TurnFact[],
-  owner: string | null,
-): {
-  target: number;
-  visits: number;
-  average: number;
-  winningSideKey: string | null;
-  status: "WON" | "COMPLETE";
-} {
-  const ownerTurns =
-    owner === null
-      ? turns
-      : turns.filter((turn) => turn.participantRef === owner);
-  const total = ownerTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
-  const ownerSeat =
-    state.seats.find((seat) => seat.participantRef === owner) ?? state.seats[0];
+  turns: readonly TurnFact[],
+): OneTwentyOneResultsSnapshot {
   return {
-    target: ownerSeat.currentTarget,
-    visits: ownerTurns.length,
-    average: ownerTurns.length === 0 ? 0 : total / ownerTurns.length,
+    target: state.seats[0].currentTarget,
     winningSideKey: state.winningSideKey,
     status: state.status === "WON" ? "WON" : "COMPLETE",
+    seats: state.seats.map((seat) => statsFor(seat, turns)),
   };
 }
 
@@ -315,13 +309,7 @@ export function oneTwentyOnePlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      target: number;
-      visits: number;
-      average: number;
-      winningSideKey: string | null;
-      status: "WON" | "COMPLETE";
-    } | null,
+    resultsSnapshot: null as OneTwentyOneResultsSnapshot | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
@@ -758,11 +746,7 @@ export function oneTwentyOnePlay() {
 
       const finalState = this.state();
       if (finalState) {
-        this.resultsSnapshot = computeStats(
-          finalState,
-          this.$store.game.turns,
-          ownerRef(this.$store.game.seats),
-        );
+        this.resultsSnapshot = computeStats(finalState, this.$store.game.turns);
       }
       this.completionStatus = "succeeded";
     },
