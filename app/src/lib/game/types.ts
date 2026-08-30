@@ -1056,13 +1056,28 @@ export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats finished in the same number of darts — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
-export type AroundTheClockResultsSnapshot = {
+/** One seat's own results stats, replayed from its own completed turns.
+ * `accuracy` is genuine target hits over darts thrown, formatted as a
+ * percentage rounded to 2 decimals. */
+export type AroundTheClockSeatResult = {
+  participantRef: string;
+  sideKey: string;
   turns: number;
   accuracy: string;
   totalDarts: number;
-  winningSideKey: string | null;
+};
+
+/** `winningSideKey` is score-compare (fewest darts) resolved by the engine;
+ * `null` for a solo session or a TIE. `status` mirrors the engine's own
+ * completion state: `COMPLETE` for a solo session or a decided 1v1 match,
+ * `TIE` when both seats finished in the same number of darts — the only way
+ * callers can tell a genuine tie apart from a solo session, since both leave
+ * `winningSideKey` `null`. `seats` has one entry per configured seat (1 for
+ * solo, 2 for 1v1), in `$store.game.seats` order. */
+export type AroundTheClockResultsSnapshot = {
   status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  seats: AroundTheClockSeatResult[];
 };
 
 export type AroundTheClockPlayContext = {

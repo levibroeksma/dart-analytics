@@ -33,6 +33,7 @@ import type {
 import type {
   AroundTheClockPlayContext,
   AroundTheClockPreviewSegment,
+  AroundTheClockSeatResult,
   BoardMarker,
 } from "./types";
 
@@ -114,6 +115,25 @@ function countHits(
 
 function countDarts(turns: readonly TurnFact[]): number {
   return turns.reduce((total, turn) => total + turn.darts.length, 0);
+}
+
+function statsFor(
+  seat: AroundTheClockSeatState,
+  turns: readonly TurnFact[],
+  config: Seated<AroundTheClockSnapshot> | null,
+): AroundTheClockSeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    turns: seatTurns.length,
+    accuracy: config
+      ? accuracyDisplay(countHits(config, seatTurns), countDarts(seatTurns))
+      : "0.00%",
+    totalDarts: countDarts(seatTurns),
+  };
 }
 
 function resumeEngine(
@@ -298,29 +318,13 @@ export function aroundTheClockPlay() {
     },
 
     uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
-      const state = this.state();
       const config = this.$store.game.configSnapshot;
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
-      const ownerTurns =
-        ownerRef === null
-          ? this.$store.game.turns
-          : this.$store.game.turns.filter(
-              (turn) => turn.participantRef === ownerRef,
-            );
-      return playUploadAndCompleteSession(this, () => ({
-        turns: ownerTurns.length,
-        accuracy: config
-          ? accuracyDisplay(
-              countHits(config, ownerTurns),
-              countDarts(ownerTurns),
-            )
-          : "0.00%",
-        totalDarts: countDarts(ownerTurns),
-        winningSideKey: state?.winningSideKey ?? null,
-        status: (state?.status ?? "COMPLETE") as "COMPLETE" | "TIE",
+      return playUploadAndCompleteSession(this, (finalState) => ({
+        winningSideKey: finalState.winningSideKey,
+        status: (finalState.status ?? "COMPLETE") as "COMPLETE" | "TIE",
+        seats: finalState.seats.map((seat) =>
+          statsFor(seat, this.$store.game.turns, config),
+        ),
       }));
     },
 
