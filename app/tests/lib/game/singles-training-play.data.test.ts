@@ -414,14 +414,20 @@ describe("recordTap on the BULL visit", () => {
     expect(play.finished).toBe(true);
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.resultsSnapshot).toEqual({
-      points: 63, // 60 + 1 + 2 + 0
-      misses: 1,
-      singles: 61, // 60 prior number-target singles + 1 OUTER_BULL
-      doubles: 1, // 1 INNER_BULL
-      trebles: 0,
-      accuracy: "98.41%", // (62/63 * 100).toFixed(2)
       winningSideKey: null,
-      status: "COMPLETE",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          points: 63, // 60 + 1 + 2 + 0
+          misses: 1,
+          singles: 61, // 60 prior number-target singles + 1 OUTER_BULL
+          doubles: 1, // 1 INNER_BULL
+          trebles: 0,
+          accuracy: "98.41%", // (62/63 * 100).toFixed(2)
+          status: "COMPLETE",
+        },
+      ],
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -677,14 +683,20 @@ describe("completion", () => {
     await play.recordTap.call(play, "MISS");
 
     expect(play.resultsSnapshot).toEqual({
-      points: 62, // 60 + 0 (off-target) + 2 + 0
-      misses: 2, // 1 off-target + 1 literal miss
-      singles: 60, // prior number-target singles only
-      doubles: 1, // 1 INNER_BULL
-      trebles: 0,
-      accuracy: "96.83%", // (61/63 * 100).toFixed(2)
       winningSideKey: null,
-      status: "COMPLETE",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          points: 62, // 60 + 0 (off-target) + 2 + 0
+          misses: 2, // 1 off-target + 1 literal miss
+          singles: 60, // prior number-target singles only
+          doubles: 1, // 1 INNER_BULL
+          trebles: 0,
+          accuracy: "96.83%", // (61/63 * 100).toFixed(2)
+          status: "COMPLETE",
+        },
+      ],
     });
   });
 
@@ -703,14 +715,20 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot).toEqual({
-      points: 0,
-      misses: 0,
-      singles: 0,
-      doubles: 0,
-      trebles: 0,
-      accuracy: "0.00%",
       winningSideKey: null,
-      status: "COMPLETE",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          points: 0,
+          misses: 0,
+          singles: 0,
+          doubles: 0,
+          trebles: 0,
+          accuracy: "0.00%",
+          status: "COMPLETE",
+        },
+      ],
     });
   });
 });
@@ -756,7 +774,8 @@ describe("completion — 1v1", () => {
 
     expect(play.finished).toBe(true);
     expect(play.completionStatus).toBe("succeeded");
-    expect(play.resultsSnapshot?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.seats[0]?.status).toBe("TIE");
+    expect(play.resultsSnapshot?.seats[1]?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
   });
 
@@ -787,10 +806,18 @@ describe("completion — 1v1", () => {
 
     expect(play.finished).toBe(true);
     expect(play.completionStatus).toBe("succeeded");
-    expect(play.resultsSnapshot?.status).toBe("COMPLETE");
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
-    expect(play.resultsSnapshot?.points).toBeGreaterThan(0);
-    expect(play.resultsSnapshot?.misses).toBe(0);
+    const ownerResult = play.resultsSnapshot?.seats.find(
+      (seat) => seat.participantRef === "participant-1",
+    );
+    expect(ownerResult?.status).toBe("COMPLETE");
+    expect(ownerResult?.points).toBeGreaterThan(0);
+    expect(ownerResult?.misses).toBe(0);
+    const opponentResult = play.resultsSnapshot?.seats.find(
+      (seat) => seat.participantRef === "participant-2",
+    );
+    expect(opponentResult?.status).toBe("COMPLETE");
+    expect(opponentResult?.points).toBe(0);
   });
 });
 
@@ -814,11 +841,11 @@ describe("completion — HARD/EXTREME elimination", () => {
     await play.recordTap.call(play, "MISS");
 
     expect(play.finished).toBe(true);
-    expect(play.resultsSnapshot?.status).toBe("LOST");
+    expect(play.resultsSnapshot?.seats[0]?.status).toBe("LOST");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
   });
 
-  it("1v1: the surviving seat's owner sees status WON when the opponent fails under HARD", async () => {
+  it("1v1: the surviving seat is WON and the failing seat is LOST, from either seat's own entry", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 2, darts: 6 },
     });
@@ -857,8 +884,17 @@ describe("completion — HARD/EXTREME elimination", () => {
     await play.recordTap.call(play, "MISS");
 
     expect(play.finished).toBe(true);
-    expect(play.resultsSnapshot?.status).toBe("WON");
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(
+      play.resultsSnapshot?.seats.find(
+        (s) => s.participantRef === "participant-1",
+      )?.status,
+    ).toBe("WON");
+    expect(
+      play.resultsSnapshot?.seats.find(
+        (s) => s.participantRef === "participant-2",
+      )?.status,
+    ).toBe("LOST");
   });
 
   it("1v1: the failing seat's own owner sees status LOST", async () => {
@@ -897,7 +933,11 @@ describe("completion — HARD/EXTREME elimination", () => {
     await play.recordTap.call(play, "MISS");
 
     expect(play.finished).toBe(true);
-    expect(play.resultsSnapshot?.status).toBe("LOST");
+    expect(
+      play.resultsSnapshot?.seats.find(
+        (s) => s.participantRef === "participant-1",
+      )?.status,
+    ).toBe("LOST");
   });
 });
 

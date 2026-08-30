@@ -804,6 +804,27 @@ export type Bobs27PlayContext = {
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */
 export type SinglesPreviewSegment = { status: "hit" | "miss" | "empty" };
 
+/** `status` is this seat's own outcome — asymmetric under HARD/EXTREME
+ * elimination, where one seat can read `"LOST"` while the other reads
+ * `"WON"` from the same match. `"COMPLETE"`/`"TIE"` are score-compare
+ * outcomes and always agree between both seats. */
+export type SinglesTrainingSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  points: number;
+  misses: number;
+  singles: number;
+  doubles: number;
+  trebles: number;
+  accuracy: string;
+  status: "COMPLETE" | "TIE" | "WON" | "LOST";
+};
+
+export type SinglesTrainingResultsSnapshot = {
+  winningSideKey: string | null;
+  seats: SinglesTrainingSeatResult[];
+};
+
 export type SinglesTrainingPlayContext = {
   loading: boolean;
   error: string;
@@ -815,16 +836,7 @@ export type SinglesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    points: number;
-    misses: number;
-    singles: number;
-    doubles: number;
-    trebles: number;
-    accuracy: string;
-    winningSideKey: string | null;
-    status: "COMPLETE" | "TIE" | "WON" | "LOST";
-  } | null;
+  resultsSnapshot: SinglesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot | SinglesV2Snapshot>;

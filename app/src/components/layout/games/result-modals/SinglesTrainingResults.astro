@@ -1,9 +1,22 @@
 ---
+// Components
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+// Data
+const STAT_ROWS = [
+  { label: "Total points", key: "points" },
+  { label: "Darts missed", key: "misses" },
+  { label: "Singles hit", key: "singles" },
+  { label: "Doubles hit", key: "doubles" },
+  { label: "Trebles hit", key: "trebles" },
+  { label: "Accuracy", key: "accuracy" },
+] as const;
 ---
 
-<ResultsModalShell>
+<ResultsModalShell showSavedMessage>
+  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
@@ -23,34 +36,6 @@ import StatRow from "@components/layout/games/StatRow.astro";
   >
   </h2>
 
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Total points"
-      value="resultsSnapshot?.points"
-    />
-    <StatRow
-      label="Darts missed"
-      value="resultsSnapshot?.misses"
-    />
-    <StatRow
-      label="Singles hit"
-      value="resultsSnapshot?.singles"
-    />
-    <StatRow
-      label="Doubles hit"
-      value="resultsSnapshot?.doubles"
-    />
-    <StatRow
-      label="Trebles hit"
-      value="resultsSnapshot?.trebles"
-    />
-    <StatRow
-      label="Accuracy"
-      value="resultsSnapshot?.accuracy"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>
