@@ -304,20 +304,34 @@ export type ScoreTrainingPlayContext = {
   ): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
+  resultsTitle(this: ScoreTrainingPlayContext): string;
   back(this: ScoreTrainingPlayContext): Promise<void>;
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   abandonAndExit(this: ScoreTrainingPlayContext): Promise<void>;
   destroy(this: ScoreTrainingPlayContext): void;
 };
 
-/** `winningSideKey` is score-compare (highest target) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats reached the same target — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
-export type TuodResultsSnapshot = {
+export type TuodSeatResult = {
+  participantRef: string;
+  sideKey: string;
   target: number;
   attempts: number;
   successes: number;
   failures: number;
+};
+
+/** `winningSideKey` is score-compare (highest target) resolved by the
+ * engine; `null` for a solo session or a TIE. `status` mirrors the engine's
+ * own completion state, collapsed to just the two outcomes a finished
+ * session can report: `COMPLETE` for a solo session or a decided 1v1 match,
+ * `TIE` when both seats reached the same target — the only way callers can
+ * tell a genuine tie apart from a solo session, since both leave
+ * `winningSideKey` `null`. `seats` has one entry per configured seat (1 for
+ * solo, 2 for 1v1), in `$store.game.seats` order. */
+export type TuodResultsSnapshot = {
   winningSideKey: string | null;
   status: "COMPLETE" | "TIE";
+  seats: TuodSeatResult[];
 };
 
 export type TuodPlayContext = {
@@ -369,6 +383,7 @@ export type TuodPlayContext = {
   cancelFinish(this: TuodPlayContext): void;
   undoVisit(this: TuodPlayContext): void;
   uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
+  resultsTitle(this: TuodPlayContext): string;
   back(this: TuodPlayContext): Promise<void>;
   playAgain(this: TuodPlayContext): Promise<void>;
   abandonAndExit(this: TuodPlayContext): Promise<void>;
@@ -644,18 +659,32 @@ export type FiveOhOnePlayContext = {
   ): Promise<void>;
   undoVisit(this: FiveOhOnePlayContext): void;
   uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
+  resultsTitle(this: FiveOhOnePlayContext): string;
   back(this: FiveOhOnePlayContext): Promise<void>;
   playAgain(this: FiveOhOnePlayContext): Promise<void>;
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
 };
 
-/** `attempt` is 1-indexed: which attempt at the winning target succeeded — always the attempt whose 3rd-or-earlier visit checked out at 170. `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES session that stopped without reaching the cap reports `"COMPLETE"`. */
-export type OneTwentyOneResultsSnapshot = {
+/** `target` is each seat's own current ladder position at completion. */
+export type OneTwentyOneSeatResult = {
+  participantRef: string;
+  sideKey: string;
   target: number;
   visits: number;
   average: number;
-  winningSideKey: string | null;
+};
+
+/** `attempt` is 1-indexed: which attempt at the winning target succeeded —
+ * always the attempt whose 3rd-or-earlier visit checked out at 170.
+ * `status` is `"WON"` only for a genuine cap-170 checkout; a ROUNDS/MINUTES
+ * session that stopped without reaching the cap reports `"COMPLETE"`. `seats`
+ * has one entry per configured seat (1 for solo, 2 for 1v1), in
+ * `$store.game.seats` order. */
+export type OneTwentyOneResultsSnapshot = {
+  target: number;
   status: "WON" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: OneTwentyOneSeatResult[];
 };
 
 export type OneTwentyOnePlayContext = {
@@ -718,6 +747,7 @@ export type OneTwentyOnePlayContext = {
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
+  resultsTitle(this: OneTwentyOnePlayContext): string;
   back(this: OneTwentyOnePlayContext): Promise<void>;
   playAgain(this: OneTwentyOnePlayContext): Promise<void>;
   abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;
@@ -726,6 +756,26 @@ export type OneTwentyOnePlayContext = {
 
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */
 export type Bobs27PreviewSegment = { status: "hit" | "miss" | "empty" };
+
+export type Bobs27SeatResult = {
+  participantRef: string;
+  sideKey: string;
+  score: number;
+  darts: number;
+  doubleHitRate: string;
+  highestNumberReached: string;
+};
+
+/** `status` mirrors the match-level `Bobs27State.status`, not any one seat's
+ * own per-seat status — a seat that wins because its opponent busted first
+ * never itself transitions to `"WON"`, so match-level status is the only
+ * correct source for this field in a 1v1 session. `seats` has one entry per
+ * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
+export type Bobs27ResultsSnapshot = {
+  status: "WON" | "LOST" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: Bobs27SeatResult[];
+};
 
 export type Bobs27PlayContext = {
   loading: boolean;
@@ -738,14 +788,7 @@ export type Bobs27PlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    status: "WON" | "LOST";
-    score: number;
-    darts: number;
-    doubleHitRate: string;
-    highestNumberReached: string;
-    winningSideKey: string | null;
-  } | null;
+  resultsSnapshot: Bobs27ResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<Bobs27Snapshot>;
@@ -770,6 +813,7 @@ export type Bobs27PlayContext = {
   ): Promise<void>;
   undoVisit(this: Bobs27PlayContext): void;
   uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void>;
+  resultsTitle(this: Bobs27PlayContext): string;
   back(this: Bobs27PlayContext): Promise<void>;
   playAgain(this: Bobs27PlayContext): Promise<void>;
   abandonAndExit(this: Bobs27PlayContext): Promise<void>;
@@ -777,6 +821,27 @@ export type Bobs27PlayContext = {
 
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */
 export type SinglesPreviewSegment = { status: "hit" | "miss" | "empty" };
+
+/** `status` is this seat's own outcome — asymmetric under HARD/EXTREME
+ * elimination, where one seat can read `"LOST"` while the other reads
+ * `"WON"` from the same match. `"COMPLETE"`/`"TIE"` are score-compare
+ * outcomes and always agree between both seats. */
+export type SinglesTrainingSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  points: number;
+  misses: number;
+  singles: number;
+  doubles: number;
+  trebles: number;
+  accuracy: string;
+  status: "COMPLETE" | "TIE" | "WON" | "LOST";
+};
+
+export type SinglesTrainingResultsSnapshot = {
+  winningSideKey: string | null;
+  seats: SinglesTrainingSeatResult[];
+};
 
 export type SinglesTrainingPlayContext = {
   loading: boolean;
@@ -789,16 +854,7 @@ export type SinglesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    points: number;
-    misses: number;
-    singles: number;
-    doubles: number;
-    trebles: number;
-    accuracy: string;
-    winningSideKey: string | null;
-    status: "COMPLETE" | "TIE" | "WON" | "LOST";
-  } | null;
+  resultsSnapshot: SinglesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<SinglesSnapshot | SinglesV2Snapshot>;
@@ -838,6 +894,7 @@ export type SinglesTrainingPlayContext = {
   ): Promise<void>;
   undoVisit(this: SinglesTrainingPlayContext): void;
   uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void>;
+  resultsTitle(this: SinglesTrainingPlayContext): string;
   back(this: SinglesTrainingPlayContext): Promise<void>;
   playAgain(this: SinglesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: SinglesTrainingPlayContext): Promise<void>;
@@ -913,6 +970,23 @@ export type OneTwentyOneSetupContext = {
 
 export type AroundTheClockSetupContext = PresetSetupContext;
 
+export type DoublesTrainingSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  hits: number;
+  on1st: number;
+  on2nd: number;
+  on3rd: number;
+  accuracy: string;
+  misses: number;
+};
+
+export type DoublesTrainingResultsSnapshot = {
+  status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  seats: DoublesTrainingSeatResult[];
+};
+
 export type DoublesTrainingPlayContext = {
   loading: boolean;
   error: string;
@@ -924,16 +998,7 @@ export type DoublesTrainingPlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    hits: number;
-    on1st: number;
-    on2nd: number;
-    on3rd: number;
-    accuracy: string;
-    misses: number;
-    winningSideKey: string | null;
-    status: "COMPLETE" | "TIE";
-  } | null;
+  resultsSnapshot: DoublesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
@@ -963,6 +1028,7 @@ export type DoublesTrainingPlayContext = {
   ): Promise<void>;
   undoVisit(this: DoublesTrainingPlayContext): void;
   uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void>;
+  resultsTitle(this: DoublesTrainingPlayContext): string;
   back(this: DoublesTrainingPlayContext): Promise<void>;
   playAgain(this: DoublesTrainingPlayContext): Promise<void>;
   abandonAndExit(this: DoublesTrainingPlayContext): Promise<void>;
@@ -1046,6 +1112,7 @@ export type ShanghaiPlayContext = {
   ): Promise<void>;
   undoVisit(this: ShanghaiPlayContext): void;
   uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void>;
+  resultsTitle(this: ShanghaiPlayContext): string;
   back(this: ShanghaiPlayContext): Promise<void>;
   playAgain(this: ShanghaiPlayContext): Promise<void>;
   abandonAndExit(this: ShanghaiPlayContext): Promise<void>;
@@ -1056,13 +1123,28 @@ export type AroundTheClockPreviewSegment = {
   status: "hit" | "miss" | "empty";
 };
 
-/** `turns` is the number of visits the session took to complete. `accuracy`/`totalDarts` are folded from the fact log at completion time, never accumulated by the engine. `accuracy` is genuine target hits over darts thrown, formatted as a percentage rounded to 2 decimals. `winningSideKey` is score-compare (fewest darts) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats finished in the same number of darts — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
-export type AroundTheClockResultsSnapshot = {
+/** One seat's own results stats, replayed from its own completed turns.
+ * `accuracy` is genuine target hits over darts thrown, formatted as a
+ * percentage rounded to 2 decimals. */
+export type AroundTheClockSeatResult = {
+  participantRef: string;
+  sideKey: string;
   turns: number;
   accuracy: string;
   totalDarts: number;
-  winningSideKey: string | null;
+};
+
+/** `winningSideKey` is score-compare (fewest darts) resolved by the engine;
+ * `null` for a solo session or a TIE. `status` mirrors the engine's own
+ * completion state: `COMPLETE` for a solo session or a decided 1v1 match,
+ * `TIE` when both seats finished in the same number of darts — the only way
+ * callers can tell a genuine tie apart from a solo session, since both leave
+ * `winningSideKey` `null`. `seats` has one entry per configured seat (1 for
+ * solo, 2 for 1v1), in `$store.game.seats` order. */
+export type AroundTheClockResultsSnapshot = {
   status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  seats: AroundTheClockSeatResult[];
 };
 
 export type AroundTheClockPlayContext = {
@@ -1115,6 +1197,7 @@ export type AroundTheClockPlayContext = {
   ): Promise<void>;
   undoVisit(this: AroundTheClockPlayContext): void;
   uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void>;
+  resultsTitle(this: AroundTheClockPlayContext): string;
   back(this: AroundTheClockPlayContext): Promise<void>;
   playAgain(this: AroundTheClockPlayContext): Promise<void>;
   abandonAndExit(this: AroundTheClockPlayContext): Promise<void>;

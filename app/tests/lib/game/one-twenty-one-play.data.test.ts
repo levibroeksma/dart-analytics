@@ -713,10 +713,17 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
       const play = createPlay({
         resultsSnapshot: {
           target: 130,
-          visits: 5,
-          average: 40,
           winningSideKey: null,
           status: "COMPLETE",
+          seats: [
+            {
+              participantRef: "participant-1",
+              sideKey: "A",
+              target: 130,
+              visits: 5,
+              average: 40,
+            },
+          ],
         },
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -741,10 +748,17 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
       const play = createPlay({
         resultsSnapshot: {
           target: 170,
-          visits: 5,
-          average: 40,
           winningSideKey: null,
           status: "WON",
+          seats: [
+            {
+              participantRef: "participant-1",
+              sideKey: "A",
+              target: 170,
+              visits: 5,
+              average: 40,
+            },
+          ],
         },
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -838,6 +852,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
 
       expect(play.resultsSnapshot?.target).toBe(122);
       expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+      expect(play.resultsTitle()).toBe("Session complete");
     });
 
     it("still reports 170 and status WON for a genuine cap checkout", async () => {
@@ -859,6 +874,43 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
 
       expect(play.resultsSnapshot?.target).toBe(170);
       expect(play.resultsSnapshot?.status).toBe("WON");
+      expect(play.resultsTitle()).toBe("170 checked out!");
+    });
+
+    it("computes both seats' own visits/average/target independently in a 1v1 match", async () => {
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-08-14T10:00:00Z",
+      });
+      store.game.configSnapshot = { seats: TWO_SEATS } as any;
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(
+        store.game.configSnapshot as any,
+      ) as any;
+      play.engine!.record({ scoreAttempted: 100, finishedOnDouble: false });
+      play.engine!.record({ scoreAttempted: 80, finishedOnDouble: false });
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.seats).toEqual([
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          target: 121,
+          visits: 1,
+          average: 100,
+        },
+        {
+          participantRef: "participant-2",
+          sideKey: "B",
+          target: 121,
+          visits: 1,
+          average: 80,
+        },
+      ]);
     });
   });
 });

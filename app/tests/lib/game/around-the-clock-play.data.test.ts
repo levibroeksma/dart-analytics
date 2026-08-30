@@ -288,13 +288,20 @@ describe("session completion on BULL", () => {
 
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
-      turns: 21,
-      accuracy: "34.43%",
-      totalDarts: 61,
       winningSideKey: null,
       status: "COMPLETE",
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          turns: 21,
+          accuracy: "34.43%",
+          totalDarts: 61,
+        },
+      ],
     });
     expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 });
 
@@ -341,6 +348,98 @@ describe("session completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        turns: 7,
+        accuracy: "100.00%",
+        totalDarts: 21,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        turns: 7,
+        accuracy: "100.00%",
+        totalDarts: 21,
+      },
+    ]);
+    expect(play.resultsTitle.call(play)).toBe("Tie — same darts!");
+  });
+
+  it("scopes each seat's own turns/accuracy/totalDarts independently, including the losing seat", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 2, turns: 2, darts: 4 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: "block-1",
+          participantRef: "participant-1",
+          sequence: 1,
+          completedAt: "2026-08-01T10:00:00.000Z",
+          totalScore: 0,
+          darts: [
+            {
+              sequence: 1,
+              intendedTargetNumber: 1,
+              intendedZoneKey: "DOUBLE",
+              hitTargetNumber: 1,
+              hitZoneKey: "SINGLE",
+              score: 1,
+              locationX: null,
+              locationY: null,
+            },
+          ],
+        },
+        {
+          clientKey: "t2",
+          stageClientKey: "block-1",
+          participantRef: "participant-2",
+          sequence: 1,
+          completedAt: "2026-08-01T10:00:01.000Z",
+          totalScore: 0,
+          darts: [
+            {
+              sequence: 1,
+              intendedTargetNumber: 1,
+              intendedZoneKey: "DOUBLE",
+              hitTargetNumber: 5,
+              hitZoneKey: "SINGLE",
+              score: 5,
+              locationX: null,
+              locationY: null,
+            },
+          ],
+        },
+      ],
+    });
+    await play.init.call(play);
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        turns: 1,
+        accuracy: "100.00%",
+        totalDarts: 1,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        turns: 1,
+        accuracy: "0.00%",
+        totalDarts: 1,
+      },
+    ]);
   });
 });
 

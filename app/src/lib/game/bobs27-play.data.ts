@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
   doublesPathObservation,
@@ -19,9 +20,19 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
-import type { Bobs27State, DartObservation, TurnFact } from "@modules/types";
+import type {
+  Bobs27SeatState,
+  Bobs27State,
+  DartObservation,
+  TurnFact,
+} from "@modules/types";
 import type { BoardMarker } from "./types";
-import type { Bobs27PlayContext, Bobs27PreviewSegment } from "./types";
+import type {
+  Bobs27PlayContext,
+  Bobs27PreviewSegment,
+  Bobs27ResultsSnapshot,
+  Bobs27SeatResult,
+} from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
@@ -32,27 +43,15 @@ import { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 const GAME_TYPE_KEY = "BOBS27";
 const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
 
-function computeStats(
-  state: Bobs27State,
+function statsFor(
+  seat: Bobs27SeatState,
   turns: readonly TurnFact[],
-  ownerRef: string | null,
-): {
-  status: "WON" | "LOST";
-  score: number;
-  darts: number;
-  doubleHitRate: string;
-  highestNumberReached: string;
-  winningSideKey: string | null;
-} {
-  const ownerTurns =
-    ownerRef === null
-      ? turns
-      : turns.filter((turn) => turn.participantRef === ownerRef);
-  const ownerSeat =
-    state.seats.find((seat) => seat.participantRef === ownerRef) ??
-    state.seats[0];
-  const darts = ownerTurns.reduce((sum, turn) => sum + turn.darts.length, 0);
-  const hits = ownerTurns.reduce(
+): Bobs27SeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
+  const darts = seatTurns.reduce((sum, turn) => sum + turn.darts.length, 0);
+  const hits = seatTurns.reduce(
     (sum, turn) =>
       sum +
       turn.darts.filter(
@@ -63,28 +62,26 @@ function computeStats(
     0,
   );
   return {
-    status: ownerSeat.status === "WON" ? "WON" : "LOST",
-    score: ownerSeat.score,
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    score: seat.score,
     darts,
     doubleHitRate: accuracyDisplay(hits, darts),
     highestNumberReached: doublesPathTargetLabel(
-      targetAt(doublesPath(), ownerSeat.targetIndex),
+      targetAt(doublesPath(), seat.targetIndex),
     ),
-    winningSideKey: state.winningSideKey,
   };
 }
 
-/**
- * The seat this session belongs to — the one PLAYER participant. Mirrors
- * `five-oh-one-play.data.ts`'s `ownerRef`.
- */
-function ownerRef(
-  seats: readonly { participantRef: string; participantTypeKey: string }[],
-): string | null {
-  return (
-    seats.find((seat) => seat.participantTypeKey === "PLAYER")
-      ?.participantRef ?? null
-  );
+function computeStats(
+  state: Bobs27State,
+  turns: readonly TurnFact[],
+): Bobs27ResultsSnapshot {
+  return {
+    status: state.status as "WON" | "LOST" | "COMPLETE",
+    winningSideKey: state.winningSideKey,
+    seats: state.seats.map((seat) => statsFor(seat, turns)),
+  };
 }
 
 /**
@@ -126,14 +123,7 @@ export function bobs27Play() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      status: "WON" | "LOST";
-      score: number;
-      darts: number;
-      doubleHitRate: string;
-      highestNumberReached: string;
-      winningSideKey: string | null;
-    } | null,
+    resultsSnapshot: null as Bobs27ResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as Bobs27Engine | null,
@@ -223,10 +213,18 @@ export function bobs27Play() {
     },
 
     uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void> {
-      const owner = ownerRef(this.$store.game.seats);
       return playUploadAndCompleteSession(this, (finalState) =>
-        computeStats(finalState, this.$store.game.turns, owner),
+        computeStats(finalState, this.$store.game.turns),
       );
+    },
+
+    resultsTitle(this: Bobs27PlayContext): string {
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      if (winner) return `${winner} wins!`;
+      return this.resultsSnapshot?.status === "LOST" ? "Game over!" : "Winner!";
     },
 
     back(this: Bobs27PlayContext) {

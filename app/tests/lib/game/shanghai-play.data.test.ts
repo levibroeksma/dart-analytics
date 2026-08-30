@@ -321,6 +321,7 @@ describe("recordTap", () => {
       ],
     });
     expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsTitle.call(play)).toBe("Shanghai!");
   });
 
   it("MISS adds 0 and still counts toward the 3-dart visit", async () => {
@@ -369,6 +370,7 @@ describe("completion at round 20", () => {
         },
       ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 
   it("reports SHANGHAI, not COMPLETE, when round 20 itself is a Shanghai", async () => {
@@ -403,6 +405,7 @@ describe("completion at round 20", () => {
         },
       ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Shanghai!");
   });
 });
 
@@ -502,6 +505,7 @@ describe("session completion — 1v1", () => {
         },
       ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Levi hits a Shanghai!");
   });
 
   it("marks status TIE, with winningSideKey null, when both seats finish with the same score and no Shanghai", async () => {
@@ -548,6 +552,7 @@ describe("session completion — 1v1", () => {
         singles: 0,
       },
     ]);
+    expect(play.resultsTitle.call(play)).toBe("Tie — same score!");
   });
 
   it("names the higher-scoring seat the winner once both complete all 20 rounds without a Shanghai", async () => {
@@ -600,6 +605,7 @@ describe("session completion — 1v1", () => {
         singles: 0,
       },
     ]);
+    expect(play.resultsTitle.call(play)).toBe("Levi wins!");
   });
 });
 

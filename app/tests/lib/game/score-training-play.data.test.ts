@@ -879,6 +879,7 @@ describe("scoreTrainingPlay", () => {
           },
         ],
       });
+      expect(play.resultsTitle()).toBe("Game Summary");
     });
 
     it("1v1: both seats get their own independently-scoped stats, including the losing seat", async () => {

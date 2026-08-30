@@ -1,0 +1,43 @@
+---
+import StatRow from "@components/layout/games/StatRow.astro";
+import StatRowSkeleton from "@components/layout/games/StatRowSkeleton.astro";
+
+interface Props {
+  statRows: readonly { label: string; key: string; fallback?: string }[];
+  seatIndex?: number;
+}
+
+const { statRows, seatIndex = 0 }: Props = Astro.props;
+
+function seatValueExpr(row: (typeof statRows)[number]): string {
+  const base = `resultsSnapshot?.seats?.[${seatIndex}]?.${row.key}`;
+  return "fallback" in row && row.fallback !== undefined
+    ? `${base} ?? ${row.fallback}`
+    : base;
+}
+---
+
+{/* Succeeded: one column of StatRow entries for this seat */}
+<dl
+  class="mt-4 space-y-1 text-sm text-muted-foreground flex flex-col"
+  x-show="completionStatus === 'succeeded' && resultsSnapshot?.seats?.length === 1"
+  x-cloak
+>
+  {
+    statRows.map((row) => (
+      <StatRow
+        label={row.label}
+        value={seatValueExpr(row)}
+      />
+    ))
+  }
+</dl>
+
+{/* Loading: one column of StatRowSkeleton entries */}
+<dl
+  class="mt-4 space-y-1 text-sm text-muted-foreground flex flex-col"
+  x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+  x-cloak
+>
+  {statRows.map((row) => <StatRowSkeleton label={row.label} />)}
+</dl>

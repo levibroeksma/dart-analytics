@@ -447,15 +447,22 @@ describe("completion", () => {
     await play.recordTap.call(play, true);
 
     expect(play.resultsSnapshot).toEqual({
-      hits: 21,
-      on1st: 21,
-      on2nd: 0,
-      on3rd: 0,
-      accuracy: "100.00%",
-      misses: 0,
-      winningSideKey: null,
       status: "COMPLETE",
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          hits: 21,
+          on1st: 21,
+          on2nd: 0,
+          on3rd: 0,
+          accuracy: "100.00%",
+          misses: 0,
+        },
+      ],
     });
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 
   it("splits hits across on1st/on2nd/on3rd and divides accuracy by darts actually thrown", async () => {
@@ -481,14 +488,20 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot).toEqual({
-      hits: 2,
-      on1st: 0,
-      on2nd: 1,
-      on3rd: 1,
-      accuracy: "40.00%",
-      misses: 0,
-      winningSideKey: null,
       status: "COMPLETE",
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          hits: 2,
+          on1st: 0,
+          on2nd: 1,
+          on3rd: 1,
+          accuracy: "40.00%",
+          misses: 0,
+        },
+      ],
     });
   });
 
@@ -514,14 +527,20 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot).toEqual({
-      hits: 1,
-      on1st: 1,
-      on2nd: 0,
-      on3rd: 0,
-      accuracy: "25.00%",
-      misses: 1,
-      winningSideKey: null,
       status: "COMPLETE",
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          hits: 1,
+          on1st: 1,
+          on2nd: 0,
+          on3rd: 0,
+          accuracy: "25.00%",
+          misses: 1,
+        },
+      ],
     });
   });
 
@@ -540,14 +559,20 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot).toEqual({
-      hits: 0,
-      on1st: 0,
-      on2nd: 0,
-      on3rd: 0,
-      accuracy: "0.00%",
-      misses: 0,
-      winningSideKey: null,
       status: "COMPLETE",
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          hits: 0,
+          on1st: 0,
+          on2nd: 0,
+          on3rd: 0,
+          accuracy: "0.00%",
+          misses: 0,
+        },
+      ],
     });
   });
 });
@@ -595,9 +620,10 @@ describe("completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("TIE");
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(play.resultsTitle.call(play)).toBe("Tie — same doubles hit!");
   });
 
-  it("names the most-doubles-hit seat as winner and scopes stats to the owner (PLAYER) seat", async () => {
+  it("names the most-doubles-hit seat as winner, with both seats' own stats present", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 21, turns: 42, darts: 84 },
     });
@@ -624,16 +650,29 @@ describe("completion — 1v1", () => {
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot?.status).toBe("COMPLETE");
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
-    expect(play.resultsSnapshot).toEqual({
-      hits: 21,
-      on1st: 21,
-      on2nd: 0,
-      on3rd: 0,
-      accuracy: "100.00%",
-      misses: 0,
-      winningSideKey: "A",
-      status: "COMPLETE",
-    });
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        hits: 21,
+        on1st: 21,
+        on2nd: 0,
+        on3rd: 0,
+        accuracy: "100.00%",
+        misses: 0,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        hits: 0,
+        on1st: 0,
+        on2nd: 0,
+        on3rd: 0,
+        accuracy: "0.00%",
+        misses: 21,
+      },
+    ]);
+    expect(play.resultsTitle.call(play)).toBe("Levi wins — most doubles hit!");
   });
 });
 

@@ -1,56 +1,28 @@
 ---
+// Components
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+// Data
+const STAT_ROWS = [
+  { label: "Total points", key: "points" },
+  { label: "Darts missed", key: "misses" },
+  { label: "Singles hit", key: "singles" },
+  { label: "Doubles hit", key: "doubles" },
+  { label: "Trebles hit", key: "trebles" },
+  { label: "Accuracy", key: "accuracy" },
+] as const;
 ---
 
-<ResultsModalShell>
+<ResultsModalShell showSavedMessage>
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
-    x-text="
-      resultsSnapshot?.status === 'LOST'
-        ? (($store.game.seats?.length ?? 1) < 2
-            ? 'Game over — missed the target'
-            : 'Game over — you missed the target')
-        : resultsSnapshot?.status === 'WON'
-          ? ($store.game.seats.find((s) => s.sideKey !== resultsSnapshot.winningSideKey)?.displayName + ' missed the target — you win!')
-          : resultsSnapshot?.status === 'TIE'
-            ? 'Tie — same points!'
-            : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-              ? 'Session complete'
-              : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — highest points!')
-    "
+    x-text="resultsTitle()"
   >
   </h2>
 
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Total points"
-      value="resultsSnapshot?.points"
-    />
-    <StatRow
-      label="Darts missed"
-      value="resultsSnapshot?.misses"
-    />
-    <StatRow
-      label="Singles hit"
-      value="resultsSnapshot?.singles"
-    />
-    <StatRow
-      label="Doubles hit"
-      value="resultsSnapshot?.doubles"
-    />
-    <StatRow
-      label="Trebles hit"
-      value="resultsSnapshot?.trebles"
-    />
-    <StatRow
-      label="Accuracy"
-      value="resultsSnapshot?.accuracy"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

@@ -1,9 +1,8 @@
 ---
 interface Props {
   label: string;
-  value: string;
 }
-const { label, value }: Props = Astro.props;
+const { label }: Props = Astro.props;
 ---
 
 <div class="flex justify-between items-center font-display-mono">
@@ -12,9 +11,5 @@ const { label, value }: Props = Astro.props;
     x-text={`'${label}'`}
   >
   </dt>
-  <dd
-    class="font-mono text-sm font-bold tabular-nums text-foreground"
-    x-text={`${value}`}
-  >
-  </dd>
+  <dd class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded"></dd>
 </div>

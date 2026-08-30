@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
@@ -29,12 +30,14 @@ import type {
   DartObservation,
   EngineFacts,
   TuodAttemptInput,
+  TuodSeatState,
   TuodState,
 } from "@modules/types";
 import type {
   BoardMarker,
   TuodPlayContext,
   TuodResultsSnapshot,
+  TuodSeatResult,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -104,29 +107,30 @@ function finalTuodState(context: TuodPlayContext): TuodState | null {
   );
 }
 
-/**
- * Reads the owner seat's final resting state off the already-folded engine
- * state — never re-derives the ladder math separately. `status` collapses
- * the engine's own three-way `status` to the two outcomes a finished session
- * can report, so a genuine TIE (both seats reach the same target) stays
- * distinguishable from a solo session even though both leave
- * `winningSideKey` `null`: solo sessions never see `TIE` from the engine
- * (score-compare only runs seats.length >= 2), so this collapse is safe.
- */
-function computeStats(
-  state: TuodState,
-  ownerRef: string | null,
-): TuodResultsSnapshot {
-  const ownerSeat =
-    state.seats.find((seat) => seat.participantRef === ownerRef) ??
-    state.seats[0];
+function statsFor(seat: TuodSeatState): TuodSeatResult {
   return {
-    target: ownerSeat.currentTarget,
-    attempts: ownerSeat.attempts,
-    successes: ownerSeat.successes,
-    failures: ownerSeat.failures,
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    target: seat.currentTarget,
+    attempts: seat.attempts,
+    successes: seat.successes,
+    failures: seat.failures,
+  };
+}
+
+/**
+ * `status` collapses the engine's own three-way `status` to the two
+ * outcomes a finished session can report, so a genuine TIE (both seats
+ * reach the same target) stays distinguishable from a solo session even
+ * though both leave `winningSideKey` `null`: solo sessions never see `TIE`
+ * from the engine (score-compare only runs seats.length >= 2), so this
+ * collapse is safe.
+ */
+function computeStats(state: TuodState): TuodResultsSnapshot {
+  return {
     winningSideKey: state.winningSideKey,
     status: state.status === "TIE" ? "TIE" : "COMPLETE",
+    seats: state.seats.map((seat) => statsFor(seat)),
   };
 }
 
@@ -531,14 +535,19 @@ export function tuodPlay() {
       }
 
       const finalState = finalTuodState(this);
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
       if (finalState) {
-        this.resultsSnapshot = computeStats(finalState, ownerRef);
+        this.resultsSnapshot = computeStats(finalState);
       }
       this.completionStatus = "succeeded";
+    },
+
+    resultsTitle(this: TuodPlayContext): string {
+      if (this.resultsSnapshot?.status === "TIE") return "Tie — same target!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — highest target!` : "Game Summary";
     },
 
     async back(this: TuodPlayContext) {

@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, forms, data components, persist
-updated: 2026-08-07
+updated: 2026-08-30
 -->
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.2.4
+> **Version:** 0.3.0
 >
 > Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
 >
@@ -265,11 +265,33 @@ Details: `00-Overview.md`.
 
 ---
 
+# Results-Modal Title Pattern <!-- 2026-08-30 -->
+
+Every game's results modal (`components/layout/games/result-modals/*.astro`)
+renders its `<h2 slot="title">` as `x-text="resultsTitle()"` — a single
+factory method on that game's `*PlayContext`, implemented in its
+`*-play.data.ts`, never an inline ternary. Each `resultsTitle()` composes
+the shared `matchWinnerName(seats, winningSideKey)` helper
+(`app/src/lib/game/match-result-text.ts`) with that game's own title
+phrasing; `matchWinnerName` folds in the "solo session or no decided
+winner" gate every modal previously repeated inline
+(`$store.game.seats.find((s) => s.sideKey === winningSideKey)?.displayName`),
+returning `undefined` in both cases so callers only need to check truthiness.
+Singles Training is the one game whose title reads a **per-seat** `status`
+(the owner's own `resultsSnapshot.seats[…].status`) rather than a top-level
+field, because its HARD/EXTREME elimination is asymmetric between seats — its
+`resultsTitle()` composes `matchWinnerName` via a dedicated
+`singlesTrainingResultsTitle` helper
+(`app/src/lib/game/singles-training-results-title.ts`) rather than calling
+`matchWinnerName` directly, since the per-seat-status branching is specific
+to that one game.
+
 # Anti-Patterns
 
 | Anti-pattern | Reason |
 | ------------ | ------ |
 | `x-init` | Deprecated — use factory `init()` |
+| Inline ternary on a results modal's `x-text="..."` title | Unreadable and untestable — use a named `resultsTitle()` factory method (see Results-Modal Title Pattern above) |
 | `x-bind:*` / `x-on:*` (when shorthand works) | Use `:attr` / `@event` (Alpine v3) |
 | `x-data="play"` without `()` | `init()` does not run |
 | `$persist` in `.data.ts` or components | Unpredictable recovery scope |

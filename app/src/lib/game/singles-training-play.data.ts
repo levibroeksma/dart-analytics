@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
   numbersPath,
@@ -37,6 +38,8 @@ import type {
   BoardMarker,
   SinglesPreviewSegment,
   SinglesTrainingPlayContext,
+  SinglesTrainingResultsSnapshot,
+  SinglesTrainingSeatResult,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -193,19 +196,47 @@ function previewSegmentsFor(
 }
 
 /**
- * The owning player's own outcome label for the results screen. `LOST`
- * covers both a solo HARD/EXTREME failure and the failing seat's own owner
- * in 1v1; `WON` is the surviving seat's owner when elimination (not
- * score-compare) decided the match. Both are new terminal outcomes
- * alongside the existing score-compare-only `COMPLETE`/`TIE`.
+ * A seat's own outcome label for the results screen. `LOST` covers both a
+ * solo HARD/EXTREME failure and the failing seat itself in 1v1; `WON` is
+ * the surviving seat when elimination (not score-compare) decided the
+ * match. Both are new terminal outcomes alongside the existing
+ * score-compare-only `COMPLETE`/`TIE`.
  */
-function resultStatusFor(
+function statusFor(
   finalState: SinglesTrainingState,
-  ownerSeat: SinglesTrainingSeatState,
+  seat: SinglesTrainingSeatState,
 ): "COMPLETE" | "TIE" | "WON" | "LOST" {
-  if (ownerSeat.status === "LOST") return "LOST";
-  if (finalState.seats.some((seat) => seat.status === "LOST")) return "WON";
+  if (seat.status === "LOST") return "LOST";
+  if (finalState.seats.some((candidate) => candidate.status === "LOST"))
+    return "WON";
   return finalState.status === "TIE" ? "TIE" : "COMPLETE";
+}
+
+function statsFor(
+  seat: SinglesTrainingSeatState,
+  finalState: SinglesTrainingState,
+  turns: readonly TurnFact[],
+  config: SinglesConfigSnapshot | null,
+): SinglesTrainingSeatResult {
+  const seatTurns = turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
+  const { singles, doubles, trebles, misses } = config
+    ? targetHitCounts(seatTurns, config)
+    : { singles: 0, doubles: 0, trebles: 0, misses: 0 };
+  const hits = singles + doubles + trebles;
+  const darts = hits + misses;
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    points: seat.totalPoints,
+    misses,
+    singles,
+    doubles,
+    trebles,
+    accuracy: accuracyDisplay(hits, darts),
+    status: statusFor(finalState, seat),
+  };
 }
 
 /**
@@ -248,16 +279,7 @@ export function singlesTrainingPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
-    resultsSnapshot: null as {
-      points: number;
-      misses: number;
-      singles: number;
-      doubles: number;
-      trebles: number;
-      accuracy: string;
-      winningSideKey: string | null;
-      status: "COMPLETE" | "TIE" | "WON" | "LOST";
-    } | null,
+    resultsSnapshot: null as SinglesTrainingResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as SinglesTrainingEngine | null,
@@ -442,34 +464,20 @@ export function singlesTrainingPlay() {
     },
 
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
-      const ownerRef =
-        this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )?.participantRef ?? null;
-      return playUploadAndCompleteSession(this, (finalState) => {
-        const ownerSeat =
-          finalState.seats.find((seat) => seat.participantRef === ownerRef) ??
-          finalState.seats[0];
-        const turns = this.$store.game.turns.filter(
-          (t) => t.participantRef === ownerSeat.participantRef,
-        );
-        const config = this.$store.game.configSnapshot;
-        const { singles, doubles, trebles, misses } = config
-          ? targetHitCounts(turns, config)
-          : { singles: 0, doubles: 0, trebles: 0, misses: 0 };
-        const hits = singles + doubles + trebles;
-        const darts = hits + misses;
-        return {
-          points: ownerSeat.totalPoints,
-          misses,
-          singles,
-          doubles,
-          trebles,
-          accuracy: accuracyDisplay(hits, darts),
-          winningSideKey: finalState.winningSideKey,
-          status: resultStatusFor(finalState, ownerSeat),
-        };
-      });
+      const config = this.$store.game.configSnapshot;
+      return playUploadAndCompleteSession(this, (finalState) => ({
+        winningSideKey: finalState.winningSideKey,
+        seats: finalState.seats.map((seat) =>
+          statsFor(seat, finalState, this.$store.game.turns, config),
+        ),
+      }));
+    },
+
+    resultsTitle(this: SinglesTrainingPlayContext): string {
+      return singlesTrainingResultsTitle(
+        this.$store.game.seats,
+        this.resultsSnapshot,
+      );
     },
 
     back(this: SinglesTrainingPlayContext) {

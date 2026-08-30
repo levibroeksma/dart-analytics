@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-08-28
+updated: 2026-08-30
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.8.3 (Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242; prior 1.8.2: Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.9.0 (Pattern 18: all 9 rulesets' results snapshots now uniformly carry `seats: XSeatResult[]`, closing the gap the single-opponent-seat design's touch list left open 2026-08-30; prior 1.8.3: Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242; prior 1.8.2: Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -818,6 +818,23 @@ Resolving "the seat's state immediately before this visit" has two legitimate te
 See `decisions/game-engine.md` D231 — D230 originally claimed only Around the Clock passes a predicate at all.
 
 See `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` for the full design. <!-- 2026-08-22 -->
+
+### Results-snapshot shape (all 9 rulesets) <!-- 2026-08-30 -->
+
+Every ruleset's `resultsSnapshot` uniformly carries `seats: XSeatResult[]` —
+one stats entry per seat, computed for every seat in the match, not only the
+owning player. Five Oh One, Score Training and Shanghai always had this
+shape; Around the Clock, Bob's 27, Doubles Training, 121, Singles Training
+and Ten Up One Down were promoted to it (`docs/superpowers/specs/2026-08-30-result-modal-consolidation-design.md`
+Issue 3). The `2026-08-22-single-opponent-seat-remaining-engines-design.md`
+design above wired 1v1 support into every engine but its own touch list
+never named this snapshot-shape change, so those 6 games' results modals
+kept computing stats for the owning player only, silently dropping the
+opponent's data at the data layer — see `decisions/frontend/alpine.md` for
+the correction record. Singles Training is the one ruleset whose `status` field
+lives per-seat (`seats[N].status`) rather than at the top level, since its
+HARD/EXTREME elimination can resolve one seat WON and the other LOST from
+the same match.
 
 ---
 
