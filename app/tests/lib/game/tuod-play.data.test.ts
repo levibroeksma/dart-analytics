@@ -569,12 +569,18 @@ describe("tuodPlay", () => {
       await play.uploadAndCompleteSession();
 
       expect(play.resultsSnapshot).toEqual({
-        target: 51,
-        attempts: 1,
-        successes: 1,
-        failures: 0,
         winningSideKey: null,
         status: "COMPLETE",
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            target: 51,
+            attempts: 1,
+            successes: 1,
+            failures: 0,
+          },
+        ],
       });
     });
 
@@ -598,12 +604,18 @@ describe("tuodPlay", () => {
       await play.uploadAndCompleteSession();
 
       expect(play.resultsSnapshot).toEqual({
-        target: 60,
-        attempts: 3,
-        successes: 2,
-        failures: 1,
         winningSideKey: null,
         status: "COMPLETE",
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            target: 60,
+            attempts: 3,
+            successes: 2,
+            failures: 1,
+          },
+        ],
       });
     });
 
@@ -661,12 +673,18 @@ describe("tuodPlay", () => {
       play.completionStatus = "succeeded";
       play.finished = true;
       play.resultsSnapshot = {
-        target: 51,
-        attempts: 1,
-        successes: 1,
-        failures: 0,
         winningSideKey: null,
         status: "COMPLETE",
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            target: 51,
+            attempts: 1,
+            successes: 1,
+            failures: 0,
+          },
+        ],
       };
       const { seats: _priorSeats, ...priorRulesetConfig } =
         play.$store.game.configSnapshot!;
@@ -1274,6 +1292,24 @@ describe("session completion — 1v1", () => {
     expect(component.completionStatus).toBe("succeeded");
     expect(component.resultsSnapshot?.status).toBe("TIE");
     expect(component.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(component.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        target: 40,
+        attempts: 1,
+        successes: 0,
+        failures: 1,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        target: 40,
+        attempts: 1,
+        successes: 0,
+        failures: 1,
+      },
+    ]);
   });
 
   it("marks status COMPLETE, with the owning seat's sideKey, when one seat reaches the higher target", async () => {
@@ -1303,6 +1339,24 @@ describe("session completion — 1v1", () => {
     expect(component.completionStatus).toBe("succeeded");
     expect(component.resultsSnapshot?.status).toBe("COMPLETE");
     expect(component.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(component.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        target: 51,
+        attempts: 1,
+        successes: 1,
+        failures: 0,
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        target: 40,
+        attempts: 1,
+        successes: 0,
+        failures: 1,
+      },
+    ]);
   });
 
   it("undoVisit pops the last recorded attempt regardless of which seat threw it", async () => {

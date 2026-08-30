@@ -310,14 +310,27 @@ export type ScoreTrainingPlayContext = {
   destroy(this: ScoreTrainingPlayContext): void;
 };
 
-/** `winningSideKey` is score-compare (highest target) resolved by the engine; `null` for a solo session or a TIE. `status` mirrors the engine's own completion state, collapsed to just the two outcomes a finished session can report: `COMPLETE` for a solo session or a decided 1v1 match, `TIE` when both seats reached the same target — the only way callers can tell a genuine tie apart from a solo session, since both leave `winningSideKey` `null`. */
-export type TuodResultsSnapshot = {
+export type TuodSeatResult = {
+  participantRef: string;
+  sideKey: string;
   target: number;
   attempts: number;
   successes: number;
   failures: number;
+};
+
+/** `winningSideKey` is score-compare (highest target) resolved by the
+ * engine; `null` for a solo session or a TIE. `status` mirrors the engine's
+ * own completion state, collapsed to just the two outcomes a finished
+ * session can report: `COMPLETE` for a solo session or a decided 1v1 match,
+ * `TIE` when both seats reached the same target — the only way callers can
+ * tell a genuine tie apart from a solo session, since both leave
+ * `winningSideKey` `null`. `seats` has one entry per configured seat (1 for
+ * solo, 2 for 1v1), in `$store.game.seats` order. */
+export type TuodResultsSnapshot = {
   winningSideKey: string | null;
   status: "COMPLETE" | "TIE";
+  seats: TuodSeatResult[];
 };
 
 export type TuodPlayContext = {

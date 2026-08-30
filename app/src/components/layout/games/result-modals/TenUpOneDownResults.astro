@@ -1,9 +1,20 @@
 ---
+// Components
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+// Data
+const STAT_ROWS = [
+  { label: "Target reached", key: "target" },
+  { label: "Attempts", key: "attempts" },
+  { label: "Successes", key: "successes" },
+  { label: "Failures", key: "failures" },
+] as const;
 ---
 
 <ResultsModalShell showSavedMessage>
+  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
@@ -17,49 +28,6 @@ import StatRow from "@components/layout/games/StatRow.astro";
   >
   </h2>
 
-  {/* Stats: live from store while saving, snapshot once succeeded */}
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus !== 'succeeded'"
-    x-cloak
-  >
-    <StatRow
-      label="Target reached"
-      value="currentTargetLabel()"
-    />
-    <StatRow
-      label="Attempts"
-      value="$store.game.turns.length"
-    />
-    <StatRow
-      label="Successes"
-      value="$store.game.turns.filter((t) => t.totalScore > 0).length"
-    />
-    <StatRow
-      label="Failures"
-      value="$store.game.turns.filter((t) => t.totalScore === 0).length"
-    />
-  </dl>
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Target reached"
-      value="resultsSnapshot?.target"
-    />
-    <StatRow
-      label="Attempts"
-      value="resultsSnapshot?.attempts"
-    />
-    <StatRow
-      label="Successes"
-      value="resultsSnapshot?.successes"
-    />
-    <StatRow
-      label="Failures"
-      value="resultsSnapshot?.failures"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>
