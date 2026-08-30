@@ -301,6 +301,7 @@ describe("session completion on BULL", () => {
       ],
     });
     expect(play.completionStatus).toBe("succeeded");
+    expect(play.resultsTitle.call(play)).toBe("Session complete");
   });
 });
 
@@ -363,6 +364,7 @@ describe("session completion — 1v1", () => {
         totalDarts: 21,
       },
     ]);
+    expect(play.resultsTitle.call(play)).toBe("Tie — same darts!");
   });
 
   it("scopes each seat's own turns/accuracy/totalDarts independently, including the losing seat", async () => {

@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   BULL_TARGET_NUMBER,
   numbersPath,
@@ -326,6 +327,15 @@ export function aroundTheClockPlay() {
           statsFor(seat, this.$store.game.turns, config),
         ),
       }));
+    },
+
+    resultsTitle(this: AroundTheClockPlayContext): string {
+      if (this.resultsSnapshot?.status === "TIE") return "Tie — same darts!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — fewest darts!` : "Session complete";
     },
 
     back(this: AroundTheClockPlayContext) {

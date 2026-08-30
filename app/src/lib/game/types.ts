@@ -1194,6 +1194,7 @@ export type AroundTheClockPlayContext = {
   ): Promise<void>;
   undoVisit(this: AroundTheClockPlayContext): void;
   uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void>;
+  resultsTitle(this: AroundTheClockPlayContext): string;
   back(this: AroundTheClockPlayContext): Promise<void>;
   playAgain(this: AroundTheClockPlayContext): Promise<void>;
   abandonAndExit(this: AroundTheClockPlayContext): Promise<void>;
