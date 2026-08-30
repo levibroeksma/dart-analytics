@@ -1,4 +1,5 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import {
   playAbandonAndExit,
@@ -288,6 +289,20 @@ export function shanghaiPlay() {
         winningSideKey: finalState.winningSideKey,
         seats: finalState.seats.map((seat) => statsFor(seat, turns)),
       }));
+    },
+
+    resultsTitle(this: ShanghaiPlayContext): string {
+      if (!(this.completionStatus === "succeeded" && this.resultsSnapshot)) {
+        return "Session complete";
+      }
+      if (this.resultsSnapshot.status === "TIE") return "Tie — same score!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot.winningSideKey,
+      );
+      const isShanghai = this.resultsSnapshot.status === "SHANGHAI";
+      if (!winner) return isShanghai ? "Shanghai!" : "Session complete";
+      return isShanghai ? `${winner} hits a Shanghai!` : `${winner} wins!`;
     },
 
     back(this: ShanghaiPlayContext) {

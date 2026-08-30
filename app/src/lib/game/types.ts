@@ -1109,6 +1109,7 @@ export type ShanghaiPlayContext = {
   ): Promise<void>;
   undoVisit(this: ShanghaiPlayContext): void;
   uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void>;
+  resultsTitle(this: ShanghaiPlayContext): string;
   back(this: ShanghaiPlayContext): Promise<void>;
   playAgain(this: ShanghaiPlayContext): Promise<void>;
   abandonAndExit(this: ShanghaiPlayContext): Promise<void>;
