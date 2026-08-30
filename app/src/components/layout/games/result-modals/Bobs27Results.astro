@@ -1,10 +1,19 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Score", key: "score" },
+  { label: "Darts", key: "darts" },
+  { label: "Accuracy", key: "doubleHitRate" },
+  { label: "Highest target", key: "highestNumberReached" },
+] as const;
 ---
 
-<ResultsModalShell>
-  <Fragment slot="title">
+<ResultsModalShell showSavedMessage>
+  <div slot="title">
+    {/* TODO: extract x-text logic into alpine function */}
     <h2
       class="font-display text-lg font-semibold text-foreground"
       x-text="
@@ -23,28 +32,8 @@ import StatRow from "@components/layout/games/StatRow.astro";
     >
       Match Summary
     </h2>
-  </Fragment>
+  </div>
 
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot"
-    x-cloak
-  >
-    <StatRow
-      label="Score"
-      value="resultsSnapshot?.score"
-    />
-    <StatRow
-      label="Darts"
-      value="resultsSnapshot?.darts"
-    />
-    <StatRow
-      label="Double hit rate"
-      value="resultsSnapshot?.doubleHitRate"
-    />
-    <StatRow
-      label="Highest number reached"
-      value="resultsSnapshot?.highestNumberReached"
-    />
-  </dl>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

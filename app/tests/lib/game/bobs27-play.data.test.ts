@@ -260,11 +260,17 @@ describe("init", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.resultsSnapshot).toEqual({
       status: "LOST",
-      score: -13,
-      darts: 3,
-      doubleHitRate: "0.00%",
-      highestNumberReached: "D1",
       winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: -13,
+          darts: 3,
+          doubleHitRate: "0.00%",
+          highestNumberReached: "D1",
+        },
+      ],
     });
   });
 });
@@ -359,11 +365,17 @@ describe("completion", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.resultsSnapshot).toEqual({
       status: "WON",
-      score: 1437,
-      darts: 63,
-      doubleHitRate: "100.00%",
-      highestNumberReached: "BULL",
       winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 1437,
+          darts: 63,
+          doubleHitRate: "100.00%",
+          highestNumberReached: "BULL",
+        },
+      ],
     });
     expect(play.completionStatus).toBe("succeeded");
   });
@@ -394,11 +406,17 @@ describe("completion", () => {
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
       status: "LOST",
-      score: -13,
-      darts: 3,
-      doubleHitRate: "0.00%",
-      highestNumberReached: "D1",
       winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: -13,
+          darts: 3,
+          doubleHitRate: "0.00%",
+          highestNumberReached: "D1",
+        },
+      ],
     });
   });
 
@@ -428,6 +446,110 @@ describe("completion", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.completionStatus).toBe("succeeded");
+  });
+});
+
+describe("completion — 1v1", () => {
+  const TWO_SEATS = [
+    ...SEATS,
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  it("computes both seats' own stats independently, including the seat that never threw", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 2, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: { ...defaultConfig(), seats: TWO_SEATS },
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: "block-1",
+          participantRef: "participant-1",
+          sequence: 1,
+          completedAt: "2026-08-01T10:00:00.000Z",
+          totalScore: 6,
+          darts: [
+            {
+              sequence: 1,
+              intendedTargetNumber: 1,
+              intendedZoneKey: "DOUBLE",
+              hitTargetNumber: 1,
+              hitZoneKey: "DOUBLE",
+              score: 2,
+              locationX: null,
+              locationY: null,
+            },
+          ],
+        },
+      ],
+    });
+    await play.init.call(play);
+    await play.uploadAndCompleteSession.call(play);
+
+    expect(play.resultsSnapshot?.seats).toEqual([
+      {
+        participantRef: "participant-1",
+        sideKey: "A",
+        score: 29,
+        darts: 1,
+        doubleHitRate: "100.00%",
+        highestNumberReached: "D1",
+      },
+      {
+        participantRef: "participant-2",
+        sideKey: "B",
+        score: 27,
+        darts: 0,
+        doubleHitRate: "0.00%",
+        highestNumberReached: "D1",
+      },
+    ]);
+  });
+
+  it("reports match-level status WON for the seat that survives an opponent's bust, not the seat's own in-progress status", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 4, darts: 6 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      configSnapshot: {
+        startScore: 27,
+        bullHitValue: 50,
+        missPenaltyMultiplier: 20,
+        seats: TWO_SEATS,
+      },
+    });
+    await play.init.call(play);
+
+    // Seat A (owner) hits once then misses twice — clears the visit without
+    // busting and advances. Seat B misses all 3 darts on its own first
+    // visit, busting immediately: the match ends with A the winner purely
+    // because B failed, not because A ever reached BULL.
+    await play.recordTap.call(play, true);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(play.resultsSnapshot?.winningSideKey).toBe("A");
   });
 });
 

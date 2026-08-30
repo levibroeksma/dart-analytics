@@ -727,6 +727,26 @@ export type OneTwentyOnePlayContext = {
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */
 export type Bobs27PreviewSegment = { status: "hit" | "miss" | "empty" };
 
+export type Bobs27SeatResult = {
+  participantRef: string;
+  sideKey: string;
+  score: number;
+  darts: number;
+  doubleHitRate: string;
+  highestNumberReached: string;
+};
+
+/** `status` mirrors the match-level `Bobs27State.status`, not any one seat's
+ * own per-seat status — a seat that wins because its opponent busted first
+ * never itself transitions to `"WON"`, so match-level status is the only
+ * correct source for this field in a 1v1 session. `seats` has one entry per
+ * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
+export type Bobs27ResultsSnapshot = {
+  status: "WON" | "LOST" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: Bobs27SeatResult[];
+};
+
 export type Bobs27PlayContext = {
   loading: boolean;
   error: string;
@@ -738,14 +758,7 @@ export type Bobs27PlayContext = {
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
-  resultsSnapshot: {
-    status: "WON" | "LOST";
-    score: number;
-    darts: number;
-    doubleHitRate: string;
-    highestNumberReached: string;
-    winningSideKey: string | null;
-  } | null;
+  resultsSnapshot: Bobs27ResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
   $store: PlayStoreContext<Bobs27Snapshot>;
