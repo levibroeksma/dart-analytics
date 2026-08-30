@@ -15,6 +15,7 @@ import {
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
   clearHiddenTimer,
@@ -551,6 +552,15 @@ export function scoreTrainingPlay() {
         };
       }
       this.completionStatus = "succeeded";
+    },
+
+    resultsTitle(this: ScoreTrainingPlayContext): string {
+      if (this.resultsSnapshot?.status === "TIE") return "Tie — same total!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins — highest total!` : "Game Summary";
     },
 
     async back(this: ScoreTrainingPlayContext) {

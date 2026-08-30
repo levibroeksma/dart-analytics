@@ -19,13 +19,7 @@ const STAT_ROWS = [
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
-    x-text="
-      resultsSnapshot?.status === 'TIE'
-        ? 'Tie — same total!'
-        : !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-          ? 'Game Summary'
-          : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins — highest total!')
-    "
+    x-text="resultsTitle()"
   >
   </h2>
 

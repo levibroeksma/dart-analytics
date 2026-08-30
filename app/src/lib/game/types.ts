@@ -304,6 +304,7 @@ export type ScoreTrainingPlayContext = {
   ): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
+  resultsTitle(this: ScoreTrainingPlayContext): string;
   back(this: ScoreTrainingPlayContext): Promise<void>;
   playAgain(this: ScoreTrainingPlayContext): Promise<void>;
   abandonAndExit(this: ScoreTrainingPlayContext): Promise<void>;
