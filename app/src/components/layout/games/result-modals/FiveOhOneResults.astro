@@ -16,15 +16,10 @@ const STAT_ROWS = [
 ---
 
 <ResultsModalShell showSavedMessage>
-  {/* TODO: extract x-text logic into alpine function */}
   <h2
     slot="title"
     class="font-display text-lg font-semibold text-foreground"
-    x-text="
-      !resultsSnapshot?.winningSideKey || ($store.game.seats?.length ?? 1) < 2
-        ? 'Match Summary'
-        : ($store.game.seats.find((s) => s.sideKey === resultsSnapshot.winningSideKey)?.displayName + ' wins the match!')
-    "
+    x-text="resultsTitle()"
   >
   </h2>
 

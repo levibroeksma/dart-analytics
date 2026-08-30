@@ -30,6 +30,7 @@ import {
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
 import { checkoutAttemptCount } from "@modules/game/checkout-bust.module";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
@@ -657,6 +658,14 @@ export function fiveOhOnePlay() {
 
       this.resultsSnapshot = buildResultsSnapshot(this);
       this.completionStatus = "succeeded";
+    },
+
+    resultsTitle(this: FiveOhOnePlayContext): string {
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins the match!` : "Match Summary";
     },
 
     async back(this: FiveOhOnePlayContext) {

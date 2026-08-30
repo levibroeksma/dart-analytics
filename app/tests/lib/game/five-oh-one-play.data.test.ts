@@ -784,6 +784,7 @@ describe("uploadAndCompleteSession", () => {
     expect(seatB.legsWon).toBe(0);
     expect(seatA.checkoutPercentage).toBeNull();
     expect(seatB.checkoutPercentage).toBeNull();
+    expect(play.resultsTitle.call(play)).toBe("Levi wins the match!");
   });
 
   it("computes a VISUAL_BOARD checkout percentage from a busted attempt and two won legs", async () => {
@@ -843,6 +844,7 @@ describe("uploadAndCompleteSession", () => {
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
     expect(play.resultsSnapshot?.seats).toHaveLength(1);
     expect(play.resultsSnapshot?.seats[0].legsWon).toBe(1);
+    expect(play.resultsTitle.call(play)).toBe("Match Summary");
   });
 
   it("treats SESSION_ALREADY_COMPLETED as success", async () => {

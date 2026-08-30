@@ -657,6 +657,7 @@ export type FiveOhOnePlayContext = {
   ): Promise<void>;
   undoVisit(this: FiveOhOnePlayContext): void;
   uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
+  resultsTitle(this: FiveOhOnePlayContext): string;
   back(this: FiveOhOnePlayContext): Promise<void>;
   playAgain(this: FiveOhOnePlayContext): Promise<void>;
   abandonAndExit(this: FiveOhOnePlayContext): Promise<void>;
