@@ -279,7 +279,12 @@ winner" gate every modal previously repeated inline
 returning `undefined` in both cases so callers only need to check truthiness.
 Singles Training is the one game whose title reads a **per-seat** `status`
 (the owner's own `resultsSnapshot.seats[…].status`) rather than a top-level
-field, because its HARD/EXTREME elimination is asymmetric between seats.
+field, because its HARD/EXTREME elimination is asymmetric between seats — its
+`resultsTitle()` composes `matchWinnerName` via a dedicated
+`singlesTrainingResultsTitle` helper
+(`app/src/lib/game/singles-training-results-title.ts`) rather than calling
+`matchWinnerName` directly, since the per-seat-status branching is specific
+to that one game.
 
 # Anti-Patterns
 
