@@ -33,21 +33,19 @@ export function singlesTrainingResultsTitle(
   );
 
   if (ownerResult?.status === "LOST") {
-    return seats.length < 2
-      ? "Game over — missed the target"
-      : "Game over — you missed the target";
+    return "Game over";
   }
   if (ownerResult?.status === "WON") {
     const loser = seats.find(
       (seat) => seat.sideKey !== resultsSnapshot?.winningSideKey,
     );
-    return `${loser?.displayName} missed the target — you win!`;
+    return `${loser?.displayName} missed the target.`;
   }
-  if (ownerResult?.status === "TIE") return "Tie — same points!";
+  if (ownerResult?.status === "TIE") return "It's a tie!";
 
   const winner = matchWinnerName(
     seats,
     resultsSnapshot?.winningSideKey ?? null,
   );
-  return winner ? `${winner} wins — highest points!` : "Session complete";
+  return winner ? `${winner} wins!` : "Session complete";
 }

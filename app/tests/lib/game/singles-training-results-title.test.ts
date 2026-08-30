@@ -26,7 +26,7 @@ describe("singlesTrainingResultsTitle", () => {
       seats: [{ participantRef: "p1", status: "LOST" as const }],
     };
     expect(singlesTrainingResultsTitle(soloSeats, resultsSnapshot)).toBe(
-      "Game over — missed the target",
+      "Game over",
     );
   });
 
@@ -39,7 +39,7 @@ describe("singlesTrainingResultsTitle", () => {
       ],
     };
     expect(singlesTrainingResultsTitle(matchSeats, resultsSnapshot)).toBe(
-      "Game over — you missed the target",
+      "Game over",
     );
   });
 
@@ -52,7 +52,7 @@ describe("singlesTrainingResultsTitle", () => {
       ],
     };
     expect(singlesTrainingResultsTitle(matchSeats, resultsSnapshot)).toBe(
-      "Opponent missed the target — you win!",
+      "Opponent missed the target.",
     );
   });
 
@@ -65,7 +65,7 @@ describe("singlesTrainingResultsTitle", () => {
       ],
     };
     expect(singlesTrainingResultsTitle(matchSeats, resultsSnapshot)).toBe(
-      "Tie — same points!",
+      "It's a tie!",
     );
   });
 
@@ -78,7 +78,7 @@ describe("singlesTrainingResultsTitle", () => {
       ],
     };
     expect(singlesTrainingResultsTitle(matchSeats, resultsSnapshot)).toBe(
-      "Opponent wins — highest points!",
+      "Opponent wins!",
     );
   });
 
