@@ -606,6 +606,14 @@ const UNSEEN: DartObservation = {
   locationY: null,
 };
 
+/** The inner bull — worth 50, the double for its own remainder. */
+const INNER_BULL: DartObservation = {
+  hitTargetNumber: 25,
+  hitZoneKey: "INNER_BULL",
+  locationX: 0,
+  locationY: 0,
+};
+
 describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
   it("checks out on a single dart landing exactly on the target's double", () => {
     const engine = tuodEngineFactory.create(boardConfig());
@@ -726,6 +734,37 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     const turn = engine.facts().turns[0];
     expect(turn.completedAt).toBeNull();
     expect(turn.darts).toHaveLength(2);
+  });
+
+  it("checks out on a single dart landing on the inner bull, treating it as the double for its own remainder (#207)", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 50,
+    });
+    const state = engine.record(INNER_BULL);
+
+    expect(state.seats[0].currentTarget).toBe(60);
+    expect(state.seats[0].successes).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.totalScore).toBe(50);
+    expect(turn.completedAt).not.toBeNull();
+  });
+
+  it("checks out on the inner bull as the closing dart of a multi-dart visit (#207)", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 52,
+    });
+    engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+
+    const finalState = engine.record(INNER_BULL);
+    expect(finalState.seats[0].currentTarget).toBe(62);
+    expect(finalState.seats[0].successes).toBe(1);
+    const turn = engine.facts().turns[0];
+    expect(turn.totalScore).toBe(52);
+    expect(turn.completedAt).not.toBeNull();
   });
 
   it("records an unseen dart as a scoreless, real dart row", () => {
