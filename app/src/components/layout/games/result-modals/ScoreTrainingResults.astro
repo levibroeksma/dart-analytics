@@ -1,7 +1,7 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
-import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
   { label: "Total", key: "total" },
@@ -29,46 +29,6 @@ const STAT_ROWS = [
   >
   </h2>
 
-  {/* Solo: one column of StatRow entries */}
-  <dl
-    class="mt-4 space-y-2 text-sm text-muted-foreground flex flex-col"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 1"
-    x-cloak
-  >
-    {
-      STAT_ROWS.map((row) => (
-        <StatRow
-          label={row.label}
-          value={`resultsSnapshot?.seats?.[0]?.${row.key}`}
-        />
-      ))
-    }
-  </dl>
-
-  {/* 1v1: comparison rows — stat label centered, values on either side */}
-  <div
-    class="mt-4 space-y-2 text-sm"
-    x-show="completionStatus === 'succeeded' && resultsSnapshot && resultsSnapshot.seats.length === 2"
-    x-cloak
-  >
-    <div class="flex justify-between text-xs font-semibold text-foreground">
-      <span
-        x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
-      ></span>
-      <span
-        x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
-      ></span>
-    </div>
-    <dl class="space-y-2">
-      {
-        STAT_ROWS.map((row) => (
-          <StatRowComparison
-            label={row.label}
-            leftValue={`resultsSnapshot?.seats?.[0]?.${row.key}`}
-            rightValue={`resultsSnapshot?.seats?.[1]?.${row.key}`}
-          />
-        ))
-      }
-    </dl>
-  </div>
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>
