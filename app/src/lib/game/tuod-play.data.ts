@@ -241,6 +241,21 @@ export function tuodPlay() {
       return this.currentTargetLabelFor(state.activeParticipantRef);
     },
 
+    checkoutHintFor(this: TuodPlayContext, seatRef: string): string {
+      if (this.$store.checkoutHints?.enabled === false) return "";
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      const path = seat ? checkoutPathFor(seat.currentTarget) : null;
+      return path ? path.join(" ") : "";
+    },
+
+    checkoutHint(this: TuodPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.checkoutHintFor(state.activeParticipantRef);
+    },
+
     remainingLabel(this: TuodPlayContext): string {
       return formatRemaining(this.$store.game.timerRemainingMs);
     },
