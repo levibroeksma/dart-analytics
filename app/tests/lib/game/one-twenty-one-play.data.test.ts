@@ -350,6 +350,15 @@ describe("oneTwentyOnePlay", () => {
 
       expect(play.checkoutHint.call(play)).toBe("D20");
     });
+
+    it("is empty when checkout hints are disabled, even with a valid route", () => {
+      const play = createPlay({
+        $store: { ...store, checkoutHints: { enabled: false } },
+      });
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      expect(play.checkoutHint.call(play)).toBe("");
+    });
   });
 
   describe("recordDart — reveal-then-clear board markers", () => {
