@@ -27,6 +27,13 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         slot="progress"
         class="mt-2 flex w-full flex-col items-center gap-2 px-4"
       >
+        <p
+          class="text-sm font-mono font-semibold text-accent"
+          x-show="checkoutHint()"
+          x-text="checkoutHint()"
+          x-cloak
+        >
+        </p>
         <dl class="w-full space-y-1">
           <StatRow
             label="Attempts"
@@ -64,12 +71,14 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
         scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
+        checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
         scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
+        checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
       }}
       isTarget={true}
       class="h-2/5"
