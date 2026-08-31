@@ -1,0 +1,46 @@
+---
+/**
+ * Boolean switch: a sliding track+thumb rather than a checkbox glyph. Wraps
+ * a visually-hidden `<input type="checkbox">` so screen readers and
+ * keyboard users get native checkbox semantics — rest props (`x-model`,
+ * `:disabled`, `id`, `name`, …) forward onto that input, the same way
+ * `Input.astro` forwards onto its own native element.
+ * @param {string} label Visible label text
+ * @param {string} [hint] Optional italic caption after the label
+ * @param {string} [class] Extra classes on the wrapping `<label>`
+ */
+interface Props {
+  label: string;
+  hint?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { label, hint, class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("inline-flex items-center cursor-pointer", classNameProp);
+const trackClass =
+  "relative w-9 h-5 shrink-0 rounded-full bg-surface-overlay transition-colors duration-150 peer-checked:bg-accent peer-focus-visible:ring-4 peer-focus-visible:ring-accent-muted after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:size-4 after:rounded-full after:bg-foreground after:transition-transform after:duration-150 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full";
+---
+
+<label class={className}>
+  <input
+    type="checkbox"
+    class="sr-only peer"
+    {...props}
+  />
+  <div class={trackClass}></div>
+  <span class="select-none ms-3 text-sm font-semibold text-foreground">
+    {label}
+  </span>
+  {
+    hint && (
+      <span class="ms-2 text-xs text-muted-foreground italic">{hint}</span>
+    )
+  }
+</label>
