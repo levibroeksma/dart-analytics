@@ -392,6 +392,7 @@ export function oneTwentyOnePlay() {
     },
 
     checkoutHint(this: OneTwentyOnePlayContext): string {
+      if (this.$store.checkoutHints?.enabled === false) return "";
       const remaining = this.remainingInAttempt();
       const dartsLeft = dartsLeftInOpenVisit(this.$store.game.turns);
       return isCheckoutReachable(remaining, dartsLeft)

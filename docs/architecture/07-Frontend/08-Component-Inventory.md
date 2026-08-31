@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-08-30
+updated: 2026-08-31
 -->
 
 # Component Inventory
@@ -46,6 +46,7 @@ evaluated in the page's own Alpine scope.
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
+| `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
 | `SettingRow.astro` | Label plus inline-editable value with a save action | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `disabledExpr` |
 
 ## `components/layout/games/` (shared across rulesets)

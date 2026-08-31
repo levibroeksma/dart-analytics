@@ -2,6 +2,7 @@ import type { Alpine } from "alpinejs";
 import type { Persist } from "@alpinejs/persist";
 import { authStore } from "@stores/auth.store";
 import { boardInputStore } from "@stores/board-input.store";
+import { checkoutHintsStore } from "@stores/checkout-hints.store";
 import { gameStore } from "@stores/game.store";
 import { profileStore } from "@stores/profile.store";
 import { settingsStore } from "@stores/settings.store";
@@ -17,4 +18,5 @@ export function registerStores(Alpine: Alpine) {
   const persist = () => (Alpine as unknown as { $persist: Persist }).$persist;
   Alpine.store("game", gameStore(persist));
   Alpine.store("boardInput", boardInputStore(persist));
+  Alpine.store("checkoutHints", checkoutHintsStore(persist));
 }

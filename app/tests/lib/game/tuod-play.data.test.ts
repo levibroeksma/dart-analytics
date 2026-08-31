@@ -1467,3 +1467,41 @@ describe("tuodPlay — per-seat accessors", () => {
     expect(ctx.currentTargetLabelFor("p2")).toBe("51");
   });
 });
+
+describe("tuodPlay — checkoutHint", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+  });
+
+  it("shows the finish route for the current target", async () => {
+    const store = gameStub({ configSnapshot: rounds(3) }); // startingTarget 41
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    expect(component.checkoutHint.call(component)).toBe("9 D16");
+    expect(component.checkoutHintFor.call(component, "participant-1")).toBe(
+      "9 D16",
+    );
+  });
+
+  it("is empty when checkout hints are disabled", async () => {
+    const store = gameStub({ configSnapshot: rounds(3) });
+    const component = {
+      ...tuodPlay(),
+      $store: {
+        game: store,
+        settings: settingsStub(),
+        checkoutHints: { enabled: false },
+      },
+    };
+    await component.init.call(component);
+
+    expect(component.checkoutHint.call(component)).toBe("");
+    expect(component.checkoutHintFor.call(component, "participant-1")).toBe("");
+  });
+});

@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-08-30
-highest-issued: F45
+highest-issued: F46
 -->
 
 # Findings
@@ -199,3 +199,10 @@ Claim: `app/src/lib/game/one-twenty-one-setup.data.ts`'s module-level `RULESET_V
 Evidence: reproduced live against the dev server — `POST /api/sessions` for a 2-seat 121 session returns `422 VALIDATION_FAILED` with `{"reason":"121_V2 supports at most 1 seat."}`, and the same for Singles Training returns `{"reason":"SINGLES_V2 supports at most 1 seat."}`; `app/src/lib/game/one-twenty-one-setup.data.ts:30` (`const RULESET_VERSION_KEY: RulesetVersionKey = "121_V2"`) and `:126-128` (`forceTargetIfGuested` only sets `this.durationType = "TARGET"`, never touches the ruleset key); `app/src/lib/game/singles-training-setup.data.ts:11` (`rulesetVersionKey: "SINGLES_V2"`, no guest-count branch anywhere in the file)
 Impact: the "Start Game" button on both games' setup screens is completely broken for any 1v1 match — every attempt fails with a swallowed generic "Could not start the session. Try again." error, with no path to a working 1v1 session through the UI. This blocked this task's own live-verification steps for both games; verification instead had to inject a corrected `rulesetVersionKey` into the outgoing `fetch` call from devtools to reach the play page and confirm the results-modal rendering, bypassing the broken setup flow entirely
 Proposed: give both setup pages a seat-count-aware ruleset selection — either resolve `RULESET_VERSION_KEY` from `guests.length` the same place `forceTargetIfGuested` already reacts to it (121), or add the equivalent branch to `singlesTrainingSetup()`/`createPresetSetupController` (Singles Training) — both out of scope for this plan, which only touches `*-play.data.ts` and the result modals
+
+### F46 — `Checkbox.astro`/`Radio.astro` are documented as the `.control` primitive's consumers but don't exist
+Status: Open · Found: 2026-08-31 · Task: claude/checkout-hints-toggle-ma5bxe
+Claim: `docs/architecture/07-Frontend/07-Style-Guide.md`'s Primitives table lists `.control` as the "Checkbox / radio appearance (`Checkbox.astro`, `Radio.astro`)", and `08-Component-Inventory.md` repeats the same two component names
+Evidence: `app/src/components/ui/` and `app/src/components/forms/` — no Checkbox.astro or Radio.astro file exists anywhere under `app/src/components/`; the ".control" class (`app/src/styles/global.css:369-397`) is real and defined but has no current Astro-component consumer found by a repo-wide search
+Impact: an agent following the style guide's Primitives table to reuse an existing checkbox/radio component before hand-rolling one (per `app/CLAUDE.md`'s "reuse before hand-rolling" rule) will look for files that aren't there and either hand-roll a raw `<input class="control">` (fine) or waste time searching for a component that was never built
+Proposed: either build the two thin wrapper components the docs already describe, or reword both docs' rows to describe `.control` as available for direct use on raw `<input type="checkbox">`/`<input type="radio">` elements with no dedicated wrapper yet

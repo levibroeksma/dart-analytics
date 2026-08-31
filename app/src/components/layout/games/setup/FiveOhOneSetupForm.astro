@@ -2,6 +2,7 @@
 // Components
 import Input from "@components/forms/Input.astro";
 import Toggle from "./Toggle.astro";
+import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
@@ -87,5 +88,10 @@ const infoSection = {
       x-cloak
     >
     </p>
+    <Switch
+      label="Show checkout hints"
+      x-model="$store.checkoutHints.enabled"
+      class="mt-4"
+    />
   </SettingSectionShell>
 </SetupShell>

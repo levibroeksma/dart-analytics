@@ -502,6 +502,26 @@ describe("checkoutHint", () => {
     await play.init.call(play);
     expect(play.checkoutHint.call(play)).toBe("");
   });
+
+  it("is empty when checkout hints are disabled, even with a valid route", async () => {
+    const play = makePlay({
+      turns: turnsReaching(40), // remaining 40
+    });
+    play.$store.checkoutHints = { enabled: false };
+    await play.init.call(play);
+
+    expect(play.checkoutHint.call(play)).toBe("");
+  });
+
+  it("checkoutHintFor is also empty when checkout hints are disabled", async () => {
+    const play = makePlay({
+      turns: turnsReaching(40), // remaining 40
+    });
+    play.$store.checkoutHints = { enabled: false };
+    await play.init.call(play);
+
+    expect(play.checkoutHintFor.call(play, "participant-1")).toBe("");
+  });
 });
 
 describe("seat-parameterized getters — two-seat isolation", () => {
