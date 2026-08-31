@@ -23,7 +23,7 @@ const { label, hint, class: classNameProp, ...props }: Props = Astro.props;
 import { cn } from "@client/cn";
 
 // Styles
-const className = cn("inline-flex items-center cursor-pointer", classNameProp);
+const className = cn("flex w-fit items-center cursor-pointer", classNameProp);
 const trackClass =
   "relative w-9 h-5 shrink-0 rounded-full bg-surface-overlay transition-colors duration-150 peer-checked:bg-accent peer-focus-visible:ring-4 peer-focus-visible:ring-accent-muted after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:size-4 after:rounded-full after:bg-foreground after:transition-transform after:duration-150 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full";
 ---
