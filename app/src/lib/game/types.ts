@@ -143,6 +143,15 @@ export type BoardMarker = {
 };
 
 /**
+ * Optional because only 501, 121, and TUOD read it — every other ruleset's
+ * `$store` simply omits the field rather than declaring it always-present.
+ * A per-device display preference (`checkoutHintsStore`), not gameplay data.
+ */
+export type CheckoutHintsStoreContext = {
+  enabled: boolean;
+};
+
+/**
  * The `$store` shape every play page reads, parameterised by the game's own
  * config snapshot. Written once rather than per game: the two copies had
  * already drifted into near-identical 18-line blocks, and each new session
@@ -354,7 +363,9 @@ export type TuodPlayContext = {
   dartsToFinish: DartCount | null;
   showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
-  $store: PlayStoreContext<TuodSnapshot>;
+  $store: PlayStoreContext<TuodSnapshot> & {
+    checkoutHints?: CheckoutHintsStoreContext;
+  };
   engine: TuodEngine | null;
   timer: SegmentTimer | null;
   hiddenTurnKey: string | null;
@@ -363,6 +374,8 @@ export type TuodPlayContext = {
   state(this: TuodPlayContext): TuodState | null;
   currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
+  checkoutHintFor(this: TuodPlayContext, seatRef: string): string;
+  checkoutHint(this: TuodPlayContext): string;
   remainingLabel(this: TuodPlayContext): string;
   init(this: TuodPlayContext): Promise<void>;
   retryReconciliation(this: TuodPlayContext): Promise<void>;
@@ -617,7 +630,9 @@ export type FiveOhOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
-  $store: PlayStoreContext<FiveOhOneSnapshot>;
+  $store: PlayStoreContext<FiveOhOneSnapshot> & {
+    checkoutHints?: CheckoutHintsStoreContext;
+  };
   engine: FiveOhOneEngine | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
@@ -706,7 +721,9 @@ export type OneTwentyOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
-  $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot>;
+  $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
+    checkoutHints?: CheckoutHintsStoreContext;
+  };
   engine: OneTwentyOneEngine | null;
   timer: SegmentTimer | null;
   hiddenTurnKey: string | null;
