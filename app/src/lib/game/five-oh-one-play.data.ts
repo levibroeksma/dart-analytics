@@ -250,11 +250,13 @@ export function fiveOhOnePlay() {
     },
 
     checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string {
+      if (this.$store.checkoutHints?.enabled === false) return "";
       const path = checkoutPathFor(this.remainingScoreFor(seatRef));
       return path ? path.join(" ") : "";
     },
 
     checkoutHint(this: FiveOhOnePlayContext): string {
+      if (this.$store.checkoutHints?.enabled === false) return "";
       const path = checkoutPathFor(this.remainingScore());
       return path ? path.join(" ") : "";
     },
