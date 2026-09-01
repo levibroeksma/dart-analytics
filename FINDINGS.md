@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-01
-highest-issued: F48
+highest-issued: F49
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F49 — File-Inventory's `08-DartBot.md` row claims no DartBot code exists
+Status: Open · Found: 2026-09-01 · Task: claude/dartbot-3-dictated-strategy
+Claim: `docs/architecture/00-File-Inventory.md:30` describes `08-DartBot.md` as "design only, no DartBot code exists yet (2026-09-01)"
+Evidence: `app/src/modules/dartbot/rng.module.ts`, `app/src/modules/dartbot/throw-engine.module.ts`, `app/src/modules/dartbot/strategy/dictated.strategy.module.ts` ship real, merged code from phases 1-2 (PRs #217, #218) plus this phase's PR — the claim was already false before this task started
+Impact: an agent reading the inventory row to decide whether DartBot has an implementation yet is misled into treating shipped, tested modules as unbuilt design
+Proposed: reword the row to describe delivery-phase status (e.g. "phases 1-3 implemented; phases 4-7 design only") instead of a blanket "no code exists yet", updating the date
 
 ### F5 — A broken script is filed as a deferred feature
 Status: Open · Found: 2026-08-19 · Task: claude/governance-spec2
