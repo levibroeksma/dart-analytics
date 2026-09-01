@@ -2,7 +2,7 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-08-30
+updated: 2026-09-01
 highest-issued: F46
 -->
 
