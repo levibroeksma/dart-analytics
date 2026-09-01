@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { CreateSessionRequest, ParticipantInput } from "@routes/sessions/types";
+import {
+  CreateSessionRequest,
+  ParticipantInput,
+  ParticipantRef,
+} from "@routes/sessions/types";
 
 const config = {
   source: "inline" as const,
@@ -32,10 +36,59 @@ describe("ParticipantInput", () => {
     ).toBe(true);
   });
 
-  it("rejects a participant type outside PLAYER and GUEST", () => {
+  it("accepts a DARTBOT seat with no displayName", () => {
     expect(
       ParticipantInput.safeParse({
         participantTypeKey: "DARTBOT",
+        sideKey: "B",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a DARTBOT seat carrying a level between 1 and 15", () => {
+    expect(
+      ParticipantInput.safeParse({
+        participantTypeKey: "DARTBOT",
+        level: 12,
+        sideKey: "B",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a DARTBOT level below 1", () => {
+    expect(
+      ParticipantInput.safeParse({
+        participantTypeKey: "DARTBOT",
+        level: 0,
+        sideKey: "B",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a DARTBOT level above 15", () => {
+    expect(
+      ParticipantInput.safeParse({
+        participantTypeKey: "DARTBOT",
+        level: 16,
+        sideKey: "B",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a non-integer DARTBOT level", () => {
+    expect(
+      ParticipantInput.safeParse({
+        participantTypeKey: "DARTBOT",
+        level: 8.5,
+        sideKey: "B",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("still rejects a participant type outside PLAYER, GUEST and DARTBOT", () => {
+    expect(
+      ParticipantInput.safeParse({
+        participantTypeKey: "GHOST",
         sideKey: "A",
       }).success,
     ).toBe(false);
@@ -87,6 +140,40 @@ describe("CreateSessionRequest participants", () => {
       CreateSessionRequest.safeParse({
         ...request,
         participants: [{ sideKey: "A" }],
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("ParticipantRef", () => {
+  it("accepts a PLAYER/GUEST ref with no dartbot payload", () => {
+    expect(
+      ParticipantRef.safeParse({
+        ref: "p1",
+        participantTypeKey: "PLAYER",
+        displayName: "Levi",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a DARTBOT ref carrying its level/seed/levelSource", () => {
+    expect(
+      ParticipantRef.safeParse({
+        ref: "p2",
+        participantTypeKey: "DARTBOT",
+        displayName: "DartBot",
+        dartbot: { level: 8, seed: 123456, levelSource: "MANUAL" },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a levelSource other than MANUAL", () => {
+    expect(
+      ParticipantRef.safeParse({
+        ref: "p2",
+        participantTypeKey: "DARTBOT",
+        displayName: "DartBot",
+        dartbot: { level: 8, seed: 123456, levelSource: "AUTO" },
       }).success,
     ).toBe(false);
   });
