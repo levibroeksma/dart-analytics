@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-08-27
+updated: 2026-09-01
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -27,6 +27,9 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
 | `04-Architecture-patterns.md` | Recurring design patterns + anti-patterns; Pattern 18 game engine contract, incl. undo depth, derived-value returns, `completedAt` timing, and the win-condition categories/`match-outcome.module.ts`/`activeSeat()` completion predicate (2026-07-26; win-condition subsection added 2026-08-22); Pattern 20 shared accuracy/hit-rate formatting via `accuracyDisplay()` (2026-08-27); Pattern 21 exclusive score-band tallying via `visitScoreBandCounts()` (2026-08-27); Pattern 18 gains `checkout-bust.module.ts` and `otherSeatsComplete`'s completion-predicate parameter (2026-08-27, D240); Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` (2026-08-28, D242) | canonical | ~6.8k |
+| `08-DartBot.md` | Simulated opponent architecture: seat layer plug-in, the play loop, delivery phases, board-geometry/engine-contract boundaries; design only, no DartBot code exists yet (2026-09-01) | canonical | ~22.9k |
+| `09-training-routines.md` | Proposed architecture for training routines, exercises, exercise engines; configurable/adaptive training, extends `GameEngine`/ruleset/configuration-snapshot architecture (2026-09-01) | canonical | ~6.3k |
+| `10-trivia.md` | Checkout trivia architecture: standalone untimed flashcard quiz drilling checkout routes; reuses `checkout-path.module.ts`, explicitly not integrated with `09-training-routines.md` (2026-09-01) | canonical | ~3.4k |
 ## Database handbook (`05-Database/`)
 
 | File | Answers | Status | ~Tokens |

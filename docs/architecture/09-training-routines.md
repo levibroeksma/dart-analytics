@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/training-routines
+read-when: training routines, exercises, exercise engines, configurable/adaptive training
+updated: 2026-09-01
+-->
+
 # Training, Exercise and Exercise Engine Architecture
 
 > Status: Proposed architectural design
