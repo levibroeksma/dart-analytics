@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-01
-highest-issued: F50
+highest-issued: F51
 -->
 
 # Findings
@@ -221,14 +221,14 @@ Evidence: `docs/superpowers/plans/2026-09-01-dartbot-2-calibration.md` Task 1 St
 Impact: an executor following Task 1 Step 3 literally and then running Task 3 Step 1's validation command hits an unexplained `npx fallow` failure with no plan text pointing at the cause or a fix
 Proposed: either give the plan's Task 1 Step 3 code the same two-helper split from the start, or note in Task 1 that a complexity-gate split is expected and describe the shape
 
-### F49 — `2026-09-01-dartbot-4-seat-admission.md`'s Task 7 `buildSeatPlan` code fails `npx fallow`'s health gate as written
+### F50 — `2026-09-01-dartbot-4-seat-admission.md`'s Task 7 `buildSeatPlan` code fails `npx fallow`'s health gate as written
 Status: Raised · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
 Claim: the plan's Global Constraints and Task 13 both require `npx fallow` to exit zero as part of the definition of done, and Task 7 Step 3's `buildSeatPlan` code is given as complete, ready-to-commit implementation
 Evidence: `docs/superpowers/plans/2026-09-01-dartbot-4-seat-admission.md` Task 7 Step 3 — the `buildSeatPlan` map callback given there interleaves three ternaries (`isPlayer`/`isDartbot`) across `participantTypeId`/`playerId`/`displayName` plus a conditional `dartbot` spread; committed verbatim it reports cyclomatic 10 / cognitive 11 / CRAP 31.6, over `npx fallow`'s health threshold — the same failure category as F48, one plan earlier in this same DartBot series; fixed on this branch by replacing the interleaved ternaries with one early return per `participantTypeKey` branch (PLAYER/DARTBOT/GUEST), which the plan never mentions
 Impact: an executor following Task 7 Step 3 literally and then running Task 13 Step 1's `run-all-gates` hits an unexplained `npx fallow` failure with no plan text pointing at the cause or a fix — the same discoverable-only-by-trial gap F48 already named for the phase-2 plan, suggesting the plan-writing process for this series doesn't run `npx fallow` against its own example code before publishing
 Proposed: give Task 7 Step 3's `buildSeatPlan` the early-return-per-branch shape from the start, or note that a complexity-gate split is expected; more durably, add "run `npx fallow` against every code block before publishing" to whatever process drafts these DartBot phase plans, since this is the second consecutive phase plan in the series to trip the same gate
 
-### F50 — `session-mode-resolution.ts`'s `participantsFromSeats` docstring still names the deleted `seatsFromParticipants` function
+### F51 — `session-mode-resolution.ts`'s `participantsFromSeats` docstring still names the deleted `seatsFromParticipants` function
 Status: Raised · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
 Claim: `participantsFromSeats`'s JSDoc describes itself as "the inverse of `seatsFromParticipants`"
 Evidence: `app/src/lib/game/session-mode-resolution.ts:120-121` — `seatsFromParticipants` was deleted and replaced by a private `toSeatFacts` in the same task (Task 8) that left this docstring's reference untouched; the function name it cites no longer exists anywhere in the file

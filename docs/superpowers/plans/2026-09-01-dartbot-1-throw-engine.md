@@ -15,6 +15,7 @@
 - DartBot never reads, computes, or steers toward a score (`08-DartBot.md` §Guiding Principle).
 - No timers or `Date.now()` inside `modules/dartbot/` (`08-DartBot.md` §Anti-Patterns).
 - Type and interface declarations go in the folder's `types.ts` / `interfaces.ts` barrels — never inline `export type` in a `.module.ts` (`08-DartBot.md` §Module Boundary).
+- A `type`-only import consumed from outside `modules/dartbot/` goes through the raised area barrel — `@lib/types`, `@modules/types`, `@modules/interfaces` — never a deep alias into the defining folder (`@lib/game/board/types`, `@modules/dartbot/types`, `@modules/dartbot/interfaces`); a VALUE import (`zoneCentroid`, `classify`) is exempt and keeps its direct module path (`scripts/check-type-barrels.sh`, `06-API/03-Shared-Conventions.md` §`types.ts` barrels).
 - No `//` or `/* */` comments inside function bodies anywhere under `app/src/**/*.ts` (`app/CLAUDE.md`); JSDoc above a declaration is fine.
 - Tests live under `app/tests/`, mirroring `app/src/` (`app/CLAUDE.md`).
 - A source edit with no test edit is not a completed task — every `.ts` file under `app/src/` needs a covering test (`app/CLAUDE.md`, D224).
@@ -401,7 +402,7 @@ Resolves a declared `{ targetNumber, zoneKey }` intent to an aim point in millim
 import { describe, expect, it } from "vitest";
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { resolveAimPoint } from "@modules/dartbot/aim-resolver.module";
-import type { SkillProfile } from "@modules/dartbot/types";
+import type { SkillProfile } from "@modules/types";
 
 const ZERO_OFFSET_PROFILE: SkillProfile = {
   sigmaAlongMm: 10,
@@ -467,7 +468,7 @@ export type ThrowIntent = {
 ```typescript
 // app/src/modules/dartbot/aim-resolver.module.ts
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
-import type { BoardPoint } from "@lib/game/board/types";
+import type { BoardPoint } from "@lib/types";
 import type { SkillProfile, ThrowIntent } from "./types";
 
 export function resolveAimPoint(
@@ -521,8 +522,8 @@ The orchestration stage: aim, anisotropic Gaussian scatter with a heavy-tail out
 import { describe, expect, it, vi } from "vitest";
 import { classify } from "@lib/game/board/board-geometry.module";
 import { throwDart } from "@modules/dartbot/throw-engine.module";
-import type { DartRng } from "@modules/dartbot/interfaces";
-import type { SkillProfile, ThrowIntent } from "@modules/dartbot/types";
+import type { DartRng } from "@modules/interfaces";
+import type { SkillProfile, ThrowIntent } from "@modules/types";
 
 function stubRng(uniforms: number[], gaussianPairs: [number, number][]): DartRng {
   let uIndex = 0;
@@ -609,7 +610,7 @@ Expected: FAIL — `Cannot find module '@modules/dartbot/throw-engine.module'`
 
 ```typescript
 // app/src/modules/dartbot/types.ts — add below the other types
-import type { BoardHit, BoardPoint } from "@lib/game/board/types";
+import type { BoardHit, BoardPoint } from "@lib/types";
 
 export type BotThrow = {
   aim: BoardPoint;
@@ -624,7 +625,7 @@ export type BotThrow = {
 ```typescript
 // app/src/modules/dartbot/throw-engine.module.ts
 import { classify } from "@lib/game/board/board-geometry.module";
-import type { BoardPoint } from "@lib/game/board/types";
+import type { BoardPoint } from "@lib/types";
 import { resolveAimPoint } from "./aim-resolver.module";
 import type { DartRng } from "./interfaces";
 import type { BotThrow, SkillProfile, ThrowIntent } from "./types";
@@ -714,7 +715,7 @@ import { describe, expect, it } from "vitest";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { throwDart } from "@modules/dartbot/throw-engine.module";
-import type { ThrowIntent } from "@modules/dartbot/types";
+import type { ThrowIntent } from "@modules/types";
 
 const T20_TREBLE: ThrowIntent = { targetNumber: 20, zoneKey: "TREBLE" };
 
