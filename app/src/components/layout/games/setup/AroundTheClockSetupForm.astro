@@ -3,6 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const infoSection = {
@@ -13,7 +14,10 @@ const infoSection = {
 ---
 
 <SetupShell title="Around the Clock">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("AROUND_THE_CLOCK_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
