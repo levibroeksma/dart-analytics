@@ -16,3 +16,12 @@ export function generateId(): string {
   const hex = [...buf].map((b) => b.toString(16).padStart(2, "0")).join("");
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
+
+/**
+ * Generates a 32-bit unsigned integer seed for a DartBot's per-session
+ * deterministic PRNG (`08-DartBot.md` §Determinism and Replay). Uses the
+ * same Web Crypto RNG `generateId()` draws from — never `Math.random()`.
+ */
+export function generateBotSeed(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0];
+}
