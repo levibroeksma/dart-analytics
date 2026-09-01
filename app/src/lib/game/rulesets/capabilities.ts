@@ -96,3 +96,38 @@ export function capableRulesets(
     (key) => supportsMode(key, captureModeKey, inputModeKey),
   );
 }
+
+/**
+ * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
+ * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) already
+ * plays: Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles
+ * Training. Only three are listed here — Shanghai V2 and Singles Training V2
+ * can never create *any* 2-seat session today (`FINDINGS.md` F45: both setup
+ * screens hardcode their V2 ruleset key with no seat-count branch, so a guest
+ * add already 422s at `createSession`), and that gap is explicitly deferred,
+ * not this map's to route around. 501, 121 and Score Training have no bot
+ * strategy at all yet — `X01Strategy` lands phase 7. Absent keys read as
+ * unsupported, exactly like `SEAT_CAPS`'s own "no entry" default in
+ * `session-seats.service.ts`.
+ */
+export const RULESET_DARTBOT: Readonly<
+  Partial<Record<RulesetVersionKey, boolean>>
+> = {
+  AROUND_THE_CLOCK_V1: true,
+  BOBS27_V1: true,
+  DOUBLES_TRAINING_V1: true,
+};
+
+/** Whether this ruleset version currently admits a DartBot opponent seat. */
+export function supportsDartbot(rulesetVersionKey: RulesetVersionKey): boolean {
+  return RULESET_DARTBOT[rulesetVersionKey] === true;
+}
+
+/**
+ * The bot level (1–15, D-D's public knob) a new DartBot seat gets when the
+ * setup screen's chooser offers no picker — `08-DartBot.md` §Skill Model
+ * names 8 the default. Both the client (`guest-list.ts`'s `addBotOpponent`)
+ * and the server (`session.service.ts`'s `buildSeatPlan`, the fallback for a
+ * request that omits `level`) read this one constant.
+ */
+export const DEFAULT_BOT_LEVEL = 8;
