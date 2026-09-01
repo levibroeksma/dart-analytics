@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-01
-highest-issued: F47
+highest-issued: F48
 -->
 
 # Findings
@@ -213,3 +213,10 @@ Claim: the plan's Task 4/5/6 code blocks import `zoneCentroid`/`BoardPoint` via 
 Evidence: `docs/superpowers/plans/2026-09-01-dartbot-1-throw-engine.md` Task 4 Step 4, Task 5 Step 1/4, Task 6 Step 1 — every one of those deep imports fails `scripts/check-type-barrels.sh` ("reaches past the area barrel into the defining folder"), and the new `app/src/modules/dartbot/interfaces.ts` and `app/src/modules/dartbot/types.ts` files themselves need raising into `app/src/modules/interfaces.ts` and `app/src/modules/types.ts`, a step no task in the plan names
 Impact: an executor following the plan's code verbatim gets a pre-commit rejection on the first commit that imports across the `dartbot`/`lib`/`board` boundary, with no plan text explaining why or what the fix is — discovered only by reading the gate's own error output
 Proposed: reword the plan's example imports to the raised barrels (`@lib/types`, `@modules/types`, `@modules/interfaces`) and add a Global Constraints line stating the barrel-raising rule explicitly, the same way the other cross-cutting constraints are called out
+
+### F48 — `2026-09-01-dartbot-2-calibration.md`'s Task 1 `simulateTierStats` code fails `npx fallow`'s cognitive-complexity gate as written
+Status: Open · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
+Claim: the plan's self-review claims its numbers "were measured by actually running this plan's exact harness code" and the plan's own Global Constraints require `npm run validate:app` (or, absent DB credentials, `npx fallow && npm test && npm run check`) to exit zero as the definition of done
+Evidence: `docs/superpowers/plans/2026-09-01-dartbot-2-calibration.md` Task 1 Step 3's `simulateTierStats` function, committed verbatim, reports cyclomatic 10 / cognitive 17 against `npx fallow`'s cognitive threshold of 15 (moderate severity, `functions_above_threshold: 1` in `--format json` output) — `npx fallow` exits non-zero until the function is split; fixed on this branch by extracting `simulateScoringVisits`/`simulateCheckoutAttempts` helpers, which the plan's Task 1 never mentions
+Impact: an executor following Task 1 Step 3 literally and then running Task 3 Step 1's validation command hits an unexplained `npx fallow` failure with no plan text pointing at the cause or a fix
+Proposed: either give the plan's Task 1 Step 3 code the same two-helper split from the start, or note in Task 1 that a complexity-gate split is expected and describe the shape
