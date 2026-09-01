@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@db/client", () => ({ getDb: vi.fn(() => ({})) }));
-vi.mock("@lib/id", () => ({ generateId: vi.fn(() => "generated-id") }));
+vi.mock("@lib/id", () => ({
+  generateId: vi.fn(() => "generated-id"),
+  generateBotSeed: vi.fn(() => 424242),
+}));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@repositories/session.repository")>();
@@ -80,6 +83,14 @@ const fiveOhOneRequest = {
   },
 };
 
+const bobs27Request = {
+  gameTypeKey: "BOBS27",
+  rulesetVersionKey: "BOBS27_V1",
+  captureModeKey: "RECREATIONAL",
+  inputModeKey: "DETAILED_DARTS",
+  config: { source: "inline" as const, config: {} },
+};
+
 describe("createSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,7 +102,8 @@ describe("createSession", () => {
     vi.mocked(repo.findInputModeId).mockResolvedValue(1);
     vi.mocked(repo.findGameStatusId).mockResolvedValue(1);
     vi.mocked(repo.findParticipantTypeId).mockImplementation(
-      async (_db: unknown, key: string) => (key === "PLAYER" ? 1 : 2),
+      async (_db: unknown, key: string) =>
+        key === "PLAYER" ? 1 : key === "GUEST" ? 2 : 3,
     );
     vi.mocked(repo.findPlayerDisplayName).mockResolvedValue("Levi");
     vi.mocked(repo.insertSessionRecords).mockResolvedValue({
@@ -179,6 +191,95 @@ describe("createSession", () => {
         participantTypeKey: participant.participantTypeKey,
       })),
     );
+  });
+
+  describe("a DARTBOT seat", () => {
+    it("mints a DARTBOT participant with display name DartBot, ignoring a spoofed displayName", async () => {
+      const result = await createSession("player-1", {
+        ...bobs27Request,
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          {
+            participantTypeKey: "DARTBOT",
+            displayName: "Spoofed",
+            sideKey: "B",
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.participants[1]).toEqual({
+        ref: "generated-id",
+        participantTypeKey: "DARTBOT",
+        displayName: "DartBot",
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
+      });
+    });
+
+    it("defaults the level to 8 when the request omits it", async () => {
+      const result = await createSession("player-1", {
+        ...bobs27Request,
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "DARTBOT", sideKey: "B" },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.participants[1].dartbot?.level).toBe(8);
+    });
+
+    it("uses the requested level when one is given", async () => {
+      const result = await createSession("player-1", {
+        ...bobs27Request,
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "DARTBOT", level: 13, sideKey: "B" },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.participants[1].dartbot?.level).toBe(13);
+    });
+
+    it("writes the same dartbot payload into the configuration snapshot's seat", async () => {
+      const result = await createSession("player-1", {
+        ...bobs27Request,
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "DARTBOT", sideKey: "B" },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const written = vi.mocked(repo.insertSessionRecords).mock.calls[0][0];
+      expect((written.configuration.seats as unknown[])[1]).toEqual({
+        participantRef: "generated-id",
+        displayName: "DartBot",
+        sideKey: "B",
+        participantTypeKey: "DARTBOT",
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
+      });
+    });
+
+    it("rejects a DARTBOT seat for a ruleset that does not admit one", async () => {
+      const result = await createSession("player-1", {
+        ...fiveOhOneRequest,
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "DARTBOT", sideKey: "B" },
+        ],
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(repo.insertSessionRecords).not.toHaveBeenCalled();
+    });
   });
 
   it("rejects a seat request the seat rules refuse, without writing anything", async () => {

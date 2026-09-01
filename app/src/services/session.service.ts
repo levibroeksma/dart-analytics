@@ -1,6 +1,9 @@
 import { getDb } from "@db/client";
-import { generateId } from "@lib/id";
-import { supportsMode } from "@lib/game/rulesets/capabilities";
+import { generateBotSeed, generateId } from "@lib/id";
+import {
+  DEFAULT_BOT_LEVEL,
+  supportsMode,
+} from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
 import { composeSeatFacts, rejectSeatRequest } from "./session-seats.service";
 import {
@@ -64,6 +67,7 @@ async function loadCreateSessionLookups(
     activeStatusId: number;
     playerParticipantTypeId: number;
     guestParticipantTypeId: number;
+    dartbotParticipantTypeId: number;
     displayName: string;
   }>
 > {
@@ -73,6 +77,7 @@ async function loadCreateSessionLookups(
     activeStatusId,
     playerParticipantTypeId,
     guestParticipantTypeId,
+    dartbotParticipantTypeId,
     displayName,
   ] = await Promise.all([
     findCaptureModeId(db, input.captureModeKey),
@@ -80,6 +85,7 @@ async function loadCreateSessionLookups(
     findGameStatusId(db, "ACTIVE"),
     findParticipantTypeId(db, "PLAYER"),
     findParticipantTypeId(db, "GUEST"),
+    findParticipantTypeId(db, "DARTBOT"),
     findPlayerDisplayName(db, playerId),
   ]);
   if (!captureModeId)
@@ -98,6 +104,7 @@ async function loadCreateSessionLookups(
     !activeStatusId ||
     !playerParticipantTypeId ||
     !guestParticipantTypeId ||
+    !dartbotParticipantTypeId ||
     !displayName
   ) {
     return {
@@ -115,6 +122,7 @@ async function loadCreateSessionLookups(
       activeStatusId,
       playerParticipantTypeId,
       guestParticipantTypeId,
+      dartbotParticipantTypeId,
       displayName,
     },
   };
@@ -234,9 +242,11 @@ async function insertSessionWithActiveGuard(
  * which is what keeps D61's "additive participants[]" promise literal and
  * leaves every un-wired engine working untouched.
  *
- * The PLAYER seat's display name is always the player's own row, never the
- * request's: migration `0005`'s CHECK requires a PLAYER participant to carry
- * `players.display_name`.
+ * The PLAYER seat's display name is always the player's own row, and the
+ * DARTBOT seat's is always the literal `"DartBot"` — never the request's:
+ * migration `0005`'s CHECKs require exactly that for both. A DARTBOT seat
+ * mints its own `seed` (`generateBotSeed`) and defaults its `level` to
+ * `DEFAULT_BOT_LEVEL` when the request omits one.
  */
 function buildSeatPlan(
   input: CreateSessionRequestInput,
@@ -244,6 +254,7 @@ function buildSeatPlan(
   lookups: {
     playerParticipantTypeId: number;
     guestParticipantTypeId: number;
+    dartbotParticipantTypeId: number;
     displayName: string;
   },
 ): SeatPlan[] {
@@ -253,16 +264,30 @@ function buildSeatPlan(
 
   return requested.map((participant, index) => {
     const isPlayer = participant.participantTypeKey === "PLAYER";
+    const isDartbot = participant.participantTypeKey === "DARTBOT";
     return {
       participantId: generateId(),
       participantTypeId: isPlayer
         ? lookups.playerParticipantTypeId
-        : lookups.guestParticipantTypeId,
+        : isDartbot
+          ? lookups.dartbotParticipantTypeId
+          : lookups.guestParticipantTypeId,
       playerId: isPlayer ? playerId : null,
       displayName: isPlayer
         ? lookups.displayName
-        : (participant.displayName ?? "").trim(),
+        : isDartbot
+          ? "DartBot"
+          : (participant.displayName ?? "").trim(),
       sideKey: participant.sideKey || String.fromCharCode(65 + index),
+      ...(isDartbot
+        ? {
+            dartbot: {
+              level: participant.level ?? DEFAULT_BOT_LEVEL,
+              seed: generateBotSeed(),
+              levelSource: "MANUAL" as const,
+            },
+          }
+        : {}),
     };
   });
 }
@@ -331,6 +356,7 @@ export async function createSession(
     activeStatusId,
     playerParticipantTypeId,
     guestParticipantTypeId,
+    dartbotParticipantTypeId,
     displayName,
   } = lookups.data;
 
@@ -363,6 +389,7 @@ export async function createSession(
   const seatPlan = buildSeatPlan(input, playerId, {
     playerParticipantTypeId,
     guestParticipantTypeId,
+    dartbotParticipantTypeId,
     displayName,
   });
   const seats = composeSeatFacts(seatPlan);
@@ -393,6 +420,9 @@ export async function createSession(
         ref: seat.participantRef,
         participantTypeKey: seat.participantTypeKey,
         displayName: seat.displayName,
+        ...(seat.participantTypeKey === "DARTBOT"
+          ? { dartbot: seat.dartbot }
+          : {}),
       })),
     },
   };
