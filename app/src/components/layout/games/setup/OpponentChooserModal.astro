@@ -1,0 +1,45 @@
+---
+/**
+ * D-J's two-step chooser: the add-opponent button (`AddGuestButton.astro`)
+ * opens this first when the setup screen supports a bot (`allowDartbot`),
+ * offering Guest or DartBot. Choosing Guest falls through to the existing
+ * `GuestNameModal`; choosing DartBot seats one directly — `addBot()` needs no
+ * typed input, unlike a guest's name. Parent (`GuestSection.astro`) owns
+ * `showOpponentChooser`, mirroring `GuestNameModal.astro`'s ownership split.
+ */
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<Modal
+  titleId="opponent-chooser-title"
+  onDismiss="showOpponentChooser = false"
+>
+  <h2
+    id="opponent-chooser-title"
+    class="text-lg font-semibold text-foreground"
+  >
+    Add Opponent
+  </h2>
+
+  <div
+    slot="footer"
+    class="mt-6 flex gap-3"
+  >
+    <Button
+      type="button"
+      variant="secondary"
+      class="flex-1"
+      title="Guest"
+      @click="showOpponentChooser = false; showAddGuestModal = true"
+    />
+    <Button
+      type="button"
+      class="flex-1"
+      title="DartBot"
+      @click="addBot()"
+    />
+  </div>
+</Modal>
