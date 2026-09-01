@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-01
-highest-issued: F47
+highest-issued: F46
 -->
 
 # Findings
@@ -206,10 +206,3 @@ Claim: `docs/architecture/07-Frontend/07-Style-Guide.md`'s Primitives table list
 Evidence: `app/src/components/ui/` and `app/src/components/forms/` — no Checkbox.astro or Radio.astro file exists anywhere under `app/src/components/`; the ".control" class (`app/src/styles/global.css:369-397`) is real and defined but has no current Astro-component consumer found by a repo-wide search
 Impact: an agent following the style guide's Primitives table to reuse an existing checkbox/radio component before hand-rolling one (per `app/CLAUDE.md`'s "reuse before hand-rolling" rule) will look for files that aren't there and either hand-roll a raw `<input class="control">` (fine) or waste time searching for a component that was never built
 Proposed: either build the two thin wrapper components the docs already describe, or reword both docs' rows to describe `.control` as available for direct use on raw `<input type="checkbox">`/`<input type="radio">` elements with no dedicated wrapper yet
-
-### F47 — `08-DartBot.md`/`10-trivia.md` cite provenance files that don't exist in this repo
-Status: Open · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
-Claim: both docs' Related Documents tables cite companion spec/handoff files as if they resolve inside `dart-analytics`, carrying path prefixes from the external location they were drafted in rather than this repo's own tree
-Evidence: `docs/architecture/08-DartBot.md` and `docs/architecture/10-trivia.md`, each in their closing Related Documents table, backtick-quote six distinct dead paths between them — three under a nonexistent "docs/superpowers/specs/...-design.md" naming pattern one directory too deep for anything committed here, plus "ideas/HANDOFF-FINDINGS.md" and self-references to the sibling docs written as "ideas/08-DartBot.md" / "ideas/09-training-routines.md" instead of their real location one level up; `scripts/check-doc-links.sh` fails on all ten occurrences (some rows cite the same dead path twice), reproduced identically on the pre-rebase source branch (commit 96632f3), so this predates the rebase rather than being introduced by it
-Impact: an agent following either doc's Related Documents table to verify a claim or find the approved design it was written from hits a dead reference; `scripts/check-doc-links.sh` cannot pass while these two files carry the unresolved refs, so that gate is currently red for this branch
-Proposed: for the two sibling self-references, drop the stale "ideas/" prefix (the files exist alongside them under `docs/architecture/`); for the handoff-findings and design-spec citations, either commit the missing files (if they still exist wherever these docs were drafted) or reword the citing rows to stop presenting them as resolvable repo paths

@@ -7,7 +7,7 @@ updated: 2026-08-28
 
 # Checkout Trivia Architecture
 
-> **Version:** 0.1.0 (2026-08-28 — initial architecture, from `2026-08-28-trivia-checkout-quiz-design.md`)
+> **Version:** 0.1.0 (2026-08-28 — initial architecture, from the approved checkout-trivia design)
 >
 > A standalone, untimed flashcard quiz for drilling checkout routes: what it covers, what it deliberately excludes, and the one piece of existing game code it reuses.
 >
@@ -195,9 +195,8 @@ Decided against for V1, recorded so none of it is re-litigated as an oversight.
 | Document | Relationship |
 | -------- | ------------ |
 | `docs/game-rules/trivia/README.md` | The category framing this document resolves the "target shape" question for. |
-| `docs/game-rules/trivia/checkouts.md` | The raw brief this document formalizes. See `ideas/HANDOFF-FINDINGS.md` H8 for a correction to its stated question-pool size. |
-| `app/src/modules/game/checkout-path.module.ts` | The chart this design reuses in full — `checkoutPathFor` is the only import from existing game code. See `ideas/HANDOFF-FINDINGS.md` H9 for a gap in its label legend. |
+| `docs/game-rules/trivia/checkouts.md` | The raw brief this document formalizes. |
+| `app/src/modules/game/checkout-path.module.ts` | The chart this design reuses in full — `checkoutPathFor` is the only import from existing game code. |
 | `app/src/modules/game/types.ts` | Source of the `DartZoneKey` vocabulary `DeclaredDart` narrows. |
-| `ideas/08-DartBot.md` | Sibling document in this folder. Its Module Boundary section describes a proposed extension to the frontend module/folder docs, not current convention — not mirrored here for that reason. |
-| `ideas/09-training-routines.md` | The framework this document deliberately does not integrate with — see §Architectural Placement. |
-| `ideas/docs/superpowers/specs/2026-08-28-trivia-checkout-quiz-design.md` | The approved design this document was written from. |
+| `08-DartBot.md` | Sibling document in this folder. Its Module Boundary section describes a proposed extension to the frontend module/folder docs, not current convention — not mirrored here for that reason. |
+| `09-training-routines.md` | The framework this document deliberately does not integrate with — see §Architectural Placement. |

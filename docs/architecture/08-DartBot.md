@@ -253,7 +253,7 @@ The outlier component is separate so the core σ stays honest — the occasional
 
 The pipeline above describes one dart. This section describes who asks for it, how often, and what happens when the user intervenes — none of which is DartBot's to decide, and all of which lives in `play-lifecycle.ts` rather than in nine copies.
 
-These four contracts are one mechanism seen from four angles, which is why they are specified and built together (`docs/superpowers/specs/2026-08-28-dartbot-play-loop-design.md`, phase 6): undo must pop more than one turn *because* the trigger re-throws immediately; the trigger needs a post-delay re-check *because* undo can land inside the pacing window; and the visit fold needs a second engine *because* the strategy re-targets between darts. Resolved separately they would be four plausible local decisions that do not compose.
+These four contracts are one mechanism seen from four angles, which is why they are specified and built together (phase 6, below): undo must pop more than one turn *because* the trigger re-throws immediately; the trigger needs a post-delay re-check *because* undo can land inside the pacing window; and the visit fold needs a second engine *because* the strategy re-targets between darts. Resolved separately they would be four plausible local decisions that do not compose.
 
 ## Who triggers a throw
 
@@ -693,7 +693,7 @@ Both were closed by work that was not about DartBot. Neither needs a DartBot dec
 
 ## Resolved by the seat-admission design
 
-`docs/superpowers/specs/2026-08-24-dartbot-seat-admission-design.md` (2026-08-24, revised 2026-08-28) resolves six. They are recorded there with rationale; summarised here so this document reads alone.
+The seat-admission design (2026-08-24, revised 2026-08-28) resolves six. They are recorded there with rationale; summarised here so this document reads alone.
 
 | Was                                            | Resolution                                                                                                                                                                                                                                                               |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -792,8 +792,5 @@ D-J is deliberately not a phase. The chooser that offers a bot has to land _with
 | `decisions/frontend/astro.md` D225                                                   | Guest setup UI; the Astro/Alpine escaping boundary that justifies a separate list component                                                  |
 | `docs/superpowers/specs/2026-08-20-guest-player-x01-design.md`                       | The seat design in full, including what it deferred — DartBot among it                                                                       |
 | `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` | 1v1 for the other eight engines — the document that closed D-H                                                                               |
-| `docs/superpowers/specs/2026-08-24-dartbot-seat-admission-design.md`                 | The admission contract, guards, persisted shape and setup UI; resolves D-C, D-D, D-F, D-G, D-H, D-I                                          |
-| `docs/superpowers/specs/2026-08-28-dartbot-play-loop-design.md`                      | Trigger, QUICK_SCORE visit fold, re-entrancy and undo — phase 6, with the alternatives weighed                                               |
-| `ideas/HANDOFF-FINDINGS.md`                                                          | Findings and verified constraints staged for transplant into the repo — read before trusting any claim here about `dart-analytics`          |
 | `app/src/modules/game/seat-rota.module.ts`                                           | The active-seat derivation DartBot must never duplicate                                                                                      |
 | `app/src/modules/game/seat-state.module.ts`, `match-outcome.module.ts`               | Per-seat folding and win conditions — both already generic over participant type                                                             |
