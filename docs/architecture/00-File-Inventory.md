@@ -64,7 +64,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22); Player Settings `GET`/`PATCH /api/players/me/settings` incl. the uncapable-pair `VALIDATION_FAILED` case (D195, 2026-08-08); `POST /sessions`' `SEAT_CAPS` table (2026-08-22) | canonical | ~5.7k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~3.4k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes; same-origin auth client (D172, 2026-07-29) | canonical | ~2.2k |
-| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26) | canonical | ~1.9k |
+| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26); `modules/dartbot/` + `.strategy.module.ts` registered (2026-09-01) | canonical | ~2.0k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate; UI module instances held off the reactive object (D187, 2026-08-07) | canonical | ~3.2k |
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
