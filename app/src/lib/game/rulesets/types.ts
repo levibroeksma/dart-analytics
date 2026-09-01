@@ -522,15 +522,28 @@ export type GameCardDescriptor = {
  * from the fact log and never stored.
  *
  * `participantTypeKey` is carried so read-time statistics can restrict
- * themselves to the owning player's own turns — a guest's visits land in the
- * same `turns` table.
+ * themselves to the owning player's own turns — a guest's or bot's visits
+ * land in the same `turns` table.
+ *
+ * A discriminated union rather than one flat type (D-C): `dartbot` exists
+ * only on the `DARTBOT` branch, so a PLAYER/GUEST seat can never carry it and
+ * a DARTBOT seat can never be missing it — the level/seed/levelSource a bot
+ * throws with is not optional data once the branch is known.
  */
-export type SeatFact = {
-  participantRef: string;
-  displayName: string;
-  sideKey: string;
-  participantTypeKey: "PLAYER" | "GUEST";
-};
+export type SeatFact =
+  | {
+      participantRef: string;
+      displayName: string;
+      sideKey: string;
+      participantTypeKey: "PLAYER" | "GUEST";
+    }
+  | {
+      participantRef: string;
+      displayName: string;
+      sideKey: string;
+      participantTypeKey: "DARTBOT";
+      dartbot: { level: number; seed: number; levelSource: "MANUAL" };
+    };
 
 /**
  * A ruleset config snapshot plus the seats playing it. Seats are composed in

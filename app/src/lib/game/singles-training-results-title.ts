@@ -12,7 +12,7 @@ export function singlesTrainingResultsTitle(
     participantRef: string;
     sideKey: string;
     displayName: string;
-    participantTypeKey: "PLAYER" | "GUEST";
+    participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
   }[],
   resultsSnapshot:
     | {
