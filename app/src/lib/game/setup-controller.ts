@@ -10,7 +10,7 @@ import {
 } from "@client/api/sessions";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { addTypedGuest } from "@lib/game/guest-list";
+import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -51,6 +51,8 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
     newGuestName: "",
+    bot: null as { level: number } | null,
+    showOpponentChooser: false,
 
     async init(this: Ctx) {
       this.loadingReconciliation = true;
@@ -126,8 +128,16 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
       addTypedGuest(this);
     },
 
+    addBot(this: Ctx) {
+      addBotOpponent(this);
+    },
+
     removeGuest(this: Ctx, index: number) {
       this.guests.splice(index, 1);
+    },
+
+    removeBot(this: Ctx) {
+      this.bot = null;
     },
 
     async start(this: Ctx) {
@@ -155,7 +165,7 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
           rulesetVersionKey,
           this.$store.settings,
         );
-        const participants = participantsFromGuests(this.guests);
+        const participants = participantsFromGuests(this.guests, this.bot);
         const session = await createSession({
           gameTypeKey,
           rulesetVersionKey,
