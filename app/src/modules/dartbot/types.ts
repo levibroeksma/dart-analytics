@@ -1,3 +1,10 @@
+import type { DartZoneKey } from "@modules/types";
+
+export type ThrowIntent = {
+  targetNumber: number | null;
+  zoneKey: DartZoneKey;
+};
+
 /**
  * The execution/aim/collision axes a throw is drawn from. `decision`,
  * `pressure`, `form` and `correlation` (08-DartBot.md §SkillProfile axes)
