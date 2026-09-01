@@ -1,5 +1,6 @@
 import type { SeatFact } from "@lib/types";
 import type { ParticipantInputData } from "@routes/types";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 import type { SeatPlan } from "./types";
 
 const MIN_SEATS = 1;
@@ -68,6 +69,15 @@ export function rejectSeatRequest(
     return "Every guest needs a name.";
   }
 
+  const unsupportedDartbot = participants.some(
+    (participant) =>
+      participant.participantTypeKey === "DARTBOT" &&
+      !supportsDartbot(rulesetVersionKey as never),
+  );
+  if (unsupportedDartbot) {
+    return `${rulesetVersionKey} does not support a DartBot opponent yet.`;
+  }
+
   const sides = new Set(participants.map((participant) => participant.sideKey));
   if (sides.size !== participants.length) {
     return "Only one seat per side is supported; 2v2 is not implemented yet.";
@@ -90,13 +100,24 @@ export function rejectSeatRequest(
  * mismatch the client's `SeatFact`.
  */
 export function composeSeatFacts(plan: readonly SeatPlan[]): SeatFact[] {
-  return plan.map((seat) => ({
-    participantRef: seat.participantId,
-    displayName: seat.displayName,
-    sideKey: seat.sideKey,
-    participantTypeKey:
-      seat.participantTypeId === PLAYER_PARTICIPANT_TYPE_ID
-        ? "PLAYER"
-        : "GUEST",
-  }));
+  return plan.map((seat) => {
+    if (seat.dartbot) {
+      return {
+        participantRef: seat.participantId,
+        displayName: seat.displayName,
+        sideKey: seat.sideKey,
+        participantTypeKey: "DARTBOT",
+        dartbot: seat.dartbot,
+      };
+    }
+    return {
+      participantRef: seat.participantId,
+      displayName: seat.displayName,
+      sideKey: seat.sideKey,
+      participantTypeKey:
+        seat.participantTypeId === PLAYER_PARTICIPANT_TYPE_ID
+          ? "PLAYER"
+          : "GUEST",
+    };
+  });
 }
