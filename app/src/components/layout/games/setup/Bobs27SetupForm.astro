@@ -3,6 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const infoSection = {
@@ -13,7 +14,10 @@ const infoSection = {
 ---
 
 <SetupShell title="Bob's 27">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("BOBS27_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}

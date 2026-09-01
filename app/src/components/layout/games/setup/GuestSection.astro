@@ -2,11 +2,20 @@
 // Components
 import AddGuestButton from "./AddGuestButton.astro";
 import GuestNameModal from "./GuestNameModal.astro";
+import OpponentChooserModal from "./OpponentChooserModal.astro";
 import IconBtn from "@components/forms/IconBtn.astro";
 
 // Icons
 import UserIcon from "@icons/user.svg";
+import TargetIcon from "@icons/target.svg";
 import CrossIcon from "@icons/cross.svg";
+
+interface Props {
+  allowDartbot?: boolean;
+}
+
+// Props
+const { allowDartbot = false }: Props = Astro.props;
 ---
 
 <template
@@ -40,8 +49,36 @@ import CrossIcon from "@icons/cross.svg";
   </div>
 </template>
 
-<AddGuestButton />
+<template x-if="bot">
+  <div class="relative">
+    <div class="flex flex-col gap-1 items-center justify-center">
+      <div
+        class="p-3 border-x border-t w-fit border-sky-500/70 rounded-full bg-tab-active"
+      >
+        <TargetIcon
+          class="size-8 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
+        />
+      </div>
+      <span class="text-sm text-accent font-semibold">DartBot</span>
+    </div>
+    <IconBtn
+      type="button"
+      variant="ghost"
+      ariaLabel="Remove DartBot"
+      @click="removeBot()"
+      class="absolute -top-1 -right-1 p-0.5 bg-tab-card text-accent flex justify-center items-center"
+    >
+      <CrossIcon class="size-4" />
+    </IconBtn>
+  </div>
+</template>
+
+<AddGuestButton allowDartbot={allowDartbot} />
 
 <template x-if="showAddGuestModal">
   <GuestNameModal />
+</template>
+
+<template x-if="showOpponentChooser">
+  <OpponentChooserModal />
 </template>

@@ -10,6 +10,10 @@ const guest = {
   displayName: "Dad",
   sideKey: "B",
 };
+const bot = {
+  participantTypeKey: "DARTBOT" as const,
+  sideKey: "B",
+};
 
 describe("rejectSeatRequest", () => {
   it("accepts an omitted participants field", () => {
@@ -162,6 +166,31 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
   });
 });
 
+describe("rejectSeatRequest with a DARTBOT seat", () => {
+  it("accepts a DARTBOT seat for a ruleset RULESET_DARTBOT admits", () => {
+    expect(rejectSeatRequest([player, bot], "BOBS27_V1")).toBeNull();
+  });
+
+  it("rejects a DARTBOT seat for a ruleset RULESET_DARTBOT does not admit", () => {
+    expect(rejectSeatRequest([player, bot], "501_V1")).toMatch(
+      /does not support a DartBot opponent/,
+    );
+  });
+
+  it("rejects a DARTBOT seat for Shanghai V2, whose 1v1 seating is already broken (F45)", () => {
+    expect(rejectSeatRequest([player, bot], "SHANGHAI_V2")).toMatch(
+      /does not support a DartBot opponent/,
+    );
+  });
+
+  it("counts a DARTBOT seat toward the ruleset's own SEAT_CAPS entry", () => {
+    const threeSeats = [player, bot, { ...guest, sideKey: "C" }];
+    expect(rejectSeatRequest(threeSeats, "BOBS27_V1")).toContain(
+      "supports at most 2 seat",
+    );
+  });
+});
+
 describe("composeSeatFacts", () => {
   it("projects the persisted seat plan into snapshot seats, in order", () => {
     expect(
@@ -193,6 +222,42 @@ describe("composeSeatFacts", () => {
         displayName: "Dad",
         sideKey: "B",
         participantTypeKey: "GUEST",
+      },
+    ]);
+  });
+
+  it("projects a DARTBOT seat's level/seed/levelSource into the snapshot seat", () => {
+    expect(
+      composeSeatFacts([
+        {
+          participantId: "id-a",
+          participantTypeId: 1,
+          playerId: "player-1",
+          displayName: "Levi",
+          sideKey: "A",
+        },
+        {
+          participantId: "id-b",
+          participantTypeId: 3,
+          playerId: null,
+          displayName: "DartBot",
+          sideKey: "B",
+          dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
+        },
+      ]),
+    ).toEqual([
+      {
+        participantRef: "id-a",
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER",
+      },
+      {
+        participantRef: "id-b",
+        displayName: "DartBot",
+        sideKey: "B",
+        participantTypeKey: "DARTBOT",
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
       },
     ]);
   });

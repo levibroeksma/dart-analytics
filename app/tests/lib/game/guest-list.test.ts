@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { addTypedGuest } from "@lib/game/guest-list";
+import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import type { GuestListContext } from "@lib/types";
 
 function context(overrides: Partial<GuestListContext> = {}): GuestListContext {
@@ -7,6 +7,8 @@ function context(overrides: Partial<GuestListContext> = {}): GuestListContext {
     guests: [],
     newGuestName: "",
     showAddGuestModal: true,
+    bot: null,
+    showOpponentChooser: true,
     ...overrides,
   };
 }
@@ -46,5 +48,36 @@ describe("addTypedGuest", () => {
     expect(state.guests).toEqual([{ displayName: "Rosa" }]);
     expect(state.newGuestName).toBe("Sam");
     expect(state.showAddGuestModal).toBe(true);
+  });
+
+  it("refuses when a bot already occupies the opponent slot", () => {
+    const state = context({ bot: { level: 8 }, newGuestName: "Rosa" });
+
+    expect(addTypedGuest(state)).toBe(false);
+    expect(state.guests).toEqual([]);
+  });
+});
+
+describe("addBotOpponent", () => {
+  it("seats a level-8 DartBot and closes the chooser", () => {
+    const state = context();
+
+    expect(addBotOpponent(state)).toBe(true);
+    expect(state.bot).toEqual({ level: 8 });
+    expect(state.showOpponentChooser).toBe(false);
+  });
+
+  it("refuses a second bot", () => {
+    const state = context({ bot: { level: 8 } });
+
+    expect(addBotOpponent(state)).toBe(false);
+    expect(state.bot).toEqual({ level: 8 });
+  });
+
+  it("refuses when a guest already occupies the opponent slot", () => {
+    const state = context({ guests: [{ displayName: "Rosa" }] });
+
+    expect(addBotOpponent(state)).toBe(false);
+    expect(state.bot).toBeNull();
   });
 });

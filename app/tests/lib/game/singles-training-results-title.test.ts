@@ -87,4 +87,26 @@ describe("singlesTrainingResultsTitle", () => {
       "Session complete",
     );
   });
+
+  it("accepts a DARTBOT-typed opponent seat structurally, treating it like any non-owner seat", () => {
+    const botSeats = [
+      ...soloSeats,
+      {
+        participantRef: "p2",
+        sideKey: "B",
+        displayName: "DartBot",
+        participantTypeKey: "DARTBOT" as const,
+      },
+    ];
+    const resultsSnapshot = {
+      winningSideKey: "A",
+      seats: [
+        { participantRef: "p1", status: "WON" as const },
+        { participantRef: "p2", status: "LOST" as const },
+      ],
+    };
+    expect(singlesTrainingResultsTitle(botSeats, resultsSnapshot)).toBe(
+      "DartBot missed the target.",
+    );
+  });
 });

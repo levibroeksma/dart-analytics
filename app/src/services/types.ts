@@ -10,8 +10,9 @@ export type CreateSessionResult = {
   sessionId: string;
   participants: {
     ref: string;
-    participantTypeKey: string;
+    participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
     displayName: string;
+    dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
   }[];
 };
 
@@ -36,6 +37,10 @@ export type AppendBatchResult = {
  * One seat as it will be persisted: the participant row to insert plus the
  * side it plays for. Built before the write so participants and the
  * configuration snapshot are composed from the same ids in one transaction.
+ * `dartbot` is populated only for a `DARTBOT` seat — `buildSeatPlan`
+ * (`session.service.ts`) mints it, `composeSeatFacts`
+ * (`session-seats.service.ts`) carries it straight into the snapshot's
+ * `SeatFact`.
  */
 export type SeatPlan = {
   participantId: string;
@@ -43,4 +48,5 @@ export type SeatPlan = {
   playerId: string | null;
   displayName: string;
   sideKey: string;
+  dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
 };

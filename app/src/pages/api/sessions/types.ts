@@ -12,16 +12,20 @@ export const ConfigInput = z.discriminatedUnion("source", [
 /**
  * One requested seat. Array order IS seat order, so the setup screen decides
  * who throws first in leg 1 by the order it sends. `displayName` is required
- * for a GUEST and ignored for the PLAYER, whose name is copied server-side
- * from `players.display_name` — migration `0005`'s CHECK requires exactly
- * that, so a client-supplied value is never trusted. Cross-field agreement
- * (one PLAYER, one seat per side, seat count, ruleset support) is asserted
+ * for a GUEST and ignored for the PLAYER and DARTBOT, whose names are copied
+ * server-side (`players.display_name`, and the literal `"DartBot"` — migration
+ * `0005`'s CHECK requires exactly that) — a client-supplied value is never
+ * trusted. `level` (1–15, `08-DartBot.md` §Skill Model) is read only for a
+ * DARTBOT seat; when omitted the server defaults it (`DEFAULT_BOT_LEVEL`).
+ * Cross-field agreement (one PLAYER, one seat per side, seat count, ruleset
+ * support — including whether the ruleset admits a bot at all) is asserted
  * once in `session-seats.service.ts` rather than here, because it depends on
  * the ruleset being created.
  */
 export const ParticipantInput = z.object({
-  participantTypeKey: z.enum(["PLAYER", "GUEST"]),
+  participantTypeKey: z.enum(["PLAYER", "GUEST", "DARTBOT"]),
   displayName: z.string().optional(),
+  level: z.number().int().min(1).max(15).optional(),
   sideKey: z.string().min(1),
 });
 export type ParticipantInputData = z.infer<typeof ParticipantInput>;
@@ -36,10 +40,25 @@ export const CreateSessionRequest = z.object({
 });
 export type CreateSessionRequestInput = z.infer<typeof CreateSessionRequest>;
 
+/**
+ * One minted participant, as `createSession` returns it. `dartbot` is
+ * present only on a `DARTBOT` participant — the same `{ level, seed,
+ * levelSource }` shape `SeatFact`'s DARTBOT branch carries (D-C), returned so
+ * the client's own copy of the seat round-trips the exact data the server
+ * persisted into the configuration snapshot, rather than the client having to
+ * re-derive or guess it.
+ */
 export const ParticipantRef = z.object({
   ref: z.string(),
-  participantTypeKey: z.string(),
+  participantTypeKey: z.enum(["PLAYER", "GUEST", "DARTBOT"]),
   displayName: z.string(),
+  dartbot: z
+    .object({
+      level: z.number().int().min(1).max(15),
+      seed: z.number().int(),
+      levelSource: z.literal("MANUAL"),
+    })
+    .optional(),
 });
 
 export const CreateSessionResponse = z.object({

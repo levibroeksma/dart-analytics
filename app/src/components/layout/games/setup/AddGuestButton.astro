@@ -1,4 +1,17 @@
 ---
+/**
+ * @param {boolean} [allowDartbot=false] When true, the button opens the
+ * Guest/DartBot chooser (`OpponentChooserModal.astro`, D-J) instead of
+ * jumping straight to the guest-name modal. `GuestSection.astro` only sets
+ * this true from a setup screen `supportsDartbot()` admits.
+ */
+interface Props {
+  allowDartbot?: boolean;
+}
+
+// Props
+const { allowDartbot = false }: Props = Astro.props;
+
 // Components
 import IconBtn from "@components/forms/IconBtn.astro";
 
@@ -8,14 +21,16 @@ import PlusIcon from "@icons/plus.svg";
 
 <div
   class="flex flex-col gap-1 items-center justify-center"
-  x-show="guests.length < 1"
+  x-show="guests.length < 1 && !bot"
   x-cloak
 >
   <IconBtn
     type="button"
     variant="dashed"
-    ariaLabel="Add guest"
-    @click="showAddGuestModal = true"
+    ariaLabel="Add opponent"
+    @click={allowDartbot
+      ? "showOpponentChooser = true"
+      : "showAddGuestModal = true"}
     class="p-3 border-2"
   >
     <PlusIcon class="size-8" />

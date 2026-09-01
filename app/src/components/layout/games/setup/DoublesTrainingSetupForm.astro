@@ -5,6 +5,7 @@ import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const infoSection = {
@@ -23,7 +24,10 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Doubles training">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("DOUBLES_TRAINING_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}

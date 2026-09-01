@@ -275,4 +275,76 @@ describe("createPresetSetupController", () => {
       expect(setup.guests).toHaveLength(0);
     });
   });
+
+  describe("bot wiring", () => {
+    const BOBS27_PRESET = {
+      configurationTemplateId: "tmpl-1",
+      gameTypeKey: "BOBS27",
+      name: "Bob's 27 — Standard",
+      description: null,
+      configuration: {},
+      isSystemTemplate: true,
+    } as any;
+
+    function bobs27(): PresetSetupContext {
+      return {
+        ...createPresetSetupController<PresetSetupContext>({
+          gameTypeKey: "BOBS27",
+          rulesetVersionKey: "BOBS27_V1",
+          playHref: "/games/bobs27/play",
+          label: "Bob's 27",
+        }),
+        $store: store,
+      } as PresetSetupContext;
+    }
+
+    it("addBot seats a level-8 DartBot and start() sends a 2-seat DARTBOT participants array", async () => {
+      const setup = bobs27();
+      setup.presets = [BOBS27_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      setup.addBot();
+      expect(setup.bot).toEqual({ level: 8 });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            { participantTypeKey: "PLAYER", sideKey: "A" },
+            { participantTypeKey: "DARTBOT", level: 8, sideKey: "B" },
+          ],
+        }),
+      );
+    });
+
+    it("addBot refuses when a guest is already seated", () => {
+      const setup = bobs27();
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+
+      setup.addBot();
+
+      expect(setup.bot).toBeNull();
+    });
+
+    it("addGuest refuses when a bot is already seated", () => {
+      const setup = bobs27();
+      setup.addBot();
+
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+
+      expect(setup.guests).toEqual([]);
+    });
+
+    it("removeBot clears the seated bot", () => {
+      const setup = bobs27();
+      setup.addBot();
+
+      setup.removeBot();
+
+      expect(setup.bot).toBeNull();
+    });
+  });
 });

@@ -3,7 +3,6 @@ import {
   participantsFromGuests,
   participantsFromSeats,
   resolveSessionModePair,
-  seatsFromParticipants,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
 
@@ -84,30 +83,6 @@ describe("resolveSessionModePair", () => {
   });
 });
 
-describe("seatsFromParticipants", () => {
-  it("gives every participant its own side, in array order", () => {
-    expect(
-      seatsFromParticipants([
-        { ref: "a", participantTypeKey: "PLAYER", displayName: "Levi" },
-        { ref: "b", participantTypeKey: "GUEST", displayName: "Dad" },
-      ]),
-    ).toEqual([
-      {
-        participantRef: "a",
-        displayName: "Levi",
-        sideKey: "A",
-        participantTypeKey: "PLAYER",
-      },
-      {
-        participantRef: "b",
-        displayName: "Dad",
-        sideKey: "B",
-        participantTypeKey: "GUEST",
-      },
-    ]);
-  });
-});
-
 describe("startSessionInput", () => {
   it("composes seats into the config snapshot and carries no participant ref", () => {
     const input = startSessionInput({
@@ -139,6 +114,49 @@ describe("startSessionInput", () => {
       ],
     });
     expect("participantRef" in input).toBe(false);
+  });
+
+  it("carries a DARTBOT participant's dartbot payload into the composed seat", () => {
+    const input = startSessionInput({
+      gameTypeKey: "BOBS27",
+      rulesetVersionKey: "BOBS27_V1",
+      session: {
+        sessionId: "s1",
+        participants: [
+          { ref: "a", participantTypeKey: "PLAYER", displayName: "Levi" },
+          {
+            ref: "b",
+            participantTypeKey: "DARTBOT",
+            displayName: "DartBot",
+            dartbot: { level: 8, seed: 42, levelSource: "MANUAL" },
+          },
+        ],
+      },
+      templateRef: "tpl-1",
+      configSnapshot: {},
+      modePair: {
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "DETAILED_DARTS",
+      },
+    });
+
+    expect(input.configSnapshot).toEqual({
+      seats: [
+        {
+          participantRef: "a",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          participantRef: "b",
+          displayName: "DartBot",
+          sideKey: "B",
+          participantTypeKey: "DARTBOT",
+          dartbot: { level: 8, seed: 42, levelSource: "MANUAL" },
+        },
+      ],
+    });
   });
 });
 
@@ -198,6 +216,29 @@ describe("participantsFromSeats", () => {
       requested?.every((participant) => !("participantRef" in participant)),
     ).toBe(true);
   });
+
+  it("returns a DARTBOT participant carrying its level, never a displayName", () => {
+    expect(
+      participantsFromSeats([
+        {
+          participantRef: "p1",
+          displayName: "Levi",
+          sideKey: "A",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          participantRef: "p2",
+          displayName: "DartBot",
+          sideKey: "B",
+          participantTypeKey: "DARTBOT",
+          dartbot: { level: 11, seed: 42, levelSource: "MANUAL" },
+        },
+      ]),
+    ).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "DARTBOT", level: 11, sideKey: "B" },
+    ]);
+  });
 });
 
 describe("participantsFromGuests", () => {
@@ -215,5 +256,19 @@ describe("participantsFromGuests", () => {
   it("never sends a displayName for the owning player", () => {
     const requested = participantsFromGuests([{ displayName: "Rosa" }]);
     expect(requested?.[0]).not.toHaveProperty("displayName");
+  });
+
+  it("seats a DARTBOT opponent at level when a bot is given, ignoring any guests", () => {
+    expect(
+      participantsFromGuests([{ displayName: "Rosa" }], { level: 12 }),
+    ).toEqual([
+      { participantTypeKey: "PLAYER", sideKey: "A" },
+      { participantTypeKey: "DARTBOT", level: 12, sideKey: "B" },
+    ]);
+  });
+
+  it("omits the field entirely when there is no guest and no bot", () => {
+    expect(participantsFromGuests([], null)).toBeUndefined();
+    expect(participantsFromGuests([], undefined)).toBeUndefined();
   });
 });
