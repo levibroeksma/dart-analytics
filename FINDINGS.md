@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-01
-highest-issued: F46
+highest-issued: F47
 -->
 
 # Findings
@@ -206,3 +206,10 @@ Claim: `docs/architecture/07-Frontend/07-Style-Guide.md`'s Primitives table list
 Evidence: `app/src/components/ui/` and `app/src/components/forms/` — no Checkbox.astro or Radio.astro file exists anywhere under `app/src/components/`; the ".control" class (`app/src/styles/global.css:369-397`) is real and defined but has no current Astro-component consumer found by a repo-wide search
 Impact: an agent following the style guide's Primitives table to reuse an existing checkbox/radio component before hand-rolling one (per `app/CLAUDE.md`'s "reuse before hand-rolling" rule) will look for files that aren't there and either hand-roll a raw `<input class="control">` (fine) or waste time searching for a component that was never built
 Proposed: either build the two thin wrapper components the docs already describe, or reword both docs' rows to describe `.control` as available for direct use on raw `<input type="checkbox">`/`<input type="radio">` elements with no dedicated wrapper yet
+
+### F47 — `2026-09-01-dartbot-1-throw-engine.md`'s example code violates the type-barrel raising rule it never mentions
+Status: Open · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
+Claim: the plan's Task 4/5/6 code blocks import `zoneCentroid`/`BoardPoint` via `@lib/game/board/board-geometry.module`/`@lib/game/board/types` and `SkillProfile`/`ThrowIntent`/`DartRng` via `@modules/dartbot/types`/`@modules/dartbot/interfaces`, and its Global Constraints section lists the no-`Math.random()`, no-private-geometry, and comment rules but never states the barrel-raising rule at all
+Evidence: `docs/superpowers/plans/2026-09-01-dartbot-1-throw-engine.md` Task 4 Step 4, Task 5 Step 1/4, Task 6 Step 1 — every one of those deep imports fails `scripts/check-type-barrels.sh` ("reaches past the area barrel into the defining folder"), and the new `app/src/modules/dartbot/interfaces.ts` and `app/src/modules/dartbot/types.ts` files themselves need raising into `app/src/modules/interfaces.ts` and `app/src/modules/types.ts`, a step no task in the plan names
+Impact: an executor following the plan's code verbatim gets a pre-commit rejection on the first commit that imports across the `dartbot`/`lib`/`board` boundary, with no plan text explaining why or what the fix is — discovered only by reading the gate's own error output
+Proposed: reword the plan's example imports to the raised barrels (`@lib/types`, `@modules/types`, `@modules/interfaces`) and add a Global Constraints line stating the barrel-raising rule explicitly, the same way the other cross-cutting constraints are called out

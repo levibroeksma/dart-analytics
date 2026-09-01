@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/folder-structure
 read-when: new frontend files, aliases, import direction
-updated: 2026-07-26
+updated: 2026-09-01
 -->
 
 # Frontend Folder Structure
 
-> **Version:** 0.2.2 (cross-runtime `lib/game/rulesets/`, 2026-07-26; prior 0.2.1 zero-exception .ts file-location rule, 2026-07-16)
+> **Version:** 0.2.3 (DartBot module suffix registration — `.module.ts` widened, `.strategy.module.ts` added, `modules/dartbot/` in the tree, 2026-09-01; prior 0.2.2 cross-runtime `lib/game/rulesets/`, 2026-07-26)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -48,7 +48,8 @@ app/src/
 ├── forms/                           # @forms — *.form.ts
 ├── modules/
 │   ├── ui/                          # portable OOP (*.module.ts)
-│   └── game/                        # *.engine.module.ts, *.payload.module.ts
+│   ├── game/                        # *.engine.module.ts, *.payload.module.ts
+│   └── dartbot/                     # simulated opponent (*.module.ts, *.strategy.module.ts)
 ├── components/
 │   ├── ui/                          # portable Astro + Alpine wiring
 │   └── <domain>/
@@ -131,9 +132,10 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 | `.store.ts` | Alpine store factory | **Allowed** |
 | `.form.ts` | Form/draft state factory; v1 substitute for `player_settings` (D77) | **Allowed** |
 | `.data.ts` | Alpine.data factory (registered via `register-*-data.ts`) | **Forbidden** |
-| `.module.ts` | Portable UI OOP class (`modules/ui/`) | **Forbidden** |
+| `.module.ts` | Portable UI OOP class (`modules/ui/`) or DartBot module (`modules/dartbot/`) | **Forbidden** |
 | `.engine.module.ts` | Game state machines (`modules/game/`) | **Forbidden** |
 | `.payload.module.ts` | API payload assembly (`modules/game/`) | **Forbidden** |
+| `.strategy.module.ts` | DartBot target selection per ruleset (`modules/dartbot/strategy/`) | **Forbidden** |
 | `.astro` | Markup + wiring only | **Forbidden** |
 
 **Examples:** `game.store.ts`, `session-setup.form.ts`, `play.data.ts`, `timer.module.ts`, `turn.engine.module.ts`, `batch.payload.module.ts`.

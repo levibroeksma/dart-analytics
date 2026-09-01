@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`throwDart determinism > matches the committed snapshot for seed 42 at level 8 1`] = `
+[
+  {
+    "aim": {
+      "x": 0,
+      "y": -104.2,
+    },
+    "bounced": false,
+    "hit": {
+      "score": 20,
+      "targetNumber": 20,
+      "zoneKey": "INNER_SINGLE",
+    },
+    "landing": {
+      "x": -10.162174449170008,
+      "y": -96.22268883851375,
+    },
+  },
+  {
+    "aim": {
+      "x": 0,
+      "y": -104.2,
+    },
+    "bounced": false,
+    "hit": {
+      "score": 15,
+      "targetNumber": 5,
+      "zoneKey": "TREBLE",
+    },
+    "landing": {
+      "x": -25.227561347241554,
+      "y": -102.36947228152154,
+    },
+  },
+  {
+    "aim": {
+      "x": 0,
+      "y": -104.2,
+    },
+    "bounced": false,
+    "hit": {
+      "score": 20,
+      "targetNumber": 20,
+      "zoneKey": "OUTER_SINGLE",
+    },
+    "landing": {
+      "x": -1.8150065424986845,
+      "y": -117.12192131224761,
+    },
+  },
+  {
+    "aim": {
+      "x": 0,
+      "y": -104.2,
+    },
+    "bounced": false,
+    "hit": {
+      "score": 1,
+      "targetNumber": 1,
+      "zoneKey": "INNER_SINGLE",
+    },
+    "landing": {
+      "x": 14.890754953386617,
+      "y": -81.8541293801441,
+    },
+  },
+  {
+    "aim": {
+      "x": 0,
+      "y": -104.2,
+    },
+    "bounced": false,
+    "hit": {
+      "score": 60,
+      "targetNumber": 20,
+      "zoneKey": "TREBLE",
+    },
+    "landing": {
+      "x": -4.610452447732757,
+      "y": -99.99104207973582,
+    },
+  },
+]
+`;
