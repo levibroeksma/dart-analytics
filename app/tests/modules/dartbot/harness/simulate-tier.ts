@@ -1,7 +1,7 @@
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { throwDart } from "@modules/dartbot/throw-engine.module";
-import type { ThrowIntent } from "@modules/types";
+import type { SkillProfile, ThrowIntent } from "@modules/types";
 
 const CALIBRATION_TARGET: ThrowIntent = { targetNumber: 20, zoneKey: "TREBLE" };
 const CHECKOUT_TARGET: ThrowIntent = { targetNumber: 20, zoneKey: "DOUBLE" };
@@ -25,18 +25,24 @@ export type TierStats = {
   missRate: number;
 };
 
+type ScoringTotals = {
+  visitTotals: number[];
+  t20Hits: number;
+  trebleHits: number;
+  missHits: number;
+  darts: number;
+};
+
 /**
- * Simulates `visits` three-dart visits at T20 treble plus `visits` single
- * checkout attempts at D20, both purely as a function of (seed, dartIndex)
- * per phase 1's determinism contract, and aggregates the emergent
- * statistics `08-DartBot.md` §Test Strategy names for tier calibration.
+ * Throws `visits` three-dart visits at T20 treble, purely as a function of
+ * (seed, dartIndex) per phase 1's determinism contract, and tallies the raw
+ * counts `simulateTierStats` turns into rates.
  */
-export function simulateTierStats(
-  level: number,
+function simulateScoringVisits(
+  profile: SkillProfile,
   seed: number,
   visits: number,
-): TierStats {
-  const profile = skillProfileForLevel(level);
+): ScoringTotals {
   const visitTotals: number[] = [];
   let t20Hits = 0;
   let trebleHits = 0;
@@ -59,6 +65,18 @@ export function simulateTierStats(
     visitTotals.push(visitTotal);
   }
 
+  return { visitTotals, t20Hits, trebleHits, missHits, darts };
+}
+
+/**
+ * Throws `visits` single checkout attempts at D20, offset onto an
+ * independent dart sequence from the scoring stream, and counts hits.
+ */
+function simulateCheckoutAttempts(
+  profile: SkillProfile,
+  seed: number,
+  visits: number,
+): number {
   let checkoutHits = 0;
   for (let attempt = 0; attempt < visits; attempt++) {
     const rng = createDartRng(seed + CHECKOUT_SEED_OFFSET, attempt);
@@ -67,6 +85,24 @@ export function simulateTierStats(
       checkoutHits++;
     }
   }
+  return checkoutHits;
+}
+
+/**
+ * Simulates `visits` three-dart visits at T20 treble plus `visits` single
+ * checkout attempts at D20, both purely as a function of (seed, dartIndex)
+ * per phase 1's determinism contract, and aggregates the emergent
+ * statistics `08-DartBot.md` §Test Strategy names for tier calibration.
+ */
+export function simulateTierStats(
+  level: number,
+  seed: number,
+  visits: number,
+): TierStats {
+  const profile = skillProfileForLevel(level);
+  const { visitTotals, t20Hits, trebleHits, missHits, darts } =
+    simulateScoringVisits(profile, seed, visits);
+  const checkoutHits = simulateCheckoutAttempts(profile, seed, visits);
 
   const threeDartAverage =
     visitTotals.reduce((sum, total) => sum + total, 0) / visits;
