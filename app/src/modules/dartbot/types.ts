@@ -1,3 +1,4 @@
+import type { BoardHit, BoardPoint } from "@lib/types";
 import type { DartZoneKey } from "@modules/types";
 
 export type ThrowIntent = {
@@ -22,4 +23,11 @@ export type SkillProfile = {
   bedOffsetMm: number;
   bounceOutRate: number;
   deflectionRadiusMm: number;
+};
+
+export type BotThrow = {
+  aim: BoardPoint;
+  landing: BoardPoint;
+  hit: BoardHit;
+  bounced: boolean;
 };
