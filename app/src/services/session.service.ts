@@ -263,31 +263,40 @@ function buildSeatPlan(
   ];
 
   return requested.map((participant, index) => {
-    const isPlayer = participant.participantTypeKey === "PLAYER";
-    const isDartbot = participant.participantTypeKey === "DARTBOT";
+    const sideKey = participant.sideKey || String.fromCharCode(65 + index);
+    const participantId = generateId();
+
+    if (participant.participantTypeKey === "PLAYER") {
+      return {
+        participantId,
+        participantTypeId: lookups.playerParticipantTypeId,
+        playerId,
+        displayName: lookups.displayName,
+        sideKey,
+      };
+    }
+
+    if (participant.participantTypeKey === "DARTBOT") {
+      return {
+        participantId,
+        participantTypeId: lookups.dartbotParticipantTypeId,
+        playerId: null,
+        displayName: "DartBot",
+        sideKey,
+        dartbot: {
+          level: participant.level ?? DEFAULT_BOT_LEVEL,
+          seed: generateBotSeed(),
+          levelSource: "MANUAL" as const,
+        },
+      };
+    }
+
     return {
-      participantId: generateId(),
-      participantTypeId: isPlayer
-        ? lookups.playerParticipantTypeId
-        : isDartbot
-          ? lookups.dartbotParticipantTypeId
-          : lookups.guestParticipantTypeId,
-      playerId: isPlayer ? playerId : null,
-      displayName: isPlayer
-        ? lookups.displayName
-        : isDartbot
-          ? "DartBot"
-          : (participant.displayName ?? "").trim(),
-      sideKey: participant.sideKey || String.fromCharCode(65 + index),
-      ...(isDartbot
-        ? {
-            dartbot: {
-              level: participant.level ?? DEFAULT_BOT_LEVEL,
-              seed: generateBotSeed(),
-              levelSource: "MANUAL" as const,
-            },
-          }
-        : {}),
+      participantId,
+      participantTypeId: lookups.guestParticipantTypeId,
+      playerId: null,
+      displayName: (participant.displayName ?? "").trim(),
+      sideKey,
     };
   });
 }

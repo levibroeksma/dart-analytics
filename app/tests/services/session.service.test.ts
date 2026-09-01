@@ -136,6 +136,21 @@ describe("createSession", () => {
     expect(result.data.participants[0].participantTypeKey).toBe("PLAYER");
   });
 
+  it("never carries a dartbot field on a PLAYER or GUEST participant", async () => {
+    const result = await createSession("player-1", {
+      ...fiveOhOneRequest,
+      participants: [
+        { participantTypeKey: "PLAYER", sideKey: "A" },
+        { participantTypeKey: "GUEST", displayName: "Dad", sideKey: "B" },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.participants[0]).not.toHaveProperty("dartbot");
+    expect(result.data.participants[1]).not.toHaveProperty("dartbot");
+  });
+
   it("mints one participant per requested seat and returns them in order", async () => {
     const result = await createSession("player-1", {
       ...fiveOhOneRequest,
