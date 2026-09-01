@@ -807,6 +807,74 @@ describe("appendBatch", () => {
     );
   });
 
+  it("persists a DETAILED_DARTS turn attributed to a DARTBOT participant, exactly like a human's", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: "BOBS27_V1",
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    vi.mocked(repo.findSessionParticipantIds).mockResolvedValue([
+      "participant-1",
+      "bot-1",
+    ]);
+    vi.mocked(repo.findSessionConfiguration).mockResolvedValue({});
+    vi.mocked(repo.findDartZoneIdMap).mockResolvedValue(
+      new Map([
+        ["DOUBLE", 4],
+        ["SINGLE", 1],
+      ]),
+    );
+
+    const botDart = (sequence: number, hit: boolean) => ({
+      sequence,
+      intendedTargetNumber: 1,
+      intendedZoneKey: "DOUBLE" as const,
+      hitTargetNumber: 1,
+      hitZoneKey: hit ? ("DOUBLE" as const) : ("SINGLE" as const),
+      score: hit ? 2 : 1,
+      locationX: 1.5,
+      locationY: -3.2,
+    });
+
+    const result = await appendBatch("player-1", "session-1", "idem-bot-1", {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [
+            {
+              clientKey: "bot-turn-1",
+              participantRef: "bot-1",
+              sequence: 1,
+              totalScore: 4,
+              completedAt: "2026-09-01T10:00:00.000Z",
+              darts: [botDart(1, true), botDart(2, true), botDart(3, false)],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(vi.mocked(repo.insertBatchRecords)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        turns: [
+          expect.objectContaining({
+            participantId: "bot-1",
+            darts: expect.arrayContaining([
+              expect.objectContaining({ locationX: 1.5, locationY: -3.2 }),
+            ]),
+          }),
+        ],
+      }),
+    );
+  });
+
   it("returns the stored result on idempotent retry with the same payload", async () => {
     const batch = sampleBatch();
     const hash = await hashBatchPayload(batch);

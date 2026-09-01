@@ -8,13 +8,20 @@
 -- owner runs against the real Neon database before merge):
 --
 --   1. v_dart_analytics returns only the session owner's own
---      dart, not a GUEST participant's, for a session with one
---      of each
+--      dart, not a GUEST or DARTBOT participant's, for a session
+--      with one of each
 --   2. v_dart_locations does the same
---   3. v_game_replay returns BOTH participants' turns for the
---      same session — proving the lack of owner-scoping there
+--   3. v_game_replay returns ALL THREE participants' turns for
+--      the same session -- proving the lack of owner-scoping there
 --      (migration 0023's own comment) is deliberate, not a gap
 --      this script is failing to also catch
+--
+-- The DARTBOT fixture was added in phase 5 (2026-09-01,
+-- `08-DartBot.md` Delivery Phases row 5): migration 0023 excluded
+-- DARTBOT by construction before a bot could ever be seated (any
+-- participant_type_id = 3 row has player_id IS NULL by the same
+-- CHECK that requires it), but nothing had exercised that exclusion
+-- against an actual DARTBOT dart until this fixture did.
 --
 -- Everything runs inside one transaction that ends in ROLLBACK,
 -- so no fixture row survives. Lookup rows are resolved by
@@ -128,6 +135,23 @@ VALUES (
         now()
     );
 
+INSERT INTO participants (
+        id,
+        exercise_session_id,
+        participant_type_id,
+        player_id,
+        display_name,
+        created_at
+    )
+VALUES (
+        '01990000-0000-7000-8000-00000000230b',
+        '01990000-0000-7000-8000-000000002303',
+        (SELECT id FROM participant_types WHERE implementation_key = 'DARTBOT'),
+        NULL,
+        'DartBot',
+        now()
+    );
+
 INSERT INTO turns (
         id,
         exercise_stage_id,
@@ -150,6 +174,23 @@ VALUES (
         '01990000-0000-7000-8000-000000002306',
         1,
         19,
+        now()
+    );
+
+INSERT INTO turns (
+        id,
+        exercise_stage_id,
+        participant_id,
+        sequence_number,
+        total_score,
+        created_at
+    )
+VALUES (
+        '01990000-0000-7000-8000-00000000230c',
+        '01990000-0000-7000-8000-000000002304',
+        '01990000-0000-7000-8000-00000000230b',
+        1,
+        25,
         now()
     );
 
@@ -193,12 +234,39 @@ VALUES (
         now()
     );
 
+INSERT INTO darts (
+        id,
+        turn_id,
+        dart_number,
+        intended_target_number,
+        intended_zone_id,
+        hit_target_number,
+        hit_zone_id,
+        score,
+        location_x,
+        location_y,
+        created_at
+    )
+VALUES (
+        '01990000-0000-7000-8000-00000000230d',
+        '01990000-0000-7000-8000-00000000230c',
+        1,
+        25,
+        (SELECT id FROM dart_zones WHERE implementation_key = 'SINGLE'),
+        25,
+        (SELECT id FROM dart_zones WHERE implementation_key = 'SINGLE'),
+        25,
+        40.00,
+        40.00,
+        now()
+    );
+
 -- ------------------------------------------------------------
 -- Step 1: v_dart_analytics returns only the owner's dart.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'v_dart_analytics returns exactly 1 row for the fixture session',
+    'v_dart_analytics returns exactly 1 row for the fixture session (PLAYER + GUEST + DARTBOT all present)',
     CASE
         WHEN count(*) = 1 THEN 'PASS'
         ELSE 'FAIL'
@@ -218,12 +286,23 @@ SELECT '1',
 FROM v_dart_analytics
 WHERE session_id = '01990000-0000-7000-8000-000000002303';
 
+INSERT INTO verification_results
+SELECT '1',
+    'v_dart_analytics row belongs to the PLAYER, not DartBot',
+    CASE
+        WHEN hit_target_number = 20 THEN 'PASS'
+        ELSE 'FAIL'
+    END,
+    format('hit_target_number=%s (expected 20, the owner''s dart -- 25 would be DartBot''s)', hit_target_number)
+FROM v_dart_analytics
+WHERE session_id = '01990000-0000-7000-8000-000000002303';
+
 -- ------------------------------------------------------------
 -- Step 2: v_dart_locations returns only the owner's dart.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '2',
-    'v_dart_locations returns exactly 1 row for the fixture session',
+    'v_dart_locations returns exactly 1 row for the fixture session (PLAYER + GUEST + DARTBOT all present)',
     CASE
         WHEN count(*) = 1 THEN 'PASS'
         ELSE 'FAIL'
@@ -243,26 +322,37 @@ SELECT '2',
 FROM v_dart_locations
 WHERE session_id = '01990000-0000-7000-8000-000000002303';
 
+INSERT INTO verification_results
+SELECT '2',
+    'v_dart_locations row belongs to the PLAYER, not DartBot',
+    CASE
+        WHEN location_x = 5.00 THEN 'PASS'
+        ELSE 'FAIL'
+    END,
+    format('location_x=%s (expected 5.00, the owner''s dart -- 40.00 would be DartBot''s)', location_x)
+FROM v_dart_locations
+WHERE session_id = '01990000-0000-7000-8000-000000002303';
+
 -- ------------------------------------------------------------
 -- Step 3: v_game_replay is deliberately NOT owner-scoped -- it
--- must return BOTH participants' turns for the same session.
+-- must return ALL THREE participants' turns for the same session.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '3',
-    'v_game_replay returns 2 turn rows (one per participant) for the fixture session',
+    'v_game_replay returns 3 turn rows (one per participant) for the fixture session',
     CASE
-        WHEN count(*) = 2 THEN 'PASS'
+        WHEN count(*) = 3 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 2, found %s', count(*))
+    format('expected 3, found %s', count(*))
 FROM v_game_replay
 WHERE session_id = '01990000-0000-7000-8000-000000002303';
 
 INSERT INTO verification_results
 SELECT '3',
-    'v_game_replay rows are Verification Owner and Verification Guest',
+    'v_game_replay rows are DartBot, Verification Owner and Verification Guest',
     CASE
-        WHEN names.agg = ARRAY['Verification Guest', 'Verification Owner'] THEN 'PASS'
+        WHEN names.agg = ARRAY['DartBot', 'Verification Guest', 'Verification Owner'] THEN 'PASS'
         ELSE 'FAIL'
     END,
     format('found participant_name(s): %s', names.agg)
@@ -283,12 +373,12 @@ FROM (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '4',
-    'all 6 view-driven checks actually ran',
+    'all 8 view-driven checks actually ran',
     CASE
-        WHEN count(*) = 6 THEN 'PASS'
+        WHEN count(*) = 8 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 6 checks ran', count(*))
+    format('%s of 8 checks ran', count(*))
 FROM verification_results
 WHERE step IN ('1', '2', '3');
 
