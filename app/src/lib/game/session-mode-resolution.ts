@@ -37,26 +37,41 @@ export function resolveSessionModePair(
 }
 
 /**
- * Turns the participants the server minted into the session's seat list. The
- * response array's order IS seat order — the setup screen decides who throws
- * first in leg 1 by the order it sends. V1 gives each seat its own side
- * (`A`, `B`, …); a future 2v2 assigns two seats to one side, which every X01
- * win condition already folds for.
+ * Maps the participants a session-create call minted or a finished session
+ * played with into `SeatFact[]` — the shape the configuration snapshot
+ * carries. Private: both `startSessionInput` and `reseatSnapshot` need the
+ * identical mapping, and it is no longer the "coerce anything-not-GUEST to
+ * PLAYER" function `seatsFromParticipants` used to be (the anti-pattern
+ * `08-DartBot.md` names — a bot seat silently held as the human player).
+ * Every participant type round-trips as itself.
  */
-export function seatsFromParticipants(
+function toSeatFacts(
   participants: {
     ref: string;
-    participantTypeKey: string;
+    participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
     displayName: string;
+    dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
   }[],
 ): SeatFact[] {
-  return participants.map((participant, index) => ({
-    participantRef: participant.ref,
-    displayName: participant.displayName,
-    sideKey: String.fromCharCode(65 + index),
-    participantTypeKey:
-      participant.participantTypeKey === "GUEST" ? "GUEST" : "PLAYER",
-  }));
+  return participants.map((participant, index) => {
+    const sideKey = String.fromCharCode(65 + index);
+    if (participant.participantTypeKey === "DARTBOT" && participant.dartbot) {
+      return {
+        participantRef: participant.ref,
+        displayName: participant.displayName,
+        sideKey,
+        participantTypeKey: "DARTBOT",
+        dartbot: participant.dartbot,
+      };
+    }
+    return {
+      participantRef: participant.ref,
+      displayName: participant.displayName,
+      sideKey,
+      participantTypeKey:
+        participant.participantTypeKey === "GUEST" ? "GUEST" : "PLAYER",
+    };
+  });
 }
 
 /**
@@ -77,8 +92,9 @@ export function startSessionInput<TConfig extends object>(input: {
     sessionId: string;
     participants: {
       ref: string;
-      participantTypeKey: string;
+      participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
       displayName: string;
+      dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
     }[];
   };
   templateRef: string;
@@ -92,7 +108,7 @@ export function startSessionInput<TConfig extends object>(input: {
     templateRef: input.templateRef,
     configSnapshot: {
       ...input.configSnapshot,
-      seats: seatsFromParticipants(input.session.participants),
+      seats: toSeatFacts(input.session.participants),
     } as Seated<TConfig>,
     captureModeKey: input.modePair.captureModeKey,
     inputModeKey: input.modePair.inputModeKey,
@@ -117,42 +133,68 @@ export function startSessionInput<TConfig extends object>(input: {
  */
 export function participantsFromSeats(seats: readonly SeatFact[]):
   | {
-      participantTypeKey: "PLAYER" | "GUEST";
+      participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
       displayName?: string;
+      level?: number;
       sideKey: string;
     }[]
   | undefined {
   if (seats.length < 2) return undefined;
-  return seats.map((seat) => ({
-    participantTypeKey: seat.participantTypeKey,
-    ...(seat.participantTypeKey === "GUEST"
-      ? { displayName: seat.displayName }
-      : {}),
-    sideKey: seat.sideKey,
-  }));
+  return seats.map((seat) => {
+    if (seat.participantTypeKey === "DARTBOT") {
+      return {
+        participantTypeKey: "DARTBOT" as const,
+        level: seat.dartbot.level,
+        sideKey: seat.sideKey,
+      };
+    }
+    return {
+      participantTypeKey: seat.participantTypeKey,
+      ...(seat.participantTypeKey === "GUEST"
+        ? { displayName: seat.displayName }
+        : {}),
+      sideKey: seat.sideKey,
+    };
+  });
 }
 
 /**
- * The `participants` a setup screen's `createSession` must request, given the
- * guests the player added — the start-time twin of `participantsFromSeats`,
- * which derives the same shape from a finished session's seats.
+ * The `participants` a setup screen's `createSession` must request, given
+ * either the guests the player added or the DartBot opponent they chose — the
+ * start-time twin of `participantsFromSeats`, which derives the same shape
+ * from a finished session's seats. `bot` and `guests` are mutually exclusive
+ * — `guest-list.ts`'s `addTypedGuest`/`addBotOpponent` enforce the single
+ * opponent-slot rule that makes this true — and a bot, when present, always
+ * wins, matching that same single-slot invariant.
  *
- * An empty guest list returns `undefined` — the field's own "omit me" value —
- * so a solo session sends exactly the request it always did. The owning
- * player is always seat 0 on side `A` and the guests take `B` onward;
- * `displayName` is carried for a guest only, because the player's is copied
+ * Neither given returns `undefined` — the field's own "omit me" value — so a
+ * solo session sends exactly the request it always did. The owning player is
+ * always seat 0 on side `A`; the opponent takes `B`. `displayName` is carried
+ * for a guest only, `level` for a bot only — the player's name is copied
  * server-side from `players.display_name`.
  */
 export function participantsFromGuests(
   guests: readonly { displayName: string }[],
+  bot?: { level: number } | null,
 ):
   | {
-      participantTypeKey: "PLAYER" | "GUEST";
+      participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
       displayName?: string;
+      level?: number;
       sideKey: string;
     }[]
   | undefined {
-  if (guests.length === 0) return undefined;
+  if (guests.length === 0 && !bot) return undefined;
+  if (bot) {
+    return [
+      { participantTypeKey: "PLAYER" as const, sideKey: "A" },
+      {
+        participantTypeKey: "DARTBOT" as const,
+        level: bot.level,
+        sideKey: "B",
+      },
+    ];
+  }
   return [
     { participantTypeKey: "PLAYER" as const, sideKey: "A" },
     ...guests.map((guest, index) => ({
@@ -174,12 +216,13 @@ export function reseatSnapshot<TConfig extends object>(
   configSnapshot: TConfig,
   participants: {
     ref: string;
-    participantTypeKey: string;
+    participantTypeKey: "PLAYER" | "GUEST" | "DARTBOT";
     displayName: string;
+    dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
   }[],
 ): Seated<TConfig> {
   return {
     ...configSnapshot,
-    seats: seatsFromParticipants(participants),
+    seats: toSeatFacts(participants),
   } as Seated<TConfig>;
 }
