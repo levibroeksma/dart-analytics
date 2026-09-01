@@ -527,6 +527,8 @@ export type PresetSetupContext = {
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -547,7 +549,9 @@ export type PresetSetupContext = {
   continueSession(this: PresetSetupContext): void;
   abandonSession(this: PresetSetupContext): Promise<void>;
   addGuest(this: PresetSetupContext): void;
+  addBot(this: PresetSetupContext): void;
   removeGuest(this: PresetSetupContext, index: number): void;
+  removeBot(this: PresetSetupContext): void;
   start(this: PresetSetupContext): Promise<void>;
 };
 
@@ -1242,9 +1246,20 @@ export type GamesIndexContext = {
   noneVisible(this: GamesIndexContext): boolean;
 };
 
-/** The guest-list state every setup screen's add-a-guest modal drives. */
+/**
+ * The opponent-slot state every setup screen's add-a-guest modal drives.
+ * `bot` occupies the same single slot a guest would — `addTypedGuest` and
+ * `addBotOpponent` (`guest-list.ts`) each refuse when the other is already
+ * seated, so the two are mutually exclusive by construction, not by a type
+ * that forbids both. Both fields are optional because only the three
+ * DartBot-enabled setup screens (`createPresetSetupController`) ever
+ * populate them — the other six never set `bot`/`showOpponentChooser`, so
+ * they read as `undefined`/falsy and the guest-only flow is unchanged.
+ */
 export type GuestListContext = {
   guests: { displayName: string }[];
   newGuestName: string;
   showAddGuestModal: boolean;
+  bot?: { level: number } | null;
+  showOpponentChooser?: boolean;
 };
