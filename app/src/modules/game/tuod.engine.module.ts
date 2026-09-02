@@ -43,6 +43,17 @@ import type {
 const MIN_FINISHABLE_TARGET = 2;
 
 /**
+ * The ladder ceiling: the highest three-dart double-out total that exists
+ * on a standard board (T20 T20 D25). A success climbs the ladder by
+ * `finishBonus` with no cap of its own; clamping here keeps it from
+ * walking onto a target no double can ever finish. Duplicated from
+ * `tuod.validator.ts`'s own `MAX_THREE_DART_CHECKOUT` rather than shared
+ * across the services/engine layer boundary — same value, same reasoning,
+ * independently arrived at there already.
+ */
+const MAX_FINISHABLE_TARGET = 170;
+
+/**
  * The single stage a TUOD session is played under. Attempts are turns inside
  * it, not stages of their own — the ruleset has no per-attempt stage concept.
  */
@@ -153,7 +164,10 @@ export function applyTuodAttempt(
   return {
     ...state,
     currentTarget: succeeded
-      ? state.currentTarget + config.finishBonus
+      ? Math.min(
+          MAX_FINISHABLE_TARGET,
+          state.currentTarget + config.finishBonus,
+        )
       : Math.max(
           MIN_FINISHABLE_TARGET,
           state.currentTarget - config.missPenalty,

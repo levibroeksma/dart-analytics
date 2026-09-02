@@ -153,6 +153,22 @@ describe("applyTuodAttempt", () => {
     };
     expect(applyTuodAttempt(config(), atFloor, true).currentTarget).toBe(12);
   });
+
+  it("caps the ladder at 170, the highest three-dart double-out total, on a run of successes", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 168,
+      finishBonus: 5,
+    });
+
+    const state = engine.record({
+      checkedOut: true,
+      dartsUsed: 3,
+      finishedOnDouble: true,
+    });
+
+    expect(state.seats[0].currentTarget).toBe(170);
+  });
 });
 
 describe("TuodEngine.record — outcomes", () => {
