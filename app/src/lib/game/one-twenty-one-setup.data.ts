@@ -27,7 +27,6 @@ import type {
 } from "./types";
 
 const GAME_TYPE_KEY = "ONE_TWENTY_ONE";
-const RULESET_VERSION_KEY: RulesetVersionKey = "121_V2";
 
 type ClampableDuration = Exclude<OneTwentyOneDurationType, "TARGET">;
 
@@ -190,27 +189,40 @@ export function oneTwentyOneSetup() {
 
     async start(this: OneTwentyOneSetupContext) {
       if (this.loading) return;
-      const preset = this.presetForMode(this.durationType);
+      const guested = this.guests.length > 0;
+      const rulesetVersionKey: RulesetVersionKey = guested
+        ? "121_V1"
+        : "121_V2";
+
+      const preset = guested
+        ? this.presets.find(
+            (p) =>
+              !(
+                "duration_type" in (p.configuration as Record<string, unknown>)
+              ),
+          )
+        : this.presetForMode(this.durationType);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";
         return;
       }
 
-      let overrides: Record<string, unknown> = {
-        duration_type: this.durationType,
-      };
-      if (this.durationType !== "TARGET") {
-        const { value, clamped } = clampOneTwentyOneDuration(
-          this.durationType,
-          this.durationValue,
-        );
-        this.durationValue = value;
-        this.clampNotice = clamped
-          ? oneTwentyOneDurationClampNotice(this.durationType)
-          : "";
-        overrides = { ...overrides, duration_value: value };
-      } else {
-        this.clampNotice = "";
+      let overrides: Record<string, unknown> = {};
+      if (!guested) {
+        overrides = { duration_type: this.durationType };
+        if (this.durationType !== "TARGET") {
+          const { value, clamped } = clampOneTwentyOneDuration(
+            this.durationType,
+            this.durationValue,
+          );
+          this.durationValue = value;
+          this.clampNotice = clamped
+            ? oneTwentyOneDurationClampNotice(this.durationType)
+            : "";
+          overrides = { ...overrides, duration_value: value };
+        } else {
+          this.clampNotice = "";
+        }
       }
 
       this.loading = true;
@@ -220,28 +232,28 @@ export function oneTwentyOneSetup() {
           ...(preset.configuration as Record<string, unknown>),
           ...overrides,
         };
-        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
+        const configSnapshot = toSnapshot(rulesetVersionKey, wire);
         const modePair = resolveSessionModePair(
-          RULESET_VERSION_KEY,
+          rulesetVersionKey,
           this.$store.settings,
         );
         const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey: RULESET_VERSION_KEY,
+          rulesetVersionKey,
           captureModeKey: modePair.captureModeKey,
           inputModeKey: modePair.inputModeKey,
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
-            overrides,
+            ...(guested ? {} : { overrides }),
           },
           participants,
         });
         this.$store.game.startSession(
           startSessionInput({
             gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
+            rulesetVersionKey,
             session,
             templateRef: preset.configurationTemplateId,
             configSnapshot,

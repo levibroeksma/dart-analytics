@@ -466,7 +466,16 @@ describe("oneTwentyOneSetup", () => {
 
     it("threads a PLAYER seat A and the guest as seat B once a guest is added", async () => {
       const setup = createSetup({
-        presets: [TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
+        presets: [
+          {
+            configurationTemplateId: "tmpl-v1-standard",
+            name: "121 — Standard",
+            configuration: {},
+          } as any,
+          TARGET_PRESET,
+          ROUNDS_PRESET,
+          MINUTES_PRESET,
+        ],
         durationType: "TARGET",
         durationValue: null,
       });
@@ -503,6 +512,58 @@ describe("oneTwentyOneSetup", () => {
           ],
         }),
       );
+    });
+  });
+
+  describe("guested 1v1 resolves 121_V1", () => {
+    const V1_PRESET = {
+      configurationTemplateId: "tmpl-v1-standard",
+      name: "121 — Standard",
+      configuration: {},
+    } as any;
+
+    it("resolves the 121_V1 ruleset key and its duration-type-less preset once a guest is added, with no duration overrides", async () => {
+      const setup = createSetup({
+        presets: [V1_PRESET, TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 20,
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "121_V1",
+          config: {
+            source: "template",
+            templateRef: "tmpl-v1-standard",
+          },
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          configSnapshot: expect.objectContaining({}),
+        }),
+      );
+      expect(location.href).toBe("/games/121/play");
     });
   });
 });
