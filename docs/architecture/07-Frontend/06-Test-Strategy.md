@@ -43,6 +43,14 @@ Pre-existing or out-of-scope failures are never silently dropped from a completi
 
 ---
 
+# Fallow Duplication Detection — Known Limitation
+
+Investigated for F42: before the engine-duplication cleanup (`docs/superpowers/specs/2026-08-27-engine-duplication-cleanup-design.md`), the double-out bust/checkout rule was hand-duplicated 5 times across `five-oh-one.engine.module.ts`, `one-twenty-one.engine.module.ts`, and `tuod.engine.module.ts`; an `otherSeatsComplete`-shaped inline fold was duplicated 3 times across `tuod.engine.module.ts` and `score-training.engine.module.ts`. `npx fallow` (whose duplication gate has a working, non-zero threshold — it flagged a comparable clone once already, D232) never flagged either family on `main` beforehand.
+
+Reproducing the pre-fix duplication on a throwaway branch and running `npx fallow dupes` (both default `mild` mode and `--near`, fallow's own near-miss mode) showed this is **not** a threshold/size gap — several of the reconstructed clones were well under the size of duplicates the gate already reports elsewhere in this codebase (6-12 lines vs. the 20-56+ line groups it normally lists), so raising `.fallowrc.jsonc`'s threshold would not have caught the smaller ones and isn't the fix. It caught an exact, same-file repeat (TUOD's own two `otherSeatsComplete`-shaped sites, identical variable names) and one closely-matching pair (`five-oh-one`/`one-twenty-one`'s bust-result wrapper), but never unified the *whole* clone family the spec describes into one reported group. The reason: each hand-copied site used its own local variable/field names (`hitZoneKey` vs. `lastZoneKey` vs. `resolved.zoneKey`; `seat.attempts` vs. `seat.turnCount`) and its own destructuring/wrapping shape around the shared rule, and that per-site renaming is enough to defeat token-based matching across files — even in `--near` mode, which is specifically meant to tolerate renamed identifiers.
+
+**Known limitation:** `fallow`'s duplication gate (both modes) reliably catches copy-pasted blocks that keep the same identifiers, and can catch a renamed near-miss within the same file, but is not a substitute for reading two engine files side by side to spot a shared *rule* that was hand-copied with per-site renaming — that class of duplication is a code-review/audit responsibility (as this cleanup task itself was), not a gate one.
+
 # Related Documents
 
 | Document | Purpose |
