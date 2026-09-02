@@ -498,7 +498,7 @@ export class OneTwentyOneEngine implements GameEngine<
     const { remainingAfter, checkedOut, busted } = resolveCheckoutAttempt(
       before.remainingInAttempt,
       thrown,
-      lastDart.hitZoneKey === "DOUBLE",
+      lastDart.hitZoneKey === "DOUBLE" || lastDart.hitZoneKey === "INNER_BULL",
     );
 
     if (busted) {
@@ -637,7 +637,7 @@ export class OneTwentyOneEngine implements GameEngine<
     const { checkedOut } = resolveCheckoutAttempt(
       activeSeatState.remainingInAttempt,
       resolved.score,
-      resolved.zoneKey === "DOUBLE",
+      resolved.zoneKey === "DOUBLE" || resolved.zoneKey === "INNER_BULL",
     );
     if (!checkedOut) return false;
     if (activeSeatState.currentTarget === CAP_TARGET) return true;
