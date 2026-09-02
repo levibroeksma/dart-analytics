@@ -24,6 +24,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playFoldBotQuickScoreVisit,
   playPreviewSegments,
   playRetryReconciliation,
   playRunBotVisualBoardVisit,
@@ -48,6 +49,7 @@ import type {
   SeatFact,
 } from "@lib/types";
 import { activeSeat } from "@modules/game/seat-rota.module";
+import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 
 const SEATS = [
   {
@@ -913,6 +915,104 @@ describe("playRunBotVisualBoardVisit", () => {
     ]);
 
     expect(engine.facts().turns).toHaveLength(2);
+  });
+});
+
+const QUICK_SCORE_SEATS = [
+  {
+    participantRef: HUMAN_REF,
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+  {
+    participantRef: BOT_REF,
+    displayName: "DartBot",
+    sideKey: "B",
+    participantTypeKey: "DARTBOT" as const,
+    dartbot: { level: 8, seed: 1, levelSource: "MANUAL" as const },
+  },
+];
+
+const SCORE_TRAINING_CONFIG = {
+  durationType: "ROUNDS" as const,
+  durationValue: 5,
+  maxDartsPerTurn: 3,
+  maxVisitScore: 180,
+  seats: QUICK_SCORE_SEATS,
+};
+
+const TREBLE_TWENTY: DartObservation = {
+  hitTargetNumber: 20,
+  hitZoneKey: "TREBLE",
+  locationX: 0,
+  locationY: -102,
+};
+
+const MISS_DART: DartObservation = {
+  hitTargetNumber: null,
+  hitZoneKey: "MISS",
+  locationX: 0,
+  locationY: -180,
+};
+
+describe("playFoldBotQuickScoreVisit", () => {
+  it("folds three simulated darts into one visit total without touching the real engine", () => {
+    const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
+    real.record(20); // human's visit; bot is active next
+
+    const fold = playFoldBotQuickScoreVisit(
+      scoreTrainingEngineFactory,
+      SCORE_TRAINING_CONFIG,
+      real.facts(),
+      () => TREBLE_TWENTY,
+      3,
+    );
+
+    expect(fold).toEqual({ totalScore: 180, dartsThrown: 3 });
+    expect(real.facts().turns).toHaveLength(1);
+  });
+
+  it("recording the folded total on the real engine writes one turn with darts: []", () => {
+    const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
+    real.record(20);
+
+    const darts = [TREBLE_TWENTY, TREBLE_TWENTY, MISS_DART];
+    let i = 0;
+    const fold = playFoldBotQuickScoreVisit(
+      scoreTrainingEngineFactory,
+      SCORE_TRAINING_CONFIG,
+      real.facts(),
+      () => darts[i++]!,
+      3,
+    );
+    real.record(fold.totalScore);
+
+    const botTurn = real.facts().turns.at(-1)!;
+    expect(botTurn.participantRef).toBe(BOT_REF);
+    expect(botTurn.darts).toEqual([]);
+    expect(botTurn.totalScore).toBe(120);
+  });
+
+  it("stops early once the scratch engine reports the visit complete", () => {
+    const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
+    real.record(20);
+    let calls = 0;
+
+    playFoldBotQuickScoreVisit(
+      scoreTrainingEngineFactory,
+      SCORE_TRAINING_CONFIG,
+      real.facts(),
+      () => {
+        calls++;
+        return TREBLE_TWENTY;
+      },
+      3,
+    );
+
+    // Score Training's own visit always takes exactly DARTS_PER_VISIT (3);
+    // this proves the loop asks for no more than that.
+    expect(calls).toBe(3);
   });
 });
 

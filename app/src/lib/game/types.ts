@@ -175,6 +175,16 @@ export type BotDartThrower = () => {
 };
 
 /**
+ * The result of folding a QUICK_SCORE bot visit through a scratch engine
+ * (`playFoldBotQuickScoreVisit`) — just enough for the real caller's own
+ * `record()` input, never the scratch engine's per-dart facts.
+ */
+export type BotQuickScoreFold = {
+  totalScore: number;
+  dartsThrown: number;
+};
+
+/**
  * The `$store` shape every play page reads, parameterised by the game's own
  * config snapshot. Written once rather than per game: the two copies had
  * already drifted into near-identical 18-line blocks, and each new session
