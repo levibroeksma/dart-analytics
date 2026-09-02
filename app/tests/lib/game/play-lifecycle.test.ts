@@ -30,10 +30,21 @@ import {
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  MultiSeatState,
+  TurnFact,
+} from "@modules/types";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
-import type { PlayLifecycleContext, RulesetVersionKey } from "@lib/types";
+import type {
+  PlayLifecycleContext,
+  RulesetVersionKey,
+  SeatFact,
+} from "@lib/types";
+import { activeSeat } from "@modules/game/seat-rota.module";
 
 const SEATS = [
   {
@@ -532,6 +543,269 @@ describe("playUndoVisit", () => {
     const undoSpy = vi.spyOn(context.engine!, "undo");
     playUndoVisit(context);
     expect(undoSpy).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Derives its active seat through the real `activeSeat()` (`PER_SEAT`,
+ * exactly like Bob's 27) rather than a hand-rolled alternation, so a test can
+ * reproduce "a completed seat hands every remaining turn to the other one"
+ * (`08-DartBot.md` §The Play Loop) via the same `isSeatComplete` predicate a
+ * real engine passes, instead of reinventing that logic in a fake.
+ */
+class BotFakeEngine implements GameEngine<DartObservation, MultiSeatState> {
+  readonly rulesetVersionKey: RulesetVersionKey = "BOBS27_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
+  private turns: TurnFact[];
+
+  constructor(
+    private readonly seats: readonly SeatFact[],
+    private readonly isSeatComplete: (
+      seat: SeatFact,
+      turnsSoFar: readonly TurnFact[],
+    ) => boolean = () => false,
+    prior?: EngineFacts,
+  ) {
+    this.turns = prior ? [...prior.turns] : [];
+  }
+
+  private nextSeat(): SeatFact {
+    return activeSeat(this.facts(), this.seats, "PER_SEAT", (seat) =>
+      this.isSeatComplete(seat, this.turns),
+    );
+  }
+
+  record(input: DartObservation): MultiSeatState {
+    const seat = this.nextSeat();
+    this.turns.push({
+      clientKey: `t${this.turns.length + 1}`,
+      stageClientKey: "block-1",
+      participantRef: seat.participantRef,
+      sequence: this.turns.length + 1,
+      completedAt: "2026-09-01T00:00:00.000Z",
+      totalScore: input.hitTargetNumber ?? 0,
+      darts: [
+        {
+          sequence: 1,
+          intendedTargetNumber: null,
+          intendedZoneKey: null,
+          hitTargetNumber: input.hitTargetNumber,
+          hitZoneKey: input.hitZoneKey,
+          score: input.hitTargetNumber ?? 0,
+          locationX: input.locationX,
+          locationY: input.locationY,
+        },
+      ],
+    });
+    return this.state();
+  }
+
+  undo(): boolean {
+    if (this.turns.length === 0) return false;
+    this.turns.pop();
+    return true;
+  }
+
+  wouldComplete(): boolean {
+    return false;
+  }
+
+  isComplete(): boolean {
+    return false;
+  }
+
+  state(): MultiSeatState {
+    return {
+      activeParticipantRef: this.nextSeat().participantRef,
+      seats: this.seats,
+    };
+  }
+
+  facts(): EngineFacts {
+    return {
+      stages: [
+        {
+          clientKey: "block-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [...this.turns],
+    };
+  }
+}
+
+const HUMAN_REF = "human-1";
+const BOT_REF = "bot-1";
+const HUMAN_SEAT: SeatFact = {
+  participantRef: HUMAN_REF,
+  displayName: "Levi",
+  sideKey: "A",
+  participantTypeKey: "PLAYER",
+};
+const BOT_SEAT: SeatFact = {
+  participantRef: BOT_REF,
+  displayName: "DartBot",
+  sideKey: "B",
+  participantTypeKey: "DARTBOT",
+  dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
+};
+const TWO_BOT_SEATS: SeatFact[] = [HUMAN_SEAT, BOT_SEAT];
+
+function dartAt(target: number): DartObservation {
+  return {
+    hitTargetNumber: target,
+    hitZoneKey: "SINGLE",
+    locationX: 0,
+    locationY: -102,
+  };
+}
+
+type BotCtx = PlayLifecycleContext<
+  { seats: readonly SeatFact[] },
+  BotFakeEngine,
+  unknown
+> & { botThrowing: boolean };
+
+function makeBotContext(
+  engine: BotFakeEngine,
+  seats: readonly SeatFact[],
+): BotCtx {
+  return {
+    loading: false,
+    error: "",
+    finished: false,
+    hasActiveSession: true,
+    loadingReconciliation: false,
+    reconciliationFailed: false,
+    completionStatus: "pending",
+    completionError: "",
+    playAgainError: "",
+    playAgainLoading: false,
+    resultsSnapshot: null,
+    hiddenTurnKey: null,
+    hiddenTimer: null,
+    botThrowing: false,
+    engine,
+    $store: {
+      game: {
+        rulesetVersionKey: "BOBS27_V1",
+        sessionId: "s1",
+        templateRef: "tpl-1",
+        configSnapshot: { seats },
+        seats,
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "DETAILED_DARTS",
+        stages: engine.facts().stages,
+        turns: engine.facts().turns,
+        idempotencyKey: null,
+        loading: false,
+        recordFacts: vi.fn(function (
+          this: BotCtx["$store"]["game"],
+          facts: EngineFacts,
+        ) {
+          this.stages = [...facts.stages];
+          this.turns = [...facts.turns];
+        }),
+        setSessionModes: vi.fn(),
+        reset: vi.fn(),
+      },
+      settings: {
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "DETAILED_DARTS",
+      },
+    },
+    init: vi.fn(async () => {}),
+    uploadAndCompleteSession: vi.fn(async () => {}),
+  };
+}
+
+describe("undoToActiveSeat", () => {
+  it("pops exactly one turn in a solo session, matching playUndoVisit exactly", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    engine.record(dartAt(20));
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, [HUMAN_SEAT]);
+
+    undoToActiveSeat(context, HUMAN_REF);
+
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+
+  it("pops until the human's own seat is active again, skipping the bot's turn", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20)); // human
+    engine.record(dartAt(19)); // bot
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+
+    undoToActiveSeat(context, HUMAN_REF);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("pops through consecutive bot turns to reach the human's seat", () => {
+    // Once the human's own turn is in the log, treat their seat as "done" —
+    // the same shape a real score-compare `isSeatComplete` predicate has —
+    // so `activeSeat()`'s PER_SEAT branch hands every turn after to the bot,
+    // reproducing "the bot can hold consecutive turns" (`08-DartBot.md`
+    // §The Play Loop) without needing a real ruleset's full budget logic.
+    const humanHasThrown = (seat: SeatFact, turnsSoFar: readonly TurnFact[]) =>
+      seat.participantRef === HUMAN_REF &&
+      turnsSoFar.some((turn) => turn.participantRef === HUMAN_REF);
+    const engine = new BotFakeEngine(TWO_BOT_SEATS, humanHasThrown);
+    engine.record(dartAt(20)); // human's only turn
+    engine.record(dartAt(19)); // human's seat now reads complete; bot holds every turn after
+    engine.record(dartAt(18)); // bot again — a genuine consecutive bot turn
+
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    undoToActiveSeat(context, HUMAN_REF);
+
+    // Three pops happen (the mandatory first, then two more): the loop does
+    // not stop at the first seat that merely isn't the bot's — with this
+    // predicate, that's every state while the human's own turn is still in
+    // the log — so it keeps going until the human is genuinely active,
+    // which here only happens once their own turn is gone too.
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("undoing into an empty log leaves the seat the fact log implies, even when that is the human's", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20)); // human opened the leg
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+
+    undoToActiveSeat(context, HUMAN_REF);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("does nothing once the session is finished", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    context.finished = true;
+
+    undoToActiveSeat(context, HUMAN_REF);
+
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+
+  it("clears the hidden-turn timer and mirrors facts into the store, like playUndoVisit", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    context.hiddenTurnKey = "t2";
+
+    undoToActiveSeat(context, HUMAN_REF);
+
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.$store.game.recordFacts).toHaveBeenCalledWith(
+      engine.facts(),
+    );
   });
 });
 

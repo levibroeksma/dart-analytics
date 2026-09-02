@@ -18,6 +18,7 @@ import type {
   DartFact,
   DartObservation,
   EngineFacts,
+  MultiSeatState,
   TurnFact,
 } from "@modules/types";
 import type { GameEngine } from "@modules/interfaces";
@@ -188,6 +189,38 @@ export function playUndoVisit<
   if (!context.engine || !context.engine.undo()) return;
   clearHiddenTimer(context);
   context.$store.game.recordFacts(context.engine.facts());
+  context.error = "";
+}
+
+/**
+ * Pops visits until `participantRef`'s own seat is active again, or the fact
+ * log is empty. Always pops at least once, even when that seat is already
+ * active — a solo session's only seat never stops being active, so a loop
+ * that pops only *while* it is not would pop nothing at all, and the undo
+ * button would go dead in every solo session in the app. Existing single-pop
+ * callers (`playUndoVisit`, every non-bot page) are unaffected: this is a new
+ * export, not a change to that one.
+ */
+export function undoToActiveSeat<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  participantRef: string,
+): void {
+  if (context.finished) return;
+  const engine = context.engine;
+  if (!engine) return;
+  if (!engine.undo()) return;
+  while (
+    engine.facts().turns.length > 0 &&
+    engine.state().activeParticipantRef !== participantRef
+  ) {
+    if (!engine.undo()) break;
+  }
+  clearHiddenTimer(context);
+  context.$store.game.recordFacts(engine.facts());
   context.error = "";
 }
 
