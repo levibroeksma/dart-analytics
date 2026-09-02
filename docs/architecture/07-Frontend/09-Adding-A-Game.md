@@ -42,7 +42,7 @@ page legitimately has none of.
 | File | What goes in it |
 | ---- | --------------- |
 | `<code-slug>-setup.data.ts` | A `createPresetSetupController` call. *Engine-only skips.* |
-| `<code-slug>-play.data.ts` | The game's own play controller — genuinely per-game, no shared factory. *Engine-only skips.* |
+| `<code-slug>-play.data.ts` | The game's own play controller — genuinely per-game, no shared factory. *Engine-only skips.* Adding a second `rulesetVersionKey` to an existing engine module requires updating this file's resume/replay logic to reference every registered version, not just the first one shipped — enforced by `scripts/check-game-engines.sh`'s "Resumable ruleset version wiring" section. |
 | `types.ts` | **shared** — the play context; the setup context is a one-line alias of `PresetSetupContext` |
 
 ### `app/src/lib/game/rulesets/`
