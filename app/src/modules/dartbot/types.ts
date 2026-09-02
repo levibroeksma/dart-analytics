@@ -23,6 +23,13 @@ export type SkillProfile = {
   bedOffsetMm: number;
   bounceOutRate: number;
   deflectionRadiusMm: number;
+  /**
+   * `0..100`, D-D's decision axis (`08-DartBot.md` §Decision degrades too) —
+   * how well the bot routes a checkout versus always firing at the biggest
+   * number. `x01.strategy.module.ts` is the first consumer; every other
+   * strategy today dictates its own target and never reads this field.
+   */
+  decisionQuality: number;
 };
 
 export type BotThrow = {
