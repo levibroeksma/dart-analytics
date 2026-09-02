@@ -52,14 +52,19 @@ done
 # decisions/** is excluded: a decision records what was true when it was made,
 # and check-decision-ids.sh hashes the migrated rows so they cannot be edited
 # to follow the chain. Demanding both is a contradiction, and the ledger is the
-# side that must not move. Lines naming seeds are skipped too — seeds carry
-# their own numbering, which the chain max says nothing about.
+# side that must not move. A range is only checked when "migration(s)" sits
+# directly (no other word between) before it — this is a positive requirement,
+# not an exclusion list, so a seed range phrased without the literal word
+# "seed" is never mistaken for a migration range (F5). The same adjacency
+# requirement also keeps a range correctly unmatched when a line pairs a real
+# migration range with a same-line seed range under a shared label (e.g.
+# "migration/seed ranges bumped to A/B" in a version-history note) — neither
+# range sits directly after the literal word "migration" there.
 ACTUAL_MAX=$(ls database/migrations/ | grep -oE '^[0-9]{4}' | sort | tail -1)
 if [ -n "$ACTUAL_MAX" ]; then
   for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md'); do
     head -6 "$f" | grep -q '^status: historical' && continue
-    for q in $(grep -hiE '0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null \
-      | grep -iv 'seed' \
+    for q in $(grep -hoiE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null \
       | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
       [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
         && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
