@@ -79,6 +79,10 @@ updated: 2026-09-02
 
 # Current Implementation State
 
+> This table is maintained best-effort and can lag; the Version History
+> section above is the authoritative current-state source when they
+> disagree.
+
 | Area | Status |
 | ---- | ------ |
 | Domain model v1.0 | Frozen |
