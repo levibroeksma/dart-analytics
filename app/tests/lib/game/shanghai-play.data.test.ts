@@ -306,7 +306,7 @@ describe("recordTap", () => {
     expect(play.finished).toBe(true);
     expect(play.resultsSnapshot).toEqual({
       status: "SHANGHAI",
-      winningSideKey: "A",
+      winningSideKey: null,
       seats: [
         {
           participantRef: "participant-1",
@@ -391,7 +391,7 @@ describe("completion at round 20", () => {
 
     expect(play.resultsSnapshot).toEqual({
       status: "SHANGHAI",
-      winningSideKey: "A",
+      winningSideKey: null,
       seats: [
         {
           participantRef: "participant-1",

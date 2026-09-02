@@ -996,6 +996,31 @@ describe("foldShanghaiState — solo session", () => {
       initialShanghaiState(config),
     );
   });
+
+  it("reports winningSideKey: null for a solo session that ends on a Shanghai (F20)", () => {
+    const engine = new ShanghaiEngine(config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    const state = engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(state.seats[0].status).toBe("SHANGHAI");
+    expect(state.winningSideKey).toBeNull();
+  });
 });
 
 describe("Shanghai dart facts", () => {

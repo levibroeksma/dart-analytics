@@ -192,12 +192,15 @@ export function foldShanghaiState(
     (state, observation) => applyShanghaiDart(state, observation, difficulty),
   );
 
-  const raceResult = raceWinner(
-    seats.map((seat) => ({
-      sideKey: seat.sideKey,
-      finished: seat.status === "SHANGHAI",
-    })),
-  );
+  const raceResult =
+    seats.length === 1
+      ? null
+      : raceWinner(
+          seats.map((seat) => ({
+            sideKey: seat.sideKey,
+            finished: seat.status === "SHANGHAI",
+          })),
+        );
   const allTerminal = seats.every((seat) => seat.status !== "IN_PROGRESS");
   const compareResult =
     seats.length > 1 && allTerminal && raceResult === null
