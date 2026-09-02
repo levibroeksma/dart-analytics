@@ -190,3 +190,10 @@ It cannot check that anyone read this page, that a page renders, or that a
 setup form binds the right fields. It catches one specific failure that no
 test catches, because every game's tests only ever exercise that game: a
 shared registry left half-edited.
+
+**The gate runs pre-commit, on every commit, not just the final one.** The
+touch list above cannot be split into sequential per-file commits (setup
+controller in one commit, play controller in the next, wiring last) — the
+first such commit already fails `check-game-wiring.sh` because the game is
+half-wired at that point in history. Land the full touch list in one commit,
+or hold every task's changes uncommitted until wiring is complete.
