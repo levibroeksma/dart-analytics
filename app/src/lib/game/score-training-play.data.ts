@@ -22,6 +22,7 @@ import {
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import {
+  completedVisitsTotal,
   dartsThrownCount,
   firstNineAverageDisplay,
   highestVisitScore,
@@ -79,7 +80,7 @@ function statsFor(
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
-    total: seat.totalScore,
+    total: completedVisitsTotal(seatTurns),
     threeDartAverage: perVisitAverageDisplay(seatTurns),
     firstNineAverage: firstNineAverageDisplay(seatTurns),
     highestScore: highestVisitScore(seatTurns),

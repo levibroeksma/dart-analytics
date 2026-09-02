@@ -934,6 +934,28 @@ describe("scoreTrainingPlay", () => {
       ]);
     });
 
+    it("total excludes an open visit's running score, matching the other seven stats", async () => {
+      const play = makePlay({
+        turns: [
+          turnFact("t1", 1, 60),
+          { ...turnFact("t2", 2, 45), completedAt: null },
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.seats[0].total).toBe(60);
+    });
+
     it("tallies visits across all four score bands exclusively, end to end", async () => {
       const play = makePlay({
         turns: [

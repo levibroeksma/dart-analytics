@@ -8,6 +8,7 @@ import {
   firstNineAverageDisplay,
   highestVisitScore,
   visitScoreBandCounts,
+  completedVisitsTotal,
 } from "@lib/game/play-visit-stats";
 
 describe("previousScoreDisplay", () => {
@@ -199,6 +200,21 @@ describe("highestVisitScore", () => {
       { totalScore: 180, completedAt: null, darts: [{}] },
     ];
     expect(highestVisitScore(turns)).toBe(60);
+  });
+});
+
+describe("completedVisitsTotal", () => {
+  it("sums only completed visits, excluding an open one", () => {
+    const turns = [
+      done(60),
+      done(45),
+      { totalScore: 999, completedAt: null, darts: [{}] },
+    ];
+    expect(completedVisitsTotal(turns)).toBe(105);
+  });
+
+  it("returns 0 for an empty turn list", () => {
+    expect(completedVisitsTotal([])).toBe(0);
   });
 });
 
