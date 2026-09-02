@@ -7,6 +7,7 @@ import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const startingScoreOpts = [
@@ -24,7 +25,10 @@ const infoSection = {
 ---
 
 <SetupShell title="501">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("501_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
