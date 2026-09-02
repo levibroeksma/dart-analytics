@@ -26,6 +26,7 @@ import {
   playInit,
   playPreviewSegments,
   playRetryReconciliation,
+  playRunBotVisualBoardVisit,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
@@ -40,6 +41,8 @@ import type {
 } from "@modules/types";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
+  BotDartThrower,
+  BotPacing,
   PlayLifecycleContext,
   RulesetVersionKey,
   SeatFact,
@@ -806,6 +809,110 @@ describe("undoToActiveSeat", () => {
     expect(context.$store.game.recordFacts).toHaveBeenCalledWith(
       engine.facts(),
     );
+  });
+});
+
+function stubThrower(
+  targets: readonly number[],
+  pacing: BotPacing = { preThrowMs: 10, postThrowMs: 5 },
+): BotDartThrower {
+  let i = 0;
+  return () => ({ observation: dartAt(targets[i++]!), pacing });
+}
+
+describe("playRunBotVisualBoardVisit", () => {
+  it("throws darts for the bot until the active seat is no longer the bot's", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20)); // human's visit ends; bot is now active
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockResolvedValue(undefined);
+
+    await playRunBotVisualBoardVisit(
+      context,
+      BOT_REF,
+      stubThrower([19, 18, 17]),
+      wait,
+    );
+
+    // Plain PER_SEAT alternation over 2 seats: the bot's own visit here is
+    // exactly one dart before the active seat flips back to the human.
+    expect(engine.facts().turns).toHaveLength(2);
+    expect(engine.facts().turns[1]!.participantRef).toBe(BOT_REF);
+    expect(context.botThrowing).toBe(false);
+  });
+
+  it("waits preThrowMs then postThrowMs around the recorded dart, in order", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const calls: number[] = [];
+    const wait = vi.fn().mockImplementation(async (ms: number) => {
+      calls.push(ms);
+    });
+
+    await playRunBotVisualBoardVisit(
+      context,
+      BOT_REF,
+      stubThrower([19], { preThrowMs: 900, postThrowMs: 250 }),
+      wait,
+    );
+
+    expect(calls).toEqual([900, 250]);
+  });
+
+  it("does nothing when it is not the bot's turn", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    // No turns yet: seat 0 (human) is active.
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockResolvedValue(undefined);
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(wait).not.toHaveBeenCalled();
+  });
+
+  it("re-entrancy guard 1: a second concurrent call is a no-op while one is already running", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    context.botThrowing = true; // simulates a visit already in flight
+    const wait = vi.fn().mockResolvedValue(undefined);
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(wait).not.toHaveBeenCalled();
+  });
+
+  it("re-entrancy guard 2: aborts without recording if the active seat changed during the pre-throw delay", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockImplementation(async () => {
+      // Simulates the user pressing undo while the bot is "thinking".
+      undoToActiveSeat(context, HUMAN_REF);
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(context.botThrowing).toBe(false);
+  });
+
+  it("two trigger fires for one turn append exactly one turn (guard 1 makes the second a no-op)", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockResolvedValue(undefined);
+    const thrower = stubThrower([19]);
+
+    await Promise.all([
+      playRunBotVisualBoardVisit(context, BOT_REF, thrower, wait),
+      playRunBotVisualBoardVisit(context, BOT_REF, thrower, wait),
+    ]);
+
+    expect(engine.facts().turns).toHaveLength(2);
   });
 });
 
