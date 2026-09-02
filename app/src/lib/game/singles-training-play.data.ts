@@ -46,7 +46,10 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // singlesTrainingEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
+import {
+  foldSinglesTrainingState,
+  SinglesTrainingEngine,
+} from "@modules/game/singles-training.engine.module";
 
 const GAME_TYPE_KEY = "SINGLES_TRAINING";
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
@@ -286,7 +289,12 @@ export function singlesTrainingPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldSinglesTrainingState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     currentTargetLabelFor(

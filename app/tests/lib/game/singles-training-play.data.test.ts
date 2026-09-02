@@ -248,25 +248,59 @@ describe("init", () => {
 
 describe("singlesTrainingPlay — per-seat accessors", () => {
   it("currentPointsFor reads the named seat", () => {
-    const ctx = singlesTrainingPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; totalPoints: number }[];
-        };
-      };
-      currentPointsFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", totalPoints: 5 },
-          { participantRef: "p2", totalPoints: 30 },
-        ],
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const opponentTurns: TurnFact[] = priorTurnsThroughNumber(10).map(
+      (turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
       }),
+    );
+    const play = {
+      ...singlesTrainingPlay(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...defaultConfig(), seats: twoSeats },
+        }),
+        settings: settingsStub(),
+      },
+    } as SinglesTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.currentPointsFor("participant-2")).toBe("30");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = singlesTrainingPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    expect(ctx.currentPointsFor("p2")).toBe("30");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorTurnsThroughNumber(3),
+    });
+
+    expect(play.currentTargetLabel()).toBe("4");
   });
 });
 
