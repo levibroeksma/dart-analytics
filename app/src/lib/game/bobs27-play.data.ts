@@ -14,19 +14,25 @@ import {
   playCommitDart,
   playInit,
   playRetryReconciliation,
+  playRunBotVisualBoardVisit,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
-import type { RulesetVersionKey } from "@lib/types";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   Bobs27SeatState,
   Bobs27State,
   DartObservation,
   TurnFact,
 } from "@modules/types";
-import type { BoardMarker } from "./types";
+import type { BoardMarker, BotDartThrower, BotPacing } from "./types";
 import type {
   Bobs27PlayContext,
   Bobs27PreviewSegment,
@@ -103,6 +109,62 @@ function resumeEngine(
   return engine instanceof Bobs27Engine ? engine : null;
 }
 
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+/**
+ * The real per-dart thrower: phases 1–3's shipped pipeline (skill curve,
+ * seeded RNG, dictated strategy, throw engine), combined the same way
+ * `play-dictated-session.ts`'s test harness already does for a solo bot.
+ * `dartIndex` is re-derived from the fact log on every call — never held on
+ * this closure — so an undone bot visit re-throws identically from the same
+ * seed (`08-DartBot.md` §Determinism and Replay).
+ */
+function throwBotDart(
+  context: Bobs27PlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const state = context.state();
+  const seatState = state?.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  );
+  if (!state || !seatState) {
+    throw new Error("DartBot has no seat in this session's engine state");
+  }
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const target = targetAt(doublesPath(), seatState.targetIndex);
+  const intent = chooseTarget({ target });
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    observation: {
+      hitTargetNumber: thrown.hit.targetNumber,
+      hitZoneKey: thrown.hit.zoneKey,
+      locationX: thrown.landing.x,
+      locationY: thrown.landing.y,
+    },
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
 /**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` — see
@@ -126,6 +188,7 @@ export function bobs27Play() {
     resultsSnapshot: null as Bobs27ResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    botThrowing: false,
     engine: null as Bobs27Engine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
@@ -176,9 +239,10 @@ export function bobs27Play() {
       return playVisitMarkers(this);
     },
 
-    init(this: Bobs27PlayContext) {
+    async init(this: Bobs27PlayContext) {
       self = this;
-      return playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await this.maybeRunBotVisit();
     },
 
     retryReconciliation(this: Bobs27PlayContext) {
@@ -204,12 +268,29 @@ export function bobs27Play() {
       await this.commitDart(observation);
     },
 
-    commitDart(this: Bobs27PlayContext, observation: DartObservation) {
-      return playCommitDart(this, observation);
+    async commitDart(this: Bobs27PlayContext, observation: DartObservation) {
+      await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
     },
 
-    undoVisit(this: Bobs27PlayContext) {
-      playUndoVisit(this);
+    async maybeRunBotVisit(this: Bobs27PlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat) return;
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+    },
+
+    async undoVisit(this: Bobs27PlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        playUndoVisit(this);
+      }
+      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void> {
