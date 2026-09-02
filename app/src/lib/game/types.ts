@@ -616,7 +616,7 @@ export type PresetSetupContext = {
  */
 export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
   gameTypeKey: string;
-  rulesetVersionKey: RulesetVersionKey;
+  rulesetVersionKey: RulesetVersionKey | ((ctx: Ctx) => RulesetVersionKey);
   playHref: string;
   label: string;
   configOverrides?: (ctx: Ctx) => Record<string, unknown>;

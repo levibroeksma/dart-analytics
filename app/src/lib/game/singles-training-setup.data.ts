@@ -1,4 +1,5 @@
 import { createPresetSetupController } from "@lib/game/setup-controller";
+import { addTypedGuest } from "@lib/game/guest-list";
 import { targetOrderFor } from "@lib/game/target-order";
 import type { SinglesTrainingSetupContext } from "./types";
 
@@ -8,7 +9,8 @@ export function singlesTrainingSetup() {
     difficulty: "EASY" as SinglesTrainingSetupContext["difficulty"],
     ...createPresetSetupController<SinglesTrainingSetupContext>({
       gameTypeKey: "SINGLES_TRAINING",
-      rulesetVersionKey: "SINGLES_V2",
+      rulesetVersionKey: (ctx) =>
+        ctx.guests.length > 0 ? "SINGLES_V1" : "SINGLES_V2",
       playHref: "/games/singles-training/play",
       label: "Singles Training",
       configOverrides: (ctx) => ({
@@ -17,5 +19,8 @@ export function singlesTrainingSetup() {
         difficulty: ctx.difficulty,
       }),
     }),
+    addGuest(this: SinglesTrainingSetupContext) {
+      if (addTypedGuest(this)) this.difficulty = "EASY";
+    },
   };
 }
