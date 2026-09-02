@@ -45,6 +45,7 @@ import type {
 import {
   applyAroundTheClockDart,
   AroundTheClockEngine,
+  foldAroundTheClockState,
   initialAroundTheClockState,
   isAroundTheClockHit,
 } from "@modules/game/around-the-clock.engine.module";
@@ -173,7 +174,12 @@ export function aroundTheClockPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: AroundTheClockPlayContext): AroundTheClockState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldAroundTheClockState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     activeSeatState(

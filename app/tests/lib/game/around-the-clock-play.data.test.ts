@@ -458,39 +458,60 @@ describe("undoVisit", () => {
 
 describe("aroundTheClockPlay — per-seat accessors", () => {
   it("currentTargetLabelFor and turnsSoFarFor read the named seat", () => {
-    const ctx = aroundTheClockPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; targetIndex: number }[];
-        };
-      };
-      $store: { game: { turns: { participantRef: string }[] } };
-      currentTargetLabelFor: (seatRef: string) => string;
-      turnsSoFarFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", targetIndex: 0 },
-          { participantRef: "p2", targetIndex: 5 },
-        ],
-      }),
-    };
-    ctx.$store = {
-      game: {
-        turns: [
-          { participantRef: "p1" },
-          { participantRef: "p2" },
-          { participantRef: "p1" },
-        ],
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
       },
+    ];
+    const opponentTurns: TurnFact[] = priorTurnsThroughNumber(5).map(
+      (turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
+      }),
+    );
+    const play = {
+      ...aroundTheClockPlay(),
+      $store: {
+        game: gameStub({ configSnapshot: { seats: twoSeats } }),
+        settings: settingsStub(),
+      },
+    } as AroundTheClockPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.currentTargetLabelFor("participant-1")).toBe("1");
+    expect(play.currentTargetLabelFor("participant-2")).toBe("6");
+    expect(play.turnsSoFarFor("participant-1")).toBe("0");
+    expect(play.turnsSoFarFor("participant-2")).toBe("5");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = aroundTheClockPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    expect(ctx.currentTargetLabelFor("p1")).toBe("1");
-    expect(ctx.currentTargetLabelFor("p2")).toBe("6");
-    expect(ctx.turnsSoFarFor("p1")).toBe("2");
-    expect(ctx.turnsSoFarFor("p2")).toBe("1");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorTurnsThroughNumber(3),
+    });
+
+    expect(play.turnsSoFar()).toBe("3");
   });
 });
 
