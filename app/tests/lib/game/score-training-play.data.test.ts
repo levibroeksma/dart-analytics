@@ -956,6 +956,54 @@ describe("scoreTrainingPlay", () => {
       expect(play.resultsSnapshot?.seats[0].total).toBe(60);
     });
 
+    it("1v1: winningSideKey matches the higher-scoring seat once the round budget decides the match", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(1), seats: TWO_SEATS },
+        turns: [
+          turnFact("t1", 1, 60, "participant-1"),
+          turnFact("t2", 1, 40, "participant-2"),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+      expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    });
+
+    it("1v1: a tie at the round budget reports status TIE and winningSideKey null", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(1), seats: TWO_SEATS },
+        turns: [
+          turnFact("t1", 1, 50, "participant-1"),
+          turnFact("t2", 1, 50, "participant-2"),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.status).toBe("TIE");
+      expect(play.resultsSnapshot?.winningSideKey).toBeNull();
+    });
+
     it("tallies visits across all four score bands exclusively, end to end", async () => {
       const play = makePlay({
         turns: [
