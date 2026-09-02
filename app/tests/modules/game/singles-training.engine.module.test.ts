@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   applySinglesTrainingDart,
+  foldSinglesTrainingState,
   initialSinglesTrainingState,
   SinglesTrainingEngine,
   singlesTrainingEngineFactory,
@@ -1515,5 +1516,19 @@ describe("SinglesTrainingEngine — HARD/EXTREME 1v1 elimination", () => {
     const state = engine.state();
     expect(state.status).toBe("COMPLETE");
     expect(state.winningSideKey).toBe("A");
+  });
+});
+
+describe("foldSinglesTrainingState", () => {
+  it("reproduces the engine's own state() for an equivalent fact log", () => {
+    const engine = singlesTrainingEngineFactory.create(config);
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+
+    const expected = engine.state();
+    const folded = foldSinglesTrainingState(engine.facts(), config);
+
+    expect(folded).toEqual(expected);
   });
 });

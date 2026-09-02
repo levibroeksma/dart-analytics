@@ -188,7 +188,7 @@ export function applySinglesTrainingDart(
  * (`status: "LOST"`), the match ends immediately via `eliminationWinner` —
  * the same Bob's-27 pattern — regardless of any other seat's own progress.
  */
-function foldSinglesTrainingState(
+export function foldSinglesTrainingState(
   facts: EngineFacts,
   config: SinglesEngineConfig,
 ): SinglesTrainingState {
