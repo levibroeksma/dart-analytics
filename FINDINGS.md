@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-02
-highest-issued: F52
+highest-issued: F53
 -->
 
 # Findings
@@ -220,3 +220,10 @@ Claim: `participantsFromSeats`'s JSDoc describes itself as "the inverse of `seat
 Evidence: `app/src/lib/game/session-mode-resolution.ts:120-121` — `seatsFromParticipants` was deleted and replaced by a private `toSeatFacts` in the same task (Task 8) that left this docstring's reference untouched; the function name it cites no longer exists anywhere in the file
 Impact: a reader (or an agent) following the docstring's cross-reference to understand `participantsFromSeats`'s relationship to the seat-mapping code finds no such function, and has to search for what replaced it
 Proposed: reword the docstring's cross-reference to name `toSeatFacts` instead of `seatsFromParticipants`
+
+### F53 — `00-Context-Map-History.md`'s "Current Implementation State" table is many phases stale
+Status: Open · Found: 2026-09-02 · Task: claude/rebase-pr-three-docs-4tm39h
+Claim: the table's "Game engines" row states "All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract"; no row mentions DartBot at all
+Evidence: `docs/architecture/00-Context-Map-History.md:80-95` (`# Current Implementation State`) — nine engines are registered today (`scripts/check-game-engines.sh`'s own "OK: all 9 game engine module(s) conform" output names Around the Clock, Bob's 27, Doubles Training, 501, 121, Score Training, Shanghai, Singles Training, TUOD), three more than the row lists; DartBot has shipped seven phases (throw engine through `X01Strategy`/501 opponent mode, this branch's own 1.35.0 entry) with no corresponding row anywhere in the table
+Impact: this table's own header claims "Current Implementation State," but the Version History entries directly above it (1.20–1.35) already show it drifted at least as far back as the three-engine seat-admission work (2026-08-22) and every DartBot phase since — an agent that trusts this table's "All six" claim instead of scanning the Version History undercounts the shipped engine surface and finds no trace of DartBot at all
+Proposed: either bring the table current (game-engine count, capture-mode coverage, a DartBot row) or add a note at its head deferring to the Version History as the actual current-state source, since this table has not been kept in lockstep with it for at least 13 versions
