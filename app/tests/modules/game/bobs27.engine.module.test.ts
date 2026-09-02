@@ -3,6 +3,7 @@ import {
   applyBobs27Dart,
   Bobs27Engine,
   bobs27EngineFactory,
+  foldBobs27State,
   initialBobs27State,
 } from "@modules/game/bobs27.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
@@ -972,5 +973,19 @@ describe("Bobs27Engine — exerciseBlockStage wiring (F40)", () => {
         sequence: 1,
       },
     ]);
+  });
+});
+
+describe("foldBobs27State", () => {
+  it("reproduces the engine's own state() for an equivalent fact log", () => {
+    const engine = bobs27EngineFactory.create(config);
+    engine.record(hitObservationFor(engine.state().seats[0]));
+    engine.record(hitObservationFor(engine.state().seats[0]));
+    engine.record(missObservationFor(engine.state().seats[0]));
+
+    const expected = engine.state();
+    const folded = foldBobs27State(engine.facts(), config);
+
+    expect(folded).toEqual(expected);
   });
 });
