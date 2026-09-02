@@ -245,7 +245,7 @@ landing = aim
         + rare wild draw          probability outlierRate, much wider Σ
 ```
 
-A rotatable covariance is what separates a strong player from a weak one in the way the brief requires: a strong player's misses stay on the 20 wire (T5 / T1), a weak player's spray into 12 and 18. A shrinking circle cannot express that difference; an ellipse can.
+A rotatable covariance is what separates a strong player from a weak one in the way the brief requires: a strong player's scatter narrows along a fixed, per-player technique axis, a weak player's stays circular. `covarianceRotationDegrees` (`SkillProfile`) is that fixed per-player bias — it does not (yet) rotate to the aim point's own polar angle, so it cannot yet reproduce a wire-relative pattern for an arbitrary target; `LEVEL_SKILL_TABLE` seeds it `0` for every level pending D-E's population fit (`FINDINGS.md` F57). A shrinking circle cannot express the per-player difference; an ellipse can.
 
 The outlier component is separate so the core σ stays honest — the occasional wild dart must not be produced by inflating normal scatter.
 
