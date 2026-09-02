@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-01
-highest-issued: F51
+updated: 2026-09-02
+highest-issued: F52
 -->
 
 # Findings
@@ -220,3 +220,10 @@ Claim: `participantsFromSeats`'s JSDoc describes itself as "the inverse of `seat
 Evidence: `app/src/lib/game/session-mode-resolution.ts:120-121` — `seatsFromParticipants` was deleted and replaced by a private `toSeatFacts` in the same task (Task 8) that left this docstring's reference untouched; the function name it cites no longer exists anywhere in the file
 Impact: a reader (or an agent) following the docstring's cross-reference to understand `participantsFromSeats`'s relationship to the seat-mapping code finds no such function, and has to search for what replaced it
 Proposed: reword the docstring's cross-reference to name `toSeatFacts` instead of `seatsFromParticipants`
+
+### F52 — The DartBot phase 6 plan file cited by two canonical docs was never committed
+Status: Open · Found: 2026-09-02 · Task: claude/dartbot-7-x01-strategy
+Claim: `decisions/game-engine.md`'s D252 entry and `docs/architecture/00-Context-Map-History.md`'s 1.34.0 entry both cite "plan: `docs/superpowers/plans/2026-09-01-dartbot-6-play-loop.md`" as the source of the phase 6 (play loop) work
+Evidence: `find . -iname "*dartbot-6*"` and `find . -iname "*play-loop*"` across every ref in this repo (including `git ls-tree -r origin/claude/dartbot-6-play-loop --name-only`, the branch that shipped phase 6 itself) return no such file at any commit; `docs/superpowers/plans/2026-09-01-dartbot-4-seat-admission.md` and `docs/superpowers/plans/2026-09-01-dartbot-5-participant-write-path.md` exist for the two phases either side of it, but no `dartbot-6` plan file exists anywhere in the directory
+Impact: an agent following either doc's citation to review how phase 6 was planned, or to copy its structure for a later phase plan, finds a dead path with no signal that the file was simply never written (as opposed to moved or renamed)
+Proposed: either author the missing plan file retroactively from phase 6's own shipped commits (`593efc3`..`853a417` on `main`) so the citation resolves, or reword both citations to drop the specific path and note the plan was not preserved
