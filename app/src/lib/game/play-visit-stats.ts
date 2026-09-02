@@ -133,7 +133,7 @@ export function visitScoreBandCounts(turns: VisitLike[]): {
   };
   for (const turn of completedVisits(turns)) {
     const score = turn.totalScore;
-    if (score === 180) counts.oneEighties += 1;
+    if (score >= 180) counts.oneEighties += 1;
     else if (score >= 140) counts.oneFortyPlus += 1;
     else if (score >= 120) counts.oneTwentyPlus += 1;
     else if (score >= 100) counts.hundredPlus += 1;

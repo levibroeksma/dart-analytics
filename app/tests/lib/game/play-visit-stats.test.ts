@@ -274,6 +274,16 @@ describe("visitScoreBandCounts", () => {
     });
   });
 
+  it("a total above 180 still counts as oneEighties — the function's own 'highest threshold' contract, exercised directly since the engine cannot produce one today", () => {
+    expect(visitScoreBandCounts([done(200)])).toEqual({
+      sixtyPlus: 0,
+      hundredPlus: 0,
+      oneTwentyPlus: 0,
+      oneFortyPlus: 0,
+      oneEighties: 1,
+    });
+  });
+
   it("ignores an open visit even if its running total would clear a band", () => {
     const turns = [{ totalScore: 180, completedAt: null, darts: [{}] }];
     expect(visitScoreBandCounts(turns)).toEqual({
