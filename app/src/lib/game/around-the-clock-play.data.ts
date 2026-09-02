@@ -248,11 +248,12 @@ export function aroundTheClockPlay() {
     previewSegments(
       this: AroundTheClockPlayContext,
     ): AroundTheClockPreviewSegment[] {
-      const state = this.state();
       const config = this.$store.game.configSnapshot;
-      if (!state || !config) return [...EMPTY_SEGMENTS];
-      const seatTurns = this.$store.game.turns.filter(
-        (turn) => turn.participantRef === state.activeParticipantRef,
+      if (!this.engine || !config) return [...EMPTY_SEGMENTS];
+      const turns = this.$store.game.turns;
+      const lastParticipantRef = turns.at(-1)?.participantRef;
+      const seatTurns = turns.filter(
+        (turn) => turn.participantRef === lastParticipantRef,
       );
       return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
     },

@@ -634,6 +634,57 @@ describe("previewSegments — reveal-then-clear timer", () => {
   });
 });
 
+describe("previewSegments — 1v1 seat scoping", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<AroundTheClockSnapshot> {
+    return { seats: TWO_SEATS };
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("shows the just-closed turn's own darts during the 1.5s reveal window, not the newly active seat's empty log", async () => {
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Seat A's first visit: two hits (targets 1, 2) then a MISS closes the
+    // 3-dart turn. `seat-rota.module.ts`'s `activeSeat` rotates
+    // `activeParticipantRef` to seat B the instant `completedAt` is set —
+    // before the 1.5s reveal timer (`playCommitDart`) even starts. Reading
+    // `previewSegments()` right here, with no timers advanced, is exactly
+    // that reveal window: the pre-fix filter (`state.activeParticipantRef`,
+    // already B) finds no turns for B yet and falls back to all-empty;
+    // the fix scopes to the last turn's own `participantRef` (A) instead.
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "hit" },
+      { status: "miss" },
+    ]);
+  });
+});
+
 describe("accuracy", () => {
   it("is 0.00% before any dart is thrown", async () => {
     const play = makePlay();
