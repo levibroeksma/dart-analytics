@@ -861,30 +861,79 @@ describe("recordDart (board input)", () => {
 
 describe("doublesTrainingPlay — per-seat accessors", () => {
   it("hitCountFor and missCountFor read the named seat", () => {
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const missDarts: DartFact[] = [1, 2, 3].map((seq) => ({
+      sequence: seq,
+      intendedTargetNumber: 3,
+      intendedZoneKey: "DOUBLE",
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      score: 0,
+      locationX: null,
+      locationY: null,
+    }));
+    const opponentTurns: TurnFact[] = [
+      ...priorHitTurnsThroughDouble(2).map((turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
+      })),
+      {
+        clientKey: "opponent-miss-1",
+        stageClientKey: "block-1",
+        participantRef: "participant-2",
+        sequence: 3,
+        completedAt: "2026-08-01T10:00:00.000Z",
+        totalScore: 0,
+        darts: missDarts,
+      },
+    ];
+    const play = {
+      ...doublesTrainingPlay(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...defaultConfig(), seats: twoSeats },
+        }),
+        settings: settingsStub(),
+      },
+    } as DoublesTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.hitCountFor("participant-2")).toBe("2");
+    expect(play.missCountFor("participant-2")).toBe("1");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
     const ctx = doublesTrainingPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; outcomes: { hit: boolean }[] }[];
-        };
-      };
-      hitCountFor: (seatRef: string) => string;
-      missCountFor: (seatRef: string) => string;
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", outcomes: [{ hit: true }, { hit: false }] },
-          {
-            participantRef: "p2",
-            outcomes: [{ hit: true }, { hit: true }, { hit: false }],
-          },
-        ],
-      }),
-    };
-    expect(ctx.hitCountFor("p2")).toBe("2");
-    expect(ctx.missCountFor("p2")).toBe("1");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorHitTurnsThroughDouble(3),
+    });
+
+    expect(play.hitCount()).toBe("3");
   });
 });
 

@@ -796,6 +796,20 @@ describe("visual board capture", () => {
     expect(engine.state().seats[0].remainingScore).toBe(381);
   });
 
+  it("checks out on a single dart landing on the inner bull, treating it as the double for its own remainder", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 50 } as never,
+      undefined,
+    ) as FiveOhOneEngine;
+
+    engine.record(dartAt(0, 0, "INNER_BULL", 25));
+
+    expect(engine.isComplete()).toBe(true);
+    const turn = engine.facts().turns.at(-1)!;
+    expect(turn.darts).toHaveLength(1);
+    expect(turn.totalScore).toBe(50);
+  });
+
   it("keeps dart rows with real scores when a visit busts", () => {
     const engine = fiveOhOneEngineFactory.create(
       { ...(config as object), startingScore: 70 } as never,
@@ -901,6 +915,15 @@ describe("FiveOhOneEngine.wouldComplete — visual board", () => {
     ) as FiveOhOneEngine;
 
     expect(engine.wouldComplete(doubleTwenty)).toBe(true);
+  });
+
+  it("is true for a first-dart checkout on the inner bull on the final leg", () => {
+    const engine = fiveOhOneEngineFactory.create(
+      { ...(config as object), startingScore: 50 } as never,
+      undefined,
+    ) as FiveOhOneEngine;
+
+    expect(engine.wouldComplete(dartAt(0, 0, "INNER_BULL", 25))).toBe(true);
   });
 
   it("is false for a checkout that only wins a leg short of legsToWin", () => {

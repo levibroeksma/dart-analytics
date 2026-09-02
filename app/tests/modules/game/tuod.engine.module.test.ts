@@ -153,6 +153,22 @@ describe("applyTuodAttempt", () => {
     };
     expect(applyTuodAttempt(config(), atFloor, true).currentTarget).toBe(12);
   });
+
+  it("caps the ladder at 170, the highest three-dart double-out total, on a run of successes", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      startingTarget: 168,
+      finishBonus: 5,
+    });
+
+    const state = engine.record({
+      checkedOut: true,
+      dartsUsed: 3,
+      finishedOnDouble: true,
+    });
+
+    expect(state.seats[0].currentTarget).toBe(170);
+  });
 });
 
 describe("TuodEngine.record — outcomes", () => {
@@ -211,13 +227,13 @@ describe("TuodEngine.record — outcomes", () => {
     expect(engine.facts().turns).toHaveLength(0);
   });
 
-  it("refuses to record once the session is complete", () => {
+  it("no longer refuses a solo session's record() once ROUNDS-complete — isMatchDecided() (F21) exempts solo sessions from engine-level blocking, delegating that guard to tuod-play.data.ts's finished/showFinishConfirm gate", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(MISS);
 
     expect(engine.isComplete()).toBe(true);
-    expect(() => engine.record(MISS)).toThrow();
-    expect(engine.facts().turns).toHaveLength(1);
+    expect(() => engine.record(MISS)).not.toThrow();
+    expect(engine.facts().turns).toHaveLength(2);
   });
 });
 
@@ -463,10 +479,10 @@ describe("TuodEngine.wouldComplete — pure", () => {
     expect(engine.wouldComplete(CHECKOUT)).toBe(false);
   });
 
-  it("is false once the session is already complete", () => {
+  it("still reads true for a further attempt once a solo ROUNDS session is already complete — isMatchDecided() (F21) no longer treats a solo session's own completion as a rejection reason at the engine level", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(MISS);
-    expect(engine.wouldComplete(MISS)).toBe(false);
+    expect(engine.wouldComplete(MISS)).toBe(true);
   });
 });
 
@@ -495,6 +511,17 @@ describe("TuodEngine completion", () => {
     const engine = new TuodEngine(minutesConfig());
     engine.expireTimer();
     expect(engine.isComplete()).toBe(false);
+  });
+
+  it("accepts a second solo MINUTES attempt recorded after the timer expires mid-session (F21)", () => {
+    const engine = tuodEngineFactory.create(minutesConfig()) as TuodEngine;
+
+    engine.record(MISS);
+    engine.expireTimer();
+
+    expect(engine.wouldComplete(CHECKOUT)).toBe(true);
+    expect(() => engine.record(CHECKOUT)).not.toThrow();
+    expect(engine.isComplete()).toBe(true);
   });
 });
 
@@ -787,14 +814,14 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     expect(() => engine.record(MISS)).toThrow(/open (visit|attempt)/);
   });
 
-  it("refuses to record a dart once the session is complete", () => {
+  it("no longer refuses a dart once a solo session is ROUNDS-complete — same isMatchDecided() (F21) exemption as the keypad-total path", () => {
     const engine = tuodEngineFactory.create({
       ...boardConfig(),
       durationValue: 1,
     });
     engine.record(DOUBLE_20);
     expect(engine.isComplete()).toBe(true);
-    expect(() => engine.record(DOUBLE_20)).toThrow();
+    expect(() => engine.record(DOUBLE_20)).not.toThrow();
   });
 });
 
@@ -955,6 +982,17 @@ describe("TuodEngine — 1v1", () => {
         twoSeats.some((seat) => seat.participantRef === turn.participantRef),
       ).toBe(true);
     }
+  });
+
+  it("still blocks record() after a 1v1 match's outcome is settled (no regression on the multi-seat guard)", () => {
+    const engine = new TuodEngine(twoSeatConfig);
+    engine.record({ checkedOut: false }); // p1 round 1: fail
+    engine.record({ checkedOut: false }); // p2 round 1: fail
+    engine.record({ checkedOut: false }); // p1 round 2: fail
+    engine.record({ checkedOut: true, finishedOnDouble: true }); // p2 round 2: success, ends the match
+
+    expect(engine.isComplete()).toBe(true);
+    expect(() => engine.record({ checkedOut: false })).toThrow();
   });
 
   it("does not complete while the other seat still has budget left", () => {

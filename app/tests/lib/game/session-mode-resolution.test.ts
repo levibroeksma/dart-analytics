@@ -158,8 +158,32 @@ describe("startSessionInput", () => {
       ],
     });
   });
+
+  it("throws when a DARTBOT participant's dartbot payload is unexpectedly absent", () => {
+    expect(() =>
+      startSessionInput({
+        gameTypeKey: "BOBS27",
+        rulesetVersionKey: "BOBS27_V1",
+        session: {
+          sessionId: "s1",
+          participants: [
+            { ref: "a", participantTypeKey: "PLAYER", displayName: "Levi" },
+            { ref: "b", participantTypeKey: "DARTBOT", displayName: "DartBot" },
+          ],
+        },
+        templateRef: "tpl-1",
+        configSnapshot: {},
+        modePair: {
+          captureModeKey: "RECREATIONAL",
+          inputModeKey: "DETAILED_DARTS",
+        },
+      }),
+    ).toThrow();
+  });
 });
 
+// Covers participantsFromSeats, including its JSDoc's toSeatFacts
+// cross-reference (F51) — behavior unchanged.
 describe("participantsFromSeats", () => {
   it("returns undefined for a solo seat list, so a solo replay omits the field entirely", () => {
     expect(

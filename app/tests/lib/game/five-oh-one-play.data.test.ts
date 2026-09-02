@@ -717,8 +717,8 @@ describe("uploadAndCompleteSession", () => {
           sixtyPlus: 0,
           hundredPlus: 0,
           oneTwentyPlus: 0,
-          oneFortyPlus: 1,
-          oneEighties: 0,
+          oneFortyPlus: 0,
+          oneEighties: 1,
         },
       ],
     });

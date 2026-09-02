@@ -168,25 +168,26 @@ const ACTIVE_SESSION = {
 
 describe("scoreTrainingPlay — per-seat accessors", () => {
   it("totalScoreFor reads the named seat", () => {
-    const ctx = scoreTrainingPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; totalScore: number }[];
-        };
-      };
-      totalScoreFor: (seatRef: string) => number;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", totalScore: 40 },
-          { participantRef: "p2", totalScore: 120 },
-        ],
-      }),
-    };
-    expect(ctx.totalScoreFor("p2")).toBe(120);
+    const play = {
+      ...scoreTrainingPlay(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...rounds(10), seats: TWO_SEATS },
+        }),
+        settings: settingsStub(),
+      },
+    } as ScoreTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [BLOCK],
+      turns: [
+        turnFact("t1", 1, 40, "participant-1"),
+        turnFact("t2", 1, 120, "participant-2"),
+      ],
+    });
+
+    expect(play.totalScoreFor("participant-2")).toBe(120);
   });
 });
 
@@ -931,6 +932,76 @@ describe("scoreTrainingPlay", () => {
           oneEighties: 0,
         },
       ]);
+    });
+
+    it("total excludes an open visit's running score, matching the other seven stats", async () => {
+      const play = makePlay({
+        turns: [
+          turnFact("t1", 1, 60),
+          { ...turnFact("t2", 2, 45), completedAt: null },
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.seats[0].total).toBe(60);
+    });
+
+    it("1v1: winningSideKey matches the higher-scoring seat once the round budget decides the match", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(1), seats: TWO_SEATS },
+        turns: [
+          turnFact("t1", 1, 60, "participant-1"),
+          turnFact("t2", 1, 40, "participant-2"),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.status).toBe("COMPLETE");
+      expect(play.resultsSnapshot?.winningSideKey).toBe("A");
+    });
+
+    it("1v1: a tie at the round budget reports status TIE and winningSideKey null", async () => {
+      const play = makePlay({
+        configSnapshot: { ...rounds(1), seats: TWO_SEATS },
+        turns: [
+          turnFact("t1", 1, 50, "participant-1"),
+          turnFact("t2", 1, 50, "participant-2"),
+        ],
+      });
+
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 6 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-07-17T10:00:00Z",
+      });
+
+      await play.uploadAndCompleteSession();
+
+      expect(play.resultsSnapshot?.status).toBe("TIE");
+      expect(play.resultsSnapshot?.winningSideKey).toBeNull();
     });
 
     it("tallies visits across all four score bands exclusively, end to end", async () => {
@@ -2024,5 +2095,34 @@ describe("scoreTrainingPlay — playAgain mode resolution", () => {
         inputModeKey: "VISUAL_BOARD",
       }),
     );
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = scoreTrainingPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
+    };
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = {
+      ...scoreTrainingPlay(),
+      $store: {
+        game: gameStub({ configSnapshot: rounds(10) }),
+        settings: settingsStub(),
+      },
+    } as ScoreTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [BLOCK],
+      turns: [turnFact("t1", 1, 45)],
+    });
+
+    expect(play.totalScoreFor("participant-1")).toBe(45);
   });
 });

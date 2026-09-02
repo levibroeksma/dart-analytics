@@ -310,6 +310,7 @@ export function playFoldBotQuickScoreVisit<TConfig, TInput, TState>(
   const scratch = factory.create(config, facts);
   for (let i = 0; i < dartsPerVisit && !scratch.isComplete(); i++) {
     scratch.record(throwDart(scratch.state()) as TInput);
+    if (scratch.facts().turns.at(-1)?.completedAt) break;
   }
   const visitTurn = scratch.facts().turns.at(-1)!;
   return {

@@ -297,6 +297,31 @@ describe("tuodPlay", () => {
       expect(component.finished).toBe(true);
       expect(appendBatch).toHaveBeenCalledTimes(1);
     });
+
+    it("recordAttempt no-ops once the session is finished — the sole guard against over-recording a solo session now that TuodEngine.isMatchDecided() (F21) no longer blocks record() at the engine level for solo sessions", async () => {
+      const store = gameStub({ configSnapshot: rounds(1) });
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 1, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      await component.recordAttempt.call(component, CHECKOUT);
+      await component.confirmFinish.call(component);
+      expect(component.finished).toBe(true);
+
+      await component.recordAttempt.call(component, CHECKOUT);
+
+      expect(store.turns).toHaveLength(1);
+      expect(appendBatch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("reconciliation on init", () => {
@@ -452,6 +477,37 @@ describe("tuodPlay", () => {
       await component.confirmFinish.call(component);
 
       expect(store.turns).toHaveLength(1);
+      expect(component.finished).toBe(true);
+    });
+
+    it("drives a solo MINUTES session to completion once the timer expires mid-session", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      vi.mocked(appendBatch).mockResolvedValue({
+        created: { stages: 1, turns: 2, darts: 0 },
+      });
+      vi.mocked(completeSession).mockResolvedValue({
+        sessionId: "s1",
+        statusKey: "COMPLETED",
+        completedAt: "now",
+      });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      await component.recordAttempt.call(component, MISS);
+      expect(component.showFinishConfirm).toBe(false);
+      expect(store.turns).toHaveLength(1);
+
+      (segmentTimerInstances[0].options.onComplete as () => void)();
+
+      await component.recordAttempt.call(component, CHECKOUT);
+
+      expect(component.showFinishConfirm).toBe(true);
+      expect(store.turns).toHaveLength(1);
+
+      await component.confirmFinish.call(component);
       expect(component.finished).toBe(true);
     });
 

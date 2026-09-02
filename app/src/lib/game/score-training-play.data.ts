@@ -22,6 +22,7 @@ import {
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import {
+  completedVisitsTotal,
   dartsThrownCount,
   firstNineAverageDisplay,
   highestVisitScore,
@@ -79,7 +80,7 @@ function statsFor(
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
-    total: seat.totalScore,
+    total: completedVisitsTotal(seatTurns),
     threeDartAverage: perVisitAverageDisplay(seatTurns),
     firstNineAverage: firstNineAverageDisplay(seatTurns),
     highestScore: highestVisitScore(seatTurns),
@@ -236,7 +237,13 @@ export function scoreTrainingPlay() {
     },
 
     state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldScoreTrainingState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+        this.$store.game.timerExpired ?? false,
+      );
     },
 
     totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number {

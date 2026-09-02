@@ -135,7 +135,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0021` and seeds `0001`–`0007` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0023` and seeds `0001`–`0013` implement it.
 
 ---
 

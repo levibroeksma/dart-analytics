@@ -248,25 +248,59 @@ describe("init", () => {
 
 describe("singlesTrainingPlay — per-seat accessors", () => {
   it("currentPointsFor reads the named seat", () => {
-    const ctx = singlesTrainingPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; totalPoints: number }[];
-        };
-      };
-      currentPointsFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", totalPoints: 5 },
-          { participantRef: "p2", totalPoints: 30 },
-        ],
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const opponentTurns: TurnFact[] = priorTurnsThroughNumber(10).map(
+      (turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
       }),
+    );
+    const play = {
+      ...singlesTrainingPlay(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...defaultConfig(), seats: twoSeats },
+        }),
+        settings: settingsStub(),
+      },
+    } as SinglesTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.currentPointsFor("participant-2")).toBe("30");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = singlesTrainingPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    expect(ctx.currentPointsFor("p2")).toBe("30");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorTurnsThroughNumber(3),
+    });
+
+    expect(play.currentTargetLabel()).toBe("4");
   });
 });
 
@@ -546,6 +580,125 @@ describe("previewSegments — reveal-then-clear timer", () => {
 
     expect(play.previewSegments.call(play)).toEqual([
       { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+});
+
+describe("previewSegments — 1v1 seat scoping", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<SinglesSnapshot> {
+    return { ...defaultConfig(), seats: TWO_SEATS };
+  }
+
+  /** `n` closed rounds (targets 1..n) for one named seat, each 3 SINGLE
+   * hits — mirrors the file's own `priorTurnsThroughNumber`, parameterized
+   * by seat so two seats' prior rounds can be interleaved in one `turns`
+   * array. `sequence` is offset by `seqOffset` so two seats' turns never
+   * collide on the same sequence number. */
+  function priorRoundsFor(
+    participantRef: string,
+    n: number,
+    seqOffset: number,
+  ): TurnFact[] {
+    const turns: TurnFact[] = [];
+    for (let number = 1; number <= n; number += 1) {
+      const darts: DartFact[] = [1, 2, 3].map((seq) => ({
+        sequence: seq,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: number,
+        hitZoneKey: "SINGLE",
+        score: number,
+        locationX: null,
+        locationY: null,
+      }));
+      turns.push({
+        clientKey: `${participantRef}-round-${number}`,
+        stageClientKey: "block-1",
+        participantRef,
+        sequence: seqOffset + number,
+        completedAt: "2026-08-14T10:00:00.000Z",
+        totalScore: darts.reduce((sum, d) => sum + d.score, 0),
+        darts,
+      });
+    }
+    return turns;
+  }
+
+  /** Both seats' first `n` rounds, interleaved A, B, A, B, ... — the shape
+   * a real 1v1 session's turn log actually has (alternating throwers), not
+   * every seat's rounds grouped together. */
+  function interleavedPriorRounds(n: number): TurnFact[] {
+    const a = priorRoundsFor("participant-1", n, 0);
+    const b = priorRoundsFor("participant-2", n, n);
+    const merged: TurnFact[] = [];
+    for (let i = 0; i < n; i += 1) {
+      merged.push(a[i], b[i]);
+    }
+    return merged;
+  }
+
+  it("classifies a dart against the throwing seat's own round, not the combined turn count", async () => {
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Seat A clears round 1 (target 1; 1 closed turn total so far).
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    // Seat B clears round 1 too (2 closed turns total, 1 each).
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    // Seat A's round 2, 1st dart: `recordTap` always builds the dart
+    // against A's own `targetIndex` from `state()` (target 2) —
+    // independent of the bug under test. Only `previewSegments`'s own
+    // separate classification is being verified here. With the pre-fix
+    // `turns.length - 1` logic, `turns.length` is 3 at this point (2
+    // closed + 1 open), so it would check the dart's target(2) against
+    // `targetAt(numbersPath, 2)` = target 3 and wrongly report "miss".
+    await play.recordTap.call(play, "SINGLE");
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("keeps classifying correctly once both seats pass round 10", async () => {
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: interleavedPriorRounds(10),
+    });
+    await play.init.call(play);
+
+    // It's seat A's turn for round 11 (0-indexed targetIndex 10, target
+    // number 11). Pre-fix, `turns.length - 1` would be 20 at this point
+    // (20 prior closed turns + this 1 open one, minus 1) — `targetAt`
+    // would resolve index 20 (target 25, the array's last entry) instead
+    // of index 10 (target 11), so the dart's target(11) is wrongly
+    // checked against target 25 and reported "miss".
+    await play.recordTap.call(play, "SINGLE");
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
       { status: "empty" },
       { status: "empty" },
     ]);

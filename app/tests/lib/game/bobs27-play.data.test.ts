@@ -890,44 +890,74 @@ describe("playAgain", () => {
 
 describe("bobs27Play — per-seat accessors", () => {
   it("currentScoreFor and currentTargetLabelFor read the named seat, not the active one", () => {
-    const ctx = bobs27Play() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: {
-            participantRef: string;
-            score: number;
-            targetIndex: number;
-          }[];
-        };
-      };
-      currentScoreFor: (seatRef: string) => string;
-      currentTargetLabelFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", score: 25, targetIndex: 0 },
-          { participantRef: "p2", score: 31, targetIndex: 1 },
-        ],
-      }),
-    };
-    expect(ctx.currentScoreFor("p2")).toBe("31");
-    expect(ctx.currentTargetLabelFor("p1")).not.toBe(
-      ctx.currentTargetLabelFor("p2"),
+    const opponentTurns: TurnFact[] = [
+      {
+        clientKey: "opponent-1",
+        stageClientKey: "block-1",
+        participantRef: "participant-2",
+        sequence: 1,
+        completedAt: "2026-08-01T10:00:00.000Z",
+        totalScore: 6,
+        darts: [1, 2, 3].map((sequence) => ({
+          sequence,
+          intendedTargetNumber: 1,
+          intendedZoneKey: "DOUBLE" as const,
+          hitTargetNumber: 1,
+          hitZoneKey: "DOUBLE" as const,
+          score: 2,
+          locationX: null,
+          locationY: null,
+        })),
+      },
+    ];
+    const play = {
+      ...bobs27Play(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...defaultConfig(), seats: TWO_SEATS },
+        }),
+        settings: settingsStub(),
+      },
+    } as Bobs27PlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.currentScoreFor("participant-2")).toBe("33");
+    expect(play.currentTargetLabelFor("participant-1")).not.toBe(
+      play.currentTargetLabelFor("participant-2"),
     );
   });
 
   it("currentScoreFor returns an empty string for an unknown seat", () => {
+    const play = {
+      ...bobs27Play(),
+      $store: { game: { configSnapshot: null }, settings: settingsStub() },
+    } as unknown as Bobs27PlayContext;
+    expect(play.currentScoreFor("nobody")).toBe("");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
     const ctx = bobs27Play() as unknown as {
-      engine: {
-        state: () => { activeParticipantRef: string; seats: [] };
-      } | null;
-      currentScoreFor: (seatRef: string) => string;
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    ctx.engine = null;
-    expect(ctx.currentScoreFor("nobody")).toBe("");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorTurnsThroughBull(),
+    });
+
+    expect(play.currentTargetLabel()).toBe("BULL");
   });
 });
 

@@ -90,6 +90,32 @@ for file in $MODULES; do
   fi
 done
 
+# --- Resumable ruleset version wiring -----------------------------------
+# A game with more than one registered rulesetVersionKey needs its shared
+# play page to actually resume all of them, not just the first one ever
+# shipped — SHANGHAI_V2 shipped without this and every V2 session silently
+# failed to resume (F43).
+for file in $MODULES; do
+  BASENAME=$(basename "$file" .engine.module.ts)
+  PLAY_FILE="app/src/lib/game/${BASENAME}-play.data.ts"
+  KEYS=$(grep -oE 'rulesetVersionKey[[:space:]]*[:=][[:space:]]*"[A-Z0-9_]+"' "$file" \
+    | grep -oE '"[A-Z0-9_]+"' | tr -d '"' | sort -u)
+  KEY_COUNT=$(printf '%s\n' "$KEYS" | grep -c .)
+  [ "$KEY_COUNT" -le 1 ] && continue
+
+  if [ ! -f "$PLAY_FILE" ]; then
+    echo "FAIL: $file names $KEY_COUNT ruleset versions but $PLAY_FILE does not exist" >&2
+    FAIL=1
+    continue
+  fi
+  for key in $KEYS; do
+    if ! grep -qF "\"$key\"" "$PLAY_FILE"; then
+      echo "FAIL: $PLAY_FILE never references rulesetVersionKey \"$key\" (registered in $file)" >&2
+      FAIL=1
+    fi
+  done
+done
+
 if [ "$FAIL" -eq 0 ]; then
   echo "OK: all $CONFORMING game engine module(s) conform to the GameEngine contract."
 fi

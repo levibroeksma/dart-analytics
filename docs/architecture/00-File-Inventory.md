@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-01
+updated: 2026-09-02
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -68,7 +68,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate; UI module instances held off the reactive object (D187, 2026-08-07) | canonical | ~3.2k |
 | `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
-| `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16) | canonical | ~0.7k |
+| `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02) | canonical | ~1.3k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
 | `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21) | canonical | ~1.7k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
@@ -199,7 +199,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `DECISIONS.md` | Router: authority note, Source key, routing table, Deferred list, facts-vs-decisions rule, how-to-add-a-decision (2026-08-02) | canonical | ~1.7k |
-| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20); F34-F37 added from issue #169's final whole-branch review (2026-08-27); F39-F42 added from the engine-duplication-cleanup audit (2026-08-27) | canonical | ~10.4k |
+| `FINDINGS.md` | Open findings: defects and contradictions noticed but deliberately not fixed; append-then-delete, high-water-mark ids, guarded by `scripts/check-findings-log.sh` (2026-08-20); F34-F37 added from issue #169's final whole-branch review (2026-08-27); F39-F42 added from the engine-duplication-cleanup audit (2026-08-27); F54-F57 added from the DartBot phases 1-7 code review (2026-09-02); F58 added from a context-maintenance pass finding 3 plans' skipped Version History entries (2026-09-02); F45, F54-F57 closed by the DartBot setup-wiring fixes plan (2026-09-02); F9, F28, F30, F46, F51, F53 closed by the doc-only-corrections plan (2026-09-02); F44 closed by the board-dart-bull-double-checkout plan (2026-09-02); F10, F18, F21 closed by the tuod-hardening plan (2026-09-02); F32, F33 closed by the preview-seat-scoping-fixes plan (2026-09-02); F31 closed by the alpine-reactivity-fold-fixes plan (2026-09-02); F20, F34, F35, F37 closed by the scoring-stats-correctness plan (2026-09-02); F5, F38, F42, F43, F50 closed and F59 added by the process-gate-improvements plan (2026-09-02) | canonical | ~2.7k |
 | `decisions/architecture.md` | 20 decisions — domain model, activity, session, stage, turn, dart, ruleset, platform, dart zones, client keys, mode capability | canonical | ~2.1k |
 | `decisions/database.md` | 16 decisions — schema, migration, table, column, constraint, index, view, Neon, seed (D222 owner-scoped dart views, 2026-08-21) | canonical | ~2.7k |
 | `decisions/api.md` | 31 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings (D239 per-seat ROUNDS turn-count limit, 2026-08-27) | canonical | ~3.6k |
@@ -207,7 +207,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
 | `decisions/frontend/astro.md` | 21 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28) | canonical | ~5.1k |
-| `decisions/frontend/alpine.md` | 14 decisions — Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~3.1k |
+| `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~3.1k |
 | `decisions/frontend/style.md` | 11 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban | canonical | ~2.1k |
 | `decisions/context-system.md` | 31 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~5.1k |
 
@@ -236,7 +236,7 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Fixed pointer stub redirecting to the sibling `CLAUDE.md` in the same directory — not a rule source, never carries content (D213, 2026-07-15) | canonical |
 | `.claude/skills/graphify/SKILL.md` | Graphify skill — build/query the codebase knowledge graph | canonical |
-| `.claude/skills/context-maintenance/SKILL.md` | Context Maintenance 8-step procedure, invoked before claiming any task done (2026-07-28) | canonical |
+| `.claude/skills/context-maintenance/SKILL.md` | Context Maintenance procedure, invoked before claiming any task done (2026-07-28) | canonical |
 | `.claude/skills/validate-app/SKILL.md` | `validate:app` sequence + mid-task gate condition for `app/` changes (2026-07-28) | canonical |
 | `.claude/skills/run-all-gates/SKILL.md` | Dispatches the right `check-*.sh` scripts by changed area, reports each result explicitly (2026-07-28) | canonical |
 | `.github/workflows/graph.yml` | CI-owned graph freshness: rebuilds `graphify-out/graph.json` (`GRAPH_REFRESH_STRICT=1`) on every push to `main`, then commits to `chore/graph-refresh` and opens/updates a PR with the delta — PR creation needs *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"*; without it the branch is still pushed and the run summary carries a compare link (D186). On pull requests, posts a non-blocking delta comment via `scripts/graph-delta.py` without committing (2026-08-03; D186 2026-08-05) | canonical |

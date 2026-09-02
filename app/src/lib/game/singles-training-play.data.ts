@@ -46,7 +46,10 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // singlesTrainingEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
+import {
+  foldSinglesTrainingState,
+  SinglesTrainingEngine,
+} from "@modules/game/singles-training.engine.module";
 
 const GAME_TYPE_KEY = "SINGLES_TRAINING";
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
@@ -178,10 +181,13 @@ function tapObservation(
 }
 
 /**
- * Every turn maps 1:1 to the target at its own array index (the engine only
- * ever opens a new turn once the previous one holds 3 darts), so the last
- * turn's target is always `targetAt(numbersPath(), turns.length - 1)` — no
- * separate per-dart target bookkeeping is needed.
+ * Every turn maps 1:1 to the target at its own array index within the
+ * throwing seat's own round (the engine only ever opens a new turn once
+ * the previous one holds 3 darts), so the last turn's target is always
+ * `targetAt(numbersPath(), seatRoundIndex)` — a count of `turns` filtered
+ * to the last turn's own `participantRef`, not the combined `turns.length`
+ * across both seats in a 1v1 session. No separate per-dart target
+ * bookkeeping is needed.
  */
 function previewSegmentsFor(
   turns: readonly TurnFact[],
@@ -189,8 +195,13 @@ function previewSegmentsFor(
   hiddenTurnKey: string | null,
 ): SinglesPreviewSegment[] {
   if (!config) return [...EMPTY_SEGMENTS];
+  const lastTurn = turns.at(-1);
+  const seatRoundIndex = lastTurn
+    ? turns.filter((turn) => turn.participantRef === lastTurn.participantRef)
+        .length - 1
+    : 0;
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
-    const target = targetAt(numbersPath(config.targetOrder), turns.length - 1);
+    const target = targetAt(numbersPath(config.targetOrder), seatRoundIndex);
     return trainingPointsFor(target, config, dart) > 0 ? "hit" : "miss";
   });
 }
@@ -286,7 +297,12 @@ export function singlesTrainingPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldSinglesTrainingState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     currentTargetLabelFor(

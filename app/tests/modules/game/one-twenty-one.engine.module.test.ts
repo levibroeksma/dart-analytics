@@ -521,6 +521,22 @@ describe("visual board capture", () => {
     expect(engine.state().seats[0].remainingInAttempt).toBe(4);
   });
 
+  it("checks out on a single dart landing on the inner bull, treating it as the double for its own remainder", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+
+    engine.record({ scoreAttempted: 71 });
+    expect(engine.state().seats[0].remainingInAttempt).toBe(50);
+
+    const state = engine.record(dartAt(0, 0, "INNER_BULL", 25));
+
+    expect(state.seats[0].attemptsCompleted).toBe(1);
+    const turn = engine.facts().turns.at(-1)!;
+    expect(turn.totalScore).toBe(50);
+    expect(turn.completedAt).not.toBeNull();
+  });
+
   it("does not prematurely advance the visit counter while a visit is still open", () => {
     const engine = oneTwentyOneEngineFactory.create(
       config(),
@@ -1272,6 +1288,28 @@ describe("oneTwentyOneV2EngineFactory", () => {
       expect(engine.isComplete()).toBe(true);
       expect(after.seats[0].attemptsCompleted).toBe(1);
       expect(after.seats[0].currentTarget).toBe(122);
+    });
+
+    it("recognizes an inner-bull checkout dart the same as a double, completing the round early (F44)", () => {
+      const dartAt = (
+        x: number,
+        y: number,
+        hitZoneKey: DartZoneKey,
+        hitTargetNumber: number | null,
+      ): DartObservation => ({
+        hitTargetNumber,
+        hitZoneKey,
+        locationX: x,
+        locationY: y,
+      });
+      const engine = oneTwentyOneV2EngineFactory.create(v2Config("ROUNDS", 1));
+      engine.record({ scoreAttempted: 71 });
+
+      expect(engine.wouldComplete(dartAt(0, 0, "INNER_BULL", 25))).toBe(true);
+
+      const after = engine.record(dartAt(0, 0, "INNER_BULL", 25));
+      expect(engine.isComplete()).toBe(true);
+      expect(after.seats[0].attemptsCompleted).toBe(1);
     });
 
     it("a checkout still climbs to the cap and wins the session even mid-ROUNDS-budget", () => {

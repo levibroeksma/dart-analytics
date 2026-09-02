@@ -109,6 +109,11 @@ export function highestVisitScore(turns: VisitLike[]): number {
   return Math.max(...completed.map((turn) => turn.totalScore));
 }
 
+/** Sum of every completed visit's total; 0 if none completed. Excludes an open visit's running score — matches `perVisitAverageDisplay`/`highestVisitScore`/`visitScoreBandCounts`'s own filter, so a results summary's `total` never contradicts its other stats. */
+export function completedVisitsTotal(turns: VisitLike[]): number {
+  return completedVisits(turns).reduce((sum, turn) => sum + turn.totalScore, 0);
+}
+
 /**
  * Tallies completed visits into exactly one of four score bands — whichever
  * is the *highest* threshold that visit's total meets, never more than one
@@ -133,7 +138,7 @@ export function visitScoreBandCounts(turns: VisitLike[]): {
   };
   for (const turn of completedVisits(turns)) {
     const score = turn.totalScore;
-    if (score === 180) counts.oneEighties += 1;
+    if (score >= 180) counts.oneEighties += 1;
     else if (score >= 140) counts.oneFortyPlus += 1;
     else if (score >= 120) counts.oneTwentyPlus += 1;
     else if (score >= 100) counts.hundredPlus += 1;

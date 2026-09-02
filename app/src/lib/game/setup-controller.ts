@@ -37,8 +37,7 @@ import type { PresetSetupContext, PresetSetupControllerOptions } from "./types";
 export function createPresetSetupController<Ctx extends PresetSetupContext>(
   options: PresetSetupControllerOptions<Ctx>,
 ) {
-  const { gameTypeKey, rulesetVersionKey, playHref, label, configOverrides } =
-    options;
+  const { gameTypeKey, playHref, label, configOverrides } = options;
 
   return {
     presets: [] as ConfigurationPresetData[],
@@ -147,6 +146,10 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
         return;
       }
 
+      const rulesetVersionKey =
+        typeof options.rulesetVersionKey === "function"
+          ? options.rulesetVersionKey(this)
+          : options.rulesetVersionKey;
       const overrides = configOverrides?.(this);
 
       this.loading = true;

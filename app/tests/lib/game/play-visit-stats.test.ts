@@ -8,6 +8,7 @@ import {
   firstNineAverageDisplay,
   highestVisitScore,
   visitScoreBandCounts,
+  completedVisitsTotal,
 } from "@lib/game/play-visit-stats";
 
 describe("previousScoreDisplay", () => {
@@ -202,6 +203,21 @@ describe("highestVisitScore", () => {
   });
 });
 
+describe("completedVisitsTotal", () => {
+  it("sums only completed visits, excluding an open one", () => {
+    const turns = [
+      done(60),
+      done(45),
+      { totalScore: 999, completedAt: null, darts: [{}] },
+    ];
+    expect(completedVisitsTotal(turns)).toBe(105);
+  });
+
+  it("returns 0 for an empty turn list", () => {
+    expect(completedVisitsTotal([])).toBe(0);
+  });
+});
+
 describe("visitScoreBandCounts", () => {
   it("returns all-zero counts for no completed visits", () => {
     expect(visitScoreBandCounts([])).toEqual({
@@ -266,6 +282,16 @@ describe("visitScoreBandCounts", () => {
 
   it("a 180 counts only as oneEighties, not also the lower three bands", () => {
     expect(visitScoreBandCounts([done(180)])).toEqual({
+      sixtyPlus: 0,
+      hundredPlus: 0,
+      oneTwentyPlus: 0,
+      oneFortyPlus: 0,
+      oneEighties: 1,
+    });
+  });
+
+  it("a total above 180 still counts as oneEighties — the function's own 'highest threshold' contract, exercised directly since the engine cannot produce one today", () => {
+    expect(visitScoreBandCounts([done(200)])).toEqual({
       sixtyPlus: 0,
       hundredPlus: 0,
       oneTwentyPlus: 0,

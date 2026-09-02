@@ -6,6 +6,7 @@ import type { SeatPlan } from "./types";
 const MIN_SEATS = 1;
 const MAX_SEATS = 4;
 const PLAYER_PARTICIPANT_TYPE_ID = 1;
+const DARTBOT_PARTICIPANT_TYPE_ID = 3;
 
 /**
  * The most seats a session may request, keyed by ruleset version. A ruleset
@@ -101,7 +102,10 @@ export function rejectSeatRequest(
  */
 export function composeSeatFacts(plan: readonly SeatPlan[]): SeatFact[] {
   return plan.map((seat) => {
-    if (seat.dartbot) {
+    if (seat.participantTypeId === DARTBOT_PARTICIPANT_TYPE_ID) {
+      if (!seat.dartbot) {
+        throw new Error("DARTBOT seat is missing its dartbot payload");
+      }
       return {
         participantRef: seat.participantId,
         displayName: seat.displayName,

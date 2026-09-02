@@ -45,6 +45,7 @@ import type {
 import {
   applyAroundTheClockDart,
   AroundTheClockEngine,
+  foldAroundTheClockState,
   initialAroundTheClockState,
   isAroundTheClockHit,
 } from "@modules/game/around-the-clock.engine.module";
@@ -173,7 +174,12 @@ export function aroundTheClockPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: AroundTheClockPlayContext): AroundTheClockState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldAroundTheClockState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     activeSeatState(
@@ -242,11 +248,12 @@ export function aroundTheClockPlay() {
     previewSegments(
       this: AroundTheClockPlayContext,
     ): AroundTheClockPreviewSegment[] {
-      const state = this.state();
       const config = this.$store.game.configSnapshot;
-      if (!state || !config) return [...EMPTY_SEGMENTS];
-      const seatTurns = this.$store.game.turns.filter(
-        (turn) => turn.participantRef === state.activeParticipantRef,
+      if (!this.engine || !config) return [...EMPTY_SEGMENTS];
+      const turns = this.$store.game.turns;
+      const lastParticipantRef = turns.at(-1)?.participantRef;
+      const seatTurns = turns.filter(
+        (turn) => turn.participantRef === lastParticipantRef,
       );
       return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
     },

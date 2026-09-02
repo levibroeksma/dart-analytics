@@ -111,11 +111,9 @@ export function applyAroundTheClockDart(
 
 /**
  * Folds the whole fact log into the session's state — the function the
- * engine's own `deriveState()` delegates to. Module-private: the play page
- * reads state through `this.engine?.state()`, the same way Bob's 27 does,
- * so nothing outside this file calls it (mirroring
- * `foldSinglesTrainingState` and `foldDoublesTrainingState`, which are
- * private for the same reason).
+ * engine's own `deriveState()` delegates to, and the play controller's own
+ * `state()` folds directly against `$store.game`'s reactive fields, exactly
+ * like `foldTuodState`/`foldFiveOhOneState`.
  *
  * Score-compare, fewest darts wins: both seats always play out their own
  * full circuit — a completed seat is skipped by `activeSeat`'s completion
@@ -123,7 +121,7 @@ export function applyAroundTheClockDart(
  * visit never steals a turn from a seat that has already finished. The
  * match resolves only once both seats are `COMPLETE`.
  */
-function foldAroundTheClockState(
+export function foldAroundTheClockState(
   facts: EngineFacts,
   config: Seated<AroundTheClockSnapshot>,
 ): AroundTheClockState {

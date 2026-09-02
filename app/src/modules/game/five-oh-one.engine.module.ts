@@ -450,7 +450,7 @@ export class FiveOhOneEngine implements GameEngine<
     const { checkedOut, busted } = resolveCheckoutAttempt(
       this.remainingBeforeVisit(visit),
       thrown,
-      hitZoneKey === "DOUBLE",
+      hitZoneKey === "DOUBLE" || hitZoneKey === "INNER_BULL",
     );
 
     if (busted) {
@@ -508,7 +508,7 @@ export class FiveOhOneEngine implements GameEngine<
     const { checkedOut } = resolveCheckoutAttempt(
       this.activeRemaining(before),
       resolved.score,
-      resolved.zoneKey === "DOUBLE",
+      resolved.zoneKey === "DOUBLE" || resolved.zoneKey === "INNER_BULL",
     );
     if (!checkedOut) return false;
 

@@ -43,6 +43,17 @@ import type {
 const MIN_FINISHABLE_TARGET = 2;
 
 /**
+ * The ladder ceiling: the highest three-dart double-out total that exists
+ * on a standard board (T20 T20 D25). A success climbs the ladder by
+ * `finishBonus` with no cap of its own; clamping here keeps it from
+ * walking onto a target no double can ever finish. Duplicated from
+ * `tuod.validator.ts`'s own `MAX_THREE_DART_CHECKOUT` rather than shared
+ * across the services/engine layer boundary — same value, same reasoning,
+ * independently arrived at there already.
+ */
+const MAX_FINISHABLE_TARGET = 170;
+
+/**
  * The single stage a TUOD session is played under. Attempts are turns inside
  * it, not stages of their own — the ruleset has no per-attempt stage concept.
  */
@@ -153,7 +164,10 @@ export function applyTuodAttempt(
   return {
     ...state,
     currentTarget: succeeded
-      ? state.currentTarget + config.finishBonus
+      ? Math.min(
+          MAX_FINISHABLE_TARGET,
+          state.currentTarget + config.finishBonus,
+        )
       : Math.max(
           MIN_FINISHABLE_TARGET,
           state.currentTarget - config.missPenalty,
@@ -283,6 +297,24 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   }
 
   /**
+   * Whether the WHOLE (2-seat) session's score-compare outcome is already
+   * settled. Deliberately narrower than `isComplete()`, mirroring
+   * `ScoreTrainingEngine.isMatchDecided()` (D229): a solo session is exempt
+   * here because MINUTES completion there is driven by `timerExpired`, an
+   * external signal `expireTimer()` can set mid-attempt — `isComplete()` can
+   * already read true before the one finishing attempt still needs to be
+   * recorded, so a solo session's own boundary is that attempt-count-based
+   * `isComplete()` reading, left to `tuod-play.data.ts` to consult directly,
+   * never enforced here. A 1v1 match carries no such risk: it is
+   * ROUNDS-only, so `status` only turns terminal as the direct result of
+   * the very record call that reaches the last seat's budget.
+   */
+  private isMatchDecided(): boolean {
+    const state = this.deriveState();
+    return state.seats.length > 1 && state.status !== "IN_PROGRESS";
+  }
+
+  /**
    * Why `record()` would refuse this attempt, or null when it would accept it.
    * `wouldComplete()` reads the same answer, which is what keeps the pure
    * predicate and the mutating call in agreement about what is playable. A
@@ -294,7 +326,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     activeSeatState: TuodSeatState,
     input: TuodAttemptInput,
   ): string | null {
-    if (this.isComplete()) {
+    if (this.isMatchDecided()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
     if (openVisit(this.turns) !== null) {
@@ -372,7 +404,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    *   untouched.
    */
   private recordDart(observation: DartObservation): TuodState {
-    if (this.isComplete()) {
+    if (this.isMatchDecided()) {
       throw new Error(
         "Cannot record an attempt once the session is complete; undo first to correct it.",
       );
@@ -452,7 +484,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * budget, success or not), computed without mutating the fact log.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
-    if (this.isComplete()) return false;
+    if (this.isMatchDecided()) return false;
 
     const before = this.deriveState();
     const activeSeatState = before.seats.find(

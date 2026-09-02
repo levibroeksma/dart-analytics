@@ -44,7 +44,10 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // bobs27EngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { Bobs27Engine } from "@modules/game/bobs27.engine.module";
+import {
+  Bobs27Engine,
+  foldBobs27State,
+} from "@modules/game/bobs27.engine.module";
 
 const GAME_TYPE_KEY = "BOBS27";
 const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
@@ -193,7 +196,12 @@ export function bobs27Play() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: Bobs27PlayContext): Bobs27State | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldBobs27State(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string {

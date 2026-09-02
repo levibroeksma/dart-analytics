@@ -3,6 +3,7 @@ import {
   applyDoublesTrainingDart,
   DoublesTrainingEngine,
   doublesTrainingEngineFactory,
+  foldDoublesTrainingState,
   initialDoublesTrainingState,
 } from "@modules/game/doubles-training.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
@@ -1085,5 +1086,18 @@ describe("DoublesTrainingEngine — exerciseBlockStage wiring (F40)", () => {
         sequence: 1,
       },
     ]);
+  });
+});
+
+describe("foldDoublesTrainingState", () => {
+  it("reproduces the engine's own state() for an equivalent fact log", () => {
+    const engine = doublesTrainingEngineFactory.create(config);
+    engine.record(hitObservationFor(engine.state().seats[0]));
+    engine.record(missObservationFor(engine.state().seats[0]));
+
+    const expected = engine.state();
+    const folded = foldDoublesTrainingState(engine.facts(), config);
+
+    expect(folded).toEqual(expected);
   });
 });

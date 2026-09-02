@@ -347,4 +347,37 @@ describe("createPresetSetupController", () => {
       expect(setup.bot).toBeNull();
     });
   });
+
+  describe("dynamic rulesetVersionKey", () => {
+    function dynamicRuleset(): OrderCtx {
+      return {
+        ...createPresetSetupController<OrderCtx>({
+          gameTypeKey: "SINGLES_TRAINING",
+          rulesetVersionKey: (ctx) =>
+            ctx.guests.length > 0 ? "SINGLES_V1" : "SINGLES_V2",
+          playHref: "/games/singles-training/play",
+          label: "Singles Training",
+        }),
+        orderMode: "LOW_TO_HIGH",
+        $store: store,
+      } as OrderCtx;
+    }
+
+    it("resolves the ruleset key from a function of the current context, evaluated fresh on every start() call", async () => {
+      const setup = dynamicRuleset();
+      setup.presets = [SINGLES_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      await setup.start();
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ rulesetVersionKey: "SINGLES_V2" }),
+      );
+
+      setup.guests = [{ displayName: "Guest 1" }];
+      await setup.start();
+      expect(sessionsApi.createSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({ rulesetVersionKey: "SINGLES_V1" }),
+      );
+    });
+  });
 });

@@ -71,7 +71,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | ---------------- | ---- |
 | `.btn` + `btn-primary` / `btn-secondary` / `btn-ghost` / `btn-error` | All buttons (`Button.astro` variants) |
 | `.input` / `.input-error` | Text fields; error border + focus ring |
-| `.control` | Checkbox / radio appearance (`Checkbox.astro`, `Radio.astro`) |
+| `.control` | Checkbox / radio appearance — apply directly to a raw `<input type="checkbox">`/`<input type="radio">`; no dedicated wrapper component exists yet |
 | `.tab` | Segmented tab buttons inside a glass track (`Tabs.astro`) |
 | `.alert` / `.alert-error` / `.alert-success` | Inline status banners (`Alert.astro`) |
 | `.nav-pill` | Compact nav / filter chips (`NavPill.astro`) |

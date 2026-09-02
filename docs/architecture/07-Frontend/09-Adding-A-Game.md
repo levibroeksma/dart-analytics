@@ -42,7 +42,7 @@ page legitimately has none of.
 | File | What goes in it |
 | ---- | --------------- |
 | `<code-slug>-setup.data.ts` | A `createPresetSetupController` call. *Engine-only skips.* |
-| `<code-slug>-play.data.ts` | The game's own play controller — genuinely per-game, no shared factory. *Engine-only skips.* |
+| `<code-slug>-play.data.ts` | The game's own play controller — genuinely per-game, no shared factory. *Engine-only skips.* Adding a second `rulesetVersionKey` to an existing engine module requires updating this file's resume/replay logic to reference every registered version, not just the first one shipped — enforced by `scripts/check-game-engines.sh`'s "Resumable ruleset version wiring" section. |
 | `types.ts` | **shared** — the play context; the setup context is a one-line alias of `PresetSetupContext` |
 
 ### `app/src/lib/game/rulesets/`
@@ -190,3 +190,10 @@ It cannot check that anyone read this page, that a page renders, or that a
 setup form binds the right fields. It catches one specific failure that no
 test catches, because every game's tests only ever exercise that game: a
 shared registry left half-edited.
+
+**The gate runs pre-commit, on every commit, not just the final one.** The
+touch list above cannot be split into sequential per-file commits (setup
+controller in one commit, play controller in the next, wiring last) — the
+first such commit already fails `check-game-wiring.sh` because the game is
+half-wired at that point in history. Land the full touch list in one commit,
+or hold every task's changes uncommitted until wiring is complete.

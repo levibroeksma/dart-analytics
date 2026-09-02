@@ -458,39 +458,60 @@ describe("undoVisit", () => {
 
 describe("aroundTheClockPlay — per-seat accessors", () => {
   it("currentTargetLabelFor and turnsSoFarFor read the named seat", () => {
-    const ctx = aroundTheClockPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; targetIndex: number }[];
-        };
-      };
-      $store: { game: { turns: { participantRef: string }[] } };
-      currentTargetLabelFor: (seatRef: string) => string;
-      turnsSoFarFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", targetIndex: 0 },
-          { participantRef: "p2", targetIndex: 5 },
-        ],
-      }),
-    };
-    ctx.$store = {
-      game: {
-        turns: [
-          { participantRef: "p1" },
-          { participantRef: "p2" },
-          { participantRef: "p1" },
-        ],
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
       },
+    ];
+    const opponentTurns: TurnFact[] = priorTurnsThroughNumber(5).map(
+      (turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
+      }),
+    );
+    const play = {
+      ...aroundTheClockPlay(),
+      $store: {
+        game: gameStub({ configSnapshot: { seats: twoSeats } }),
+        settings: settingsStub(),
+      },
+    } as AroundTheClockPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({ stages: [STAGE], turns: opponentTurns });
+
+    expect(play.currentTargetLabelFor("participant-1")).toBe("1");
+    expect(play.currentTargetLabelFor("participant-2")).toBe("6");
+    expect(play.turnsSoFarFor("participant-1")).toBe("0");
+    expect(play.turnsSoFarFor("participant-2")).toBe("5");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = aroundTheClockPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    expect(ctx.currentTargetLabelFor("p1")).toBe("1");
-    expect(ctx.currentTargetLabelFor("p2")).toBe("6");
-    expect(ctx.turnsSoFarFor("p1")).toBe("2");
-    expect(ctx.turnsSoFarFor("p2")).toBe("1");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorTurnsThroughNumber(3),
+    });
+
+    expect(play.turnsSoFar()).toBe("3");
   });
 });
 
@@ -609,6 +630,57 @@ describe("previewSegments — reveal-then-clear timer", () => {
       { status: "empty" },
       { status: "empty" },
       { status: "empty" },
+    ]);
+  });
+});
+
+describe("previewSegments — 1v1 seat scoping", () => {
+  const TWO_SEATS = [
+    {
+      participantRef: "participant-1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "participant-2",
+      displayName: "Opponent",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function twoSeatConfig(): Seated<AroundTheClockSnapshot> {
+    return { seats: TWO_SEATS };
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("shows the just-closed turn's own darts during the 1.5s reveal window, not the newly active seat's empty log", async () => {
+    const play = makePlay({ configSnapshot: twoSeatConfig() });
+    await play.init.call(play);
+
+    // Seat A's first visit: two hits (targets 1, 2) then a MISS closes the
+    // 3-dart turn. `seat-rota.module.ts`'s `activeSeat` rotates
+    // `activeParticipantRef` to seat B the instant `completedAt` is set —
+    // before the 1.5s reveal timer (`playCommitDart`) even starts. Reading
+    // `previewSegments()` right here, with no timers advanced, is exactly
+    // that reveal window: the pre-fix filter (`state.activeParticipantRef`,
+    // already B) finds no turns for B yet and falls back to all-empty;
+    // the fix scopes to the last turn's own `participantRef` (A) instead.
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "MISS");
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "hit" },
+      { status: "miss" },
     ]);
   });
 });

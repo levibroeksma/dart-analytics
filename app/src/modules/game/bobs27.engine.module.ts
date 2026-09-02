@@ -127,6 +127,46 @@ export function applyBobs27Dart(
 }
 
 /**
+ * Folds the whole fact log into the session's state — the function the
+ * engine's own `deriveState()` delegates to, and the play controller's own
+ * `state()` folds directly against `$store.game`'s reactive fields, exactly
+ * like `foldTuodState`/`foldFiveOhOneState`. Elimination: the first seat to
+ * bust loses and the match ends immediately, the other seat winning.
+ */
+export function foldBobs27State(
+  facts: EngineFacts,
+  config: Seated<Bobs27Snapshot>,
+): Bobs27State {
+  const seats = foldSeatStates(
+    facts.turns,
+    config.seats,
+    (seat) => initialSeatState(config, seat),
+    (state, observation) => applyBobs27Dart(config, state, observation),
+  );
+
+  const winningSideKey = eliminationWinner(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      failed: seat.status === "LOST",
+    })),
+  );
+  const status: Bobs27State["status"] =
+    seats.length === 1
+      ? seats[0].status
+      : winningSideKey !== null
+        ? "COMPLETE"
+        : "IN_PROGRESS";
+
+  return {
+    activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
+      .participantRef,
+    status,
+    winningSideKey,
+    seats,
+  };
+}
+
+/**
  * Bob's 27: a fixed path of 21 targets (D1..D20, then BULL) played to a full
  * -hit clear of BULL or a bust at zero. Elimination: the first seat to bust
  * loses and the match ends immediately, the other seat winning — no "wrong
@@ -149,36 +189,10 @@ export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
   }
 
   private deriveState(): Bobs27State {
-    const seats = foldSeatStates(
-      this.turns,
-      this.config.seats,
-      (seat) => initialSeatState(this.config, seat),
-      (state, observation) => applyBobs27Dart(this.config, state, observation),
+    return foldBobs27State(
+      { stages: [{ ...STAGE }], turns: this.turns },
+      this.config,
     );
-
-    const winningSideKey = eliminationWinner(
-      seats.map((seat) => ({
-        sideKey: seat.sideKey,
-        failed: seat.status === "LOST",
-      })),
-    );
-    const status: Bobs27State["status"] =
-      seats.length === 1
-        ? seats[0].status
-        : winningSideKey !== null
-          ? "COMPLETE"
-          : "IN_PROGRESS";
-
-    return {
-      activeParticipantRef: activeSeat(
-        { stages: [{ ...STAGE }], turns: this.turns },
-        this.config.seats,
-        "PER_SEAT",
-      ).participantRef,
-      status,
-      winningSideKey,
-      seats,
-    };
   }
 
   private openOrCreateTurn(activeParticipantRef: string): TurnFact {

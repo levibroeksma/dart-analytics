@@ -27,7 +27,6 @@ import type {
 } from "./types";
 
 const GAME_TYPE_KEY = "ONE_TWENTY_ONE";
-const RULESET_VERSION_KEY: RulesetVersionKey = "121_V2";
 
 type ClampableDuration = Exclude<OneTwentyOneDurationType, "TARGET">;
 
@@ -45,6 +44,50 @@ const FALLBACK_DURATION: Record<ClampableDuration, number> = {
 function durationValueOf(preset: ConfigurationPresetData | undefined) {
   const raw = preset?.configuration?.duration_value;
   return typeof raw === "number" ? raw : undefined;
+}
+
+/**
+ * The preset `start()` builds a session from: for a guested 1v1, the one
+ * preset whose configuration carries no `duration_type` key (`121_V1`'s
+ * schema models none); for solo play, the mode-matching preset
+ * `presetForMode` already resolves.
+ */
+function resolveStartPreset(
+  ctx: OneTwentyOneSetupContext,
+  guested: boolean,
+): ConfigurationPresetData | undefined {
+  if (guested) {
+    return ctx.presets.find(
+      (p) => !("duration_type" in (p.configuration as Record<string, unknown>)),
+    );
+  }
+  return ctx.presetForMode(ctx.durationType);
+}
+
+/**
+ * The `overrides` record `start()` sends: none for a guested 1v1 (`121_V1`
+ * has no duration concept), or the clamped duration override for solo play.
+ * Clamps `ctx.durationValue`/`ctx.clampNotice` as a side effect, matching
+ * `start()`'s own prior behavior.
+ */
+function resolveStartOverrides(
+  ctx: OneTwentyOneSetupContext,
+  guested: boolean,
+): Record<string, unknown> {
+  if (guested) return {};
+  if (ctx.durationType === "TARGET") {
+    ctx.clampNotice = "";
+    return { duration_type: ctx.durationType };
+  }
+  const { value, clamped } = clampOneTwentyOneDuration(
+    ctx.durationType,
+    ctx.durationValue,
+  );
+  ctx.durationValue = value;
+  ctx.clampNotice = clamped
+    ? oneTwentyOneDurationClampNotice(ctx.durationType)
+    : "";
+  return { duration_type: ctx.durationType, duration_value: value };
 }
 
 export function oneTwentyOneSetup() {
@@ -190,28 +233,18 @@ export function oneTwentyOneSetup() {
 
     async start(this: OneTwentyOneSetupContext) {
       if (this.loading) return;
-      const preset = this.presetForMode(this.durationType);
+      const guested = this.guests.length > 0;
+      const rulesetVersionKey: RulesetVersionKey = guested
+        ? "121_V1"
+        : "121_V2";
+
+      const preset = resolveStartPreset(this, guested);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";
         return;
       }
 
-      let overrides: Record<string, unknown> = {
-        duration_type: this.durationType,
-      };
-      if (this.durationType !== "TARGET") {
-        const { value, clamped } = clampOneTwentyOneDuration(
-          this.durationType,
-          this.durationValue,
-        );
-        this.durationValue = value;
-        this.clampNotice = clamped
-          ? oneTwentyOneDurationClampNotice(this.durationType)
-          : "";
-        overrides = { ...overrides, duration_value: value };
-      } else {
-        this.clampNotice = "";
-      }
+      const overrides = resolveStartOverrides(this, guested);
 
       this.loading = true;
       this.error = "";
@@ -220,28 +253,28 @@ export function oneTwentyOneSetup() {
           ...(preset.configuration as Record<string, unknown>),
           ...overrides,
         };
-        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
+        const configSnapshot = toSnapshot(rulesetVersionKey, wire);
         const modePair = resolveSessionModePair(
-          RULESET_VERSION_KEY,
+          rulesetVersionKey,
           this.$store.settings,
         );
         const participants = participantsFromGuests(this.guests);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey: RULESET_VERSION_KEY,
+          rulesetVersionKey,
           captureModeKey: modePair.captureModeKey,
           inputModeKey: modePair.inputModeKey,
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
-            overrides,
+            ...(guested ? {} : { overrides }),
           },
           participants,
         });
         this.$store.game.startSession(
           startSessionInput({
             gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
+            rulesetVersionKey,
             session,
             templateRef: preset.configurationTemplateId,
             configSnapshot,
