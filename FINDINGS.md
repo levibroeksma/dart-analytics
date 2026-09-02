@@ -53,13 +53,6 @@ Evidence: `scripts/check-context-map.sh` — the check at its "2. Migration rang
 Impact: the defect sat in `DECISIONS.md`'s Deferred list among eleven unbuilt features, where "we chose not to build this" and "this is broken" are indistinguishable
 Proposed: narrow the regex to skip lines naming seeds — partly done for `decisions/**` and seed lines by D194, but the seed-vs-migration ambiguity itself remains
 
-### F9 — A game-frontend plan written one-commit-per-task collides with `check-game-wiring.sh`'s atomicity requirement
-Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
-Claim: `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list, and a plan written by `writing-plans` from it, break a new game's frontend into sequential per-file tasks (setup controller, setup page, play controller, play page, wiring), each with its own commit
-Evidence: `scripts/check-game-wiring.sh`'s "3a"/"3b" checks require a ruleset to be fully wired (both setup/play data modules, both pages, both Alpine registrations, and its games-visibility card) or fully absent — "half a row is a failure whichever half it fell on" — in the state of every commit, not just the final one; TUOD's frontend plan (`docs/superpowers/plans/2026-08-20-tuod-frontend.md`) called for one commit per task, and the first task's commit (setup controller alone) failed the pre-commit `game-wiring` hook because `app/src/lib/game/tuod-setup.data.ts` existed while `app/src/lib/game/rulesets/games-visibility.ts` still had no `TUOD_V1` card
-Impact: an agent following either the doc's task breakdown or a plan written from it hits a rejected pre-commit hook on the first task, discovers the constraint only by trial, and must fall back to committing the whole frontend fan-out in one commit instead of the plan's intended per-task history
-Proposed: note the atomicity requirement in `09-Adding-A-Game.md` (e.g., "land all six trees in one commit, or hold every task's changes uncommitted until wiring lands") so a future plan is written commit-shape-aware from the start
-
 ### F10 — TUOD's ladder can climb onto a target no double can finish
 Status: Open · Found: 2026-08-20 · Task: claude/tuod-implementation-2lb1mh
 Claim: `applyTuodAttempt` floors the target at 2 on a miss but has no ceiling on a success, so a run of checkouts walks the ladder past 170 and onto bogey numbers on the way (41, 51, … 161, 171; a penalty can land it on 159, 162, 163, 165, 166, 168, 169)
@@ -102,26 +95,12 @@ Evidence: `cd app && npx fallow dupes` — an 8-group / 236-line family across `
 Impact: the play-data family was left alone on purpose — that code was hardened days earlier by the Play Again session-participant/config reseating fix, and refactoring it immediately afterwards would put regression risk on the most fragile, most recently repaired path in the app. The engine pair's remaining clone is whole-class structural similarity (two duration-bounded, dual-input engines converted by the same recipe), not a set of extractable blocks; the pieces that WERE extractable have been (`turn-log.module.ts`, `seat-state.module.ts`, `scoreCompareOutcome`). The result is a passing but thin margin: `.fallowrc.jsonc`'s `duplicates.threshold` is configured at `0.0` (unset), so the actual gate is fallow's own inferred default, empirically somewhere between 14.8% (this passes) and 18.6% (the pre-fix state failed) — not a confirmed "15%" figure — so a modest future addition can fail CI again without any new duplication of its own
 Proposed: a dedicated task should take the play-data lifecycle family on its own branch, with the Play Again 1v1 path exercised end to end before and after; the engine pair is better left as-is until one of the two rulesets diverges on its own, at which point the clone dissolves without a refactor
 
-### F28 — `00-File-Inventory.md` still describes `context-maintenance` as an "8-step procedure"
-Status: Open · Found: 2026-08-23 · Task: claude/findings-grouping-specs-aekw5m
-Claim: `docs/architecture/00-File-Inventory.md:235` describes `.claude/skills/context-maintenance/SKILL.md` as an "8-step procedure"
-Evidence: `.claude/skills/context-maintenance/SKILL.md` currently numbers 9 steps (step 9, "Component inventory," follows step 8 "Findings gate")
-Impact: an agent trusting the row's step count as a checklist length stops after 8, skipping the component-inventory step whenever it applies
-Proposed: reword the row to "9-step procedure," or drop the number and just say "procedure" so it can't go stale again
-
 ### F29 — 5 near-identical `*PlayContext` types restate `PlayLifecycleContext`'s shape instead of reusing it
 Status: Open · Found: 2026-08-26 · Task: claude/dart-previews-architecture-9tomxf
 Claim: `Bobs27PlayContext`, `SinglesTrainingPlayContext`, `DoublesTrainingPlayContext`, `ShanghaiPlayContext`, `AroundTheClockPlayContext`, `FiveOhOnePlayContext`, `OneTwentyOnePlayContext`, `ScoreTrainingPlayContext`, and `TuodPlayContext` (all in `app/src/lib/game/types.ts`) each hand-declare `hiddenTurnKey`, `hiddenTimer`, `loading`, `error`, `finished`, and the rest of `PlayLifecycleContext<TConfig, TEngine, TResults>`'s fields, rather than being defined in terms of it
 Evidence: `app/src/lib/game/types.ts` — compare `PlayLifecycleContext` (around line 181) against any of the 9 named types; each restates the same ~15 fields verbatim with only `TConfig`/`TEngine`/`TResults` substituted by hand
 Impact: a future field added to the shared lifecycle contract (e.g. a new timer or status field) must be hand-copied into 9 places instead of one; noticed while extracting `playPreviewSegments`/unifying the reveal timer, then widened when `FiveOhOnePlayContext`/`OneTwentyOnePlayContext`/`ScoreTrainingPlayContext`/`TuodPlayContext` picked up the same fields (D234) — a full generic-based unification is a separate, larger type-level refactor outside either task's scope
 Proposed: define each `*PlayContext` as `PlayLifecycleContext<XxxSnapshot, XxxEngine, XxxResultsSnapshot> & { <per-game methods> }` instead of a fully hand-written object type, once a task is scoped to take on that refactor across all 9 files at once
-
-### F30 — `00-File-Inventory.md`'s `decisions/frontend/alpine.md` row undercounts its decision blocks
-Status: Open · Found: 2026-08-26 · Task: claude/dart-cleanup-timing-xk9ucw
-Claim: the row's description says "13 decisions," matching only the file's table-format rows; it was already stale before this task (D187, D206, D233 are block-format entries the count never included) and is now off by one more after this task's D234
-Evidence: `docs/architecture/00-File-Inventory.md` row for `decisions/frontend/alpine.md`; `git grep -cE '^\| D[0-9]+ \||^### D[0-9]+' decisions/frontend/alpine.md` currently returns 15
-Impact: cosmetic only — the row's `~Nk` size field (what `scripts/check-context-budget.sh` actually validates) was corrected in this task; the decision count in the description text has no gate checking it and can keep drifting silently
-Proposed: either recount it to the true total the next time this file is touched, or reword the description to drop the specific count (e.g. "Alpine, stores, state, persist, recovery, x-data, x-show") so it can't go stale again
 
 ### F34 — `visitScoreBandCounts`'s 180 check is an equality test, not the "highest threshold" its contract promises
 Status: Open · Found: 2026-08-27 · Task: claude/issue-169-brainstorming-hxzm90
@@ -172,31 +151,10 @@ Evidence: SHANGHAI_V2 shipped its engine module, validator, registry entry, and 
 Impact: every session created under the new ruleset version silently failed to resume — the play page reported "no active session" (`hasActiveSession = false`) with no error surfaced, while the setup screen simultaneously reported the session as still active (`SESSION_ALREADY_ACTIVE`), producing an unrecoverable continue/abandon loop for the player. Reached production once the corresponding seed row was applied (this task)
 Proposed: extend `scripts/check-game-engines.sh` (or a new check) to flag a `*-play.data.ts` file whose resume/replay logic references only one `RulesetVersionKey` literal when its game type has more than one `ruleset_versions` row registered in the engine registry — or at minimum, add this exact failure mode to `docs/architecture/07-Frontend/09-Adding-A-Game.md`'s touch list for "adding a second ruleset version to an existing game"
 
-### F46 — `Checkbox.astro`/`Radio.astro` are documented as the `.control` primitive's consumers but don't exist
-Status: Open · Found: 2026-08-31 · Task: claude/checkout-hints-toggle-ma5bxe
-Claim: `docs/architecture/07-Frontend/07-Style-Guide.md`'s Primitives table lists `.control` as the "Checkbox / radio appearance (`Checkbox.astro`, `Radio.astro`)", and `08-Component-Inventory.md` repeats the same two component names
-Evidence: `app/src/components/ui/` and `app/src/components/forms/` — no Checkbox.astro or Radio.astro file exists anywhere under `app/src/components/`; the ".control" class (`app/src/styles/global.css:369-397`) is real and defined but has no current Astro-component consumer found by a repo-wide search
-Impact: an agent following the style guide's Primitives table to reuse an existing checkbox/radio component before hand-rolling one (per `app/CLAUDE.md`'s "reuse before hand-rolling" rule) will look for files that aren't there and either hand-roll a raw `<input class="control">` (fine) or waste time searching for a component that was never built
-Proposed: either build the two thin wrapper components the docs already describe, or reword both docs' rows to describe `.control` as available for direct use on raw `<input type="checkbox">`/`<input type="radio">` elements with no dedicated wrapper yet
-
 ### F50 — `2026-09-01-dartbot-4-seat-admission.md`'s Task 7 `buildSeatPlan` code fails `npx fallow`'s health gate as written
 Status: Raised · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
 Claim: the plan's Global Constraints and Task 13 both require `npx fallow` to exit zero as part of the definition of done, and Task 7 Step 3's `buildSeatPlan` code is given as complete, ready-to-commit implementation
 Evidence: `docs/superpowers/plans/2026-09-01-dartbot-4-seat-admission.md` Task 7 Step 3 — the `buildSeatPlan` map callback given there interleaves three ternaries (`isPlayer`/`isDartbot`) across `participantTypeId`/`playerId`/`displayName` plus a conditional `dartbot` spread; committed verbatim it reports cyclomatic 10 / cognitive 11 / CRAP 31.6, over `npx fallow`'s health threshold — the same failure category as F48, one plan earlier in this same DartBot series; fixed on this branch by replacing the interleaved ternaries with one early return per `participantTypeKey` branch (PLAYER/DARTBOT/GUEST), which the plan never mentions
 Impact: an executor following Task 7 Step 3 literally and then running Task 13 Step 1's `run-all-gates` hits an unexplained `npx fallow` failure with no plan text pointing at the cause or a fix — the same discoverable-only-by-trial gap F48 already named for the phase-2 plan, suggesting the plan-writing process for this series doesn't run `npx fallow` against its own example code before publishing
 Proposed: give Task 7 Step 3's `buildSeatPlan` the early-return-per-branch shape from the start, or note that a complexity-gate split is expected; more durably, add "run `npx fallow` against every code block before publishing" to whatever process drafts these DartBot phase plans, since this is the second consecutive phase plan in the series to trip the same gate
-
-### F51 — `session-mode-resolution.ts`'s `participantsFromSeats` docstring still names the deleted `seatsFromParticipants` function
-Status: Raised · Found: 2026-09-01 · Task: claude/rebase-pr-three-docs-4tm39h
-Claim: `participantsFromSeats`'s JSDoc describes itself as "the inverse of `seatsFromParticipants`"
-Evidence: `app/src/lib/game/session-mode-resolution.ts:120-121` — `seatsFromParticipants` was deleted and replaced by a private `toSeatFacts` in the same task (Task 8) that left this docstring's reference untouched; the function name it cites no longer exists anywhere in the file
-Impact: a reader (or an agent) following the docstring's cross-reference to understand `participantsFromSeats`'s relationship to the seat-mapping code finds no such function, and has to search for what replaced it
-Proposed: reword the docstring's cross-reference to name `toSeatFacts` instead of `seatsFromParticipants`
-
-### F53 — `00-Context-Map-History.md`'s "Current Implementation State" table is many phases stale
-Status: Open · Found: 2026-09-02 · Task: claude/rebase-pr-three-docs-4tm39h
-Claim: the table's "Game engines" row states "All six (Score Training, Bob's 27, Singles Training, Doubles Training, 501, Ten Up One Down) on the `GameEngine` contract"; no row mentions DartBot at all
-Evidence: `docs/architecture/00-Context-Map-History.md:80-95` (`# Current Implementation State`) — nine engines are registered today (`scripts/check-game-engines.sh`'s own "OK: all 9 game engine module(s) conform" output names Around the Clock, Bob's 27, Doubles Training, 501, 121, Score Training, Shanghai, Singles Training, TUOD), three more than the row lists; DartBot has shipped seven phases (throw engine through `X01Strategy`/501 opponent mode, this branch's own 1.35.0 entry) with no corresponding row anywhere in the table
-Impact: this table's own header claims "Current Implementation State," but the Version History entries directly above it (1.20–1.35) already show it drifted at least as far back as the three-engine seat-admission work (2026-08-22) and every DartBot phase since — an agent that trusts this table's "All six" claim instead of scanning the Version History undercounts the shipped engine surface and finds no trace of DartBot at all
-Proposed: either bring the table current (game-engine count, capture-mode coverage, a DartBot row) or add a note at its head deferring to the Version History as the actual current-state source, since this table has not been kept in lockstep with it for at least 13 versions
 
