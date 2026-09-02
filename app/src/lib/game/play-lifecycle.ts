@@ -26,6 +26,7 @@ import type {
   BoardMarker,
   BotDartThrower,
   BotQuickScoreFold,
+  BotQuickScoreThrower,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
@@ -290,23 +291,25 @@ export async function playRunBotVisualBoardVisit<
  * final visit's `totalScore`/`darts.length` survive, so a QUICK_SCORE bot
  * visit's coordinates never reach any caller.
  *
- * `throwDart` always returns a `DartObservation` — the bot throws three real
- * darts internally under every capture mode (§Strategy Layer and Game
- * Coverage) — so the cast below asserts only that every ruleset's own input
- * union already includes `DartObservation` as one of its variants, which
- * `isDartObservationInput` (`turn-log.module.ts`, D241) exists to prove true
- * for every registered engine.
+ * `throwDart` reads the scratch engine's own state — the only way a
+ * QUICK_SCORE strategy can re-target between darts without the adapter or
+ * DartBot computing a score itself — and always returns a `DartObservation`
+ * — the bot throws three real darts internally under every capture mode
+ * (§Strategy Layer and Game Coverage) — so the cast below asserts only that
+ * every ruleset's own input union already includes `DartObservation` as one
+ * of its variants, which `isDartObservationInput` (`turn-log.module.ts`,
+ * D241) exists to prove true for every registered engine.
  */
 export function playFoldBotQuickScoreVisit<TConfig, TInput, TState>(
   factory: GameEngineFactory<TConfig, TInput, TState>,
   config: TConfig,
   facts: EngineFacts,
-  throwDart: () => DartObservation,
+  throwDart: BotQuickScoreThrower<TState>,
   dartsPerVisit: number,
 ): BotQuickScoreFold {
   const scratch = factory.create(config, facts);
   for (let i = 0; i < dartsPerVisit && !scratch.isComplete(); i++) {
-    scratch.record(throwDart() as TInput);
+    scratch.record(throwDart(scratch.state()) as TInput);
   }
   const visitTurn = scratch.facts().turns.at(-1)!;
   return {

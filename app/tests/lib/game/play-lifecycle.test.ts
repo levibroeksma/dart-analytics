@@ -1014,6 +1014,29 @@ describe("playFoldBotQuickScoreVisit", () => {
     // this proves the loop asks for no more than that.
     expect(calls).toBe(3);
   });
+
+  it("passes the scratch engine's own live state to throwDart before every dart", () => {
+    const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
+    real.record(20); // human's visit; bot is active next
+
+    const seenScores: number[] = [];
+    playFoldBotQuickScoreVisit(
+      scoreTrainingEngineFactory,
+      SCORE_TRAINING_CONFIG,
+      real.facts(),
+      (state) => {
+        seenScores.push(
+          state.seats.find((s) => s.participantRef === BOT_REF)!.totalScore,
+        );
+        return TREBLE_TWENTY;
+      },
+      3,
+    );
+
+    // Score Training's own seat total climbs by 60 (treble 20) after each of
+    // the first two darts, proving the third call saw the second dart's effect.
+    expect(seenScores).toEqual([0, 60, 120]);
+  });
 });
 
 describe("playUploadAndCompleteSession", () => {
