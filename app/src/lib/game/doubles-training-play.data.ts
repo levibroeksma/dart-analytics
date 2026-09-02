@@ -38,7 +38,10 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // doublesTrainingEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY.
-import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
+import {
+  DoublesTrainingEngine,
+  foldDoublesTrainingState,
+} from "@modules/game/doubles-training.engine.module";
 
 const GAME_TYPE_KEY = "DOUBLES_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "DOUBLES_TRAINING_V1";
@@ -102,7 +105,12 @@ export function doublesTrainingPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldDoublesTrainingState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     currentTargetLabelFor(
