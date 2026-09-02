@@ -17,6 +17,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 3.0,
     bounceOutRate: 0.05,
     deflectionRadiusMm: 12,
+    decisionQuality: 7,
   },
   2: {
     sigmaAlongMm: 29,
@@ -29,6 +30,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 2.7,
     bounceOutRate: 0.045,
     deflectionRadiusMm: 12,
+    decisionQuality: 13,
   },
   3: {
     sigmaAlongMm: 26,
@@ -41,6 +43,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 2.4,
     bounceOutRate: 0.04,
     deflectionRadiusMm: 11,
+    decisionQuality: 20,
   },
   4: {
     sigmaAlongMm: 23,
@@ -53,6 +56,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 2.1,
     bounceOutRate: 0.035,
     deflectionRadiusMm: 11,
+    decisionQuality: 27,
   },
   5: {
     sigmaAlongMm: 21,
@@ -65,6 +69,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 1.8,
     bounceOutRate: 0.03,
     deflectionRadiusMm: 10,
+    decisionQuality: 33,
   },
   6: {
     sigmaAlongMm: 19,
@@ -77,6 +82,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 1.6,
     bounceOutRate: 0.028,
     deflectionRadiusMm: 10,
+    decisionQuality: 40,
   },
   7: {
     sigmaAlongMm: 17,
@@ -89,6 +95,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 1.4,
     bounceOutRate: 0.025,
     deflectionRadiusMm: 9,
+    decisionQuality: 47,
   },
   8: {
     sigmaAlongMm: 15,
@@ -101,6 +108,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 1.2,
     bounceOutRate: 0.022,
     deflectionRadiusMm: 9,
+    decisionQuality: 53,
   },
   9: {
     sigmaAlongMm: 13,
@@ -113,6 +121,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 1.0,
     bounceOutRate: 0.02,
     deflectionRadiusMm: 8,
+    decisionQuality: 60,
   },
   10: {
     sigmaAlongMm: 12,
@@ -125,6 +134,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.9,
     bounceOutRate: 0.018,
     deflectionRadiusMm: 8,
+    decisionQuality: 67,
   },
   11: {
     sigmaAlongMm: 10,
@@ -137,6 +147,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.7,
     bounceOutRate: 0.015,
     deflectionRadiusMm: 7,
+    decisionQuality: 73,
   },
   12: {
     sigmaAlongMm: 9,
@@ -149,6 +160,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.6,
     bounceOutRate: 0.013,
     deflectionRadiusMm: 7,
+    decisionQuality: 80,
   },
   13: {
     sigmaAlongMm: 8,
@@ -161,6 +173,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.5,
     bounceOutRate: 0.011,
     deflectionRadiusMm: 6,
+    decisionQuality: 87,
   },
   14: {
     sigmaAlongMm: 7,
@@ -173,6 +186,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.4,
     bounceOutRate: 0.009,
     deflectionRadiusMm: 6,
+    decisionQuality: 93,
   },
   15: {
     sigmaAlongMm: 6,
@@ -185,6 +199,7 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     bedOffsetMm: 0.3,
     bounceOutRate: 0.007,
     deflectionRadiusMm: 5,
+    decisionQuality: 100,
   },
 };
 

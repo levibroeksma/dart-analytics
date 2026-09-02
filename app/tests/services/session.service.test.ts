@@ -283,7 +283,7 @@ describe("createSession", () => {
 
     it("rejects a DARTBOT seat for a ruleset that does not admit one", async () => {
       const result = await createSession("player-1", {
-        ...fiveOhOneRequest,
+        ...inlineRequest,
         participants: [
           { participantTypeKey: "PLAYER", sideKey: "A" },
           { participantTypeKey: "DARTBOT", sideKey: "B" },

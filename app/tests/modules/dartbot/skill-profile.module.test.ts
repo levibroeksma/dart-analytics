@@ -29,4 +29,19 @@ describe("skillProfileForLevel", () => {
       expect(stronger.sigmaAcrossMm).toBeLessThanOrEqual(weaker.sigmaAcrossMm);
     }
   });
+
+  it("decisionQuality rises monotonically from level 1 to 15 and stays in 0..100", () => {
+    let prior = -1;
+    for (let level = 1; level <= 15; level++) {
+      const { decisionQuality } = skillProfileForLevel(level);
+      expect(decisionQuality).toBeGreaterThan(prior);
+      expect(decisionQuality).toBeGreaterThanOrEqual(0);
+      expect(decisionQuality).toBeLessThanOrEqual(100);
+      prior = decisionQuality;
+    }
+  });
+
+  it("level 15 tops out at 100", () => {
+    expect(skillProfileForLevel(15).decisionQuality).toBe(100);
+  });
 });

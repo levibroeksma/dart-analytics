@@ -27,6 +27,7 @@ const BASE_PROFILE: SkillProfile = {
   bedOffsetMm: 0,
   bounceOutRate: 0.1,
   deflectionRadiusMm: 20,
+  decisionQuality: 100,
 };
 
 const T20_TREBLE: ThrowIntent = { targetNumber: 20, zoneKey: "TREBLE" };

@@ -175,6 +175,16 @@ export type BotDartThrower = () => {
 };
 
 /**
+ * What a play page hands `playFoldBotQuickScoreVisit` for each dart: a
+ * function from the scratch engine's own live `state()` (after however many
+ * darts of this visit have landed so far) to the next simulated dart. The
+ * scratch engine's state, never the real one, because the whole point of
+ * the fold is that the real engine is never told about darts mid-visit
+ * under QUICK_SCORE (`08-DartBot.md` §The Play Loop).
+ */
+export type BotQuickScoreThrower<TState> = (state: TState) => DartObservation;
+
+/**
  * The result of folding a QUICK_SCORE bot visit through a scratch engine
  * (`playFoldBotQuickScoreVisit`) — just enough for the real caller's own
  * `record()` input, never the scratch engine's per-dart facts.
@@ -667,6 +677,7 @@ export type FiveOhOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<FiveOhOneSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -710,6 +721,7 @@ export type FiveOhOnePlayContext = {
     observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: FiveOhOnePlayContext): void;
+  maybeRunBotVisit(this: FiveOhOnePlayContext): Promise<void>;
   uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
   resultsTitle(this: FiveOhOnePlayContext): string;
   back(this: FiveOhOnePlayContext): Promise<void>;

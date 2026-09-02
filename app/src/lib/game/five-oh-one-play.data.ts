@@ -20,8 +20,15 @@ import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
   playCommitDart,
+  playFoldBotQuickScoreVisit,
+  playRunBotVisualBoardVisit,
   playVisitMarkers,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   accuracyDisplay,
   dartsThrownCount,
@@ -42,6 +49,8 @@ import type {
 } from "@modules/types";
 import type {
   BoardMarker,
+  BotDartThrower,
+  BotPacing,
   FiveOhOnePlayContext,
   FiveOhOneSeatResult,
   FiveOhOneResultsSnapshot,
@@ -50,8 +59,13 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // fiveOhOneEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
-import { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
+// RULESET_VERSION_KEY. `fiveOhOneEngineFactory` is imported directly (not via
+// the type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers
+// as `FiveOhOneState` with no cast at the call site.
+import {
+  FiveOhOneEngine,
+  fiveOhOneEngineFactory,
+} from "@modules/game/five-oh-one.engine.module";
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
@@ -88,6 +102,79 @@ function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
       turns: context.$store.game.turns,
     }
   );
+}
+
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+const DARTS_PER_VISIT = 3;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+function throwOneDart(
+  remaining: number,
+  botSeat: DartbotSeat,
+  dartIndex: number,
+): DartObservation {
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const intent = chooseTarget(
+    { remaining, checkoutPath: checkoutPathFor(remaining) },
+    profile.decisionQuality,
+  );
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    hitTargetNumber: thrown.hit.targetNumber,
+    hitZoneKey: thrown.hit.zoneKey,
+    locationX: thrown.landing.x,
+    locationY: thrown.landing.y,
+  };
+}
+
+/** VISUAL_BOARD thrower: reads the real engine's own live `state()`, exactly
+ * as `bobs27-play.data.ts`'s `throwBotDart` does — `foldFiveOhOneState`
+ * already folds an open visit's running total, so `remainingScoreFor` is
+ * live per dart, not just per visit. */
+function throwBotDart(
+  context: FiveOhOnePlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const remaining = context.remainingScoreFor(botSeat.participantRef);
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  return {
+    observation: throwOneDart(remaining, botSeat, dartIndex),
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
+
+/**
+ * QUICK_SCORE thrower: `state` is the scratch engine's own live state
+ * (Task 4's widened `playFoldBotQuickScoreVisit`), never the real engine's —
+ * the real engine is never told about darts mid-visit under QUICK_SCORE.
+ */
+function throwBotQuickScoreDart(
+  state: FiveOhOneState,
+  botSeat: DartbotSeat,
+  dartIndex: number,
+): DartObservation {
+  const remaining = state.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  )!.remainingScore;
+  return throwOneDart(remaining, botSeat, dartIndex);
 }
 
 /**
@@ -187,6 +274,7 @@ export function fiveOhOnePlay() {
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
+    botThrowing: false,
     engine: null as FiveOhOneEngine | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
@@ -373,6 +461,7 @@ export function fiveOhOnePlay() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
         this.hasActiveSession = true;
+        await this.maybeRunBotVisit();
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
@@ -425,7 +514,9 @@ export function fiveOhOnePlay() {
         this.finished = true;
         this.completionStatus = "pending";
         await this.uploadAndCompleteSession();
+        return;
       }
+      await this.maybeRunBotVisit();
     },
 
     /**
@@ -458,11 +549,12 @@ export function fiveOhOnePlay() {
       await this.commitDart(observation);
     },
 
-    commitDart(
+    async commitDart(
       this: FiveOhOnePlayContext,
       observation: DartObservation,
     ): Promise<void> {
-      return playCommitDart(this, observation);
+      await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
     },
 
     /**
@@ -609,6 +701,38 @@ export function fiveOhOnePlay() {
       this.showMatchFinishConfirm = false;
     },
 
+    async maybeRunBotVisit(this: FiveOhOnePlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat || !this.engine || this.finished) return;
+      const state = this.state();
+      if (!state || state.activeParticipantRef !== botSeat.participantRef)
+        return;
+
+      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
+        const remainingBefore = this.remainingScoreFor(botSeat.participantRef);
+        let dartIndex = botDartIndex(
+          this.$store.game.turns,
+          botSeat.participantRef,
+        );
+        const fold = playFoldBotQuickScoreVisit(
+          fiveOhOneEngineFactory,
+          this.$store.game.configSnapshot!,
+          this.engine.facts(),
+          (scratchState) =>
+            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
+          DARTS_PER_VISIT,
+        );
+        await this.recordVisit(
+          fold.totalScore,
+          fold.totalScore === remainingBefore,
+        );
+        return;
+      }
+
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+    },
+
     undoVisit(this: FiveOhOnePlayContext) {
       if (
         this.finished ||
@@ -616,12 +740,21 @@ export function fiveOhOnePlay() {
         this.showMatchFinishConfirm
       )
         return;
-      if (!this.engine || !this.engine.undo()) return;
-
-      clearHiddenTimer(this);
-      this.$store.game.recordFacts(this.engine.facts());
+      if (!this.engine) return;
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        if (!this.engine.undo()) return;
+        clearHiddenTimer(this);
+        this.$store.game.recordFacts(this.engine.facts());
+      }
       this.scoreInput.clear();
       this.error = "";
+      void this.maybeRunBotVisit();
     },
 
     /**

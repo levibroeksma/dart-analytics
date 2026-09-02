@@ -1495,3 +1495,88 @@ describe("checkout dart counts", () => {
     expect(play.scoreInput.value).toBe("40");
   });
 });
+
+describe("DartBot opponent", () => {
+  const BOT_REF = "bot-1";
+  const HUMAN_REF = "human-1";
+
+  function seatsWithBot() {
+    return [
+      {
+        participantRef: HUMAN_REF,
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: BOT_REF,
+        displayName: "DartBot",
+        sideKey: "B",
+        participantTypeKey: "DARTBOT" as const,
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" as const },
+      },
+    ];
+  }
+
+  function botConfig(): Seated<FiveOhOneSnapshot> {
+    return { ...quickPlayConfig(), seats: seatsWithBot() };
+  }
+
+  it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    // Three darts closes the human's visit and hands the turn to the bot,
+    // whose own visit should follow with no further calls from this test.
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+
+    const botTurns = play.$store.game.turns.filter(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF); // control returned
+  });
+
+  it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    play.scoreInput.setValue("26");
+
+    await play.submitVisit.call(play);
+
+    const botTurn = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurn).toBeDefined();
+    expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("undoVisit crosses the seat boundary back to the human", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+
+    play.undoVisit.call(play);
+
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+});

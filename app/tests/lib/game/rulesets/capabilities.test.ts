@@ -149,12 +149,17 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits exactly the three rulesets whose 1v1 seating works today", () => {
+  it("admits the four rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
         .sort(),
-    ).toEqual(["AROUND_THE_CLOCK_V1", "BOBS27_V1", "DOUBLES_TRAINING_V1"]);
+    ).toEqual([
+      "501_V1",
+      "AROUND_THE_CLOCK_V1",
+      "BOBS27_V1",
+      "DOUBLES_TRAINING_V1",
+    ]);
   });
 });
 
@@ -171,8 +176,8 @@ describe("supportsDartbot", () => {
     expect(supportsDartbot("DOUBLES_TRAINING_V1")).toBe(true);
   });
 
-  it("rejects 501, which has no bot strategy until phase 7", () => {
-    expect(supportsDartbot("501_V1")).toBe(false);
+  it("accepts 501, now that X01Strategy exists (phase 7)", () => {
+    expect(supportsDartbot("501_V1")).toBe(true);
   });
 
   it("rejects Shanghai V2 and Singles V2 (F45 — 1v1 seating is already broken there)", () => {
