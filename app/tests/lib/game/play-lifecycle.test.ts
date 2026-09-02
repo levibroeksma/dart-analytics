@@ -956,6 +956,105 @@ const MISS_DART: DartObservation = {
   locationY: -180,
 };
 
+type BustableState = { tally: number };
+
+/**
+ * A GameEngine whose visit can close on its second dart — like a 501 bust or
+ * a non-final-leg checkout — so playFoldBotQuickScoreVisit's early-stop fix
+ * (F55) has a case to prove itself against. Score Training's engine, used by
+ * this suite's other playFoldBotQuickScoreVisit tests, always takes exactly
+ * 3 darts per visit and cannot exercise this path.
+ */
+class BustableVisitEngine implements GameEngine<
+  DartObservation,
+  BustableState
+> {
+  readonly rulesetVersionKey: RulesetVersionKey = "501_V1";
+  readonly stageOwnership = "PER_SEAT" as const;
+  private turns: TurnFact[];
+
+  constructor(prior?: EngineFacts) {
+    this.turns = prior ? [...prior.turns] : [];
+  }
+
+  record(input: DartObservation): BustableState {
+    const open = this.turns.at(-1);
+    const isNewVisit = !open || open.completedAt !== null;
+    const darts = isNewVisit ? [] : [...open!.darts];
+    darts.push({
+      sequence: darts.length + 1,
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+      hitTargetNumber: input.hitTargetNumber,
+      hitZoneKey: input.hitZoneKey,
+      score: input.hitTargetNumber === null ? 0 : 60,
+      locationX: null,
+      locationY: null,
+    });
+    const busts = input.hitTargetNumber === null;
+    const turn: TurnFact = {
+      clientKey: isNewVisit ? `t${this.turns.length + 1}` : open!.clientKey,
+      stageClientKey: "leg-1",
+      participantRef: "bot-1",
+      sequence: isNewVisit ? this.turns.length + 1 : open!.sequence,
+      completedAt:
+        busts || darts.length === 3 ? "2026-09-02T00:00:00.000Z" : null,
+      totalScore: darts.reduce((sum, d) => sum + d.score, 0),
+      darts,
+    };
+    if (isNewVisit) {
+      this.turns.push(turn);
+    } else {
+      this.turns[this.turns.length - 1] = turn;
+    }
+    return this.state();
+  }
+
+  undo(): boolean {
+    if (this.turns.length === 0) return false;
+    this.turns.pop();
+    return true;
+  }
+
+  wouldComplete(): boolean {
+    return false;
+  }
+
+  isComplete(): boolean {
+    return false;
+  }
+
+  state(): BustableState {
+    return { tally: this.turns.length };
+  }
+
+  facts(): EngineFacts {
+    return {
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [...this.turns],
+    };
+  }
+}
+
+const bustableEngineFactory: GameEngineFactory<
+  Record<string, never>,
+  DartObservation,
+  BustableState
+> = {
+  rulesetVersionKey: "501_V1",
+  stageOwnership: "PER_SEAT",
+  create(_config, prior) {
+    return new BustableVisitEngine(prior);
+  },
+};
+
 describe("playFoldBotQuickScoreVisit", () => {
   it("folds three simulated darts into one visit total without touching the real engine", () => {
     const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
@@ -1036,6 +1135,22 @@ describe("playFoldBotQuickScoreVisit", () => {
     // Score Training's own seat total climbs by 60 (treble 20) after each of
     // the first two darts, proving the third call saw the second dart's effect.
     expect(seenScores).toEqual([0, 60, 120]);
+  });
+
+  it("stops recording once the visit it just recorded into closes, even though the match itself is not complete (F55)", () => {
+    let calls = 0;
+    const darts = [TREBLE_TWENTY, MISS_DART, TREBLE_TWENTY];
+
+    const fold = playFoldBotQuickScoreVisit(
+      bustableEngineFactory,
+      {},
+      { stages: [], turns: [] },
+      () => darts[calls++]!,
+      3,
+    );
+
+    expect(calls).toBe(2);
+    expect(fold).toEqual({ totalScore: 60, dartsThrown: 2 });
   });
 });
 
