@@ -168,25 +168,26 @@ const ACTIVE_SESSION = {
 
 describe("scoreTrainingPlay — per-seat accessors", () => {
   it("totalScoreFor reads the named seat", () => {
-    const ctx = scoreTrainingPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: { participantRef: string; totalScore: number }[];
-        };
-      };
-      totalScoreFor: (seatRef: string) => number;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", totalScore: 40 },
-          { participantRef: "p2", totalScore: 120 },
-        ],
-      }),
-    };
-    expect(ctx.totalScoreFor("p2")).toBe(120);
+    const play = {
+      ...scoreTrainingPlay(),
+      $store: {
+        game: gameStub({
+          configSnapshot: { ...rounds(10), seats: TWO_SEATS },
+        }),
+        settings: settingsStub(),
+      },
+    } as ScoreTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [BLOCK],
+      turns: [
+        turnFact("t1", 1, 40, "participant-1"),
+        turnFact("t2", 1, 120, "participant-2"),
+      ],
+    });
+
+    expect(play.totalScoreFor("participant-2")).toBe(120);
   });
 });
 
@@ -2024,5 +2025,34 @@ describe("scoreTrainingPlay — playAgain mode resolution", () => {
         inputModeKey: "VISUAL_BOARD",
       }),
     );
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = scoreTrainingPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
+    };
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = {
+      ...scoreTrainingPlay(),
+      $store: {
+        game: gameStub({ configSnapshot: rounds(10) }),
+        settings: settingsStub(),
+      },
+    } as ScoreTrainingPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [BLOCK],
+      turns: [turnFact("t1", 1, 45)],
+    });
+
+    expect(play.totalScoreFor("participant-1")).toBe(45);
   });
 });

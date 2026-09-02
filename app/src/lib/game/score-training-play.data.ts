@@ -236,7 +236,13 @@ export function scoreTrainingPlay() {
     },
 
     state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldScoreTrainingState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+        this.$store.game.timerExpired ?? false,
+      );
     },
 
     totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number {
