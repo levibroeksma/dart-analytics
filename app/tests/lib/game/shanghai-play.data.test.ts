@@ -411,31 +411,61 @@ describe("completion at round 20", () => {
 
 describe("shanghaiPlay — per-seat accessors", () => {
   it("currentScoreFor and roundLabelFor read the named seat", () => {
-    const ctx = shanghaiPlay() as unknown as {
-      engine: {
-        state: () => {
-          activeParticipantRef: string;
-          seats: {
-            participantRef: string;
-            targetIndex: number;
-            totalScore: number;
-          }[];
-        };
-      };
-      currentScoreFor: (seatRef: string) => string;
-      roundLabelFor: (seatRef: string) => string;
-    };
-    ctx.engine = {
-      state: () => ({
-        activeParticipantRef: "p1",
-        seats: [
-          { participantRef: "p1", targetIndex: 0, totalScore: 10 },
-          { participantRef: "p2", targetIndex: 4, totalScore: 40 },
-        ],
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const opponentRounds: TurnFact[] = priorRoundsThroughNumber(4).map(
+      (turn) => ({
+        ...turn,
+        clientKey: `opponent-${turn.clientKey}`,
+        participantRef: "participant-2",
       }),
+    );
+    const play = {
+      ...shanghaiPlay(),
+      $store: {
+        game: gameStub({ configSnapshot: { seats: twoSeats } }),
+        settings: settingsStub(),
+      },
+    } as ShanghaiPlayContext;
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: [...priorRoundsThroughNumber(1), ...opponentRounds],
+    });
+
+    expect(play.currentScoreFor("participant-2")).toBe("30");
+    expect(play.roundLabelFor("participant-2")).toBe("5/20");
+  });
+});
+
+describe("state — folds the store's own fact log, not engine.state()", () => {
+  it("returns null with no config snapshot", () => {
+    const ctx = shanghaiPlay() as unknown as {
+      $store: { game: { configSnapshot: null } };
+      state: () => null;
     };
-    expect(ctx.currentScoreFor("p2")).toBe("40");
-    expect(ctx.roundLabelFor("p2")).toBe("5/20");
+    ctx.$store = { game: { configSnapshot: null } };
+    expect(ctx.state()).toBeNull();
+  });
+
+  it("reflects a dart recorded via $store.game.recordFacts, with no live engine", () => {
+    const play = makePlay();
+    play.engine = null;
+
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: priorRoundsThroughNumber(3),
+    });
+
+    expect(play.currentScore()).toBe("18");
   });
 });
 

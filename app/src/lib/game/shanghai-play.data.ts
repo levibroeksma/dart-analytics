@@ -35,6 +35,7 @@ import type {
 // RULESET_VERSION_KEY.
 import {
   ShanghaiEngine,
+  foldShanghaiState,
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 
@@ -174,7 +175,12 @@ export function shanghaiPlay() {
     ...boardInputData((observation) => self.recordDart(observation)),
 
     state(this: ShanghaiPlayContext): ShanghaiState | null {
-      return this.engine?.state() ?? null;
+      const config = this.$store.game.configSnapshot;
+      if (!config) return null;
+      return foldShanghaiState(
+        { stages: this.$store.game.stages, turns: this.$store.game.turns },
+        config,
+      );
     },
 
     currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
