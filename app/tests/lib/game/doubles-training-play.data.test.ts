@@ -875,7 +875,7 @@ describe("doublesTrainingPlay — per-seat accessors", () => {
       intendedTargetNumber: 3,
       intendedZoneKey: "DOUBLE",
       hitTargetNumber: null,
-      hitZoneKey: null,
+      hitZoneKey: "MISS",
       score: 0,
       locationX: null,
       locationY: null,
