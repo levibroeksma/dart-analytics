@@ -55,7 +55,10 @@ function toSeatFacts(
 ): SeatFact[] {
   return participants.map((participant, index) => {
     const sideKey = String.fromCharCode(65 + index);
-    if (participant.participantTypeKey === "DARTBOT" && participant.dartbot) {
+    if (participant.participantTypeKey === "DARTBOT") {
+      if (!participant.dartbot) {
+        throw new Error("DARTBOT participant is missing its dartbot payload");
+      }
       return {
         participantRef: participant.ref,
         displayName: participant.displayName,

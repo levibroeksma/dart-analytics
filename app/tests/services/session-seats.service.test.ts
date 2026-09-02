@@ -261,4 +261,18 @@ describe("composeSeatFacts", () => {
       },
     ]);
   });
+
+  it("throws when a DARTBOT-typed seat's dartbot payload is unexpectedly absent", () => {
+    expect(() =>
+      composeSeatFacts([
+        {
+          participantId: "id-b",
+          participantTypeId: 3,
+          playerId: null,
+          displayName: "DartBot",
+          sideKey: "B",
+        },
+      ]),
+    ).toThrow();
+  });
 });
