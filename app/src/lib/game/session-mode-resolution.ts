@@ -121,7 +121,7 @@ export function startSessionInput<TConfig extends object>(input: {
 /**
  * The `participants` a replay's `createSession` must request, derived from the
  * seats the finished session actually played with — the inverse of
- * `seatsFromParticipants`, and the same shape the setup screen sends when a
+ * `toSeatFacts`, and the same shape the setup screen sends when a
  * guest is added at start time.
  *
  * Play Again mints a brand-new session, so omitting this field would seat the

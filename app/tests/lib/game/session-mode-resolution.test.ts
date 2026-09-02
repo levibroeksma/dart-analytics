@@ -182,6 +182,8 @@ describe("startSessionInput", () => {
   });
 });
 
+// Covers participantsFromSeats, including its JSDoc's toSeatFacts
+// cross-reference (F51) — behavior unchanged.
 describe("participantsFromSeats", () => {
   it("returns undefined for a solo seat list, so a solo replay omits the field entirely", () => {
     expect(
