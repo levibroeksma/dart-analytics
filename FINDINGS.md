@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-02
-highest-issued: F58
+highest-issued: F59
 -->
 
 # Findings
@@ -73,4 +73,11 @@ Claim: `dartbot-setup-wiring-fixes` (commit `f90583e`), `alpine-reactivity-fold-
 Evidence: `git log --oneline --all -S"F54 —" -- FINDINGS.md` / `-S"F31 —"` / `-S"F32 —"` each resolve to the three commits named above, all already on this branch; `grep -n "alpine-reactivity\|dartbot-setup-wiring\|preview-seat-scoping" docs/architecture/00-Context-Map-History.md` returns nothing, while every other 2026-09-02 plan on this branch (board-dart-bull-double-checkout, tuod-hardening, scoring-stats-correctness) has its own Version entry
 Impact: the Version History section is meant to be the running, authoritative record of what changed and why (per its own file header and `00-File-Inventory.md`'s "Current Implementation State" disclaimer added by F53); a reader relying on it to reconstruct why Singles Training/Around the Clock/Bob's27/Singles Training now fold `$store.game` directly, why DartBot's 501/121/Singles Training setup screens seat bots the way they do, or why the two preview strips scope to the throwing seat, would find no entry — only the commit messages and the plans themselves
 Proposed: a follow-up doc-only task should backfill three Version History entries (1.x slots between 1.35.0 and 1.37.0, chronologically) summarizing each plan's actual shipped diff from its own commits — cheap since the plans and commits are already complete and on this branch; no code change involved
+
+### F59 — `process-gate-improvements` plan's own Task 1 code and findings-closure list were both unverified against the repo before publishing
+Status: Open · Found: 2026-09-02 · Task: claude/rebase-pr-three-docs-4tm39h
+Claim: this plan's Task 1 gave an exact regex diff for `scripts/check-context-map.sh` and its own Step 3 claimed running the script afterward would exit 0; committed verbatim it instead failed on two real lines in `docs/architecture/README.md` (a Version History note pairing "migration/seed ranges" under one shared label, and a sentence stating a migration range and a seed range together) that the plan's own baseline note ("the two lines this section currently matches repeat-wide are ...") never accounted for. Separately, the plan's Global Constraints state it "Closes FINDINGS.md F5, F38, F42, F43, F50," but only Tasks 2, 3, and 6 (F38, F50, F42) carried an actual FINDINGS.md deletion step — Tasks 1 and 4 fixed F5's and F43's underlying defects with no corresponding deletion step, so following the plan task-by-task would have left F5 and F43 open indefinitely despite the constraint claiming otherwise
+Evidence: `docs/superpowers/plans/2026-09-02-process-gate-improvements.md` Task 1 Steps 2-3 (diff and expected exit-0) vs. the actual `bash scripts/check-context-map.sh` run against unmodified `docs/architecture/README.md`, which failed until a label-adjacency regex was used instead and the doc's own stale `0001`-`0021`/`0001`-`0007` claim was corrected; Task 1's and Task 4's own "Files" sections list no `FINDINGS.md` edit, unlike Tasks 2/3/6
+Impact: same failure category F50 already named for the DartBot phase-plan series — a plan giving "complete, ready-to-commit" code or a "this closes X" claim that fails verification the first time it is actually run, discoverable only by executing the plan rather than reading it; this is the same gap recurring in a different plan series (gate/process plans, not DartBot phases), suggesting it is not series-specific
+Proposed: extend F50's own suggestion beyond DartBot phase plans — run every gate-script diff a plan proposes against the actual repo state before publishing, and cross-check every id named in a "Closes FINDINGS.md ..." Global Constraint against an actual deletion step in some task, not just against the underlying defect being fixed
 
