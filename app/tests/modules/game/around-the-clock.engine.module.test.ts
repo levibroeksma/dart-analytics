@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   applyAroundTheClockDart,
+  foldAroundTheClockState,
   initialAroundTheClockState,
   isAroundTheClockHit,
   AroundTheClockEngine,
@@ -676,5 +677,18 @@ describe("AroundTheClockEngine — exerciseBlockStage wiring (F40)", () => {
         sequence: 1,
       },
     ]);
+  });
+});
+
+describe("foldAroundTheClockState", () => {
+  it("reproduces the engine's own state() for an equivalent fact log", () => {
+    const engine = new AroundTheClockEngine(config);
+    engine.record(numberHit(1, "SINGLE"));
+    engine.record(numberHit(2, "TREBLE"));
+
+    const expected = engine.state();
+    const folded = foldAroundTheClockState(engine.facts(), config);
+
+    expect(folded).toEqual(expected);
   });
 });
