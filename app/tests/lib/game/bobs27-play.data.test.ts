@@ -19,7 +19,12 @@ import {
 } from "@modules/game/engine.registry";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { bobs27Play } from "@lib/game/bobs27-play.data";
-import type { Bobs27PlayContext, Bobs27Snapshot, Seated } from "@lib/types";
+import type {
+  Bobs27PlayContext,
+  Bobs27Snapshot,
+  SeatFact,
+  Seated,
+} from "@lib/types";
 import type {
   DartFact,
   DartObservation,
@@ -923,5 +928,54 @@ describe("bobs27Play — per-seat accessors", () => {
     };
     ctx.engine = null;
     expect(ctx.currentScoreFor("nobody")).toBe("");
+  });
+});
+
+const BOT_SEATS: SeatFact[] = [
+  ...SEATS,
+  {
+    participantRef: "bot-1",
+    displayName: "DartBot",
+    sideKey: "B",
+    participantTypeKey: "DARTBOT",
+    dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
+  },
+];
+
+function botConfig(): Seated<Bobs27Snapshot> {
+  return { ...defaultConfig(), seats: BOT_SEATS };
+}
+
+describe("bobs27Play — DartBot opponent", () => {
+  it("throws automatically once it becomes the bot's turn, without any UI action", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    // Three misses closes the human's visit and hands the turn to the bot,
+    // whose own visit should follow with no further calls from this test.
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+
+    const botTurns = play
+      .engine!.facts()
+      .turns.filter((turn) => turn.participantRef === "bot-1");
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.botThrowing).toBe(false);
+  });
+
+  it("undoVisit returns control to the human across the bot's own turn", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    // The bot has now thrown its own visit automatically.
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+
+    await play.undoVisit.call(play);
+
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
 });

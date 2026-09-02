@@ -845,6 +845,7 @@ export type Bobs27PlayContext = {
   resultsSnapshot: Bobs27ResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
+  botThrowing: boolean;
   $store: PlayStoreContext<Bobs27Snapshot>;
   engine: Bobs27Engine | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
@@ -865,7 +866,8 @@ export type Bobs27PlayContext = {
     this: Bobs27PlayContext,
     observation: DartObservation,
   ): Promise<void>;
-  undoVisit(this: Bobs27PlayContext): void;
+  maybeRunBotVisit(this: Bobs27PlayContext): Promise<void>;
+  undoVisit(this: Bobs27PlayContext): Promise<void>;
   uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void>;
   resultsTitle(this: Bobs27PlayContext): string;
   back(this: Bobs27PlayContext): Promise<void>;
