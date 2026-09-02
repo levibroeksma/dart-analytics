@@ -600,4 +600,66 @@ describe("fiveOhOneSetup", () => {
     expect(setup.activeSession).toMatchObject({ sessionId: "active-1" });
     expect(setup.loading).toBe(false);
   });
+
+  describe("bot wiring", () => {
+    it("addBot seats a level-8 DartBot and start() sends a 2-seat DARTBOT participants array", async () => {
+      const setup = createSetup();
+      setup.presets = [QUICK_PLAY_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "DartBot",
+            participantTypeKey: "DARTBOT",
+            dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      setup.addBot();
+      expect(setup.bot).toEqual({ level: 8 });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            { participantTypeKey: "PLAYER", sideKey: "A" },
+            { participantTypeKey: "DARTBOT", level: 8, sideKey: "B" },
+          ],
+        }),
+      );
+    });
+
+    it("addBot refuses when a guest is already seated, and vice versa", () => {
+      const setup = createSetup();
+
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      setup.addBot();
+      expect(setup.bot).toBeNull();
+
+      setup.removeGuest(0);
+      setup.addBot();
+      setup.newGuestName = "Guest 2";
+      setup.addGuest();
+      expect(setup.guests).toEqual([]);
+    });
+
+    it("removeBot clears the seated bot", () => {
+      const setup = createSetup();
+      setup.addBot();
+
+      setup.removeBot();
+
+      expect(setup.bot).toBeNull();
+    });
+  });
 });

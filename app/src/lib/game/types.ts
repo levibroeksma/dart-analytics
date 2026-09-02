@@ -509,6 +509,8 @@ export type FiveOhOneSetupContext = {
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -536,7 +538,9 @@ export type FiveOhOneSetupContext = {
   abandonSession(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
   addGuest(this: FiveOhOneSetupContext): void;
+  addBot(this: FiveOhOneSetupContext): void;
   removeGuest(this: FiveOhOneSetupContext, index: number): void;
+  removeBot(this: FiveOhOneSetupContext): void;
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
