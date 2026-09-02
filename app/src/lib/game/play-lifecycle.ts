@@ -21,10 +21,11 @@ import type {
   MultiSeatState,
   TurnFact,
 } from "@modules/types";
-import type { GameEngine } from "@modules/interfaces";
+import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   BoardMarker,
   BotDartThrower,
+  BotQuickScoreFold,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
@@ -279,6 +280,39 @@ export async function playRunBotVisualBoardVisit<
   } finally {
     context.botThrowing = false;
   }
+}
+
+/**
+ * Feeds `throwDart`'s darts into a throwaway instance of the same ruleset,
+ * built from `facts` exactly as a page's own `resumeEngine` rehydrates one —
+ * `08-DartBot.md` §The Play Loop's "a scratch engine, never arithmetic in
+ * the adapter". The scratch engine is discarded when this returns; only its
+ * final visit's `totalScore`/`darts.length` survive, so a QUICK_SCORE bot
+ * visit's coordinates never reach any caller.
+ *
+ * `throwDart` always returns a `DartObservation` — the bot throws three real
+ * darts internally under every capture mode (§Strategy Layer and Game
+ * Coverage) — so the cast below asserts only that every ruleset's own input
+ * union already includes `DartObservation` as one of its variants, which
+ * `isDartObservationInput` (`turn-log.module.ts`, D241) exists to prove true
+ * for every registered engine.
+ */
+export function playFoldBotQuickScoreVisit<TConfig, TInput, TState>(
+  factory: GameEngineFactory<TConfig, TInput, TState>,
+  config: TConfig,
+  facts: EngineFacts,
+  throwDart: () => DartObservation,
+  dartsPerVisit: number,
+): BotQuickScoreFold {
+  const scratch = factory.create(config, facts);
+  for (let i = 0; i < dartsPerVisit && !scratch.isComplete(); i++) {
+    scratch.record(throwDart() as TInput);
+  }
+  const visitTurn = scratch.facts().turns.at(-1)!;
+  return {
+    totalScore: visitTurn.totalScore,
+    dartsThrown: visitTurn.darts.length,
+  };
 }
 
 /**
