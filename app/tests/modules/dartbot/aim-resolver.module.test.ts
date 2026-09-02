@@ -14,6 +14,7 @@ const ZERO_OFFSET_PROFILE: SkillProfile = {
   bedOffsetMm: 0,
   bounceOutRate: 0,
   deflectionRadiusMm: 0,
+  decisionQuality: 100,
 };
 
 describe("resolveAimPoint", () => {

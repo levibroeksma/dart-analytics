@@ -677,6 +677,7 @@ export type FiveOhOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<FiveOhOneSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -720,6 +721,7 @@ export type FiveOhOnePlayContext = {
     observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: FiveOhOnePlayContext): void;
+  maybeRunBotVisit(this: FiveOhOnePlayContext): Promise<void>;
   uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void>;
   resultsTitle(this: FiveOhOnePlayContext): string;
   back(this: FiveOhOnePlayContext): Promise<void>;
