@@ -297,6 +297,24 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
   }
 
   /**
+   * Whether the WHOLE (2-seat) session's score-compare outcome is already
+   * settled. Deliberately narrower than `isComplete()`, mirroring
+   * `ScoreTrainingEngine.isMatchDecided()` (D229): a solo session is exempt
+   * here because MINUTES completion there is driven by `timerExpired`, an
+   * external signal `expireTimer()` can set mid-attempt — `isComplete()` can
+   * already read true before the one finishing attempt still needs to be
+   * recorded, so a solo session's own boundary is that attempt-count-based
+   * `isComplete()` reading, left to `tuod-play.data.ts` to consult directly,
+   * never enforced here. A 1v1 match carries no such risk: it is
+   * ROUNDS-only, so `status` only turns terminal as the direct result of
+   * the very record call that reaches the last seat's budget.
+   */
+  private isMatchDecided(): boolean {
+    const state = this.deriveState();
+    return state.seats.length > 1 && state.status !== "IN_PROGRESS";
+  }
+
+  /**
    * Why `record()` would refuse this attempt, or null when it would accept it.
    * `wouldComplete()` reads the same answer, which is what keeps the pure
    * predicate and the mutating call in agreement about what is playable. A
@@ -308,7 +326,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
     activeSeatState: TuodSeatState,
     input: TuodAttemptInput,
   ): string | null {
-    if (this.isComplete()) {
+    if (this.isMatchDecided()) {
       return "Cannot record an attempt once the session is complete; undo first to correct it.";
     }
     if (openVisit(this.turns) !== null) {
@@ -386,7 +404,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    *   untouched.
    */
   private recordDart(observation: DartObservation): TuodState {
-    if (this.isComplete()) {
+    if (this.isMatchDecided()) {
       throw new Error(
         "Cannot record an attempt once the session is complete; undo first to correct it.",
       );
@@ -466,7 +484,7 @@ export class TuodEngine implements GameEngine<TuodInput, TuodState> {
    * budget, success or not), computed without mutating the fact log.
    */
   private wouldCompleteDart(observation: DartObservation): boolean {
-    if (this.isComplete()) return false;
+    if (this.isMatchDecided()) return false;
 
     const before = this.deriveState();
     const activeSeatState = before.seats.find(
