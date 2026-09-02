@@ -152,6 +152,29 @@ export type CheckoutHintsStoreContext = {
 };
 
 /**
+ * Timing hints for one bot dart, derived from the same situation state the
+ * pressure model will eventually read (`08-DartBot.md` §Pacing). The page
+ * honours or ignores these; `play-lifecycle.ts` owns no timer and reads no
+ * clock itself.
+ */
+export type BotPacing = {
+  preThrowMs: number;
+  postThrowMs: number;
+};
+
+/**
+ * What a play page hands `playRunBotVisualBoardVisit` for each dart: the
+ * next simulated dart plus how long to wait around it. Kept independent of
+ * `modules/dartbot/*` so `play-lifecycle.ts` never imports it — the page is
+ * what wires a real thrower to this shape (this phase's last task), and a
+ * test can satisfy it with a plain stub, as this file's own tests do.
+ */
+export type BotDartThrower = () => {
+  observation: DartObservation;
+  pacing: BotPacing;
+};
+
+/**
  * The `$store` shape every play page reads, parameterised by the game's own
  * config snapshot. Written once rather than per game: the two copies had
  * already drifted into near-identical 18-line blocks, and each new session

@@ -24,6 +24,7 @@ import type {
 import type { GameEngine } from "@modules/interfaces";
 import type {
   BoardMarker,
+  BotDartThrower,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
@@ -222,6 +223,62 @@ export function undoToActiveSeat<
   clearHiddenTimer(context);
   context.$store.game.recordFacts(engine.facts());
   context.error = "";
+}
+
+function defaultBotWait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Drives the bot's whole visit under `VISUAL_BOARD`: one real `playCommitDart`
+ * call per dart, for as long as the engine's own active seat stays the bot's.
+ * The loop condition is what makes "the bot can hold consecutive turns"
+ * (score-compare, one seat finished) and "the bot may have opened the leg"
+ * both fall out for free — neither is special-cased here.
+ *
+ * Two re-entrancy guards, both required (`08-DartBot.md` §Re-entrancy):
+ * `context.botThrowing` makes a second concurrent call for the same trigger
+ * a no-op, and the active-seat re-check right after `wait(pacing.preThrowMs)`
+ * — before recording — abandons the throw if a user action (most likely
+ * `undoToActiveSeat`) moved the active seat away from the bot during the
+ * delay. Guard 2 is load-bearing on its own; guard 1 only prevents two
+ * *overlapping* loops from both reaching guard 2's window at once.
+ */
+export async function playRunBotVisualBoardVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botThrowing: boolean;
+  },
+  botParticipantRef: string,
+  throwDart: BotDartThrower,
+  wait: (ms: number) => Promise<void> = defaultBotWait,
+): Promise<void> {
+  if (context.botThrowing || !context.engine) return;
+  if (context.engine.state().activeParticipantRef !== botParticipantRef) return;
+
+  context.botThrowing = true;
+  try {
+    while (
+      !context.finished &&
+      context.engine.state().activeParticipantRef === botParticipantRef
+    ) {
+      const { observation, pacing } = throwDart();
+      await wait(pacing.preThrowMs);
+      if (
+        context.finished ||
+        context.engine.state().activeParticipantRef !== botParticipantRef
+      ) {
+        return;
+      }
+      await playCommitDart(context, observation);
+      await wait(pacing.postThrowMs);
+    }
+  } finally {
+    context.botThrowing = false;
+  }
 }
 
 /**
