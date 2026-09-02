@@ -46,6 +46,50 @@ function durationValueOf(preset: ConfigurationPresetData | undefined) {
   return typeof raw === "number" ? raw : undefined;
 }
 
+/**
+ * The preset `start()` builds a session from: for a guested 1v1, the one
+ * preset whose configuration carries no `duration_type` key (`121_V1`'s
+ * schema models none); for solo play, the mode-matching preset
+ * `presetForMode` already resolves.
+ */
+function resolveStartPreset(
+  ctx: OneTwentyOneSetupContext,
+  guested: boolean,
+): ConfigurationPresetData | undefined {
+  if (guested) {
+    return ctx.presets.find(
+      (p) => !("duration_type" in (p.configuration as Record<string, unknown>)),
+    );
+  }
+  return ctx.presetForMode(ctx.durationType);
+}
+
+/**
+ * The `overrides` record `start()` sends: none for a guested 1v1 (`121_V1`
+ * has no duration concept), or the clamped duration override for solo play.
+ * Clamps `ctx.durationValue`/`ctx.clampNotice` as a side effect, matching
+ * `start()`'s own prior behavior.
+ */
+function resolveStartOverrides(
+  ctx: OneTwentyOneSetupContext,
+  guested: boolean,
+): Record<string, unknown> {
+  if (guested) return {};
+  if (ctx.durationType === "TARGET") {
+    ctx.clampNotice = "";
+    return { duration_type: ctx.durationType };
+  }
+  const { value, clamped } = clampOneTwentyOneDuration(
+    ctx.durationType,
+    ctx.durationValue,
+  );
+  ctx.durationValue = value;
+  ctx.clampNotice = clamped
+    ? oneTwentyOneDurationClampNotice(ctx.durationType)
+    : "";
+  return { duration_type: ctx.durationType, duration_value: value };
+}
+
 export function oneTwentyOneSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
@@ -194,36 +238,13 @@ export function oneTwentyOneSetup() {
         ? "121_V1"
         : "121_V2";
 
-      const preset = guested
-        ? this.presets.find(
-            (p) =>
-              !(
-                "duration_type" in (p.configuration as Record<string, unknown>)
-              ),
-          )
-        : this.presetForMode(this.durationType);
+      const preset = resolveStartPreset(this, guested);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";
         return;
       }
 
-      let overrides: Record<string, unknown> = {};
-      if (!guested) {
-        overrides = { duration_type: this.durationType };
-        if (this.durationType !== "TARGET") {
-          const { value, clamped } = clampOneTwentyOneDuration(
-            this.durationType,
-            this.durationValue,
-          );
-          this.durationValue = value;
-          this.clampNotice = clamped
-            ? oneTwentyOneDurationClampNotice(this.durationType)
-            : "";
-          overrides = { ...overrides, duration_value: value };
-        } else {
-          this.clampNotice = "";
-        }
-      }
+      const overrides = resolveStartOverrides(this, guested);
 
       this.loading = true;
       this.error = "";

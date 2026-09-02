@@ -264,6 +264,7 @@ describe("oneTwentyOneSetup", () => {
         presets: [TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
         durationType: "TARGET",
         durationValue: null,
+        clampNotice: "Allowed range: 1–50 rounds",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -295,6 +296,7 @@ describe("oneTwentyOneSetup", () => {
           configSnapshot: expect.objectContaining({ durationType: "TARGET" }),
         }),
       );
+      expect(setup.clampNotice).toBe("");
       expect(location.href).toBe("/games/121/play");
     });
 
