@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-02
-highest-issued: F57
+highest-issued: F58
 -->
 
 # Findings
@@ -101,4 +101,11 @@ Claim: the plan's Global Constraints and Task 13 both require `npx fallow` to ex
 Evidence: `docs/superpowers/plans/2026-09-01-dartbot-4-seat-admission.md` Task 7 Step 3 — the `buildSeatPlan` map callback given there interleaves three ternaries (`isPlayer`/`isDartbot`) across `participantTypeId`/`playerId`/`displayName` plus a conditional `dartbot` spread; committed verbatim it reports cyclomatic 10 / cognitive 11 / CRAP 31.6, over `npx fallow`'s health threshold — the same failure category as F48, one plan earlier in this same DartBot series; fixed on this branch by replacing the interleaved ternaries with one early return per `participantTypeKey` branch (PLAYER/DARTBOT/GUEST), which the plan never mentions
 Impact: an executor following Task 7 Step 3 literally and then running Task 13 Step 1's `run-all-gates` hits an unexplained `npx fallow` failure with no plan text pointing at the cause or a fix — the same discoverable-only-by-trial gap F48 already named for the phase-2 plan, suggesting the plan-writing process for this series doesn't run `npx fallow` against its own example code before publishing
 Proposed: give Task 7 Step 3's `buildSeatPlan` the early-return-per-branch shape from the start, or note that a complexity-gate split is expected; more durably, add "run `npx fallow` against every code block before publishing" to whatever process drafts these DartBot phase plans, since this is the second consecutive phase plan in the series to trip the same gate
+
+### F58 — Three already-landed plans' `context-maintenance` passes skipped the Version History entry
+Status: Open · Found: 2026-09-02 · Task: claude/rebase-pr-three-docs-4tm39h
+Claim: `dartbot-setup-wiring-fixes` (commit `f90583e`), `alpine-reactivity-fold-fixes` (`c30b733`), and `preview-seat-scoping-fixes` (`fbec686`) each shipped a "docs: context maintenance for ..." commit closing their own findings (F45/F54-F57, F31, F32/F33 respectively), but none of the three added a `docs/architecture/00-Context-Map-History.md` Version History entry — the mandatory step this same skill's own procedure requires (root `CLAUDE.md`, Context Maintenance section)
+Evidence: `git log --oneline --all -S"F54 —" -- FINDINGS.md` / `-S"F31 —"` / `-S"F32 —"` each resolve to the three commits named above, all already on this branch; `grep -n "alpine-reactivity\|dartbot-setup-wiring\|preview-seat-scoping" docs/architecture/00-Context-Map-History.md` returns nothing, while every other 2026-09-02 plan on this branch (board-dart-bull-double-checkout, tuod-hardening, scoring-stats-correctness) has its own Version entry
+Impact: the Version History section is meant to be the running, authoritative record of what changed and why (per its own file header and `00-File-Inventory.md`'s "Current Implementation State" disclaimer added by F53); a reader relying on it to reconstruct why Singles Training/Around the Clock/Bob's27/Singles Training now fold `$store.game` directly, why DartBot's 501/121/Singles Training setup screens seat bots the way they do, or why the two preview strips scope to the throwing seat, would find no entry — only the commit messages and the plans themselves
+Proposed: a follow-up doc-only task should backfill three Version History entries (1.x slots between 1.35.0 and 1.37.0, chronologically) summarizing each plan's actual shipped diff from its own commits — cheap since the plans and commits are already complete and on this branch; no code change involved
 
