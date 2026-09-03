@@ -511,6 +511,8 @@ export type FiveOhOneSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
@@ -576,6 +578,8 @@ export type PresetSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;

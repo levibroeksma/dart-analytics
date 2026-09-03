@@ -11,6 +11,7 @@ import {
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
+import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -52,6 +53,8 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     newGuestName: "",
     bot: null as { level: number } | null,
     showOpponentChooser: false,
+    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
+    showBotLevelPicker: false,
 
     async init(this: Ctx) {
       this.loadingReconciliation = true;

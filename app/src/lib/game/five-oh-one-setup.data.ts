@@ -26,6 +26,7 @@ import {
   FIVE_OH_ONE_STARTING_SCORE_DEFAULT,
   FIVE_OH_ONE_STARTING_SCORE_NOTICE,
 } from "@lib/game/five-oh-one-starting-score";
+import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import type {
   FiveOhOneSetupContext,
   FiveOhOneStartingScoreOption,
@@ -59,6 +60,8 @@ export function fiveOhOneSetup() {
     newGuestName: "",
     bot: null as { level: number } | null,
     showOpponentChooser: false,
+    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
+    showBotLevelPicker: false,
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
