@@ -172,7 +172,7 @@ describe("rejectSeatRequest with a DARTBOT seat", () => {
   });
 
   it("rejects a DARTBOT seat for a ruleset RULESET_DARTBOT does not admit", () => {
-    expect(rejectSeatRequest([player, bot], "SCORE_TRAINING_V1")).toMatch(
+    expect(rejectSeatRequest([player, bot], "121_V2")).toMatch(
       /does not support a DartBot opponent/,
     );
   });

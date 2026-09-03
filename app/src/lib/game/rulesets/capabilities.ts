@@ -101,14 +101,19 @@ export function capableRulesets(
  * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
  * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) plays:
  * Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles Training —
- * all five are listed here. `501_V1` is also listed, on `X01Strategy`
- * (phase 2) rather than `DictatedStrategy`. Shanghai V2 and Singles Training
- * V2 can never create *any* 2-seat session today (`FINDINGS.md` F45: both
- * setup screens hardcode their V2 ruleset key with no seat-count branch, so a
- * guest add already 422s at `createSession`), and that gap is explicitly
- * deferred, not this map's to route around. 121 and Score Training still have
- * no bot strategy. Absent keys read as unsupported, exactly like `SEAT_CAPS`'s
- * own "no entry" default in `session-seats.service.ts`.
+ * all five are listed here. `501_V1`, `121_V1` and `TUOD_V1` are on
+ * `X01Strategy` (`x01.strategy.module.ts`, reused unchanged — both are
+ * checkout-ladder games with 501's identical `{ remaining, checkoutPath }`
+ * decision shape). `SCORE_TRAINING_V1` is on `ScoringStrategy`
+ * (`scoring.strategy.module.ts`, D-G) — no checkout to route on, so it
+ * always aims treble 20. Shanghai V2 and Singles Training V2 can never
+ * create *any* 2-seat session today (`FINDINGS.md` F45: both setup screens
+ * hardcode their V2 ruleset key with no seat-count branch, so a guest add
+ * already 422s at `createSession`), and that gap is explicitly deferred, not
+ * this map's to route around. `121_V2` is solo-only by the same reasoning —
+ * it never gains a bot seat, only `121_V1` does. Absent keys read as
+ * unsupported, exactly like `SEAT_CAPS`'s own "no entry" default in
+ * `session-seats.service.ts`.
  */
 export const RULESET_DARTBOT: Readonly<
   Partial<Record<RulesetVersionKey, boolean>>
@@ -119,6 +124,9 @@ export const RULESET_DARTBOT: Readonly<
   SHANGHAI_V1: true,
   SINGLES_V1: true,
   "501_V1": true,
+  "121_V1": true,
+  TUOD_V1: true,
+  SCORE_TRAINING_V1: true,
 };
 
 /** Whether this ruleset version currently admits a DartBot opponent seat. */
