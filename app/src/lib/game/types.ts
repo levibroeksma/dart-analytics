@@ -412,6 +412,7 @@ export type TuodPlayContext = {
   dartsToFinish: DartCount | null;
   showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -444,6 +445,7 @@ export type TuodPlayContext = {
   confirmFinish(this: TuodPlayContext): Promise<void>;
   cancelFinish(this: TuodPlayContext): void;
   undoVisit(this: TuodPlayContext): void;
+  maybeRunBotVisit(this: TuodPlayContext): Promise<void>;
   uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
   resultsTitle(this: TuodPlayContext): string;
   back(this: TuodPlayContext): Promise<void>;

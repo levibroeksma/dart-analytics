@@ -1575,3 +1575,96 @@ describe("tuodPlay — checkoutHint", () => {
     expect(component.checkoutHintFor.call(component, "participant-1")).toBe("");
   });
 });
+
+describe("tuodPlay — DartBot opponent", () => {
+  const BOT_REF = "bot-1";
+  const HUMAN_REF = "human-1";
+
+  function seatsWithBot() {
+    return [
+      {
+        participantRef: HUMAN_REF,
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: BOT_REF,
+        displayName: "DartBot",
+        sideKey: "B",
+        participantTypeKey: "DARTBOT" as const,
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" as const },
+      },
+    ];
+  }
+
+  function botConfig(): Seated<TuodSnapshot> {
+    return { ...rounds(20), seats: seatsWithBot() };
+  }
+
+  function makePlay(gameOverrides: Partial<GameStub> = {}): TuodPlayContext {
+    return {
+      ...tuodPlay(),
+      $store: {
+        game: gameStub({
+          sessionId: "session-1",
+          configSnapshot: botConfig(),
+          ...gameOverrides,
+        }),
+        settings: settingsStub(),
+      },
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, sessionId: "session-1" },
+    ]);
+  });
+
+  it("under VISUAL_BOARD, the bot throws its own attempt once it becomes active", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordAttempt.call(play, { checkedOut: false });
+
+    const botTurns = play.$store.game.turns.filter(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("under QUICK_SCORE, the bot's attempt uploads as one turn with darts: []", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordAttempt.call(play, { checkedOut: false });
+
+    const botTurn = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurn).toBeDefined();
+    expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("undoVisit crosses the seat boundary back to the human", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    await play.recordAttempt.call(play, { checkedOut: false });
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+
+    play.undoVisit.call(play);
+
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+});
