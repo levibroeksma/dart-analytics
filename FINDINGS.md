@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-02
-highest-issued: F60
+updated: 2026-09-03
+highest-issued: F62
 -->
 
 # Findings
@@ -66,4 +66,18 @@ Claim: the `2026-09-03-play-data-lifecycle-dedup` plan's own Task 5 Step 1 expec
 Evidence: `cd app && npx fallow dupes --format json` before vs. after the plan's 4 tasks — the literal duplication the plan targeted is gone (no more 3-/4-way clone groups spanning `uploadAndCompleteSession`/`abandonAndExit`/`playAgain`/`computeStats` across the 4 files), but a single near-miss clone group between `app/src/lib/game/score-training-play.data.ts:121-548` and `app/src/lib/game/tuod-play.data.ts:106-548` appeared, matching most of both files; combined with two smaller pre-existing pairings, fallow now reports "3 groups, 531 lines" shared between just those two files, up from 105 lines (two groups) at the same baseline. `resumeEngine`, `init`, and the MINUTES-countdown helpers in these files are unchanged, byte-identical text before and after — the near-miss detector simply bridges a much longer span once the divergent per-file bodies that used to interrupt the match are gone
 Impact: this is the same class of "whole-file near-twin similarity, not extractable blocks" clone F27 already named and left out of scope for `score-training.engine.module.ts`/`tuod.engine.module.ts` — it has now visibly spread to these two rulesets' play-data files as well, for the same underlying reason (TUOD was built as Score Training's structural sibling). No new duplicate code was introduced; the total reported percentage is a lagging, sometimes counter-intuitive proxy once a near-miss detector is involved, so a future dedup pass should not assume a lower literal-duplication count always yields a lower reported percentage
 Proposed: no action until one of the two rulesets' rules diverge on their own — forcing an extraction now would fight the same currently-real structural symmetry F27 already declined to touch on the engine side; if `score-training-play.data.ts`/`tuod-play.data.ts` are ever revisited, treat both play-data and engine-module pairs as one combined near-twin question rather than two separate findings
+
+### F61 — Around the Clock and Doubles Training are admitted in `RULESET_DARTBOT` but their play pages never received the play-loop wiring
+Status: Open · Found: 2026-09-03 · Task: claude/shanghai-game-dartbot-kidybx
+Claim: a session can be created with a DartBot opponent for these two rulesets (their setup forms already pass `allowDartbot={supportsDartbot(...)}`, and `RULESET_DARTBOT` admits both), so the bot should actually throw once seated, the same way it does for Bob's 27 and Shanghai
+Evidence: neither `app/src/lib/game/around-the-clock-play.data.ts` nor `app/src/lib/game/doubles-training-play.data.ts` imports `app/src/modules/dartbot/throw-engine.module.ts` or defines `maybeRunBotVisit`/`findBotSeat` — contrast `app/src/lib/game/bobs27-play.data.ts` and `app/src/lib/game/shanghai-play.data.ts`, both of which do. `app/src/components/layout/games/setup/AroundTheClockSetupForm.astro:19` and `app/src/components/layout/games/setup/DoublesTrainingSetupForm.astro:29` both pass `allowDartbot={supportsDartbot(...)}` today
+Impact: a user who seats a DartBot opponent for either game gets a silently stuck session — the bot seat exists, `activeParticipantRef` hands it the turn, and nothing ever calls `record()` for it, so the human can never regain the turn without abandoning the session
+Proposed: wire `maybeRunBotVisit`/`throwBotDart`/`findBotSeat` into each play page exactly as `shanghai-play.data.ts` (2026-09-03) and `bobs27-play.data.ts` (phase 6) already do — both rulesets are `PER_SEAT` + `DictatedStrategy`, the same shape, so the fix is mechanical repetition, not new design
+
+### F62 — Singles Training has no DartBot support at all, despite `08-DartBot.md` naming it one of the five DictatedStrategy-ready rulesets
+Status: Open · Found: 2026-09-03 · Task: claude/shanghai-game-dartbot-kidybx
+Claim: `docs/architecture/08-DartBot.md` §Delivery Phases and `RULESET_DARTBOT`'s own docstring (`app/src/lib/game/rulesets/capabilities.ts`) both name Singles Training among the five rulesets `DictatedStrategy` (phase 3) already plays
+Evidence: `SINGLES_V1` is absent from `RULESET_DARTBOT` (`app/src/lib/game/rulesets/capabilities.ts`); `app/src/components/layout/games/setup/SinglesTrainingSetupForm.astro` never imports or calls `supportsDartbot`, so its `UserSection` never renders the DartBot chooser branch; `app/src/lib/game/singles-training-play.data.ts` has no `maybeRunBotVisit`/`findBotSeat` either — the exact same three-part gap Shanghai had before this task's fix
+Impact: identical to the bug this task fixed for Shanghai — a real feature the architecture doc and the capability map's own comment both claim exists is unreachable from the UI
+Proposed: apply the same three-part fix this task applied to Shanghai — `RULESET_DARTBOT.SINGLES_V1 = true`, `allowDartbot={supportsDartbot("SINGLES_V1")}` on `SinglesTrainingSetupForm.astro`, and the play-loop wiring in `singles-training-play.data.ts` — plus the same guested-ruleset-resolution question Shanghai needed, since `singlesTrainingSetup()`'s existing `rulesetVersionKey` resolver already switches to `SINGLES_V1` for a guest and would need to do the same for a bot (`ctx.guests.length > 0` alone misses the bot-only case)
 

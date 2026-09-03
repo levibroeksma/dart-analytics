@@ -279,6 +279,84 @@ describe("shanghaiSetup", () => {
       expect(setup.error).toBe("Could not find a preset for Shanghai.");
     });
 
+    it("resolves SHANGHAI_V1 and forces difficulty back to NORMAL once a guest is added", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        difficulty: "HARD",
+      });
+      setup.newGuestName = "Friend";
+      setup.addGuest();
+      expect(setup.difficulty).toBe("NORMAL");
+
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Friend",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "SHANGHAI_V1",
+          config: expect.objectContaining({ overrides: {} }),
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "SHANGHAI_V1",
+          configSnapshot: expect.not.objectContaining({
+            difficulty: expect.anything(),
+          }),
+        }),
+      );
+    });
+
+    it("resolves SHANGHAI_V1 and forces difficulty back to NORMAL once a DartBot is seated", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        difficulty: "HARD",
+      });
+      setup.addBot();
+      expect(setup.bot).toEqual({ level: 8 });
+      expect(setup.difficulty).toBe("NORMAL");
+
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "bot-1",
+            displayName: "DartBot",
+            participantTypeKey: "DARTBOT",
+            dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ rulesetVersionKey: "SHANGHAI_V1" }),
+      );
+    });
+
     it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockRejectedValue(

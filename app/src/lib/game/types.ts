@@ -1160,6 +1160,7 @@ export type ShanghaiPlayContext = {
   resultsSnapshot: ShanghaiResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
+  botThrowing: boolean;
   $store: PlayStoreContext<ShanghaiSnapshot | ShanghaiV2Snapshot>;
   engine: ShanghaiEngine | null;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
@@ -1186,7 +1187,8 @@ export type ShanghaiPlayContext = {
     this: ShanghaiPlayContext,
     observation: DartObservation,
   ): Promise<void>;
-  undoVisit(this: ShanghaiPlayContext): void;
+  maybeRunBotVisit(this: ShanghaiPlayContext): Promise<void>;
+  undoVisit(this: ShanghaiPlayContext): Promise<void>;
   uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void>;
   resultsTitle(this: ShanghaiPlayContext): string;
   back(this: ShanghaiPlayContext): Promise<void>;
