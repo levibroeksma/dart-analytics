@@ -1,7 +1,12 @@
 import { createPresetSetupController } from "@lib/game/setup-controller";
-import { addTypedGuest } from "@lib/game/guest-list";
+import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import { targetOrderFor } from "@lib/game/target-order";
 import type { SinglesTrainingSetupContext } from "./types";
+
+/** Whether this session will seat a second player — guest or DartBot. */
+function guested(ctx: SinglesTrainingSetupContext): boolean {
+  return ctx.guests.length > 0 || ctx.bot !== null;
+}
 
 export function singlesTrainingSetup() {
   return {
@@ -9,8 +14,7 @@ export function singlesTrainingSetup() {
     difficulty: "EASY" as SinglesTrainingSetupContext["difficulty"],
     ...createPresetSetupController<SinglesTrainingSetupContext>({
       gameTypeKey: "SINGLES_TRAINING",
-      rulesetVersionKey: (ctx) =>
-        ctx.guests.length > 0 ? "SINGLES_V1" : "SINGLES_V2",
+      rulesetVersionKey: (ctx) => (guested(ctx) ? "SINGLES_V1" : "SINGLES_V2"),
       playHref: "/games/singles-training/play",
       label: "Singles Training",
       configOverrides: (ctx) => ({
@@ -21,6 +25,9 @@ export function singlesTrainingSetup() {
     }),
     addGuest(this: SinglesTrainingSetupContext) {
       if (addTypedGuest(this)) this.difficulty = "EASY";
+    },
+    addBot(this: SinglesTrainingSetupContext) {
+      if (addBotOpponent(this)) this.difficulty = "EASY";
     },
   };
 }
