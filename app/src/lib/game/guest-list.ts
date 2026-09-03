@@ -27,17 +27,16 @@ export function addTypedGuest(context: GuestListContext): boolean {
 }
 
 /**
- * Seats a DartBot opponent from the setup screen's chooser (D-J), mirroring
- * `addTypedGuest`'s single-opponent-slot refusal — a bot and a guest can
- * never both be seated. `level` is fixed at `DEFAULT_BOT_LEVEL`: phase 4
- * ships the admission path only, no level picker (`08-DartBot.md` §Delivery
- * Phases).
- * @returns whether a bot was actually seated, mirroring `addTypedGuest`'s
- *   own boolean contract.
+ * Seats a DartBot at `context.pendingBotLevel`, falling back to
+ * `DEFAULT_BOT_LEVEL` when unset. Refuses when a guest or another bot
+ * already occupies the opponent slot.
+ * @returns whether a bot was actually seated.
  */
 export function addBotOpponent(context: GuestListContext): boolean {
   if (context.guests.length >= 1 || context.bot) return false;
-  context.bot = { level: DEFAULT_BOT_LEVEL };
+  context.bot = { level: context.pendingBotLevel ?? DEFAULT_BOT_LEVEL };
   context.showOpponentChooser = false;
+  context.showBotLevelPicker = false;
+  context.pendingBotLevel = DEFAULT_BOT_LEVEL;
   return true;
 }

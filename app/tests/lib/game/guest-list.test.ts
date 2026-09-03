@@ -80,4 +80,27 @@ describe("addBotOpponent", () => {
     expect(addBotOpponent(state)).toBe(false);
     expect(state.bot).toBeNull();
   });
+
+  it("seats the bot at the picker's chosen level", () => {
+    const state = context({ pendingBotLevel: 12 });
+
+    expect(addBotOpponent(state)).toBe(true);
+    expect(state.bot).toEqual({ level: 12 });
+  });
+
+  it("falls back to DEFAULT_BOT_LEVEL when no level was picked", () => {
+    const state = context({ pendingBotLevel: undefined });
+
+    expect(addBotOpponent(state)).toBe(true);
+    expect(state.bot).toEqual({ level: 8 });
+  });
+
+  it("resets the picker state on success", () => {
+    const state = context({ pendingBotLevel: 12, showBotLevelPicker: true });
+
+    addBotOpponent(state);
+
+    expect(state.showBotLevelPicker).toBe(false);
+    expect(state.pendingBotLevel).toBe(8);
+  });
 });

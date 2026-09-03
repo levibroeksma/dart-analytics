@@ -1298,14 +1298,11 @@ export type GamesIndexContext = {
 };
 
 /**
- * The opponent-slot state every setup screen's add-a-guest modal drives.
- * `bot` occupies the same single slot a guest would — `addTypedGuest` and
- * `addBotOpponent` (`guest-list.ts`) each refuse when the other is already
- * seated, so the two are mutually exclusive by construction, not by a type
- * that forbids both. Both fields are optional because only the three
- * DartBot-enabled setup screens (`createPresetSetupController`) ever
- * populate them — the other six never set `bot`/`showOpponentChooser`, so
- * they read as `undefined`/falsy and the guest-only flow is unchanged.
+ * The opponent-slot state a setup screen's guest/DartBot modal drives.
+ * `bot` and a guest are mutually exclusive. `pendingBotLevel` is the
+ * chooser's slider value; `showBotLevelPicker` selects which step of the
+ * chooser is shown. All four fields are optional — only DartBot-enabled
+ * screens set them.
  */
 export type GuestListContext = {
   guests: { displayName: string }[];
@@ -1313,4 +1310,6 @@ export type GuestListContext = {
   showAddGuestModal: boolean;
   bot?: { level: number } | null;
   showOpponentChooser?: boolean;
+  pendingBotLevel?: number;
+  showBotLevelPicker?: boolean;
 };
