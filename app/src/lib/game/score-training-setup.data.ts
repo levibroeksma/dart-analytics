@@ -58,6 +58,8 @@ export function scoreTrainingSetup() {
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
     newGuestName: "",
+    bot: null as { level: number } | null,
+    showOpponentChooser: false,
 
     /**
      * On fetch failure, keeps the user on setup with a visible error and the

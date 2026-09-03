@@ -105,6 +105,8 @@ export function oneTwentyOneSetup() {
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
     newGuestName: "",
+    bot: null as { level: number } | null,
+    showOpponentChooser: false,
 
     async init(this: OneTwentyOneSetupContext) {
       this.$watch("durationType", (type) => {

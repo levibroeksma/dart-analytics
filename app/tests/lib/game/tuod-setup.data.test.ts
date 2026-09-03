@@ -518,6 +518,15 @@ describe("tuodSetup", () => {
   });
 });
 
+describe("tuodSetup — opponent-slot shape", () => {
+  it('carries `bot` and `showOpponentChooser` so GuestSection.astro\'s Alpine expressions (`!bot`, `x-if="bot"`, `x-if="showOpponentChooser"`) never reference an undefined identifier', () => {
+    const setup = tuodSetup();
+
+    expect(setup).toHaveProperty("bot", null);
+    expect(setup).toHaveProperty("showOpponentChooser", false);
+  });
+});
+
 describe("tuodSetup — guests", () => {
   function makeSetup() {
     return {
