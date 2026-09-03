@@ -11,6 +11,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // buildResultsSnapshot(context) since it reads winningSideKey/legsWonFor off
 // the context directly rather than off finalState. Confirmed these
 // assertions still hold unchanged.
+// F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
+// runPlayAgain, with a resetLocalState callback closing over `this` for
+// this file's own extra fields. Confirmed these assertions still hold
+// unchanged.
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both

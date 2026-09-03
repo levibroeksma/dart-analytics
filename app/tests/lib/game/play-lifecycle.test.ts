@@ -9,6 +9,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // resolveFinalState callback, defaulting to the exact prior
 // context.engine?.state() ?? null behavior. Confirmed these assertions
 // still hold unchanged.
+// F27 Task 4: runPlayAgain takes optional resetLocalState/afterEngineReady
+// callbacks (no context parameter — callers close over their own `this`
+// instead, since the generic PlayLifecycleContext type does not carry
+// each ruleset's own extra fields). Confirmed these assertions still hold
+// unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

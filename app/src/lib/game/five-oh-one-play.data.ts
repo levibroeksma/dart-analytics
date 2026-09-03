@@ -3,12 +3,7 @@ import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
@@ -20,6 +15,7 @@ import {
   playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
@@ -773,72 +769,27 @@ export function fiveOhOnePlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used. Store
-     * and UI are mutated only once the new session exists: on failure the
-     * modal stays open with the results visible and the buttons enabled,
-     * since the prior session is already COMPLETED.
+     * Replays the same configuration template the first session used, with
+     * the current legs-to-win as an override. Delegates to
+     * `play-lifecycle.ts`'s shared `runPlayAgain`.
      */
     async playAgain(this: FiveOhOnePlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
         RULESET_VERSION_KEY,
-        this.$store.settings,
+        (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
+        (config) => ({
+          snapshot: config,
+          wire: { legs_to_win: config.legsToWin },
+        }),
+        () => {
+          this.pendingCheckoutScore = null;
+          this.showDoubleConfirm = false;
+          this.showMatchFinishConfirm = false;
+          this.scoreInput.clear();
+        },
       );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: {
-              source: "template",
-              templateRef,
-              overrides: { legs_to_win: config.legsToWin },
-            },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingCheckoutScore = null;
-        this.showDoubleConfirm = false;
-        this.showMatchFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.scoreInput.clear();
-        this.error = "";
-        this.hasActiveSession = true;
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof FiveOhOneEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-      } finally {
-        this.playAgainLoading = false;
-      }
     },
   };
 }

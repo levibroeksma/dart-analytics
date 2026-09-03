@@ -10,6 +10,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // shared playUploadAndCompleteSession; finalScoreTrainingState is deleted
 // (provably equivalent to state() alone). Confirmed these assertions still
 // hold unchanged.
+// F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
+// runPlayAgain. Confirmed these assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

@@ -4,13 +4,8 @@ import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
@@ -19,6 +14,7 @@ import {
   playCommitDart,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -511,83 +507,42 @@ export function tuodPlay() {
 
     /**
      * Replays with the session's own duration as an override — the same
-     * carry-over `score-training-play.data.ts`'s `playAgain()` does. Without
-     * it, a replayed custom-duration session would silently persist the
-     * template's default `duration_value` instead of the value actually
-     * played.
+     * carry-over `score-training-play.data.ts`'s `playAgain()` does.
+     * Delegates to `play-lifecycle.ts`'s shared `runPlayAgain`. Unlike
+     * 501/121/Score Training's own `playAgain`, this reset callback does not
+     * call `scoreInput.clear()` — preserved exactly as this file's own
+     * pre-existing asymmetry, not added or removed by this refactor.
      */
     async playAgain(this: TuodPlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
         RULESET_VERSION_KEY,
-        this.$store.settings,
+        (engine) => (engine instanceof TuodEngine ? engine : null),
+        (config) => ({
+          snapshot: config,
+          wire: { duration_value: config.durationValue },
+        }),
+        () => {
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.pendingAttempt = null;
+          this.pendingDartObservation = null;
+          this.showFinishConfirm = false;
+        },
+        (engine) => {
+          const config = this.$store.game.configSnapshot;
+          if (config?.durationType === "MINUTES") {
+            this.timer?.stop();
+            this.timer = startCountdown(
+              this.$store.game,
+              config.durationValue,
+              engine,
+            );
+          }
+        },
       );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: {
-              source: "template",
-              templateRef,
-              overrides: { duration_value: config.durationValue },
-            },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-        this.$store.game.timerRemainingMs = null;
-        this.$store.game.timerStartedAt = null;
-        this.$store.game.timerExpired = false;
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingAttempt = null;
-        this.pendingDartObservation = null;
-        this.showFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.error = "";
-        this.hasActiveSession = true;
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof TuodEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        if (config.durationType === "MINUTES") {
-          this.timer?.stop();
-          this.timer = startCountdown(
-            this.$store.game,
-            config.durationValue,
-            engine,
-          );
-        }
-      } finally {
-        this.playAgainLoading = false;
-      }
     },
   };
 }

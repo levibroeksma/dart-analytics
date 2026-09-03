@@ -10,6 +10,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // shared playUploadAndCompleteSession; finalTuodState is deleted (provably
 // equivalent to state() alone). Confirmed these assertions still hold
 // unchanged.
+// F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
+// runPlayAgain, preserving TUOD's own asymmetry (no scoreInput.clear()).
+// Confirmed these assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

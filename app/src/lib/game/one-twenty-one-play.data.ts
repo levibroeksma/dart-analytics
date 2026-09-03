@@ -7,13 +7,8 @@ import {
   isCheckoutReachable,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   clearHiddenTimer,
@@ -22,6 +17,7 @@ import {
   playCommitDart,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -204,40 +200,6 @@ function canReplay(
   playAgainLoading: boolean,
 ): boolean {
   return RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) && !playAgainLoading;
-}
-
-/**
- * Resets every piece of local and store UI state a replay leaves behind
- * from the finished session, before the new engine is built. Extracted so
- * `playAgain` reads as its three real steps (create session, reset state,
- * build engine) rather than interleaving them with two dozen assignments.
- */
-function resetForReplay(
-  context: OneTwentyOnePlayContext,
-  session: { sessionId: string },
-  seatedSnapshot: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
-  modePair: { captureModeKey: string; inputModeKey: string },
-): void {
-  context.$store.game.sessionId = session.sessionId;
-  context.$store.game.configSnapshot = seatedSnapshot;
-  context.$store.game.idempotencyKey = null;
-  context.$store.game.setSessionModes(modePair);
-  context.$store.game.timerRemainingMs = null;
-  context.$store.game.timerStartedAt = null;
-  context.$store.game.timerExpired = false;
-
-  context.finished = false;
-  context.completionStatus = "pending";
-  context.completionError = "";
-  context.resultsSnapshot = null;
-  context.pendingCheckoutScore = null;
-  context.pendingDartObservation = null;
-  context.showDoubleConfirm = false;
-  context.showSessionFinishConfirm = false;
-  clearHiddenTimer(context);
-  context.scoreInput.clear();
-  context.error = "";
-  context.hasActiveSession = true;
 }
 
 function statsFor(
@@ -719,64 +681,50 @@ export function oneTwentyOnePlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used, against
-     * whichever ruleset version that session actually used — `121_V1` stays
-     * on `121_V1`, `121_V2` stays on `121_V2` and its own `duration_type`/
-     * `duration_value`.
+     * Replays the same configuration template the first session used,
+     * against whichever ruleset version that session actually used —
+     * `121_V1` stays on `121_V1`, `121_V2` stays on `121_V2` and its own
+     * `duration_type`/`duration_value`. Delegates to `play-lifecycle.ts`'s
+     * shared `runPlayAgain`.
      */
     async playAgain(this: OneTwentyOnePlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
       const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (!config || !templateRef || !rulesetVersionKey) return;
-      if (!canReplay(rulesetVersionKey, this.playAgainLoading)) return;
-      const factory = getEngineFactory(rulesetVersionKey);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
-        rulesetVersionKey,
-        this.$store.settings,
-      );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: { source: "template", templateRef },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-        resetForReplay(this, session, seatedSnapshot, modePair);
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof OneTwentyOneEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        const freshTimer = maybeStartFreshCountdown(
-          this.$store.game,
-          seatedSnapshot,
-          engine,
-        );
-        if (freshTimer) {
-          this.timer?.stop();
-          this.timer = freshTimer;
-        }
-      } finally {
-        this.playAgainLoading = false;
+      if (
+        !rulesetVersionKey ||
+        !canReplay(rulesetVersionKey, this.playAgainLoading)
+      ) {
+        return;
       }
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        rulesetVersionKey,
+        (engine) => (engine instanceof OneTwentyOneEngine ? engine : null),
+        undefined,
+        () => {
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.pendingCheckoutScore = null;
+          this.pendingDartObservation = null;
+          this.showDoubleConfirm = false;
+          this.showSessionFinishConfirm = false;
+          this.scoreInput.clear();
+        },
+        (engine) => {
+          const config = this.$store.game.configSnapshot;
+          if (!config) return;
+          const freshTimer = maybeStartFreshCountdown(
+            this.$store.game,
+            config,
+            engine,
+          );
+          if (freshTimer) {
+            this.timer?.stop();
+            this.timer = freshTimer;
+          }
+        },
+      );
     },
   };
 }

@@ -483,6 +483,8 @@ export async function runPlayAgain<
   buildOverrides?: (
     priorConfig: Seated<TConfig>,
   ) => PlayAgainOverrides<TConfig>,
+  resetLocalState?: () => void,
+  afterEngineReady?: (engine: TEngine) => void,
 ): Promise<void> {
   const config = context.$store.game.configSnapshot;
   const templateRef = context.$store.game.templateRef;
@@ -535,11 +537,13 @@ export async function runPlayAgain<
     clearHiddenTimer(context);
     context.error = "";
     context.hasActiveSession = true;
+    resetLocalState?.();
 
     const engine = narrowEngine(factory.create(seatedSnapshot));
     if (!engine) return;
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
+    afterEngineReady?.(engine);
   } finally {
     context.playAgainLoading = false;
   }
