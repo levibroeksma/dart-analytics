@@ -258,6 +258,66 @@ describe("oneTwentyOneSetup", () => {
     });
   });
 
+  describe("bot wiring", () => {
+    it("initializes the level picker to DEFAULT_BOT_LEVEL and no picker shown", () => {
+      const setup = oneTwentyOneSetup() as unknown as {
+        pendingBotLevel: number;
+        showBotLevelPicker: boolean;
+      };
+      expect(setup.pendingBotLevel).toBe(8);
+      expect(setup.showBotLevelPicker).toBe(false);
+    });
+
+    it("addBot seats a level-8 DartBot and locks duration to TARGET, like a guest does", () => {
+      const ctx = oneTwentyOneSetup() as unknown as {
+        durationType: string;
+        bot: { level: number } | null;
+        addBot: () => void;
+      };
+      ctx.durationType = "ROUNDS";
+
+      ctx.addBot();
+
+      expect(ctx.bot).toEqual({ level: 8 });
+      expect(ctx.durationType).toBe("TARGET");
+    });
+
+    it("addBot refuses when a guest is already seated, and vice versa", () => {
+      const ctx = oneTwentyOneSetup() as unknown as {
+        guests: { displayName: string }[];
+        newGuestName: string;
+        bot: { level: number } | null;
+        addGuest: () => void;
+        addBot: () => void;
+        removeGuest: (index: number) => void;
+      };
+
+      ctx.newGuestName = "Guest 1";
+      ctx.addGuest();
+      ctx.addBot();
+      expect(ctx.bot).toBeNull();
+
+      ctx.removeGuest(0);
+      ctx.addBot();
+      ctx.newGuestName = "Guest 2";
+      ctx.addGuest();
+      expect(ctx.guests).toEqual([]);
+    });
+
+    it("removeBot clears the seated bot", () => {
+      const ctx = oneTwentyOneSetup() as unknown as {
+        bot: { level: number } | null;
+        addBot: () => void;
+        removeBot: () => void;
+      };
+      ctx.addBot();
+
+      ctx.removeBot();
+
+      expect(ctx.bot).toBeNull();
+    });
+  });
+
   describe("session creation", () => {
     it("creates a TARGET session with no duration_value override", async () => {
       const setup = createSetup({
@@ -566,6 +626,46 @@ describe("oneTwentyOneSetup", () => {
         }),
       );
       expect(location.href).toBe("/games/121/play");
+    });
+
+    it("a seated bot starts a 121_V1 session with a 2-seat DARTBOT participants array", async () => {
+      const setup = createSetup({
+        presets: [V1_PRESET, TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
+        durationType: "TARGET",
+        durationValue: null,
+      });
+      (setup as unknown as { bot: { level: number } | null }).bot = {
+        level: 8,
+      };
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "DartBot",
+            participantTypeKey: "DARTBOT",
+            dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "121_V1",
+          participants: [
+            { participantTypeKey: "PLAYER", sideKey: "A" },
+            { participantTypeKey: "DARTBOT", level: 8, sideKey: "B" },
+          ],
+        }),
+      );
     });
   });
 });

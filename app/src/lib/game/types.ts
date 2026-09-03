@@ -1015,6 +1015,8 @@ export type OneTwentyOneSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -1047,7 +1049,9 @@ export type OneTwentyOneSetupContext = {
     type: OneTwentyOneDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: OneTwentyOneSetupContext): void;
+  addBot(this: OneTwentyOneSetupContext): void;
   removeGuest(this: OneTwentyOneSetupContext, index: number): void;
+  removeBot(this: OneTwentyOneSetupContext): void;
   forceTargetIfGuested(this: OneTwentyOneSetupContext): void;
   start(this: OneTwentyOneSetupContext): Promise<void>;
 };
