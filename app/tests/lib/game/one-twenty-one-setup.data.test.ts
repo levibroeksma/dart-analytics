@@ -679,6 +679,15 @@ describe("oneTwentyOneSetup — opponent-slot shape", () => {
   });
 });
 
+describe("oneTwentyOneSetup — opponent-slot shape", () => {
+  it('carries `bot` and `showOpponentChooser` so GuestSection.astro\'s Alpine expressions (`!bot`, `x-if="bot"`, `x-if="showOpponentChooser"`) never reference an undefined identifier', () => {
+    const setup = oneTwentyOneSetup();
+
+    expect(setup).toHaveProperty("bot", null);
+    expect(setup).toHaveProperty("showOpponentChooser", false);
+  });
+});
+
 describe("oneTwentyOneSetup — guests", () => {
   function makeSetup() {
     return {
