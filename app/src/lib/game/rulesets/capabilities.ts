@@ -101,7 +101,7 @@ export function capableRulesets(
  * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
  * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) already
  * plays: Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles
- * Training. Four are listed here — Shanghai V2 and Singles Training V2
+ * Training. Five are listed here — Shanghai V2 and Singles Training V2
  * can never create *any* 2-seat session today (`FINDINGS.md` F45: both setup
  * screens hardcode their V2 ruleset key with no seat-count branch, so a guest
  * add already 422s at `createSession`), and that gap is explicitly deferred,
@@ -115,6 +115,7 @@ export const RULESET_DARTBOT: Readonly<
   AROUND_THE_CLOCK_V1: true,
   BOBS27_V1: true,
   DOUBLES_TRAINING_V1: true,
+  SHANGHAI_V1: true,
   "501_V1": true,
 };
 

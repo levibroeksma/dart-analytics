@@ -5,6 +5,7 @@ import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const infoSection = {
@@ -25,7 +26,10 @@ const hints = {
 ---
 
 <SetupShell title="Shanghai">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("SHANGHAI_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
