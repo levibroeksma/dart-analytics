@@ -19,6 +19,7 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
   clearHiddenTimer,
+  currentFacts,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import {
@@ -33,7 +34,6 @@ import {
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
-  EngineFacts,
   ScoreTrainingSeatState,
   ScoreTrainingState,
   TurnFact,
@@ -149,20 +149,6 @@ function startCountdown(
   });
   timer.start();
   return timer;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors it.
- * Upload paths that can run without a live engine (a completion retry driven
- * straight from the results modal) fall back to the persisted mirror.
- */
-function currentFacts(context: ScoreTrainingPlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 /**

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// F27 Task 1: score-training-play.data.ts now imports currentFacts from
+// play-lifecycle.ts instead of defining its own copy. Confirmed these
+// assertions still hold unchanged.
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),

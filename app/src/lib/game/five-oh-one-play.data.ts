@@ -19,6 +19,7 @@ import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
+  currentFacts,
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
@@ -43,7 +44,6 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   FiveOhOneState,
   TurnFact,
 } from "@modules/types";
@@ -87,21 +87,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof FiveOhOneEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors
- * it. Upload paths that can run without a live engine (a completion retry
- * driven straight from the results modal) fall back to the persisted
- * mirror — mirrors `score-training-play.data.ts`'s `currentFacts`.
- */
-function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 const BOT_PRE_THROW_MS = 900;

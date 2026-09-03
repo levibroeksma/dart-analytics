@@ -23,6 +23,7 @@ import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   clearHiddenTimer,
+  currentFacts,
   playCommitDart,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
@@ -33,7 +34,6 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   OneTwentyOneSeatState,
   OneTwentyOneState,
   TurnFact,
@@ -80,21 +80,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof OneTwentyOneEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors
- * it. Upload paths that can run without a live engine (a completion retry
- * driven straight from the results modal) fall back to the persisted
- * mirror — mirrors `five-oh-one-play.data.ts`'s `currentFacts`.
- */
-function currentFacts(context: OneTwentyOnePlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 /**

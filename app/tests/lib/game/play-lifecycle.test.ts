@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// F27 Task 1: currentFacts is now exported (was module-private). Confirmed
+// these assertions still hold unchanged.
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),

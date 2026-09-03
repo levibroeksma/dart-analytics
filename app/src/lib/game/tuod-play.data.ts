@@ -20,6 +20,7 @@ import {
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
+  currentFacts,
   playCommitDart,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
@@ -28,7 +29,6 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   TuodAttemptInput,
   TuodSeatState,
   TuodState,
@@ -73,20 +73,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof TuodEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors it.
- * Upload paths that can run without a live engine (a completion retry driven
- * straight from the results modal) fall back to the persisted mirror.
- */
-function currentFacts(context: TuodPlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 /**
