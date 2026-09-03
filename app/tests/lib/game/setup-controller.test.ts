@@ -346,6 +346,13 @@ describe("createPresetSetupController", () => {
 
       expect(setup.bot).toBeNull();
     });
+
+    it("initializes the level picker to DEFAULT_BOT_LEVEL and no picker shown", () => {
+      const setup = bobs27();
+
+      expect(setup.pendingBotLevel).toBe(8);
+      expect(setup.showBotLevelPicker).toBe(false);
+    });
   });
 
   describe("dynamic rulesetVersionKey", () => {

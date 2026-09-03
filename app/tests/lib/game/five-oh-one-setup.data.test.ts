@@ -75,6 +75,13 @@ describe("fiveOhOneSetup", () => {
     expect(setup.presets).toHaveLength(2);
   });
 
+  it("initializes the level picker to DEFAULT_BOT_LEVEL and no picker shown", () => {
+    const setup = createSetup();
+
+    expect(setup.pendingBotLevel).toBe(8);
+    expect(setup.showBotLevelPicker).toBe(false);
+  });
+
   it("falls back to 1 leg when no preset declares legs_to_win", async () => {
     const setup = createSetup();
     vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
