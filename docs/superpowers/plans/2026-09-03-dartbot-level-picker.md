@@ -74,21 +74,11 @@ In `app/src/lib/game/types.ts`, replace the `GuestListContext` type (~line 1300�
 
 ```ts
 /**
- * The opponent-slot state every setup screen's add-a-guest modal drives.
- * `bot` occupies the same single slot a guest would — `addTypedGuest` and
- * `addBotOpponent` (`guest-list.ts`) each refuse when the other is already
- * seated, so the two are mutually exclusive by construction, not by a type
- * that forbids both. Both fields are optional because only the four
- * DartBot-enabled setup screens (`createPresetSetupController`, plus 501's
- * hand-rolled context) ever populate them — the other five never set
- * `bot`/`showOpponentChooser`, so they read as `undefined`/falsy and the
- * guest-only flow is unchanged.
- *
- * `pendingBotLevel` and `showBotLevelPicker` back `OpponentChooserModal`'s
- * level step (D-D's 1–15 public knob): the modal swaps to a slider bound to
- * `pendingBotLevel` when `showBotLevelPicker` is true, and `addBotOpponent`
- * reads the chosen value off `pendingBotLevel` rather than a hardcoded
- * default.
+ * The opponent-slot state a setup screen's guest/DartBot modal drives.
+ * `bot` and a guest are mutually exclusive. `pendingBotLevel` is the
+ * chooser's slider value; `showBotLevelPicker` selects which step of the
+ * chooser is shown. All four fields are optional — only DartBot-enabled
+ * screens set them.
  */
 export type GuestListContext = {
   guests: { displayName: string }[];
@@ -107,15 +97,10 @@ In `app/src/lib/game/guest-list.ts`, replace the whole file's DartBot-seating fu
 
 ```ts
 /**
- * Seats a DartBot opponent from the setup screen's chooser (D-J), mirroring
- * `addTypedGuest`'s single-opponent-slot refusal — a bot and a guest can
- * never both be seated. `level` is the value the chooser's slider left on
- * `context.pendingBotLevel` (`08-DartBot.md` §Skill Model, D-D's 1–15 public
- * knob); a context that never opened the level step falls back to
- * `DEFAULT_BOT_LEVEL`, so a caller that skips the picker entirely (none
- * does today, but nothing requires one to) still seats a valid bot.
- * @returns whether a bot was actually seated, mirroring `addTypedGuest`'s
- *   own boolean contract.
+ * Seats a DartBot at `context.pendingBotLevel`, falling back to
+ * `DEFAULT_BOT_LEVEL` when unset. Refuses when a guest or another bot
+ * already occupies the opponent slot.
+ * @returns whether a bot was actually seated.
  */
 export function addBotOpponent(context: GuestListContext): boolean {
   if (context.guests.length >= 1 || context.bot) return false;
@@ -132,12 +117,7 @@ export function addBotOpponent(context: GuestListContext): boolean {
 In `app/src/lib/game/rulesets/capabilities.ts`, replace the comment above `DEFAULT_BOT_LEVEL` (~line 126–133) — the constant itself (`export const DEFAULT_BOT_LEVEL = 8;`) is unchanged:
 
 ```ts
-/**
- * The bot level (1–15, D-D's public knob) `OpponentChooserModal`'s slider
- * initializes to, and the fallback `addBotOpponent` (`guest-list.ts`) and
- * the server (`session.service.ts`'s `buildSeatPlan`) each use when a
- * DartBot seat is requested with no `level` at all.
- */
+/** Default DartBot level (1–15) used when no level was picked. */
 export const DEFAULT_BOT_LEVEL = 8;
 ```
 
@@ -294,23 +274,10 @@ Replace `app/src/components/layout/games/setup/OpponentChooserModal.astro` in fu
 ```astro
 ---
 /**
- * D-J's two-step chooser: the add-opponent button (`AddGuestButton.astro`)
- * opens this first when the setup screen supports a bot (`allowDartbot`),
- * offering Guest or DartBot. Choosing Guest falls through to the existing
- * `GuestNameModal`; choosing DartBot swaps this same modal to a level step
- * — a 1–15 slider (D-D's public knob, no tier names) bound to
- * `pendingBotLevel` — rather than seating the bot immediately. `addBot()`
- * (`guest-list.ts`'s `addBotOpponent`) reads the chosen value off
- * `pendingBotLevel` when the player confirms.
- *
- * Parent (`GuestSection.astro`) owns `showOpponentChooser`, mirroring
- * `GuestNameModal.astro`'s ownership split; this modal owns
- * `showBotLevelPicker`/`pendingBotLevel` the same way `GuestNameModal` owns
- * `newGuestName` — both reset on dismiss or on a successful add.
- *
- * The title is one `x-text`-bound `<h2>` rather than one per step: two
- * elements sharing `titleId` would be an invalid duplicate id, and only one
- * can ever be visible at a time regardless.
+ * Guest/DartBot opponent chooser. Choosing DartBot swaps the body to a
+ * level step (1–15 slider bound to `pendingBotLevel`) instead of seating
+ * immediately; `addBot()` seats at the chosen level. One `x-text`-bound
+ * `<h2>` covers both steps to avoid a duplicate `titleId`.
  */
 
 // Components
