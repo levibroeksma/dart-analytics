@@ -1,11 +1,9 @@
 ---
 /**
- * D-J's two-step chooser: the add-opponent button (`AddGuestButton.astro`)
- * opens this first when the setup screen supports a bot (`allowDartbot`),
- * offering Guest or DartBot. Choosing Guest falls through to the existing
- * `GuestNameModal`; choosing DartBot seats one directly — `addBot()` needs no
- * typed input, unlike a guest's name. Parent (`GuestSection.astro`) owns
- * `showOpponentChooser`, mirroring `GuestNameModal.astro`'s ownership split.
+ * Guest/DartBot opponent chooser. Choosing DartBot swaps the body to a
+ * level step (1–15 slider bound to `pendingBotLevel`) instead of seating
+ * immediately; `addBot()` seats at the chosen level. One `x-text`-bound
+ * `<h2>` covers both steps to avoid a duplicate `titleId`.
  */
 
 // Components
@@ -15,18 +13,58 @@ import Button from "@components/forms/Button.astro";
 
 <Modal
   titleId="opponent-chooser-title"
-  onDismiss="showOpponentChooser = false"
+  onDismiss="showOpponentChooser = false; showBotLevelPicker = false; pendingBotLevel = 8"
 >
   <h2
     id="opponent-chooser-title"
     class="text-lg font-semibold text-foreground"
+    x-text="showBotLevelPicker ? 'DartBot level' : 'Add Opponent'"
   >
-    Add Opponent
   </h2>
+
+  <div
+    class="relative mt-6"
+    x-show="showBotLevelPicker"
+    x-cloak
+  >
+    <input
+      type="range"
+      id="botLevel"
+      name="botLevel"
+      min="1"
+      max="15"
+      step="1"
+      value="8"
+      list="botLevelTicks"
+      aria-label="DartBot level, 1 to 15"
+      x-model.number="pendingBotLevel"
+      class="peer w-full accent-accent"
+    />
+    <datalist id="botLevelTicks">
+      <option value="1"></option>
+      <option value="5"></option>
+      <option value="10"></option>
+      <option value="15"></option>
+    </datalist>
+    <div class="relative mt-1 h-4 text-xs text-muted-foreground">
+      <span class="absolute left-0">1</span>
+      <span class="absolute left-[28.5714%] -translate-x-1/2">5</span>
+      <span class="absolute left-[64.2857%] -translate-x-1/2">10</span>
+      <span class="absolute right-0">15</span>
+    </div>
+    <p
+      class="glass pointer-events-none absolute -top-9 -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-center text-xs font-semibold text-foreground opacity-0 transition-opacity peer-active:opacity-100"
+      :style="`left: ${(pendingBotLevel - 1) / 14 * 100}%`"
+      x-text="`Level ${pendingBotLevel}`"
+    >
+    </p>
+  </div>
 
   <div
     slot="footer"
     class="mt-6 flex gap-3"
+    x-show="!showBotLevelPicker"
+    x-cloak
   >
     <Button
       type="button"
@@ -39,6 +77,27 @@ import Button from "@components/forms/Button.astro";
       type="button"
       class="flex-1"
       title="DartBot"
+      @click="showBotLevelPicker = true"
+    />
+  </div>
+
+  <div
+    slot="footer"
+    class="mt-6 flex gap-3"
+    x-show="showBotLevelPicker"
+    x-cloak
+  >
+    <Button
+      type="button"
+      variant="secondary"
+      class="flex-1"
+      title="Cancel"
+      @click="showOpponentChooser = false; showBotLevelPicker = false; pendingBotLevel = 8"
+    />
+    <Button
+      type="button"
+      class="flex-1"
+      title="Add DartBot"
       @click="addBot()"
     />
   </div>
