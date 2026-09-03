@@ -91,6 +91,17 @@ const bobs27Request = {
   config: { source: "inline" as const, config: {} },
 };
 
+const oneTwentyOneV2Request = {
+  gameTypeKey: "ONE_TWENTY_ONE",
+  rulesetVersionKey: "121_V2",
+  captureModeKey: "RECREATIONAL",
+  inputModeKey: "QUICK_SCORE",
+  config: {
+    source: "inline" as const,
+    config: { duration_type: "TARGET" },
+  },
+};
+
 describe("createSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -283,7 +294,7 @@ describe("createSession", () => {
 
     it("rejects a DARTBOT seat for a ruleset that does not admit one", async () => {
       const result = await createSession("player-1", {
-        ...inlineRequest,
+        ...oneTwentyOneV2Request,
         participants: [
           { participantTypeKey: "PLAYER", sideKey: "A" },
           { participantTypeKey: "DARTBOT", sideKey: "B" },

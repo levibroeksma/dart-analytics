@@ -790,6 +790,7 @@ export type OneTwentyOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -832,6 +833,7 @@ export type OneTwentyOnePlayContext = {
     observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
+  maybeRunBotVisit(this: OneTwentyOnePlayContext): Promise<void>;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
   resultsTitle(this: OneTwentyOnePlayContext): string;
   back(this: OneTwentyOnePlayContext): Promise<void>;
