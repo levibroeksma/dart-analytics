@@ -123,11 +123,5 @@ export function supportsDartbot(rulesetVersionKey: RulesetVersionKey): boolean {
   return RULESET_DARTBOT[rulesetVersionKey] === true;
 }
 
-/**
- * The bot level (1–15, D-D's public knob) a new DartBot seat gets when the
- * setup screen's chooser offers no picker — `08-DartBot.md` §Skill Model
- * names 8 the default. Both the client (`guest-list.ts`'s `addBotOpponent`)
- * and the server (`session.service.ts`'s `buildSeatPlan`, the fallback for a
- * request that omits `level`) read this one constant.
- */
+/** Default DartBot level (1–15) used when no level was picked. */
 export const DEFAULT_BOT_LEVEL = 8;
