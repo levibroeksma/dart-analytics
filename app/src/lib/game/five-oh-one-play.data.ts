@@ -8,23 +8,17 @@ import {
   resolveSessionModePair,
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
-  currentFacts,
   playAbandonAndExit,
   playBack,
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
+  playUploadAndCompleteSession,
   playVisitMarkers,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -745,41 +739,21 @@ export function fiveOhOnePlay() {
     },
 
     /**
-     * Uploads the fact log, then marks the session COMPLETED. On this path
-     * only, SESSION_ALREADY_COMPLETED counts as success. Stats are copied into
-     * `resultsSnapshot` before any store mutation so the results modal never
-     * depends on `$store.game.turns` surviving a later reset.
+     * Uploads the fact log, then marks the session COMPLETED. Delegates to
+     * `play-lifecycle.ts`'s shared `playUploadAndCompleteSession`. Unlike
+     * 121/Score Training/TUOD's own local snapshot builders, this file's own
+     * `buildResultsSnapshot` reads `winningSideKey`/`legsWonFor` off the
+     * context directly rather than off a passed `finalState`, so it is
+     * wrapped rather than passed straight through — `resolveFinalState` here
+     * only signals "state is available", matching this file's own
+     * `state()`.
      */
     async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      this.resultsSnapshot = buildResultsSnapshot(this);
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        () => buildResultsSnapshot(this),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: FiveOhOnePlayContext): string {

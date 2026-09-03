@@ -6,6 +6,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 2: back()/abandonAndExit() now delegate to play-lifecycle.ts's
 // shared playBack/playAbandonAndExit. Confirmed these assertions still
 // hold unchanged.
+// F27 Task 3: uploadAndCompleteSession() now delegates to play-lifecycle.ts's
+// shared playUploadAndCompleteSession, wrapping this file's own
+// buildResultsSnapshot(context) since it reads winningSideKey/legsWonFor off
+// the context directly rather than off finalState. Confirmed these
+// assertions still hold unchanged.
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both

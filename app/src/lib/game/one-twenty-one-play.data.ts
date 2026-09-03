@@ -13,20 +13,14 @@ import {
   reseatSnapshot,
 } from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   clearHiddenTimer,
-  currentFacts,
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playUploadAndCompleteSession,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
@@ -697,47 +691,14 @@ export function oneTwentyOnePlay() {
       this.error = "";
     },
 
-    /**
-     * Uploads the fact log, then marks the session COMPLETED. On this path
-     * only, SESSION_ALREADY_COMPLETED counts as success. Stats are copied
-     * into `resultsSnapshot` before any store mutation so the results modal
-     * never depends on `$store.game.turns` surviving a later reset.
-     */
     async uploadAndCompleteSession(
       this: OneTwentyOnePlayContext,
     ): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = this.state();
-      if (finalState) {
-        this.resultsSnapshot = computeStats(finalState, this.$store.game.turns);
-      }
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => computeStats(finalState, this.$store.game.turns),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: OneTwentyOnePlayContext): string {

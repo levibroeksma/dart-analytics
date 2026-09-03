@@ -6,6 +6,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 2: back()/abandonAndExit() now delegate to play-lifecycle.ts's
 // shared playBack/playAbandonAndExit (timer.stop() passed as onAbandoned).
 // Confirmed these assertions still hold unchanged.
+// F27 Task 3: uploadAndCompleteSession() now delegates to play-lifecycle.ts's
+// shared playUploadAndCompleteSession; finalTuodState is deleted (provably
+// equivalent to state() alone). Confirmed these assertions still hold
+// unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

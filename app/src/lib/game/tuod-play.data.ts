@@ -3,14 +3,8 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   participantsFromSeats,
@@ -20,10 +14,10 @@ import {
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
-  currentFacts,
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playUploadAndCompleteSession,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
@@ -75,24 +69,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof TuodEngine ? engine : null;
-}
-
-/**
- * The engine's own state while live; mirrors `currentFacts()`'s own fallback
- * otherwise — a completion retry driven straight from the results modal (no
- * live engine) folds the persisted mirror through the same pure reducer
- * instead of going without a snapshot.
- */
-function finalTuodState(context: TuodPlayContext): TuodState | null {
-  const live = context.state();
-  if (live) return live;
-  const config = context.$store.game.configSnapshot;
-  if (!config) return null;
-  return foldTuodState(
-    currentFacts(context),
-    config,
-    context.$store.game.timerExpired ?? false,
-  );
 }
 
 function statsFor(seat: TuodSeatState): TuodSeatResult {
@@ -509,39 +485,11 @@ export function tuodPlay() {
     },
 
     async uploadAndCompleteSession(this: TuodPlayContext): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = finalTuodState(this);
-      if (finalState) {
-        this.resultsSnapshot = computeStats(finalState);
-      }
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => computeStats(finalState),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: TuodPlayContext): string {

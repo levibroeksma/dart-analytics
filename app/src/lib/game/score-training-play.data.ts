@@ -1,13 +1,7 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   participantsFromSeats,
@@ -19,9 +13,9 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
   clearHiddenTimer,
-  currentFacts,
   playAbandonAndExit,
   playBack,
+  playUploadAndCompleteSession,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
 import {
@@ -151,27 +145,6 @@ function startCountdown(
   });
   timer.start();
   return timer;
-}
-
-/**
- * The engine's own state while live; mirrors `currentFacts()`'s own fallback
- * otherwise — a completion retry driven straight from the results modal (no
- * live engine) folds the persisted mirror through the same pure reducer
- * instead of going without a snapshot. Mirrors `tuod-play.data.ts`'s own
- * `finalTuodState`.
- */
-function finalScoreTrainingState(
-  context: ScoreTrainingPlayContext,
-): ScoreTrainingState | null {
-  const live = context.state();
-  if (live) return live;
-  const config = context.$store.game.configSnapshot;
-  if (!config) return null;
-  return foldScoreTrainingState(
-    currentFacts(context),
-    config,
-    context.$store.game.timerExpired ?? false,
-  );
 }
 
 /**
@@ -508,45 +481,17 @@ export function scoreTrainingPlay() {
     async uploadAndCompleteSession(
       this: ScoreTrainingPlayContext,
     ): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = finalScoreTrainingState(this);
-      if (finalState) {
-        this.resultsSnapshot = {
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => ({
           status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
           winningSideKey: finalState.winningSideKey,
           seats: finalState.seats.map((seat) =>
             statsFor(seat, this.$store.game.turns),
           ),
-        };
-      }
-      this.completionStatus = "succeeded";
+        }),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: ScoreTrainingPlayContext): string {

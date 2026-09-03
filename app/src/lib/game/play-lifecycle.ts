@@ -381,6 +381,8 @@ export async function playUploadAndCompleteSession<
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   buildResultsSnapshot: (finalState: ReturnType<TEngine["state"]>) => TResults,
+  resolveFinalState: () => ReturnType<TEngine["state"]> | null = () =>
+    (context.engine?.state() ?? null) as ReturnType<TEngine["state"]> | null,
 ): Promise<void> {
   const sessionId = context.$store.game.sessionId!;
 
@@ -392,7 +394,7 @@ export async function playUploadAndCompleteSession<
   context.completionStatus = "saving";
   context.completionError = "";
 
-  const finalState = context.engine?.state() ?? null;
+  const finalState = resolveFinalState();
 
   try {
     const batch = buildEventsBatch(currentFacts(context));
@@ -412,9 +414,7 @@ export async function playUploadAndCompleteSession<
   }
 
   if (finalState) {
-    context.resultsSnapshot = buildResultsSnapshot(
-      finalState as ReturnType<TEngine["state"]>,
-    );
+    context.resultsSnapshot = buildResultsSnapshot(finalState);
   }
   context.completionStatus = "succeeded";
 }

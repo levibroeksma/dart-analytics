@@ -5,6 +5,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 2: playAbandonAndExit takes an optional onAbandoned callback,
 // run on the success path right before store reset/redirect. Confirmed
 // these assertions still hold unchanged.
+// F27 Task 3: playUploadAndCompleteSession takes an optional
+// resolveFinalState callback, defaulting to the exact prior
+// context.engine?.state() ?? null behavior. Confirmed these assertions
+// still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
