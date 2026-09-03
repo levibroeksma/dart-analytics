@@ -99,15 +99,16 @@ export function capableRulesets(
 
 /**
  * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
- * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) already
- * plays: Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles
- * Training. Five are listed here — Shanghai V2 and Singles Training V2
- * can never create *any* 2-seat session today (`FINDINGS.md` F45: both setup
- * screens hardcode their V2 ruleset key with no seat-count branch, so a guest
- * add already 422s at `createSession`), and that gap is explicitly deferred,
- * not this map's to route around. 121 and Score Training still have no bot
- * strategy. Absent keys read as unsupported, exactly like `SEAT_CAPS`'s own
- * "no entry" default in `session-seats.service.ts`.
+ * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) plays:
+ * Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles Training —
+ * all five are listed here. `501_V1` is also listed, on `X01Strategy`
+ * (phase 2) rather than `DictatedStrategy`. Shanghai V2 and Singles Training
+ * V2 can never create *any* 2-seat session today (`FINDINGS.md` F45: both
+ * setup screens hardcode their V2 ruleset key with no seat-count branch, so a
+ * guest add already 422s at `createSession`), and that gap is explicitly
+ * deferred, not this map's to route around. 121 and Score Training still have
+ * no bot strategy. Absent keys read as unsupported, exactly like `SEAT_CAPS`'s
+ * own "no entry" default in `session-seats.service.ts`.
  */
 export const RULESET_DARTBOT: Readonly<
   Partial<Record<RulesetVersionKey, boolean>>
@@ -116,6 +117,7 @@ export const RULESET_DARTBOT: Readonly<
   BOBS27_V1: true,
   DOUBLES_TRAINING_V1: true,
   SHANGHAI_V1: true,
+  SINGLES_V1: true,
   "501_V1": true,
 };
 

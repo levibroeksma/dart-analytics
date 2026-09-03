@@ -14,14 +14,21 @@ import {
   playInit,
   playPreviewSegments,
   playRetryReconciliation,
+  playRunBotVisualBoardVisit,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import type {
   RulesetVersionKey,
+  SeatFact,
   SinglesSnapshot,
   SinglesV2Snapshot,
 } from "@lib/types";
@@ -36,6 +43,8 @@ import type {
 } from "@modules/types";
 import type {
   BoardMarker,
+  BotDartThrower,
+  BotPacing,
   SinglesPreviewSegment,
   SinglesTrainingPlayContext,
   SinglesTrainingResultsSnapshot,
@@ -275,6 +284,66 @@ function resumeEngine(
   return engine instanceof SinglesTrainingEngine ? engine : null;
 }
 
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+/**
+ * The real per-dart thrower: phases 1–3's shipped pipeline (skill curve,
+ * seeded RNG, dictated strategy, throw engine), combined the same way
+ * `shanghai-play.data.ts` already does. `dartIndex` is re-derived from the
+ * fact log on every call — never held on this closure — so an undone bot
+ * visit re-throws identically from the same seed (`08-DartBot.md`
+ * §Determinism and Replay).
+ */
+function throwBotDart(
+  context: SinglesTrainingPlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const config = context.$store.game.configSnapshot;
+  const state = context.state();
+  const seatState = state?.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  );
+  if (!config || !state || !seatState) {
+    throw new Error("DartBot has no seat in this session's engine state");
+  }
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const target = targetAt(
+    numbersPath(config.targetOrder),
+    seatState.targetIndex,
+  );
+  const intent = chooseTarget({ target });
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    observation: {
+      hitTargetNumber: thrown.hit.targetNumber,
+      hitZoneKey: thrown.hit.zoneKey,
+      locationX: thrown.landing.x,
+      locationY: thrown.landing.y,
+    },
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
 export function singlesTrainingPlay() {
   let self: SinglesTrainingPlayContext;
 
@@ -293,6 +362,7 @@ export function singlesTrainingPlay() {
     resultsSnapshot: null as SinglesTrainingResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    botThrowing: false,
     engine: null as SinglesTrainingEngine | null,
     ...boardInputData((observation) => self.recordDart(observation)),
 
@@ -429,9 +499,10 @@ export function singlesTrainingPlay() {
       return String(targetHitCounts(this.$store.game.turns, config).trebles);
     },
 
-    init(this: SinglesTrainingPlayContext) {
+    async init(this: SinglesTrainingPlayContext) {
       self = this;
-      return playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await this.maybeRunBotVisit();
     },
 
     retryReconciliation(this: SinglesTrainingPlayContext) {
@@ -456,8 +527,19 @@ export function singlesTrainingPlay() {
       await this.commitDart(tapObservation(target, ring));
     },
 
-    commitDart(this: SinglesTrainingPlayContext, observation: DartObservation) {
-      return playCommitDart(this, observation);
+    async commitDart(
+      this: SinglesTrainingPlayContext,
+      observation: DartObservation,
+    ) {
+      await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
+    },
+
+    async maybeRunBotVisit(this: SinglesTrainingPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat) return;
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
     },
 
     async recordDart(
@@ -475,8 +557,17 @@ export function singlesTrainingPlay() {
       return playVisitMarkers(this);
     },
 
-    undoVisit(this: SinglesTrainingPlayContext) {
-      playUndoVisit(this);
+    async undoVisit(this: SinglesTrainingPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        playUndoVisit(this);
+      }
+      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {

@@ -933,6 +933,7 @@ export type SinglesTrainingPlayContext = {
   resultsSnapshot: SinglesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
+  botThrowing: boolean;
   $store: PlayStoreContext<SinglesSnapshot | SinglesV2Snapshot>;
   engine: SinglesTrainingEngine | null;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
@@ -968,7 +969,8 @@ export type SinglesTrainingPlayContext = {
     this: SinglesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
-  undoVisit(this: SinglesTrainingPlayContext): void;
+  maybeRunBotVisit(this: SinglesTrainingPlayContext): Promise<void>;
+  undoVisit(this: SinglesTrainingPlayContext): Promise<void>;
   uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void>;
   resultsTitle(this: SinglesTrainingPlayContext): string;
   back(this: SinglesTrainingPlayContext): Promise<void>;

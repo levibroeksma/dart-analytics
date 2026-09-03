@@ -319,6 +319,45 @@ describe("singlesTrainingSetup", () => {
       );
     });
 
+    it("resolves SINGLES_V1 and forces difficulty back to EASY once a DartBot is seated", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        difficulty: "HARD",
+      });
+      setup.addBot();
+      expect(setup.bot).toEqual({ level: 8 });
+      expect(setup.difficulty).toBe("EASY");
+
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "bot-1",
+            displayName: "DartBot",
+            participantTypeKey: "DARTBOT",
+            dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "SINGLES_V1",
+          config: expect.objectContaining({
+            overrides: expect.objectContaining({ difficulty: "EASY" }),
+          }),
+        }),
+      );
+    });
+
     it("falls back to Singles Training's declared pair when settings holds a pair it does not declare", async () => {
       store.settings = {
         captureModeKey: "RECREATIONAL",
