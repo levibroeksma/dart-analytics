@@ -33,7 +33,7 @@ import type {
   PreviewSegment,
 } from "./types";
 
-export function currentFacts<
+function currentFacts<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
   TResults,

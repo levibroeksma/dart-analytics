@@ -14,6 +14,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // instead, since the generic PlayLifecycleContext type does not carry
 // each ruleset's own extra fields). Confirmed these assertions still hold
 // unchanged.
+// F27 Task 5: currentFacts reverted to module-private — after Tasks 2-4,
+// no file outside play-lifecycle.ts calls it directly any more (fallow
+// flagged it as a dead export). Confirmed these assertions still hold
+// unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
