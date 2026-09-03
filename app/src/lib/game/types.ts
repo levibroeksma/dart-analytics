@@ -78,6 +78,8 @@ export type TuodSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -107,7 +109,9 @@ export type TuodSetupContext = {
     type: TuodDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: TuodSetupContext): void;
+  addBot(this: TuodSetupContext): void;
   removeGuest(this: TuodSetupContext, index: number): void;
+  removeBot(this: TuodSetupContext): void;
   forceRoundsIfGuested(this: TuodSetupContext): void;
   start(this: TuodSetupContext): Promise<void>;
 };
