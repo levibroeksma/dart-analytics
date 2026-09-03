@@ -3,32 +3,24 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
+  playAbandonAndExit,
+  playBack,
   playCommitDart,
+  playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   TuodAttemptInput,
   TuodSeatState,
   TuodState,
@@ -73,38 +65,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof TuodEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors it.
- * Upload paths that can run without a live engine (a completion retry driven
- * straight from the results modal) fall back to the persisted mirror.
- */
-function currentFacts(context: TuodPlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
-}
-
-/**
- * The engine's own state while live; mirrors `currentFacts()`'s own fallback
- * otherwise — a completion retry driven straight from the results modal (no
- * live engine) folds the persisted mirror through the same pure reducer
- * instead of going without a snapshot.
- */
-function finalTuodState(context: TuodPlayContext): TuodState | null {
-  const live = context.state();
-  if (live) return live;
-  const config = context.$store.game.configSnapshot;
-  if (!config) return null;
-  return foldTuodState(
-    currentFacts(context),
-    config,
-    context.$store.game.timerExpired ?? false,
-  );
 }
 
 function statsFor(seat: TuodSeatState): TuodSeatResult {
@@ -521,39 +481,11 @@ export function tuodPlay() {
     },
 
     async uploadAndCompleteSession(this: TuodPlayContext): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = finalTuodState(this);
-      if (finalState) {
-        this.resultsSnapshot = computeStats(finalState);
-      }
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => computeStats(finalState),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: TuodPlayContext): string {
@@ -566,118 +498,51 @@ export function tuodPlay() {
     },
 
     async back(this: TuodPlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: TuodPlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.timer?.stop();
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
 
     /**
      * Replays with the session's own duration as an override — the same
-     * carry-over `score-training-play.data.ts`'s `playAgain()` does. Without
-     * it, a replayed custom-duration session would silently persist the
-     * template's default `duration_value` instead of the value actually
-     * played.
+     * carry-over `score-training-play.data.ts`'s `playAgain()` does.
+     * Delegates to `play-lifecycle.ts`'s shared `runPlayAgain`. Unlike
+     * 501/121/Score Training's own `playAgain`, this reset callback does not
+     * call `scoreInput.clear()` — preserved exactly as this file's own
+     * pre-existing asymmetry, not added or removed by this refactor.
      */
     async playAgain(this: TuodPlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
         RULESET_VERSION_KEY,
-        this.$store.settings,
+        (engine) => (engine instanceof TuodEngine ? engine : null),
+        (config) => ({
+          snapshot: config,
+          wire: { duration_value: config.durationValue },
+        }),
+        () => {
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.pendingAttempt = null;
+          this.pendingDartObservation = null;
+          this.showFinishConfirm = false;
+        },
+        (engine) => {
+          const config = this.$store.game.configSnapshot;
+          if (config?.durationType === "MINUTES") {
+            this.timer?.stop();
+            this.timer = startCountdown(
+              this.$store.game,
+              config.durationValue,
+              engine,
+            );
+          }
+        },
       );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: {
-              source: "template",
-              templateRef,
-              overrides: { duration_value: config.durationValue },
-            },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-        this.$store.game.timerRemainingMs = null;
-        this.$store.game.timerStartedAt = null;
-        this.$store.game.timerExpired = false;
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingAttempt = null;
-        this.pendingDartObservation = null;
-        this.showFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.error = "";
-        this.hasActiveSession = true;
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof TuodEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        if (config.durationType === "MINUTES") {
-          this.timer?.stop();
-          this.timer = startCountdown(
-            this.$store.game,
-            config.durationValue,
-            engine,
-          );
-        }
-      } finally {
-        this.playAgainLoading = false;
-      }
     },
   };
 }

@@ -3,26 +3,19 @@ import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
+  playAbandonAndExit,
+  playBack,
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
+  playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
@@ -43,7 +36,6 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   FiveOhOneState,
   TurnFact,
 } from "@modules/types";
@@ -87,21 +79,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof FiveOhOneEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors
- * it. Upload paths that can run without a live engine (a completion retry
- * driven straight from the results modal) fall back to the persisted
- * mirror — mirrors `score-training-play.data.ts`'s `currentFacts`.
- */
-function currentFacts(context: FiveOhOnePlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 const BOT_PRE_THROW_MS = 900;
@@ -758,41 +735,21 @@ export function fiveOhOnePlay() {
     },
 
     /**
-     * Uploads the fact log, then marks the session COMPLETED. On this path
-     * only, SESSION_ALREADY_COMPLETED counts as success. Stats are copied into
-     * `resultsSnapshot` before any store mutation so the results modal never
-     * depends on `$store.game.turns` surviving a later reset.
+     * Uploads the fact log, then marks the session COMPLETED. Delegates to
+     * `play-lifecycle.ts`'s shared `playUploadAndCompleteSession`. Unlike
+     * 121/Score Training/TUOD's own local snapshot builders, this file's own
+     * `buildResultsSnapshot` reads `winningSideKey`/`legsWonFor` off the
+     * context directly rather than off a passed `finalState`, so it is
+     * wrapped rather than passed straight through — `resolveFinalState` here
+     * only signals "state is available", matching this file's own
+     * `state()`.
      */
     async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      this.resultsSnapshot = buildResultsSnapshot(this);
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        () => buildResultsSnapshot(this),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: FiveOhOnePlayContext): string {
@@ -804,105 +761,35 @@ export function fiveOhOnePlay() {
     },
 
     async back(this: FiveOhOnePlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: FiveOhOnePlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this);
     },
 
     /**
-     * Replays the same configuration template the first session used. Store
-     * and UI are mutated only once the new session exists: on failure the
-     * modal stays open with the results visible and the buttons enabled,
-     * since the prior session is already COMPLETED.
+     * Replays the same configuration template the first session used, with
+     * the current legs-to-win as an override. Delegates to
+     * `play-lifecycle.ts`'s shared `runPlayAgain`.
      */
     async playAgain(this: FiveOhOnePlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
         RULESET_VERSION_KEY,
-        this.$store.settings,
+        (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
+        (config) => ({
+          snapshot: config,
+          wire: { legs_to_win: config.legsToWin },
+        }),
+        () => {
+          this.pendingCheckoutScore = null;
+          this.showDoubleConfirm = false;
+          this.showMatchFinishConfirm = false;
+          this.scoreInput.clear();
+        },
       );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: {
-              source: "template",
-              templateRef,
-              overrides: { legs_to_win: config.legsToWin },
-            },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingCheckoutScore = null;
-        this.showDoubleConfirm = false;
-        this.showMatchFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.scoreInput.clear();
-        this.error = "";
-        this.hasActiveSession = true;
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof FiveOhOneEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-      } finally {
-        this.playAgainLoading = false;
-      }
     },
   };
 }

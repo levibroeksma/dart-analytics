@@ -34,6 +34,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/check-plan-findings-closure-hook.sh",
+            "statusMessage": "Checking plan findings-closure (F59 gate)"
+          }
+        ]
+      }
     ]
   }
 }

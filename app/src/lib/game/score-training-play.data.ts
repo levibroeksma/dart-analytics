@@ -1,25 +1,18 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
   clearHiddenTimer,
+  playAbandonAndExit,
+  playBack,
+  playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import {
   completedVisitsTotal,
@@ -33,7 +26,6 @@ import {
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
-  EngineFacts,
   ScoreTrainingSeatState,
   ScoreTrainingState,
   TurnFact,
@@ -149,41 +141,6 @@ function startCountdown(
   });
   timer.start();
   return timer;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors it.
- * Upload paths that can run without a live engine (a completion retry driven
- * straight from the results modal) fall back to the persisted mirror.
- */
-function currentFacts(context: ScoreTrainingPlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
-}
-
-/**
- * The engine's own state while live; mirrors `currentFacts()`'s own fallback
- * otherwise — a completion retry driven straight from the results modal (no
- * live engine) folds the persisted mirror through the same pure reducer
- * instead of going without a snapshot. Mirrors `tuod-play.data.ts`'s own
- * `finalTuodState`.
- */
-function finalScoreTrainingState(
-  context: ScoreTrainingPlayContext,
-): ScoreTrainingState | null {
-  const live = context.state();
-  if (live) return live;
-  const config = context.$store.game.configSnapshot;
-  if (!config) return null;
-  return foldScoreTrainingState(
-    currentFacts(context),
-    config,
-    context.$store.game.timerExpired ?? false,
-  );
 }
 
 /**
@@ -520,45 +477,17 @@ export function scoreTrainingPlay() {
     async uploadAndCompleteSession(
       this: ScoreTrainingPlayContext,
     ): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = finalScoreTrainingState(this);
-      if (finalState) {
-        this.resultsSnapshot = {
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => ({
           status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
           winningSideKey: finalState.winningSideKey,
           seats: finalState.seats.map((seat) =>
             statsFor(seat, this.$store.game.turns),
           ),
-        };
-      }
-      this.completionStatus = "succeeded";
+        }),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: ScoreTrainingPlayContext): string {
@@ -571,119 +500,49 @@ export function scoreTrainingPlay() {
     },
 
     async back(this: ScoreTrainingPlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: ScoreTrainingPlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.timer?.stop();
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
 
     /**
-     * Replays the same configuration template the first session used, so the
-     * new session's provenance on the server matches rather than drifting to
-     * an inline copy. Store and UI are mutated only once the new session
-     * exists: on failure the modal stays open with the results visible and the
-     * buttons enabled, since the prior session is already COMPLETED.
+     * Replays the same configuration template the first session used, with
+     * the current duration value as an override. Delegates to
+     * `play-lifecycle.ts`'s shared `runPlayAgain`.
      */
     async playAgain(this: ScoreTrainingPlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
-      if (!config || !templateRef || this.playAgainLoading) return;
-      const factory = getEngineFactory(RULESET_VERSION_KEY);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
         RULESET_VERSION_KEY,
-        this.$store.settings,
+        (engine) => (engine instanceof ScoreTrainingEngine ? engine : null),
+        (config) => ({
+          snapshot: config,
+          wire: { duration_value: config.durationValue },
+        }),
+        () => {
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.pendingFinishScore = null;
+          this.pendingDartObservation = null;
+          this.showFinishConfirm = false;
+          this.scoreInput.clear();
+        },
+        (engine) => {
+          const config = this.$store.game.configSnapshot;
+          if (config?.durationType === "MINUTES") {
+            this.timer?.stop();
+            this.timer = startCountdown(
+              this.$store.game,
+              config.durationValue,
+              engine,
+            );
+          }
+        },
       );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: {
-              source: "template",
-              templateRef,
-              overrides: { duration_value: config.durationValue },
-            },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-
-        this.$store.game.sessionId = session.sessionId;
-        this.$store.game.configSnapshot = seatedSnapshot;
-        this.$store.game.idempotencyKey = null;
-        this.$store.game.setSessionModes(modePair);
-        this.$store.game.timerRemainingMs = null;
-        this.$store.game.timerStartedAt = null;
-        this.$store.game.timerExpired = false;
-
-        this.finished = false;
-        this.completionStatus = "pending";
-        this.completionError = "";
-        this.resultsSnapshot = null;
-        this.pendingFinishScore = null;
-        this.pendingDartObservation = null;
-        this.showFinishConfirm = false;
-        clearHiddenTimer(this);
-        this.scoreInput.clear();
-        this.error = "";
-        this.hasActiveSession = true;
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof ScoreTrainingEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        if (config.durationType === "MINUTES") {
-          this.timer?.stop();
-          this.timer = startCountdown(
-            this.$store.game,
-            config.durationValue,
-            engine,
-          );
-        }
-      } finally {
-        this.playAgainLoading = false;
-      }
     },
   };
 }

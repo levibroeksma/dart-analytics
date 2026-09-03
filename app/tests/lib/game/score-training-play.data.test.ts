@@ -1,5 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// F27 Task 1: score-training-play.data.ts now imports currentFacts from
+// play-lifecycle.ts instead of defining its own copy. Confirmed these
+// assertions still hold unchanged.
+// F27 Task 2: back()/abandonAndExit() now delegate to play-lifecycle.ts's
+// shared playBack/playAbandonAndExit (timer.stop() passed as onAbandoned).
+// Confirmed these assertions still hold unchanged.
+// F27 Task 3: uploadAndCompleteSession() now delegates to play-lifecycle.ts's
+// shared playUploadAndCompleteSession; finalScoreTrainingState is deleted
+// (provably equivalent to state() alone). Confirmed these assertions still
+// hold unchanged.
+// F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
+// runPlayAgain. Confirmed these assertions still hold unchanged.
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),

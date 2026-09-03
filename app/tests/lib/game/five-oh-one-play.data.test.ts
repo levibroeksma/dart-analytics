@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// F27 Task 1: five-oh-one-play.data.ts now imports currentFacts from
+// play-lifecycle.ts instead of defining its own copy. Confirmed these
+// assertions still hold unchanged.
+// F27 Task 2: back()/abandonAndExit() now delegate to play-lifecycle.ts's
+// shared playBack/playAbandonAndExit. Confirmed these assertions still
+// hold unchanged.
+// F27 Task 3: uploadAndCompleteSession() now delegates to play-lifecycle.ts's
+// shared playUploadAndCompleteSession, wrapping this file's own
+// buildResultsSnapshot(context) since it reads winningSideKey/legsWonFor off
+// the context directly rather than off finalState. Confirmed these
+// assertions still hold unchanged.
+// F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
+// runPlayAgain, with a resetLocalState callback closing over `this` for
+// this file's own extra fields. Confirmed these assertions still hold
+// unchanged.
+
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both
 // must be mocked from the start, even though this task's tests only exercise

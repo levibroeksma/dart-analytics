@@ -381,6 +381,8 @@ export async function playUploadAndCompleteSession<
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   buildResultsSnapshot: (finalState: ReturnType<TEngine["state"]>) => TResults,
+  resolveFinalState: () => ReturnType<TEngine["state"]> | null = () =>
+    (context.engine?.state() ?? null) as ReturnType<TEngine["state"]> | null,
 ): Promise<void> {
   const sessionId = context.$store.game.sessionId!;
 
@@ -392,7 +394,7 @@ export async function playUploadAndCompleteSession<
   context.completionStatus = "saving";
   context.completionError = "";
 
-  const finalState = context.engine?.state() ?? null;
+  const finalState = resolveFinalState();
 
   try {
     const batch = buildEventsBatch(currentFacts(context));
@@ -412,9 +414,7 @@ export async function playUploadAndCompleteSession<
   }
 
   if (finalState) {
-    context.resultsSnapshot = buildResultsSnapshot(
-      finalState as ReturnType<TEngine["state"]>,
-    );
+    context.resultsSnapshot = buildResultsSnapshot(finalState);
   }
   context.completionStatus = "succeeded";
 }
@@ -432,7 +432,10 @@ export async function playAbandonAndExit<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
   TResults,
->(context: PlayLifecycleContext<TConfig, TEngine, TResults>): Promise<void> {
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  onAbandoned?: () => void,
+): Promise<void> {
   if (context.$store.game.loading) return;
   const sessionId = context.$store.game.sessionId;
   if (!sessionId) {
@@ -452,6 +455,7 @@ export async function playAbandonAndExit<
       await appendBatch(sessionId, context.$store.game.idempotencyKey, batch);
     }
     await completeSession(sessionId, "ABANDONED");
+    onAbandoned?.();
     context.$store.game.reset();
     globalThis.location.href = "/games";
   } catch {
@@ -479,6 +483,8 @@ export async function runPlayAgain<
   buildOverrides?: (
     priorConfig: Seated<TConfig>,
   ) => PlayAgainOverrides<TConfig>,
+  resetLocalState?: () => void,
+  afterEngineReady?: (engine: TEngine) => void,
 ): Promise<void> {
   const config = context.$store.game.configSnapshot;
   const templateRef = context.$store.game.templateRef;
@@ -531,11 +537,13 @@ export async function runPlayAgain<
     clearHiddenTimer(context);
     context.error = "";
     context.hasActiveSession = true;
+    resetLocalState?.();
 
     const engine = narrowEngine(factory.create(seatedSnapshot));
     if (!engine) return;
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
+    afterEngineReady?.(engine);
   } finally {
     context.playAgainLoading = false;
   }

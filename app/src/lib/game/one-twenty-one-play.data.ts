@@ -7,24 +7,17 @@ import {
   isCheckoutReachable,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import {
-  participantsFromSeats,
-  resolveSessionModePair,
-  reseatSnapshot,
-} from "@lib/game/session-mode-resolution";
 import { boardInputData } from "@lib/game/board-input.data";
-import {
-  appendBatch,
-  completeSession,
-  createSession,
-  fetchActiveSessions,
-} from "@client/api/sessions";
-import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   clearHiddenTimer,
+  playAbandonAndExit,
+  playBack,
   playCommitDart,
+  playUploadAndCompleteSession,
   playVisitMarkers,
+  runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -33,7 +26,6 @@ import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
-  EngineFacts,
   OneTwentyOneSeatState,
   OneTwentyOneState,
   TurnFact,
@@ -80,21 +72,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof OneTwentyOneEngine ? engine : null;
-}
-
-/**
- * The engine owns the fact log while a session is live; the store mirrors
- * it. Upload paths that can run without a live engine (a completion retry
- * driven straight from the results modal) fall back to the persisted
- * mirror — mirrors `five-oh-one-play.data.ts`'s `currentFacts`.
- */
-function currentFacts(context: OneTwentyOnePlayContext): EngineFacts {
-  return (
-    context.engine?.facts() ?? {
-      stages: context.$store.game.stages,
-      turns: context.$store.game.turns,
-    }
-  );
 }
 
 /**
@@ -223,40 +200,6 @@ function canReplay(
   playAgainLoading: boolean,
 ): boolean {
   return RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) && !playAgainLoading;
-}
-
-/**
- * Resets every piece of local and store UI state a replay leaves behind
- * from the finished session, before the new engine is built. Extracted so
- * `playAgain` reads as its three real steps (create session, reset state,
- * build engine) rather than interleaving them with two dozen assignments.
- */
-function resetForReplay(
-  context: OneTwentyOnePlayContext,
-  session: { sessionId: string },
-  seatedSnapshot: OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"],
-  modePair: { captureModeKey: string; inputModeKey: string },
-): void {
-  context.$store.game.sessionId = session.sessionId;
-  context.$store.game.configSnapshot = seatedSnapshot;
-  context.$store.game.idempotencyKey = null;
-  context.$store.game.setSessionModes(modePair);
-  context.$store.game.timerRemainingMs = null;
-  context.$store.game.timerStartedAt = null;
-  context.$store.game.timerExpired = false;
-
-  context.finished = false;
-  context.completionStatus = "pending";
-  context.completionError = "";
-  context.resultsSnapshot = null;
-  context.pendingCheckoutScore = null;
-  context.pendingDartObservation = null;
-  context.showDoubleConfirm = false;
-  context.showSessionFinishConfirm = false;
-  clearHiddenTimer(context);
-  context.scoreInput.clear();
-  context.error = "";
-  context.hasActiveSession = true;
 }
 
 function statsFor(
@@ -710,47 +653,14 @@ export function oneTwentyOnePlay() {
       this.error = "";
     },
 
-    /**
-     * Uploads the fact log, then marks the session COMPLETED. On this path
-     * only, SESSION_ALREADY_COMPLETED counts as success. Stats are copied
-     * into `resultsSnapshot` before any store mutation so the results modal
-     * never depends on `$store.game.turns` surviving a later reset.
-     */
     async uploadAndCompleteSession(
       this: OneTwentyOnePlayContext,
     ): Promise<void> {
-      const sessionId = this.$store.game.sessionId!;
-
-      if (!this.$store.game.idempotencyKey) {
-        this.$store.game.idempotencyKey = crypto.randomUUID();
-      }
-      const idempotencyKey = this.$store.game.idempotencyKey;
-
-      this.completionStatus = "saving";
-      this.completionError = "";
-
-      try {
-        const batch = buildEventsBatch(currentFacts(this));
-        await appendBatch(sessionId, idempotencyKey, batch);
-        await completeSession(sessionId, "COMPLETED");
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const alreadyCompleted =
-          error.code === "SESSION_ALREADY_COMPLETED" ||
-          error.message?.includes("SESSION_ALREADY_COMPLETED");
-        if (!alreadyCompleted) {
-          this.completionError =
-            "Could not save your game. Check your connection and retry.";
-          this.completionStatus = "failed";
-          return;
-        }
-      }
-
-      const finalState = this.state();
-      if (finalState) {
-        this.resultsSnapshot = computeStats(finalState, this.$store.game.turns);
-      }
-      this.completionStatus = "succeeded";
+      return playUploadAndCompleteSession(
+        this,
+        (finalState) => computeStats(finalState, this.$store.game.turns),
+        () => this.state(),
+      );
     },
 
     resultsTitle(this: OneTwentyOnePlayContext): string {
@@ -763,98 +673,58 @@ export function oneTwentyOnePlay() {
     },
 
     async back(this: OneTwentyOnePlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: OneTwentyOnePlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.timer?.stop();
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
 
     /**
-     * Replays the same configuration template the first session used, against
-     * whichever ruleset version that session actually used — `121_V1` stays
-     * on `121_V1`, `121_V2` stays on `121_V2` and its own `duration_type`/
-     * `duration_value`.
+     * Replays the same configuration template the first session used,
+     * against whichever ruleset version that session actually used —
+     * `121_V1` stays on `121_V1`, `121_V2` stays on `121_V2` and its own
+     * `duration_type`/`duration_value`. Delegates to `play-lifecycle.ts`'s
+     * shared `runPlayAgain`.
      */
     async playAgain(this: OneTwentyOnePlayContext) {
-      const config = this.$store.game.configSnapshot;
-      const templateRef = this.$store.game.templateRef;
       const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (!config || !templateRef || !rulesetVersionKey) return;
-      if (!canReplay(rulesetVersionKey, this.playAgainLoading)) return;
-      const factory = getEngineFactory(rulesetVersionKey);
-      if (!factory) return;
-
-      this.playAgainLoading = true;
-      this.playAgainError = "";
-
-      const modePair = resolveSessionModePair(
-        rulesetVersionKey,
-        this.$store.settings,
-      );
-
-      try {
-        let session;
-        try {
-          session = await createSession({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey,
-            captureModeKey: modePair.captureModeKey,
-            inputModeKey: modePair.inputModeKey,
-            config: { source: "template", templateRef },
-            participants: participantsFromSeats(config.seats),
-          });
-        } catch {
-          this.playAgainError = "Could not start a new session. Try again.";
-          return;
-        }
-
-        const seatedSnapshot = reseatSnapshot(config, session.participants);
-        resetForReplay(this, session, seatedSnapshot, modePair);
-
-        const engine = factory.create(seatedSnapshot);
-        if (!(engine instanceof OneTwentyOneEngine)) return;
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        const freshTimer = maybeStartFreshCountdown(
-          this.$store.game,
-          seatedSnapshot,
-          engine,
-        );
-        if (freshTimer) {
-          this.timer?.stop();
-          this.timer = freshTimer;
-        }
-      } finally {
-        this.playAgainLoading = false;
+      if (
+        !rulesetVersionKey ||
+        !canReplay(rulesetVersionKey, this.playAgainLoading)
+      ) {
+        return;
       }
+      await runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        rulesetVersionKey,
+        (engine) => (engine instanceof OneTwentyOneEngine ? engine : null),
+        undefined,
+        () => {
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.pendingCheckoutScore = null;
+          this.pendingDartObservation = null;
+          this.showDoubleConfirm = false;
+          this.showSessionFinishConfirm = false;
+          this.scoreInput.clear();
+        },
+        (engine) => {
+          const config = this.$store.game.configSnapshot;
+          if (!config) return;
+          const freshTimer = maybeStartFreshCountdown(
+            this.$store.game,
+            config,
+            engine,
+          );
+          if (freshTimer) {
+            this.timer?.stop();
+            this.timer = freshTimer;
+          }
+        },
+      );
     },
   };
 }

@@ -1,5 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// F27 Task 1: currentFacts is now exported (was module-private). Confirmed
+// these assertions still hold unchanged.
+// F27 Task 2: playAbandonAndExit takes an optional onAbandoned callback,
+// run on the success path right before store reset/redirect. Confirmed
+// these assertions still hold unchanged.
+// F27 Task 3: playUploadAndCompleteSession takes an optional
+// resolveFinalState callback, defaulting to the exact prior
+// context.engine?.state() ?? null behavior. Confirmed these assertions
+// still hold unchanged.
+// F27 Task 4: runPlayAgain takes optional resetLocalState/afterEngineReady
+// callbacks (no context parameter — callers close over their own `this`
+// instead, since the generic PlayLifecycleContext type does not carry
+// each ruleset's own extra fields). Confirmed these assertions still hold
+// unchanged.
+// F27 Task 5: currentFacts reverted to module-private — after Tasks 2-4,
+// no file outside play-lifecycle.ts calls it directly any more (fallow
+// flagged it as a dead export). Confirmed these assertions still hold
+// unchanged.
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),
