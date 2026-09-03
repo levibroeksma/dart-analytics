@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-02
+updated: 2026-09-03
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -211,7 +211,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/frontend/astro.md` | 21 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28) | canonical | ~5.1k |
 | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~3.1k |
 | `decisions/frontend/style.md` | 11 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban | canonical | ~2.1k |
-| `decisions/context-system.md` | 31 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~5.1k |
+| `decisions/context-system.md` | 35 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~6.6k |
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
 
