@@ -10,10 +10,17 @@ import {
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
+  playFoldBotQuickScoreVisit,
+  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/scoring.strategy.module";
 import {
   completedVisitsTotal,
   dartsThrownCount,
@@ -23,7 +30,7 @@ import {
   previousScoreDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   DartObservation,
   ScoreTrainingSeatState,
@@ -32,6 +39,8 @@ import type {
 } from "@modules/types";
 import type {
   BoardMarker,
+  BotDartThrower,
+  BotPacing,
   ScoreTrainingPlayContext,
   ScoreTrainingResultsSnapshot,
   ScoreTrainingSeatResult,
@@ -40,14 +49,67 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // scoreTrainingEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
+// RULESET_VERSION_KEY. `scoreTrainingEngineFactory` is imported directly
+// (not via the type-erased registry) so `playFoldBotQuickScoreVisit`'s
+// `TState` infers as `ScoreTrainingState` with no cast at the call site.
 import {
   ScoreTrainingEngine,
   foldScoreTrainingState,
+  scoreTrainingEngineFactory,
 } from "@modules/game/score-training.engine.module";
 
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
+
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+const DARTS_PER_VISIT = 3;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+/** No `remaining`/checkout view — `chooseTarget()` always fires treble 20
+ * (Task 1, D-G). */
+function throwOneDart(
+  botSeat: DartbotSeat,
+  dartIndex: number,
+): DartObservation {
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const intent = chooseTarget();
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    hitTargetNumber: thrown.hit.targetNumber,
+    hitZoneKey: thrown.hit.zoneKey,
+    locationX: thrown.landing.x,
+    locationY: thrown.landing.y,
+  };
+}
+
+function throwBotDart(
+  context: ScoreTrainingPlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  return {
+    observation: throwOneDart(botSeat, dartIndex),
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
 
 function formatRemaining(ms: number | null | undefined): string {
   const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
@@ -180,6 +242,7 @@ export function scoreTrainingPlay() {
     pendingFinishScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
+    botThrowing: false,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,
@@ -321,6 +384,7 @@ export function scoreTrainingPlay() {
         }
 
         this.hasActiveSession = true;
+        await this.maybeRunBotVisit();
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
@@ -374,6 +438,7 @@ export function scoreTrainingPlay() {
       this.scoreInput.clear();
       this.$store.game.recordFacts(this.engine.facts());
       this.loading = false;
+      await this.maybeRunBotVisit();
     },
 
     /**
@@ -397,7 +462,10 @@ export function scoreTrainingPlay() {
      * darts, may end the session, matching what `submitVisit` already does for
      * the keypad.
      */
-    recordDart(this: ScoreTrainingPlayContext, observation: DartObservation) {
+    async recordDart(
+      this: ScoreTrainingPlayContext,
+      observation: DartObservation,
+    ) {
       if (!this.engine || this.finished || this.showFinishConfirm) return;
 
       if (this.engine.wouldComplete(observation)) {
@@ -410,6 +478,43 @@ export function scoreTrainingPlay() {
       this.error = "";
       this.$store.game.recordFacts(this.engine.facts());
       armHiddenTimer(this, this.$store.game.turns);
+      await this.maybeRunBotVisit();
+    },
+
+    async maybeRunBotVisit(this: ScoreTrainingPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat || !this.engine || this.finished) return;
+      const state = this.state();
+      if (!state || state.activeParticipantRef !== botSeat.participantRef)
+        return;
+
+      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
+        let dartIndex = botDartIndex(
+          this.$store.game.turns,
+          botSeat.participantRef,
+        );
+        const fold = playFoldBotQuickScoreVisit(
+          scoreTrainingEngineFactory,
+          this.$store.game.configSnapshot!,
+          this.engine.facts(),
+          () => throwOneDart(botSeat, dartIndex++),
+          DARTS_PER_VISIT,
+        );
+        if (this.engine.wouldComplete(fold.totalScore)) {
+          this.engine.record(fold.totalScore);
+          this.$store.game.recordFacts(this.engine.facts());
+          this.finished = true;
+          this.completionStatus = "pending";
+          await this.uploadAndCompleteSession();
+          return;
+        }
+        this.engine.record(fold.totalScore);
+        this.$store.game.recordFacts(this.engine.facts());
+        return;
+      }
+
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
     },
 
     /**
@@ -459,12 +564,21 @@ export function scoreTrainingPlay() {
 
     undoVisit(this: ScoreTrainingPlayContext) {
       if (this.finished || this.showFinishConfirm) return;
-      if (!this.engine || !this.engine.undo()) return;
-
-      clearHiddenTimer(this);
-      this.$store.game.recordFacts(this.engine.facts());
+      if (!this.engine) return;
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        if (!this.engine.undo()) return;
+        clearHiddenTimer(this);
+        this.$store.game.recordFacts(this.engine.facts());
+      }
       this.scoreInput.clear();
       this.error = "";
+      void this.maybeRunBotVisit();
     },
 
     /**

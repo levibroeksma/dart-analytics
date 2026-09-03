@@ -330,6 +330,7 @@ export type ScoreTrainingPlayContext = {
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
@@ -361,6 +362,7 @@ export type ScoreTrainingPlayContext = {
     observation: DartObservation,
   ): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
+  maybeRunBotVisit(this: ScoreTrainingPlayContext): Promise<void>;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   resultsTitle(this: ScoreTrainingPlayContext): string;
   back(this: ScoreTrainingPlayContext): Promise<void>;
