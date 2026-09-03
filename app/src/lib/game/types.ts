@@ -468,6 +468,8 @@ export type ScoreTrainingSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -500,7 +502,9 @@ export type ScoreTrainingSetupContext = {
     type: ScoreTrainingDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: ScoreTrainingSetupContext): void;
+  addBot(this: ScoreTrainingSetupContext): void;
   removeGuest(this: ScoreTrainingSetupContext, index: number): void;
+  removeBot(this: ScoreTrainingSetupContext): void;
   forceRoundsIfGuested(this: ScoreTrainingSetupContext): void;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };

@@ -6,6 +6,7 @@ import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
 const formatOpts = [
@@ -21,13 +22,16 @@ const infoSection = {
 ---
 
 <SetupShell title="Score Training">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("SCORE_TRAINING_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <template x-if="guests.length === 0">
+    <template x-if="guests.length === 0 && !bot">
       <div class="contents">
         <Toggle
           orientation="horizontal"
@@ -60,7 +64,7 @@ const infoSection = {
         </p>
       </div>
     </template>
-    <template x-if="guests.length > 0">
+    <template x-if="guests.length > 0 || bot">
       <Input
         id="durationValue"
         name="durationValue"

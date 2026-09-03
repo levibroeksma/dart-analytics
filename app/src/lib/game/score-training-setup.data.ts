@@ -14,7 +14,8 @@ import {
 } from "@lib/game/score-training-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { addTypedGuest } from "@lib/game/guest-list";
+import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
+import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -43,6 +44,11 @@ function durationValueOf(preset: ConfigurationPresetData | undefined) {
   return typeof raw === "number" ? raw : undefined;
 }
 
+/** Whether this session will seat a second player — guest or DartBot. */
+function guested(ctx: ScoreTrainingSetupContext): boolean {
+  return ctx.guests.length > 0 || ctx.bot !== null;
+}
+
 export function scoreTrainingSetup() {
   return {
     presets: [] as ConfigurationPresetData[],
@@ -60,6 +66,8 @@ export function scoreTrainingSetup() {
     newGuestName: "",
     bot: null as { level: number } | null,
     showOpponentChooser: false,
+    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
+    showBotLevelPicker: false,
 
     /**
      * On fetch failure, keeps the user on setup with a visible error and the
@@ -118,18 +126,26 @@ export function scoreTrainingSetup() {
       if (addTypedGuest(this)) this.forceRoundsIfGuested();
     },
 
+    addBot(this: ScoreTrainingSetupContext) {
+      if (addBotOpponent(this)) this.forceRoundsIfGuested();
+    },
+
     removeGuest(this: ScoreTrainingSetupContext, index: number) {
       this.guests.splice(index, 1);
+    },
+
+    removeBot(this: ScoreTrainingSetupContext) {
+      this.bot = null;
     },
 
     /**
      * A 1v1 match needs a fixed round count both seats share, not a
      * wall-clock timer running through alternating turns — see
      * `2026-08-22-single-opponent-seat-remaining-engines-design.md`. Once a
-     * guest is added, TIMED (MINUTES) is locked back to ROUNDS.
+     * guest or bot is seated, TIMED (MINUTES) is locked back to ROUNDS.
      */
     forceRoundsIfGuested(this: ScoreTrainingSetupContext) {
-      if (this.guests.length > 0) this.durationType = "ROUNDS";
+      if (guested(this)) this.durationType = "ROUNDS";
     },
 
     /**
@@ -221,7 +237,7 @@ export function scoreTrainingSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
-        const participants = participantsFromGuests(this.guests);
+        const participants = participantsFromGuests(this.guests, this.bot);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,
