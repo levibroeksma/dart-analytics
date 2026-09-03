@@ -76,6 +76,8 @@ export type TuodSetupContext = {
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -460,6 +462,8 @@ export type ScoreTrainingSetupContext = {
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -1009,6 +1013,8 @@ export type OneTwentyOneSetupContext = {
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
   $store: {
     game: {
       sessionId: string | null;

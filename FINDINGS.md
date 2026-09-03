@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-03
-highest-issued: F62
+highest-issued: F63
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F63 — `setup-controller.ts`'s own doc comment misnames 121 as a `createPresetSetupController` consumer, contradicting its actual hand-written setup context
+Status: Open · Found: 2026-09-03 · Task: claude/score-training-debug-121-tuod-me46ko
+Claim: `createPresetSetupController`'s doc comment says "Six games use this: Bob's 27, Shanghai, 121, Around the Clock, Singles Training and Doubles Training" and separately "`501` and Score Training deliberately do not [use it]"
+Evidence: `app/src/lib/game/setup-controller.ts:31-34` names 121 as a factory consumer, but `app/src/lib/game/one-twenty-one-setup.data.ts` never imports or calls `createPresetSetupController` — it hand-rolls `durationType`/`durationValue`/`presetForMode`/`start` exactly like `app/src/lib/game/score-training-setup.data.ts` and `app/src/lib/game/tuod-setup.data.ts`. `app/src/lib/game/types.ts`'s own `OneTwentyOneSetupContext` doc (line ~992) already says the correct thing: "121 keeps a hand-written setup context, like `501`/Score Training, rather than `PresetSetupContext`", and its `FiveOhOneSetupContext`-adjacent comment (line ~555) lists "`501`, Score Training, and 121 (V2 onward)" as the hand-written trio — the two doc comments disagree with each other, and `app/src/lib/game/setup-controller.ts`'s is the wrong one
+Impact: a future task skimming `app/src/lib/game/setup-controller.ts` to find every `createPresetSetupController` caller, or to judge whether adding a new field to that factory covers 121, would wrongly conclude 121 already gets it — exactly the kind of doc/code mismatch that let 121, Score Training and TUOD's hand-written setup contexts silently miss the `bot`/`showOpponentChooser` fields `app/src/components/layout/games/setup/GuestSection.astro`/`app/src/components/layout/games/setup/AddGuestButton.astro` need (fixed this task; both those Alpine expressions throw `ReferenceError` and hide the Add-opponent button when the field is absent, since `501` proved a hand-written context still needs the full opponent-slot shape)
+Proposed: drop "121" from `app/src/lib/game/setup-controller.ts:31`'s consumer list and add it to the "deliberately do not" sentence alongside `501`/Score Training/TUOD — a one-line comment edit, no behavior change
 
 ### F15 — Every game interface repeats a fragile `max-h-2/5 h-full` sizing pair
 Status: Open · Found: 2026-08-22 · Task: claude/guest-player-x01-architecture-m8ia8v
