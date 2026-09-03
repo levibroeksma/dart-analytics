@@ -432,7 +432,10 @@ export async function playAbandonAndExit<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
   TResults,
->(context: PlayLifecycleContext<TConfig, TEngine, TResults>): Promise<void> {
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  onAbandoned?: () => void,
+): Promise<void> {
   if (context.$store.game.loading) return;
   const sessionId = context.$store.game.sessionId;
   if (!sessionId) {
@@ -452,6 +455,7 @@ export async function playAbandonAndExit<
       await appendBatch(sessionId, context.$store.game.idempotencyKey, batch);
     }
     await completeSession(sessionId, "ABANDONED");
+    onAbandoned?.();
     context.$store.game.reset();
     globalThis.location.href = "/games";
   } catch {

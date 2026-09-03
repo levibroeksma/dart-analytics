@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 1: five-oh-one-play.data.ts now imports currentFacts from
 // play-lifecycle.ts instead of defining its own copy. Confirmed these
 // assertions still hold unchanged.
+// F27 Task 2: back()/abandonAndExit() now delegate to play-lifecycle.ts's
+// shared playBack/playAbandonAndExit. Confirmed these assertions still
+// hold unchanged.
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both

@@ -21,6 +21,8 @@ import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
   currentFacts,
+  playAbandonAndExit,
+  playBack,
   playCommitDart,
   playVisitMarkers,
 } from "@lib/game/play-lifecycle";
@@ -552,37 +554,11 @@ export function tuodPlay() {
     },
 
     async back(this: TuodPlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: TuodPlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.timer?.stop();
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
 
     /**

@@ -20,6 +20,8 @@ import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
   currentFacts,
+  playAbandonAndExit,
+  playBack,
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
@@ -789,36 +791,11 @@ export function fiveOhOnePlay() {
     },
 
     async back(this: FiveOhOnePlayContext) {
-      this.$store.game.reset();
-      globalThis.location.href = "/games";
+      return playBack(this);
     },
 
     async abandonAndExit(this: FiveOhOnePlayContext) {
-      if (this.$store.game.loading) return;
-      const sessionId = this.$store.game.sessionId;
-      if (!sessionId) {
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-        return;
-      }
-      this.$store.game.loading = true;
-      this.error = "";
-      try {
-        const facts = currentFacts(this);
-        if (facts.turns.length > 0) {
-          if (!this.$store.game.idempotencyKey) {
-            this.$store.game.idempotencyKey = crypto.randomUUID();
-          }
-          const batch = buildEventsBatch(facts);
-          await appendBatch(sessionId, this.$store.game.idempotencyKey, batch);
-        }
-        await completeSession(sessionId, "ABANDONED");
-        this.$store.game.reset();
-        globalThis.location.href = "/games";
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-        this.$store.game.loading = false;
-      }
+      return playAbandonAndExit(this);
     },
 
     /**

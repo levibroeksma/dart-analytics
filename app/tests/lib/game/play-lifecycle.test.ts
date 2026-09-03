@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // F27 Task 1: currentFacts is now exported (was module-private). Confirmed
 // these assertions still hold unchanged.
+// F27 Task 2: playAbandonAndExit takes an optional onAbandoned callback,
+// run on the success path right before store reset/redirect. Confirmed
+// these assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
