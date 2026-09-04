@@ -528,7 +528,7 @@ const mine = fitProfile(myDarts);
 const bot = new DartBot({ level: levelOf(mine) + offset });
 ```
 
-The default opponent mirrors the user's own fitted profile plus a chosen challenge offset, presented as **a level number on the same 1–15 scale the setup slider uses** (D-D). No tier name and no expected average is shown: a three-dart average is meaningless in Around the Clock, and a tier name invented before D-E fits the curve would have to be renamed once it is.
+The default opponent mirrors the user's own fitted profile plus a chosen challenge offset, presented as **a level number on the same 1–15 scale the setup slider uses** (D-D). No tier name and no expected average is shown: a three-dart average is meaningless in Around the Clock, and a tier name invented before D-E fits the curve would have to be renamed once it is. The population prior behind this curve, its anchor level, and the exponent that shaped it are tracked in `08-DartBot-Anchor-Log.md` (D-L) rather than here — a future re-anchor updates that file, not this paragraph.
 
 ## The prerequisite, and why it stays written down
 
@@ -726,7 +726,15 @@ Measured prior (unrotated board axes — across = x, along = y, matching `throw-
 
 **Caveat:** the sample is thin (328 darts) and its `intended_zone_key` composition is almost entirely `DOUBLE`/`INNER_BULL` — not a cross-section of every zone a player throws at. Re-running the extract against a larger, more varied sample will move these numbers.
 
-**Not yet done:** this closes only the measurement D-E asked for. `LEVEL_SKILL_TABLE` is not refit against this prior, and `fitProfile()` itself (phase 10) is not built — the number is stored, not yet consumed. Any claim about what a given level *plays* like, and the level-picker average/checkout UI that would show one, stay blocked on that separate, undesigned work.
+**Then done:** `LEVEL_SKILL_TABLE` is now refit against this prior (D-L, below). `fitProfile()` itself (phase 10) is still not built — the level-picker average/checkout UI stays blocked on that separate, undesigned work.
+
+## Resolved: D-L level-curve refit
+
+**D-L — `LEVEL_SKILL_TABLE` refit.** D-D deferred an average band until D-E fit the level curve; D-E measured a population prior but left `LEVEL_SKILL_TABLE` hand-set. Level 6 is anchored to the D-E values exactly; every other level's `sigmaAlongMm`/`sigmaAcrossMm`/`biasXMm`/`biasYMm`/`outlierRate` is rescaled from its pre-refit ratio to level 6, raised to a spread exponent `p` chosen so level 1's simulated three-dart average lands in 26–31. `decisionQuality`, `bedOffsetMm`, `bounceOutRate`, `deflectionRadiusMm` and `covarianceRotationDegrees` are untouched — D-E measured spatial scatter only. `scripts/dartbot-level-curve-refit.ts` runs the search (`docs/superpowers/specs/2026-09-04-dartbot-level-curve-refit-design.md`).
+
+The anchor, the measured values it used, `p`, and the verified level-1 band are recorded in `08-DartBot-Anchor-Log.md` rather than restated here — a future re-anchor is a new row there, not an edit to this paragraph.
+
+**Not yet done:** `fitProfile()` (phase 10's per-player shrinkage) is still unbuilt, so D-K stays blocked; the level-picker average/checkout UI stays deferred to its own brainstormed task.
 
 ## Still open
 
@@ -787,6 +795,7 @@ D-J is deliberately not a phase. The chooser that offers a bot has to land _with
 | `decisions/database.md` D222                                                         | Owner-scoped dart analytics views                                                                                                            |
 | `decisions/frontend/astro.md` D225                                                   | Guest setup UI; the Astro/Alpine escaping boundary that justifies a separate list component                                                  |
 | `docs/superpowers/specs/2026-08-20-guest-player-x01-design.md`                       | The seat design in full, including what it deferred — DartBot among it                                                                       |
+| `08-DartBot-Anchor-Log.md`                                                           | Append-only anchor history for `LEVEL_SKILL_TABLE`'s D-L refit — date, anchor level, measured values, spread exponent `p`, verified level-1 band                |
 | `docs/superpowers/specs/2026-08-22-single-opponent-seat-remaining-engines-design.md` | 1v1 for the other eight engines — the document that closed D-H                                                                               |
 | `app/src/modules/game/seat-rota.module.ts`                                           | The active-seat derivation DartBot must never duplicate                                                                                      |
 | `app/src/modules/game/seat-state.module.ts`, `match-outcome.module.ts`               | Per-seat folding and win conditions — both already generic over participant type                                                             |
