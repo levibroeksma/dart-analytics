@@ -734,7 +734,11 @@ Measured prior (unrotated board axes — across = x, along = y, matching `throw-
 
 The anchor, the measured values it used, `p`, and the verified level-1 band are recorded in `08-DartBot-Anchor-Log.md` rather than restated here — a future re-anchor is a new row there, not an edit to this paragraph.
 
-**Not yet done:** `fitProfile()` (phase 10's per-player shrinkage) is still unbuilt, so D-K stays blocked; the level-picker average/checkout UI stays deferred to its own brainstormed task.
+**Not yet done:** `fitProfile()` (phase 10's per-player shrinkage) is still unbuilt, so D-K stays blocked.
+
+## Resolved: D-L level-select stats
+
+The level-picker average/checkout UI deferred above is built: `OpponentChooserModal.astro`'s level step shows a three-dart-average band and a checkout-% band per level, sourced from `allLevelSelectStats()` (`app/src/modules/dartbot/level-select-stats.module.ts`), backed today by a table precomputed by `app/scripts/dartbot-level-select-stats.ts` (25th/75th percentile per level, `N = 5000`, seed `800000 + level`) (`docs/superpowers/specs/2026-09-04-dartbot-level-select-stats-design.md`, 2026-09-04).
 
 ## Still open
 
