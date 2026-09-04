@@ -38,3 +38,19 @@ export type BotThrow = {
   hit: BoardHit;
   bounced: boolean;
 };
+
+/**
+ * The measured population prior D-E (`08-DartBot.md` §Still open) asks for:
+ * one pooled scatter, not one per level. `population-prior.module.ts`
+ * produces this from a raw dart extract; nothing consumes it yet — it feeds
+ * `fitProfile()` (phase 10), unbuilt.
+ */
+export type PopulationPrior = {
+  sigmaAlongMm: number;
+  sigmaAcrossMm: number;
+  biasXMm: number;
+  biasYMm: number;
+  outlierRate: number;
+  sampleSize: number;
+  excludedCount: number;
+};
