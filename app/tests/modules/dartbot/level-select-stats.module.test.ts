@@ -41,4 +41,10 @@ describe("levelSelectStatsForLevel", () => {
   it("allLevelSelectStats returns the same table reference", () => {
     expect(allLevelSelectStats()).toBe(LEVEL_SELECT_STATS_TABLE);
   });
+
+  it("level 15's average band is not degenerate at the 180 ceiling (D-N)", () => {
+    const level15 = levelSelectStatsForLevel(15);
+    expect(level15.averageLow).toBeLessThan(level15.averageHigh);
+    expect(level15.averageLow).toBeLessThan(180);
+  });
 });

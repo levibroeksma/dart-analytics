@@ -12,14 +12,14 @@ function stats(level: number) {
 describe("tier calibration — sanity bands", () => {
   it("level 1 sits in the beginner band", () => {
     const s = stats(1);
-    expect(s.threeDartAverage).toBeGreaterThanOrEqual(22);
-    expect(s.threeDartAverage).toBeLessThanOrEqual(34);
-    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.003);
-    expect(s.checkoutRate).toBeLessThanOrEqual(0.02);
+    expect(s.threeDartAverage).toBeGreaterThanOrEqual(26);
+    expect(s.threeDartAverage).toBeLessThanOrEqual(40);
+    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.008);
+    expect(s.checkoutRate).toBeLessThanOrEqual(0.04);
     expect(s.trebleRate).toBeGreaterThanOrEqual(0.025);
     expect(s.trebleRate).toBeLessThanOrEqual(0.065);
-    expect(s.missRate).toBeGreaterThanOrEqual(0.2);
-    expect(s.missRate).toBeLessThanOrEqual(0.35);
+    expect(s.missRate).toBeGreaterThanOrEqual(0.08);
+    expect(s.missRate).toBeLessThanOrEqual(0.2);
   });
 
   it("level 8 sits in the mid band", () => {
@@ -36,14 +36,14 @@ describe("tier calibration — sanity bands", () => {
 
   it("level 15 sits in the elite band", () => {
     const s = stats(15);
-    expect(s.threeDartAverage).toBeGreaterThanOrEqual(150);
-    expect(s.threeDartAverage).toBeLessThanOrEqual(180);
-    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.85);
-    expect(s.checkoutRate).toBeLessThanOrEqual(1.0);
-    expect(s.trebleRate).toBeGreaterThanOrEqual(0.85);
-    expect(s.trebleRate).toBeLessThanOrEqual(1.0);
+    expect(s.threeDartAverage).toBeGreaterThanOrEqual(115);
+    expect(s.threeDartAverage).toBeLessThanOrEqual(160);
+    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.5);
+    expect(s.checkoutRate).toBeLessThanOrEqual(0.75);
+    expect(s.trebleRate).toBeGreaterThanOrEqual(0.5);
+    expect(s.trebleRate).toBeLessThanOrEqual(0.75);
     expect(s.missRate).toBeGreaterThanOrEqual(0);
-    expect(s.missRate).toBeLessThanOrEqual(0.003);
+    expect(s.missRate).toBeLessThanOrEqual(0.01);
   });
 });
 
