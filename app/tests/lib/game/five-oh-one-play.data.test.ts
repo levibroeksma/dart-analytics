@@ -686,6 +686,7 @@ describe("uploadAndCompleteSession", () => {
           oneTwentyPlus: 0,
           oneFortyPlus: 0,
           oneEighties: 0,
+          bestLeg: "—",
         },
         {
           participantRef: "seat-b",
@@ -698,6 +699,7 @@ describe("uploadAndCompleteSession", () => {
           oneTwentyPlus: 0,
           oneFortyPlus: 0,
           oneEighties: 0,
+          bestLeg: "—",
         },
       ],
     });
@@ -735,6 +737,7 @@ describe("uploadAndCompleteSession", () => {
           oneTwentyPlus: 0,
           oneFortyPlus: 0,
           oneEighties: 1,
+          bestLeg: "6",
         },
       ],
     });
@@ -820,7 +823,35 @@ describe("uploadAndCompleteSession", () => {
     expect(seatB.legsWon).toBe(0);
     expect(seatA.checkoutPercentage).toBeNull();
     expect(seatB.checkoutPercentage).toBeNull();
+    expect(seatA.bestLeg).toBe("12");
+    expect(seatB.bestLeg).toBe("—");
     expect(play.resultsTitle.call(play)).toBe("Levi wins the match!");
+  });
+
+  it("reports — for a side that is whitewashed (zero legs won across a longer race)", async () => {
+    vi.mocked(appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(completeSession).mockResolvedValue(undefined as never);
+
+    const play = makePlay({
+      configSnapshot: { ...quickPlayConfig(), legsToWin: 2, seats: TWO_SEATS },
+      stages: [LEG_1, { ...LEG_1, clientKey: "leg-2", sequence: 2 }],
+      turns: [
+        turnFact("t1", "leg-1", 1, 300, "participant-1"),
+        turnFact("t2", "leg-1", 2, 50, "participant-2"),
+        turnFact("t3", "leg-1", 3, 201, "participant-1"),
+        turnFact("t4", "leg-2", 1, 300, "participant-1"),
+        turnFact("t5", "leg-2", 2, 60, "participant-2"),
+        turnFact("t6", "leg-2", 3, 201, "participant-1"),
+      ],
+    });
+
+    await play.uploadAndCompleteSession.call(play);
+
+    const [seatA, seatB] = play.resultsSnapshot!.seats;
+    expect(seatA.legsWon).toBe(2);
+    expect(seatA.bestLeg).toBe("6");
+    expect(seatB.legsWon).toBe(0);
+    expect(seatB.bestLeg).toBe("—");
   });
 
   it("computes a VISUAL_BOARD checkout percentage from a busted attempt and two won legs", async () => {

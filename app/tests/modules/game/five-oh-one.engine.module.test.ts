@@ -4,6 +4,7 @@ import {
   fiveOhOneEngineFactory,
   foldFiveOhOneState,
   initialFiveOhOneState,
+  legResultsOf,
   resolveFiveOhOneVisit,
 } from "@modules/game/five-oh-one.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -1648,5 +1649,97 @@ describe("FiveOhOneEngine — isDartObservationInput wiring (F39)", () => {
 
     const state = engine.record({ scoreAttempted: 60 });
     expect(state.seats[0].remainingScore).toBe(441);
+  });
+});
+
+describe("legResultsOf", () => {
+  it("returns the winner and dart count for a completed leg, quick-score darts defaulting to maxDartsPerTurn", () => {
+    const engine = fiveOhOneEngineFactory.create(config());
+    winOneLeg(engine);
+
+    expect(legResultsOf(engine.facts(), config())).toEqual([
+      { sideKey: "A", participantRef: "participant-1", darts: 12 },
+    ]);
+  });
+
+  it("excludes a leg that has not been won yet", () => {
+    const engine = fiveOhOneEngineFactory.create(config());
+    engine.record({ scoreAttempted: 100 });
+
+    expect(legResultsOf(engine.facts(), config())).toEqual([]);
+  });
+
+  it("reports each leg's own winner and dart count independently across a 1v1 match", () => {
+    const seats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Guest",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const twoSeatConfig = { ...config(), legsToWin: 2, seats };
+    const dartFact = (score: number, sequence = 1) => ({
+      sequence,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: null,
+      hitZoneKey: "DOUBLE" as const,
+      score,
+      locationX: null,
+      locationY: null,
+    });
+
+    const facts: EngineFacts = {
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 1,
+        },
+        {
+          clientKey: "leg-2",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 2,
+        },
+      ],
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: "leg-1",
+          participantRef: "participant-1",
+          sequence: 1,
+          completedAt: "2026-08-20T10:00:00.000Z",
+          totalScore: 300,
+          darts: [],
+        },
+        {
+          clientKey: "t2",
+          stageClientKey: "leg-1",
+          participantRef: "participant-1",
+          sequence: 2,
+          completedAt: "2026-08-20T10:00:01.000Z",
+          totalScore: 201,
+          darts: [],
+        },
+        {
+          clientKey: "t3",
+          stageClientKey: "leg-2",
+          participantRef: "participant-2",
+          sequence: 1,
+          completedAt: "2026-08-20T10:01:00.000Z",
+          totalScore: 501,
+          darts: [dartFact(460, 1), dartFact(41, 2)],
+        },
+      ],
+    };
+
+    expect(legResultsOf(facts, twoSeatConfig)).toEqual([
+      { sideKey: "A", participantRef: "participant-1", darts: 6 },
+      { sideKey: "B", participantRef: "participant-2", darts: 2 },
+    ]);
   });
 });

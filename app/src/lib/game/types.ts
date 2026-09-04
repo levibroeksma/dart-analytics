@@ -671,6 +671,7 @@ export type FiveOhOneSeatResult = {
   oneTwentyPlus: number;
   oneFortyPlus: number;
   oneEighties: number;
+  bestLeg: string;
 };
 
 /** `winningSideKey` is `null` for a solo session — 501 has no tie outcome

@@ -13,6 +13,12 @@ const STAT_ROWS = [
   { label: "140+", key: "oneFortyPlus" },
   { label: "180s", key: "oneEighties" },
 ] as const;
+
+const COMPARISON_STAT_ROWS = [
+  STAT_ROWS[0],
+  { label: "Best leg", key: "bestLeg" },
+  ...STAT_ROWS.slice(1),
+] as const;
 ---
 
 <ResultsModalShell showSavedMessage>
@@ -24,5 +30,5 @@ const STAT_ROWS = [
   </h2>
 
   <SinglePlayerSummary statRows={STAT_ROWS} />
-  <ComparisonSummary statRows={STAT_ROWS} />
+  <ComparisonSummary statRows={COMPARISON_STAT_ROWS} />
 </ResultsModalShell>

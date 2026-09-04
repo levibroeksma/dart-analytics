@@ -57,7 +57,9 @@ import type {
 import {
   FiveOhOneEngine,
   fiveOhOneEngineFactory,
+  legResultsOf,
 } from "@modules/game/five-oh-one.engine.module";
+import type { LegResult } from "@modules/types";
 
 const GAME_TYPE_KEY = "501";
 const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
@@ -154,6 +156,16 @@ function throwBotQuickScoreDart(
   return throwOneDart(remaining, botSeat, dartIndex);
 }
 
+function bestLegFor(
+  participantRef: string,
+  legResults: readonly LegResult[],
+): string {
+  const darts = legResults
+    .filter((result) => result.participantRef === participantRef)
+    .map((result) => result.darts);
+  return darts.length > 0 ? String(Math.min(...darts)) : "—";
+}
+
 /**
  * One seat's own results stats, replayed from its own completed visits in
  * `turns`. `legsWon` is read off `state().sides` by the caller — never
@@ -166,6 +178,7 @@ function statsFor(
   legsWon: number,
   maxDartsPerTurn: number,
   inputModeKey: string | null,
+  legResults: readonly LegResult[],
 ): FiveOhOneSeatResult {
   const seatTurns = turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
@@ -180,6 +193,7 @@ function statsFor(
         ? accuracyDisplay(legsWon, legsWon + checkoutAttemptCount(seatTurns))
         : null,
     ...visitScoreBandCounts(seatTurns),
+    bestLeg: bestLegFor(seat.participantRef, legResults),
   };
 }
 
@@ -194,9 +208,18 @@ function buildResultsSnapshot(
   context: FiveOhOnePlayContext,
 ): FiveOhOneResultsSnapshot {
   const seats = context.$store.game.seats;
-  const maxDartsPerTurn =
-    context.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+  const config = context.$store.game.configSnapshot;
+  const maxDartsPerTurn = config?.maxDartsPerTurn ?? 3;
   const inputModeKey = context.$store.game.inputModeKey;
+  const legResults = config
+    ? legResultsOf(
+        {
+          stages: context.$store.game.stages,
+          turns: context.$store.game.turns,
+        },
+        config,
+      )
+    : [];
   return {
     winningSideKey:
       seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
@@ -207,6 +230,7 @@ function buildResultsSnapshot(
         context.legsWonFor(seat.participantRef),
         maxDartsPerTurn,
         inputModeKey,
+        legResults,
       ),
     ),
   };
