@@ -70,22 +70,47 @@ function simulateScoringVisits(
 
 /**
  * Throws `visits` single checkout attempts at D20, offset onto an
- * independent dart sequence from the scoring stream, and counts hits.
+ * independent dart sequence from the scoring stream, and returns each
+ * attempt's hit/miss outcome in order.
  */
-function simulateCheckoutAttempts(
+function simulateCheckoutOutcomes(
   profile: SkillProfile,
   seed: number,
   visits: number,
-): number {
-  let checkoutHits = 0;
+): boolean[] {
+  const outcomes: boolean[] = [];
   for (let attempt = 0; attempt < visits; attempt++) {
     const rng = createDartRng(seed + CHECKOUT_SEED_OFFSET, attempt);
     const thrown = throwDart(CHECKOUT_TARGET, profile, rng);
-    if (thrown.hit.targetNumber === 20 && thrown.hit.zoneKey === "DOUBLE") {
-      checkoutHits++;
-    }
+    outcomes.push(
+      thrown.hit.targetNumber === 20 && thrown.hit.zoneKey === "DOUBLE",
+    );
   }
-  return checkoutHits;
+  return outcomes;
+}
+
+function aggregateTierStats(
+  scoring: ScoringTotals,
+  checkoutOutcomes: boolean[],
+  visits: number,
+): TierStats {
+  const threeDartAverage =
+    scoring.visitTotals.reduce((sum, total) => sum + total, 0) / visits;
+  const checkoutHits = checkoutOutcomes.filter(Boolean).length;
+
+  return {
+    threeDartAverage,
+    checkoutRate: checkoutHits / visits,
+    t20RatePerVisit: scoring.t20Hits / visits,
+    oneHundredPlusRate:
+      scoring.visitTotals.filter((total) => total >= 100).length / visits,
+    oneFortyPlusRate:
+      scoring.visitTotals.filter((total) => total >= 140).length / visits,
+    oneEightyRate:
+      scoring.visitTotals.filter((total) => total === 180).length / visits,
+    trebleRate: scoring.trebleHits / scoring.darts,
+    missRate: scoring.missHits / scoring.darts,
+  };
 }
 
 /**
@@ -100,23 +125,27 @@ export function simulateTierStats(
   visits: number,
 ): TierStats {
   const profile = skillProfileForLevel(level);
-  const { visitTotals, t20Hits, trebleHits, missHits, darts } =
-    simulateScoringVisits(profile, seed, visits);
-  const checkoutHits = simulateCheckoutAttempts(profile, seed, visits);
+  const scoring = simulateScoringVisits(profile, seed, visits);
+  const checkoutOutcomes = simulateCheckoutOutcomes(profile, seed, visits);
+  return aggregateTierStats(scoring, checkoutOutcomes, visits);
+}
 
-  const threeDartAverage =
-    visitTotals.reduce((sum, total) => sum + total, 0) / visits;
-
+/**
+ * `simulateTierStats` plus the raw per-visit totals and per-attempt
+ * checkout outcomes, for callers that need a distribution rather than an
+ * aggregate (`dartbot-level-select-stats.ts`, D-L level-select stats).
+ */
+export function simulateTierStatsDetailed(
+  level: number,
+  seed: number,
+  visits: number,
+): TierStats & { visitTotals: number[]; checkoutOutcomes: boolean[] } {
+  const profile = skillProfileForLevel(level);
+  const scoring = simulateScoringVisits(profile, seed, visits);
+  const checkoutOutcomes = simulateCheckoutOutcomes(profile, seed, visits);
   return {
-    threeDartAverage,
-    checkoutRate: checkoutHits / visits,
-    t20RatePerVisit: t20Hits / visits,
-    oneHundredPlusRate:
-      visitTotals.filter((total) => total >= 100).length / visits,
-    oneFortyPlusRate:
-      visitTotals.filter((total) => total >= 140).length / visits,
-    oneEightyRate: visitTotals.filter((total) => total === 180).length / visits,
-    trebleRate: trebleHits / darts,
-    missRate: missHits / darts,
+    ...aggregateTierStats(scoring, checkoutOutcomes, visits),
+    visitTotals: scoring.visitTotals,
+    checkoutOutcomes,
   };
 }
