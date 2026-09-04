@@ -22,6 +22,7 @@ import type {
   FiveOhOneState,
   FiveOhOneVisitInput,
   FiveOhOneVisitOutcome,
+  LegResult,
   StageFact,
   TurnFact,
 } from "./types";
@@ -171,6 +172,42 @@ function foldLeg(
   }
 
   return null;
+}
+
+function legDartsFor(
+  participantRef: string,
+  visits: readonly TurnFact[],
+  maxDartsPerTurn: number,
+): number {
+  return visits
+    .filter((visit) => visit.participantRef === participantRef)
+    .reduce(
+      (sum, visit) =>
+        sum + (visit.darts.length > 0 ? visit.darts.length : maxDartsPerTurn),
+      0,
+    );
+}
+
+export function legResultsOf(
+  facts: EngineFacts,
+  config: Seated<FiveOhOneSnapshot>,
+): LegResult[] {
+  const remaining = new Map<string, number>();
+  const results: LegResult[] = [];
+
+  for (const stage of facts.stages) {
+    const visits = legVisitsOf(facts, stage);
+    const winner = foldLeg(visits, config, remaining);
+    if (winner === null) continue;
+
+    results.push({
+      sideKey: winner.sideKey,
+      participantRef: winner.participantRef,
+      darts: legDartsFor(winner.participantRef, visits, config.maxDartsPerTurn),
+    });
+  }
+
+  return results;
 }
 
 /**

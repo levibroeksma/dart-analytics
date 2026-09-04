@@ -181,6 +181,12 @@ export type FiveOhOneState = MultiSeatState<FiveOhOneSeatState> & {
   sides: readonly FiveOhOneSideState[];
 };
 
+export type LegResult = {
+  sideKey: string;
+  participantRef: string;
+  darts: number;
+};
+
 /**
  * One 121 visit as the player reports it — a visit total plus whether the
  * finishing dart landed in a double, exactly like `FiveOhOneVisitInput`.
