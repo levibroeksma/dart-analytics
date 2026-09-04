@@ -67,6 +67,21 @@ describe("foldPopulationPrior", () => {
     expect(prior.excludedCount).toBe(2);
   });
 
+  it("excludes a row with no declared zone key, without calling zoneCentroid on it", () => {
+    const rows: MissMarginInput[] = [
+      {
+        intendedTargetNumber: 20,
+        intendedZoneKey: null,
+        locationX: 0,
+        locationY: -166,
+      },
+      ...darts([{ dx: 1, dy: 1 }]),
+    ];
+    const prior = foldPopulationPrior(rows);
+    expect(prior.sampleSize).toBe(1);
+    expect(prior.excludedCount).toBe(1);
+  });
+
   it("returns a zeroed prior for an empty extract", () => {
     const prior = foldPopulationPrior([]);
     expect(prior).toEqual({

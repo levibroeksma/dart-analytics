@@ -36,8 +36,16 @@ export function foldPopulationPrior(
   let excludedCount = 0;
 
   for (const row of rows) {
+    if (
+      row.intendedZoneKey === null ||
+      row.locationX === null ||
+      row.locationY === null
+    ) {
+      excludedCount++;
+      continue;
+    }
     const centre = zoneCentroid(row.intendedTargetNumber, row.intendedZoneKey);
-    if (centre === null || row.locationX === null || row.locationY === null) {
+    if (centre === null) {
       excludedCount++;
       continue;
     }
