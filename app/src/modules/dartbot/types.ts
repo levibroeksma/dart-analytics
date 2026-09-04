@@ -53,3 +53,17 @@ export type PopulationPrior = {
   sampleSize: number;
   excludedCount: number;
 };
+
+/**
+ * A level's displayed three-dart-average and checkout-% bands
+ * (`level-select-stats.module.ts`, D-L level-select stats). Both bands are
+ * the 25th/75th percentile from a per-level simulation — a real spread,
+ * not a hand guess. `checkoutLow`/`checkoutHigh` are `0..100`, matching
+ * the display string directly.
+ */
+export type LevelSelectStats = {
+  averageLow: number;
+  averageHigh: number;
+  checkoutLow: number;
+  checkoutHigh: number;
+};
