@@ -14,20 +14,13 @@ function sampleStdDev(values: readonly number[], center: number): number {
 }
 
 /**
- * D-E's fold (`08-DartBot.md` §Still open): pools every row into one
- * population-level scatter around each row's own declared-target centroid —
- * `across` is the board's raw x-axis and `along` its raw y-axis, matching
- * `throw-engine.module.ts`'s unrotated local frame (`covarianceRotationDegrees`
- * is 0 for every hand-set level today, so bias and scatter apply in board
- * coordinates directly rather than per-target-rotated ones). A row is
- * excluded when `zoneCentroid()` has no single centre to measure from (bare
- * `SINGLE`, `MISS`) or its landing point is unset — the same exclusions
- * `missMargin()` applies, reused here rather than reimplemented.
- *
- * `outlierRate` is the fraction landing beyond 3 population-radial-sigma
- * (`sqrt(sigmaAlong² + sigmaAcross²)`) from its own centroid — the closest
- * single-number reading of the doc's "tail beyond 3σ" for a scatter with two
- * different axis widths.
+ * Pools every dart into one population-level scatter around each row's own
+ * declared-target centroid. `across` is the board's raw x-axis, `along` its
+ * raw y-axis, unrotated (matches `throw-engine.module.ts`'s
+ * `covarianceRotationDegrees: 0`). A row with no single centre or an unset
+ * landing point is excluded, the same rule `missMargin()` applies.
+ * `outlierRate` is the fraction beyond `3 * sqrt(sigmaAlong² + sigmaAcross²)`
+ * from its own centroid (D-E, `08-DartBot.md`).
  */
 export function foldPopulationPrior(
   rows: readonly MissMarginInput[],

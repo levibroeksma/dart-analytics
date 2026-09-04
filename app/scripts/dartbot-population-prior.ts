@@ -11,13 +11,10 @@ type ExtractRow = {
 };
 
 /**
- * D-E's fold (`08-DartBot.md` §Still open) runs offline against a human-run
- * SQL extract, never against a live database — see the module this delegates
- * to for the aggregation itself. Reads the last fenced ```json block in a
- * Markdown extract file (the doc's query joins `dart_zones` for a readable
- * `intended_zone_key`; an earlier block carrying the raw numeric
- * `intended_zone_id` instead is not usable here and is skipped by taking the
- * last block rather than the first).
+ * Reads the last fenced ```json block in a Markdown extract file. An earlier
+ * block carrying the raw numeric `intended_zone_id` instead of
+ * `intended_zone_key` is not usable by `foldPopulationPrior()` and is
+ * skipped (D-E, `08-DartBot.md`).
  */
 export function extractRowsFromMarkdown(markdown: string): ExtractRow[] {
   const blocks = [...markdown.matchAll(/```json\n([\s\S]*?)```/g)];
