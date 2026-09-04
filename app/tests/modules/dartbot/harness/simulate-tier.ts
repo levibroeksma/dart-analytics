@@ -133,7 +133,7 @@ export function simulateTierStats(
 /**
  * `simulateTierStats` plus the raw per-visit totals and per-attempt
  * checkout outcomes, for callers that need a distribution rather than an
- * aggregate (`dartbot-level-select-stats.ts`, D-L level-select stats).
+ * aggregate (`dartbot-level-select-stats.ts`, D-M level-select stats).
  */
 export function simulateTierStatsDetailed(
   level: number,

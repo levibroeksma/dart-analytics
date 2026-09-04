@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-03
-highest-issued: F63
+updated: 2026-09-04
+highest-issued: F64
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F64 — `08-DartBot.md`'s own version header went two closures stale before this task caught it
+Status: Open · Found: 2026-09-04 · Task: claude/dartbot-config-insights-g8on7o
+Claim: `08-DartBot.md`'s `> **Version:**` line is meant to gain a new entry for every substantive change to the document — its own existing entries (0.1.0 through 0.8.3, and this task's own 0.8.4) each describe one such change
+Evidence: immediately before this task's edit, the header read `0.8.3 (2026-09-03 — 121, TUOD and Score Training wired…)`, with no entry at all for either D-E closing (`## Resolved: D-E population prior`, added 2026-09-04 per `docs/architecture/00-Context-Map-History.md`'s 1.47.0 entry) or D-L closing (`## Resolved: D-L level-curve refit`, added 2026-09-04 per the 1.48.0 entry) — both landed real sections in the body of this same file without a matching version bump
+Impact: a reader who trusts the version header to enumerate every change (as it does for 0.1.0–0.8.3) would miss that D-E and D-L ever happened; nothing downstream was actually broken, since both changes' facts are correctly reflected in the document body and in `00-Context-Map-History.md`'s own version entries — this is a cosmetic staleness in one summary field, not a content error
+Proposed: insert two missing version-header entries (for D-E and D-L, at whatever version numbers correctly slot before this task's now-added 0.8.4) describing what those two tasks actually changed, sourced from `00-Context-Map-History.md`'s existing 1.47.0/1.48.0 entries rather than re-deriving them from the diffs
 
 ### F63 — `setup-controller.ts`'s own doc comment misnames 121 as a `createPresetSetupController` consumer, contradicting its actual hand-written setup context
 Status: Open · Found: 2026-09-03 · Task: claude/score-training-debug-121-tuod-me46ko
