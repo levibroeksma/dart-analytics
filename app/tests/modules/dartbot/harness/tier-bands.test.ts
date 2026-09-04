@@ -12,36 +12,36 @@ function stats(level: number) {
 describe("tier calibration — sanity bands", () => {
   it("level 1 sits in the beginner band", () => {
     const s = stats(1);
-    expect(s.threeDartAverage).toBeGreaterThanOrEqual(27);
-    expect(s.threeDartAverage).toBeLessThanOrEqual(45);
-    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.03);
-    expect(s.checkoutRate).toBeLessThanOrEqual(0.06);
-    expect(s.trebleRate).toBeGreaterThanOrEqual(0.07);
-    expect(s.trebleRate).toBeLessThanOrEqual(0.12);
-    expect(s.missRate).toBeGreaterThanOrEqual(0.045);
-    expect(s.missRate).toBeLessThanOrEqual(0.085);
+    expect(s.threeDartAverage).toBeGreaterThanOrEqual(22);
+    expect(s.threeDartAverage).toBeLessThanOrEqual(34);
+    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.003);
+    expect(s.checkoutRate).toBeLessThanOrEqual(0.02);
+    expect(s.trebleRate).toBeGreaterThanOrEqual(0.025);
+    expect(s.trebleRate).toBeLessThanOrEqual(0.065);
+    expect(s.missRate).toBeGreaterThanOrEqual(0.2);
+    expect(s.missRate).toBeLessThanOrEqual(0.35);
   });
 
   it("level 8 sits in the mid band", () => {
     const s = stats(8);
-    expect(s.threeDartAverage).toBeGreaterThanOrEqual(41);
-    expect(s.threeDartAverage).toBeLessThanOrEqual(68);
+    expect(s.threeDartAverage).toBeGreaterThanOrEqual(50);
+    expect(s.threeDartAverage).toBeLessThanOrEqual(78);
     expect(s.checkoutRate).toBeGreaterThanOrEqual(0.12);
-    expect(s.checkoutRate).toBeLessThanOrEqual(0.2);
+    expect(s.checkoutRate).toBeLessThanOrEqual(0.24);
     expect(s.trebleRate).toBeGreaterThanOrEqual(0.15);
     expect(s.trebleRate).toBeLessThanOrEqual(0.25);
-    expect(s.missRate).toBeGreaterThanOrEqual(0.004);
-    expect(s.missRate).toBeLessThanOrEqual(0.012);
+    expect(s.missRate).toBeGreaterThanOrEqual(0);
+    expect(s.missRate).toBeLessThanOrEqual(0.003);
   });
 
   it("level 15 sits in the elite band", () => {
     const s = stats(15);
-    expect(s.threeDartAverage).toBeGreaterThanOrEqual(86);
-    expect(s.threeDartAverage).toBeLessThanOrEqual(144);
-    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.36);
-    expect(s.checkoutRate).toBeLessThanOrEqual(0.61);
-    expect(s.trebleRate).toBeGreaterThanOrEqual(0.36);
-    expect(s.trebleRate).toBeLessThanOrEqual(0.6);
+    expect(s.threeDartAverage).toBeGreaterThanOrEqual(150);
+    expect(s.threeDartAverage).toBeLessThanOrEqual(180);
+    expect(s.checkoutRate).toBeGreaterThanOrEqual(0.85);
+    expect(s.checkoutRate).toBeLessThanOrEqual(1.0);
+    expect(s.trebleRate).toBeGreaterThanOrEqual(0.85);
+    expect(s.trebleRate).toBeLessThanOrEqual(1.0);
     expect(s.missRate).toBeGreaterThanOrEqual(0);
     expect(s.missRate).toBeLessThanOrEqual(0.003);
   });

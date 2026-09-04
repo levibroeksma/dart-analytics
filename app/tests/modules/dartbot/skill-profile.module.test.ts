@@ -44,4 +44,13 @@ describe("skillProfileForLevel", () => {
   it("level 15 tops out at 100", () => {
     expect(skillProfileForLevel(15).decisionQuality).toBe(100);
   });
+
+  it("anchors level 6 to the D-E measured population prior", () => {
+    const anchor = skillProfileForLevel(6);
+    expect(anchor.sigmaAlongMm).toBe(27.5);
+    expect(anchor.sigmaAcrossMm).toBe(20.1);
+    expect(anchor.biasXMm).toBe(-5.0);
+    expect(anchor.biasYMm).toBe(3.1);
+    expect(anchor.outlierRate).toBe(0.003);
+  });
 });
