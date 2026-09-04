@@ -1,3 +1,10 @@
+<!--
+status: canonical
+scope: architecture/dartbot
+read-when: re-anchoring LEVEL_SKILL_TABLE, auditing the D-L refit's provenance
+updated: 2026-09-04
+-->
+
 # DartBot Level-Curve Anchor Log
 
 > Append-only (same discipline as `decisions/**`): a re-anchor is a new row
