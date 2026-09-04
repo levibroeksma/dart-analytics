@@ -935,3 +935,89 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
     });
   });
 });
+
+describe("oneTwentyOnePlay — DartBot opponent", () => {
+  const BOT_REF = "bot-1";
+  const HUMAN_REF = "human-1";
+
+  function seatsWithBot() {
+    return [
+      {
+        participantRef: HUMAN_REF,
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: BOT_REF,
+        displayName: "DartBot",
+        sideKey: "B",
+        participantTypeKey: "DARTBOT" as const,
+        dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" as const },
+      },
+    ];
+  }
+
+  function botConfig() {
+    return { seats: seatsWithBot() };
+  }
+
+  let store: OneTwentyOnePlayContext["$store"];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    store = baseStore();
+    store.game.configSnapshot = botConfig();
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+  });
+
+  function createPlay(
+    overrides: Partial<OneTwentyOnePlayContext> = {},
+  ): OneTwentyOnePlayContext {
+    return {
+      ...oneTwentyOnePlay(),
+      $store: store,
+      ...overrides,
+    } as OneTwentyOnePlayContext;
+  }
+
+  it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {
+    store.game.inputModeKey = "VISUAL_BOARD";
+    const play = createPlay();
+    await play.init();
+
+    await play.recordVisit(26, false);
+
+    const botTurns = store.game.turns.filter(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
+    const play = createPlay();
+    await play.init();
+
+    await play.recordVisit(26, false);
+
+    const botTurn = store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurn).toBeDefined();
+    expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("undoVisit crosses the seat boundary back to the human", async () => {
+    const play = createPlay();
+    await play.init();
+    await play.recordVisit(26, false);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+
+    play.undoVisit();
+
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+});

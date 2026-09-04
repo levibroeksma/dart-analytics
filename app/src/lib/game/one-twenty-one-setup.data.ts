@@ -14,7 +14,8 @@ import {
 } from "@lib/game/one-twenty-one-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { addTypedGuest } from "@lib/game/guest-list";
+import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
+import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -64,6 +65,11 @@ function resolveStartPreset(
   return ctx.presetForMode(ctx.durationType);
 }
 
+/** Whether this session will seat a second player — guest or DartBot. */
+function guested(ctx: OneTwentyOneSetupContext): boolean {
+  return ctx.guests.length > 0 || ctx.bot !== null;
+}
+
 /**
  * The `overrides` record `start()` sends: none for a guested 1v1 (`121_V1`
  * has no duration concept), or the clamped duration override for solo play.
@@ -107,6 +113,8 @@ export function oneTwentyOneSetup() {
     newGuestName: "",
     bot: null as { level: number } | null,
     showOpponentChooser: false,
+    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
+    showBotLevelPicker: false,
 
     async init(this: OneTwentyOneSetupContext) {
       this.$watch("durationType", (type) => {
@@ -159,8 +167,16 @@ export function oneTwentyOneSetup() {
       if (addTypedGuest(this)) this.forceTargetIfGuested();
     },
 
+    addBot(this: OneTwentyOneSetupContext) {
+      if (addBotOpponent(this)) this.forceTargetIfGuested();
+    },
+
     removeGuest(this: OneTwentyOneSetupContext, index: number) {
       this.guests.splice(index, 1);
+    },
+
+    removeBot(this: OneTwentyOneSetupContext) {
+      this.bot = null;
     },
 
     /**
@@ -169,7 +185,7 @@ export function oneTwentyOneSetup() {
      * `forceRoundsIfGuested`.
      */
     forceTargetIfGuested(this: OneTwentyOneSetupContext) {
-      if (this.guests.length > 0) this.durationType = "TARGET";
+      if (guested(this)) this.durationType = "TARGET";
     },
 
     /**
@@ -235,18 +251,18 @@ export function oneTwentyOneSetup() {
 
     async start(this: OneTwentyOneSetupContext) {
       if (this.loading) return;
-      const guested = this.guests.length > 0;
-      const rulesetVersionKey: RulesetVersionKey = guested
+      const isGuested = guested(this);
+      const rulesetVersionKey: RulesetVersionKey = isGuested
         ? "121_V1"
         : "121_V2";
 
-      const preset = resolveStartPreset(this, guested);
+      const preset = resolveStartPreset(this, isGuested);
       if (!preset) {
         this.error = "Could not find a preset for this mode.";
         return;
       }
 
-      const overrides = resolveStartOverrides(this, guested);
+      const overrides = resolveStartOverrides(this, isGuested);
 
       this.loading = true;
       this.error = "";
@@ -260,7 +276,7 @@ export function oneTwentyOneSetup() {
           rulesetVersionKey,
           this.$store.settings,
         );
-        const participants = participantsFromGuests(this.guests);
+        const participants = participantsFromGuests(this.guests, this.bot);
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey,
@@ -269,7 +285,7 @@ export function oneTwentyOneSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
-            ...(guested ? {} : { overrides }),
+            ...(isGuested ? {} : { overrides }),
           },
           participants,
         });

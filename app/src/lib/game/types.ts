@@ -78,6 +78,8 @@ export type TuodSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -107,7 +109,9 @@ export type TuodSetupContext = {
     type: TuodDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: TuodSetupContext): void;
+  addBot(this: TuodSetupContext): void;
   removeGuest(this: TuodSetupContext, index: number): void;
+  removeBot(this: TuodSetupContext): void;
   forceRoundsIfGuested(this: TuodSetupContext): void;
   start(this: TuodSetupContext): Promise<void>;
 };
@@ -326,6 +330,7 @@ export type ScoreTrainingPlayContext = {
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<ScoreTrainingSnapshot>;
   engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
@@ -357,6 +362,7 @@ export type ScoreTrainingPlayContext = {
     observation: DartObservation,
   ): void;
   undoVisit(this: ScoreTrainingPlayContext): void;
+  maybeRunBotVisit(this: ScoreTrainingPlayContext): Promise<void>;
   uploadAndCompleteSession(this: ScoreTrainingPlayContext): Promise<void>;
   resultsTitle(this: ScoreTrainingPlayContext): string;
   back(this: ScoreTrainingPlayContext): Promise<void>;
@@ -408,6 +414,7 @@ export type TuodPlayContext = {
   dartsToFinish: DartCount | null;
   showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -440,6 +447,7 @@ export type TuodPlayContext = {
   confirmFinish(this: TuodPlayContext): Promise<void>;
   cancelFinish(this: TuodPlayContext): void;
   undoVisit(this: TuodPlayContext): void;
+  maybeRunBotVisit(this: TuodPlayContext): Promise<void>;
   uploadAndCompleteSession(this: TuodPlayContext): Promise<void>;
   resultsTitle(this: TuodPlayContext): string;
   back(this: TuodPlayContext): Promise<void>;
@@ -464,6 +472,8 @@ export type ScoreTrainingSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -496,7 +506,9 @@ export type ScoreTrainingSetupContext = {
     type: ScoreTrainingDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: ScoreTrainingSetupContext): void;
+  addBot(this: ScoreTrainingSetupContext): void;
   removeGuest(this: ScoreTrainingSetupContext, index: number): void;
+  removeBot(this: ScoreTrainingSetupContext): void;
   forceRoundsIfGuested(this: ScoreTrainingSetupContext): void;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
@@ -782,6 +794,7 @@ export type OneTwentyOnePlayContext = {
   pendingDartObservation: DartObservation | null;
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
+  botThrowing: boolean;
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -824,6 +837,7 @@ export type OneTwentyOnePlayContext = {
     observation: DartObservation,
   ): Promise<void>;
   undoVisit(this: OneTwentyOnePlayContext): void;
+  maybeRunBotVisit(this: OneTwentyOnePlayContext): Promise<void>;
   uploadAndCompleteSession(this: OneTwentyOnePlayContext): Promise<void>;
   resultsTitle(this: OneTwentyOnePlayContext): string;
   back(this: OneTwentyOnePlayContext): Promise<void>;
@@ -1015,6 +1029,8 @@ export type OneTwentyOneSetupContext = {
   newGuestName: string;
   bot: { level: number } | null;
   showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
   $store: {
     game: {
       sessionId: string | null;
@@ -1047,7 +1063,9 @@ export type OneTwentyOneSetupContext = {
     type: OneTwentyOneDurationType,
   ): ConfigurationPresetData | undefined;
   addGuest(this: OneTwentyOneSetupContext): void;
+  addBot(this: OneTwentyOneSetupContext): void;
   removeGuest(this: OneTwentyOneSetupContext, index: number): void;
+  removeBot(this: OneTwentyOneSetupContext): void;
   forceTargetIfGuested(this: OneTwentyOneSetupContext): void;
   start(this: OneTwentyOneSetupContext): Promise<void>;
 };

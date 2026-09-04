@@ -15,13 +15,20 @@ import {
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playFoldBotQuickScoreVisit,
+  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import { dartsThrownCount } from "@lib/game/play-visit-stats";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -32,6 +39,8 @@ import type {
 } from "@modules/types";
 import type {
   BoardMarker,
+  BotDartThrower,
+  BotPacing,
   OneTwentyOneDurationType,
   OneTwentyOnePlayContext,
   OneTwentyOneResultsSnapshot,
@@ -42,10 +51,80 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // oneTwentyOneEngineFactory so the registry can resolve either ruleset
 // version this shared play page might be resuming.
-import { OneTwentyOneEngine } from "@modules/game/one-twenty-one.engine.module";
+import {
+  OneTwentyOneEngine,
+  oneTwentyOneEngineFactory,
+} from "@modules/game/one-twenty-one.engine.module";
 
 const GAME_TYPE_KEY = "ONE_TWENTY_ONE";
 const DARTS_PER_VISIT = 3;
+
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+function throwOneDart(
+  remaining: number,
+  botSeat: DartbotSeat,
+  dartIndex: number,
+): DartObservation {
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const intent = chooseTarget(
+    { remaining, checkoutPath: checkoutPathFor(remaining) },
+    profile.decisionQuality,
+  );
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    hitTargetNumber: thrown.hit.targetNumber,
+    hitZoneKey: thrown.hit.zoneKey,
+    locationX: thrown.landing.x,
+    locationY: thrown.landing.y,
+  };
+}
+
+/** VISUAL_BOARD thrower: reads the real engine's own live `state()` —
+ * `remainingInAttemptFor` already folds an open visit's running total. */
+function throwBotDart(
+  context: OneTwentyOnePlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const remaining = context.remainingInAttemptFor(botSeat.participantRef);
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  return {
+    observation: throwOneDart(remaining, botSeat, dartIndex),
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
+
+/** QUICK_SCORE thrower: `state` is the scratch engine's own live state,
+ * never the real engine's — mirrors `five-oh-one-play.data.ts`. */
+function throwBotQuickScoreDart(
+  state: OneTwentyOneState,
+  botSeat: DartbotSeat,
+  dartIndex: number,
+): DartObservation {
+  const remaining = state.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  )!.remainingInAttempt;
+  return throwOneDart(remaining, botSeat, dartIndex);
+}
 
 const RESUMABLE_RULESET_VERSIONS = new Set(["121_V1", "121_V2"]);
 
@@ -260,6 +339,7 @@ export function oneTwentyOnePlay() {
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
+    botThrowing: false,
     engine: null as OneTwentyOneEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,
@@ -400,6 +480,7 @@ export function oneTwentyOnePlay() {
         this.timer = maybeResumeCountdown(this.$store.game, config, engine);
 
         this.hasActiveSession = true;
+        await this.maybeRunBotVisit();
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
@@ -467,7 +548,43 @@ export function oneTwentyOnePlay() {
         this.finished = true;
         this.completionStatus = "pending";
         await this.uploadAndCompleteSession();
+        return;
       }
+      await this.maybeRunBotVisit();
+    },
+
+    async maybeRunBotVisit(this: OneTwentyOnePlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat || !this.engine || this.finished) return;
+      const state = this.state();
+      if (!state || state.activeParticipantRef !== botSeat.participantRef)
+        return;
+
+      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
+        const remainingBefore = this.remainingInAttemptFor(
+          botSeat.participantRef,
+        );
+        let dartIndex = botDartIndex(
+          this.$store.game.turns,
+          botSeat.participantRef,
+        );
+        const fold = playFoldBotQuickScoreVisit(
+          oneTwentyOneEngineFactory,
+          this.$store.game.configSnapshot!,
+          this.engine.facts(),
+          (scratchState) =>
+            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
+          DARTS_PER_VISIT,
+        );
+        await this.recordVisit(
+          fold.totalScore,
+          fold.totalScore === remainingBefore,
+        );
+        return;
+      }
+
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
     },
 
     /**
@@ -500,11 +617,12 @@ export function oneTwentyOnePlay() {
       await this.commitDart(observation);
     },
 
-    commitDart(
+    async commitDart(
       this: OneTwentyOnePlayContext,
       observation: DartObservation,
-    ): Promise<void> {
-      return playCommitDart(this, observation);
+    ) {
+      await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
     },
 
     /**
@@ -645,12 +763,21 @@ export function oneTwentyOnePlay() {
         this.showSessionFinishConfirm
       )
         return;
-      if (!this.engine || !this.engine.undo()) return;
-
-      clearHiddenTimer(this);
-      this.$store.game.recordFacts(this.engine.facts());
+      if (!this.engine) return;
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        if (!this.engine.undo()) return;
+        clearHiddenTimer(this);
+        this.$store.game.recordFacts(this.engine.facts());
+      }
       this.scoreInput.clear();
       this.error = "";
+      void this.maybeRunBotVisit();
     },
 
     async uploadAndCompleteSession(

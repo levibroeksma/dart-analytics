@@ -6,6 +6,7 @@ import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 const formatOpts = [
   { value: "TARGET", label: "170" },
@@ -21,13 +22,16 @@ const infoSection = {
 ---
 
 <SetupShell title="121">
-  <UserSection allowGuests />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("121_V1")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <template x-if="guests.length === 0">
+    <template x-if="guests.length === 0 && !bot">
       <div class="contents">
         <Toggle
           orientation="horizontal"
@@ -64,7 +68,7 @@ const infoSection = {
         </template>
       </div>
     </template>
-    <template x-if="guests.length > 0">
+    <template x-if="guests.length > 0 || bot">
       <p class="text-sm text-muted-foreground px-4 py-0">
         Check out 170 to win — Rounds and Time modes are solo only.
       </p>
