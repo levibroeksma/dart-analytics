@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-04
-highest-issued: F65
+highest-issued: F66
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F66 — `dartsThrownCount` overcounts a VISUAL_BOARD leg's real dart total for any visit that resolves before its final dart
+Status: Open · Found: 2026-09-04 · Task: claude/501-best-leg-stat-5or63t
+Claim: `dartsThrownThisLeg`/`dartsThrownThisLegFor` (the play page's live progress readouts) report the actual number of darts thrown so far in the current leg
+Evidence: `app/src/lib/game/play-visit-stats.ts:42-50`'s `dartsThrownCount` computes `completedVisits(turns).length * maxDartsPerTurn + (open?.darts?.length ?? 0)` — every *completed* visit is assumed to have used the full `maxDartsPerTurn`, and only the one still-open visit reads its own `darts.length`
+Impact: under `VISUAL_BOARD`, a completed visit's real dart count can be less than `maxDartsPerTurn` (a checkout or bust confirmed on the visit's first or second dart), so the live progress readout overstates darts actually thrown for that leg. This task's own `legDartsFor` (`app/src/modules/game/five-oh-one.engine.module.ts`) deliberately does not reuse `dartsThrownCount` for this reason — it reads `turn.darts.length` directly when non-zero, falling back to `maxDartsPerTurn` only for quick-score turns that genuinely carry no dart rows
+Proposed: give `dartsThrownCount` the same per-visit `darts.length > 0 ? darts.length : maxDartsPerTurn` treatment, rather than a blanket `maxDartsPerTurn` for every completed visit — small and mechanical, but touches every caller's expected numbers and deserves its own task with dedicated test coverage rather than folding into this one
 
 ### F65 — `LEVEL_SKILL_TABLE`'s original hand-set bias values repeat exactly across three adjacent-level pairs, and both refits preserved it
 Status: Open · Found: 2026-09-04 · Task: claude/dartbot-config-insights-g8on7o
