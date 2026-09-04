@@ -289,14 +289,15 @@ Replace lines 3–7 of `app/src/modules/dartbot/skill-profile.module.ts`:
  */
 ```
 
-with:
+with (D255: states the table's current contract only — which fields are
+calibrated vs. hand-set — not the refit's derivation or history):
 
 ```typescript
 /**
- * Refit against the measured D-E population prior, anchored at level 6
- * (D-L, `08-DartBot.md`). `sigmaAlongMm`/`sigmaAcrossMm`/`biasXMm`/
- * `biasYMm`/`outlierRate` are power-law-rescaled from that anchor; every
- * other field is hand-set and unaffected by this refit.
+ * Per-level bot throw parameters (D-L, `08-DartBot.md`). `sigmaAlongMm`,
+ * `sigmaAcrossMm`, `biasXMm`, `biasYMm` and `outlierRate` are calibrated
+ * against a measured population prior; the remaining fields are hand-set
+ * independently of it.
  */
 ```
 
