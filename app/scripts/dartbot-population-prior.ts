@@ -10,21 +10,6 @@ type ExtractRow = {
   location_y: number | string | null;
 };
 
-/**
- * Reads the last fenced ```json block in a Markdown extract file. An earlier
- * block carrying the raw numeric `intended_zone_id` instead of
- * `intended_zone_key` is not usable by `foldPopulationPrior()` and is
- * skipped (D-E, `08-DartBot.md`).
- */
-export function extractRowsFromMarkdown(markdown: string): ExtractRow[] {
-  const blocks = [...markdown.matchAll(/```json\n([\s\S]*?)```/g)];
-  const last = blocks.at(-1);
-  if (!last) {
-    throw new Error("No ```json block found in the extract file");
-  }
-  return JSON.parse(last[1]) as ExtractRow[];
-}
-
 export function toMissMarginInputs(
   rows: readonly ExtractRow[],
 ): MissMarginInput[] {
@@ -40,10 +25,9 @@ export function toMissMarginInputs(
 function main(): void {
   const path =
     process.argv[2] ??
-    fileURLToPath(new URL("../../D-E-extract.md", import.meta.url));
-  const markdown = readFileSync(path, "utf8");
-  const rows = toMissMarginInputs(extractRowsFromMarkdown(markdown));
-  const prior = foldPopulationPrior(rows);
+    fileURLToPath(new URL("../../D-E-extract.json", import.meta.url));
+  const extractRows = JSON.parse(readFileSync(path, "utf8")) as ExtractRow[];
+  const prior = foldPopulationPrior(toMissMarginInputs(extractRows));
   console.log(JSON.stringify(prior, null, 2));
 }
 
