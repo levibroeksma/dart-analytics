@@ -14,8 +14,8 @@ exports[`throwDart determinism > matches the committed snapshot for seed 42 at l
       "zoneKey": "INNER_SINGLE",
     },
     "landing": {
-      "x": -6.436423704962795,
-      "y": -96.68405016882457,
+      "x": -7.752641149879796,
+      "y": -95.88858793652732,
     },
   },
   {
@@ -30,8 +30,8 @@ exports[`throwDart determinism > matches the committed snapshot for seed 42 at l
       "zoneKey": "TREBLE",
     },
     "landing": {
-      "x": -16.665028493653477,
-      "y": -103.19964061841283,
+      "x": -19.487784628377632,
+      "y": -103.63353507471714,
     },
   },
   {
@@ -46,8 +46,8 @@ exports[`throwDart determinism > matches the committed snapshot for seed 42 at l
       "zoneKey": "OUTER_SINGLE",
     },
     "landing": {
-      "x": -0.7691360209596336,
-      "y": -118.83723659098247,
+      "x": -1.2506366752095022,
+      "y": -122.22162085343199,
     },
   },
   {
@@ -62,8 +62,8 @@ exports[`throwDart determinism > matches the committed snapshot for seed 42 at l
       "zoneKey": "INNER_SINGLE",
     },
     "landing": {
-      "x": 10.57319678414144,
-      "y": -81.45337714295275,
+      "x": 11.762272279480102,
+      "y": -77.78420301898157,
     },
   },
   {
@@ -78,8 +78,8 @@ exports[`throwDart determinism > matches the committed snapshot for seed 42 at l
       "zoneKey": "TREBLE",
     },
     "landing": {
-      "x": -2.6670966618817147,
-      "y": -100.67850460451997,
+      "x": -3.4281419066549903,
+      "y": -100.63671302046713,
     },
   },
 ]

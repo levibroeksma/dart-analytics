@@ -53,4 +53,14 @@ describe("skillProfileForLevel", () => {
     expect(anchor.biasYMm).toBe(3.1);
     expect(anchor.outlierRate).toBe(0.003);
   });
+
+  it("anchors level 1 and level 15 to the D-N recalibration's found values", () => {
+    const level1 = skillProfileForLevel(1);
+    expect(level1.sigmaAlongMm).toBe(59.1);
+    expect(level1.sigmaAcrossMm).toBe(46.5);
+
+    const level15 = skillProfileForLevel(15);
+    expect(level15.sigmaAlongMm).toBe(4.4);
+    expect(level15.sigmaAcrossMm).toBe(3.0);
+  });
 });
