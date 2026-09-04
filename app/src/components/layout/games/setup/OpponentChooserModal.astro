@@ -1,63 +1,117 @@
 ---
 /**
  * Guest/DartBot opponent chooser. Choosing DartBot swaps the body to a
- * level step (1–15 slider bound to `pendingBotLevel`) instead of seating
+ * level step (1–15 slider bound to `pendingBotLevel`, with two simulated
+ * stat bands above it and a persistent level pill) instead of seating
  * immediately; `addBot()` seats at the chosen level. One `x-text`-bound
- * `<h2>` covers both steps to avoid a duplicate `titleId`.
+ * `<h2>` covers both steps to avoid a duplicate `titleId`. The average
+ * band's bar domain is 0–180 — three darts at treble 20, the real ceiling
+ * a three-dart visit can reach, not an arbitrary scale.
  */
 
 // Components
 import Modal from "@components/ui/Modal.astro";
 import Button from "@components/forms/Button.astro";
+import Badge from "@components/ui/Badge.astro";
+
+// Lib
+import { allLevelSelectStats } from "@modules/dartbot/level-select-stats.module";
+
+// Data
+const levelSelectStats = allLevelSelectStats();
 ---
 
 <Modal
   titleId="opponent-chooser-title"
   onDismiss="showOpponentChooser = false; showBotLevelPicker = false; pendingBotLevel = 8"
 >
-  <h2
-    id="opponent-chooser-title"
-    class="text-lg font-semibold text-foreground"
-    x-text="showBotLevelPicker ? 'DartBot level' : 'Add Opponent'"
-  >
-  </h2>
+  <div class="flex items-center justify-between gap-3">
+    <h2
+      id="opponent-chooser-title"
+      class="text-lg font-semibold text-foreground"
+      x-text="showBotLevelPicker ? 'Difficulty' : 'Add Opponent'"
+    >
+    </h2>
+    <Badge
+      variant="accent"
+      x-show="showBotLevelPicker"
+      x-cloak
+      x-text="`Lv. ${pendingBotLevel}`"
+    />
+  </div>
 
   <div
-    class="relative mt-6"
+    class="mt-6"
+    x-data={`{ levelSelectStats: ${JSON.stringify(levelSelectStats)} }`}
     x-show="showBotLevelPicker"
     x-cloak
   >
-    <input
-      type="range"
-      id="botLevel"
-      name="botLevel"
-      min="1"
-      max="15"
-      step="1"
-      value="8"
-      list="botLevelTicks"
-      aria-label="DartBot level, 1 to 15"
-      x-model.number="pendingBotLevel"
-      class="peer w-full accent-accent"
-    />
-    <datalist id="botLevelTicks">
-      <option value="1"></option>
-      <option value="5"></option>
-      <option value="10"></option>
-      <option value="15"></option>
-    </datalist>
-    <div class="relative mt-1 h-4 text-xs text-muted-foreground">
-      <span class="absolute left-0">1</span>
-      <span class="absolute left-[28.5714%] -translate-x-1/2">5</span>
-      <span class="absolute left-[64.2857%] -translate-x-1/2">10</span>
-      <span class="absolute right-0">15</span>
+    <div class="mb-4 flex flex-col gap-3">
+      <div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-foreground">3-dart average</span>
+          <span
+            class="font-semibold text-foreground"
+            x-text="`${levelSelectStats[pendingBotLevel].averageLow}–${levelSelectStats[pendingBotLevel].averageHigh}`"
+          ></span>
+        </div>
+        <div
+          class="relative mt-1.5 h-2 overflow-hidden rounded-full bg-surface-overlay"
+        >
+          <div
+            class="absolute h-full rounded-full bg-accent"
+            :style="`left: ${(levelSelectStats[pendingBotLevel].averageLow / 180) * 100}%; width: ${((levelSelectStats[pendingBotLevel].averageHigh - levelSelectStats[pendingBotLevel].averageLow) / 180) * 100}%`"
+          >
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-foreground">Checkout %</span>
+          <span
+            class="font-semibold text-foreground"
+            x-text="`${levelSelectStats[pendingBotLevel].checkoutLow}–${levelSelectStats[pendingBotLevel].checkoutHigh}%`"
+          ></span>
+        </div>
+        <div
+          class="relative mt-1.5 h-2 overflow-hidden rounded-full bg-surface-overlay"
+        >
+          <div
+            class="absolute h-full rounded-full bg-accent"
+            :style="`left: ${levelSelectStats[pendingBotLevel].checkoutLow}%; width: ${levelSelectStats[pendingBotLevel].checkoutHigh - levelSelectStats[pendingBotLevel].checkoutLow}%`"
+          >
+          </div>
+        </div>
+      </div>
     </div>
-    <p
-      class="glass pointer-events-none absolute -top-9 -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-center text-xs font-semibold text-foreground opacity-0 transition-opacity peer-active:opacity-100"
-      :style="`left: ${(pendingBotLevel - 1) / 14 * 100}%`"
-      x-text="`Level ${pendingBotLevel}`"
-    >
-    </p>
+
+    <div class="relative">
+      <input
+        type="range"
+        id="botLevel"
+        name="botLevel"
+        min="1"
+        max="15"
+        step="1"
+        value="8"
+        list="botLevelTicks"
+        aria-label="DartBot level, 1 to 15"
+        x-model.number="pendingBotLevel"
+        class="w-full accent-accent"
+      />
+      <datalist id="botLevelTicks">
+        <option value="1"></option>
+        <option value="5"></option>
+        <option value="10"></option>
+        <option value="15"></option>
+      </datalist>
+      <div class="relative mt-1 h-4 text-xs text-muted-foreground">
+        <span class="absolute left-0">1</span>
+        <span class="absolute left-[28.5714%] -translate-x-1/2">5</span>
+        <span class="absolute left-[64.2857%] -translate-x-1/2">10</span>
+        <span class="absolute right-0">15</span>
+      </div>
+    </div>
   </div>
 
   <div
