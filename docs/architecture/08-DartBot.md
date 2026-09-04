@@ -708,38 +708,31 @@ The seat-admission design (2026-08-24, revised 2026-08-28) resolves six. They ar
 | **D-I** — how `DARTBOT` is admitted            | A per-ruleset `dartbot` flag declared beside `SEAT_CAPS`. The cap answers "how many seats", which is not the question "may one of them be a bot"                                                                                                                         |
 | **D-J** — where the bot enters the setup surface | The existing add-opponent button opens a two-step chooser (Guest · DartBot). No new screen: all nine `*SetupForm.astro` already carry the affordance, and the DartBot branch renders only where `RULESET_DARTBOT` is true. A separate bot control beside the guest one was rejected — two buttons for one seat, on screens that admit exactly one opponent |
 
+## Resolved: D-E population prior
+
+Not part of the seat-admission design — closed separately, by the extract-and-fold it always specified.
+
+**D-E — Population prior values.** `fitProfile()` needs a population prior to shrink toward at `n = 0`. A human ran the extract against production data (`D-E-extract.md`, 328 `PLAYER`-only rows via `participant_type_id = 1`, joined to `dart_zones` for a readable `intended_zone_key`). `population-prior.module.ts`'s `foldPopulationPrior()` folds it, reusing `zoneCentroid()` for each row's centre exactly as `missMargin()` does; `scripts/dartbot-population-prior.ts` is the one-off that runs it (`docs/superpowers/specs/2026-09-04-d-e-population-prior-design.md`).
+
+Measured prior (unrotated board axes — across = x, along = y, matching `throw-engine.module.ts`'s `covarianceRotationDegrees: 0`; outlier = beyond 3×`sqrt(sigmaAlong² + sigmaAcross²)` from a row's own centroid):
+
+| Field | Value |
+| ----- | ----- |
+| `sigmaAlongMm` | 27.5 |
+| `sigmaAcrossMm` | 20.1 |
+| `biasXMm` | -5.0 |
+| `biasYMm` | 3.1 |
+| `outlierRate` | 0.3% |
+
+**Caveat:** the sample is thin (328 darts) and its `intended_zone_key` composition is almost entirely `DOUBLE`/`INNER_BULL` — not a cross-section of every zone a player throws at. Re-running the extract against a larger, more varied sample will move these numbers.
+
+**Not yet done:** this closes only the measurement D-E asked for. `LEVEL_SKILL_TABLE` is not refit against this prior, and `fitProfile()` itself (phase 10) is not built — the number is stored, not yet consumed. Any claim about what a given level *plays* like, and the level-picker average/checkout UI that would show one, stay blocked on that separate, undesigned work.
+
 ## Still open
 
-Two, both blocked on the same thing, and neither blocking the build.
+One, and not blocking the build.
 
-**D-E — Population prior values.** `fitProfile()` needs a population prior to shrink toward at `n = 0`. That prior has to be measured, and measuring it reads real player darts, so **a human runs this, not an agent**.
-
-Two constraints shape how:
-
-- **Not through `v_dart_locations`.** Migration `0023` scopes that view to one owning player, and a population prior is cross-player by definition. The extract reads the base tables with the same participant join, filtered to `participant_type_id = 1` so guests and bots are excluded exactly as the views exclude them.
-- **Not in SQL.** The residual is measured from `zoneCentroid()`, which is TypeScript. Reimplementing board geometry in a query would re-declare the board in a third place — the registered anti-pattern, one layer further out. The query extracts four columns; the shipped `missMargin()` does the maths.
-
-```sql
--- Extract only. Aggregate in TypeScript through the shipped missMargin().
--- PLAYER seats only: guests and DartBot are excluded here for the same
--- reason migration 0023 excludes them from the dart views.
-SELECT d.intended_target_number,
-       d.intended_zone_id,
-       d.location_x,
-       d.location_y
-FROM   darts d
-JOIN   turns t        ON t.id = d.turn_id
-JOIN   participants p ON p.id = t.participant_id
-WHERE  p.participant_type_id = 1
-  AND  d.intended_target_number IS NOT NULL
-  AND  d.location_x IS NOT NULL;
-```
-
-The fold is a `scripts/` one-off, not an app read path: parse the `NUMERIC` columns (they arrive as strings), run each row through `missMargin()`, then take `stddev` along and across the bed axis, the mean as bias, and the tail beyond 3σ as `outlierRate`. Output is aggregate only — no row survives the script.
-
-Blocks the level curve, and so blocks any claim about what a given level *plays* like. It does not block phases 1–7: a hand-set prior throws perfectly good darts, it just cannot be called calibrated.
-
-**D-K — Auto level.** A bot mirroring the player's own stored skill, resolved server-side at session start. D-E's machinery aimed at one player instead of the population, and blocked on the same aggregate. The contract is already shaped for it: the wire gains `levelMode?: "AUTO"`, the server resolves a concrete `level`, and the snapshot records `levelSource: "AUTO"` — no snapshot change when it lands.
+**D-K — Auto level.** A bot mirroring the player's own stored skill, resolved server-side at session start. D-E's machinery aimed at one player instead of the population; the population prior it needed to shrink toward is now measured, but `fitProfile()` itself (phase 10) is still unbuilt, so D-K stays blocked on that. The contract is already shaped for it: the wire gains `levelMode?: "AUTO"`, the server resolves a concrete `level`, and the snapshot records `levelSource: "AUTO"` — no snapshot change when it lands.
 
 ---
 
