@@ -38,3 +38,18 @@ export type BotThrow = {
   hit: BoardHit;
   bounced: boolean;
 };
+
+/**
+ * One pooled scatter across every dart in an extract, not one per level.
+ * Produced by `population-prior.module.ts` (D-E, `08-DartBot.md`); not yet
+ * consumed anywhere.
+ */
+export type PopulationPrior = {
+  sigmaAlongMm: number;
+  sigmaAcrossMm: number;
+  biasXMm: number;
+  biasYMm: number;
+  outlierRate: number;
+  sampleSize: number;
+  excludedCount: number;
+};
