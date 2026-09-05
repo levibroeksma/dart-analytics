@@ -7,15 +7,15 @@ interface Props {
 const { label, leftValue, rightValue }: Props = Astro.props;
 ---
 
-<div class="flex justify-between items-center font-display-mono">
+<div class="grid grid-cols-[1fr_auto_1fr] items-center font-display-mono">
   <dd
-    class="font-mono text-sm font-bold tabular-nums text-foreground"
+    class="text-left font-mono text-sm font-bold tabular-nums text-foreground"
     x-text={leftValue}
   >
   </dd>
-  <dt class="text-sm text-muted-foreground">{label}</dt>
+  <dt class="text-center text-sm text-muted-foreground">{label}</dt>
   <dd
-    class="font-mono text-sm font-bold tabular-nums text-foreground"
+    class="text-right font-mono text-sm font-bold tabular-nums text-foreground"
     x-text={rightValue}
   >
   </dd>

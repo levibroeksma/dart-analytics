@@ -1,5 +1,6 @@
 ---
 import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
+import StatRowComparisonSkeleton from "@components/layout/games/StatRowComparisonSkeleton.astro";
 
 interface Props {
   statRows: readonly { label: string; key: string; fallback?: string }[];
@@ -21,18 +22,23 @@ function seatValueExpr(
 {/* 1v1: comparison rows — stat label centered, values on either side */}
 <div
   class="mt-4 space-y-2 text-sm"
-  x-show="completionStatus === 'succeeded' && resultsSnapshot?.seats?.length === 2"
+  x-show="$store.game.seats.length === 2"
   x-cloak
 >
+  {
+    /* Player names, known from the seated config — shown immediately, not gated on results */
+  }
   <div class="flex justify-between font-semibold text-accent">
-    <span
-      x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[0]?.participantRef)?.displayName"
-    ></span>
-    <span
-      x-text="$store.game.seats.find((s) => s.participantRef === resultsSnapshot?.seats?.[1]?.participantRef)?.displayName"
-    ></span>
+    <span x-text="$store.game.seats[0]?.displayName"></span>
+    <span x-text="$store.game.seats[1]?.displayName"></span>
   </div>
-  <dl class="space-y-2">
+
+  {/* Succeeded: comparison rows with real values */}
+  <dl
+    class="space-y-2"
+    x-show="completionStatus === 'succeeded'"
+    x-cloak
+  >
     {
       statRows.map((row) => (
         <StatRowComparison
@@ -42,5 +48,14 @@ function seatValueExpr(
         />
       ))
     }
+  </dl>
+
+  {/* Loading: comparison rows with skeleton values, label still centered */}
+  <dl
+    class="space-y-2"
+    x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+    x-cloak
+  >
+    {statRows.map((row) => <StatRowComparisonSkeleton label={row.label} />)}
   </dl>
 </div>

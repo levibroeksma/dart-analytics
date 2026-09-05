@@ -1,0 +1,18 @@
+---
+interface Props {
+  label: string;
+}
+const { label }: Props = Astro.props;
+---
+
+<div class="grid grid-cols-[1fr_auto_1fr] items-center font-display-mono">
+  <dd
+    class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded justify-self-start"
+  >
+  </dd>
+  <dt class="text-center text-sm text-muted-foreground">{label}</dt>
+  <dd
+    class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded justify-self-end"
+  >
+  </dd>
+</div>
