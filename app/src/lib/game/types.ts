@@ -760,6 +760,7 @@ export type OneTwentyOneSeatResult = {
   target: number;
   visits: number;
   average: number;
+  doubleAccuracy: string | null;
 };
 
 /** `attempt` is 1-indexed: which attempt at the winning target succeeded —
