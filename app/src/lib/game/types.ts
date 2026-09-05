@@ -375,9 +375,7 @@ export type TuodSeatResult = {
   participantRef: string;
   sideKey: string;
   target: number;
-  attempts: number;
-  successes: number;
-  failures: number;
+  doubleAccuracy: string | null;
 };
 
 /** `winningSideKey` is score-compare (highest target) resolved by the
@@ -652,12 +650,13 @@ export type SinglesTrainingSetupContext = PresetSetupContext & {
 /** One seat's own results stats, replayed from its own completed visits in
  * `turns`. `legsWon` comes from `state().sides`, never counted from
  * `turns` directly — a stage exists per leg *played*, not per leg *won*.
- * `checkoutPercentage` is `null` for a QUICK_SCORE session (checkout %
+ * `doubleAccuracy` is `null` for a QUICK_SCORE session (checkout accuracy
  * cannot be computed without per-dart data,
- * `05-Database/06-Spec/04-Runtime-Layer.md`); for VISUAL_BOARD it is
- * `legsWon` over `legsWon + checkoutAttemptCount(seatTurns)`, formatted by
- * `accuracyDisplay` (Pattern 20). Score-band counts are exclusive
- * (D238/D242, Pattern 21) — a visit increments exactly one of
+ * `05-Database/06-Spec/04-Runtime-Layer.md`); for VISUAL_BOARD it classifies
+ * every dart against the double its remaining score needed
+ * (`modules/game/double-attempt.module.ts`), formatted by `accuracyDisplay`
+ * (Pattern 20). Score-band counts are exclusive (D238/D242, Pattern 21) — a
+ * visit increments exactly one of
  * `sixtyPlus`/`hundredPlus`/`oneTwentyPlus`/`oneFortyPlus`/`oneEighties`,
  * never more than one. */
 export type FiveOhOneSeatResult = {
@@ -665,7 +664,7 @@ export type FiveOhOneSeatResult = {
   sideKey: string;
   legsWon: number;
   threeDartAverage: string;
-  checkoutPercentage: string | null;
+  doubleAccuracy: string | null;
   sixtyPlus: number;
   hundredPlus: number;
   oneTwentyPlus: number;
@@ -761,6 +760,7 @@ export type OneTwentyOneSeatResult = {
   target: number;
   visits: number;
   average: number;
+  doubleAccuracy: string | null;
 };
 
 /** `attempt` is 1-indexed: which attempt at the winning target succeeded —

@@ -26,7 +26,12 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
-import { dartsThrownCount } from "@lib/game/play-visit-stats";
+import { accuracyDisplay, dartsThrownCount } from "@lib/game/play-visit-stats";
+import {
+  classifyDoubleAttempts,
+  type CheckoutVisitDarts,
+} from "@modules/game/double-attempt.module";
+import { turnsBeforeVisit } from "@modules/game/turn-log.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
@@ -35,6 +40,7 @@ import type {
   DartObservation,
   OneTwentyOneSeatState,
   OneTwentyOneState,
+  StageFact,
   TurnFact,
 } from "@modules/types";
 import type {
@@ -281,32 +287,84 @@ function canReplay(
   return RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey) && !playAgainLoading;
 }
 
+type OneTwentyOneConfig = NonNullable<
+  OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
+>;
+
+/**
+ * One seat's checkout visits, each carrying the remaining score it opened
+ * against -- folded via `foldOneTwentyOneState` over every turn strictly
+ * before it, mirroring `OneTwentyOneEngine`'s own (private) `seatBeforeVisit`.
+ * `timerExpired` is always `false` here: every visit folded this way is
+ * already closed, and a closed visit's own `remainingInAttempt` never
+ * depends on the live timer flag.
+ */
+function oneTwentyOneCheckoutVisits(
+  seatTurns: readonly TurnFact[],
+  stages: StageFact[],
+  turns: readonly TurnFact[],
+  config: OneTwentyOneConfig,
+  participantRef: string,
+): CheckoutVisitDarts[] {
+  return seatTurns.map((visit) => ({
+    startingRemaining: foldOneTwentyOneState(
+      { stages, turns: turnsBeforeVisit(turns, visit) },
+      config,
+      false,
+    ).seats.find((seat) => seat.participantRef === participantRef)!
+      .remainingInAttempt,
+    darts: visit.darts,
+  }));
+}
+
 function statsFor(
   seat: OneTwentyOneSeatState,
+  stages: StageFact[],
   turns: readonly TurnFact[],
+  config: OneTwentyOneConfig,
+  inputModeKey: string | null,
 ): OneTwentyOneSeatResult {
   const seatTurns = turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
   );
   const total = seatTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
+  const doubleAccuracy = (() => {
+    if (inputModeKey !== "VISUAL_BOARD") return null;
+    const { hits, misses } = classifyDoubleAttempts(
+      oneTwentyOneCheckoutVisits(
+        seatTurns,
+        stages,
+        turns,
+        config,
+        seat.participantRef,
+      ),
+    );
+    return accuracyDisplay(hits, hits + misses);
+  })();
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     target: seat.currentTarget,
     visits: seatTurns.length,
     average: seatTurns.length === 0 ? 0 : total / seatTurns.length,
+    doubleAccuracy,
   };
 }
 
 function computeStats(
   state: OneTwentyOneState,
+  stages: StageFact[],
   turns: readonly TurnFact[],
+  config: OneTwentyOneConfig,
+  inputModeKey: string | null,
 ): OneTwentyOneResultsSnapshot {
   return {
     target: state.seats[0].currentTarget,
     winningSideKey: state.winningSideKey,
     status: state.status === "WON" ? "WON" : "COMPLETE",
-    seats: state.seats.map((seat) => statsFor(seat, turns)),
+    seats: state.seats.map((seat) =>
+      statsFor(seat, stages, turns, config, inputModeKey),
+    ),
   };
 }
 
@@ -785,7 +843,14 @@ export function oneTwentyOnePlay() {
     ): Promise<void> {
       return playUploadAndCompleteSession(
         this,
-        (finalState) => computeStats(finalState, this.$store.game.turns),
+        (finalState) =>
+          computeStats(
+            finalState,
+            this.$store.game.stages,
+            this.$store.game.turns,
+            this.$store.game.configSnapshot!,
+            this.$store.game.inputModeKey,
+          ),
         () => this.state(),
       );
     },

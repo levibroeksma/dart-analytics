@@ -397,6 +397,12 @@ export type EngineFacts = {
   turns: TurnFact[];
 };
 
+/** One visit's darts, plus the remaining score it opened against. */
+export type CheckoutVisitDarts = {
+  startingRemaining: number;
+  darts: readonly DartFact[];
+};
+
 /** A pointer position in client (viewport) pixels. */
 export type BoardPointer = {
   clientX: number;

@@ -23,11 +23,23 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import {
+  classifyDoubleAttempts,
+  type CheckoutVisitDarts,
+} from "@modules/game/double-attempt.module";
+import { turnsBeforeVisit } from "@modules/game/turn-log.module";
+import type {
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+  TuodSnapshot,
+} from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
   DartObservation,
+  EngineFacts,
   TuodAttemptInput,
   TuodSeatState,
   TuodState,
@@ -157,14 +169,51 @@ function resumeEngine(
   return engine instanceof TuodEngine ? engine : null;
 }
 
-function statsFor(seat: TuodSeatState): TuodSeatResult {
+/**
+ * One seat's checkout visits, each carrying the target it opened against --
+ * folded via `foldTuodState` over every turn strictly before it, mirroring
+ * `TuodEngine`'s own (private) `targetBeforeVisit`. `timerExpired` is always
+ * `false` here: every visit folded this way is already closed, and a closed
+ * visit's own `currentTarget` never depends on the live timer flag.
+ */
+function tuodCheckoutVisits(
+  seatTurns: readonly TurnFact[],
+  facts: EngineFacts,
+  config: Seated<TuodSnapshot>,
+  participantRef: string,
+): CheckoutVisitDarts[] {
+  return seatTurns.map((visit) => ({
+    startingRemaining: foldTuodState(
+      { stages: facts.stages, turns: turnsBeforeVisit(facts.turns, visit) },
+      config,
+      false,
+    ).seats.find((seat) => seat.participantRef === participantRef)!
+      .currentTarget,
+    darts: visit.darts,
+  }));
+}
+
+function statsFor(
+  seat: TuodSeatState,
+  facts: EngineFacts,
+  config: Seated<TuodSnapshot>,
+  inputModeKey: string | null,
+): TuodSeatResult {
+  const seatTurns = facts.turns.filter(
+    (turn) => turn.participantRef === seat.participantRef,
+  );
+  const doubleAccuracy = (() => {
+    if (inputModeKey !== "VISUAL_BOARD") return null;
+    const { hits, misses } = classifyDoubleAttempts(
+      tuodCheckoutVisits(seatTurns, facts, config, seat.participantRef),
+    );
+    return accuracyDisplay(hits, hits + misses);
+  })();
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     target: seat.currentTarget,
-    attempts: seat.attempts,
-    successes: seat.successes,
-    failures: seat.failures,
+    doubleAccuracy,
   };
 }
 
@@ -176,11 +225,18 @@ function statsFor(seat: TuodSeatState): TuodSeatResult {
  * from the engine (score-compare only runs seats.length >= 2), so this
  * collapse is safe.
  */
-function computeStats(state: TuodState): TuodResultsSnapshot {
+function computeStats(
+  state: TuodState,
+  facts: EngineFacts,
+  config: Seated<TuodSnapshot>,
+  inputModeKey: string | null,
+): TuodResultsSnapshot {
   return {
     winningSideKey: state.winningSideKey,
     status: state.status === "TIE" ? "TIE" : "COMPLETE",
-    seats: state.seats.map((seat) => statsFor(seat)),
+    seats: state.seats.map((seat) =>
+      statsFor(seat, facts, config, inputModeKey),
+    ),
   };
 }
 
@@ -620,7 +676,13 @@ export function tuodPlay() {
     async uploadAndCompleteSession(this: TuodPlayContext): Promise<void> {
       return playUploadAndCompleteSession(
         this,
-        (finalState) => computeStats(finalState),
+        (finalState) =>
+          computeStats(
+            finalState,
+            { stages: this.$store.game.stages, turns: this.$store.game.turns },
+            this.$store.game.configSnapshot!,
+            this.$store.game.inputModeKey,
+          ),
         () => this.state(),
       );
     },

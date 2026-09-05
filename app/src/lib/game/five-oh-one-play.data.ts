@@ -29,7 +29,10 @@ import {
   threeDartAverageDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import { checkoutAttemptCount } from "@modules/game/checkout-bust.module";
+import {
+  classifyDoubleAttempts,
+  type CheckoutVisitDarts,
+} from "@modules/game/double-attempt.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
@@ -167,10 +170,33 @@ function bestLegFor(
 }
 
 /**
+ * One seat's checkout visits, each carrying the remaining score it opened
+ * against -- `startingScore` at the start of a leg, or the running total of
+ * that seat's own earlier visits in the same leg subtracted from it, since
+ * a leg's remaining score never carries across a leg boundary.
+ */
+function fiveOhOneCheckoutVisits(
+  seatTurns: readonly TurnFact[],
+  startingScore: number,
+): CheckoutVisitDarts[] {
+  const remainingByStage = new Map<string, number>();
+  return seatTurns.map((turn) => {
+    const startingRemaining =
+      remainingByStage.get(turn.stageClientKey) ?? startingScore;
+    remainingByStage.set(
+      turn.stageClientKey,
+      startingRemaining - turn.totalScore,
+    );
+    return { startingRemaining, darts: turn.darts };
+  });
+}
+
+/**
  * One seat's own results stats, replayed from its own completed visits in
  * `turns`. `legsWon` is read off `state().sides` by the caller — never
  * counted from `turns` directly (a stage exists per leg *played*, not per
- * leg *won*). `checkoutPercentage` is `null` outside VISUAL_BOARD capture.
+ * leg *won*). `doubleAccuracy` is `null` outside VISUAL_BOARD capture,
+ * since QUICK_SCORE carries no dart rows to classify.
  */
 function statsFor(
   seat: SeatFact,
@@ -179,19 +205,24 @@ function statsFor(
   maxDartsPerTurn: number,
   inputModeKey: string | null,
   legResults: readonly LegResult[],
+  startingScore: number,
 ): FiveOhOneSeatResult {
   const seatTurns = turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
   );
+  const doubleAccuracy = (() => {
+    if (inputModeKey !== "VISUAL_BOARD") return null;
+    const { hits, misses } = classifyDoubleAttempts(
+      fiveOhOneCheckoutVisits(seatTurns, startingScore),
+    );
+    return accuracyDisplay(hits, hits + misses);
+  })();
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     legsWon,
     threeDartAverage: threeDartAverageDisplay(seatTurns, maxDartsPerTurn),
-    checkoutPercentage:
-      inputModeKey === "VISUAL_BOARD"
-        ? accuracyDisplay(legsWon, legsWon + checkoutAttemptCount(seatTurns))
-        : null,
+    doubleAccuracy,
     ...visitScoreBandCounts(seatTurns),
     bestLeg: bestLegFor(seat.participantRef, legResults),
   };
@@ -231,6 +262,7 @@ function buildResultsSnapshot(
         maxDartsPerTurn,
         inputModeKey,
         legResults,
+        config?.startingScore ?? 0,
       ),
     ),
   };

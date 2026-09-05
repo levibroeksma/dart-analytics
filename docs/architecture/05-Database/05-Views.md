@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-08-15
+updated: 2026-09-05
 -->
 
 # Database View Strategy
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0023)
+# Implemented Views (migrations 0009–0024)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -151,6 +151,7 @@ The name should describe the returned data, not the underlying tables.
 | `v_dart_locations` | Analytics | Dart landing coordinates + derived radius/angle for `VISUAL_BOARD` capture; miss margin lives outside SQL (2026-08-05); scoped to the session's owning participant (2026-08-21) |
 | `v_player_settings` | API Read Model | Player default capture/input mode as `*_key`s; absent row means the service defaults apply (2026-08-08) |
 | `v_player_profile` | API Read Model | Player display name + darts equipment (2026-08-15) |
+| `v_double_out_checkout_darts` | Analytics | Raw per-dart facts + running leg score for 501 VISUAL_BOARD checkout accuracy, owning player only (2026-09-05) |
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 

@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-08-30
+updated: 2026-09-05
 -->
 
 # Architecture Patterns
@@ -810,6 +810,8 @@ A score-compare engine calls `scoreCompareOutcome(seats, direction, soloStatus)`
 The mechanical half of an engine — everything with no ruleset content in it — is composed from two shared pure modules rather than copied per engine (D232). `modules/game/turn-log.module.ts` owns the `TurnFact`/`DartFact` log: `cloneTurns`, `sumDartScores`, `dartsThrownBy`, `openOrCreateTurn` (the caller supplies the reuse rule), `appendCompletedTurn`, `openVisit`, `resolveObservation`/`appendResolvedDart`, `appendObservedDart`/`doubleTargetIntent`, and the three undo shapes `undoLastDart` / `undoLastUnit` / `undoStagedTurn`. `modules/game/seat-state.module.ts` owns per-seat derivation: `foldSeatStates`, `activeSeatState`, `otherSeatsComplete` (a completion predicate `(seat: TSeat) => boolean` as its 3rd argument — a `status` check for the dart-fed engines, `durationSeatComplete` for TUOD and Score Training), `durationSeatComplete`, `completedByIndex`. A new engine composes these; what stays in the engine is what its ruleset actually decides.
 
 `modules/game/checkout-bust.module.ts` owns the double-out bust/checkout rule shared by every X01-style ladder game: `resolveCheckoutAttempt(remainingBefore, scored, endedOnDouble)` returns `{ remainingAfter, checkedOut, busted }` for an overshoot, leaving exactly 1, or reaching exactly 0 without a double. 501, 121, and TUOD each call it and OR their own ruleset-specific escalation (121's final-visit unreachable-remainder rule, TUOD's odd-remainder-with-one-dart-left rule) onto its result rather than folding that escalation into the shared function (D240). `checkout-bust.module.ts` also exports `checkoutAttemptCount(turns)` (D242), counting failed checkout attempts from a completed VISUAL_BOARD turn log.
+
+`modules/game/double-attempt.module.ts` (D256) classifies whether each dart in a double-out session (501, TUOD, 121) was an eligible checkout-attempt dart and whether it hit or missed, from board hits alone -- no stored intent. `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts` each build its input (`CheckoutVisitDarts[]`, one entry per visit carrying the remaining score it opened against) from what they already have: 501 with a plain running-sum reduce over `totalScore` within a leg, TUOD/121 by refolding `turnsBeforeVisit` through their own already-exported `foldTuodState`/`foldOneTwentyOneState` -- the same "refold vs. plain reduce" choice documented two paragraphs down for `turnsBeforeVisit` itself. Replaced 501's leg-level `checkoutPercentage` and TUOD's round-level `attempts`/`successes`/`failures`, both of which measured legs/rounds, not darts; net-new for 121.
 
 Resolving "the seat's state immediately before this visit" has two legitimate techniques, not one duplicated three times: `turnsBeforeVisit` (`turn-log.module.ts`) slices the log up to the visit and refolds it through the engine's own `foldXxxState`, for when the caller needs the seat's whole derived state (121's `seatBeforeVisit`, TUOD's `targetBeforeVisit`); a plain `.filter().reduce()` over `totalScore` is used instead when only a running total is needed and a full state fold would be wasted work (501's `remainingBeforeVisit`). Pick whichever the caller actually needs — do not force a scalar-only case through a full-state fold, or vice versa (D241).
 

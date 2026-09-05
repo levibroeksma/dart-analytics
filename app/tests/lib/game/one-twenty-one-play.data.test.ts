@@ -311,6 +311,47 @@ describe("oneTwentyOnePlay", () => {
       expect(play.$store.game.turns).toHaveLength(1);
       expect(play.$store.game.turns[0].darts).toHaveLength(1);
     });
+
+    it("computes a VISUAL_BOARD double accuracy from a missed checkout attempt", async () => {
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-09-05T10:00:00Z",
+      });
+      store.game.inputModeKey = "VISUAL_BOARD";
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      // Starting target 121 (odd -- not directly finishable). Two scoring
+      // darts bring the remaining to 40 (directly finishable on D20); the
+      // third hits inner single 20 -- same segment as the required double,
+      // so it's classified as a missed checkout attempt.
+      await play.recordDart.call(play, {
+        hitTargetNumber: 13,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 14,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      });
+      await play.recordDart.call(play, {
+        hitTargetNumber: 20,
+        hitZoneKey: "INNER_SINGLE",
+        locationX: 0,
+        locationY: -50,
+      });
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.uploadAndCompleteSession();
+
+      const [seat] = play.resultsSnapshot!.seats;
+      expect(seat.doubleAccuracy).toBe("0.00%");
+    });
   });
 
   describe("checkoutHint", () => {
@@ -743,6 +784,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
               target: 130,
               visits: 5,
               average: 40,
+              doubleAccuracy: null,
             },
           ],
         },
@@ -778,6 +820,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
               target: 170,
               visits: 5,
               average: 40,
+              doubleAccuracy: null,
             },
           ],
         },
@@ -923,6 +966,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
           target: 121,
           visits: 1,
           average: 100,
+          doubleAccuracy: null,
         },
         {
           participantRef: "participant-2",
@@ -930,6 +974,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
           target: 121,
           visits: 1,
           average: 80,
+          doubleAccuracy: null,
         },
       ]);
     });
