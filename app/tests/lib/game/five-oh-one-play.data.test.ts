@@ -680,7 +680,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "A",
           legsWon: 0,
           threeDartAverage: "80.0",
-          checkoutPercentage: null,
+          doubleAccuracy: null,
           sixtyPlus: 1,
           hundredPlus: 1,
           oneTwentyPlus: 0,
@@ -693,7 +693,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "B",
           legsWon: 0,
           threeDartAverage: "40.0",
-          checkoutPercentage: null,
+          doubleAccuracy: null,
           sixtyPlus: 0,
           hundredPlus: 0,
           oneTwentyPlus: 0,
@@ -731,7 +731,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "A",
           legsWon: 1,
           threeDartAverage: "250.5",
-          checkoutPercentage: null,
+          doubleAccuracy: null,
           sixtyPlus: 0,
           hundredPlus: 0,
           oneTwentyPlus: 0,
@@ -821,8 +821,8 @@ describe("uploadAndCompleteSession", () => {
     expect(seatA.legsWon).toBe(1);
     expect(seatB.participantRef).toBe("participant-2");
     expect(seatB.legsWon).toBe(0);
-    expect(seatA.checkoutPercentage).toBeNull();
-    expect(seatB.checkoutPercentage).toBeNull();
+    expect(seatA.doubleAccuracy).toBeNull();
+    expect(seatB.doubleAccuracy).toBeNull();
     expect(seatA.bestLeg).toBe("12");
     expect(seatB.bestLeg).toBe("—");
     expect(play.resultsTitle.call(play)).toBe("Levi wins the match!");
@@ -854,7 +854,7 @@ describe("uploadAndCompleteSession", () => {
     expect(seatB.bestLeg).toBe("—");
   });
 
-  it("computes a VISUAL_BOARD checkout percentage from a busted attempt and two won legs", async () => {
+  it("computes a VISUAL_BOARD double accuracy from a missed and two made checkout attempts", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
     ]);
@@ -871,26 +871,23 @@ describe("uploadAndCompleteSession", () => {
     });
     await play.init.call(play);
 
-    // Leg 1, visit 1: a single TREBLE_20 (60) overshoots 40 by 20 -> busts
-    // immediately (remainingAfter -20). This is the one failed checkout
-    // attempt: darts summed to 60 (> 0) but totalScore records 0.
+    // Leg 1, visit 1: TREBLE_20 (60) overshoots 40 -> busts. Classified as
+    // a missed checkout attempt: remaining 40 was directly finishable on
+    // D20, and TREBLE_20 hit the same segment (20).
     await play.recordDart.call(play, TREBLE_20);
-    // Leg 1, visit 2: a single DOUBLE_20 (40) zeroes the remaining 40
-    // exactly on a double -> checks out, wins leg 1. Does not complete the
-    // whole match (legsToWin: 2), so this commits immediately with no
-    // confirm dialog.
+    // Leg 1, visit 2: DOUBLE_20 (40) checks out on the required double ->
+    // hit. Wins leg 1, not the match (legsToWin: 2).
     await play.recordDart.call(play, DOUBLE_20);
-    // Leg 2 opens fresh at remaining 40 (same startingScore every leg).
-    // A DOUBLE_20 here would win the whole match, so recordDart defers to
-    // the match-finish confirm instead of committing immediately.
+    // Leg 2 opens fresh at remaining 40. DOUBLE_20 wins the whole match,
+    // so recordDart defers to the match-finish confirm.
     await play.recordDart.call(play, DOUBLE_20);
     expect(play.showMatchFinishConfirm).toBe(true);
     await play.confirmMatchFinish.call(play);
 
     const [seatA] = play.resultsSnapshot!.seats;
     expect(seatA.legsWon).toBe(2);
-    // made = legsWon = 2, attempted = 2 + checkoutAttemptCount (1 bust) = 3
-    expect(seatA.checkoutPercentage).toBe("66.67%");
+    // 2 hits (both D20 checkouts), 1 miss (the busted TREBLE_20) -> 2/3.
+    expect(seatA.doubleAccuracy).toBe("66.67%");
   });
 
   it("returns the single-seat shape for a solo session", async () => {
