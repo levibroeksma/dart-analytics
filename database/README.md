@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0023)
+├── migrations/     # ordered schema migrations (0001–0024)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -90,6 +90,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0011_one_twenty_one_v2_capability_checks.sql` | `seeds/0011`+`0007` combined: `121_V2`/`RECREATIONAL`/`QUICK_SCORE` and `121_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, all three `121_V2` presets carry the right `duration_type`, zero undeclared `exercise_sessions` (4 checks) |
 | `verification/0012_shanghai_v2_capability_checks.sql` | `seeds/0012`+`0007` combined: `SHANGHAI_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SHANGHAI_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0013_singles_training_v2_capability_checks.sql` | `seeds/0013`+`0007` combined: `SINGLES_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
+| `verification/0024_double_out_checkout_darts_view_checks.sql` | `v_double_out_checkout_darts` returns only the owning player's 501 VISUAL_BOARD darts in order, `prior_scored_in_stage` nulls on the first dart of a leg and running-sums after, a 121 session's darts never appear (4 checks) |
 
 ## References
 

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-08-15
+updated: 2026-09-05
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Migration `0024` adds `v_double_out_checkout_darts`, scoped to 501 `VISUAL_BOARD` sessions only. <!-- 2026-09-05 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -244,6 +244,30 @@ Session id, player id, game type key, input mode key, stage id, turn sequence, t
 `radius_mm` and `angle_degrees` are plain arithmetic over the stored coordinate — no board geometry lives in this view. **Miss margin is deliberately not exposed here.** It needs a zone centroid, which is board geometry, and that geometry already lives once in `app/src/lib/game/board/board-geometry.module.ts` (`zoneCentroid`). Computing it a second time in SQL would drift from the classifier that produced the coordinate in the first place, so `missMargin` (`app/src/lib/game/board/miss-margin.module.ts`) is computed in the application read layer from this view's raw columns instead. <!-- 2026-08-05 -->
 
 Both derived columns are `NUMERIC`, not `double precision`. `MOD()` has no `double precision` overload and the cast from it is assignment-only, so `MOD(DEGREES(...) + 360, 360)` fails at `CREATE VIEW` — the angle is cast with `::NUMERIC` before the modulo. `app/tests/db/migration-numeric-typing.test.ts` guards the whole chain against the same shape. Consequence for the read layer: `NUMERIC` arrives as a **string** through Drizzle/node-postgres, so `location_x`, `location_y`, `radius_mm` and `angle_degrees` must be parsed to numbers before reaching `missMargin`, which takes numbers. <!-- 2026-08-08 -->
+
+---
+
+# v_double_out_checkout_darts
+
+## Category
+
+Analytics View
+
+## Purpose
+
+Raw per-dart facts for 501 `VISUAL_BOARD` sessions, plus each dart's running score within its leg, for reproducing dart-level double-attempt accuracy outside the live in-session read. <!-- 2026-09-05 -->
+
+## Sources
+
+- darts → turns → exercise_stages → exercise_sessions → participants, game_types, input_modes
+
+## Exposes
+
+Session id, player id, stage id, turn sequence, dart number, hit target + hit zone key, score, and `prior_scored_in_stage` (the running SUM of that seat's earlier dart scores within the same leg). Scoped to `game_type_key = '501'`, `input_mode_key = 'VISUAL_BOARD'`, and the session's OWNING player (mirrors migration `0023`).
+
+## Design Rationale
+
+Scoped to 501 only: TUOD/121's "remaining before a dart" depends on their ladder fold (`finishBonus`/`missPenalty` escalation), which is game-engine logic and does not belong in a view (`05-Views.md`). `prior_scored_in_stage` is plain arithmetic (a running sum), not the true remaining score — 501's `starting_score` lives in the session's JSONB configuration snapshot, not a queryable column, so the application read layer (which already loads that snapshot) adds it to get remaining-before-dart, then runs it through `classifyDoubleAttempts` (`app/src/modules/game/double-attempt.module.ts`) — the same classifier the live in-session stat uses, never reimplemented in SQL.
 
 ---
 
