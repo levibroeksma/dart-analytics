@@ -646,9 +646,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 51,
-            attempts: 1,
-            successes: 1,
-            failures: 0,
+            doubleAccuracy: null,
           },
         ],
       });
@@ -682,9 +680,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 60,
-            attempts: 3,
-            successes: 2,
-            failures: 1,
+            doubleAccuracy: null,
           },
         ],
       });
@@ -751,9 +747,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 51,
-            attempts: 1,
-            successes: 1,
-            failures: 0,
+            doubleAccuracy: null,
           },
         ],
       };
@@ -1256,6 +1250,40 @@ describe("recordDart (board input)", () => {
     expect(component.showFinishConfirm).toBe(false);
     expect(store.turns).toHaveLength(0);
   });
+
+  it("computes a VISUAL_BOARD double accuracy from a missed checkout attempt", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValueOnce([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 1 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = gameStub({
+      configSnapshot: { ...rounds(1), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    // Remaining 40 -> directly finishable on D20. TREBLE_20 (60) overshoots
+    // and busts, but is still classified: same segment (20) as the
+    // required double -> a missed checkout attempt, not a hit. This is the
+    // session's only round, so it also ends the session.
+    await component.recordDart.call(component, TREBLE_20);
+    expect(component.showFinishConfirm).toBe(true);
+    await component.confirmFinish.call(component);
+
+    expect(component.finished).toBe(true);
+    const [seat] = component.resultsSnapshot!.seats;
+    expect(seat.doubleAccuracy).toBe("0.00%");
+  });
 });
 
 describe("recordDart — reveal-then-clear board markers", () => {
@@ -1368,17 +1396,13 @@ describe("session completion — 1v1", () => {
         participantRef: "participant-1",
         sideKey: "A",
         target: 40,
-        attempts: 1,
-        successes: 0,
-        failures: 1,
+        doubleAccuracy: null,
       },
       {
         participantRef: "participant-2",
         sideKey: "B",
         target: 40,
-        attempts: 1,
-        successes: 0,
-        failures: 1,
+        doubleAccuracy: null,
       },
     ]);
     expect(component.resultsTitle.call(component)).toBe("Tie — same target!");
@@ -1416,17 +1440,13 @@ describe("session completion — 1v1", () => {
         participantRef: "participant-1",
         sideKey: "A",
         target: 51,
-        attempts: 1,
-        successes: 1,
-        failures: 0,
+        doubleAccuracy: null,
       },
       {
         participantRef: "participant-2",
         sideKey: "B",
         target: 40,
-        attempts: 1,
-        successes: 0,
-        failures: 1,
+        doubleAccuracy: null,
       },
     ]);
     expect(component.resultsTitle.call(component)).toBe(

@@ -7,9 +7,7 @@ import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro"
 // Data
 const STAT_ROWS = [
   { label: "Target reached", key: "target" },
-  { label: "Attempts", key: "attempts" },
-  { label: "Successes", key: "successes" },
-  { label: "Failures", key: "failures" },
+  { label: "Double Accuracy", key: "doubleAccuracy", fallback: "'—'" },
 ] as const;
 ---
 

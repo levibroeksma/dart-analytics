@@ -375,9 +375,7 @@ export type TuodSeatResult = {
   participantRef: string;
   sideKey: string;
   target: number;
-  attempts: number;
-  successes: number;
-  failures: number;
+  doubleAccuracy: string | null;
 };
 
 /** `winningSideKey` is score-compare (highest target) resolved by the
