@@ -105,7 +105,9 @@ README.md (this file)
   02-Design-Rules.md
   03-Migrations.md
   04-Indexes.md
-  05-Views.md
+  05-Views/
+    00-Overview.md               ← view strategy, categories, naming, anti-patterns
+    01-General-Views.md          ← career-wide stat views (2026-09-06)
   06-Database-Specification.md   ← canonical spec: invariants + chapter index (2026-07-11)
   06-Spec/01–06                  ← per-layer entity chapters (2026-07-11)
   07–09                          ← historical design-gate records

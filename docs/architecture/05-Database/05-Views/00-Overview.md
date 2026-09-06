@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-05
+updated: 2026-09-06
 -->
 
 # Database View Strategy

@@ -40,7 +40,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
 | `03-Migrations.md` | Migration process + chain `0001`–`0024`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15), `0023` owner-scoped dart views (2026-08-21), `0024` `v_double_out_checkout_darts` (2026-09-05) | canonical | ~4.3k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
-| `05-Views.md` | View categories and replay rules; ten implemented views through `0024` (2026-09-05) | canonical | ~2.2k |
+| `05-Views/00-Overview.md` | View categories and replay rules; ten implemented views through `0024` (2026-09-05); split into a directory to host per-domain view catalogs (2026-09-06) | canonical | ~2.2k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
 | `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08) | canonical | ~2.1k |
 | `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
