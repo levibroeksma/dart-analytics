@@ -31,3 +31,11 @@ export type ScoreBandCounts = {
   oneFortyPlus: number;
   oneEighties: number;
 };
+
+/** One row of `v_player_leg_facts`. */
+export type PlayerLegFactRow = {
+  sessionId: string;
+  gameTypeKey: string;
+  stageId: string;
+  totalDartsInLeg: number;
+};
