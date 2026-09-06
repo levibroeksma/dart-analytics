@@ -7,7 +7,7 @@ updated: 2026-08-15
 
 # API Overview
 
-> **Version:** 1.7.0 (`GET`/`PATCH /api/players/me` routed, 2026-08-15; prior 1.6.0 — `GET`/`PATCH /api/players/me/settings` routed, 2026-08-08)
+> **Version:** 1.8.0 (`GET /api/statistics/overview` routed, 2026-09-06; prior 1.7.0 — `GET`/`PATCH /api/players/me` routed, 2026-08-15)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -77,13 +77,14 @@ Lists configuration presets (system + the caller's own) for a game type; backed 
 
 ### Statistics
 
-Deferred (post-v1) — no statistics endpoints ship in v1:
+- `GET /api/statistics/overview` <!-- 2026-09-06 -->
 
-- `GET /api/statistics/overview`
+Deferred (post-v1):
+
 - `GET /api/statistics/trends`
 - `GET /api/statistics/checkouts`
 
-v1 captures the dart/turn/session facts statistics are derived from; the aggregated read endpoints are added post-v1 and must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`). <!-- 2026-07-12 -->
+`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_double_out_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 -->
 
 ### Players
 
@@ -163,6 +164,7 @@ Reads are view-backed and player-scoped.
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
+| `GET /api/statistics/overview`           | `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, `v_double_out_checkout_darts` |
 
 Policy:
 
@@ -232,7 +234,7 @@ Policy:
 - Worker-to-database security model (v1): trusted Worker service-role only.
 - PostgreSQL RLS is deferred from v1 and may be introduced later as defense-in-depth.
 - JWT middleware verification contract (v1): required claims are `sub` and `exp`.
-- Statistics scope (v1): no statistics endpoints; `overview`, `trends`, and `checkouts` are all deferred post-v1 and must be view-backed when built. <!-- 2026-07-12 -->
+- Statistics scope: `overview` shipped 2026-09-06, composing 4 views in the service layer (no dedicated aggregate view); `trends` and `checkouts` remain deferred post-v1 and must be view-backed when built. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 - Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
 - Activity grouping (v1): one activity per session, server-managed; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
 - Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->

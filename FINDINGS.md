@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-04
-highest-issued: F67
+updated: 2026-09-06
+highest-issued: F68
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F68 — `04-Endpoint-Contracts.md`'s Response DTOs closing paragraph never mentions `GET`/`PATCH /api/players/me`'s return type
+Status: Open · Found: 2026-09-06 · Task: claude/statistics-overview-api-r4n7qz
+Claim: the paragraph immediately after the Response DTOs code block is meant to name, for every endpoint whose DTO isn't self-evident from the block itself, which DTO it returns — it already does this for provision, session creation, and the settings pair
+Evidence: `docs/architecture/06-API/04-Endpoint-Contracts.md`'s Response DTOs closing paragraph (immediately before `---` and `## Extensibility`) covers `PATCH /api/sessions/:sessionId`, `POST /api/players/provision`, `POST /api/sessions`, and `GET`/`PATCH /api/players/me/settings`, but never mentions `GET`/`PATCH /api/players/me` (routed 2026-08-15, returns `PlayerProfileResponse`) at all — this task's own edit (adding the `GET /api/statistics/overview` → `StatisticsOverviewResponse` sentence, per its plan) appended to the same paragraph without fixing the pre-existing gap, since the plan only specified the one sentence to add
+Impact: a reader scanning this paragraph to find which DTO `GET /api/players/me` returns would come up empty and have to fall back to the `## Read Contracts` table or the endpoint's own section — minor, since the DTO is documented elsewhere, but it is exactly the kind of enumeration gap this paragraph exists to prevent
+Proposed: add one clause naming `PlayerProfileResponse` for `GET`/`PATCH /api/players/me`, in the same style as the existing sentences — mechanical, one-line fix
 
 ### F67 — `03-Migrations.md`'s per-migration section list stops at `0022`, three migrations behind the applied chain
 Status: Open · Found: 2026-09-06 · Task: claude/statistic-views-architecture-ywef1h

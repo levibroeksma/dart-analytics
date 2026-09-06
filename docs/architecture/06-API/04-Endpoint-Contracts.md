@@ -7,7 +7,7 @@ updated: 2026-08-22
 
 # API Endpoint Contracts
 
-> **Version:** 1.4.0 (`GET`/`PATCH /api/players/me`, 2026-08-15; prior 1.3.0 — `GET`/`PATCH /api/players/me/settings`, 2026-08-08)
+> **Version:** 1.5.0 (Statistics Overview, 2026-09-06; prior 1.4.0 — `GET`/`PATCH /api/players/me`, 2026-08-15)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -316,6 +316,46 @@ Missing/unknown `gameType` → `422 VALIDATION_FAILED`.
 
 ---
 
+## Statistics Overview — `GET /api/statistics/overview`
+
+The caller's career-wide stat overview. Read-only, backed by `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_double_out_checkout_darts` (migrations `0009`, `0025`, `0026`, `0024`). Aggregation happens in `services/statistics.service.ts` over the four pure modules under `modules/stats/`/`modules/game/`, not a single dedicated view — see `decisions/api.md` for why.
+
+**Auth:** standard protected route class — JWT-verified, player resolved by middleware. No path parameter, no query parameter, no request body.
+
+Every response field is always present. `null` means "not enough data to compute" (e.g. no completed sessions, no legs with complete dart capture) — never "field not implemented." `doubleAccuracy` and `highestCheckout` are computed from whatever `v_double_out_checkout_darts` currently returns (501+`VISUAL_BOARD` only, as of this writing) and will widen automatically, with no contract change, once that view's game-type filter is extended.
+
+Success → `200` with the standard `ok()` envelope carrying `StatisticsOverviewResponse`. No new error codes — only the standard protected-route failures (`401`, `403 PLAYER_NOT_PROVISIONED`, `500`/`503` from the API error boundary).
+
+```typescript
+const StatisticsOverviewResponse = z.object({
+  totalGamesPlayed: z.number().int(),
+  totalPlayTimeSeconds: z.number().int(),
+  favoriteGameTypeKey: z.string().nullable(),
+  longestPlayStreakDays: z.number().int(),
+  currentPlayStreakDays: z.number().int(),
+  totalDartsThrown: z.number().int(),
+  hundredPlusCount: z.number().int(),
+  oneTwentyPlusCount: z.number().int(),
+  oneFortyPlusCount: z.number().int(),
+  oneEightiesCount: z.number().int(),
+  medianVisitScore: z.number(),
+  highestGameAverage: z.number(),
+  firstNineCareerAverage: z.number(),
+  scoringAverageExcludingDoubles: z.number(),
+  bestLegDarts: z.number().int().nullable(),
+  averageDartsPerLeg: z.number().nullable(),
+  doubleAccuracy: z.number().min(0).max(1).nullable(),
+  highestCheckout: z
+    .object({ value: z.number().int(), timesHit: z.number().int() })
+    .nullable(),
+});
+type StatisticsOverviewResponse = z.infer<typeof StatisticsOverviewResponse>;
+```
+
+Win rate is deliberately absent from this shape, not a null field — it needs session-replay-from-persisted-facts, which doesn't exist for any game engine yet, and will be an additive field on a future plan rather than a breaking change to this one.
+
+---
+
 ## Read Contracts
 
 All read endpoints are view-backed and player-scoped. Thin response contracts stay close to 1:1 view structure; list endpoints wrap view output in the standard `ListResult<T>` shape defined in `03-Shared-Conventions.md`.
@@ -333,8 +373,9 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
+| `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_double_out_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
 
-**Deferred (post-v1):** `GET /api/statistics/overview`, `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. Statistics endpoints do not ship in v1; when built they must each be backed by a dedicated `v_*` view (e.g. `v_statistics_overview`) per the view-backed-reads rule. v1 stores all dart/turn/session facts these derive from. <!-- 2026-07-12 -->
+**Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
 `v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
 
@@ -407,7 +448,7 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
 });
 ```
 
-All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings).
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview).
 
 ---
 
