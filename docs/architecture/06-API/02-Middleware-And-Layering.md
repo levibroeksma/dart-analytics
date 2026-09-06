@@ -178,8 +178,11 @@ app/src/
 │   │   └── [routineId]/
 │   │       ├── index.ts
 │   │       └── execution.ts
-│   └── players/
-│       └── provision.ts             # POST (authenticated-unprovisioned route)
+│   ├── players/
+│   │   └── provision.ts             # POST (authenticated-unprovisioned route)
+│   └── statistics/
+│       ├── overview.ts              # GET
+│       └── types.ts
 ├── lib/
 │   ├── server/                      # server-side response helpers (ok/error, registry mapping)
 │   │   ├── envelope.ts              # ok/error response helpers
@@ -203,11 +206,12 @@ app/src/
 
 The public batch route is `POST /api/sessions/:sessionId/events/batch` (amended 2026-07-13 from the earlier `events:batch` custom-method spelling), served natively by the `pages/api/sessions/[sessionId]/events/batch.ts` route file. No rewrite machinery exists or is permitted.
 
-## Statistics (deferred)
+## Statistics
 
-No `statistics/` route folder exists in v1. Statistics endpoints
-(`overview`, `trends`, `checkouts`) are deferred post-v1 and must each be
-view-backed when built (see `00-Overview.md` and D63). <!-- 2026-07-13 -->
+`GET /api/statistics/overview` is routed (`pages/api/statistics/overview.ts`,
+2026-09-06), filling the slot D63 reserved. `trends`/`checkouts` remain
+deferred post-v1 and must each be view-backed when built (see
+`00-Overview.md`). <!-- 2026-09-06 -->
 
 ---
 

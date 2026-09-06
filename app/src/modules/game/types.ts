@@ -403,6 +403,15 @@ export type CheckoutVisitDarts = {
   darts: readonly DartFact[];
 };
 
+/** The largest successful checkout finish, and how many times it was hit. */
+export type HighestCheckout = {
+  value: number;
+  timesHit: number;
+};
+
+/** One dart's classification against the remaining score it was thrown at. */
+export type DartOutcome = "HIT" | "MISS" | "NOT_ATTEMPT";
+
 /** A pointer position in client (viewport) pixels. */
 export type BoardPointer = {
   clientX: number;

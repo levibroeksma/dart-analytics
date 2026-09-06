@@ -50,3 +50,25 @@ export type SeatPlan = {
   sideKey: string;
   dartbot?: { level: number; seed: number; levelSource: "MANUAL" };
 };
+
+/** Career-wide stat overview — `null` means "not enough data," never "not implemented." */
+export type StatisticsOverview = {
+  totalGamesPlayed: number;
+  totalPlayTimeSeconds: number;
+  favoriteGameTypeKey: string | null;
+  longestPlayStreakDays: number;
+  currentPlayStreakDays: number;
+  totalDartsThrown: number;
+  hundredPlusCount: number;
+  oneTwentyPlusCount: number;
+  oneFortyPlusCount: number;
+  oneEightiesCount: number;
+  medianVisitScore: number;
+  highestGameAverage: number;
+  firstNineCareerAverage: number;
+  scoringAverageExcludingDoubles: number;
+  bestLegDarts: number | null;
+  averageDartsPerLeg: number | null;
+  doubleAccuracy: number | null;
+  highestCheckout: { value: number; timesHit: number } | null;
+};
