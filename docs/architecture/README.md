@@ -67,7 +67,7 @@ docs/
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
-├── migrations/      # 0001–0024
+├── migrations/      # 0001–0026
 └── seeds/           # reference data, templates, presets
 ```
 
@@ -137,7 +137,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0024` and seeds `0001`–`0013` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0026` and seeds `0001`–`0013` implement it.
 
 ---
 
