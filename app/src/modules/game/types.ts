@@ -409,6 +409,9 @@ export type HighestCheckout = {
   timesHit: number;
 };
 
+/** One dart's classification against the remaining score it was thrown at. */
+export type DartOutcome = "HIT" | "MISS" | "NOT_ATTEMPT";
+
 /** A pointer position in client (viewport) pixels. */
 export type BoardPointer = {
   clientX: number;

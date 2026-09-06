@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
+import {
+  classifyDart,
+  classifyDoubleAttempts,
+} from "@modules/game/double-attempt.module";
 import type { DartFact } from "@modules/types";
 
 function dart(
@@ -115,5 +118,13 @@ describe("classifyDoubleAttempts", () => {
       { startingRemaining: 18, darts: [dart(2, "SINGLE", 2)] }, // not an attempt
     ];
     expect(classifyDoubleAttempts(visits)).toEqual({ hits: 1, misses: 1 });
+  });
+});
+
+describe("classifyDart", () => {
+  it("is exported directly so other modules can reuse the classification rule", () => {
+    expect(classifyDart(40, dart(20, "DOUBLE", 40))).toBe("HIT");
+    expect(classifyDart(40, dart(20, "SINGLE", 20))).toBe("MISS");
+    expect(classifyDart(121, dart(20, "TREBLE", 60))).toBe("NOT_ATTEMPT");
   });
 });

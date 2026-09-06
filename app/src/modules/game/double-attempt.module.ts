@@ -1,5 +1,10 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
-import type { CheckoutVisitDarts, DartFact, DartZoneKey } from "./types";
+import type {
+  CheckoutVisitDarts,
+  DartFact,
+  DartOutcome,
+  DartZoneKey,
+} from "./types";
 
 export type { CheckoutVisitDarts };
 
@@ -38,15 +43,13 @@ function isBoardAdjacentOrSame(a: number, b: number): boolean {
   return diff === 1 || diff === size - 1;
 }
 
-type DartOutcome = "HIT" | "MISS" | "NOT_ATTEMPT";
-
 /**
  * One dart's classification against the remaining score it was thrown at.
  * `remaining === 50` treats the inner bull as "the required double" and the
  * outer bull as its own near-miss zone; every other eligible remaining
  * treats `remaining / 2` as the required double's segment number.
  */
-function classifyDart(remaining: number, dart: DartFact): DartOutcome {
+export function classifyDart(remaining: number, dart: DartFact): DartOutcome {
   if (!isDirectlyFinishable(remaining)) return "NOT_ATTEMPT";
 
   if (DOUBLE_OR_BULL.has(dart.hitZoneKey)) {
