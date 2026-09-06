@@ -14,6 +14,7 @@ import {
   uniqueIndex,
   jsonb,
   numeric,
+  bigint,
   primaryKey,
   pgView,
 } from "drizzle-orm/pg-core";
@@ -1084,4 +1085,64 @@ export const vGameReplay = pgView("v_game_replay", {
   score: integer(),
 }).as(
   sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, st.parent_stage_id, st.sequence_number AS stage_sequence, stg.implementation_key AS stage_type_key, t.sequence_number AS turn_sequence, p.display_name AS participant_name, t.total_score AS turn_total_score, d.dart_number, d.intended_target_number, dz1.implementation_key AS intended_zone_key, d.hit_target_number, dz2.implementation_key AS hit_zone_key, d.score FROM exercise_sessions es JOIN exercise_stages st ON st.exercise_session_id = es.id JOIN stage_types stg ON stg.id = st.stage_type_id JOIN turns t ON t.exercise_stage_id = st.id JOIN participants p ON p.id = t.participant_id LEFT JOIN darts d ON d.turn_id = t.id LEFT JOIN dart_zones dz1 ON dz1.id = d.intended_zone_id LEFT JOIN dart_zones dz2 ON dz2.id = d.hit_zone_id`,
+);
+
+/**
+ * Hand-written, not `drizzle-kit introspect` output — no live database exists
+ * in this container. Mirrors `database/migrations/0024_double_out_checkout_darts_view.sql`
+ * column-for-column. Verify against a real `db:introspect` run before merge
+ * (same caveat as `vPlayerSettings` above).
+ */
+export const vDoubleOutCheckoutDarts = pgView("v_double_out_checkout_darts", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  stageId: uuid("stage_id"),
+  turnSequence: integer("turn_sequence"),
+  dartNumber: smallint("dart_number"),
+  hitTargetNumber: smallint("hit_target_number"),
+  hitZoneKey: text("hit_zone_key"),
+  score: integer(),
+  priorScoredInStage: bigint("prior_scored_in_stage", { mode: "number" }),
+}).as(
+  sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, t.sequence_number AS turn_sequence, d.dart_number, d.hit_target_number, hit_zone.implementation_key AS hit_zone_key, d.score, SUM(d.score) OVER (PARTITION BY st.id, t.participant_id ORDER BY t.sequence_number, d.dart_number ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS prior_scored_in_stage FROM darts d JOIN turns t ON t.id = d.turn_id JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN dart_zones hit_zone ON hit_zone.id = d.hit_zone_id WHERE gt.implementation_key = '501'::text AND im.implementation_key = 'VISUAL_BOARD'::text AND p.player_id = es.player_id`,
+);
+
+/**
+ * Hand-written, not `drizzle-kit introspect` output — see the caveat above.
+ * Mirrors `database/migrations/0025_player_visit_facts_view.sql`.
+ */
+export const vPlayerVisitFacts = pgView("v_player_visit_facts", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  gameTypeKey: text("game_type_key"),
+  stageId: uuid("stage_id"),
+  stageTypeKey: text("stage_type_key"),
+  turnSequence: integer("turn_sequence"),
+  totalScore: integer("total_score"),
+  completedAt: timestamp("completed_at", {
+    withTimezone: true,
+    mode: "string",
+  }),
+  dartCount: bigint("dart_count", { mode: "number" }),
+  configuredMaxDartsPerTurn: integer("configured_max_darts_per_turn"),
+}).as(
+  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, st.id AS stage_id, stype.implementation_key AS stage_type_key, t.sequence_number AS turn_sequence, t.total_score, t.completed_at, count(d.id) AS dart_count, (ec.configuration ->> 'max_darts_per_turn'::text)::integer AS configured_max_darts_per_turn FROM turns t JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN stage_types stype ON stype.id = st.stage_type_id LEFT JOIN exercise_configurations ec ON ec.exercise_session_id = es.id LEFT JOIN darts d ON d.turn_id = t.id WHERE p.player_id = es.player_id AND t.completed_at IS NOT NULL GROUP BY es.id, es.player_id, gt.implementation_key, st.id, stype.implementation_key, t.sequence_number, t.total_score, t.completed_at, ec.configuration`,
+);
+
+/**
+ * Hand-written, not `drizzle-kit introspect` output — see the caveat above.
+ * Mirrors `database/migrations/0026_player_leg_facts_view.sql`. `total_darts_in_leg`
+ * is `numeric`, not `bigint` — Postgres's `SUM()` over a `bigint` (the inner
+ * `count(d.id)`) returns `numeric`, which arrives as a string through
+ * Drizzle/node-postgres (same situation as `v_dart_locations`'s `radiusMm`/
+ * `angleDegrees`) — the repository parses it to a number.
+ */
+export const vPlayerLegFacts = pgView("v_player_leg_facts", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  gameTypeKey: text("game_type_key"),
+  stageId: uuid("stage_id"),
+  totalDartsInLeg: numeric("total_darts_in_leg"),
+}).as(
+  sql`WITH leg_turns AS (SELECT t.id AS turn_id, t.exercise_stage_id, count(d.id) AS dart_count FROM turns t JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id LEFT JOIN darts d ON d.turn_id = t.id WHERE p.player_id = es.player_id AND t.completed_at IS NOT NULL GROUP BY t.id, t.exercise_stage_id) SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, st.id AS stage_id, sum(lt.dart_count) AS total_darts_in_leg FROM leg_turns lt JOIN exercise_stages st ON st.id = lt.exercise_stage_id JOIN stage_types stype ON stype.id = st.stage_type_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id WHERE stype.implementation_key = 'LEG'::text GROUP BY es.id, es.player_id, gt.implementation_key, st.id HAVING bool_and(lt.dart_count > 0)`,
 );
