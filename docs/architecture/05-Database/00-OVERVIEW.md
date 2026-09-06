@@ -110,7 +110,7 @@ PostgreSQL views consumed by the API.
 
 Examples: `v_active_sessions`, `v_session_overview`, `v_game_replay`, `v_dart_analytics`, `v_routine_execution`.
 
-Analytics (averages, checkout %, progression) are derived views — never a separate source of truth. Future analytics views extend this layer; see `05-Views.md`.
+Analytics (averages, checkout %, progression) are derived views — never a separate source of truth. Future analytics views extend this layer; see `05-Views/00-Overview.md`.
 
 ---
 

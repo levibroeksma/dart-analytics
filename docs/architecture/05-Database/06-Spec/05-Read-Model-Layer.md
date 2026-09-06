@@ -33,7 +33,7 @@ Read models must:
 - never introduce new truth
 - remain stable contracts — structural changes are breaking changes
 
-Views are divided into three categories (defined in `05-Views.md`):
+Views are divided into three categories (defined in `05-Views/00-Overview.md`):
 
 1. **API Read Models** — application-facing structures
 2. **Replay Views** — deterministic gameplay reconstruction

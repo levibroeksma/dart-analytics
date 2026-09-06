@@ -25,7 +25,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
 | New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~7.7k |
-| New view / analytics query | `05-Database/05-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5.1k |
+| New view / analytics query | `05-Database/05-Views/00-Overview.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5.1k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~2.2k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~4.6k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~12.3k |

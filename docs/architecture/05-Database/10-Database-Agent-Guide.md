@@ -215,7 +215,7 @@ Steps 1–5 are the only database work; 6–9 live in `app/` and are listed here
 ## Add a new view
 
 1. New migration (or extend `0009` only if not yet applied anywhere)
-2. Document in `05-Views.md` and `06-Database-Specification.md` Read Model Layer
+2. Document in `05-Views/00-Overview.md` and `06-Database-Specification.md` Read Model Layer
 3. API repository reads the view
 
 ## Add a new lookup value
