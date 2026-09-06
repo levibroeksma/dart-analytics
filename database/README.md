@@ -91,6 +91,8 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0012_shanghai_v2_capability_checks.sql` | `seeds/0012`+`0007` combined: `SHANGHAI_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SHANGHAI_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0013_singles_training_v2_capability_checks.sql` | `seeds/0013`+`0007` combined: `SINGLES_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0024_double_out_checkout_darts_view_checks.sql` | `v_double_out_checkout_darts` returns only the owning player's 501 VISUAL_BOARD darts in order, `prior_scored_in_stage` nulls on the first dart of a leg and running-sums after, a 121 session's darts never appear (4 checks) |
+| `verification/0025_player_visit_facts_view_checks.sql` | `v_player_visit_facts` reports `dart_count = 0` for a QUICK_SCORE turn and the real count for a VISUAL_BOARD turn, `configured_max_darts_per_turn` reads the JSONB snapshot, an open turn and a guest's turn never appear (5 checks) |
+| `verification/0026_player_leg_facts_view_checks.sql` | `v_player_leg_facts` sums real darts across a complete-capture leg, excludes a leg with any QUICK_SCORE turn entirely, a non-LEG stage never appears (3 checks) |
 
 ## References
 
