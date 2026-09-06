@@ -5,6 +5,8 @@
 > **Branch:** `claude/statistic-views-architecture-ywef1h`
 > **Scope:** Architecture for career-wide "general" stat cards (not tied to one game type) and the doc/view restructure that hosts them. No implementation in this task.
 > **Out of scope:** actually creating the migration/views/modules (separate plan); widening `v_double_out_checkout_darts` beyond 501+VISUAL_BOARD (owned by `claude/x01-doubles-accuracy-ljbk6c`); any UI/stat-card component work.
+>
+> **Status note (2026-09-06, during plan-writing):** win-rate's full-engine-replay approach needs session-replay-from-persisted-facts (reconstructing any of the 9 engines' `EngineFacts` from `v_game_replay` rows and calling `create()`), which does not exist anywhere in the codebase yet — every engine today is driven from live in-memory state, never rehydrated from DB rows. That capability is a substantial, separate undertaking. The implementation plan for this design covers all 16 other stat cards; win-rate is split into its own follow-up plan built around designing session replay properly.
 
 ---
 
