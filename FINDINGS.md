@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-04
-highest-issued: F66
+highest-issued: F67
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F67 — `03-Migrations.md`'s per-migration section list stops at `0022`, three migrations behind the applied chain
+Status: Open · Found: 2026-09-06 · Task: claude/statistic-views-architecture-ywef1h
+Claim: `03-Migrations.md`'s "Migration Execution Order" section documents every applied migration, one `##` subsection each, in order
+Evidence: `docs/architecture/05-Database/03-Migrations.md:95-116`'s directory listing and its last documented subsection (`## 0023_owner_scoped_dart_views.sql`) are both missing `database/migrations/0024_double_out_checkout_darts_view.sql` (2026-09-05, already applied per `docs/architecture/00-File-Inventory.md`'s row for `docs/architecture/05-Database/03-Migrations.md`) — this task adds `database/migrations/0025_player_visit_facts_view.sql`/`database/migrations/0026_player_leg_facts_view.sql` on top, widening the same gap to three
+Impact: a reader trusting this file's directory listing or subsection list to enumerate every migration would miss `0023`-`0026` entirely; no code or data risk, since the actual migration files and `00-File-Inventory.md`'s summary row are correct — this is staleness in one doc's own itemized history, pre-dating this task for `0023`/`0024`
+Proposed: append `## 0023_owner_scoped_dart_views.sql` through `## 0026_player_leg_facts_view.sql` subsections (and their directory-listing lines) following the existing per-migration format — mechanical, but out of this task's plan-defined file list, so left for a dedicated pass
 
 ### F66 — `dartsThrownCount` overcounts a VISUAL_BOARD leg's real dart total for any visit that resolves before its final dart
 Status: Open · Found: 2026-09-04 · Task: claude/501-best-leg-stat-5or63t

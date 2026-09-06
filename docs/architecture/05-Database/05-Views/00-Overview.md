@@ -152,6 +152,8 @@ The name should describe the returned data, not the underlying tables.
 | `v_player_settings` | API Read Model | Player default capture/input mode as `*_key`s; absent row means the service defaults apply (2026-08-08) |
 | `v_player_profile` | API Read Model | Player display name + darts equipment (2026-08-15) |
 | `v_double_out_checkout_darts` | Analytics | Raw per-dart facts + running leg score for 501 VISUAL_BOARD checkout accuracy, owning player only (2026-09-05) |
+| `v_player_visit_facts` | Analytics | One row per completed turn, every game type/capture mode, for career-wide turn-level statistics (2026-09-06) |
+| `v_player_leg_facts` | Analytics | One row per complete-capture LEG stage, for best-leg/darts-per-leg style statistics (2026-09-06) |
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
