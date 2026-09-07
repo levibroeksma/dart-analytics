@@ -11,6 +11,11 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import Button from "@components/forms/Button.astro";
+
+// Icons
+import PauseIcon from "@icons/pause.svg";
+import PlayIcon from "@icons/play.svg";
 ---
 
 <div
@@ -62,6 +67,36 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
       x-text="remainingLabel()"
     >
     </p>
+    <Button
+      type="button"
+      variant="ghost"
+      icon
+      ariaLabel="Pause timer"
+      :disabled="finished || showDoubleConfirm || showFinishConfirm"
+      @click="togglePause()"
+      x-show="!$store.game.timerPaused"
+      x-cloak
+    >
+      <PauseIcon
+        class="size-5 text-muted"
+        slot="iconBefore"
+      />
+    </Button>
+    <Button
+      type="button"
+      variant="ghost"
+      icon
+      ariaLabel="Resume timer"
+      :disabled="finished || showDoubleConfirm || showFinishConfirm"
+      @click="togglePause()"
+      x-show="$store.game.timerPaused"
+      x-cloak
+    >
+      <PlayIcon
+        class="size-5 text-muted"
+        slot="iconBefore"
+      />
+    </Button>
   </div>
 
   <template x-if="(state()?.seats.length ?? 1) >= 2">
@@ -119,10 +154,10 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     digitHandler="scoreInput.appendDigit"
     onDelete="scoreInput.deleteLast($event)"
     onSubmit="submitVisit()"
-    submitDisabled="!scoreInput.value || showDoubleConfirm || showFinishConfirm || finished"
-    padDisabled="showDoubleConfirm || showFinishConfirm || finished"
+    submitDisabled="!scoreInput.value || showDoubleConfirm || showFinishConfirm || finished || $store.game.timerPaused"
+    padDisabled="showDoubleConfirm || showFinishConfirm || finished || $store.game.timerPaused"
     undoClick="undoVisit()"
-    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showFinishConfirm || finished"
+    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showFinishConfirm || finished || $store.game.timerPaused"
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
     class="px-3"

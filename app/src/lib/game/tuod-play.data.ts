@@ -14,6 +14,7 @@ import {
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
+  playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
@@ -432,6 +433,9 @@ export function tuodPlay() {
               config.durationValue,
               engine,
             );
+            if (this.$store.game.timerPaused) {
+              this.timer.stop();
+            }
           }
         }
 
@@ -453,6 +457,10 @@ export function tuodPlay() {
       this.timer?.stop();
     },
 
+    togglePause(this: TuodPlayContext) {
+      playToggleTimerPause(this);
+    },
+
     /**
      * Submits the typed visit total. TUOD's only meaningful total is the
      * target itself — that is what a checkout scores — so an entry that
@@ -466,7 +474,8 @@ export function tuodPlay() {
         !this.engine ||
         this.finished ||
         this.showDoubleConfirm ||
-        this.showFinishConfirm
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
       )
         return;
 
@@ -528,7 +537,13 @@ export function tuodPlay() {
       this: TuodPlayContext,
       input: TuodAttemptInput,
     ): Promise<void> {
-      if (!this.engine || this.finished || this.showFinishConfirm) return;
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
+        return;
 
       if (this.engine.wouldComplete(input)) {
         this.error = "";
@@ -554,7 +569,13 @@ export function tuodPlay() {
 
     async maybeRunBotVisit(this: TuodPlayContext) {
       const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat || !this.engine || this.finished) return;
+      if (
+        !botSeat ||
+        !this.engine ||
+        this.finished ||
+        this.$store.game.timerPaused
+      )
+        return;
       const state = this.state();
       if (!state || state.activeParticipantRef !== botSeat.participantRef)
         return;
@@ -599,7 +620,13 @@ export function tuodPlay() {
       this: TuodPlayContext,
       observation: DartObservation,
     ): Promise<void> {
-      if (!this.engine || this.finished || this.showFinishConfirm) return;
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
+        return;
 
       if (this.engine.wouldComplete(observation)) {
         this.error = "";
@@ -654,7 +681,12 @@ export function tuodPlay() {
     },
 
     undoVisit(this: TuodPlayContext) {
-      if (this.finished || this.showDoubleConfirm || this.showFinishConfirm)
+      if (
+        this.finished ||
+        this.showDoubleConfirm ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
         return;
       if (!this.engine) return;
       const botSeat = findBotSeat(this.$store.game.seats);
@@ -726,6 +758,7 @@ export function tuodPlay() {
           this.$store.game.timerRemainingMs = null;
           this.$store.game.timerStartedAt = null;
           this.$store.game.timerExpired = false;
+          this.$store.game.timerPaused = false;
           this.pendingAttempt = null;
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;

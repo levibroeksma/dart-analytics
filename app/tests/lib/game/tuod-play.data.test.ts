@@ -558,6 +558,87 @@ describe("tuodPlay", () => {
     });
   });
 
+  describe("togglePause", () => {
+    it("stops the timer and sets timerPaused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      component.togglePause();
+
+      expect(segmentTimerInstances[0].stop).toHaveBeenCalledTimes(1);
+      expect(store.timerPaused).toBe(true);
+    });
+
+    it("resumes the timer and clears timerPaused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+
+      component.togglePause();
+
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledTimes(2);
+      expect(store.timerPaused).toBe(false);
+    });
+
+    it("leaves a persisted-paused timer stopped on reload instead of auto-resuming it", async () => {
+      const store = gameStub({
+        configSnapshot: minutes(15),
+        timerRemainingMs: 5 * 60 * 1000,
+        timerPaused: true,
+      });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      const instance = segmentTimerInstances[0];
+      expect(instance.start).toHaveBeenCalledTimes(1);
+      expect(instance.stop).toHaveBeenCalledTimes(1);
+      expect(store.timerRemainingMs).toBe(5 * 60 * 1000);
+    });
+
+    it("submitVisit does nothing while paused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+      component.scoreInput.setValue("40");
+
+      await component.submitVisit.call(component);
+
+      expect(store.turns).toHaveLength(0);
+    });
+
+    it("undoVisit does nothing while paused", async () => {
+      const store = gameStub({
+        configSnapshot: minutes(15),
+        turns: [turnFact("t1", 1, 40)],
+      });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(1);
+    });
+  });
+
   describe("undoVisit", () => {
     it("pops the engine log and mirrors it into the store", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
