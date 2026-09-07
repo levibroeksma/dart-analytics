@@ -132,6 +132,7 @@ describe("gameStore", () => {
     store.timerRemainingMs = 1000;
     store.timerStartedAt = "2026-07-25T09:00:00.000Z";
     store.timerExpired = true;
+    store.timerPaused = true;
 
     store.startSession({ ...SESSION_INPUT });
 
@@ -141,6 +142,7 @@ describe("gameStore", () => {
     expect(store.timerRemainingMs).toBeNull();
     expect(store.timerStartedAt).toBeNull();
     expect(store.timerExpired).toBe(false);
+    expect(store.timerPaused).toBe(false);
   });
 
   it("recordFacts persists the engine's stages and turns", () => {
@@ -181,6 +183,7 @@ describe("gameStore", () => {
     store.timerRemainingMs = 5000;
     store.timerStartedAt = "2026-07-25T09:00:00.000Z";
     store.timerExpired = true;
+    store.timerPaused = true;
 
     store.reset();
 
@@ -195,6 +198,7 @@ describe("gameStore", () => {
     expect(store.timerRemainingMs).toBeNull();
     expect(store.timerStartedAt).toBeNull();
     expect(store.timerExpired).toBe(false);
+    expect(store.timerPaused).toBe(false);
     expect(store.idempotencyKey).toBeNull();
   });
 
@@ -245,6 +249,7 @@ describe("gameStore", () => {
           "game.timerRemainingMs": 5000,
           "game.timerStartedAt": "2026-07-20T10:00:00.000Z",
           "game.timerExpired": true,
+          "game.timerPaused": true,
           "game.idempotencyKey": "stale-key",
         }),
       );
@@ -262,6 +267,7 @@ describe("gameStore", () => {
       expect(store.timerRemainingMs).toBeNull();
       expect(store.timerStartedAt).toBeNull();
       expect(store.timerExpired).toBe(false);
+      expect(store.timerPaused).toBe(false);
       expect(store.idempotencyKey).toBeNull();
     });
 
@@ -327,7 +333,7 @@ describe("gameStore", () => {
     gameStore(factory);
     for (const init of pendingInits) init();
 
-    expect(factoryCalls).toBe(14);
+    expect(factoryCalls).toBe(15);
     expect(aliasesAtInit).toEqual([
       "game._v",
       "game.gameTypeKey",
@@ -342,6 +348,7 @@ describe("gameStore", () => {
       "game.timerRemainingMs",
       "game.timerStartedAt",
       "game.timerExpired",
+      "game.timerPaused",
       "game.idempotencyKey",
     ]);
     expect(new Set(aliasesAtInit).size).toBe(aliasesAtInit.length);

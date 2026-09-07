@@ -228,6 +228,7 @@ export type PlayStoreContext<TConfig> = {
     timerRemainingMs?: number | null;
     timerStartedAt?: string | null;
     timerExpired?: boolean;
+    timerPaused?: boolean;
     idempotencyKey?: string | null;
     loading: boolean;
     recordFacts(facts: EngineFacts): void;
