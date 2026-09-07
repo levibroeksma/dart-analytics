@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-06
-highest-issued: F68
+updated: 2026-09-07
+highest-issued: F69
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F69 — Singles Training's setup form has the same silently-ignored-difficulty gap Shanghai's had (issue #237)
+Status: Open · Found: 2026-09-07 · Task: claude/issue-237-mg32nc
+Claim: `SinglesTrainingSetupForm.astro`'s difficulty `Toggle` (Easy/Hard/Extreme) reflects the setting that will actually apply to the session about to be created
+Evidence: `app/src/lib/game/singles-training-setup.data.ts`'s `guested()` resolves a guest/DartBot session to `SINGLES_V1` (no `difficulty` key in its config schema at all — mirrors Shanghai's `ShanghaiConfig`), and `addGuest`/`addBot` already reset `ctx.difficulty` to `"EASY"` the instant a guest/bot is seated, exactly like Shanghai's own `app/src/lib/game/shanghai-setup.data.ts` did before this task. But `app/src/components/layout/games/setup/SinglesTrainingSetupForm.astro:52-59` never hides or disables the difficulty `Toggle` once guested — a user can re-select Hard/Extreme after seating a guest or DartBot, the toggle shows it selected, and `start()` silently drops it (`SINGLES_V1` has no difficulty field), so the session plays on Easy rules regardless of the visible toggle state
+Impact: same user-facing bug as issue #237 (Shanghai) — a difficulty the UI shows as active is silently never applied, once a second seat is present. Not fixed here since the issue named Shanghai only and this is a second, independent setup form
+Proposed: same fix as this task applied to `app/src/components/layout/games/setup/ShanghaiSetupForm.astro` — wrap the difficulty `Toggle`'s `SettingSectionShell` (or its own wrapping `div`) in `x-show="guests.length < 1 && !bot"` + `x-cloak`, matching `app/src/components/layout/games/setup/AddGuestButton.astro`'s existing guard expression
 
 ### F68 — `04-Endpoint-Contracts.md`'s Response DTOs closing paragraph never mentions `GET`/`PATCH /api/players/me`'s return type
 Status: Open · Found: 2026-09-06 · Task: claude/statistics-overview-api-r4n7qz

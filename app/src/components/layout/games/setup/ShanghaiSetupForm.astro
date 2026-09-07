@@ -34,7 +34,10 @@ const hints = {
     title={infoSection.title}
     description={infoSection.description}
   />
-  <SettingSectionShell>
+  <SettingSectionShell
+    x-show="guests.length < 1 && !bot"
+    x-cloak
+  >
     <Toggle
       orientation="horizontal"
       options={difficultyOpts}
