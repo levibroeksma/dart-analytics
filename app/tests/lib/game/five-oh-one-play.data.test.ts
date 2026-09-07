@@ -261,6 +261,17 @@ describe("init", () => {
   });
 });
 
+describe("retryReconciliation", () => {
+  it("delegates to init()", async () => {
+    const play = makePlay();
+    const initSpy = vi.spyOn(play, "init");
+
+    await play.retryReconciliation.call(play);
+
+    expect(initSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("submitVisit — plain reduction", () => {
   it("records a visit that does not reach zero without opening the double confirm", async () => {
     const play = makePlay();

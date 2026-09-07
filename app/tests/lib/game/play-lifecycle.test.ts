@@ -329,6 +329,32 @@ describe("playInit", () => {
     expect(context.completionStatus).toBe("succeeded");
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
   });
+
+  it("calls afterReady instead of auto-uploading, once hasActiveSession is set", async () => {
+    const context = makeContext();
+    const afterReady = vi.fn();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, afterReady);
+
+    expect(context.hasActiveSession).toBe(true);
+    expect(afterReady).toHaveBeenCalledTimes(1);
+    expect(afterReady).toHaveBeenCalledWith(
+      context.engine,
+      context.$store.game.configSnapshot,
+    );
+    expect(completeSession).not.toHaveBeenCalled();
+  });
+
+  it("does not call afterReady when reconciliation never reaches an active session", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+    const context = makeContext();
+    const afterReady = vi.fn();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, afterReady);
+
+    expect(context.hasActiveSession).toBe(false);
+    expect(afterReady).not.toHaveBeenCalled();
+  });
 });
 
 describe("playRetryReconciliation", () => {

@@ -511,6 +511,19 @@ describe("scoreTrainingPlay", () => {
       expect(component.hasActiveSession).toBe(false);
     });
 
+    it("retryReconciliation delegates to init()", async () => {
+      const store = gameStub();
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      const initSpy = vi.spyOn(component, "init");
+
+      await component.retryReconciliation.call(component);
+
+      expect(initSpy).toHaveBeenCalledTimes(1);
+    });
+
     it("retryReconciliation recovers after a prior fetch failure", async () => {
       vi.mocked(fetchActiveSessions)
         .mockRejectedValueOnce(new Error("Network error"))

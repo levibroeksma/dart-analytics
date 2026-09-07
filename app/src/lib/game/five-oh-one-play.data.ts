@@ -3,8 +3,6 @@ import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   clearHiddenTimer,
@@ -12,6 +10,8 @@ import {
   playBack,
   playCommitDart,
   playFoldBotQuickScoreVisit,
+  playInit,
+  playRetryReconciliation,
   playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
@@ -459,52 +459,15 @@ export function fiveOhOnePlay() {
       );
     },
 
-    async init(this: FiveOhOnePlayContext) {
+    init(this: FiveOhOnePlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
-        this.reconciliationFailed = false;
-
-        if (result.action === "no_active" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.hasActiveSession = true;
+      return playInit(this, GAME_TYPE_KEY, resumeEngine, async () => {
         await this.maybeRunBotVisit();
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      });
     },
 
-    async retryReconciliation(this: FiveOhOnePlayContext) {
-      await this.init();
+    retryReconciliation(this: FiveOhOnePlayContext) {
+      return playRetryReconciliation(this);
     },
 
     /**

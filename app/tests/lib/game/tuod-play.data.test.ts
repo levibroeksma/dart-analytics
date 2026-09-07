@@ -185,6 +185,19 @@ describe("tuodPlay", () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
   });
 
+  it("retryReconciliation delegates to init()", async () => {
+    const store = gameStub();
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    const initSpy = vi.spyOn(component, "init");
+
+    await component.retryReconciliation.call(component);
+
+    expect(initSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("records a checked-out attempt: the turn total is the target it was thrown at", async () => {
     const store = gameStub();
     const component = {

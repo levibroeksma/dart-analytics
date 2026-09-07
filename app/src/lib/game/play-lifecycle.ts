@@ -47,6 +47,13 @@ function currentFacts<
   );
 }
 
+/**
+ * Without `afterReady`, uploads immediately when the resumed engine is
+ * already complete — the behavior every pre-existing caller relies on. A
+ * caller that passes `afterReady` takes over everything after
+ * `hasActiveSession = true` instead (e.g. resuming a countdown timer, then
+ * continuing a bot's visit), and that completion upload does not run.
+ */
 export async function playInit<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
@@ -55,6 +62,10 @@ export async function playInit<
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   gameTypeKey: string,
   resumeEngine: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null,
+  afterReady?: (
+    engine: TEngine,
+    config: Seated<TConfig>,
+  ) => void | Promise<void>,
 ): Promise<void> {
   context.loadingReconciliation = true;
   try {
@@ -89,6 +100,11 @@ export async function playInit<
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
     context.hasActiveSession = true;
+
+    if (afterReady) {
+      await afterReady(engine, config);
+      return;
+    }
 
     if (engine.isComplete()) {
       context.finished = true;

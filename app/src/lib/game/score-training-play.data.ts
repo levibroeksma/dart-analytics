@@ -1,8 +1,6 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
@@ -11,6 +9,8 @@ import {
   playAbandonAndExit,
   playBack,
   playFoldBotQuickScoreVisit,
+  playInit,
+  playRetryReconciliation,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
   playUploadAndCompleteSession,
@@ -355,64 +355,21 @@ export function scoreTrainingPlay() {
       return previousScoreDisplay(this.$store.game.turns);
     },
 
-    /**
-     * D88 auto-cleanup via shared reconcileActiveSession helper.
-     *
-     * On "match", resume silently (no Continue/Abandon modal — that is
-     * setup-only): the engine is rebuilt from the persisted facts and the
-     * store is written back from `engine.facts()` immediately, so the two
-     * agree before any input. On "abandon_failed", stay on the loading/error
-     * view rather than flipping to "no active session" as if it were cleaned.
-     */
-    async init(this: ScoreTrainingPlayContext) {
+    init(this: ScoreTrainingPlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
-        this.reconciliationFailed = false;
-
-        if (result.action === "no_active" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-        await this.maybeRunBotVisit();
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      return playInit(
+        this,
+        GAME_TYPE_KEY,
+        resumeEngine,
+        async (engine, config) => {
+          this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+          await this.maybeRunBotVisit();
+        },
+      );
     },
 
-    async retryReconciliation(this: ScoreTrainingPlayContext) {
-      await this.init();
+    retryReconciliation(this: ScoreTrainingPlayContext) {
+      return playRetryReconciliation(this);
     },
 
     destroy(this: ScoreTrainingPlayContext) {

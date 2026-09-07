@@ -109,6 +109,17 @@ describe("oneTwentyOnePlay", () => {
     } as OneTwentyOnePlayContext;
   }
 
+  describe("retryReconciliation", () => {
+    it("delegates to init()", async () => {
+      const play = createPlay();
+      const initSpy = vi.spyOn(play, "init");
+
+      await play.retryReconciliation();
+
+      expect(initSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("submitVisit / double confirm", () => {
     it("records an ordinary scoring visit immediately", async () => {
       const play = createPlay();

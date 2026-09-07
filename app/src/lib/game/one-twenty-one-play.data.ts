@@ -8,14 +8,14 @@ import {
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { boardInputData } from "@lib/game/board-input.data";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playCommitDart,
   playFoldBotQuickScoreVisit,
+  playInit,
+  playRetryReconciliation,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
   playUploadAndCompleteSession,
@@ -506,54 +506,21 @@ export function oneTwentyOnePlay() {
       return formatRemaining(this.$store.game.timerRemainingMs);
     },
 
-    async init(this: OneTwentyOnePlayContext) {
+    init(this: OneTwentyOnePlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
-        this.reconciliationFailed = false;
-
-        if (result.action === "no_active" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-        await this.maybeRunBotVisit();
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      return playInit(
+        this,
+        GAME_TYPE_KEY,
+        resumeEngine,
+        async (engine, config) => {
+          this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+          await this.maybeRunBotVisit();
+        },
+      );
     },
 
-    async retryReconciliation(this: OneTwentyOnePlayContext) {
-      await this.init();
+    retryReconciliation(this: OneTwentyOnePlayContext) {
+      return playRetryReconciliation(this);
     },
 
     destroy(this: OneTwentyOnePlayContext) {
