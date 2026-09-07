@@ -5,7 +5,6 @@ import {
 import {
   createSession,
   fetchActiveSessions,
-  completeSession,
   type SessionActiveData,
 } from "@client/api/sessions";
 import {
@@ -13,7 +12,11 @@ import {
   oneTwentyOneDurationClampNotice,
 } from "@lib/game/one-twenty-one-duration";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
+import {
+  setupAbandonSession,
+  setupReconcile,
+  setupRetryReconciliation,
+} from "@lib/game/setup-controller";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
@@ -198,34 +201,11 @@ export function oneTwentyOneSetup() {
       this: OneTwentyOneSetupContext,
       activeSessions: SessionActiveData[],
     ) {
-      const result = await reconcileActiveSession(
-        GAME_TYPE_KEY,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
-      } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
-      }
+      await setupReconcile(this, GAME_TYPE_KEY, activeSessions);
     },
 
     async retryReconciliation(this: OneTwentyOneSetupContext) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await setupRetryReconciliation(this, GAME_TYPE_KEY);
     },
 
     continueSession(this: OneTwentyOneSetupContext) {
@@ -234,19 +214,7 @@ export function oneTwentyOneSetup() {
     },
 
     async abandonSession(this: OneTwentyOneSetupContext) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
+      await setupAbandonSession(this);
     },
 
     async start(this: OneTwentyOneSetupContext) {

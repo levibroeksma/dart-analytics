@@ -162,6 +162,14 @@ describe("oneTwentyOneSetup", () => {
       expect(setup.showActiveSessionModal).toBe(false);
       expect(setup.loading).toBe(false);
     });
+
+    it("abandonSession is a no-op without an active session", async () => {
+      const setup = createSetup();
+
+      await setup.abandonSession();
+
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    });
   });
 
   describe("init fetch failure", () => {

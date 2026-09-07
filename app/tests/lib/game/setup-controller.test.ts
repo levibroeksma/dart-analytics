@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPresetSetupController } from "@lib/game/setup-controller";
+import {
+  createPresetSetupController,
+  setupAbandonSession,
+  setupReconcile,
+  setupRetryReconciliation,
+} from "@lib/game/setup-controller";
 import type { PresetSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
+import type { SessionActiveData } from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
 
 vi.mock("@client/api/sessions");
@@ -386,5 +392,79 @@ describe("createPresetSetupController", () => {
         expect.objectContaining({ rulesetVersionKey: "SINGLES_V1" }),
       );
     });
+  });
+});
+
+/**
+ * Exercises the three standalone exports directly against a minimal
+ * hand-rolled context — the shape `501`/Score Training/121's own setup data
+ * factories pass, none of which is a full `PresetSetupContext`.
+ */
+describe("setupReconcile / setupRetryReconciliation / setupAbandonSession", () => {
+  function minimalContext() {
+    return {
+      activeSession: null as SessionActiveData | null,
+      showActiveSessionModal: false,
+      reconciliationFailed: false,
+      loadingReconciliation: false,
+      loading: false,
+      error: "",
+      $store: { game: { sessionId: null as string | null, reset: vi.fn() } },
+    };
+  }
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("setupReconcile opens the active-session modal on a match", async () => {
+    const ctx = minimalContext();
+    ctx.$store.game.sessionId = "sess-1";
+    await setupReconcile(ctx, "SHANGHAI", [
+      { sessionId: "sess-1", gameTypeKey: "SHANGHAI" } as any,
+    ]);
+
+    expect(ctx.activeSession).toEqual({
+      sessionId: "sess-1",
+      gameTypeKey: "SHANGHAI",
+    });
+    expect(ctx.showActiveSessionModal).toBe(true);
+  });
+
+  it("setupRetryReconciliation toggles loadingReconciliation around a fresh fetch", async () => {
+    const ctx = minimalContext();
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+
+    const pending = setupRetryReconciliation(ctx, "SHANGHAI");
+    expect(ctx.loadingReconciliation).toBe(true);
+    await pending;
+
+    expect(ctx.loadingReconciliation).toBe(false);
+    expect(ctx.showActiveSessionModal).toBe(false);
+  });
+
+  it("setupAbandonSession completes the session and clears activeSession", async () => {
+    const ctx = minimalContext();
+    ctx.activeSession = { sessionId: "sess-old" } as SessionActiveData;
+    ctx.showActiveSessionModal = true;
+    vi.mocked(sessionsApi.completeSession).mockResolvedValue(undefined as any);
+
+    await setupAbandonSession(ctx);
+
+    expect(sessionsApi.completeSession).toHaveBeenCalledWith(
+      "sess-old",
+      "ABANDONED",
+    );
+    expect(ctx.$store.game.reset).toHaveBeenCalled();
+    expect(ctx.showActiveSessionModal).toBe(false);
+    expect(ctx.activeSession).toBeNull();
+  });
+
+  it("setupAbandonSession is a no-op without an active session", async () => {
+    const ctx = minimalContext();
+
+    await setupAbandonSession(ctx);
+
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
   });
 });

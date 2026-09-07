@@ -19,6 +19,80 @@ import {
 } from "@lib/game/session-mode-resolution";
 import type { PresetSetupContext, PresetSetupControllerOptions } from "./types";
 
+type SetupReconciliationContext = {
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  reconciliationFailed: boolean;
+  loadingReconciliation: boolean;
+  loading: boolean;
+  error: string;
+  $store: { game: { sessionId: string | null; reset(): void } };
+};
+
+/**
+ * The shared D88 reconcile/retry/abandon trio every setup page's own
+ * hand-written context uses when it does not adopt the full
+ * `createPresetSetupController` (`501`, Score Training, 121 — see
+ * `PresetSetupContext`'s own doc). `setupReconcile` applies one
+ * `reconcileActiveSession` result; `setupRetryReconciliation` re-fetches and
+ * re-applies it; `setupAbandonSession` completes the matched session as
+ * ABANDONED.
+ */
+export async function setupReconcile<Ctx extends SetupReconciliationContext>(
+  context: Ctx,
+  gameTypeKey: string,
+  activeSessions: SessionActiveData[],
+): Promise<void> {
+  const result = await reconcileActiveSession(
+    gameTypeKey,
+    context.$store.game.sessionId,
+    activeSessions,
+    context.$store.game,
+  );
+
+  if (result.action === "match") {
+    context.activeSession = result.activeSession;
+    context.showActiveSessionModal = true;
+    context.reconciliationFailed = false;
+  } else if (result.action === "abandon_failed") {
+    context.showActiveSessionModal = false;
+    context.reconciliationFailed = true;
+  } else {
+    context.showActiveSessionModal = false;
+    context.reconciliationFailed = false;
+  }
+}
+
+export async function setupRetryReconciliation<
+  Ctx extends SetupReconciliationContext,
+>(context: Ctx, gameTypeKey: string): Promise<void> {
+  context.loadingReconciliation = true;
+  try {
+    const activeSessions = await fetchActiveSessions();
+    await setupReconcile(context, gameTypeKey, activeSessions);
+  } finally {
+    context.loadingReconciliation = false;
+  }
+}
+
+export async function setupAbandonSession<
+  Ctx extends SetupReconciliationContext,
+>(context: Ctx): Promise<void> {
+  if (!context.activeSession || context.loading) return;
+  context.loading = true;
+  context.error = "";
+  try {
+    await completeSession(context.activeSession.sessionId, "ABANDONED");
+    context.$store.game.reset();
+    context.showActiveSessionModal = false;
+    context.activeSession = null;
+  } catch {
+    context.error = "Could not abandon session. Try again.";
+  } finally {
+    context.loading = false;
+  }
+}
+
 /**
  * The setup controller every preset-driven game shares: load the presets and
  * any active session, reconcile a recovered one, retry that reconciliation,
@@ -75,34 +149,11 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     },
 
     async reconcile(this: Ctx, activeSessions: SessionActiveData[]) {
-      const result = await reconcileActiveSession(
-        gameTypeKey,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
-      } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
-      }
+      await setupReconcile(this, gameTypeKey, activeSessions);
     },
 
     async retryReconciliation(this: Ctx) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await setupRetryReconciliation(this, gameTypeKey);
     },
 
     continueSession(this: Ctx) {
@@ -111,19 +162,7 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
     },
 
     async abandonSession(this: Ctx) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
+      await setupAbandonSession(this);
     },
 
     addGuest(this: Ctx) {

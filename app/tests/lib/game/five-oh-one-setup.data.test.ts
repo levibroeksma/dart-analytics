@@ -141,6 +141,35 @@ describe("fiveOhOneSetup", () => {
     expect(locationSpy.href).toBe("/games/501/play");
   });
 
+  it("abandons the active session", async () => {
+    const setup = createSetup({
+      activeSession: { sessionId: "match-id", gameTypeKey: "501" } as any,
+    });
+    vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+      sessionId: "match-id",
+      statusKey: "ABANDONED",
+      completedAt: "2026-08-20T10:00:00Z",
+    });
+
+    await setup.abandonSession();
+
+    expect(sessionsApi.completeSession).toHaveBeenCalledWith(
+      "match-id",
+      "ABANDONED",
+    );
+    expect(store.game.reset).toHaveBeenCalled();
+    expect(setup.showActiveSessionModal).toBe(false);
+    expect(setup.activeSession).toBeNull();
+  });
+
+  it("abandonSession is a no-op without an active session", async () => {
+    const setup = createSetup();
+
+    await setup.abandonSession();
+
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+  });
+
   it("basePreset picks the single-leg template as the override base", () => {
     const setup = createSetup({
       presets: [BEST_OF_5_PRESET, QUICK_PLAY_PRESET],

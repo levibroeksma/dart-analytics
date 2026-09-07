@@ -165,6 +165,14 @@ describe("scoreTrainingSetup", () => {
       expect(setup.loading).toBe(false);
     });
 
+    it("abandonSession is a no-op without an active session", async () => {
+      const setup = createSetup();
+
+      await setup.abandonSession();
+
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    });
+
     it("sets loading while abandonSession PATCH is in flight and clears it afterward", async () => {
       const setup = createSetup({
         activeSession: {

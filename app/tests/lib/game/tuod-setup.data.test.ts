@@ -182,6 +182,14 @@ describe("tuodSetup", () => {
       expect(store.game.reset).toHaveBeenCalled();
       expect(setup.showActiveSessionModal).toBe(false);
     });
+
+    it("abandonSession is a no-op without an active session", async () => {
+      const setup = createSetup();
+
+      await setup.abandonSession();
+
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    });
   });
 
   describe("presetForMode", () => {
