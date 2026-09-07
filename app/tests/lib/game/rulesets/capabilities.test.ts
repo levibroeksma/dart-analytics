@@ -149,7 +149,7 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits the nine rulesets whose bot strategy exists today", () => {
+  it("admits the ten rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
@@ -162,6 +162,7 @@ describe("RULESET_DARTBOT", () => {
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
+      "SHANGHAI_V2",
       "SINGLES_V1",
       "TUOD_V1",
     ]);
@@ -205,8 +206,11 @@ describe("supportsDartbot", () => {
     expect(supportsDartbot("SCORE_TRAINING_V1")).toBe(true);
   });
 
-  it("rejects Shanghai V2 and Singles V2 (F45 — 1v1 seating is already broken there)", () => {
-    expect(supportsDartbot("SHANGHAI_V2")).toBe(false);
+  it("accepts Shanghai V2, now that its 2-seat admission is wired (D259)", () => {
+    expect(supportsDartbot("SHANGHAI_V2")).toBe(true);
+  });
+
+  it("rejects Singles V2 (F69 — 1v1 seating is still broken there)", () => {
     expect(supportsDartbot("SINGLES_V2")).toBe(false);
   });
 

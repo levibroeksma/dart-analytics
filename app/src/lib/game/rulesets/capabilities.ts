@@ -106,14 +106,15 @@ export function capableRulesets(
  * checkout-ladder games with 501's identical `{ remaining, checkoutPath }`
  * decision shape). `SCORE_TRAINING_V1` is on `ScoringStrategy`
  * (`scoring.strategy.module.ts`, D-G) — no checkout to route on, so it
- * always aims treble 20. Shanghai V2 and Singles Training V2 can never
- * create *any* 2-seat session today (`FINDINGS.md` F45: both setup screens
- * hardcode their V2 ruleset key with no seat-count branch, so a guest add
- * already 422s at `createSession`), and that gap is explicitly deferred, not
- * this map's to route around. `121_V2` is solo-only by the same reasoning —
- * it never gains a bot seat, only `121_V1` does. Absent keys read as
- * unsupported, exactly like `SEAT_CAPS`'s own "no entry" default in
- * `session-seats.service.ts`.
+ * always aims treble 20. Singles Training V2 can never create *any* 2-seat
+ * session today (`FINDINGS.md` F69: its setup screen hardcodes its V2
+ * ruleset key with no seat-count branch, so a guest add already 422s at
+ * `createSession`), and that gap is explicitly deferred, not this map's to
+ * route around. Shanghai V2 had the identical gap until D259, which wired
+ * both this map and `SEAT_CAPS` for it. `121_V2` is solo-only by the same
+ * reasoning `SINGLES_V2` is — it never gains a bot seat, only `121_V1` does.
+ * Absent keys read as unsupported, exactly like `SEAT_CAPS`'s own "no entry"
+ * default in `session-seats.service.ts`.
  */
 export const RULESET_DARTBOT: Readonly<
   Partial<Record<RulesetVersionKey, boolean>>
@@ -122,6 +123,7 @@ export const RULESET_DARTBOT: Readonly<
   BOBS27_V1: true,
   DOUBLES_TRAINING_V1: true,
   SHANGHAI_V1: true,
+  SHANGHAI_V2: true,
   SINGLES_V1: true,
   "501_V1": true,
   "121_V1": true,
