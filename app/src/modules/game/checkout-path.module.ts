@@ -9,15 +9,9 @@
  * dart of a route that uses it).
  *
  * Every route sums exactly to its key, ends on a double or BULL, and uses at
- * most three darts — but a route here is the conventional finish, not
- * necessarily the fewest-darts one: e.g. 50's entry is the two-dart "10, D20"
- * rather than a single BULL dart, because that is the finish players are
- * taught and expect to see, even though BULL alone is legal and shorter. Never
- * read a route's length as "the minimum darts this score needs" — that
- * question belongs to `checkout-reachability.module.ts`, which computes true
- * reachability over every legal dart value and is what gameplay validation
- * (is a finish still possible with the darts left in this visit?) must use.
- * These invariants are asserted across the whole 2-170 range by
+ * most three darts. A route's length is the conventional dart count, not
+ * necessarily the true minimum — see `checkout-reachability.module.ts` for
+ * that. These invariants are asserted across the whole 2-170 range by
  * `app/tests/modules/game/checkout-path.module.test.ts` — edit an entry only
  * with that test green, and never trust a printed chart by eye. The 133-170
  * routes were originally transcribed from a chart whose first column meant
@@ -191,10 +185,8 @@ const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
 
 /**
  * The conventional three-dart-or-fewer double-out route for a remaining
- * score, for display as a checkout hint — or `null` when no route exists:
- * every bogey number, 1, 0, anything above 170, or a non-integer input. Not a
- * reachability check: see this file's header doc and
- * `checkout-reachability.module.ts`.
+ * score, for display only — or `null` when no route exists: every bogey
+ * number, 1, 0, anything above 170, or a non-integer input.
  */
 export function checkoutPathFor(
   remainingScore: number,
