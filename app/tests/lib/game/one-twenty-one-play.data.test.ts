@@ -21,6 +21,22 @@ import * as sessionsApi from "@client/api/sessions";
 
 vi.mock("@client/api/sessions");
 
+const segmentTimerInstances: Array<{
+  options: Record<string, unknown>;
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+}> = [];
+
+vi.mock("@modules/ui/segment-timer.module", () => ({
+  SegmentTimer: vi.fn().mockImplementation(function (
+    options: Record<string, unknown>,
+  ) {
+    const instance = { options, start: vi.fn(), stop: vi.fn() };
+    segmentTimerInstances.push(instance);
+    return instance;
+  }),
+}));
+
 const SEATS = [
   {
     participantRef: "participant-1",
@@ -978,6 +994,95 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
         },
       ]);
     });
+  });
+});
+
+describe("oneTwentyOnePlay — pause/resume (121_V2 MINUTES)", () => {
+  let store: OneTwentyOnePlayContext["$store"];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    store = baseStore();
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 15,
+    } as any;
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+  });
+
+  function createPlay(
+    overrides: Partial<OneTwentyOnePlayContext> = {},
+  ): OneTwentyOnePlayContext {
+    return {
+      ...oneTwentyOnePlay(),
+      $store: store,
+      ...overrides,
+    } as OneTwentyOnePlayContext;
+  }
+
+  it("stops the timer and sets timerPaused", async () => {
+    const play = createPlay();
+    await play.init();
+
+    play.togglePause();
+
+    expect(segmentTimerInstances[0].stop).toHaveBeenCalledTimes(1);
+    expect(store.game.timerPaused).toBe(true);
+  });
+
+  it("resumes the timer and clears timerPaused", async () => {
+    const play = createPlay();
+    await play.init();
+    play.togglePause();
+
+    play.togglePause();
+
+    expect(segmentTimerInstances[0].start).toHaveBeenCalledTimes(2);
+    expect(store.game.timerPaused).toBe(false);
+  });
+
+  it("leaves a persisted-paused timer stopped on reload instead of auto-resuming it", async () => {
+    store.game.timerRemainingMs = 5 * 60 * 1000;
+    store.game.timerPaused = true;
+    const play = createPlay();
+
+    await play.init();
+
+    const instance = segmentTimerInstances[0];
+    expect(instance.start).toHaveBeenCalledTimes(1);
+    expect(instance.stop).toHaveBeenCalledTimes(1);
+    expect(store.game.timerRemainingMs).toBe(5 * 60 * 1000);
+  });
+
+  it("submitVisit does nothing while paused", async () => {
+    const play = createPlay();
+    await play.init();
+    play.togglePause();
+    play.scoreInput.setValue("40");
+
+    await play.submitVisit();
+
+    expect(store.game.turns).toHaveLength(0);
+  });
+
+  it("undoVisit does nothing while paused", async () => {
+    const play = createPlay();
+    await play.init();
+    play.engine = oneTwentyOneV2EngineFactory.create(
+      store.game.configSnapshot as any,
+    ) as any;
+    play.engine!.record({ scoreAttempted: 60 });
+    store.game.recordFacts(play.engine!.facts());
+    play.togglePause();
+
+    play.undoVisit();
+
+    expect(store.game.turns).toHaveLength(1);
   });
 });
 
