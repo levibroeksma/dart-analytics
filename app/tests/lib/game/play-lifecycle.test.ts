@@ -47,6 +47,7 @@ import {
   playPreviewSegments,
   playRetryReconciliation,
   playRunBotVisualBoardVisit,
+  playToggleTimerPause,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
@@ -67,6 +68,7 @@ import type {
   RulesetVersionKey,
   SeatFact,
 } from "@lib/types";
+import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { activeSeat } from "@modules/game/seat-rota.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 
@@ -337,6 +339,57 @@ describe("playRetryReconciliation", () => {
   });
 });
 
+function makeTimerStub(): SegmentTimer {
+  return { start: vi.fn(), stop: vi.fn() } as unknown as SegmentTimer;
+}
+
+describe("playToggleTimerPause", () => {
+  it("stops the timer and marks the store paused when running", async () => {
+    const timer = makeTimerStub();
+    const context = { ...makeContext(), timer };
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    playToggleTimerPause(context);
+
+    expect(timer.stop).toHaveBeenCalledTimes(1);
+    expect(timer.start).not.toHaveBeenCalled();
+    expect(context.$store.game.timerPaused).toBe(true);
+  });
+
+  it("starts the timer and clears the paused flag when already paused", async () => {
+    const timer = makeTimerStub();
+    const context = { ...makeContext(), timer };
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    context.$store.game.timerPaused = true;
+
+    playToggleTimerPause(context);
+
+    expect(timer.start).toHaveBeenCalledTimes(1);
+    expect(timer.stop).not.toHaveBeenCalled();
+    expect(context.$store.game.timerPaused).toBe(false);
+  });
+
+  it("does nothing without a timer", async () => {
+    const context = { ...makeContext(), timer: null };
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    playToggleTimerPause(context);
+
+    expect(context.$store.game.timerPaused).toBeUndefined();
+  });
+
+  it("does nothing once the session has finished", async () => {
+    const timer = makeTimerStub();
+    const context = { ...makeContext(), timer, finished: true };
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    playToggleTimerPause(context);
+
+    expect(timer.start).not.toHaveBeenCalled();
+    expect(timer.stop).not.toHaveBeenCalled();
+  });
+});
+
 describe("playCommitDart", () => {
   it("records the observation, mirrors facts, and schedules hiddenTurnKey once the visit resolves", async () => {
     vi.useFakeTimers();
@@ -411,6 +464,21 @@ describe("playCommitDart", () => {
       locationX: null,
       locationY: null,
     });
+    expect(context.$store.game.turns).toHaveLength(0);
+  });
+
+  it("does nothing while the session is paused", async () => {
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    context.$store.game.timerPaused = true;
+
+    await playCommitDart(context, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+
     expect(context.$store.game.turns).toHaveLength(0);
   });
 });
@@ -934,6 +1002,33 @@ describe("playRunBotVisualBoardVisit", () => {
     ]);
 
     expect(engine.facts().turns).toHaveLength(2);
+  });
+
+  it("does nothing while the session is paused", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    context.$store.game.timerPaused = true;
+    const wait = vi.fn().mockResolvedValue(undefined);
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(wait).not.toHaveBeenCalled();
+  });
+
+  it("stops throwing mid-visit once the session is paused during the pre-throw delay", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockImplementation(async () => {
+      context.$store.game.timerPaused = true;
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(context.botThrowing).toBe(false);
   });
 });
 

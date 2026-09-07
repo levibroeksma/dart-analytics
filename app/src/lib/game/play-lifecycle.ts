@@ -14,6 +14,7 @@ import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
 import type { RulesetVersionKey, Seated } from "@lib/types";
+import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   DartFact,
   DartObservation,
@@ -110,6 +111,30 @@ export async function playRetryReconciliation<
   await context.init();
 }
 
+/**
+ * Toggles a MINUTES-mode countdown: stops it and marks the store paused, or
+ * resumes it from wherever `SegmentTimer.stop()` left `remaining`. A no-op
+ * without a timer or once the session has finished.
+ */
+export function playToggleTimerPause<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    timer: SegmentTimer | null;
+  },
+): void {
+  if (!context.timer || context.finished) return;
+  if (context.$store.game.timerPaused) {
+    context.timer.start();
+    context.$store.game.timerPaused = false;
+  } else {
+    context.timer.stop();
+    context.$store.game.timerPaused = true;
+  }
+}
+
 function clearTimerHandle(context: {
   hiddenTimer?: ReturnType<typeof setTimeout> | null;
 }): void {
@@ -164,7 +189,7 @@ export async function playCommitDart<
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   observation: DartObservation,
 ): Promise<void> {
-  if (!context.engine) return;
+  if (!context.engine || context.$store.game.timerPaused) return;
   try {
     context.engine.record(observation);
   } catch (err: unknown) {
@@ -259,18 +284,21 @@ export async function playRunBotVisualBoardVisit<
   wait: (ms: number) => Promise<void> = defaultBotWait,
 ): Promise<void> {
   if (context.botThrowing || !context.engine) return;
+  if (context.$store.game.timerPaused) return;
   if (context.engine.state().activeParticipantRef !== botParticipantRef) return;
 
   context.botThrowing = true;
   try {
     while (
       !context.finished &&
+      !context.$store.game.timerPaused &&
       context.engine.state().activeParticipantRef === botParticipantRef
     ) {
       const { observation, pacing } = throwDart();
       await wait(pacing.preThrowMs);
       if (
         context.finished ||
+        context.$store.game.timerPaused ||
         context.engine.state().activeParticipantRef !== botParticipantRef
       ) {
         return;
