@@ -12,7 +12,7 @@ const DARTBOT_PARTICIPANT_TYPE_ID = 3;
  * The most seats a session may request, keyed by ruleset version. A ruleset
  * with no entry defaults to 1 — the same "reject any 2nd seat" behavior
  * every non-501 ruleset had before this map existed. 501 alone keeps room
- * for a future 2v2 (D-something, X01 guest-player design); the other eight
+ * for a future 2v2 (D-something, X01 guest-player design); the other nine
  * are wired for exactly one opponent (1v1) and never more, per
  * `2026-08-22-single-opponent-seat-remaining-engines-design.md`.
  */
@@ -23,6 +23,7 @@ const SEAT_CAPS: Record<string, number> = {
   AROUND_THE_CLOCK_V1: 2,
   TUOD_V1: 2,
   SHANGHAI_V1: 2,
+  SHANGHAI_V2: 2,
   SCORE_TRAINING_V1: 2,
   SINGLES_V1: 2,
   DOUBLES_TRAINING_V1: 2,

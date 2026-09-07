@@ -279,14 +279,14 @@ describe("shanghaiSetup", () => {
       expect(setup.error).toBe("Could not find a preset for Shanghai.");
     });
 
-    it("resolves SHANGHAI_V1 and forces difficulty back to NORMAL once a guest is added", async () => {
+    it("keeps HARD difficulty and creates SHANGHAI_V2 once a guest is added", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
         difficulty: "HARD",
       });
       setup.newGuestName = "Friend";
       setup.addGuest();
-      expect(setup.difficulty).toBe("NORMAL");
+      expect(setup.difficulty).toBe("HARD");
 
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -309,28 +309,28 @@ describe("shanghaiSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V1",
-          config: expect.objectContaining({ overrides: {} }),
+          rulesetVersionKey: "SHANGHAI_V2",
+          config: expect.objectContaining({
+            overrides: { difficulty: "HARD" },
+          }),
         }),
       );
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V1",
-          configSnapshot: expect.not.objectContaining({
-            difficulty: expect.anything(),
-          }),
+          rulesetVersionKey: "SHANGHAI_V2",
+          configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
         }),
       );
     });
 
-    it("resolves SHANGHAI_V1 and forces difficulty back to NORMAL once a DartBot is seated", async () => {
+    it("keeps HARD difficulty and creates SHANGHAI_V2 once a DartBot is seated", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
         difficulty: "HARD",
       });
       setup.addBot();
       expect(setup.bot).toEqual({ level: 8 });
-      expect(setup.difficulty).toBe("NORMAL");
+      expect(setup.difficulty).toBe("HARD");
 
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -353,7 +353,18 @@ describe("shanghaiSetup", () => {
       await setup.start();
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
-        expect.objectContaining({ rulesetVersionKey: "SHANGHAI_V1" }),
+        expect.objectContaining({
+          rulesetVersionKey: "SHANGHAI_V2",
+          config: expect.objectContaining({
+            overrides: { difficulty: "HARD" },
+          }),
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "SHANGHAI_V2",
+          configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
+        }),
       );
     });
 

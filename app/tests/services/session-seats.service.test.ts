@@ -120,6 +120,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "AROUND_THE_CLOCK_V1",
     "TUOD_V1",
     "SHANGHAI_V1",
+    "SHANGHAI_V2",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
     "DOUBLES_TRAINING_V1",
@@ -133,6 +134,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "AROUND_THE_CLOCK_V1",
     "TUOD_V1",
     "SHANGHAI_V1",
+    "SHANGHAI_V2",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
     "DOUBLES_TRAINING_V1",
@@ -177,10 +179,8 @@ describe("rejectSeatRequest with a DARTBOT seat", () => {
     );
   });
 
-  it("rejects a DARTBOT seat for Shanghai V2, whose 1v1 seating is already broken (F45)", () => {
-    expect(rejectSeatRequest([player, bot], "SHANGHAI_V2")).toMatch(
-      /does not support a DartBot opponent/,
-    );
+  it("accepts a DARTBOT seat for Shanghai V2, now that it's wired (D259)", () => {
+    expect(rejectSeatRequest([player, bot], "SHANGHAI_V2")).toBeNull();
   });
 
   it("counts a DARTBOT seat toward the ruleset's own SEAT_CAPS entry", () => {
