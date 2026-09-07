@@ -12,10 +12,8 @@ const MAX_CHECKOUT_SCORE = 170;
 
 /**
  * Minimum darts (1-3) to bring each score 0-170 to exactly zero on a double
- * or BULL, over every legal dart value — the true reachability table,
- * computed once at module load rather than hand-transcribed, so it can never
- * drift the way a curated chart can. `null` marks a score no combination of
- * up to three legal darts can finish (every bogey number, 0, and 1).
+ * or BULL, over every legal dart value. `null` marks a score no combination
+ * of up to three legal darts can finish (every bogey number, 0, and 1).
  */
 function buildMinimumCheckoutDarts(): readonly (number | null)[] {
   const minimum: (number | null)[] = new Array(MAX_CHECKOUT_SCORE + 1).fill(
@@ -49,8 +47,7 @@ function buildMinimumCheckoutDarts(): readonly (number | null)[] {
 const MINIMUM_CHECKOUT_DARTS = buildMinimumCheckoutDarts();
 
 /**
- * The fewest darts, over every legal dart value (not the display chart's
- * chosen route — see `checkout-path.module.ts`'s header doc), that can bring
+ * The fewest darts, over every legal dart value, that can bring
  * `remainingScore` to exactly zero on a double or BULL, or `null` when no
  * such route exists within three darts: every bogey number, 0, 1, a
  * non-integer, or anything above 170.
@@ -63,11 +60,7 @@ export function minimumCheckoutDarts(remainingScore: number): number | null {
 
 /**
  * Whether `remainingScore` can still be brought to exactly zero on a double
- * or BULL using no more than `dartsAvailable` darts — the true reachability
- * check gameplay validation must use. Never derive this from
- * `checkoutPathFor`'s route length: that chart shows the conventional finish,
- * which can be longer than the shortest legal one (50 is "10, D20" there, a
- * two-dart route, even though a single BULL dart also finishes it).
+ * or BULL using no more than `dartsAvailable` darts.
  */
 export function isCheckoutReachable(
   remainingScore: number,
