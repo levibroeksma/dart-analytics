@@ -726,6 +726,42 @@ describe("visual board capture", () => {
       attemptsCompleted: 1,
     });
   });
+
+  it("does not reset the target early when 50 is left on the final visit's last dart, and lets it check out on BULL (#247)", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    const missDart: DartObservation = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+    const bullDart = dartAt(0, 0, "INNER_BULL", 25);
+
+    engine.record({ scoreAttempted: 0 }); // visit 1: no-op, stays at 121
+    engine.record({ scoreAttempted: 71 }); // visit 2: 121 - 71 = 50, visitsThisAttempt now 2
+
+    engine.record(missDart); // visit 3, dart 1 (7th of the attempt): remaining stays 50, 2 darts left
+    const afterEighthDart = engine.record(missDart); // dart 2 (8th of the attempt): 1 dart left — 50 needs 1 (BULL), still reachable
+
+    expect(afterEighthDart.seats[0].visitsThisAttempt).toBe(2); // attempt not reset
+    expect(afterEighthDart.seats[0].remainingInAttempt).toBe(50);
+    const stillOpen = engine.facts().turns.at(-1)!;
+    expect(stillOpen.darts).toHaveLength(2);
+    expect(stillOpen.completedAt).toBeNull();
+
+    const checkedOut = engine.record(bullDart); // dart 3 (9th): BULL finishes 50 exactly
+    expect(checkedOut.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 122,
+      remainingInAttempt: 122,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+      attemptsCompleted: 1,
+    });
+  });
 });
 
 describe("OneTwentyOneEngine.wouldComplete — visual board", () => {
