@@ -31,6 +31,10 @@ describe("checkoutPathFor", () => {
     expect(checkoutPathFor(2)).toEqual(["D1"]);
   });
 
+  it("returns a single-dart BULL finish for 50", () => {
+    expect(checkoutPathFor(50)).toEqual(["BULL"]);
+  });
+
   it("returns null for 1 — no double can ever land on it", () => {
     expect(checkoutPathFor(1)).toBeNull();
   });
@@ -114,6 +118,10 @@ describe("isCheckoutReachable", () => {
 
   it("is true for a single-dart double with exactly 1 dart left", () => {
     expect(isCheckoutReachable(40, 1)).toBe(true); // D20
+  });
+
+  it("is true for 50 with exactly 1 dart left", () => {
+    expect(isCheckoutReachable(50, 1)).toBe(true); // BULL
   });
 
   it("is false for every bogey number regardless of darts available", () => {

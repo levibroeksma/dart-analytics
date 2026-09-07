@@ -129,7 +129,7 @@ const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
   53: ["13", "D20"],
   52: ["12", "D20"],
   51: ["19", "D16"],
-  50: ["10", "D20"],
+  50: ["BULL"],
   49: ["17", "D16"],
   48: ["16", "D16"],
   47: ["15", "D16"],
