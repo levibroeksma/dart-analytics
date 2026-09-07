@@ -1,16 +1,18 @@
-import { checkoutPathFor } from "./checkout-path.module";
+import { minimumCheckoutDarts } from "./checkout-reachability.module";
 import type { CheckoutDartOptions, DartCount } from "./types";
 
 /**
- * The fewest darts that can finish `remainingScore`, read off the checkout
- * chart. A score with no finish route — a bogey number, anything above 170 —
- * has no shorter answer than the whole visit, so it reports `maxDarts`: the
- * player claiming a checkout there is claiming something the chart cannot
- * describe, and offering them a one-dart answer would be a wrong hint rather
- * than a permissive one.
+ * The fewest darts that can finish `remainingScore`, over every legal dart
+ * value — never the display chart's chosen route, which can be longer than
+ * the true minimum (see `checkout-path.module.ts`'s header doc). A score
+ * with no finish route at all — a bogey number, anything above 170 — has no
+ * shorter answer than the whole visit, so it reports `maxDarts`: the player
+ * claiming a checkout there is claiming something no legal dart combination
+ * can describe, and offering them a one-dart answer would be a wrong hint
+ * rather than a permissive one.
  */
 function minimumDarts(remainingScore: number, maxDarts: number): number {
-  return checkoutPathFor(remainingScore)?.length ?? maxDarts;
+  return minimumCheckoutDarts(remainingScore) ?? maxDarts;
 }
 
 function range(from: number, to: number): DartCount[] {

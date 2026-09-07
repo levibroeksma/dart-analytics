@@ -2,10 +2,8 @@ import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import {
-  checkoutPathFor,
-  isCheckoutReachable,
-} from "@modules/game/checkout-path.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import { fetchActiveSessions } from "@client/api/sessions";

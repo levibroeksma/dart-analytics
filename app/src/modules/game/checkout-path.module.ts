@@ -1,5 +1,6 @@
 /**
- * Standard 501 double-out checkout chart, 2-170. Absent keys (the seven bogey
+ * Standard 501 double-out checkout chart, 2-170 — the conventional route a
+ * player is taught to throw, for display only. Absent keys (the seven bogey
  * numbers — 169, 168, 166, 165, 163, 162, 159 — plus 1, which no double can
  * ever land on) are deliberately not entries; `checkoutPathFor` reads that
  * absence as "no finish route" rather than tracking a separate bogey list.
@@ -8,8 +9,16 @@
  * dart of a route that uses it).
  *
  * Every route sums exactly to its key, ends on a double or BULL, and uses at
- * most three darts. Those invariants are asserted across the whole 2-170 range
- * by `app/tests/modules/game/checkout-path.module.test.ts` — edit an entry only
+ * most three darts — but a route here is the conventional finish, not
+ * necessarily the fewest-darts one: e.g. 50's entry is the two-dart "10, D20"
+ * rather than a single BULL dart, because that is the finish players are
+ * taught and expect to see, even though BULL alone is legal and shorter. Never
+ * read a route's length as "the minimum darts this score needs" — that
+ * question belongs to `checkout-reachability.module.ts`, which computes true
+ * reachability over every legal dart value and is what gameplay validation
+ * (is a finish still possible with the darts left in this visit?) must use.
+ * These invariants are asserted across the whole 2-170 range by
+ * `app/tests/modules/game/checkout-path.module.test.ts` — edit an entry only
  * with that test green, and never trust a printed chart by eye. The 133-170
  * routes were originally transcribed from a chart whose first column meant
  * "treble" but printed a bare number, which left 31 routes one treble short
@@ -129,7 +138,7 @@ const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
   53: ["13", "D20"],
   52: ["12", "D20"],
   51: ["19", "D16"],
-  50: ["BULL"],
+  50: ["10", "D20"],
   49: ["17", "D16"],
   48: ["16", "D16"],
   47: ["15", "D16"],
@@ -181,28 +190,15 @@ const CHECKOUT_PATHS: Readonly<Record<number, readonly string[]>> = {
 };
 
 /**
- * The optimal three-dart-or-fewer double-out route for a remaining score, or
- * `null` when no route exists — every bogey number, 1, 0, anything above 170,
- * or a non-integer input.
+ * The conventional three-dart-or-fewer double-out route for a remaining
+ * score, for display as a checkout hint — or `null` when no route exists:
+ * every bogey number, 1, 0, anything above 170, or a non-integer input. Not a
+ * reachability check: see this file's header doc and
+ * `checkout-reachability.module.ts`.
  */
 export function checkoutPathFor(
   remainingScore: number,
 ): readonly string[] | null {
   if (!Number.isInteger(remainingScore)) return null;
   return CHECKOUT_PATHS[remainingScore] ?? null;
-}
-
-/**
- * Whether `remainingScore` can be brought to exactly 0 on a double using no
- * more than `dartsAvailable` darts — `checkoutPathFor`'s minimum route
- * length gated by however many darts the caller actually has left, rather
- * than the chart's own fixed 3-dart ceiling. False for every bogey number
- * regardless of `dartsAvailable`: no route exists to gate.
- */
-export function isCheckoutReachable(
-  remainingScore: number,
-  dartsAvailable: number,
-): boolean {
-  const path = checkoutPathFor(remainingScore);
-  return path !== null && path.length <= dartsAvailable;
 }
