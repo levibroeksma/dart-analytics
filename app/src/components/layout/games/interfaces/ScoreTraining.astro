@@ -11,11 +11,7 @@ import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import Button from "@components/forms/Button.astro";
-
-// Icons
-import PauseIcon from "@icons/pause.svg";
-import PlayIcon from "@icons/play.svg";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 ---
 
 <div
@@ -103,47 +99,7 @@ import PlayIcon from "@icons/play.svg";
       </dl>
     </SplitScoreboard>
   </template>
-  <div
-    class="flex justify-center items-center gap-2 px-3"
-    x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
-    x-cloak
-  >
-    <p
-      class="text-lg font-bold font-mono text-muted-foreground"
-      x-text="`${remainingLabel()}`"
-    >
-    </p>
-    <Button
-      type="button"
-      variant="ghost"
-      icon
-      ariaLabel="Pause timer"
-      :disabled="finished || showFinishConfirm"
-      @click="togglePause()"
-      x-show="!$store.game.timerPaused"
-      x-cloak
-    >
-      <PauseIcon
-        class="size-5 text-muted"
-        slot="iconBefore"
-      />
-    </Button>
-    <Button
-      type="button"
-      variant="ghost"
-      icon
-      ariaLabel="Resume timer"
-      :disabled="finished || showFinishConfirm"
-      @click="togglePause()"
-      x-show="$store.game.timerPaused"
-      x-cloak
-    >
-      <PlayIcon
-        class="size-5 text-muted"
-        slot="iconBefore"
-      />
-    </Button>
-  </div>
+  <CountdownPauseControl disabledExpr="finished || showFinishConfirm" />
   <ErrorAlert class="mx-3 mt-2 text-xs" />
   <ScoreInput
     value="scoreInput.value"
