@@ -275,6 +275,44 @@ function startCountdown(
   return timer;
 }
 
+type TuodConfig = NonNullable<
+  TuodPlayContext["$store"]["game"]["configSnapshot"]
+>;
+
+/**
+ * `init()`'s own MINUTES branch, extracted so init() reads as one decision
+ * (resume, mark already-expired, or do nothing) instead of nested
+ * conditionals — mirrors `one-twenty-one-play.data.ts`'s own
+ * `maybeResumeCountdown`.
+ */
+function maybeResumeCountdown(
+  game: TuodPlayContext["$store"]["game"],
+  config: TuodConfig,
+  engine: TuodEngine,
+): SegmentTimer | null {
+  if (config.durationType !== "MINUTES") return null;
+  if (game.timerExpired) {
+    engine.expireTimer();
+    return null;
+  }
+  const timer = startCountdown(game, config.durationValue, engine);
+  if (game.timerPaused) {
+    timer.stop();
+  }
+  return timer;
+}
+
+/** Whether `submitVisit` may record an attempt right now. */
+function canSubmitVisit(context: TuodPlayContext): boolean {
+  return (
+    !!context.engine &&
+    !context.finished &&
+    !context.showDoubleConfirm &&
+    !context.showFinishConfirm &&
+    !context.$store.game.timerPaused
+  );
+}
+
 /**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` Alpine binds to every
@@ -424,20 +462,7 @@ export function tuodPlay() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
 
-        if (config.durationType === "MINUTES") {
-          if (this.$store.game.timerExpired) {
-            engine.expireTimer();
-          } else {
-            this.timer = startCountdown(
-              this.$store.game,
-              config.durationValue,
-              engine,
-            );
-            if (this.$store.game.timerPaused) {
-              this.timer.stop();
-            }
-          }
-        }
+        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
 
         this.hasActiveSession = true;
         await this.maybeRunBotVisit();
@@ -470,14 +495,7 @@ export function tuodPlay() {
      * same way 501 skips it for a bogey number.
      */
     async submitVisit(this: TuodPlayContext): Promise<void> {
-      if (
-        !this.engine ||
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showFinishConfirm ||
-        this.$store.game.timerPaused
-      )
-        return;
+      if (!canSubmitVisit(this)) return;
 
       const score = Number(this.scoreInput.value);
       const activeState = this.state();

@@ -13,6 +13,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
 // runPlayAgain, preserving TUOD's own asymmetry (no scoreInput.clear()).
 // Confirmed these assertions still hold unchanged.
+// init()'s MINUTES branch now delegates to a local maybeResumeCountdown
+// helper, and submitVisit()'s guard to a local canSubmitVisit predicate
+// (both extracted to keep their functions' complexity under fallow's
+// threshold once the timerPaused guard was added). Confirmed these
+// assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

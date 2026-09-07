@@ -12,6 +12,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // hold unchanged.
 // F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
 // runPlayAgain. Confirmed these assertions still hold unchanged.
+// init()'s MINUTES branch now delegates to a local maybeResumeCountdown
+// helper (extracted to keep init()'s own complexity under fallow's
+// threshold once the timerPaused guard was added). Confirmed these
+// assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
