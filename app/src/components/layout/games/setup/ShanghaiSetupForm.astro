@@ -28,16 +28,13 @@ const hints = {
 <SetupShell title="Shanghai">
   <UserSection
     allowGuests
-    allowDartbot={supportsDartbot("SHANGHAI_V1")}
+    allowDartbot={supportsDartbot("SHANGHAI_V2")}
   />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
   />
-  <SettingSectionShell
-    x-show="guests.length < 1 && !bot"
-    x-cloak
-  >
+  <SettingSectionShell>
     <Toggle
       orientation="horizontal"
       options={difficultyOpts}
