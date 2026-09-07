@@ -3,6 +3,7 @@ import {
   ScoreInputBuffer,
   SCORE_INPUT_GHOST_MS,
 } from "@modules/game/score-input.module";
+import { SCORE_INPUT_GHOST_MS as ACTIVATION_GHOST_MS } from "@modules/game/score-input-activation.module";
 
 /** Press a digit and advance past the ghost window so the next press is eligible. */
 function press(buf: ScoreInputBuffer, digit: number, detail = 1): void {
@@ -11,6 +12,10 @@ function press(buf: ScoreInputBuffer, digit: number, detail = 1): void {
 }
 
 describe("ScoreInputBuffer", () => {
+  it("re-exports the same ghost-window constant as its activation module", () => {
+    expect(SCORE_INPUT_GHOST_MS).toBe(ACTIVATION_GHOST_MS);
+  });
+
   beforeEach(() => {
     vi.useFakeTimers();
   });

@@ -1,10 +1,13 @@
+import {
+  isScoreInputActivationAccepted,
+  SCORE_INPUT_GHOST_MS,
+} from "./score-input-activation.module";
 import type {
   ScoreInputActivationEvent,
   ScoreInputBufferOptions,
 } from "./types";
 
-/** Coalesce window for ghost/multi-click activations (ms). Tunable with test + manual evidence only. */
-export const SCORE_INPUT_GHOST_MS = 40;
+export { SCORE_INPUT_GHOST_MS };
 
 export class ScoreInputBuffer {
   value = "";
@@ -44,9 +47,10 @@ export class ScoreInputBuffer {
   }
 
   private acceptActivation(event?: ScoreInputActivationEvent): boolean {
-    if (event?.detail != null && event.detail > 2) return false;
     const now = Date.now();
-    if (now - this.lastAcceptedAt < SCORE_INPUT_GHOST_MS) return false;
+    if (!isScoreInputActivationAccepted(event, now - this.lastAcceptedAt)) {
+      return false;
+    }
     this.lastAcceptedAt = now;
     return true;
   }
