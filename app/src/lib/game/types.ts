@@ -228,6 +228,7 @@ export type PlayStoreContext<TConfig> = {
     timerRemainingMs?: number | null;
     timerStartedAt?: string | null;
     timerExpired?: boolean;
+    timerPaused?: boolean;
     idempotencyKey?: string | null;
     loading: boolean;
     recordFacts(facts: EngineFacts): void;
@@ -845,6 +846,7 @@ export type OneTwentyOnePlayContext = {
   playAgain(this: OneTwentyOnePlayContext): Promise<void>;
   abandonAndExit(this: OneTwentyOnePlayContext): Promise<void>;
   destroy(this: OneTwentyOnePlayContext): void;
+  togglePause(this: OneTwentyOnePlayContext): void;
 };
 
 /** One dart slot in Bob's 27's shared visit preview — a resolved hit/miss mark, or a not-yet-thrown placeholder. */

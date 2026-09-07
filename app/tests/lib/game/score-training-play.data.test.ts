@@ -12,6 +12,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // hold unchanged.
 // F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
 // runPlayAgain. Confirmed these assertions still hold unchanged.
+// init()'s MINUTES branch now delegates to a local maybeResumeCountdown
+// helper (extracted to keep init()'s own complexity under fallow's
+// threshold once the timerPaused guard was added). Confirmed these
+// assertions still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -713,6 +717,87 @@ describe("scoreTrainingPlay", () => {
       await component.init.call(component);
 
       expect(SegmentTimer).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("togglePause", () => {
+    it("stops the timer and sets timerPaused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      component.togglePause();
+
+      expect(segmentTimerInstances[0].stop).toHaveBeenCalledTimes(1);
+      expect(store.timerPaused).toBe(true);
+    });
+
+    it("resumes the timer and clears timerPaused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+
+      component.togglePause();
+
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledTimes(2);
+      expect(store.timerPaused).toBe(false);
+    });
+
+    it("leaves a persisted-paused timer stopped on reload instead of auto-resuming it", async () => {
+      const store = gameStub({
+        configSnapshot: minutes(15),
+        timerRemainingMs: 5 * 60 * 1000,
+        timerPaused: true,
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      const instance = segmentTimerInstances[0];
+      expect(instance.start).toHaveBeenCalledTimes(1);
+      expect(instance.stop).toHaveBeenCalledTimes(1);
+      expect(store.timerRemainingMs).toBe(5 * 60 * 1000);
+    });
+
+    it("submitVisit does nothing while paused", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+      component.scoreInput.setValue("40");
+
+      await component.submitVisit.call(component);
+
+      expect(store.turns).toHaveLength(0);
+    });
+
+    it("undoVisit does nothing while paused", async () => {
+      const store = gameStub({
+        configSnapshot: minutes(15),
+        turns: [turnFact("t1", 1, 40)],
+      });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      component.togglePause();
+
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(1);
     });
   });
 

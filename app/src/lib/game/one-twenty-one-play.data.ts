@@ -17,6 +17,7 @@ import {
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
+  playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
@@ -253,7 +254,11 @@ function maybeResumeCountdown(
   }
   const durationValue = durationValueOf(config);
   if (durationValue == null) return null;
-  return startCountdown(game, durationValue, engine);
+  const timer = startCountdown(game, durationValue, engine);
+  if (game.timerPaused) {
+    timer.stop();
+  }
+  return timer;
 }
 
 /**
@@ -555,6 +560,10 @@ export function oneTwentyOnePlay() {
       this.timer?.stop();
     },
 
+    togglePause(this: OneTwentyOnePlayContext) {
+      playToggleTimerPause(this);
+    },
+
     /**
      * Which dart counts the checkout confirm may offer. The remaining score
      * the visit finished is exactly `pendingCheckoutScore` — `submitVisit`
@@ -577,7 +586,7 @@ export function oneTwentyOnePlay() {
       score: number,
       finishedOnDouble: boolean,
     ) {
-      if (!this.engine) return;
+      if (!this.engine || this.$store.game.timerPaused) return;
       const darts = finishedOnDouble
         ? {
             dartsUsed: this.dartsToFinish ?? undefined,
@@ -613,7 +622,13 @@ export function oneTwentyOnePlay() {
 
     async maybeRunBotVisit(this: OneTwentyOnePlayContext) {
       const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat || !this.engine || this.finished) return;
+      if (
+        !botSeat ||
+        !this.engine ||
+        this.finished ||
+        this.$store.game.timerPaused
+      )
+        return;
       const state = this.state();
       if (!state || state.activeParticipantRef !== botSeat.participantRef)
         return;
@@ -662,7 +677,8 @@ export function oneTwentyOnePlay() {
         !this.engine ||
         this.finished ||
         this.showDoubleConfirm ||
-        this.showSessionFinishConfirm
+        this.showSessionFinishConfirm ||
+        this.$store.game.timerPaused
       )
         return;
 
@@ -699,7 +715,8 @@ export function oneTwentyOnePlay() {
         !this.engine ||
         this.finished ||
         this.showDoubleConfirm ||
-        this.showSessionFinishConfirm
+        this.showSessionFinishConfirm ||
+        this.$store.game.timerPaused
       )
         return;
       this.loading = true;
@@ -818,7 +835,8 @@ export function oneTwentyOnePlay() {
       if (
         this.finished ||
         this.showDoubleConfirm ||
-        this.showSessionFinishConfirm
+        this.showSessionFinishConfirm ||
+        this.$store.game.timerPaused
       )
         return;
       if (!this.engine) return;
@@ -897,6 +915,7 @@ export function oneTwentyOnePlay() {
           this.$store.game.timerRemainingMs = null;
           this.$store.game.timerStartedAt = null;
           this.$store.game.timerExpired = false;
+          this.$store.game.timerPaused = false;
           this.pendingCheckoutScore = null;
           this.pendingDartObservation = null;
           this.showDoubleConfirm = false;

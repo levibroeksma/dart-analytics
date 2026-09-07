@@ -75,6 +75,7 @@ export function gameStore(persist: PersistFactory) {
     ),
     timerStartedAt: persist()<string | null>(null).as("game.timerStartedAt"),
     timerExpired: persist()<boolean>(false).as("game.timerExpired"),
+    timerPaused: persist()<boolean>(false).as("game.timerPaused"),
     idempotencyKey: persist()<string | null>(null).as("game.idempotencyKey"),
     /** In-flight flag for actions whose button lives outside the page's own
      * Alpine scope (e.g. the exit-modal Confirm button in ExitModal.astro,
@@ -111,6 +112,7 @@ export function gameStore(persist: PersistFactory) {
       this.timerRemainingMs = null;
       this.timerStartedAt = null;
       this.timerExpired = false;
+      this.timerPaused = false;
       this.idempotencyKey = null;
     },
 
@@ -143,6 +145,7 @@ export function gameStore(persist: PersistFactory) {
       this.timerRemainingMs = null;
       this.timerStartedAt = null;
       this.timerExpired = false;
+      this.timerPaused = false;
       this.idempotencyKey = null;
       this.loading = false;
     },

@@ -12,6 +12,7 @@ import {
   playBack,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
+  playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
@@ -205,6 +206,33 @@ function startCountdown(
   return timer;
 }
 
+type ScoreTrainingConfig = NonNullable<
+  ScoreTrainingPlayContext["$store"]["game"]["configSnapshot"]
+>;
+
+/**
+ * `init()`'s own MINUTES branch, extracted so init() reads as one decision
+ * (resume, mark already-expired, or do nothing) instead of nested
+ * conditionals — mirrors `one-twenty-one-play.data.ts`'s own
+ * `maybeResumeCountdown`.
+ */
+function maybeResumeCountdown(
+  game: ScoreTrainingPlayContext["$store"]["game"],
+  config: ScoreTrainingConfig,
+  engine: ScoreTrainingEngine,
+): SegmentTimer | null {
+  if (config.durationType !== "MINUTES") return null;
+  if (game.timerExpired) {
+    engine.expireTimer();
+    return null;
+  }
+  const timer = startCountdown(game, config.durationValue, engine);
+  if (game.timerPaused) {
+    timer.stop();
+  }
+  return timer;
+}
+
 /**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` Alpine binds to every
@@ -371,17 +399,7 @@ export function scoreTrainingPlay() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
 
-        if (config.durationType === "MINUTES") {
-          if (this.$store.game.timerExpired) {
-            engine.expireTimer();
-          } else {
-            this.timer = startCountdown(
-              this.$store.game,
-              config.durationValue,
-              engine,
-            );
-          }
-        }
+        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
 
         this.hasActiveSession = true;
         await this.maybeRunBotVisit();
@@ -401,6 +419,10 @@ export function scoreTrainingPlay() {
       this.timer?.stop();
     },
 
+    togglePause(this: ScoreTrainingPlayContext) {
+      playToggleTimerPause(this);
+    },
+
     /**
      * The engine is the sole authority on both the score range and completion,
      * including MINUTES-mode timer expiry, which reaches it through
@@ -412,7 +434,13 @@ export function scoreTrainingPlay() {
      * its error.
      */
     async submitVisit(this: ScoreTrainingPlayContext) {
-      if (!this.engine || this.finished || this.showFinishConfirm) return;
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
+        return;
       this.loading = true;
 
       const score = Number(this.scoreInput.value);
@@ -466,7 +494,13 @@ export function scoreTrainingPlay() {
       this: ScoreTrainingPlayContext,
       observation: DartObservation,
     ) {
-      if (!this.engine || this.finished || this.showFinishConfirm) return;
+      if (
+        !this.engine ||
+        this.finished ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
+        return;
 
       if (this.engine.wouldComplete(observation)) {
         this.pendingDartObservation = observation;
@@ -483,7 +517,13 @@ export function scoreTrainingPlay() {
 
     async maybeRunBotVisit(this: ScoreTrainingPlayContext) {
       const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat || !this.engine || this.finished) return;
+      if (
+        !botSeat ||
+        !this.engine ||
+        this.finished ||
+        this.$store.game.timerPaused
+      )
+        return;
       const state = this.state();
       if (!state || state.activeParticipantRef !== botSeat.participantRef)
         return;
@@ -563,7 +603,12 @@ export function scoreTrainingPlay() {
     },
 
     undoVisit(this: ScoreTrainingPlayContext) {
-      if (this.finished || this.showFinishConfirm) return;
+      if (
+        this.finished ||
+        this.showFinishConfirm ||
+        this.$store.game.timerPaused
+      )
+        return;
       if (!this.engine) return;
       const botSeat = findBotSeat(this.$store.game.seats);
       if (botSeat) {
@@ -640,6 +685,7 @@ export function scoreTrainingPlay() {
           this.$store.game.timerRemainingMs = null;
           this.$store.game.timerStartedAt = null;
           this.$store.game.timerExpired = false;
+          this.$store.game.timerPaused = false;
           this.pendingFinishScore = null;
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;
