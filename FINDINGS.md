@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-07
-highest-issued: F69
+highest-issued: F71
 -->
 
 # Findings
@@ -45,6 +45,20 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F71 — `npx fallow` fails at HEAD (`f42da52`/`c4749a0`), independent of this task's diff
+Status: Open · Found: 2026-09-07 · Task: claude/121-bug-247-k1cu4l
+Claim: `npx fallow` exiting 0 is part of the `validate:app` completion bar (`app/CLAUDE.md`, `validate-app` skill) — a task is expected to leave it passing
+Evidence: `cd app && npx fallow` fails with `Failed: dupes (74 clone groups), health (1 above threshold): start with src/modules/game/score-input.module.ts` on a clean checkout of `f42da52` (the commit immediately before this task's first commit, `c4749a0`) with no files touched by this task's diff in either flagged item — the 74 clone groups all sit in pre-existing `app/src/lib/game/five-oh-one-play.data.ts`-family files (already covered by open findings like F27/F60), and `app/src/modules/game/score-input.module.ts` was not edited by this task. The same run passed clean (`0 above threshold`) earlier in this same session, before an intervening `git fetch origin main` — `fallow`'s own "shallow clone detected, hotspot analysis may be incomplete" warning suggests its churn/health scoring is sensitive to how much git history is locally available, which changed mid-session
+Impact: `npx fallow` is not currently a reliable pass/fail signal in this environment — a task that changes nothing fallow-relevant can still see it flip from green to red between runs depending on git-fetch state. Every other `validate:app` step (tests, `astro check`, structural gates) passed clean for this task
+Proposed: investigate whether fallow's health/churn scoring should be pinned to a fixed history depth (or run with `git fetch --unshallow` first, as the tool's own warning suggests) so its result stops depending on incidental local git state; separately, the 74 pre-existing clone groups and `score-input.module.ts`'s split are real, already-tracked cleanup (F27/F60 and related) and not new work
+
+### F70 — 121's checkout hint can show a route longer than the darts actually left in the visit
+Status: Open · Found: 2026-09-07 · Task: claude/121-bug-247-k1cu4l
+Claim: `checkoutHintFor` (`app/src/lib/game/one-twenty-one-play.data.ts:481-486`) shows a hint string only when a finish is genuinely still reachable with the darts left in the open visit, and the string it shows is a route the player can actually throw with those darts
+Evidence: `checkoutHintFor` gates on `isCheckoutReachable(remaining, dartsLeft)` (now true reachability, fixed this task per issue #247) but then renders `checkoutPathFor(remaining)!.join(" ")` — the separate, curated *display* chart, whose route length is not always the true minimum (`app/src/modules/game/checkout-path.module.ts`'s header doc, this task). For `remaining` in `{50, 101, 104, 107, 110}` with exactly the true-minimum darts left (1 for 50, 2 for the others), `isCheckoutReachable` now correctly returns `true`, but `checkoutPathFor` still returns its longer conventional route (e.g. 50 → "10 D20", a 2-dart route) even though only 1 dart remains in the visit
+Impact: cosmetic but confusing — the hint text names darts the player no longer has, for a finish that is in fact still possible by an unconventional route (BULL) the hint never mentions. Never blocks or misvalidates a checkout; `isCheckoutReachable`/the engine's own accept logic are already correct
+Proposed: when `checkoutPathFor(remaining)`'s length exceeds `dartsLeft`, either suppress the hint or substitute the true shortest route for just that display case — small, but a UI/wording decision outside this task's validation-logic fix
 
 ### F69 — Singles Training's setup form has the same silently-ignored-difficulty gap Shanghai's had (issue #237)
 Status: Open · Found: 2026-09-07 · Task: claude/issue-237-mg32nc

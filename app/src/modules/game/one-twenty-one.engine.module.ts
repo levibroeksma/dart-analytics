@@ -8,7 +8,7 @@ import type {
 import { newClientKey } from "./client-key.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
-import { isCheckoutReachable } from "./checkout-path.module";
+import { isCheckoutReachable } from "./checkout-reachability.module";
 import { registerEngineFactory } from "./engine.registry";
 import {
   appendResolvedDart,

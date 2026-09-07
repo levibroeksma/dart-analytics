@@ -762,6 +762,47 @@ describe("visual board capture", () => {
       attemptsCompleted: 1,
     });
   });
+
+  it("does not reset the target early when 110 is left with 2 darts to go, even though the display chart's route needs 3", () => {
+    const engine = oneTwentyOneEngineFactory.create(
+      config(),
+    ) as OneTwentyOneEngine;
+    const missDart: DartObservation = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    };
+    const bullDart = dartAt(0, 0, "INNER_BULL", 25);
+
+    engine.record({ scoreAttempted: 0 }); // visit 1: no-op, stays at 121
+    engine.record({ scoreAttempted: 11 }); // visit 2: 121 - 11 = 110, visitsThisAttempt now 2
+
+    // checkout-path.module.ts's display chart lists 110 as a 3-dart route
+    // (T20, 10, D20); the true minimum is 2 (T20, BULL). With 2 darts left
+    // this must still stay open rather than reset early.
+    const afterFirstMiss = engine.record(missDart); // visit 3, dart 1: remaining stays 110, 2 darts left
+
+    expect(afterFirstMiss.seats[0].visitsThisAttempt).toBe(2); // attempt not reset
+    expect(afterFirstMiss.seats[0].remainingInAttempt).toBe(110);
+
+    const afterTrebleTwenty = engine.record(trebleTwenty); // dart 2: 110 - 60 = 50, 1 dart left — still reachable (BULL)
+    expect(afterTrebleTwenty.seats[0].visitsThisAttempt).toBe(2);
+    const stillOpen = engine.facts().turns.at(-1)!;
+    expect(stillOpen.darts).toHaveLength(2);
+    expect(stillOpen.completedAt).toBeNull();
+
+    const checkedOut = engine.record(bullDart); // dart 3: BULL finishes the remaining 50 exactly
+    expect(checkedOut.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      currentTarget: 122,
+      remainingInAttempt: 122,
+      visitsThisAttempt: 0,
+      status: "IN_PROGRESS",
+      attemptsCompleted: 1,
+    });
+  });
 });
 
 describe("OneTwentyOneEngine.wouldComplete — visual board", () => {

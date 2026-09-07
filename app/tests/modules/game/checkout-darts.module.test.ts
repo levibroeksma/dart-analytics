@@ -61,4 +61,8 @@ describe("checkoutDartsRejection", () => {
   it("rejects more darts at a double than the visit used", () => {
     expect(checkoutDartsRejection(40, 1, 2, 3)).toMatch(/at a double/);
   });
+
+  it("accepts a 2-dart claim for 101, whose display route needs 3 but a true BULL finish needs only 2", () => {
+    expect(checkoutDartsRejection(101, 2, 1, 3)).toBeNull();
+  });
 });
