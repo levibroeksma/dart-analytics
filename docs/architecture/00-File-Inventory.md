@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-03
+updated: 2026-09-08
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -21,7 +21,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
 | `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19) | canonical | ~1.7k |
-| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-08-20) | canonical | ~10.4k |
+| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~10.7k |
 | `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~56.4k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
@@ -72,7 +72,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02) | canonical | ~1.3k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
-| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21) | canonical | ~1.7k |
+| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08) | canonical | ~2.2k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
@@ -164,6 +164,18 @@ Registered for discoverability, not as reading material — the contract lives i
 | `app/src/components/forms/AppModeForm.astro` | Profile-page mode picker — roving-tabindex radiogroup with a non-colour selection cue; title/explanation moved into `components/ui/InfoSection.astro` (2026-08-11) | canonical |
 | `app/src/components/forms/SettingRow.astro` | Generic label + text-value/pencil-`Button`/input row; local `x-data` toggle (`editing`/`openValue`/`commit()`), `x-model`/`x-model.number` chosen via a spread `modelDirective` (2026-08-16); `commit()` snapshots the pre-edit value on open and guards blur/Enter — unchanged is a no-op, a required field left empty reverts without saving — since `saveExpr` (`$store.profile.save()`) round-trips all three profile fields and client-side-validates the full payload, so an unguarded blur on one row could throw on another row's empty required value (2026-08-16) | canonical |
 | `app/src/components/forms/PlayerSettingsCard.astro` | Bordered card (reuses `InfoSection`'s own card classes, not the component) grouping display name, darts, weight (three `SettingRow`s) and the throwing-hand picker under a plain "Player settings" `h2` on `app/src/pages/profile/index.astro`, replacing the former always-open `DisplayNameForm`/`DartsConfigForm` (2026-08-16) | canonical |
+
+## Statistics page (2026-09-08)
+
+Registered for discoverability, not as reading material — the API contract lives in `06-API/04-Endpoint-Contracts.md` §Statistics Overview; the design rationale in `docs/superpowers/specs/2026-09-08-statcard-component-design.md`.
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/components/ui/StatCard.astro` | Generic stat tile: static `label` + Alpine-bound `valueExpr`/`hintExpr` (`x-text`), `w-full` with no width/height opinion so a parent grid decides layout; no loading state of its own (2026-09-08) | canonical |
+| `app/src/components/ui/StatCardSkeleton.astro` | Loading placeholder pairing with `StatCard`, same shell with a pulsing bar instead of the value (2026-09-08) | canonical |
+| `app/src/lib/stats/format-statistics-overview.ts` | Pure `formatStatisticsOverview()` — turns `StatisticsOverviewResponseData` into the 19 display strings `StatCard` binds to; owns the `game_type_key` → title lookup table (2026-09-08) | canonical |
+| `app/src/lib/client/api/statistics.ts` | `fetchStatisticsOverview()` browser client, mirrors `profile.ts`'s `apiRequest`/`*ApiError` shape (2026-09-08) | canonical |
+| `app/src/stores/stats.store.ts` | `stats` Alpine store: loads + formats once via `init()`/`load()`, exposes plain formatted-string fields read by the Statistics page as `$store.stats.*`, registered in `register-stores.ts` (2026-09-08) | canonical |
 
 ## Cross-cutting mechanical guards (2026-07-28)
 
