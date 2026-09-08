@@ -26,6 +26,7 @@ describe("registerStores", () => {
       "auth",
       "settings",
       "profile",
+      "stats",
       "game",
       "boardInput",
       "checkoutHints",
