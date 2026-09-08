@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-07
-highest-issued: F71
+highest-issued: F72
 -->
 
 # Findings
@@ -46,12 +46,12 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 
 ---
 
-### F71 — `npx fallow`'s dupes gate fails at HEAD, independent of this task's diff
-Status: Open · Found: 2026-09-07 · Task: claude/121-bug-247-k1cu4l
-Claim: `npx fallow` exiting 0 is part of the `validate:app` completion bar (`app/CLAUDE.md`, `validate-app` skill) — a task is expected to leave it passing
-Evidence: `cd app && npx fallow` fails with `Failed: dupes (74 clone groups), health (1 above threshold)` on a clean checkout of `f42da52` (`main`, this task's PR base) with no files touched by this task's diff in the dupes finding — the 74 clone groups span 52 pre-existing files, e.g. `app/src/modules/game/one-twenty-one.engine.module.ts` and `app/src/lib/game/five-oh-one-play.data.ts` (already covered by open findings like F27/F60). This task split `app/src/modules/game/score-input.module.ts` (the health finding at the time) into it plus `app/src/modules/game/score-input-activation.module.ts`, which resolved that specific health finding — `npx fallow` now reports a different file, `app/src/modules/stats/visit-stats.module.ts`, as the sole health finding instead, itself pre-existing and untouched by this task
-Impact: the dupes gate blocks CI on any PR regardless of that PR's own diff, and the health gate's "1 above threshold" bar will keep surfacing whichever pre-existing file is currently worst as each prior worst offender gets fixed — neither is a signal specific to a given change
-Proposed: dedicated task to deduplicate the 74 clone groups across the 52 affected files (large, cross-cutting — declined for this task per explicit scope decision) and to split `app/src/modules/stats/visit-stats.module.ts`, the current health-gate offender; already-tracked cleanup (F27/F60 and related) overlaps the dupes half of this
+### F72 — `npx fallow`'s `Failed:` summary line names the wrong file for its own health violation
+Status: Open · Found: 2026-09-08 · Task: claude/121-bug-247-k1cu4l
+Claim: `npx fallow`'s top-level `Failed: dupes (N clone groups), health (M above threshold): start with <file>` line names, after "start with", the file whose function is actually causing the `M above threshold` health-gate failure
+Evidence: on this task's own PR base, the line read `...health (1 above threshold): start with src/modules/stats/visit-stats.module.ts`, naming a file with no threshold violation at all (`npx fallow health --format json`'s `summary.functions_above_threshold` was 1, but its one `findings` entry named `buildMinimumCheckoutDarts` in `app/src/modules/game/checkout-reachability.module.ts`, cognitive 21 > 15 and CRAP 43.1 > 30 — this task's own new module from the #247 fix). "start with X" instead names the top entry of the unrelated `Refactoring targets` quick-win list (a priority *suggestion*, not the threshold violator)
+Impact: an agent or developer trusting that filename spends real time chasing the wrong file — this task spent an extended session deduplicating 15 unrelated pre-existing clone groups across 3 files/9 tests before finding `npx fallow health --format json`'s `findings` array and discovering the true 1-line root cause. The dupes count itself never gates the build at all (`.fallowrc.jsonc`'s `duplicates.threshold: 0` means "no limit", confirmed by `npx fallow` exiting 0 with 59-68 clone groups present); only `functions_above_threshold` > 0 fails it
+Proposed: when `npx fallow` reports a health-gate failure, always run `npx fallow health --format json` and read its `findings` array for the actual violating function/file rather than trusting the `Failed:` line's "start with" filename
 
 ### F70 — 121's checkout hint can show a route longer than the darts actually left in the visit
 Status: Open · Found: 2026-09-07 · Task: claude/121-bug-247-k1cu4l
