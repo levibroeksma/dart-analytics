@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-07
-highest-issued: F72
+updated: 2026-09-08
+highest-issued: F73
 -->
 
 # Findings
@@ -45,6 +45,13 @@ Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
 
 ---
+
+### F73 — `deploy.yml` deploys the Worker on every merge to `main` but never applies pending database migrations to production
+Status: Open · Found: 2026-09-08 · Task: claude/statistics-500-highest-checkout-fix
+Claim: a merge to `main` ships a production Worker whose API routes work against the production schema
+Evidence: `.github/workflows/deploy.yml`'s `deploy` job runs `npm ci` → `npm run build` → `npx wrangler deploy` only — no `dbmate`/`db:migrate` step, and no other workflow in `.github/workflows/` runs one against the production Neon branch either. `npm run db:migrate` (`app/package.json`) requires `DATABASE_URL` already exported in the shell from the production env file `npm run env:prod` writes (`docs/architecture/05-Database/11-Neon-Integration.md`'s "Production secrets for deploy scripts go in a separate file"), which is a fully manual, easy-to-skip step nothing enforces before or after a merge. This task found migrations `0024`–`0026` (`database/migrations/0024_double_out_checkout_darts_view.sql`, `database/migrations/0025_player_visit_facts_view.sql`, `database/migrations/0026_player_leg_facts_view.sql` — `v_double_out_checkout_darts`, `v_player_visit_facts`, `v_player_leg_facts`, already merged and live on `dev`) still pending on `main`, confirmed via `dbmate status` against both branches — `GET /api/statistics/overview` (`app/src/pages/api/statistics/overview.ts`) querying those views threw `relation "v_..." does not exist`, caught by `app/src/middleware.ts`'s error boundary and surfaced to the client as a generic `INTERNAL_ERROR` with no client-side console error, since the failure is entirely server-side (applied to production as part of this task, with explicit user confirmation, not deferred)
+Impact: any PR whose migrations aren't manually applied to `main` before or right after merge ships a Worker that 500s on the routes touching the new schema, with no build-time or deploy-time signal — exactly what happened here. The gap is structural, not a one-off oversight: nothing in CI checks `main`'s migration status against the applied migration chain, and nothing blocks or warns the deploy job when they diverge
+Proposed: add a migration-status (or migration-apply) step to `deploy.yml`, gated on the same `DATABASE_URL`-from-`.env.production` pattern the manual workflow already uses (as a repository secret), either failing the deploy when `main` has pending migrations or applying them automatically before `wrangler deploy` — a deliberate design decision (fail vs. auto-apply) outside this task's bug-fix scope
 
 ### F72 — `npx fallow`'s `Failed:` summary line names the wrong file for its own health violation
 Status: Open · Found: 2026-09-08 · Task: claude/121-bug-247-k1cu4l

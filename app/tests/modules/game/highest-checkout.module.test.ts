@@ -55,13 +55,24 @@ describe("highestCheckout", () => {
     expect(highestCheckout(visits)).toBeNull();
   });
 
-  it("finds a finish that isn't the visit's last dart", () => {
+  it("finds a finish that isn't the visit's last dart, valued at the visit's starting remaining", () => {
     const visits: CheckoutVisitDarts[] = [
       {
         startingRemaining: 100,
         darts: [dart("TREBLE", 60), dart("DOUBLE", 40), dart("SINGLE", 5)],
       },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 40, timesHit: 1 });
+    expect(highestCheckout(visits)).toEqual({ value: 100, timesHit: 1 });
+  });
+
+  it("values a multi-dart finish at the visit's starting remaining, not the last dart's local remaining", () => {
+    // 170 checkout: T20 (60), T20 (60), Bullseye (50) -- the classic maximum finish.
+    const visits: CheckoutVisitDarts[] = [
+      {
+        startingRemaining: 170,
+        darts: [dart("TREBLE", 60), dart("TREBLE", 60), dart("INNER_BULL", 50)],
+      },
+    ];
+    expect(highestCheckout(visits)).toEqual({ value: 170, timesHit: 1 });
   });
 });
