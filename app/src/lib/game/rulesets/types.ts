@@ -545,6 +545,8 @@ export type SeatFact =
       dartbot: { level: number; seed: number; levelSource: "MANUAL" };
     };
 
+export type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
 /**
  * A ruleset config snapshot plus the seats playing it. Seats are composed in
  * after the ruleset's own Zod schema has parsed the config, so no ruleset

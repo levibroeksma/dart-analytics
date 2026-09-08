@@ -1463,4 +1463,13 @@ describe("singlesTrainingPlay — DartBot opponent", () => {
 
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
+
+  it("maybeRunBotVisit is a no-op when no seat is a DartBot", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.maybeRunBotVisit.call(play);
+
+    expect(play.engine!.facts().turns).toHaveLength(0);
+  });
 });

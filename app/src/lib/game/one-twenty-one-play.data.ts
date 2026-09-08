@@ -9,7 +9,9 @@ import {
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  botDartIndex,
   clearHiddenTimer,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -34,7 +36,7 @@ import {
 } from "@modules/game/double-attempt.module";
 import { turnsBeforeVisit } from "@modules/game/turn-log.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -68,20 +70,6 @@ const DARTS_PER_VISIT = 3;
 
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 function throwOneDart(
   remaining: number,

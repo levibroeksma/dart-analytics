@@ -1601,6 +1601,16 @@ describe("DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF); // control returned
   });
 
+  it("maybeRunBotVisit is a no-op when no seat is a DartBot", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.maybeRunBotVisit.call(play);
+
+    expect(play.$store.game.turns).toHaveLength(0);
+    expect(play.botThrowing).toBe(false);
+  });
+
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     await play.init.call(play);

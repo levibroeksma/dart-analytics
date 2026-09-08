@@ -5,7 +5,9 @@ import { boardInputData } from "@lib/game/board-input.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
+  botDartIndex,
   clearHiddenTimer,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playFoldBotQuickScoreVisit,
@@ -31,7 +33,7 @@ import {
   previousScoreDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
   ScoreTrainingSeatState,
@@ -65,20 +67,6 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 /** No `remaining`/checkout view — `chooseTarget()` always fires treble 20
  * (Task 1, D-G). */

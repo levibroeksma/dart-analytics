@@ -38,7 +38,9 @@ import {
 } from "@modules/game/engine.registry";
 import {
   armHiddenTimer,
+  botDartIndex,
   clearHiddenTimer,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -1867,5 +1869,50 @@ describe("playPreviewSegments", () => {
       return "hit";
     });
     expect(seenIndexes).toEqual([0, 1, 2]);
+  });
+});
+
+describe("findBotSeat", () => {
+  it("finds the DARTBOT seat among mixed participant types", () => {
+    expect(findBotSeat(TWO_BOT_SEATS)).toEqual(BOT_SEAT);
+  });
+
+  it("returns undefined when no seat is a DartBot", () => {
+    expect(findBotSeat([HUMAN_SEAT])).toBeUndefined();
+  });
+});
+
+describe("botDartIndex", () => {
+  const dart: TurnFact["darts"][number] = {
+    sequence: 1,
+    intendedTargetNumber: 5,
+    intendedZoneKey: "DOUBLE",
+    hitTargetNumber: 5,
+    hitZoneKey: "DOUBLE",
+    score: 10,
+    locationX: null,
+    locationY: null,
+  };
+
+  function turnFor(participantRef: string, darts: TurnFact["darts"]): TurnFact {
+    return {
+      clientKey: `turn-${participantRef}`,
+      stageClientKey: "block-1",
+      participantRef,
+      sequence: 1,
+      completedAt: "2026-08-14T00:00:00.000Z",
+      totalScore: 0,
+      darts,
+    };
+  }
+
+  it("counts only the bot's own darts across its turns", () => {
+    const turns = [turnFor(HUMAN_REF, [dart, dart]), turnFor(BOT_REF, [dart])];
+    expect(botDartIndex(turns, BOT_REF)).toBe(1);
+  });
+
+  it("returns 0 when the bot has not thrown yet", () => {
+    const turns = [turnFor(HUMAN_REF, [dart, dart])];
+    expect(botDartIndex(turns, BOT_REF)).toBe(0);
   });
 });

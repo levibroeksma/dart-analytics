@@ -6,7 +6,9 @@ import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  botDartIndex,
   clearHiddenTimer,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -31,9 +33,9 @@ import {
 } from "@modules/game/double-attempt.module";
 import { turnsBeforeVisit } from "@modules/game/turn-log.module";
 import type {
+  DartbotSeat,
   RulesetVersionKey,
   Seated,
-  SeatFact,
   TuodSnapshot,
 } from "@lib/types";
 import type {
@@ -73,20 +75,6 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "TUOD_V1";
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 function throwOneDart(
   remaining: number,

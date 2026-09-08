@@ -13,7 +13,12 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
-import type { RulesetVersionKey, Seated } from "@lib/types";
+import type {
+  DartbotSeat,
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+} from "@lib/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   DartFact,
@@ -270,6 +275,24 @@ export function undoToActiveSeat<
 
 function defaultBotWait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function findBotSeat(
+  seats: readonly SeatFact[],
+): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
+/** Darts the bot has already thrown across every one of its own turns. */
+export function botDartIndex(
+  turns: readonly TurnFact[],
+  botRef: string,
+): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
 }
 
 /**

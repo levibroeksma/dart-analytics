@@ -2,6 +2,8 @@ import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import {
+  botDartIndex,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -21,7 +23,7 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
   ShanghaiSeatState,
@@ -164,14 +166,6 @@ function resumeEngine(
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
-
 /**
  * The real per-dart thrower: phases 1–3's shipped pipeline (skill curve,
  * seeded RNG, dictated strategy, throw engine), combined the same way
@@ -209,12 +203,6 @@ function throwBotDart(
     },
     pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
   };
-}
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
 }
 
 export function shanghaiPlay() {

@@ -5,7 +5,9 @@ import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  botDartIndex,
   clearHiddenTimer,
+  findBotSeat,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -34,7 +36,7 @@ import {
   type CheckoutVisitDarts,
 } from "@modules/game/double-attempt.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -89,20 +91,6 @@ function resumeEngine(
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 function throwOneDart(
   remaining: number,
