@@ -26,6 +26,24 @@
   ],
   "duplicates": {
     "ignore": ["src/db/schema.ts"],
+    // Bob's 27 / Shanghai / Singles Training / Doubles Training play-data
+    // factories: structurally similar "ladder target" game shape, but each
+    // method's actual logic (scoring, win condition, tap semantics, results
+    // snapshot) genuinely differs per game. A shared factory would need a
+    // hook per varying method — the same "factory dissolving into its
+    // callers" tradeoff `createPresetSetupController`'s own doc (types.ts)
+    // already declines for 501/Score Training/121. Reviewed 2026-09-08.
+    "ignoredClones": [
+      "dup:c77b3abb6f87acd9-r7:3",
+      "dup:c77b3abb6f87acd9-r28:2",
+      "dup:c77b3abb6f87acd9-r13:3",
+      "dup:c77b3abb6f87acd9-r31:2",
+      "dup:c77b3abb6f87acd9-r55:2",
+      "dup:c77b3abb6f87acd9-r40:2",
+      "dup:c77b3abb6f87acd9-r56:2",
+      "dup:c77b3abb6f87acd9-r44:2",
+      "dup:c77b3abb6f87acd9-r48:2",
+    ],
   },
   "ignoreExports": [
     // Intentional two-barrel API (D103/D115/D156): the Worker route's type is
