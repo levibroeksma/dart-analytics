@@ -1,0 +1,58 @@
+---
+/**
+ * Generic stat display tile: label + value, with an optional supporting
+ * hint line. Fills its container (`w-full`, no forced height) so a parent
+ * grid or flex row decides whether it renders at half or full width.
+ * `valueExpr`/`hintExpr` are Alpine expressions (bound via `x-text`), not
+ * literal strings — callers load their data asynchronously from a store.
+ * @param {string} label
+ * @param {string} valueExpr Alpine expression bound to x-text
+ * @param {string} [hintExpr] Alpine expression bound to x-text
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  label: string;
+  valueExpr: string;
+  hintExpr?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  label,
+  valueExpr,
+  hintExpr,
+  class: classNameProp = "",
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "w-full rounded-2xl border border-border bg-surface-raised p-4",
+  classNameProp,
+);
+---
+
+<div
+  class={className}
+  {...props}
+>
+  <p class="text-xs text-muted-foreground">{label}</p>
+  <p
+    class="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground"
+    x-text={valueExpr}
+  >
+  </p>
+  {
+    hintExpr && (
+      <p
+        class="mt-1 text-xs text-muted-foreground"
+        x-text={hintExpr}
+      />
+    )
+  }
+</div>

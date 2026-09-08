@@ -1,0 +1,34 @@
+---
+/**
+ * Loading placeholder for StatCard: same shell, a pulsing bar instead of
+ * the value. Pairs with StatCard the way StatRowSkeleton pairs with
+ * StatRow.
+ * @param {string} label
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  label: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { label, class: classNameProp = "", ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "w-full rounded-2xl border border-border bg-surface-raised p-4",
+  classNameProp,
+);
+---
+
+<div
+  class={className}
+  {...props}
+>
+  <p class="text-xs text-muted-foreground">{label}</p>
+  <p class="mt-2 h-8 w-16 animate-pulse rounded bg-muted-foreground/80"></p>
+</div>
