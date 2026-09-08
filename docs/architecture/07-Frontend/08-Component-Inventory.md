@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-07
+updated: 2026-09-08
 -->
 
 # Component Inventory
@@ -35,6 +35,8 @@ evaluated in the page's own Alpine scope.
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
 | `LogoutButton.astro` | Sign-out action wired to the auth flow | none |
 | `Modal.astro` | Base dialog shell; `ConfirmDialog` builds on it | `titleId`, `descriptionId`, `dismissible`, `onDismiss` |
+| `StatCard.astro` | Career-stat tile: static label plus an Alpine-bound value/hint; no width/loading opinion of its own (2026-09-08) | `label`, `valueExpr`, `hintExpr` |
+| `StatCardSkeleton.astro` | Loading placeholder pairing with `StatCard` (2026-09-08) | `label` |
 
 ## `components/forms/`
 
