@@ -10,6 +10,41 @@ const ANY_DART_VALUE = Array.from(
 
 const MAX_CHECKOUT_SCORE = 170;
 
+/** Records `darts` as the minimum for `score`, unless a shorter route already reached it or it exceeds the checkout range. */
+function markReachable(
+  minimum: (number | null)[],
+  score: number,
+  darts: number,
+): void {
+  if (score <= MAX_CHECKOUT_SCORE && minimum[score] === null) {
+    minimum[score] = darts;
+  }
+}
+
+function markOneDartFinishes(minimum: (number | null)[]): void {
+  for (const finish of DOUBLES_AND_BULL) {
+    markReachable(minimum, finish, 1);
+  }
+}
+
+function markTwoDartFinishes(minimum: (number | null)[]): void {
+  for (const first of ANY_DART_VALUE) {
+    for (const finish of DOUBLES_AND_BULL) {
+      markReachable(minimum, first + finish, 2);
+    }
+  }
+}
+
+function markThreeDartFinishes(minimum: (number | null)[]): void {
+  for (const first of ANY_DART_VALUE) {
+    for (const second of ANY_DART_VALUE) {
+      for (const finish of DOUBLES_AND_BULL) {
+        markReachable(minimum, first + second + finish, 3);
+      }
+    }
+  }
+}
+
 /**
  * Minimum darts (1-3) to bring each score 0-170 to exactly zero on a double
  * or BULL, over every legal dart value. `null` marks a score no combination
@@ -19,28 +54,9 @@ function buildMinimumCheckoutDarts(): readonly (number | null)[] {
   const minimum: (number | null)[] = new Array(MAX_CHECKOUT_SCORE + 1).fill(
     null,
   );
-
-  for (const finish of DOUBLES_AND_BULL) {
-    if (finish <= MAX_CHECKOUT_SCORE) minimum[finish] = 1;
-  }
-  for (const first of ANY_DART_VALUE) {
-    for (const finish of DOUBLES_AND_BULL) {
-      const score = first + finish;
-      if (score <= MAX_CHECKOUT_SCORE && minimum[score] === null) {
-        minimum[score] = 2;
-      }
-    }
-  }
-  for (const first of ANY_DART_VALUE) {
-    for (const second of ANY_DART_VALUE) {
-      for (const finish of DOUBLES_AND_BULL) {
-        const score = first + second + finish;
-        if (score <= MAX_CHECKOUT_SCORE && minimum[score] === null) {
-          minimum[score] = 3;
-        }
-      }
-    }
-  }
+  markOneDartFinishes(minimum);
+  markTwoDartFinishes(minimum);
+  markThreeDartFinishes(minimum);
   return minimum;
 }
 

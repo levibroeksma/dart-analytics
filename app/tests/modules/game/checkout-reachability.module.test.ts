@@ -41,6 +41,14 @@ describe("minimumCheckoutDarts", () => {
     expect(minimumCheckoutDarts(-5)).toBeNull();
     expect(minimumCheckoutDarts(40.5)).toBeNull();
   });
+
+  it("every non-bogey score from 2-170 resolves to 1, 2, or 3 darts", () => {
+    const bogeys = new Set([169, 168, 166, 165, 163, 162, 159, 1]);
+    for (let score = 2; score <= 170; score++) {
+      if (bogeys.has(score)) continue;
+      expect([1, 2, 3]).toContain(minimumCheckoutDarts(score));
+    }
+  });
 });
 
 describe("isCheckoutReachable", () => {
