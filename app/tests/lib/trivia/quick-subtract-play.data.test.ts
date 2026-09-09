@@ -108,4 +108,15 @@ describe("quickSubtractPlay", () => {
     ctx.destroy();
     expect(destroySpy).toHaveBeenCalled();
   });
+
+  it("exit() tears down the game and navigates to the Trivia landing page", () => {
+    const ctx = quickSubtractPlay();
+    ctx.startCount(5);
+    const destroySpy = vi.spyOn(ctx.game!, "destroy");
+    const location = { href: "" };
+    vi.stubGlobal("location", location);
+    ctx.exit();
+    expect(destroySpy).toHaveBeenCalled();
+    expect(location.href).toBe("/trivia");
+  });
 });

@@ -10,9 +10,12 @@ interface Props {
   /** Alpine expression string, evaluated live via x-text; takes
    * precedence over the static `gameTitle` when both are given. */
   gameTitleExpr?: string;
+  /** Overrides ExitModal's default "recorded as abandoned" copy — for a
+   * tool with nothing to persist (e.g. Trivia). */
+  exitDescription?: string;
 }
 
-const { title, gameTitle, gameTitleExpr }: Props = Astro.props;
+const { title, gameTitle, gameTitleExpr, exitDescription }: Props = Astro.props;
 ---
 
 <BaseLayout title={title}>
@@ -58,7 +61,7 @@ const { title, gameTitle, gameTitleExpr }: Props = Astro.props;
       <slot />
     </main>
     <template x-if="showExitModal">
-      <ExitModal />
+      <ExitModal description={exitDescription} />
     </template>
   </div>
 </BaseLayout>
