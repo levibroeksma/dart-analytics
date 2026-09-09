@@ -1,8 +1,8 @@
 ---
 /**
- * Generic stat display tile: label + value, with an optional supporting
- * hint line. Fills its container (`w-full`, no forced height) so a parent
- * grid or flex row decides whether it renders at half or full width.
+ * Generic stat display tile: an optional hint line, the value, then the
+ * label. Fills its container (`w-full`, no forced height) so a parent grid
+ * or flex row decides whether it renders at half or full width.
  * `valueExpr`/`hintExpr` are Alpine expressions (bound via `x-text`), not
  * literal strings — callers load their data asynchronously from a store.
  * @param {string} label
@@ -31,9 +31,10 @@ const {
 import { cn } from "@client/cn";
 
 // Styles
-const className = cn(
-  "w-full rounded-2xl border border-border bg-surface-raised p-4",
-  classNameProp,
+const className = cn("stat-card w-full rounded-2xl p-4", classNameProp);
+const valueClassName = cn(
+  "font-mono text-2xl font-bold tabular-nums text-accent",
+  hintExpr && "mt-1",
 );
 ---
 
@@ -41,18 +42,18 @@ const className = cn(
   class={className}
   {...props}
 >
-  <p class="text-xs text-muted-foreground">{label}</p>
-  <p
-    class="mt-2 font-mono text-2xl font-bold tabular-nums text-foreground"
-    x-text={valueExpr}
-  >
-  </p>
   {
     hintExpr && (
       <p
-        class="mt-1 text-xs text-muted-foreground"
+        class="text-xs text-muted-foreground"
         x-text={hintExpr}
       />
     )
   }
+  <p
+    class={valueClassName}
+    x-text={valueExpr}
+  >
+  </p>
+  <p class="mt-0.5 text-xs text-muted-foreground">{label}</p>
 </div>
