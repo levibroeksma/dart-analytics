@@ -2,6 +2,12 @@
 /**
  * Presentational — parent GameLayout owns showExitModal (x-if).
  */
+interface Props {
+  description?: string;
+}
+
+const { description = "This session will be recorded as abandoned." }: Props =
+  Astro.props;
 
 // Components
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
@@ -10,7 +16,7 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 <ConfirmDialog
   titleId="exit-modal-title"
   title="Leave game?"
-  description="This session will be recorded as abandoned."
+  description={description}
   cancelLabel="Cancel"
   confirmLabel="Leave"
   onCancel="showExitModal = false"

@@ -6,6 +6,7 @@ import Toggle from "@components/layout/games/setup/Toggle.astro";
 import Input from "@components/forms/Input.astro";
 import SettingSectionShell from "@components/layout/games/setup/SettingSectionShell.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 
 // Data
 const modeOptions = [
@@ -15,7 +16,7 @@ const modeOptions = [
 ---
 
 <div
-  class="flex flex-col gap-4"
+  class="flex flex-col flex-1 min-h-0"
   x-data="{ mode: 'count', count: 20, minutes: 5 }"
 >
   <div
@@ -77,30 +78,43 @@ const modeOptions = [
   </div>
 
   <div
-    class="flex flex-col gap-4"
+    class="flex flex-col flex-1 min-h-0 gap-3"
     x-show="status === 'running'"
     x-cloak
   >
-    <div
-      class="text-center text-sm text-muted-foreground tabular-nums"
-      x-text="mode === 'count' ? formattedElapsed() : formattedRemaining()"
+    <SinglePlayerDisplay
+      isTarget={false}
+      score="current?.expression ?? ''"
+      class="max-h-2/5 h-full"
     >
-    </div>
-    <div
-      class="text-center text-3xl font-mono font-bold tabular-nums"
-      x-text="current?.expression ?? ''"
-    >
-    </div>
+      <div
+        slot="above"
+        class="text-sm text-muted-foreground tabular-nums"
+        x-text="mode === 'count' ? formattedElapsed() : formattedRemaining()"
+      >
+      </div>
+      <div
+        slot="progress"
+        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+      >
+        <dl class="w-full space-y-1">
+          <StatRow
+            label="Correct"
+            value="correctAnswers"
+          />
+          <StatRow
+            label="Incorrect"
+            value="incorrectAnswers"
+          />
+        </dl>
+      </div>
+    </SinglePlayerDisplay>
     <ScoreInput
       value="scoreInput.value"
       digitHandler="scoreInput.appendDigit"
       onDelete="scoreInput.deleteLast($event)"
       onSubmit="submit()"
     />
-    <div class="flex justify-between text-sm text-muted-foreground">
-      <span x-text="`Correct: ${correctAnswers}`"></span>
-      <span x-text="`Incorrect: ${incorrectAnswers}`"></span>
-    </div>
   </div>
 
   <div

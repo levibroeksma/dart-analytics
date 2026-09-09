@@ -105,5 +105,10 @@ export function quickSubtractPlay() {
     destroy() {
       this.game?.destroy();
     },
+
+    exit() {
+      this.destroy();
+      window.location.href = "/trivia";
+    },
   };
 }
