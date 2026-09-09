@@ -118,37 +118,49 @@ const modeOptions = [
   </div>
 
   <div
-    class="flex flex-col gap-4"
+    class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full p-4"
     x-show="status === 'finished'"
     x-cloak
   >
-    <h2 class="text-xl font-semibold text-center text-foreground">
-      Session complete
-    </h2>
-    <dl class="w-full space-y-1">
-      <StatRow
-        label="Correct"
-        value="correctAnswers"
-      />
-      <StatRow
-        label="Incorrect"
-        value="incorrectAnswers"
-      />
-      <StatRow
-        label="Attempts"
-        value="attempts"
-      />
-      <StatRow
-        label="Time"
-        value="formattedElapsed()"
-      />
-    </dl>
-    <Button
-      type="button"
-      variant="secondary"
-      title="Play Again"
-      class="rounded-full w-full"
-      @click="reset()"
-    />
+    <div
+      class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm w-full"
+    >
+      <h2 class="font-display text-lg font-semibold text-foreground">
+        Session complete
+      </h2>
+      <dl class="mt-4 space-y-1 text-sm text-muted-foreground flex flex-col">
+        <StatRow
+          label="Correct"
+          value="correctAnswers"
+        />
+        <StatRow
+          label="Incorrect"
+          value="incorrectAnswers"
+        />
+        <StatRow
+          label="Attempts"
+          value="attempts"
+        />
+        <StatRow
+          label="Time"
+          value="formattedElapsed()"
+        />
+      </dl>
+      <div class="mt-6 flex gap-3">
+        <Button
+          type="button"
+          variant="secondary"
+          title="Back to Trivia"
+          @click="exit()"
+          grow
+        />
+        <Button
+          type="button"
+          title="Play again"
+          @click="reset()"
+          grow
+        />
+      </div>
+    </div>
   </div>
 </div>
