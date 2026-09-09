@@ -19,16 +19,13 @@ const { label, class: classNameProp = "", ...props }: Props = Astro.props;
 import { cn } from "@client/cn";
 
 // Styles
-const className = cn(
-  "w-full rounded-2xl border border-border bg-surface-raised p-4",
-  classNameProp,
-);
+const className = cn("stat-card w-full rounded-2xl p-4", classNameProp);
 ---
 
 <div
   class={className}
   {...props}
 >
-  <p class="text-xs text-muted-foreground">{label}</p>
-  <p class="mt-2 h-8 w-16 animate-pulse rounded bg-muted-foreground/80"></p>
+  <p class="h-8 w-16 animate-pulse rounded bg-muted-foreground/80"></p>
+  <p class="mt-0.5 text-xs text-muted-foreground">{label}</p>
 </div>

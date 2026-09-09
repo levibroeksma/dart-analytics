@@ -433,6 +433,23 @@
     );
   }
 
+  /* Stat tile — glass surface with a faint accent wash */
+  .stat-card {
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in oklch, var(--accent) 6%, transparent),
+        transparent 60%
+      ),
+      var(--glass-strong);
+    border: 1px solid var(--border);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 0 0 1px oklch(0% 0 0 / 0.4);
+    backdrop-filter: blur(var(--blur-glass));
+    -webkit-backdrop-filter: blur(var(--blur-glass));
+  }
+
   /* Elevated card — soft top light, no diagonal slash */
   .gradient-card {
     --gradient-card-bg:
