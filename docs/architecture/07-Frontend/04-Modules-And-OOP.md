@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-07-26
+updated: 2026-09-09
 -->
 
 # Frontend Modules And OOP
 
-> **Version:** 0.2.1 (derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17)
+> **Version:** 0.2.2 (derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -28,6 +28,7 @@ This document defines where object-oriented code belongs in the frontend, how po
 | `modules/ui/*.module.ts` | **Yes** | `new Timer(opts)`, lifecycle methods |
 | `modules/game/*.engine.module.ts` | **Yes** | `GameEngine` contract — one shape for every game (Pattern 18) |
 | `modules/game/*.payload.module.ts` | Prefer functions | Assembles typed API payloads; one generic builder, not one per game |
+| `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/10-trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/trivia/` instead) |
 | `stores/`, `forms/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |
 
@@ -132,6 +133,32 @@ Pages/forms pass the store-held idempotency key to `@client/api` on `POST .../ev
 The frontend may **predict** rejection for UX. The API response is always the source of truth. Never override or ignore domain error codes.
 
 This preserves D40 (client game engine) without making the frontend the authority on persisted domain rules.
+
+---
+
+# Non-Game Client Tools
+
+Not every client-side tool with state and behavior is a dartboard game. A
+tool with no `game_types` row, no persisted session, and no server-side
+validator — e.g. Quick Subtract (`docs/superpowers/specs/2026-09-09-quick-subtract-trivia-design.md`)
+— stays out of the `GameEngine` contract and the 26-file game-wiring
+pipeline (`09-Adding-A-Game.md`) entirely:
+
+- Its OOP piece still lives under `src/modules/` (the OOP boundary applies
+  regardless of game-ness) but is a plain class with its own contract, not
+  `GameEngine` — no `record`/`undo`/`wouldComplete`/`facts()`, no
+  `rulesetVersionKey`, no `stageOwnership`.
+- It is never named `*.engine.module.ts` and never lives under
+  `modules/game/` — both are what `scripts/check-game-engines.sh` scans for,
+  and neither applies here.
+- No `game_types` row, no `services/rulesets/registry.ts` entry, no
+  `games-visibility.ts` card.
+- If the tool is ever given persistence, an engine-only task's usual proof
+  obligation still applies (root `CLAUDE.md` Hard Invariants): name the fact
+  shape before writing it, even though V1 defers it.
+
+`docs/game-rules/trivia/README.md` is the source-material entry point for
+tools built this way.
 
 ---
 

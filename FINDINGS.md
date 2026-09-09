@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-08
-highest-issued: F73
+updated: 2026-09-09
+highest-issued: F74
 -->
 
 # Findings
@@ -143,3 +143,10 @@ Claim: a session can be created with a DartBot opponent for these two rulesets (
 Evidence: neither `app/src/lib/game/around-the-clock-play.data.ts` nor `app/src/lib/game/doubles-training-play.data.ts` imports `app/src/modules/dartbot/throw-engine.module.ts` or defines `maybeRunBotVisit`/`findBotSeat` — contrast `app/src/lib/game/bobs27-play.data.ts` and `app/src/lib/game/shanghai-play.data.ts`, both of which do. `app/src/components/layout/games/setup/AroundTheClockSetupForm.astro:19` and `app/src/components/layout/games/setup/DoublesTrainingSetupForm.astro:29` both pass `allowDartbot={supportsDartbot(...)}` today
 Impact: a user who seats a DartBot opponent for either game gets a silently stuck session — the bot seat exists, `activeParticipantRef` hands it the turn, and nothing ever calls `record()` for it, so the human can never regain the turn without abandoning the session
 Proposed: wire `maybeRunBotVisit`/`throwBotDart`/`findBotSeat` into each play page exactly as `shanghai-play.data.ts` (2026-09-03) and `bobs27-play.data.ts` (phase 6) already do — both rulesets are `PER_SEAT` + `DictatedStrategy`, the same shape, so the fix is mechanical repetition, not new design
+
+### F74 — `destroy()` methods on play-data Alpine factories are never invoked by any lifecycle hook
+Status: Open · Found: 2026-09-09 · Task: claude/checkout-game-architecture-xhb5al
+Claim: `07-Frontend/04-Modules-And-OOP.md`'s "Alpine teardown must call `destroy()` to prevent leaks" describes real, wired-up behavior
+Evidence: `app/src/lib/game/tuod-play.data.ts:481`, `app/src/lib/game/score-training-play.data.ts:418`, `app/src/lib/game/one-twenty-one-play.data.ts:557`, and `app/src/lib/trivia/quick-subtract-play.data.ts`'s own `destroy()` (added this task) all define the method, but no Astro page or Alpine directive anywhere under `app/src` calls it — no `astro:before-swap`, no `astro:page-load` cleanup, no custom Alpine plugin scanning for a `destroy` convention
+Impact: an agent reading the doc's teardown rule as fact would assume `SegmentTimer` intervals are cleared on navigation away from a running session; in practice they run until the interval's own completion condition fires or the page is fully unloaded (which does clear JS timers via browser navigation, so this is not a live memory leak in a single-page-at-a-time SPA-less Astro app today, but the doc's claim about explicit teardown is inaccurate and would mislead future work that layers client-side routing, e.g. view transitions, on top — where an actual interval leak would then occur unless this gap is closed first)
+Proposed: either wire a real teardown hook (e.g. an `astro:before-swap` document listener calling the current page's Alpine root's `destroy()` if present) or soften `07-Frontend/04-Modules-And-OOP.md`'s claim to describe the convention as aspirational until that wiring exists
