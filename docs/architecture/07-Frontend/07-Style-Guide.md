@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-08-20
+updated: 2026-09-09
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.2 (2026-07-31 — Tailwind v4 utility syntax; prior 0.2.1 was D174 safe-area, 2026-07-29)
+> **Version:** 0.2.3 (2026-09-09 — Tailwind v4 container queries; prior 0.2.2 was Tailwind v4 utility syntax, 2026-07-31)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -93,7 +93,7 @@ Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.9
 | Headings (`h1`–`h4`) | `font-display` (Michroma), `font-normal`, wide tracking — set in `@layer base` |
 | Eyebrow / section tag (`h5`) | `font-mono font-semibold uppercase tracking-widest text-muted` |
 | Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |
-| Large numeric displays (scores, targets) | `font-mono font-bold tabular-nums` |
+| Large numeric displays (scores, targets) | `font-mono font-bold tabular-nums`; fixed `text-4xl`/`text-7xl` step, except content of variable length (e.g. an equation) — use `SinglePlayerDisplay`'s `fluid` prop instead (D262) |
 | Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
 | Weight | `font-normal`, `font-semibold`, `font-bold` only. **Never `font-medium`** — poor cross-browser rendering. Buttons use `font-semibold` |
 
@@ -214,6 +214,8 @@ This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era varian
 | Negative inside arbitrary: `left-[-45%]`, `bottom-[-25%]` | Leading-dash arbitrary: `-left-[45%]`, `-bottom-[25%]` |
 
 Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).
+
+**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. `SinglePlayerDisplay`'s `fluid` prop is the existing example (D262) — reach for it before hand-rolling a new container-query block.
 
 ---
 

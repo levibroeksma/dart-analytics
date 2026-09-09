@@ -5,6 +5,7 @@
  * @param {string} [target] Alpine expression for target text
  * @param {boolean} [isTarget] Show target vs score
  * @param {"lg" | "sm"} [size] Big-number size; "sm" fits the split scoreboard's narrower, shorter columns
+ * @param {boolean} [fluid] Size the big number off the card's own width (Tailwind v4 container query) and keep it on one line, instead of the fixed `size` step — for content whose length varies, e.g. an equation
  * @param {string} [activeExpr] Alpine expr; while true the card's border turns accent-colored instead of the default border color
  * @param {string} [class] Extra classes
  * @slot above Rendered inside the card, centered, directly above the big number
@@ -14,6 +15,7 @@ interface Props {
   target?: string;
   isTarget?: boolean;
   size?: "lg" | "sm";
+  fluid?: boolean;
   activeExpr?: string;
   class?: string;
 }
@@ -24,6 +26,7 @@ const {
   target,
   isTarget = true,
   size = "lg",
+  fluid = false,
   activeExpr,
   class: classNameProp = "",
 }: Props = Astro.props;
@@ -41,6 +44,7 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
       "rounded-lg border bg-surface-raised h-full mx-auto flex flex-col items-center justify-center",
       size === "sm" ? "p-2" : "p-3",
       activeExpr ? "" : "border-border",
+      fluid && "@container",
     )}
     {...activeExpr
       ? { ":class": `(${activeExpr}) ? 'border-accent' : 'border-border'` }
@@ -50,7 +54,11 @@ const className = cn("flex-1 min-h-0 glass rounded-lg", classNameProp);
     <h1
       class={cn(
         "font-mono font-bold tabular-nums",
-        size === "sm" ? "text-4xl" : "text-7xl",
+        fluid
+          ? "whitespace-nowrap leading-none text-[clamp(1.75rem,13cqw,3rem)]"
+          : size === "sm"
+            ? "text-4xl"
+            : "text-7xl",
       )}
       x-text={isTarget ? target : score}
     >

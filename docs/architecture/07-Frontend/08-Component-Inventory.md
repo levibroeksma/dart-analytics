@@ -68,7 +68,7 @@ evaluated in the page's own Alpine scope.
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
 | `ResultsModalShell.astro` | Shared results-modal chrome: overlay, glass card, save-status region, play-again error, back/play-again buttons; named `title` slot plus a default slot for stat rows | `showSavedMessage` |
 | `ScoreInput.astro` | Numeric keypad with submit/delete/undo | `value`, `digitHandler`, `onDelete`, `onSubmit`, `submitDisabled`, `padDisabled`, `undoClick`, `undoDisabled` |
-| `SinglePlayerDisplay.astro` | Score-or-target panel with `above`/`progress` slots | `score`, `target`, `isTarget`, `size` (`lg`/`sm`), `activeExpr` (accent border while true) |
+| `SinglePlayerDisplay.astro` | Score-or-target panel with `above`/`progress` slots | `score`, `target`, `isTarget`, `size` (`lg`/`sm`), `fluid` (container-query sizing + no-wrap for variable-length content, e.g. Quick Subtract's equation — 2026-09-09), `activeExpr` (accent border while true) |
 | `SinglePlayerSummary.astro` | Solo results-modal stat block: one `StatRow` per row for the loading state and the single seat, shown only for a 1-seat `resultsSnapshot` (2026-08-30) | `statRows` (`{ label, key, fallback? }[]`), `seatIndex` (default `0`) |
 | `SinglesRecreationalInput.astro` | Target-aware S/D/T or Bull tap row | none |
 | `SplitScoreboard.astro` | Two-seat scoreboard shell; two `SplitScoreboardHalf` columns side by side | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`), `isTarget`, `legsToWinExpr`, named slots `progressA`/`progressB` |
