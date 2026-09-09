@@ -19,6 +19,7 @@ import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
+import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
 
 export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);
@@ -41,4 +42,5 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("aroundTheClockPlay", aroundTheClockPlay);
   Alpine.data("tuodSetup", tuodSetup);
   Alpine.data("tuodPlay", tuodPlay);
+  Alpine.data("quickSubtractPlay", quickSubtractPlay);
 }
