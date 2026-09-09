@@ -16,8 +16,32 @@ draft to fit the repo's architecture and fixes a design flaw in it (see
 Separate tool. `checkouts.md` describes a target-number → dart-route
 selection drill (pick S/D/T to reach a checkout). Quick Subtract is pure
 arithmetic (`start − subtraction = ?`), no route/combination selection.
-Both will live under a new **Trivia** top-level section; `checkouts.md`
-remains a separate, not-yet-built spec.
+Both live under the **Trivia** top-level section; `checkouts.md` is the raw,
+non-canonical brief for the sibling tool.
+
+## Relationship to `docs/architecture/10-trivia.md`
+
+`10-trivia.md` is an already-canonical (2026-08-28) architecture doc for
+Checkout Trivia — the first tool in the Trivia family — and it already
+claims `app/src/pages/trivia/index.astro` as the family's category landing
+page and states the family's folder rule: single-route logic colocates
+under `lib/trivia/`, not a new `modules/` subfolder, because none of
+Checkout Trivia's logic is class-based.
+
+Quick Subtract diverges from that rule in one place only: `QuickSubtractGame`
+is a class, and the OOP-boundary rule (every class-based module lives under
+`src/modules/`, independent of route count) sits above the "2+ routes"
+folder warrant, which governs plain-function code. So `modules/trivia/`
+holds only the class and its pure-function dependency
+(`dart-scores.module.ts`, called from the class); the Alpine factory and
+page stay under `lib/trivia/`, consistent with `10-trivia.md`. This carve-out
+is stated explicitly in `04-Modules-And-OOP.md` and `02-Folder-Structure.md`
+(Task 8), not left as a silent exception.
+
+`pages/trivia/index.astro` is built once, as the shared family landing
+`10-trivia.md` already anticipates — listing Quick Subtract now, with room
+for the Checkout Trivia card once that tool ships — not re-created
+independently per tool.
 
 ## Scope decisions
 
@@ -111,9 +135,12 @@ export interface SegmentTimerOptions {
 ## `QuickSubtractGame`
 
 ```ts
-// modules/trivia/interfaces.ts
+// modules/trivia/types.ts
 export type GameStatus = 'idle' | 'running' | 'finished';
+```
 
+```ts
+// modules/trivia/interfaces.ts
 export interface Calculation {
   readonly start: number;
   readonly subtraction: number;
@@ -149,7 +176,6 @@ export class QuickSubtractGame {
   getCorrectAnswers(): number;
   getAttempts(): number;
   getIncorrectAnswers(): number;
-  getGenerated(): number;
   getElapsedTime(): number;
   getRemainingTime(): number; // 0 in count mode
 }
@@ -168,13 +194,21 @@ user's draft had it declared twice in one file) and
 
 ## Alpine wiring + UI
 
+Answer input reuses `ScoreInputBuffer` (`@modules/game/score-input.module`) —
+the same digit-buffer class every other `ScoreInput.astro` consumer
+(`tuodPlay`, `scoreTrainingPlay`, `fiveOhOnePlay`, `oneTwentyOnePlay`) drives
+it with — rather than a hand-rolled `digit()`/`backspace()` pair, so Quick
+Subtract gets the same ghost-tap debounce (`acceptActivation`) for free:
+
 ```ts
 // lib/trivia/quick-subtract-play.data.ts
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
+
 export function quickSubtractPlay() {
   return {
     status: 'idle' as GameStatus,
     current: null as Calculation | null,
-    value: '',
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     correctAnswers: 0,
     attempts: 0,
     incorrectAnswers: 0,
@@ -185,17 +219,14 @@ export function quickSubtractPlay() {
 
     startCount(count: number) {}, // builds countup timer + QuickSubtractGame, calls start()
     startTimer(minutes: number) {}, // builds countdown timer + QuickSubtractGame
-    digit(d: number) {
-      this.value += String(d);
-    },
-    backspace() {
-      this.value = this.value.slice(0, -1);
-    },
     submit() {
-      const r = this.game!.answer(this.value);
+      const r = this.game!.answer(this.scoreInput.value);
       this.lastAnswer = r;
-      this.value = '';
-      /* sync fields from game getters */
+      this.scoreInput.clear();
+      /* sync all fields (status, current, elapsedTime, remainingTime included)
+         from game getters — a timer's onComplete calls game.finish() from
+         outside this scope, so status/elapsedTime/remainingTime must be
+         re-read on every tick and on submit, not only on submit */
     },
     destroy() {
       this.game?.destroy();
@@ -208,11 +239,13 @@ Plain reactive object, no `$store`, no `$persist` — matches the ephemeral
 decision. Registered in the existing shared `register-route-data.ts`.
 
 `components/layout/trivia/QuickSubtract.astro`: `x-show` swaps idle (setup
-controls) → running (calculation display + `ScoreInput` reused as-is,
-`digitHandler="digit"`, `onDelete="backspace"`, `onSubmit="submit"`) →
-finished (summary: correct vs. incorrect counts, matching the app's
-existing results-modal look — no "better route" review, since there's no
-route concept here).
+controls) → running (calculation display, a live elapsed/remaining-time
+readout, and `ScoreInput` reused as-is with
+`digitHandler="scoreInput.appendDigit"`, `onDelete="scoreInput.deleteLast"`,
+`onSubmit="submit"` — matching every other `ScoreInput.astro` consumer) →
+finished (summary: correct vs. incorrect counts plus total elapsed time,
+matching the app's existing results-modal look — no "better route" review,
+since there's no route concept here).
 
 **Setup defaults** (adjustable at plan time): count mode 10–100, default
 20; timer mode 1–15 minutes, default 5.
@@ -228,14 +261,23 @@ route concept here).
 ## Documentation impact
 
 - New context-pack row in `docs/architecture/00-Context-Map.md`: "New
-  trivia tool."
-- New section in `docs/architecture/07-Frontend/` documenting the Trivia
-  pattern as a documented exception to Pattern 18 (non-game client tool,
-  no persistence, outside the game-wiring pipeline).
+  non-game client tool (Trivia)", including `docs/architecture/10-trivia.md`
+  — the existing canonical Trivia-family doc — alongside the other files in
+  the pack; budget derived from `scripts/check-context-budget.sh`, not
+  guessed.
+- New section in `docs/architecture/07-Frontend/04-Modules-And-OOP.md`
+  documenting the Trivia pattern as a documented exception to Pattern 18
+  (non-game client tool, no persistence, outside the game-wiring pipeline),
+  plus the class-based carve-out from `10-trivia.md`'s single-route
+  `lib/trivia/` rule (see "Relationship to `docs/architecture/10-trivia.md`"
+  above). `07-Frontend/02-Folder-Structure.md` gets the same carve-out
+  stated in its Colocation-vs-Promotion table.
 - New decision block in `decisions/frontend/architecture.md`: trivia tools
-  are not `GameEngine`s and live outside the game-wiring pipeline — this
-  closes the open question `docs/game-rules/trivia/README.md` flagged
-  ("No existing architecture pipeline covers this yet").
+  are not `GameEngine`s and live outside the game-wiring pipeline. This
+  extends the precedent `10-trivia.md` already set for Checkout Trivia to a
+  second, class-based tool — the open question
+  `docs/game-rules/trivia/README.md` originally flagged was already
+  resolved by `10-trivia.md`, not by this decision.
 - `docs/game-rules/trivia/README.md` updated to point at this spec once
   implemented (per its own "disposable once translated" rule for the
   per-tool raw notes — `checkouts.md` is untouched, still pending its own

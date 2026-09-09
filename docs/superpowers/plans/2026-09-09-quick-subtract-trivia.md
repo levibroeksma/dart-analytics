@@ -21,6 +21,26 @@
 - Reuse existing components before hand-rolling markup: `ScoreInput.astro` (keypad), `Toggle.astro`/`Input.astro`/`SettingSectionShell.astro` (setup controls), `Button.astro` (every action), `StatRow.astro` (summary), `GameCard.astro`/`CardWrapper.astro` (landing card).
 - Semantic Tailwind tokens only, `cn()` for class composition, every `x-show` paired with `x-cloak` (`scripts/check-astro-conventions.sh`).
 
+## Reconciliation with `docs/architecture/10-trivia.md`
+
+`10-trivia.md` is an already-canonical architecture doc for Checkout Trivia
+— the first tool in this same Trivia family — and it already claims
+`app/src/pages/trivia/index.astro` as the family's category landing page
+and states the family's folder rule: single-route logic colocates under
+`lib/trivia/`, not a new `modules/` subfolder, because none of Checkout
+Trivia's own logic is class-based.
+
+Quick Subtract diverges in exactly one place: `QuickSubtractGame` is a
+class, and the OOP-boundary rule (every class-based module lives under
+`src/modules/`, independent of route count) sits above the "2+ routes"
+folder warrant that `10-trivia.md` follows. So `modules/trivia/` holds only
+the class and its pure-function dependency (`dart-scores.module.ts`); the
+Alpine factory and page stay under `lib/trivia/`, matching `10-trivia.md`.
+Task 8 states this carve-out explicitly in `04-Modules-And-OOP.md` and
+`02-Folder-Structure.md` rather than leaving it a silent exception, and
+Task 7's landing page is built as the one shared family landing
+`10-trivia.md` already anticipates, not a second one.
+
 ---
 
 ## Task 1: Dart-score pool (`modules/trivia/dart-scores.module.ts`)
@@ -53,8 +73,8 @@ describe("ONE_DART_SCORES", () => {
     );
     expect(ONE_DART_SCORES).toContain(25);
     expect(ONE_DART_SCORES).toContain(50);
-    expect(ONE_DART_SCORES).not.toContain(21);
-    expect(ONE_DART_SCORES).not.toContain(41);
+    expect(ONE_DART_SCORES).not.toContain(23); // not a single (>20), double, treble, or bull
+    expect(ONE_DART_SCORES).not.toContain(41); // not a single (>20), double, treble, or bull
   });
 });
 
@@ -92,6 +112,7 @@ const DOUBLES = SINGLES.map((n) => n * 2);
 const TREBLES = SINGLES.map((n) => n * 3);
 const BULLS = [25, 50];
 
+// fallow-ignore-next-line unused-export -- exported for its own pool-composition test (mirrors 10-trivia.md's checkout-trivia-pool.test.ts precedent); no src consumer needs the raw pool, only getRandomDartScore
 export const ONE_DART_SCORES: readonly number[] = Array.from(
   new Set<number>([...SINGLES, ...DOUBLES, ...TREBLES, ...BULLS]),
 ).sort((a, b) => a - b);
@@ -323,8 +344,8 @@ export class SegmentTimer {
   constructor(options: SegmentTimerOptions) {
     this.totalSeconds = options.totalMinutes * 60;
     this.intervalSeconds = options.intervalMinutes * 60;
-    this.remaining = this.totalSeconds;
     this.direction = options.direction ?? "countdown";
+    this.remaining = this.direction === "countup" ? 0 : this.totalSeconds;
 
     this.onTick = options.onTick;
     this.onSegmentChange = options.onSegmentChange;
@@ -412,8 +433,8 @@ EOF
 - Test: `app/tests/modules/trivia/quick-subtract.module.test.ts`
 
 **Interfaces:**
-- Consumes: `ONE_DART_SCORES`/`getRandomDartScore` (Task 1, `@modules/trivia/dart-scores.module`), `GameStatus` (Task 2, `@modules/types`), `Calculation`/`AnswerResult`/`QuickSubtractOptions` (Task 2, `@modules/interfaces`), `SegmentTimer` (Task 3, `@modules/ui/segment-timer.module`).
-- Produces: `class QuickSubtractGame` with `start(): void`, `answer(value: number | string): AnswerResult`, `finish(): void`, `destroy(): void`, `getStatus(): GameStatus`, `getCurrent(): Calculation | null`, `getCorrectAnswers(): number`, `getAttempts(): number`, `getIncorrectAnswers(): number`, `getGenerated(): number`, `getElapsedTime(): number`, `getRemainingTime(): number` — consumed by Task 5 (`quick-subtract-play.data.ts`).
+- Consumes: `getRandomDartScore` (Task 1, `@modules/trivia/dart-scores.module`), `GameStatus` (Task 2, `@modules/types`), `Calculation`/`AnswerResult`/`QuickSubtractOptions` (Task 2, `@modules/interfaces`), `SegmentTimer` (Task 3, `@modules/ui/segment-timer.module`).
+- Produces: `class QuickSubtractGame` with `start(): void`, `answer(value: number | string): AnswerResult`, `finish(): void`, `destroy(): void`, `getStatus(): GameStatus`, `getCurrent(): Calculation | null`, `getCorrectAnswers(): number`, `getAttempts(): number`, `getIncorrectAnswers(): number`, `getElapsedTime(): number`, `getRemainingTime(): number` — consumed by Task 5 (`quick-subtract-play.data.ts`). No `getGenerated()`: nothing in Task 5/6 renders a raw generated-round count, so it is not added (avoids an unused getter `npx fallow` would flag as dead).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -450,7 +471,6 @@ describe("QuickSubtractGame", () => {
       subtraction: 1,
       expression: "2 - 1",
     });
-    expect(game.getGenerated()).toBe(1);
   });
 
   it("records a correct answer, advances to a new round, and reports the result", () => {
@@ -471,7 +491,6 @@ describe("QuickSubtractGame", () => {
     expect(game.getCorrectAnswers()).toBe(1);
     expect(game.getAttempts()).toBe(1);
     expect(game.getIncorrectAnswers()).toBe(0);
-    expect(game.getGenerated()).toBe(2);
     expect(game.getStatus()).toBe("running");
   });
 
@@ -596,7 +615,6 @@ export class QuickSubtractGame {
   private correctAnswers = 0;
   private attempts = 0;
   private incorrectAnswers = 0;
-  private generated = 0;
 
   constructor(options: QuickSubtractOptions) {
     this.mode = options.mode;
@@ -670,10 +688,6 @@ export class QuickSubtractGame {
     return this.incorrectAnswers;
   }
 
-  getGenerated(): number {
-    return this.generated;
-  }
-
   getElapsedTime(): number {
     return this.timer.getElapsed();
   }
@@ -684,7 +698,6 @@ export class QuickSubtractGame {
 
   private nextRound(): void {
     this.current = nextCalculation();
-    this.generated++;
   }
 }
 ```
@@ -718,18 +731,47 @@ EOF
 - Test: `app/tests/lib/client/alpine/register-route-data.test.ts` (new file — none exists today)
 
 **Interfaces:**
-- Consumes: `QuickSubtractGame` (Task 4), `SegmentTimer` (Task 3), `GameStatus`/`Calculation`/`AnswerResult` (Task 2).
-- Produces: `quickSubtractPlay()` returning `{ status, current, value, correctAnswers, attempts, incorrectAnswers, elapsedTime, remainingTime, lastAnswer, game, startCount(count), startTimer(minutes), digit(d), backspace(), submit(), reset(), destroy() }` — consumed by Task 6's page/component markup via `x-data="quickSubtractPlay()"`.
+- Consumes: `QuickSubtractGame` (Task 4), `SegmentTimer` (Task 3), `GameStatus`/`Calculation`/`AnswerResult` (Task 2), `ScoreInputBuffer` (`@modules/game/score-input.module`, existing — the same digit-buffer class every other `ScoreInput.astro` consumer drives, giving Quick Subtract the same ghost-tap debounce for free instead of a hand-rolled digit buffer).
+- Produces: `quickSubtractPlay()` returning `{ status, current, scoreInput, correctAnswers, attempts, incorrectAnswers, elapsedTime, remainingTime, lastAnswer, game, startCount(count), startTimer(minutes), submit(), reset(), destroy() }` — consumed by Task 6's page/component markup via `x-data="quickSubtractPlay()"`.
 
 - [ ] **Step 1: Write the failing tests**
 
 ```typescript
 // app/tests/lib/trivia/quick-subtract-play.data.test.ts
-import { describe, it, expect, vi, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
 
 describe("quickSubtractPlay", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "AudioContext",
+      vi.fn().mockImplementation(function () {
+        return {
+          createOscillator: () => ({
+            connect: vi.fn(),
+            frequency: {},
+            start: vi.fn(),
+            stop: vi.fn(),
+          }),
+          createGain: () => ({
+            connect: vi.fn(),
+            gain: {
+              setValueAtTime: vi.fn(),
+              exponentialRampToValueAtTime: vi.fn(),
+            },
+          }),
+          destination: {},
+          currentTime: 0,
+        };
+      }),
+    );
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -759,25 +801,33 @@ describe("quickSubtractPlay", () => {
     expect(ctx.current).not.toBeNull();
   });
 
-  it("digit()/backspace() edit the typed value", () => {
-    const ctx = quickSubtractPlay();
-    ctx.digit(4);
-    ctx.digit(1);
-    expect(ctx.value).toBe("41");
-    ctx.backspace();
-    expect(ctx.value).toBe("4");
-  });
-
-  it("submit() records the answer, syncs stats, and clears the typed value", () => {
+  it("submit() records the answer, syncs stats, and clears the score input", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const ctx = quickSubtractPlay();
     ctx.startCount(5);
-    ctx.value = "1";
+    ctx.scoreInput.setValue("1");
     ctx.submit();
-    expect(ctx.value).toBe("");
+    expect(ctx.scoreInput.value).toBe("");
     expect(ctx.correctAnswers).toBe(1);
     expect(ctx.attempts).toBe(1);
     expect(ctx.lastAnswer?.correct).toBe(true);
+  });
+
+  it("formattedElapsed()/formattedRemaining() render as mm:ss", () => {
+    const ctx = quickSubtractPlay();
+    ctx.elapsedTime = 65;
+    ctx.remainingTime = 9;
+    expect(ctx.formattedElapsed()).toBe("01:05");
+    expect(ctx.formattedRemaining()).toBe("00:09");
+  });
+
+  it("timer mode's onComplete syncs status to finished, not just the underlying game", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const ctx = quickSubtractPlay();
+    ctx.startTimer(1);
+    vi.advanceTimersByTime(60_000);
+    expect(ctx.game!.getStatus()).toBe("finished");
+    expect(ctx.status).toBe("finished");
   });
 
   it("reset() tears down the game and returns to idle", () => {
@@ -828,14 +878,21 @@ Expected: FAIL — `Cannot find module '@lib/trivia/quick-subtract-play.data'`
 // app/src/lib/trivia/quick-subtract-play.data.ts
 import { QuickSubtractGame } from "@modules/trivia/quick-subtract.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { AnswerResult, Calculation } from "@modules/interfaces";
 import type { GameStatus } from "@modules/types";
+
+function formatSeconds(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 export function quickSubtractPlay() {
   return {
     status: "idle" as GameStatus,
     current: null as Calculation | null,
-    value: "",
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     correctAnswers: 0,
     attempts: 0,
     incorrectAnswers: 0,
@@ -844,22 +901,44 @@ export function quickSubtractPlay() {
     lastAnswer: null as AnswerResult | null,
     game: null as QuickSubtractGame | null,
 
+    formattedElapsed(): string {
+      return formatSeconds(this.elapsedTime);
+    },
+
+    formattedRemaining(): string {
+      return formatSeconds(this.remainingTime);
+    },
+
+    // Runs after every game mutation, including a timer's onComplete firing
+    // outside submit() — otherwise status/elapsedTime/remainingTime go stale
+    // the moment a running-mode timer finishes on its own.
+    syncFromGame(): void {
+      if (!this.game) return;
+      this.status = this.game.getStatus();
+      this.current = this.game.getCurrent();
+      this.correctAnswers = this.game.getCorrectAnswers();
+      this.attempts = this.game.getAttempts();
+      this.incorrectAnswers = this.game.getIncorrectAnswers();
+      this.elapsedTime = this.game.getElapsedTime();
+      this.remainingTime = this.game.getRemainingTime();
+    },
+
     startCount(count: number) {
       let game: QuickSubtractGame;
       const timer = new SegmentTimer({
         totalMinutes: 180,
         intervalMinutes: 0,
         direction: "countup",
-        onTick: (seconds) => {
-          this.elapsedTime = seconds;
+        onTick: () => this.syncFromGame(),
+        onComplete: () => {
+          game.finish();
+          this.syncFromGame();
         },
-        onComplete: () => game.finish(),
       });
       game = new QuickSubtractGame({ mode: "count", count, timer });
       this.game = game;
       game.start();
-      this.status = game.getStatus();
-      this.current = game.getCurrent();
+      this.syncFromGame();
     },
 
     startTimer(minutes: number) {
@@ -867,38 +946,24 @@ export function quickSubtractPlay() {
       const timer = new SegmentTimer({
         totalMinutes: minutes,
         intervalMinutes: minutes,
-        onTick: (seconds) => {
-          this.remainingTime = seconds;
+        onTick: () => this.syncFromGame(),
+        onComplete: () => {
+          game.finish();
+          this.syncFromGame();
         },
-        onComplete: () => game.finish(),
       });
       game = new QuickSubtractGame({ mode: "timer", timer });
       this.game = game;
       game.start();
-      this.status = game.getStatus();
-      this.current = game.getCurrent();
-    },
-
-    digit(d: number) {
-      this.value += String(d);
-    },
-
-    backspace() {
-      this.value = this.value.slice(0, -1);
+      this.syncFromGame();
     },
 
     submit() {
-      if (!this.game || !this.value) return;
-      const result = this.game.answer(this.value);
+      if (!this.game || !this.scoreInput.value) return;
+      const result = this.game.answer(this.scoreInput.value);
       this.lastAnswer = result;
-      this.value = "";
-      this.correctAnswers = this.game.getCorrectAnswers();
-      this.attempts = this.game.getAttempts();
-      this.incorrectAnswers = this.game.getIncorrectAnswers();
-      this.current = this.game.getCurrent();
-      this.elapsedTime = this.game.getElapsedTime();
-      this.remainingTime = this.game.getRemainingTime();
-      this.status = this.game.getStatus();
+      this.scoreInput.clear();
+      this.syncFromGame();
     },
 
     reset() {
@@ -906,7 +971,7 @@ export function quickSubtractPlay() {
       this.game = null;
       this.status = "idle";
       this.current = null;
-      this.value = "";
+      this.scoreInput.clear();
       this.correctAnswers = 0;
       this.attempts = 0;
       this.incorrectAnswers = 0;
@@ -939,7 +1004,7 @@ import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run: `cd app && npx vitest run tests/lib/trivia/quick-subtract-play.data.test.ts tests/lib/client/alpine/register-route-data.test.ts`
-Expected: PASS (7 + 1 tests)
+Expected: PASS (8 + 1 tests)
 
 - [ ] **Step 6: Commit**
 
@@ -963,7 +1028,7 @@ EOF
 - Create: `app/src/pages/trivia/quick-subtract/index.astro`
 
 **Interfaces:**
-- Consumes: `quickSubtractPlay()`'s Alpine scope (Task 5) — `status`, `current`, `value`, `correctAnswers`, `attempts`, `incorrectAnswers`, `startCount(count)`, `startTimer(minutes)`, `digit(d)`, `backspace()`, `submit()`, `reset()`. Reuses `ScoreInput.astro`, `Button.astro`, `Toggle.astro`, `Input.astro`, `SettingSectionShell.astro`, `StatRow.astro`.
+- Consumes: `quickSubtractPlay()`'s Alpine scope (Task 5) — `status`, `current`, `scoreInput`, `correctAnswers`, `attempts`, `incorrectAnswers`, `formattedElapsed()`, `formattedRemaining()`, `startCount(count)`, `startTimer(minutes)`, `submit()`, `reset()`. Reuses `ScoreInput.astro`, `Button.astro`, `Toggle.astro`, `Input.astro`, `SettingSectionShell.astro`, `StatRow.astro`.
 - Produces: the `/trivia/quick-subtract` route — consumed by Task 7's landing-page card and `BottomNav` link.
 
 No test: `.astro` files carry no runtime `.ts` export and are exempt from `scripts/check-test-coverage.sh` (app/CLAUDE.md: "there is no Astro-component test runner in this project").
@@ -1061,14 +1126,19 @@ const modeOptions = [
     x-cloak
   >
     <div
+      class="text-center text-sm text-muted-foreground tabular-nums"
+      x-text="mode === 'count' ? formattedElapsed() : formattedRemaining()"
+    >
+    </div>
+    <div
       class="text-center text-3xl font-mono font-bold tabular-nums"
       x-text="current?.expression ?? ''"
     >
     </div>
     <ScoreInput
-      value="value"
-      digitHandler="digit"
-      onDelete="backspace()"
+      value="scoreInput.value"
+      digitHandler="scoreInput.appendDigit"
+      onDelete="scoreInput.deleteLast()"
       onSubmit="submit()"
     />
     <div class="flex justify-between text-sm text-muted-foreground">
@@ -1097,6 +1167,10 @@ const modeOptions = [
       <StatRow
         label="Attempts"
         value="attempts"
+      />
+      <StatRow
+        label="Time"
+        value="formattedElapsed()"
       />
     </div>
     <Button
@@ -1138,7 +1212,7 @@ Expected: `OK: Astro x-show/x-cloak pairing and no template HTML comments.`
 
 - [ ] **Step 4: Manually verify in the browser**
 
-Run: `cd app && npm run dev -- --background` (or `astro dev --background` if already in `app/`), then open `/trivia/quick-subtract` — since this route requires no auth/session (no `game_types`, no login gate unlike `/games/*`), it should render directly. Walk the golden path: pick "Fixed Count" with the default 20, click Start, answer a few calculations correctly and incorrectly via the keypad, confirm the summary screen's correct/incorrect/attempts counts, click "Play Again", then repeat with "Timer" mode and confirm the countdown-driven finish. Stop the dev server (`astro dev stop`) when done.
+Run: `cd app && astro dev --background` (per `app/CLAUDE.md`; manage it with `astro dev status`/`astro dev logs`), then open `/trivia/quick-subtract`. `middleware.ts`/`route-class.ts` classify any path outside `PUBLIC_PAGES` (`{"/login"}`) as `protected-page`, so this route is auth-gated exactly like `/games/*` — log in first, or the `auth.store` redirects to `/login`. Walk the golden path: pick "Fixed Count" with the default 20, click Start, confirm the elapsed-time readout counts up, answer a few calculations correctly and incorrectly via the keypad, confirm the summary screen's correct/incorrect/attempts/time values, click "Play Again", then repeat with "Timer" mode and confirm the countdown readout and the timer-driven finish (status flips to "finished" on its own, without submitting an answer). Stop the dev server (`astro dev stop`) when done.
 
 - [ ] **Step 5: Commit**
 
@@ -1164,6 +1238,8 @@ EOF
 **Interfaces:**
 - Consumes: `GameCard.astro` (href/title/caption card), `target.svg` icon (reused — no dedicated "trivia" icon exists in `app/src/icons/`, and the calculation/target theme fits Quick Subtract without adding a new asset).
 - Produces: the `/trivia` route and its nav entry — no other task depends on this.
+
+`docs/architecture/10-trivia.md` already claims `app/src/pages/trivia/index.astro` as the Trivia family's category landing page ("today lists one tool"). This step builds that same page — not a second, single-tool landing — listing Quick Subtract now, in a layout (one card per tool, `space-y-4`) that adds a second `GameCard` for Checkout Trivia without restructuring once that tool ships.
 
 No test: `.astro`-only change, exempt from `scripts/check-test-coverage.sh`.
 
@@ -1284,6 +1360,7 @@ EOF
 **Files:**
 - Modify: `docs/architecture/00-Context-Map.md`
 - Modify: `docs/architecture/07-Frontend/04-Modules-And-OOP.md`
+- Modify: `docs/architecture/07-Frontend/02-Folder-Structure.md`
 - Modify: `docs/architecture/00-File-Inventory.md`
 - Modify: `docs/architecture/00-Context-Map-History.md`
 - Modify: `decisions/frontend/architecture.md`
@@ -1298,11 +1375,13 @@ No test: documentation-only, no `.ts` runtime file touched.
 
 - [ ] **Step 1: Add a Context Map pack row**
 
-Edit `docs/architecture/00-Context-Map.md`'s Context Packs table, adding a row after the "New game (full stack)" row:
+Edit `docs/architecture/00-Context-Map.md`'s Context Packs table, adding a row after the "New game (full stack)" row. The pack must include `10-trivia.md` — the one existing canonical doc that already resolves this family's folder-placement question (§Code Placement and Reuse) — so a future Trivia task is routed to it instead of re-deriving or re-breaking that rule:
 
 ```markdown
-| New non-game client tool (Trivia) | `07-Frontend/04-Modules-And-OOP.md` §Non-Game Client Tools, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md`, `docs/game-rules/trivia/README.md` | ~10.5k |
+| New non-game client tool (Trivia) | `10-trivia.md`, `07-Frontend/04-Modules-And-OOP.md` §Non-Game Client Tools, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md`, `docs/game-rules/trivia/README.md` | ~TBD |
 ```
+
+Before committing, look up each file's current `~Tokens` entry in `docs/architecture/00-File-Inventory.md` (re-check `10-trivia.md` and `04-Modules-And-OOP.md` after Step 2/5's edits grow them) and sum them to replace `~TBD` with a real figure — do not carry over the `~10.5k` this plan originally guessed; it omitted `10-trivia.md` entirely and undercounts the pack. Then run `bash scripts/check-context-budget.sh` to confirm the row is within its tolerance of that sum.
 
 - [ ] **Step 2: Document the Trivia exception in `04-Modules-And-OOP.md`**
 
@@ -1311,7 +1390,7 @@ Bump the version line at the top from `0.2.1` to `0.2.2`, appending to the paren
 Add a new row to the "OOP Boundary" table (after the `modules/game/*.payload.module.ts` row):
 
 ```markdown
-| `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below) |
+| `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/10-trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/trivia/` instead) |
 ```
 
 Add a new section after "Game Engine vs API Validation" and before "Anti-Patterns":
@@ -1344,7 +1423,21 @@ pipeline (`09-Adding-A-Game.md`) entirely:
 tools built this way.
 ```
 
-- [ ] **Step 3: Add decision D261**
+- [ ] **Step 3: State the same carve-out in `02-Folder-Structure.md`**
+
+`10-trivia.md`'s "single route colocates in `lib/trivia/`" rule and this
+plan's `modules/trivia/` class both cite `02-Folder-Structure.md`'s
+Colocation-vs-Promotion table (`Used by 2+ routes, warrants store/form/module
+semantics`) — but only one of them actually satisfies the literal "2+
+routes" wording, and it isn't Quick Subtract. Left unstated, this reads as a
+straight rule violation. Bump the version line (`0.2.3` → `0.2.4`,
+appending to the parenthetical history) and add a row to the table:
+
+```markdown
+| A single-route class (stateful OOP, not a store/form) | `modules/<domain>/` — the OOP boundary (`04-Modules-And-OOP.md`) applies regardless of route count; the "2+ routes" warrant above governs plain-function code only |
+```
+
+- [ ] **Step 4: Add decision D261**
 
 Run: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**/*.md decisions/*.md 2>/dev/null | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`
 Expected: `260` (confirm the next id is 261 before writing the block; if a newer decision landed since this plan was written, use the actual next id instead of 261 throughout this step).
@@ -1354,12 +1447,12 @@ Append to `decisions/frontend/architecture.md` (after the last existing block, u
 ```markdown
 ### D261 — Trivia tools are plain OOP modules outside the GameEngine contract, not a new game type
 Status: Accepted · Date: 2026-09-09
-Decision: A non-dartboard practice tool (Quick Subtract, the first tool under `docs/game-rules/trivia/`) lives entirely outside the `game_types` model: no `game_types` row, no `rulesetVersionKey`, no `services/rulesets/registry.ts` validator, no `check-game-engines.sh` obligations. Its OOP piece (`modules/trivia/quick-subtract.module.ts`) stays under `src/modules/` per the OOP boundary (D85) but implements its own contract, not `GameEngine` — `07-Frontend/04-Modules-And-OOP.md`'s OOP Boundary table gains a `modules/trivia/*.module.ts` row and a new "Non-Game Client Tools" section states the exception explicitly. `modules/ui/segment-timer.module.ts` gains an additive `direction: 'countdown' | 'countup'` option (default `'countdown'`) and a `getElapsed()` method so the same timer can measure elapsed time in a fixed-round session — the three existing countdown consumers (Score Training, TUOD, 121) pass no `direction` and are unaffected.
-Reason: `docs/game-rules/trivia/README.md` flagged this exact shape as an open engineering-workflow decision ("no existing architecture pipeline covers this yet"). The 26-file game-wiring pipeline (`09-Adding-A-Game.md`) is built for persisted, `game_types`-backed sessions; Quick Subtract is ephemeral, client-only practice with no persisted session, so routing it through that pipeline would invent a `game_types` row, a ruleset version, and a server-side validator for state nothing ever persists.
-Consequences: `docs/superpowers/specs/2026-09-09-quick-subtract-trivia-design.md` names the deferred-persistence fact shape a future task would need (one fact per round, no stage/seat concept) so a later persistence task isn't boxed in by this decision. The next trivia tool (`docs/game-rules/trivia/checkouts.md`, unbuilt) follows this same precedent rather than re-deciding it.
+Decision: A non-dartboard practice tool (Quick Subtract, the second tool under `docs/game-rules/trivia/` after Checkout Trivia) lives entirely outside the `game_types` model: no `game_types` row, no `rulesetVersionKey`, no `services/rulesets/registry.ts` validator, no `check-game-engines.sh` obligations. Its OOP piece (`modules/trivia/quick-subtract.module.ts`) stays under `src/modules/` per the OOP boundary (D85) but implements its own contract, not `GameEngine` — `07-Frontend/04-Modules-And-OOP.md`'s OOP Boundary table gains a `modules/trivia/*.module.ts` row, `02-Folder-Structure.md` gains a matching carve-out row (a single-route class still warrants `modules/`, unlike single-route plain functions), and a new "Non-Game Client Tools" section states the exception explicitly. `modules/ui/segment-timer.module.ts` gains an additive `direction: 'countdown' | 'countup'` option (default `'countdown'`) and a `getElapsed()` method so the same timer can measure elapsed time in a fixed-round session — the three existing countdown consumers (Score Training, TUOD, 121) pass no `direction` and are unaffected.
+Reason: `docs/architecture/10-trivia.md` already resolved the shape `docs/game-rules/trivia/README.md` originally flagged as open ("no existing architecture pipeline covers this yet") for the family's first tool, Checkout Trivia — this decision extends that same precedent to Quick Subtract and records the one place it needed a carve-out: Checkout Trivia has no class, so it colocates fully in `lib/trivia/`, while Quick Subtract's `QuickSubtractGame` is a class and the OOP boundary rule takes it to `modules/trivia/` instead. The 26-file game-wiring pipeline (`09-Adding-A-Game.md`) is built for persisted, `game_types`-backed sessions; Quick Subtract is ephemeral, client-only practice with no persisted session, so routing it through that pipeline would invent a `game_types` row, a ruleset version, and a server-side validator for state nothing ever persists.
+Consequences: `docs/superpowers/specs/2026-09-09-quick-subtract-trivia-design.md` names the deferred-persistence fact shape a future task would need (one fact per round, no stage/seat concept) so a later persistence task isn't boxed in by this decision. The next trivia tool follows this same precedent — and its class-vs-plain-function carve-out — rather than re-deciding it.
 ```
 
-- [ ] **Step 4: Update the non-canonical trivia README**
+- [ ] **Step 5: Update the non-canonical trivia README**
 
 Replace the contents of `docs/game-rules/trivia/README.md`:
 
@@ -1369,24 +1462,30 @@ Replace the contents of `docs/game-rules/trivia/README.md`:
 This folder holds descriptions of standalone practice/study tools — these
 are **not** dartboard games played under the `game_types` model.
 
+The category landing page and its architecture precedent are set in
+`docs/architecture/10-trivia.md` (Checkout Trivia — architecture written,
+not yet implemented).
+
 **Quick Subtract** is built. See
 `docs/superpowers/specs/2026-09-09-quick-subtract-trivia-design.md` for its
 design and `decisions/frontend/architecture.md` (D261) for the architecture
-decision — a plain `modules/trivia/` OOP tool outside the `GameEngine`
-contract, no `game_types` row, no persistence. A future trivia tool follows
-this same precedent rather than re-deciding it.
+decision — a `modules/trivia/` OOP tool (class-based, unlike Checkout
+Trivia's plain functions) outside the `GameEngine` contract, no `game_types`
+row, no persistence. A future trivia tool follows this same precedent
+rather than re-deciding it.
 
-`checkouts.md` (a target-number → dart-route selection drill) remains
-unbuilt; its own spec is still pending.
+`checkouts.md` (a target-number → dart-route selection drill) has its
+architecture written (`10-trivia.md`) but remains unbuilt; no implementation
+plan exists yet.
 ```
 
-- [ ] **Step 5: Refresh the File Inventory and Context Map History**
+- [ ] **Step 6: Refresh the File Inventory and Context Map History**
 
-Run `bash scripts/check-context-budget.sh` and update `docs/architecture/00-File-Inventory.md`'s `~Tokens` figures for `00-Context-Map.md` and `07-Frontend/04-Modules-And-OOP.md` to whatever it reports (replacing the current `~1.7k`/`~1.9k` entries); also update `07-Frontend/04-Modules-And-OOP.md`'s File-Inventory "Answers" cell to mention the Non-Game Client Tools exception, e.g. append `; Non-Game Client Tools exception for Trivia (2026-09-09)`.
+Run `bash scripts/check-context-budget.sh` and update `docs/architecture/00-File-Inventory.md`'s `~Tokens` figures for `00-Context-Map.md`, `07-Frontend/04-Modules-And-OOP.md`, and `07-Frontend/02-Folder-Structure.md` to whatever it reports (replacing the current entries); also update `07-Frontend/04-Modules-And-OOP.md`'s and `02-Folder-Structure.md`'s File-Inventory "Answers" cells to mention the Non-Game Client Tools / single-route-class exception, e.g. append `; Non-Game Client Tools exception for Trivia (2026-09-09)`. Use these refreshed figures to fill in Step 1's `~TBD` pack-row budget.
 
-Append a new entry to the top of `docs/architecture/00-Context-Map-History.md`'s "Version History" section (after the `# Version History` heading, before the current top entry), following the exact style of the entries already there — one paragraph naming the version number, date, task slug, every file created/modified, the new decision (D261), the spec path, and the validation commands actually run in Step 7 below. Do not write this entry until Step 7's validation output is in hand, since it must report real numbers (test counts, gate results), not estimates.
+Append a new entry to the top of `docs/architecture/00-Context-Map-History.md`'s "Version History" section (after the `# Version History` heading, before the current top entry), following the exact style of the entries already there — one paragraph naming the version number, date, task slug, every file created/modified, the new decision (D261), the spec path, and the validation commands actually run in Step 8 below. Do not write this entry until Step 8's validation output is in hand, since it must report real numbers (test counts, gate results), not estimates.
 
-- [ ] **Step 6: Log the pre-existing `destroy()` wiring gap as a finding**
+- [ ] **Step 7: Log the pre-existing `destroy()` wiring gap as a finding**
 
 `quickSubtractPlay().destroy()` (Task 5) follows the same pattern as `tuodPlay().destroy()`/`scoreTrainingPlay().destroy()`/`oneTwentyOnePlay().destroy()`, but none of the four are ever invoked by any Alpine or Astro lifecycle hook in this codebase — confirmed by grep, no call site exists. This is a pre-existing gap this task's own code perpetuates rather than introduces, so it is logged, not fixed.
 
@@ -1401,20 +1500,25 @@ Impact: an agent reading the doc's teardown rule as fact would assume `SegmentTi
 Proposed: either wire a real teardown hook (e.g. an `astro:before-swap` document listener calling the current page's Alpine root's `destroy()` if present) or soften `07-Frontend/04-Modules-And-OOP.md`'s claim to describe the convention as aspirational until that wiring exists
 ```
 
-- [ ] **Step 7: Run the gates and validation**
+- [ ] **Step 8: Run the gates and validation**
 
-Run: `bash scripts/check-type-barrels.sh && bash scripts/check-astro-conventions.sh && bash scripts/check-file-locations.sh && bash scripts/check-test-coverage.sh && bash scripts/check-findings-log.sh && bash scripts/check-context-map.sh && bash scripts/check-doc-links.sh && bash scripts/check-context-budget.sh && bash scripts/check-decision-ids.sh`
+Run: `bash scripts/check-type-barrels.sh && bash scripts/check-astro-conventions.sh && bash scripts/check-astro-class-composition.sh && bash scripts/check-style-tokens.sh && bash scripts/check-no-inline-comments.sh && bash scripts/check-file-locations.sh && bash scripts/check-test-coverage.sh && bash scripts/check-findings-log.sh && bash scripts/check-context-map.sh && bash scripts/check-doc-links.sh && bash scripts/check-context-budget.sh && bash scripts/check-decision-ids.sh`
 Expected: every script prints its own `OK: ...` line and the combined command exits 0. Fix and re-run before proceeding if any script fails.
 
-Then run: `cd app && npx vitest run && npx astro check --minimumFailingSeverity hint && npm run format:check`
-Expected: the full suite passes (report the new total test count), `astro check` reports 0 errors/0 warnings/0 hints, and `format:check` is clean.
+Then run the full app validation chain, which is the only thing that also runs `npx fallow` (Step 1's `ONE_DART_SCORES` ignore comment and Task 4's dropped `getGenerated()` exist specifically to keep this clean):
 
-Go back to Task 8 Step 5 and finish the `00-Context-Map-History.md` entry with these real results.
+```
+cd app && npm run validate:app
+```
 
-- [ ] **Step 8: Commit**
+Expected: every step exits 0, including `npx fallow`, the full Vitest suite (report the new total test count), and `npx astro check --minimumFailingSeverity hint` at 0 errors/0 warnings/0 hints. Then run `npm run format:check` separately (not part of `validate:app`) and confirm it's clean.
+
+Go back to Task 8 Step 6 and finish the `00-Context-Map-History.md` entry with these real results.
+
+- [ ] **Step 9: Commit**
 
 ```bash
-git add docs/architecture/00-Context-Map.md docs/architecture/07-Frontend/04-Modules-And-OOP.md docs/architecture/00-File-Inventory.md docs/architecture/00-Context-Map-History.md decisions/frontend/architecture.md docs/game-rules/trivia/README.md FINDINGS.md
+git add docs/architecture/00-Context-Map.md docs/architecture/07-Frontend/04-Modules-And-OOP.md docs/architecture/07-Frontend/02-Folder-Structure.md docs/architecture/00-File-Inventory.md docs/architecture/00-Context-Map-History.md decisions/frontend/architecture.md docs/game-rules/trivia/README.md FINDINGS.md
 git commit -m "$(cat <<'EOF'
 docs(trivia): document Quick Subtract's Non-Game Client Tools exception (D261)
 
@@ -1424,7 +1528,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 9: Push**
+- [ ] **Step 10: Push**
 
 ```bash
 git push -u origin claude/checkout-game-architecture-xhb5al
