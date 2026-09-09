@@ -17,6 +17,16 @@ function nextCalculation(): Calculation {
   return { start, subtraction, expression: `${start} - ${subtraction}` };
 }
 
+function parseAnswerValue(value: number | string): number | null {
+  if (value === "") return null;
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function invalidAnswerResult(): AnswerResult {
+  return { valid: false, correct: false, expected: null, calculation: null };
+}
+
 export class QuickSubtractGame {
   private mode: "count" | "timer";
   private targetCount: number | null;
@@ -42,43 +52,16 @@ export class QuickSubtractGame {
   }
 
   answer(value: number | string): AnswerResult {
-    if (this.status !== "running" || !this.current) {
-      return {
-        valid: false,
-        correct: false,
-        expected: null,
-        calculation: null,
-      };
-    }
-    const numeric = typeof value === "number" ? value : Number(value);
-    if (value === "" || !Number.isFinite(numeric)) {
-      return {
-        valid: false,
-        correct: false,
-        expected: null,
-        calculation: null,
-      };
+    const numeric = parseAnswerValue(value);
+    if (this.status !== "running" || !this.current || numeric === null) {
+      return invalidAnswerResult();
     }
 
     const calculation = this.current;
     const expected = calculation.start - calculation.subtraction;
     const correct = numeric === expected;
 
-    this.attempts++;
-    if (correct) {
-      this.correctAnswers++;
-    } else {
-      this.incorrectAnswers++;
-    }
-
-    if (
-      this.mode === "count" &&
-      this.correctAnswers >= (this.targetCount ?? Infinity)
-    ) {
-      this.finish();
-    } else {
-      this.nextRound();
-    }
+    this.recordAttempt(correct);
 
     return { valid: true, correct, expected, calculation };
   }
@@ -123,5 +106,23 @@ export class QuickSubtractGame {
 
   private nextRound(): void {
     this.current = nextCalculation();
+  }
+
+  private recordAttempt(correct: boolean): void {
+    this.attempts++;
+    if (correct) {
+      this.correctAnswers++;
+    } else {
+      this.incorrectAnswers++;
+    }
+
+    const targetReached =
+      this.mode === "count" &&
+      this.correctAnswers >= (this.targetCount ?? Infinity);
+    if (targetReached) {
+      this.finish();
+    } else {
+      this.nextRound();
+    }
   }
 }

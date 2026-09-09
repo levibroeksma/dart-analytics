@@ -98,6 +98,20 @@ describe("SegmentTimer", () => {
     timer.stop();
   });
 
+  it("stop() prevents further ticks in the countup direction too", () => {
+    const onTick = vi.fn();
+    const timer = new SegmentTimer({
+      totalMinutes: 1,
+      intervalMinutes: 1,
+      direction: "countup",
+      onTick,
+    });
+    timer.start();
+    timer.stop();
+    vi.advanceTimersByTime(5000);
+    expect(onTick).not.toHaveBeenCalled();
+  });
+
   it("getElapsed() reports elapsed seconds for both directions", () => {
     const countdown = new SegmentTimer({ totalMinutes: 1, intervalMinutes: 1 });
     expect(countdown.getElapsed()).toBe(0);

@@ -110,6 +110,22 @@ describe("QuickSubtractGame", () => {
     expect(timerGame.getRemainingTime()).toBe(300);
   });
 
+  it("rejects an answer submitted before the session has started, without consuming an attempt", () => {
+    const game = new QuickSubtractGame({
+      mode: "count",
+      count: 5,
+      timer: countupTimer(),
+    });
+    const result = game.answer("1");
+    expect(result).toEqual({
+      valid: false,
+      correct: false,
+      expected: null,
+      calculation: null,
+    });
+    expect(game.getAttempts()).toBe(0);
+  });
+
   it("destroy() stops the timer", () => {
     const timer = countupTimer();
     const stopSpy = vi.spyOn(timer, "stop");

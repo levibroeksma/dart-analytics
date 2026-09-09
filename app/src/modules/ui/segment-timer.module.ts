@@ -7,6 +7,7 @@ export class SegmentTimer {
   private direction: "countdown" | "countup";
   private timerId: ReturnType<typeof setInterval> | null = null;
   private audioCtx: AudioContext | null = null;
+  private segmentIndex = 0;
 
   private onTick?: (secondsRemaining: number) => void;
   private onSegmentChange?: (segmentIndex: number) => void;
@@ -53,36 +54,46 @@ export class SegmentTimer {
   start(): void {
     if (this.timerId !== null) return;
 
-    let segmentIndex = 0;
+    this.segmentIndex = 0;
+    this.timerId = setInterval(() => this.tick(), 1000);
+  }
 
-    this.timerId = setInterval(() => {
-      if (this.direction === "countup") {
-        this.remaining++;
-        this.onTick?.(this.remaining);
+  private tick(): void {
+    if (this.direction === "countup") {
+      this.tickCountup();
+    } else {
+      this.tickCountdown();
+    }
+  }
 
-        if (this.remaining >= this.totalSeconds) {
-          this.stop();
-          this.playBeep(440, 0.6);
-          this.onComplete?.();
-        }
-        return;
-      }
+  private tickCountup(): void {
+    this.remaining++;
+    this.onTick?.(this.remaining);
 
-      this.remaining--;
-      this.onTick?.(this.remaining);
+    if (this.remaining >= this.totalSeconds) {
+      this.completeTimer();
+    }
+  }
 
-      if (this.remaining > 0 && this.remaining % this.intervalSeconds === 0) {
-        segmentIndex++;
-        this.playBeep();
-        this.onSegmentChange?.(segmentIndex);
-      }
+  private tickCountdown(): void {
+    this.remaining--;
+    this.onTick?.(this.remaining);
 
-      if (this.remaining <= 0) {
-        this.stop();
-        this.playBeep(440, 0.6);
-        this.onComplete?.();
-      }
-    }, 1000);
+    if (this.remaining > 0 && this.remaining % this.intervalSeconds === 0) {
+      this.segmentIndex++;
+      this.playBeep();
+      this.onSegmentChange?.(this.segmentIndex);
+    }
+
+    if (this.remaining <= 0) {
+      this.completeTimer();
+    }
+  }
+
+  private completeTimer(): void {
+    this.stop();
+    this.playBeep(440, 0.6);
+    this.onComplete?.();
   }
 
   stop(): void {
