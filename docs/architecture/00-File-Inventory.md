@@ -20,9 +20,9 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
-| `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19) | canonical | ~1.7k |
+| `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19); New non-game client tool (Trivia) pack row added (2026-09-09) | canonical | ~1.9k |
 | `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~10.7k |
-| `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~56.4k |
+| `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~66.6k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
 | `03-Engineering-Workflow.md` | 10-phase change lifecycle | canonical | ~2.2k |
@@ -66,9 +66,9 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `06-API/04-Endpoint-Contracts.md` | Per-domain endpoint contracts (2026-07-22); Player Settings `GET`/`PATCH /api/players/me/settings` incl. the uncapable-pair `VALIDATION_FAILED` case (D195, 2026-08-08); `POST /sessions`' `SEAT_CAPS` table (2026-08-22); Statistics Overview contract (2026-09-06) | canonical | ~7.8k |
 | `07-Frontend/00-Overview.md` | Client integration, state ownership, handbook index (2026-07-17) | canonical | ~3.4k |
 | `07-Frontend/01-Rendering-Strategy.md` | Prerender-default, middleware, client auth gate (D98), route classes; same-origin auth client (D172, 2026-07-29) | canonical | ~2.2k |
-| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26); `modules/dartbot/` + `.strategy.module.ts` registered (2026-09-01) | canonical | ~2.0k |
+| `07-Frontend/02-Folder-Structure.md` | `app/src/` tree, aliases, suffixes; cross-runtime `lib/game/rulesets/` (2026-07-26); `modules/dartbot/` + `.strategy.module.ts` registered (2026-09-01); single-route-class carve-out for Trivia (2026-09-09) | canonical | ~2.1k |
 | `07-Frontend/03-Alpine-Patterns.md` | Alpine factory, stores, forms, `$persist` (D120 per-field factory), recovery/hard-gate; UI module instances held off the reactive object (D187, 2026-08-07) | canonical | ~3.2k |
-| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26) | canonical | ~1.9k |
+| `07-Frontend/04-Modules-And-OOP.md` | OOP boundary, portable UI kit, `GameEngine` contract members (derived-value returns, undo depth) + engine anti-patterns (2026-07-26); Non-Game Client Tools exception for Trivia (2026-09-09) | canonical | ~2.4k |
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02) | canonical | ~1.3k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29) | canonical | ~3.7k |
@@ -222,7 +222,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/api.md` | 31 decisions — endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, player settings (D239 per-seat ROUNDS turn-count limit, 2026-08-27) | canonical | ~3.6k |
 | `decisions/game-engine.md` | 47 decisions — engine, GameEngine, ruleset, scoring, checkout, fact log, 501, Score Training (D230 win-condition categories/`SEAT_CAPS`/`activeSeat()` completion predicate; D231 corrects which engines pass that predicate, 2026-08-22; D238 exclusive score-band tallying, 2026-08-27; D242 `visitScoreBandCounts`'s `sixtyPlus` band and `checkout-bust.module.ts`'s `checkoutAttemptCount`; D252 the bot play loop's generic infrastructure and the QUICK_SCORE fold, 2026-09-01; D259 Shanghai V2 2-seat admission, 2026-09-07) | canonical | ~24.5k |
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
-| `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction | canonical | ~4.9k |
+| `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction; +D261 Trivia tools outside GameEngine (2026-09-09) | canonical | ~6.2k |
 | `decisions/frontend/astro.md` | 21 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28) | canonical | ~5.1k |
 | `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~5k |
 | `decisions/frontend/style.md` | 11 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban | canonical | ~2.1k |

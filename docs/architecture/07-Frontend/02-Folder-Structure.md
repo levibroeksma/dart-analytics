@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/folder-structure
 read-when: new frontend files, aliases, import direction
-updated: 2026-09-01
+updated: 2026-09-09
 -->
 
 # Frontend Folder Structure
 
-> **Version:** 0.2.3 (DartBot module suffix registration — `.module.ts` widened, `.strategy.module.ts` added, `modules/dartbot/` in the tree, 2026-09-01; prior 0.2.2 cross-runtime `lib/game/rulesets/`, 2026-07-26)
+> **Version:** 0.2.4 (single-route class carve-out for Trivia, 2026-09-09; prior 0.2.3 DartBot module suffix registration — `.module.ts` widened, `.strategy.module.ts` added, `modules/dartbot/` in the tree, 2026-09-01; 0.2.2 cross-runtime `lib/game/rulesets/`, 2026-07-26)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -148,6 +148,7 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 | ----- | -------- |
 | Any `.ts` logic used by a page/component | `lib/<domain>/` — always, even single-route (e.g. `lib/auth/login.data.ts`) |
 | Used by 2+ routes, warrants store/form/module semantics | `stores/`, `forms/`, `modules/` |
+| A single-route class (stateful OOP, not a store/form) | `modules/<domain>/` — the OOP boundary (`04-Modules-And-OOP.md`) applies regardless of route count; the "2+ routes" warrant above governs plain-function code only |
 
 **Agent rule:** no `.ts` file ever lives directly under `components/` or `pages/` — except `pages/api/**` — regardless of single- or multi-consumer use. `<domain>` uses the same vocabulary as `modules/<domain>/` and `stores/<domain>.store.ts` (e.g. `auth`, future `game`, `players`) — never a route or component-folder name.
 

@@ -1,0 +1,140 @@
+---
+// Components
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
+import Button from "@components/forms/Button.astro";
+import Toggle from "@components/layout/games/setup/Toggle.astro";
+import Input from "@components/forms/Input.astro";
+import SettingSectionShell from "@components/layout/games/setup/SettingSectionShell.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+
+// Data
+const modeOptions = [
+  { value: "count", label: "Fixed Count" },
+  { value: "timer", label: "Timer" },
+];
+---
+
+<div
+  class="flex flex-col gap-4"
+  x-data="{ mode: 'count', count: 20, minutes: 5 }"
+>
+  <div
+    class="flex flex-col gap-4"
+    x-show="status === 'idle'"
+    x-cloak
+  >
+    <SettingSectionShell>
+      <Toggle
+        orientation="horizontal"
+        options={modeOptions}
+        x-model="mode"
+        class="w-full"
+      />
+      <template x-if="mode === 'count'">
+        <div class="contents">
+          <Input
+            id="count"
+            name="count"
+            type="text"
+            inputmode="numeric"
+            x-model.number="count"
+            class="glass border-tab-border rounded-full mt-4"
+          />
+          <label
+            for="count"
+            class="text-xs text-muted-foreground px-4 py-0 italic"
+          >
+            Correct answers to finish (10–100)
+          </label>
+        </div>
+      </template>
+      <template x-if="mode === 'timer'">
+        <div class="contents">
+          <Input
+            id="minutes"
+            name="minutes"
+            type="text"
+            inputmode="numeric"
+            x-model.number="minutes"
+            class="glass border-tab-border rounded-full mt-4"
+          />
+          <label
+            for="minutes"
+            class="text-xs text-muted-foreground px-4 py-0 italic"
+          >
+            Minutes (1–15)
+          </label>
+        </div>
+      </template>
+    </SettingSectionShell>
+    <Button
+      type="button"
+      variant="primary"
+      title="Start"
+      class="rounded-full w-full"
+      @click="mode === 'count' ? startCount(count) : startTimer(minutes)"
+    />
+  </div>
+
+  <div
+    class="flex flex-col gap-4"
+    x-show="status === 'running'"
+    x-cloak
+  >
+    <div
+      class="text-center text-sm text-muted-foreground tabular-nums"
+      x-text="mode === 'count' ? formattedElapsed() : formattedRemaining()"
+    >
+    </div>
+    <div
+      class="text-center text-3xl font-mono font-bold tabular-nums"
+      x-text="current?.expression ?? ''"
+    >
+    </div>
+    <ScoreInput
+      value="scoreInput.value"
+      digitHandler="scoreInput.appendDigit"
+      onDelete="scoreInput.deleteLast($event)"
+      onSubmit="submit()"
+    />
+    <div class="flex justify-between text-sm text-muted-foreground">
+      <span x-text="`Correct: ${correctAnswers}`"></span>
+      <span x-text="`Incorrect: ${incorrectAnswers}`"></span>
+    </div>
+  </div>
+
+  <div
+    class="flex flex-col gap-4"
+    x-show="status === 'finished'"
+    x-cloak
+  >
+    <h2 class="text-xl font-semibold text-center text-foreground">
+      Session complete
+    </h2>
+    <dl class="w-full space-y-1">
+      <StatRow
+        label="Correct"
+        value="correctAnswers"
+      />
+      <StatRow
+        label="Incorrect"
+        value="incorrectAnswers"
+      />
+      <StatRow
+        label="Attempts"
+        value="attempts"
+      />
+      <StatRow
+        label="Time"
+        value="formattedElapsed()"
+      />
+    </dl>
+    <Button
+      type="button"
+      variant="secondary"
+      title="Play Again"
+      class="rounded-full w-full"
+      @click="reset()"
+    />
+  </div>
+</div>

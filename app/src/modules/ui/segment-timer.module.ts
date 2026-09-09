@@ -4,8 +4,10 @@ export class SegmentTimer {
   private totalSeconds: number;
   private intervalSeconds: number;
   private remaining: number;
+  private direction: "countdown" | "countup";
   private timerId: ReturnType<typeof setInterval> | null = null;
   private audioCtx: AudioContext | null = null;
+  private segmentIndex = 0;
 
   private onTick?: (secondsRemaining: number) => void;
   private onSegmentChange?: (segmentIndex: number) => void;
@@ -14,7 +16,8 @@ export class SegmentTimer {
   constructor(options: SegmentTimerOptions) {
     this.totalSeconds = options.totalMinutes * 60;
     this.intervalSeconds = options.intervalMinutes * 60;
-    this.remaining = this.totalSeconds;
+    this.direction = options.direction ?? "countdown";
+    this.remaining = this.direction === "countup" ? 0 : this.totalSeconds;
 
     this.onTick = options.onTick;
     this.onSegmentChange = options.onSegmentChange;
@@ -51,24 +54,46 @@ export class SegmentTimer {
   start(): void {
     if (this.timerId !== null) return;
 
-    let segmentIndex = 0;
+    this.segmentIndex = 0;
+    this.timerId = setInterval(() => this.tick(), 1000);
+  }
 
-    this.timerId = setInterval(() => {
-      this.remaining--;
-      this.onTick?.(this.remaining);
+  private tick(): void {
+    if (this.direction === "countup") {
+      this.tickCountup();
+    } else {
+      this.tickCountdown();
+    }
+  }
 
-      if (this.remaining > 0 && this.remaining % this.intervalSeconds === 0) {
-        segmentIndex++;
-        this.playBeep();
-        this.onSegmentChange?.(segmentIndex);
-      }
+  private tickCountup(): void {
+    this.remaining++;
+    this.onTick?.(this.remaining);
 
-      if (this.remaining <= 0) {
-        this.stop();
-        this.playBeep(440, 0.6);
-        this.onComplete?.();
-      }
-    }, 1000);
+    if (this.remaining >= this.totalSeconds) {
+      this.completeTimer();
+    }
+  }
+
+  private tickCountdown(): void {
+    this.remaining--;
+    this.onTick?.(this.remaining);
+
+    if (this.remaining > 0 && this.remaining % this.intervalSeconds === 0) {
+      this.segmentIndex++;
+      this.playBeep();
+      this.onSegmentChange?.(this.segmentIndex);
+    }
+
+    if (this.remaining <= 0) {
+      this.completeTimer();
+    }
+  }
+
+  private completeTimer(): void {
+    this.stop();
+    this.playBeep(440, 0.6);
+    this.onComplete?.();
   }
 
   stop(): void {
@@ -84,8 +109,13 @@ export class SegmentTimer {
     this.remaining = this.totalSeconds;
   }
 
-  // fallow-ignore-next-line unused-class-member -- module adopted verbatim from an existing source; kept as originally authored
   getRemaining(): number {
     return this.remaining;
+  }
+
+  getElapsed(): number {
+    return this.direction === "countup"
+      ? this.remaining
+      : this.totalSeconds - this.remaining;
   }
 }
