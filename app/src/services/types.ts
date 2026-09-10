@@ -1,5 +1,6 @@
 import type { ErrorCode } from "@server/types";
 
+export * from "./exercise-rulesets/types";
 export * from "./rulesets/types";
 
 export type ServiceResult<T> =
