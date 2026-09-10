@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-09
+updated: 2026-09-10
 -->
 
 # Component Inventory
@@ -60,6 +60,7 @@ evaluated in the page's own Alpine scope.
 | `ComparisonSummary.astro` | 1v1 results-modal stat block: seat names header plus one `StatRowComparison` per row, shown only for a 2-seat `resultsSnapshot` (2026-08-30) | `statRows` (`{ label, key, fallback? }[]`) |
 | `ContinueSessionModal.astro` | Resume-or-discard prompt for an unfinished session | `gameTitle` |
 | `CountdownPauseControl.astro` | MINUTES-mode countdown label plus Pause/Resume toggle (2026-09-07) | `disabledExpr` (reads `remainingLabel()`/`togglePause()`/`$store.game.timerPaused` from the page scope) |
+| `CountdownResumePrompt.astro` | Centered large resume button shown in place of the score/board input while `$store.game.timerPaused` is true, so a paused timer doesn't leave a disabled input on screen (#253, 2026-09-10) | `disabledExpr` (reads `togglePause()` from the page scope) |
 | `DoublesPathRecreationalInput.astro` | Doubles-path tap input row | none |
 | `ExitModal.astro` | Leave-session confirmation | `description` (defaults to the "recorded as abandoned" copy; override for a tool with nothing to persist, e.g. Trivia) (2026-09-09) |
 | `GameCard.astro` | Games-index entry | `href`, `title`, `caption` |
