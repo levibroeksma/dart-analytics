@@ -1,11 +1,14 @@
 ---
 /**
- * MINUTES-mode countdown label plus its Pause/Resume toggle. Shared by every
- * ruleset that runs a `SegmentTimer` countdown (Score Training, TUOD, 121
- * `_V2`) — reads `remainingLabel()`/`togglePause()`/`$store.game.timerPaused`
- * from the page's own Alpine scope; `disabledExpr` is the only thing that
- * varies per game (which of its own confirm-dialog flags should also block
- * the toggle while open).
+ * MINUTES-mode countdown label plus its Pause toggle. Resuming happens via
+ * `CountdownResumePrompt`, shown in the input area while paused — this
+ * component's own resume affordance is hidden to avoid a duplicate control.
+ * Shared by every ruleset that runs a `SegmentTimer` countdown (Score
+ * Training, TUOD, 121 `_V2`) — reads
+ * `remainingLabel()`/`togglePause()`/`$store.game.timerPaused` from the
+ * page's own Alpine scope; `disabledExpr` is the only thing that varies per
+ * game (which of its own confirm-dialog flags should also block the toggle
+ * while open).
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables both buttons. */
@@ -18,7 +21,6 @@ import Button from "@components/forms/Button.astro";
 
 // Icons
 import PauseIcon from "@icons/pause.svg";
-import PlayIcon from "@icons/play.svg";
 ---
 
 <div
@@ -43,21 +45,6 @@ import PlayIcon from "@icons/play.svg";
   >
     <PauseIcon
       class="size-5 text-accent"
-      slot="iconBefore"
-    />
-  </Button>
-  <Button
-    type="button"
-    variant="ghost"
-    icon
-    ariaLabel="Resume timer"
-    :disabled={disabledExpr}
-    @click="togglePause()"
-    x-show="$store.game.timerPaused"
-    x-cloak
-  >
-    <PlayIcon
-      class="size-5 text-muted"
       slot="iconBefore"
     />
   </Button>

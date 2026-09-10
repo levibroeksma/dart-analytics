@@ -4,6 +4,8 @@
  * MINUTES-mode countdown is paused (#253). Sibling to `CountdownPauseControl`
  * — same `disabledExpr` contract — but placed where the input normally sits
  * so pausing doesn't leave a disabled, still-visible keypad or board behind.
+ * Borderless: a large solid accent icon with no resting background — this
+ * is the only resume affordance shown while paused.
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the resume button. */
@@ -15,7 +17,7 @@ const { disabledExpr }: Props = Astro.props;
 import IconBtn from "@components/forms/IconBtn.astro";
 
 // Icons
-import PlayIcon from "@icons/play.svg";
+import PlayIcon from "@icons/play-solid.svg";
 ---
 
 <div
@@ -25,12 +27,12 @@ import PlayIcon from "@icons/play.svg";
 >
   <IconBtn
     type="button"
-    variant="primary"
+    variant="ghost"
     ariaLabel="Resume timer"
     :disabled={disabledExpr}
     @click="togglePause()"
-    class="size-12"
+    class="size-24 border-0"
   >
-    <PlayIcon class="size-6" />
+    <PlayIcon class="size-full text-accent" />
   </IconBtn>
 </div>
