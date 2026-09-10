@@ -46,7 +46,8 @@ This guarantees that editing or deleting a template can never alter historical g
 
 ## Purpose
 
-Defines reusable exercise definitions for a specific game type.
+Defines reusable exercise definitions for an exercise type. A template of exercise type `GAME` also
+names the game type it wraps; every other exercise type leaves `game_type_id` NULL.
 
 Examples:
 
@@ -73,9 +74,11 @@ UUIDv7
 ## Key Columns
 
 - id
-- game_type_id
+- exercise_type_id
+- game_type_id (nullable — NULL unless the exercise type is `GAME`)
 - name
 - description
+- default_configuration (JSONB, nullable)
 - is_system_template
 - created_at
 - updated_at
@@ -97,6 +100,13 @@ An exercise template binds a game type to a reusable definition that routines ca
 Deleting a game type is restricted while templates exist, protecting template integrity.
 
 Runtime sessions never reference this table; they receive copied values through the configuration snapshot.
+
+`game_type_id` is nullable but keeps its RESTRICT foreign key, so deleting a game type is still
+blocked while templates reference it (migration 0028).
+
+`default_configuration` holds the defaults and constraints an exercise type provides — default,
+minimum, maximum and recommended duration, and any exercise-specific defaults
+(`09-training-routines.md` §5). A routine step's own `configuration` overrides it.
 
 ---
 
@@ -209,8 +219,9 @@ UUIDv7
 - routine_template_id
 - exercise_template_id
 - sequence_number
-- duration_type
+- duration_type_id
 - duration_value
+- configuration (JSONB, nullable)
 - created_at
 
 ## Relationships
@@ -225,6 +236,15 @@ References:
 Steps are the composition mechanism: a routine is an ordered list of exercise references, each with its own duration.
 
 `sequence_number` defines execution order explicitly rather than relying on insertion order.
+
+`configuration` is the **Routine Exercise Configuration** of `09-training-routines.md` §3.5: targets,
+target sequences, patterns, game selection and exercise-specific parameters, contextual to this
+routine. Duration stays in its own two columns because it is structural and queried
+(routine duration is the sum of its steps, §6); everything else contextual lives in the JSONB.
+
+Resolution merges `exercise_templates.default_configuration` with this column to produce the
+**Resolved Training Configuration** (§18) copied into `activity_configurations` at Training start.
+This is the seam §21 adaptive resolution occupies later, with no further schema change.
 
 ---
 
