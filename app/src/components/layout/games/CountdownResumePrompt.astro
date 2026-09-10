@@ -1,0 +1,36 @@
+---
+/**
+ * Centered resume affordance shown in place of the score/board input while a
+ * MINUTES-mode countdown is paused (#253). Sibling to `CountdownPauseControl`
+ * — same `disabledExpr` contract — but placed where the input normally sits
+ * so pausing doesn't leave a disabled, still-visible keypad or board behind.
+ */
+interface Props {
+  /** Alpine expression evaluating to a boolean; disables the resume button. */
+  disabledExpr: string;
+}
+
+const { disabledExpr }: Props = Astro.props;
+
+import IconBtn from "@components/forms/IconBtn.astro";
+
+// Icons
+import PlayIcon from "@icons/play.svg";
+---
+
+<div
+  class="flex flex-1 min-h-0 items-center justify-center px-3"
+  x-show="$store.game.timerPaused"
+  x-cloak
+>
+  <IconBtn
+    type="button"
+    variant="primary"
+    ariaLabel="Resume timer"
+    :disabled={disabledExpr}
+    @click="togglePause()"
+    class="size-12"
+  >
+    <PlayIcon class="size-6" />
+  </IconBtn>
+</div>
