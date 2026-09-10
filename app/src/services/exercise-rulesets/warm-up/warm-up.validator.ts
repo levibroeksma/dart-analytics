@@ -1,8 +1,6 @@
 import { WarmUpV1Config } from "@lib/exercise/rulesets/types";
-import type {
-  ExerciseConfigValidationResult,
-  ExerciseRulesetValidator,
-} from "@services/types";
+import type { ExerciseRulesetValidator } from "@services/interfaces";
+import type { ExerciseConfigValidationResult } from "@services/types";
 
 /**
  * Warm-Up v1 asserts only that the phase list parses: the ruleset has no mode

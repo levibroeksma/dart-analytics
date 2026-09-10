@@ -1,7 +1,3 @@
-import type { WarmUpConfigData } from "@lib/types";
-
-export type WarmUpPhase = WarmUpConfigData["phases"][number];
-
 /**
  * Warm-Up state, derived on every `state()` call. It carries no elapsed time:
  * an `ExerciseEngine` is deterministic with respect to its inputs,

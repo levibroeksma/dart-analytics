@@ -1,4 +1,4 @@
-import type { ExerciseRulesetValidator } from "@services/types";
+import type { ExerciseRulesetValidator } from "./interfaces";
 import { warmUpValidator } from "./warm-up/warm-up.validator";
 
 const REGISTRY: Record<string, ExerciseRulesetValidator> = {
