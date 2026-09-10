@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-08-08
+updated: 2026-09-10
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -394,6 +394,10 @@ Seeded values:
 - LEG
 - ROUND
 - EXERCISE_BLOCK
+- 6 — `EXERCISE_SECTION` — timed section inside an exercise (a warm-up phase). Written flat, directly
+  under the exercise session, with `parent_stage_id` NULL: the session already represents the
+  exercise, so no grouping row is created. `EXERCISE_BLOCK` (5) stays reserved for a routine-level
+  grouping if one is ever needed.
 
 ## Primary Key
 
@@ -435,6 +439,101 @@ Intended to be referenced by:
 ## Design Rationale
 
 Supporting duration through a reference entity allows additional measurement strategies to be introduced without modifying templates.
+
+---
+
+# exercise_types (migration 0027)
+
+## Purpose
+
+Identifies the kind of exercise being executed (`09-training-routines.md` §3.4). The exercise type
+selects the `ExerciseEngine` and the exercise ruleset responsible for execution.
+
+Examples: `GAME`, `WARM_UP`, and later `SWITCHING`, `DOUBLE_PATTERN`, `CHECKOUT`, `ACCURACY`.
+
+`GAME` is one exercise type among many, not a layer above them.
+
+## Lifecycle
+
+Append-only catalog. A new exercise type ships alongside its ruleset, engine and configuration
+schema (§26); existing rows are never edited or removed.
+
+## Primary Key
+
+UUIDv7 — this is a growing catalog, structurally identical to `game_types`, not a fixed structural
+enum. SMALLINT stays reserved for enums whose complete membership is known up front (`stage_types`,
+`capture_modes`, `input_modes`).
+
+## Key Columns
+
+- id
+- implementation_key
+- name
+- description
+- is_published
+- created_at
+- updated_at
+
+## Relationships
+
+Referenced by:
+
+- exercise_ruleset_versions (RESTRICT on delete)
+- exercise_templates (RESTRICT on delete)
+- exercise_sessions (RESTRICT on delete)
+
+## Design Rationale
+
+An explicit exercise-type discriminator is what lets a non-game exercise exist at all: before it, a
+`NOT NULL game_type_id` forced every exercise into a game abstraction, which `09-training-routines.md`
+§12 explicitly forbids.
+
+Seeded by `0014_exercise_types.sql`.
+
+---
+
+# exercise_ruleset_versions (migration 0027)
+
+## Purpose
+
+Versioned behaviour definitions for exercise types, mirroring `ruleset_versions` for game types.
+
+## Lifecycle
+
+Append-only. A behaviour change is a new version row, never an edit.
+
+## Primary Key
+
+UUIDv7
+
+## Key Columns
+
+- id
+- exercise_type_id
+- implementation_key
+- version_number
+- description
+- created_at
+
+## Relationships
+
+References:
+
+- exercise_types (RESTRICT on delete)
+
+Referenced by:
+
+- exercise_sessions (RESTRICT on delete)
+
+## Design Rationale
+
+Exercise rulesets and game rulesets are separate components (`09-training-routines.md` §24), and
+§11's execution path (`ExerciseEngine → GameEngine → Game Ruleset`) has both live at once for a
+game-backed exercise. A single discriminated `ruleset_versions` table would give an
+`exercise_sessions` row one column for two values, so exercise rulesets get their own table and
+`ruleset_versions` is left untouched.
+
+Seeded by `0014_exercise_types.sql`.
 
 ---
 

@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-09
-highest-issued: F74
+updated: 2026-09-10
+highest-issued: F75
 -->
 
 # Findings
@@ -150,3 +150,10 @@ Claim: `07-Frontend/04-Modules-And-OOP.md`'s "Alpine teardown must call `destroy
 Evidence: `app/src/lib/game/tuod-play.data.ts:481`, `app/src/lib/game/score-training-play.data.ts:418`, `app/src/lib/game/one-twenty-one-play.data.ts:557`, and `app/src/lib/trivia/quick-subtract-play.data.ts`'s own `destroy()` (added this task) all define the method, but no Astro page or Alpine directive anywhere under `app/src` calls it — no `astro:before-swap`, no `astro:page-load` cleanup, no custom Alpine plugin scanning for a `destroy` convention
 Impact: an agent reading the doc's teardown rule as fact would assume `SegmentTimer` intervals are cleared on navigation away from a running session; in practice they run until the interval's own completion condition fires or the page is fully unloaded (which does clear JS timers via browser navigation, so this is not a live memory leak in a single-page-at-a-time SPA-less Astro app today, but the doc's claim about explicit teardown is inaccurate and would mislead future work that layers client-side routing, e.g. view transitions, on top — where an actual interval leak would then occur unless this gap is closed first)
 Proposed: either wire a real teardown hook (e.g. an `astro:before-swap` document listener calling the current page's Alpine root's `destroy()` if present) or soften `07-Frontend/04-Modules-And-OOP.md`'s claim to describe the convention as aspirational until that wiring exists
+
+### F75 — `activity_configurations`'s constraint names don't match `exercise_configurations`'s older singular-table convention
+Status: Open · Found: 2026-09-10 · Task: claude/training-schema-warmup
+Claim: a new snapshot table one layer up from an existing one should mirror its constraint-naming convention exactly, the same way it mirrors its column types
+Evidence: `exercise_configurations` (migration `0005`) names its constraints `uq_exercise_configuration_session`/`fk_exercise_configuration_session` — singular "configuration", naming the referenced column ("session") rather than the table's own plural name. `activity_configurations` (migration `0030`) instead uses `uq_activity_configurations_activity`/`fk_activity_configurations_activity` — plural "configurations" (matching the actual table name) plus the local column name, the same pattern `exercise_types`/`exercise_ruleset_versions` (migration `0027`) and most other tables in the chain already use. The two mirror tables now carry two different constraint-naming conventions
+Impact: cosmetic only — both constraints work identically and neither is queried by name outside `\d` introspection. A future reader comparing the two "mirrored" tables side by side sees a naming mismatch with no functional explanation
+Proposed: no action now — repointing `exercise_configurations`'s applied constraint names would require a migration touching a table with historical rows for a purely cosmetic fix. If a future migration ever touches `exercise_configurations`'s constraints for an unrelated reason, rename them to the newer `uq_<table>_<column>` convention in the same migration

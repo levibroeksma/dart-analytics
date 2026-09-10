@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-08-05
+updated: 2026-09-10
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -148,11 +148,14 @@ UUIDv7
 - id
 - activity_id
 - player_id
-- game_type_id
-- capture_mode_id
-- input_mode_id
+- exercise_type_id
+- exercise_ruleset_version_id (nullable — set for an exercise run inside a training)
+- game_type_id (nullable — set only for exercise type `GAME`)
+- ruleset_version_id (nullable — the game ruleset, set only for exercise type `GAME`)
+- capture_mode_id (nullable — set only when the exercise takes dart input)
+- input_mode_id (nullable — set only when the exercise takes dart input)
+- routine_step_sequence_number (nullable, no foreign key)
 - status_id
-- ruleset_version_id
 - started_at
 - completed_at (nullable)
 - created_at
@@ -163,6 +166,8 @@ References:
 
 - activities (CASCADE)
 - players (CASCADE)
+- exercise_types (RESTRICT)
+- exercise_ruleset_versions (RESTRICT)
 - game_types (RESTRICT)
 - capture_modes (RESTRICT)
 - input_modes (RESTRICT)
@@ -192,6 +197,29 @@ The session stores the actual capture mode, input mode and ruleset version used 
 This makes every session self-describing: replay needs nothing outside the runtime layer.
 
 The direct `player_id` reference (alongside `activity_id`) is a deliberate, controlled denormalisation for query efficiency on the most common access path.
+
+Two independent CHECK constraints govern the nullable columns (migration 0029):
+
+- `chk_exercise_sessions_game_pair` — `game_type_id` and `ruleset_version_id` are NULL together or
+  NOT NULL together. A game binding is all-or-nothing.
+- `chk_exercise_sessions_capture_pair` — `capture_mode_id` and `input_mode_id` are NULL together or
+  NOT NULL together, independent of the game pair. `SWITCHING` (§17) takes dart observations with no
+  game engine, so dart capture cannot be tied to the game columns.
+
+Neither constraint names a specific exercise type. A literal id in DDL would have to be revisited for
+every new exercise type; type-to-column consistency is enforced in the service layer instead.
+
+`routine_step_sequence_number` records which step of the training this session was, indexing into the
+`activity_configurations` snapshot. It is a plain integer with no foreign key, because the
+`routine_steps` row it corresponds to is mutable and the runtime may never reference a template.
+
+Worked examples:
+
+| Exercise | exercise_ruleset_version_id | game pair | capture pair |
+| --- | --- | --- | --- |
+| Warm-Up in a training | `WARM_UP_V1` | NULL | NULL |
+| Standalone 501 game | NULL | set | set |
+| 501 as a routine step | set | set | set |
 
 ---
 
@@ -263,6 +291,45 @@ Seat entries stay camelCase inside the otherwise snake_case configuration
 document. The client's key mapper (`app/src/lib/game/rulesets/config-codec.ts`)
 is shallow, so a snake_case seat array would survive `toSnapshot()`
 unconverted and silently mismatch the client's `SeatFact`.
+
+---
+
+# activity_configurations (migration 0030)
+
+## Purpose
+
+The immutable snapshot of the **Resolved Training Configuration** (`09-training-routines.md` §18) an
+activity executed: the routine's name plus its ordered, resolved step list.
+
+## Lifecycle
+
+Written once at Training start, never updated. Deleted only with its activity (CASCADE).
+
+## Primary Key
+
+UUIDv7
+
+## Key Columns
+
+- id
+- activity_id (unique — one snapshot per activity)
+- configuration (JSONB)
+- created_at
+
+## Relationships
+
+References:
+
+- activities (CASCADE on delete)
+
+## Design Rationale
+
+Mirrors `exercise_configurations` exactly, one level up. This is how an activity records which
+routine it ran without holding a foreign key to `routine_templates` — editing or deleting a routine
+can never alter historical training (§23, and the Template ↔ Runtime Boundary).
+
+The snapshot stores the *resolved* configuration, after any future adaptive resolution (§21), not a
+verbatim copy of the template.
 
 ---
 
