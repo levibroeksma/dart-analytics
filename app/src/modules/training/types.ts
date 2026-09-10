@@ -28,3 +28,17 @@ export type TrainingState = {
   completedStepCount: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * One step's duration contribution as validated by `routine-duration.module`
+ * — a narrower shape than `RoutineStepSnapshot`, since duration validation
+ * needs neither the exercise ruleset nor its configuration.
+ */
+export type RoutineStepDuration = {
+  sequenceNumber: number;
+  durationTypeKey: "ROUNDS" | "MINUTES";
+  durationValue: number;
+};
+
+export type RoutineDurationResult =
+  { ok: true; totalMinutes: number } | { ok: false; issues: string[] };
