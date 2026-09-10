@@ -29,13 +29,16 @@ updated: 2026-09-10
 ## 2. Domain model
 
 - `Routine` (template) → existing `routine_templates` / `routine_steps` (migration `0004`, already
-  applied — see §3).
+  applied), with `routine_steps` gaining the per-step configuration column §3.5 requires (see §3).
 - `Training` (runtime) → an `activities` row. No schema change to `activities` itself beyond gaining
   a sibling snapshot table (see §3) — no FK to the routine template, per the Template Layer's own
   rule that no runtime table holds a foreign key to a template.
+- `Exercise Type` (§3.4) → a new `exercise_types` row; it selects the `ExerciseEngine` and the
+  exercise ruleset. `GAME` is one exercise type among many, not a layer above them.
 - `Exercise` (runtime) → an `exercise_sessions` row, generalized to admit non-game exercises.
 - `WarmUpEngine` implements the new `ExerciseEngine` contract (§9–10 of `09-training-routines.md`),
-  parallel to `GameEngine` (Pattern 18) — not built on top of a `GameEngine`.
+  parallel to `GameEngine` (Pattern 18) — not built on top of a `GameEngine`. Its ruleset
+  (`WARM_UP_V1`) is an *exercise* ruleset, tracked separately from game rulesets (§24).
 - Lifecycle: `activities.status_id` stays `ACTIVE → COMPLETED / ABANDONED`, unchanged. No `PAUSED`
   status is added anywhere. Pause is an Alpine store persisting `{activityId, exerciseSessionId,
   pausedAt}` to `localStorage`; resume rehydrates through the same `create(config, prior)` replay
@@ -43,59 +46,110 @@ updated: 2026-09-10
 
 ## 3. Data model — migration `0027`
 
-Existing applied schema already anticipates most of this (migration `0004_templates.sql`:
+Existing applied schema already anticipates the composition half of this (migration `0004_templates.sql`:
 `exercise_templates`, `routine_templates`, `routine_steps`; `04-Runtime-Layer.md`'s design rationale
 for `activities`: *"one activity can contain multiple exercise sessions (for example a routine run
-executing several exercises)"*). The gap is that every game-type-bound column across the template and
-runtime layers is currently `NOT NULL`, which forces a game abstraction onto a non-game exercise —
-contradicting `09-training-routines.md` §12. Resolution (user-selected: most scalable): introduce an
-explicit `exercise_type_id` discriminator everywhere `game_type_id` currently is, and relax
-`game_type_id` to nullable, populated only when the exercise type is `GAME`.
+executing several exercises)"*). Two gaps remain, both from `09-training-routines.md`:
 
-1. **New `exercise_types`** (SMALLINT, seeded reference table, same shape as `capture_modes` /
-   `input_modes`): `id`, `implementation_key`, `name`, `created_at`. Seed: `GAME`, `WARM_UP`.
-2. **`exercise_templates`** (applied, currently empty): add `exercise_type_id SMALLINT NOT NULL
-   REFERENCES exercise_types RESTRICT`; relax `game_type_id` to nullable; add
-   `CHECK (exercise_type_id = <GAME> ⟺ game_type_id IS NOT NULL)` (same pattern as the existing
-   PLAYER/DartBot participant CHECK from migration `0005`).
-3. **`configuration_templates`** (applied): same treatment as (2).
-4. **`ruleset_versions`** (applied): same treatment as (2) — every exercise, game or not, still has a
-   ruleset version per §9.
-5. **`exercise_sessions`** (applied, non-empty — the one real data backfill in this migration): add
-   `exercise_type_id SMALLINT NOT NULL`, backfilled to `GAME` for every existing row; relax
-   `game_type_id` / `capture_mode_id` / `input_mode_id` to nullable (dart capture is meaningless for
-   Warm-Up); `ruleset_version_id` stays `NOT NULL`. Same CHECK pattern, extended to cover
-   `capture_mode_id`/`input_mode_id` alongside `game_type_id`.
+- every game-type-bound column across the template and runtime layers is `NOT NULL`, forcing a game
+  abstraction onto a non-game exercise — contradicting §12;
+- `routine_steps` carries only a duration, so it cannot express the per-step **Routine Exercise
+  Configuration** that §3.5 / §4 / §18 require (targets, sequences, patterns, game selection).
+
+Resolution: introduce an `exercise_type_id` discriminator and a separate exercise-ruleset table,
+relax the game-bound columns to nullable, and put configuration on the routine step.
+
+### Design rules this migration follows
+
+- **Exercise type is a growing catalog, not a fixed enum.** §26 makes each new exercise type ship with
+  its own ruleset, engine and configuration schema — structurally identical to `game_types`, which is
+  UUID for exactly that reason. SMALLINT stays reserved for fixed structural enums (`stage_types`,
+  `capture_modes`, `input_modes`).
+- **Exercise rulesets and game rulesets are distinct.** §24 lists `ExerciseRuleset` and `GameRuleset`
+  as separate components, and §11's path (`ExerciseEngine → GameEngine → Game Ruleset`) has both live
+  at once. A single `ruleset_version_id` column cannot hold two values, so exercise rulesets get their
+  own table rather than a discriminator on `ruleset_versions`.
+- **No CHECK constraint names a specific exercise type.** Constraints assert column *pairings*, never
+  `exercise_type_id = <GAME>`; a literal id in DDL would have to be revisited for every new type.
+- **Dart capture is independent of game binding.** `SWITCHING` (§17) takes dart observations with no
+  game engine, so `capture_mode_id`/`input_mode_id` are constrained separately from `game_type_id`.
+
+### Changes
+
+1. **New `exercise_types`** (UUID PK, same shape as `game_types`): `id`, `implementation_key`, `name`,
+   `description`, `is_published`, `created_at`, `updated_at`. Seed: `GAME`, `WARM_UP`.
+2. **New `exercise_ruleset_versions`** (UUID PK, mirrors `ruleset_versions`): `id`,
+   `exercise_type_id UUID NOT NULL REFERENCES exercise_types RESTRICT`, `implementation_key`,
+   `version_number`, `description`, `created_at`. Seed: `WARM_UP_V1`.
+3. **`exercise_templates`** (applied, currently empty): add
+   `exercise_type_id UUID NOT NULL REFERENCES exercise_types RESTRICT`; relax `game_type_id` to
+   nullable (the FK and its RESTRICT are kept — deleting a game type stays blocked while templates
+   reference it); add `default_configuration JSONB` (nullable) for the §5 defaults/constraints an
+   exercise type provides.
+4. **`routine_steps`** (applied, currently empty): add `configuration JSONB` (nullable) — the §3.5
+   Routine Exercise Configuration. `duration_type_id`/`duration_value` stay as dedicated columns
+   (§5 duration is structural and queried); everything else contextual lives in the JSONB. Resolution
+   merges `exercise_templates.default_configuration` with this, giving §21 adaptive resolution a place
+   to land with no further schema change.
+5. **`exercise_sessions`** (applied, non-empty — the one real data backfill in this migration):
+   - add `exercise_type_id UUID NOT NULL REFERENCES exercise_types RESTRICT`, backfilled to `GAME`
+     for every existing row (a standalone game is an exercise of type `GAME`);
+   - add `exercise_ruleset_version_id UUID` (nullable, RESTRICT) — set for every exercise run inside a
+     training, NULL for a standalone game session;
+   - relax `game_type_id`, `ruleset_version_id`, `capture_mode_id`, `input_mode_id` to nullable;
+   - `CHECK ((game_type_id IS NULL) = (ruleset_version_id IS NULL))` — a game binding is all-or-nothing;
+   - `CHECK ((capture_mode_id IS NULL) = (input_mode_id IS NULL))` — dart capture is all-or-nothing,
+     and independent of the game pair.
+
+   Warm-Up sets `exercise_ruleset_version_id` only; a standalone 501 sets the game pair and capture
+   pair only; a 501-inside-a-routine sets all four.
 6. **`exercise_sessions`**: add `routine_step_sequence_number INTEGER` (nullable, no FK) — records
-   "this was step N of the training" without referencing the mutable `routine_steps` row.
+   "this was step N of the training", indexing into the snapshot of (7) without referencing the
+   mutable `routine_steps` row.
 7. **New `activity_configurations`** (UUIDv7, 1:1 CASCADE on `activities`, JSONB `configuration`) —
-   mirrors `exercise_configurations` exactly: a snapshot of the resolved routine (name + ordered step
-   list) copied at Training start, never a live reference. This is what lets `activities` know which
-   routine it's running without violating the "no runtime FK to a template" rule.
-8. **Seed** (new seed file, not part of the migration): one system `routine_templates` row
+   mirrors `exercise_configurations` exactly: the §18 **Resolved Training Configuration**, a snapshot
+   of the resolved routine (name + ordered resolved step list, post-resolution) copied at Training
+   start, never a live reference. This is what lets `activities` know which routine it ran without
+   violating the "no runtime FK to a template" rule.
+8. **`stage_types`**: seed id `6` `EXERCISE_SECTION` ("Timed section inside an exercise"). Warm-Up
+   writes one flat row per phase (`sequence_number` 1–5, `parent_stage_id` NULL) directly under the
+   exercise session — the session already represents the exercise, so no grouping row is created.
+   `EXERCISE_BLOCK` (id 5) is left untouched and unused, reserved for a routine-level grouping if one
+   is ever needed. `stage_types` is a genuine fixed structural enum, so SMALLINT is correct here.
+9. **Seed** (new seed file, not part of the migration): one system `routine_templates` row
    (`is_system_template = TRUE`, `player_id = NULL`), one `exercise_templates` row
-   (`exercise_type_id = WARM_UP`, `game_type_id = NULL`), one `routine_steps` row linking them, one
-   `configuration_templates` row holding the five-phase list (`Upper/Lower/Right/Left/Bull`, §16) as
-   JSONB, and the `WARM_UP_V1` `ruleset_versions` row.
-9. Reuse the **already-seeded** `stage_types.id = 5` (`EXERCISE_BLOCK`, *"Individual routine exercise
-   block"*) for each Warm-Up phase's `exercise_stages` row — no new stage type needed.
-10. Doc updates required alongside: `05-Database/06-Spec/02-Template-Layer.md`,
-    `05-Database/06-Spec/04-Runtime-Layer.md` (docs-first per `docs/CLAUDE.md`).
+   (`exercise_type_id = WARM_UP`, `game_type_id = NULL`, `default_configuration` holding the
+   five-phase list `Upper/Lower/Right/Left/Bull`, §16), one `routine_steps` row linking them with
+   `duration_type_id = MINUTES` and a NULL `configuration` (phase 1 overrides nothing), and the
+   `WARM_UP_V1` `exercise_ruleset_versions` row.
+10. **Deliberately untouched**: `ruleset_versions` and `configuration_templates` keep their current
+    `NOT NULL game_type_id`. Both are game-scoped by definition — exercise rulesets live in (2), and
+    `configuration_templates` is the §19 named-preset concept, not the per-step configuration of (4).
+11. Doc updates required alongside: `05-Database/06-Spec/01-Reference-Layer.md` (new
+    `exercise_types`, `exercise_ruleset_versions`, `EXERCISE_SECTION`),
+    `05-Database/06-Spec/02-Template-Layer.md`, `05-Database/06-Spec/04-Runtime-Layer.md`
+    (docs-first per `docs/CLAUDE.md`).
 
 ## 4. Engine / orchestration
 
 - New `app/src/modules/exercise/` tree, parallel to `modules/game/`: `warm-up.engine.module.ts`,
-  `engine.registry.ts` (ExerciseEngine registry keyed by ruleset-version key, e.g. `"WARM_UP_V1"`,
-  mirroring `modules/game/engine.registry.ts`), `types.ts`.
+  `engine.registry.ts` (ExerciseEngine registry keyed by *exercise* ruleset-version key, e.g.
+  `"WARM_UP_V1"`, mirroring `modules/game/engine.registry.ts`), `types.ts`.
 - `WarmUpEngine` state: `{currentPhaseIndex, overallElapsed, completed}`. No dart-shaped `record()` —
   advancement is time/tap-driven (`advancePhase()`). Facts (`ExerciseStarted` /
   `ExerciseSectionChanged` / `ExerciseCompleted`, §15) map onto `exercise_stages` rows using
-  `EXERCISE_BLOCK` — one row per phase, `sequence_number` 1–5, zero `turns`/`darts` rows.
+  `EXERCISE_SECTION` — one flat row per phase, `sequence_number` 1–5, `parent_stage_id` NULL, zero
+  `turns`/`darts` rows.
 - New thin `TrainingEngine` (`modules/training/training.module.ts`): owns active-exercise index (from
   the `activity_configurations` snapshot), overall elapsed time, creates the `exercise_sessions` row
   (`exercise_type_id = WARM_UP`) when a step starts, marks the parent `activities` row `COMPLETED`
   when the last exercise completes. Built to the general §8 orchestration shape even though phase 1
   has exactly one step.
+- **Routine-composition validator** owns §7's *"a routine may not exceed 60 minutes"* rule: it sums
+  `routine_steps` durations and rejects a routine over the cap. It cannot be a DB CHECK (cross-row
+  sum), and it is not a trigger (no precedent in this repo). Phase 1 seeds the only routine, so the
+  validator ships as a pure function with unit tests and is wired into routine writes when §20
+  user-created routines land.
 - Same Pattern 18 discipline: config-driven construction, `create(config, prior)` rehydration, pure
   `state()`/`facts()`, no aliased internals.
 
@@ -120,8 +174,9 @@ explicit `exercise_type_id` discriminator everywhere `game_type_id` currently is
 1. **Schema** — migration `0027` + seed + doc updates + verification scripts. Fully additive and
    backward-compatible; nothing else depends on landing before it, and no existing game path changes.
    Lands first.
-2. **Engine + validator** — `modules/exercise/`, `modules/training/`, `WARM_UP_V1` validator, unit
-   tests. Depends on (1)'s seeded stage/exercise types. No route, no UI yet.
+2. **Engine + validators** — `modules/exercise/`, `modules/training/`, the `WARM_UP_V1` configuration
+   validator and the routine-composition (60-minute cap) validator, unit tests. Depends on (1)'s
+   seeded exercise types, exercise ruleset and `EXERCISE_SECTION` stage type. No route, no UI yet.
 3. **API** — start-training / advance-phase / complete / abandon endpoints, extending the existing
    session-lifecycle endpoints where possible. Depends on (2).
 4. **Frontend** — route, controller, components, pause store, sound ping, route-data wiring. Depends
