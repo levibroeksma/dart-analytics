@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-08-20
+updated: 2026-09-10
 -->
 
 # Adding a Game
@@ -111,7 +111,7 @@ Check `08-Component-Inventory.md` before hand-rolling markup — `SetupShell`,
 | `seeds/0007_ruleset_version_capabilities.sql` | **shared** — the capability rows |
 | `verification/0007_capability_seed_checks.sql` | **shared** |
 
-New schema means a new numbered migration; applied migrations (`0001`–`0026`)
+New schema means a new numbered migration; applied migrations (`0001`–`0031`)
 are never edited. Full procedure: `05-Database/10-Database-Agent-Guide.md`
 §"Add a new game type".
 

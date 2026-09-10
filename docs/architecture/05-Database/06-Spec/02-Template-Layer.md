@@ -2,7 +2,7 @@
 status: canonical
 scope: database/template-layer
 read-when: adding/changing exercise/routine/configuration templates
-updated: 2026-07-11
+updated: 2026-09-10
 -->
 
 # Database Specification — Chapter 2: Template Layer

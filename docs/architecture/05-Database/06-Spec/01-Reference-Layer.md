@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-08-08
+updated: 2026-09-10
 -->
 
 # Database Specification — Chapter 1: Reference Layer

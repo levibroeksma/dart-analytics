@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-08-29
+updated: 2026-09-10
 -->
 
 # Database SQL Artifacts
@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0026)
+├── migrations/     # ordered schema migrations (0001–0031)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -58,6 +58,8 @@ astro check
 11. `seeds/0011_one_twenty_one_v2_game_engine_reference.sql`
 12. `seeds/0012_shanghai_v2_game_engine_reference.sql`
 13. `seeds/0013_singles_training_v2_game_engine_reference.sql`
+14. `seeds/0014_exercise_types.sql`
+15. `seeds/0015_warm_up_routine.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -93,6 +95,10 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0024_double_out_checkout_darts_view_checks.sql` | `v_double_out_checkout_darts` returns only the owning player's 501 VISUAL_BOARD darts in order, `prior_scored_in_stage` nulls on the first dart of a leg and running-sums after, a 121 session's darts never appear (4 checks) |
 | `verification/0025_player_visit_facts_view_checks.sql` | `v_player_visit_facts` reports `dart_count = 0` for a QUICK_SCORE turn and the real count for a VISUAL_BOARD turn, `configured_max_darts_per_turn` reads the JSONB snapshot, an open turn and a guest's turn never appear (5 checks) |
 | `verification/0026_player_leg_facts_view_checks.sql` | `v_player_leg_facts` sums real darts across a complete-capture leg, excludes a leg with any QUICK_SCORE turn entirely, a non-LEG stage never appears (3 checks) |
+| `verification/0027_exercise_type_reference_checks.sql` | `exercise_types`/`exercise_ruleset_versions` accept a fixture, reject a duplicate `implementation_key`, and RESTRICT a referenced type's deletion (3 checks) |
+| `verification/0029_session_generalization_checks.sql` | a warm-up-shaped session is accepted past `fk_sessions_capability`, both pair CHECKs reject a half-set pair, a capture pair without a game pair is accepted (5 checks) |
+| `verification/0030_activity_configuration_checks.sql` | the training snapshot round-trips as JSONB, is unique per activity, and CASCADEs with its activity (3 checks) |
+| `verification/0015_warm_up_routine_checks.sql` | seeds `0014`/`0015` resolve end to end: both exercise types, `WARM_UP_V1`, `EXERCISE_SECTION`, a one-step system routine on a WARM_UP template with five phases, no unbackfilled session (7 checks) |
 
 ## References
 

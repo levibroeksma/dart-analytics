@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-08
+updated: 2026-09-10
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -38,15 +38,15 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `00-OVERVIEW.md` | Database philosophy and operating model | canonical | ~2.5k |
 | `01-Naming-Conventions.md` | Table/index/constraint/view naming | canonical | ~2.3k |
 | `02-Design-Rules.md` | Schema design rules, controlled denormalisation | canonical | ~2.4k |
-| `03-Migrations.md` | Migration process + chain `0001`–`0026`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15), `0023` owner-scoped dart views (2026-08-21), `0024` `v_double_out_checkout_darts` (2026-09-05); per-migration sections not yet updated past `0022` — see F67 | canonical | ~4.3k |
+| `03-Migrations.md` | Migration process + chain `0001`–`0026`; `0019`/`0020` capability table + composite FK and their migrate→seed→migrate apply order, `0021` `v_player_settings` (2026-08-08), `0022` `v_player_profile` (2026-08-15), `0023` owner-scoped dart views (2026-08-21), `0024` `v_double_out_checkout_darts` (2026-09-05); per-migration sections not yet updated past `0022` — see F67; `0027`–`0031` exercise-type generalisation, with the same migrate→seed→migrate apply order as `0019`/`0020` (2026-09-10) | canonical | ~4.3k |
 | `04-Indexes.md` | Index strategy (query-path driven) | canonical | ~2.6k |
 | `05-Views/00-Overview.md` | View categories and replay rules; ten implemented views through `0024` (2026-09-05); split into a directory to host per-domain view catalogs (2026-09-06) | canonical | ~2.2k |
 | `05-Views/01-General-Views.md` | `v_player_visit_facts`/`v_player_leg_facts` view contracts for career-wide statistics (2026-09-06) | canonical | ~0.7k |
 | `06-Database-Specification.md` | Cross-layer invariants + index into `06-Spec/` chapters | canonical | ~2.2k |
-| `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08) | canonical | ~2.1k |
-| `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets | canonical | ~1.6k |
+| `06-Spec/01-Reference-Layer.md` | Lookup tables (game_types … duration_types); `ruleset_version_capabilities` and why capability is keyed on ruleset version (2026-08-08); `exercise_types`/`exercise_ruleset_versions` and the `EXERCISE_SECTION` stage type (D263, 2026-09-10) | canonical | ~2.9k |
+| `06-Spec/02-Template-Layer.md` | Templates, routines, configuration presets; `exercise_type_id` discriminator, nullable `game_type_id`, `default_configuration`/`routine_steps.configuration` (D263, 2026-09-10) | canonical | ~1.9k |
 | `06-Spec/03-Player-Layer.md` | players, player_settings — settings shipped, read through `v_player_settings`, capture/input mode FKs added by `0017`; profile (darts equipment) shipped, read through `v_player_profile` (2026-08-15) | canonical | ~1.1k |
-| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics, `location_x`/`location_y` shipped, VISUAL_BOARD capture depth, QUICK_SCORE-scoped 501 bust limitation + `total_score` bust carve-out (2026-08-05) | canonical | ~3.9k |
+| `06-Spec/04-Runtime-Layer.md` | Activities, sessions, stages, turns, darts, idempotency; turn/dart score semantics, `location_x`/`location_y` shipped, VISUAL_BOARD capture depth, QUICK_SCORE-scoped 501 bust limitation + `total_score` bust carve-out (2026-08-05); generalised `exercise_sessions` (nullable game/capture pairs under two CHECKs) and `activity_configurations` (D263, 2026-09-10) | canonical | ~4.9k |
 | `06-Spec/05-Read-Model-Layer.md` | View contracts (`v_*`), incl. `v_dart_locations` (2026-08-05), `v_player_settings` (2026-08-08), the owner-scoping both dart views gained in `0023` (2026-08-21), and `v_double_out_checkout_darts` for 501 checkout accuracy (2026-09-05) | canonical | ~2.9k |
 | `06-Spec/06-Relationships-and-Evolution.md` | Relationship matrix, full ERD, future expansion | canonical | ~1.7k |
 | `07-Data-Model-Review.md` | Design-gate record (superseded decisions inside) | historical | ~2.3k |
@@ -81,7 +81,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `README.md` | Directory layout, apply order | canonical |
-| `migrations/0001`–`0026` | Applied schema chain — never modify; `0023` scopes the two dart analytics views to the owning participant (D222, 2026-08-21); `0024` adds `v_double_out_checkout_darts`, scoped to 501 VISUAL_BOARD sessions only (D256, 2026-09-05); `0025`/`0026` add `v_player_visit_facts`/`v_player_leg_facts` for career-wide statistics (D257, 2026-09-06) | canonical (applied) |
+| `migrations/0001`–`0031` | Applied schema chain — never modify; `0023` scopes the two dart analytics views to the owning participant (D222, 2026-08-21); `0024` adds `v_double_out_checkout_darts`, scoped to 501 VISUAL_BOARD sessions only (D256, 2026-09-05); `0025`/`0026` add `v_player_visit_facts`/`v_player_leg_facts` for career-wide statistics (D257, 2026-09-06); `0027`–`0031` generalise the exercise layer for non-game exercises — exercise types, exercise ruleset versions, nullable game columns under two independent CHECKs, routine-step configuration, and the training configuration snapshot (D263, 2026-09-10) | canonical (applied) |
 | `seeds/0001`, `0002` | Reference data + default templates | canonical |
 | `database/seeds/0003_game_engine_reference.sql` | `BOBS27` + `DOUBLES_TRAINING` game types, features, ruleset versions, presets (2026-07-26) | canonical |
 | `database/seeds/0004_score_training_minutes_preset.sql` | Score Training minutes preset realigned to 5 (2026-07-31) | canonical |

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-08-05
+updated: 2026-09-10
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
