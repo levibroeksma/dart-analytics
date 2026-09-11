@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { switchingEngineFactory } from "@modules/exercise/switching.engine.module";
+import {
+  SwitchingEngine,
+  switchingEngineFactory,
+} from "@modules/exercise/switching.engine.module";
 import type { SwitchingConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 
@@ -77,7 +80,7 @@ describe("switchingEngineFactory", () => {
   });
 
   it("completes only on expireTimer, and refuses to record after", () => {
-    const engine = switchingEngineFactory.create(CONFIG);
+    const engine = new SwitchingEngine(CONFIG);
     engine.record(dart(20, "SINGLE"));
 
     expect(engine.isComplete()).toBe(false);

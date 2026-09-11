@@ -122,7 +122,7 @@ export function foldSwitchingState(
  * the (not yet built) controller driving the step's countdown, exactly like
  * `TuodEngine`/`ScoreTrainingEngine` (D264).
  */
-class SwitchingEngine implements DartExerciseEngine<SwitchingState> {
+export class SwitchingEngine implements DartExerciseEngine<SwitchingState> {
   readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
 
   private readonly config: SwitchingConfigData;
