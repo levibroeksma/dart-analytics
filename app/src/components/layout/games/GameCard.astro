@@ -1,15 +1,23 @@
 ---
+/**
+ * @param {string} href
+ * @param {string} title
+ * @param {string} caption
+ * @param {string} [duration] Optional duration pill (e.g. "30 min") shown next to the title.
+ */
 interface Props {
   href: string;
   title: string;
   caption: string;
+  duration?: string;
 }
 
 // Props
-const { href = "#", title, caption }: Props = Astro.props;
+const { href = "#", title, caption, duration }: Props = Astro.props;
 
 // Components
 import CardWrapper from "@components/ui/CardWrapper.astro";
+import Badge from "@components/ui/Badge.astro";
 
 // Icons
 import DartIcon from "@icons/dart.svg";
@@ -20,9 +28,12 @@ import DartIcon from "@icons/dart.svg";
   href={href}
 >
   <div class="flex flex-col gap-0.5">
-    <h3 class="font-semibold text-base text-accent">
-      {title}
-    </h3>
+    <div class="flex items-center gap-2">
+      <h3 class="font-semibold text-base text-accent">
+        {title}
+      </h3>
+      {duration && <Badge class="text-xs">{duration}</Badge>}
+    </div>
     <p class="text-xs text-muted-foreground">
       {caption}
     </p>

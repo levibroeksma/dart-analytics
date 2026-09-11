@@ -108,7 +108,7 @@ export function quickSubtractPlay() {
 
     exit() {
       this.destroy();
-      window.location.href = "/trivia";
+      window.location.href = "/training";
     },
   };
 }

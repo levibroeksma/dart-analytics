@@ -1,0 +1,60 @@
+---
+/**
+ * Reusable routine-detail shell: title + duration pill, an ordered list of
+ * steps (name, duration, plain-language explanation), and a single CTA.
+ * Nothing here is configurable — callers that need settings are a later
+ * design (docs/superpowers/specs/2026-09-11-training-page-and-balanced-training-design.md §3).
+ * @param {string} title
+ * @param {string} durationLabel e.g. "30 min"
+ * @param {{name: string, duration: string, description: string}[]} steps
+ */
+interface RoutineDetailStep {
+  name: string;
+  duration: string;
+  description: string;
+}
+
+interface Props {
+  title: string;
+  durationLabel: string;
+  steps: RoutineDetailStep[];
+}
+
+// Props
+const { title, durationLabel, steps }: Props = Astro.props;
+
+// Components
+import Badge from "@components/ui/Badge.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-foreground">{title}</h1>
+    <Badge>{durationLabel}</Badge>
+  </div>
+
+  <ol class="space-y-4">
+    {
+      steps.map((step, index) => (
+        <li class="space-y-1">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-accent">
+              {index + 1}. {step.name}
+            </span>
+            <span class="text-xs text-muted-foreground">— {step.duration}</span>
+          </div>
+          <p class="text-sm text-muted-foreground">{step.description}</p>
+        </li>
+      ))
+    }
+  </ol>
+
+  <Button
+    title="Start"
+    variant="primary"
+    grow
+    disabled
+    ariaLabel="Start — coming soon"
+  />
+</div>

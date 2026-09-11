@@ -109,7 +109,7 @@ describe("quickSubtractPlay", () => {
     expect(destroySpy).toHaveBeenCalled();
   });
 
-  it("exit() tears down the game and navigates to the Trivia landing page", () => {
+  it("exit() tears down the game and navigates to the Training landing page", () => {
     const ctx = quickSubtractPlay();
     ctx.startCount(5);
     const destroySpy = vi.spyOn(ctx.game!, "destroy");
@@ -117,6 +117,6 @@ describe("quickSubtractPlay", () => {
     vi.stubGlobal("location", location);
     ctx.exit();
     expect(destroySpy).toHaveBeenCalled();
-    expect(location.href).toBe("/trivia");
+    expect(location.href).toBe("/training");
   });
 });
