@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { warmUpEngineFactory } from "@modules/exercise/warm-up.engine.module";
 import type { WarmUpEngineInput } from "@lib/types";
 
+/**
+ * Equal `weight` across all three phases, so each phase's
+ * `phaseDurationSeconds` splits `stepDurationSeconds` evenly
+ * (180 / 3 = 60) — the unequal-weight rounding case has its own
+ * fixture below ("splits step duration proportionally to phase weight").
+ */
 const CONFIG: WarmUpEngineInput = {
   phases: [
     { name: "Upper", targets: [5, 20, 1], weight: 1 },
