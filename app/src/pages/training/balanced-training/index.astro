@@ -1,0 +1,42 @@
+---
+export const prerender = true;
+
+import AppLayout from "@layouts/AppLayout.astro";
+import RoutineDetail from "@components/layout/training/RoutineDetail.astro";
+
+const steps = [
+  {
+    name: "Warm-Up",
+    duration: "10 min",
+    description:
+      "Loosen up through 5 board zones: upper (5, 20, 1), lower (19, 3, 17), right (13, 6, 10), left (8, 11, 14), and bull.",
+  },
+  {
+    name: "Switching: Target",
+    duration: "5 min",
+    description:
+      "Each visit, throw one dart each at 20, 19 and 18. Single = 1 point, double = 2, treble = 3. Repeat for the full five minutes and see how many points you can score.",
+  },
+  {
+    name: "Switching: Doubles",
+    duration: "5 min",
+    description:
+      "Cycle through three visits: D20, D10, D5 — then D16, D8, D4 — then D12, D6, D3. Each double you hit is worth 1 point. Repeat for the full five minutes.",
+  },
+  {
+    name: "Finishing",
+    duration: "10 min",
+    description: "Ten Up One Down, timed.",
+  },
+];
+---
+
+<AppLayout title="Balanced Training">
+  <div class="p-4">
+    <RoutineDetail
+      title="Balanced Training"
+      durationLabel="30 min"
+      steps={steps}
+    />
+  </div>
+</AppLayout>
