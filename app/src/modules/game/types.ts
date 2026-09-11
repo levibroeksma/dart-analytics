@@ -325,7 +325,8 @@ export type DartZoneKey =
   | "INNER_BULL"
   | "MISS";
 
-export type StageTypeKey = "MATCH" | "SET" | "LEG" | "ROUND" | "EXERCISE_BLOCK";
+export type StageTypeKey =
+  "MATCH" | "SET" | "LEG" | "ROUND" | "EXERCISE_BLOCK" | "EXERCISE_SECTION";
 
 export type BoardTarget =
   | { kind: "NUMBER"; number: number }

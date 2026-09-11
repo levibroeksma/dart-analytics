@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-10
-highest-issued: F75
+highest-issued: F76
 -->
 
 # Findings
@@ -157,3 +157,10 @@ Claim: a new snapshot table one layer up from an existing one should mirror its 
 Evidence: `exercise_configurations` (migration `0005`) names its constraints `uq_exercise_configuration_session`/`fk_exercise_configuration_session` — singular "configuration", naming the referenced column ("session") rather than the table's own plural name. `activity_configurations` (migration `0030`) instead uses `uq_activity_configurations_activity`/`fk_activity_configurations_activity` — plural "configurations" (matching the actual table name) plus the local column name, the same pattern `exercise_types`/`exercise_ruleset_versions` (migration `0027`) and most other tables in the chain already use. The two mirror tables now carry two different constraint-naming conventions
 Impact: cosmetic only — both constraints work identically and neither is queried by name outside `\d` introspection. A future reader comparing the two "mirrored" tables side by side sees a naming mismatch with no functional explanation
 Proposed: no action now — repointing `exercise_configurations`'s applied constraint names would require a migration touching a table with historical rows for a purely cosmetic fix. If a future migration ever touches `exercise_configurations`'s constraints for an unrelated reason, rename them to the newer `uq_<table>_<column>` convention in the same migration
+
+### F76 — `09-training-routines.md`'s frontmatter status disagrees with its own body
+Status: Open · Found: 2026-09-10 · Task: claude/training-engines-warmup
+Claim: `status:` frontmatter is the single source of truth for a doc's canonical/historical/generated state (`00-File-Inventory.md`'s own status legend)
+Evidence: `docs/architecture/09-training-routines.md`'s frontmatter (line 2) reads `status: canonical`, while its body (line 10) reads `> Status: Proposed architectural design` — two different status vocabularies disagreeing about the same document
+Impact: low — both this task and Part A already treated the document as canonical (it is the cited authority behind D263 and D264), so nothing was actually misled. A future reader who trusts only the body line could wrongly discount the document as non-authoritative
+Proposed: no action now — reconciling the two (most likely dropping the body's stale "Proposed" line, since `09`/`10`/`08` in `00-File-Inventory.md` are all listed `canonical` and D263/D264 both already build on this doc as settled architecture) is a one-line documentation fix outside this task's scope
