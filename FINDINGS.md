@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-10
-highest-issued: F76
+highest-issued: F77
 -->
 
 # Findings
@@ -164,3 +164,10 @@ Claim: `status:` frontmatter is the single source of truth for a doc's canonical
 Evidence: `docs/architecture/09-training-routines.md`'s frontmatter (line 2) reads `status: canonical`, while its body (line 10) reads `> Status: Proposed architectural design` — two different status vocabularies disagreeing about the same document
 Impact: low — both this task and Part A already treated the document as canonical (it is the cited authority behind D263 and D264), so nothing was actually misled. A future reader who trusts only the body line could wrongly discount the document as non-authoritative
 Proposed: no action now — reconciling the two (most likely dropping the body's stale "Proposed" line, since `09`/`10`/`08` in `00-File-Inventory.md` are all listed `canonical` and D263/D264 both already build on this doc as settled architecture) is a one-line documentation fix outside this task's scope
+
+### F77 — `lib/trivia/`, `modules/trivia/`, `components/layout/trivia/` keep "trivia" naming after the IA rename to `/training`
+Status: Open · Found: 2026-09-11 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: the "trivia" UI category no longer exists — Quick Subtract is a flat card under `/training`, the same level as Balanced Training (`docs/superpowers/specs/2026-09-11-training-page-and-balanced-training-design.md` §2, D265)
+Evidence: `app/src/lib/trivia/quick-subtract-play.data.ts`, `app/src/modules/trivia/quick-subtract.module.ts`, `app/src/modules/trivia/dart-scores.module.ts`, `app/src/modules/trivia/interfaces.ts`, `app/src/modules/trivia/types.ts`, `app/src/components/layout/trivia/QuickSubtract.astro` — all still named after the retired "trivia" label; only the page routes moved
+Impact: a reader navigating the source tree by folder name expects a `/trivia` route that no longer exists anywhere in the app; the domain-folder name and the shipped IA now disagree, though every import path still resolves correctly
+Proposed: rename `lib/trivia/` → `lib/training/`, `modules/trivia/` → `modules/training/`, `components/layout/trivia/` → `components/layout/training/` in a follow-up task, updating every import, `app/src/modules/types.ts`/`app/src/modules/interfaces.ts`'s barrel re-exports, and `decisions/frontend/architecture.md`'s D261 cross-reference

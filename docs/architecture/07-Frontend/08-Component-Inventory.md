@@ -63,7 +63,7 @@ evaluated in the page's own Alpine scope.
 | `CountdownResumePrompt.astro` | Centered large resume button shown in place of the score/board input while `$store.game.timerPaused` is true, so a paused timer doesn't leave a disabled input on screen (#253, 2026-09-10) | `disabledExpr` (reads `togglePause()` from the page scope) |
 | `DoublesPathRecreationalInput.astro` | Doubles-path tap input row | none |
 | `ExitModal.astro` | Leave-session confirmation | `description` (defaults to the "recorded as abandoned" copy; override for a tool with nothing to persist, e.g. Trivia) (2026-09-09) |
-| `GameCard.astro` | Games-index entry | `href`, `title`, `caption` |
+| `GameCard.astro` | Games-index entry | `href`, `title`, `caption`, `duration` (optional pill, e.g. "30 min") (2026-09-11) |
 | `InputButton.astro` | Single key in a tap/keypad input row | `type` |
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
@@ -92,3 +92,9 @@ evaluated in the page's own Alpine scope.
 | `ToggleListItem.astro` | One option inside a vertical `Toggle` | `value`, `label` |
 | `UserIconDisplay.astro` | Avatar/initial badge | `name`, `nameExpr` |
 | `UserSection.astro` | Player row on the setup screen | `allowGuests` (501 only — renders `GuestSection` beside the owner icon) |
+
+## `components/layout/training/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `RoutineDetail.astro` | Routine-detail shell: title + duration pill, ordered step list, disabled `Start` CTA | `title`, `durationLabel`, `steps` (2026-09-11) |
