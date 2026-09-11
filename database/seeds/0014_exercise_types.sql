@@ -4,12 +4,13 @@
 -- Purpose:
 -- Insert the exercise-type catalog, the warm-up exercise
 -- ruleset, the EXERCISE_SECTION stage type, and backfill
+-- exercise_templates.exercise_type_id and
 -- exercise_sessions.exercise_type_id for rows that predate the
 -- discriminator.
 --
--- The backfill is what migration 0031's NOT NULL depends on, so
--- the apply order is db:migrate -> db:seed -> db:migrate. Every
--- statement is idempotent: seed.ts runs each file twice.
+-- The backfill is what migrations 0031/0032's NOT NULL depend
+-- on, so the apply order is db:migrate -> db:seed -> db:migrate.
+-- Every statement is idempotent: seed.ts runs each file twice.
 -- ============================================================
 BEGIN;
 
@@ -74,6 +75,10 @@ VALUES (
     ) ON CONFLICT (id) DO NOTHING;
 
 UPDATE exercise_sessions
+SET exercise_type_id = '0199a000-0000-7000-8000-000000000001'
+WHERE exercise_type_id IS NULL;
+
+UPDATE exercise_templates
 SET exercise_type_id = '0199a000-0000-7000-8000-000000000001'
 WHERE exercise_type_id IS NULL;
 

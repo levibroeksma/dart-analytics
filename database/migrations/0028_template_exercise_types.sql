@@ -15,17 +15,21 @@
 -- game selection. Duration stays in its own columns because it
 -- is structural and queried (section 6).
 --
--- Both tables were confirmed empty in production before this
--- migration was written (SELECT count(*) FROM exercise_templates,
--- routine_steps), so exercise_type_id is added NOT NULL directly
--- with no backfill. Re-confirm emptiness before applying, since
--- there is no live database in the authoring container to check
--- against at commit time.
+-- routine_steps was confirmed empty in production before this
+-- migration was written. exercise_templates was not: seed
+-- 0002_default_templates.sql already ships four rows there.
+-- exercise_type_id is therefore added NULLABLE here and promoted
+-- to NOT NULL by migration 0032, because those rows are
+-- backfilled by database/seeds/0014_exercise_types.sql and seeds
+-- run after migrations — the same three-step shape migrations
+-- 0019/0020 and 0029/0031 use. The apply order is:
+--
+--   db:migrate (through 0031) -> db:seed -> db:migrate (0032)
 -- ============================================================
 
 -- migrate:up
 ALTER TABLE exercise_templates
-ADD COLUMN exercise_type_id UUID NOT NULL,
+ADD COLUMN exercise_type_id UUID,
 ADD COLUMN default_configuration JSONB,
 ALTER COLUMN game_type_id DROP NOT NULL,
 ADD CONSTRAINT fk_exercise_templates_exercise_type FOREIGN KEY (exercise_type_id) REFERENCES exercise_types(id) ON DELETE RESTRICT;
