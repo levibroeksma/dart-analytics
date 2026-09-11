@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-11
-highest-issued: F79
+highest-issued: F81
 -->
 
 # Findings
@@ -185,3 +185,17 @@ Claim: the "trivia" UI category no longer exists — Quick Subtract is a flat ca
 Evidence: `app/src/lib/trivia/quick-subtract-play.data.ts`, `app/src/modules/trivia/quick-subtract.module.ts`, `app/src/modules/trivia/dart-scores.module.ts`, `app/src/modules/trivia/interfaces.ts`, `app/src/modules/trivia/types.ts`, `app/src/components/layout/trivia/QuickSubtract.astro` — all still named after the retired "trivia" label; only the page routes moved
 Impact: a reader navigating the source tree by folder name expects a `/trivia` route that no longer exists anywhere in the app; the domain-folder name and the shipped IA now disagree, though every import path still resolves correctly
 Proposed: rename `lib/trivia/` → `lib/training/`, `modules/trivia/` → `modules/training/`, `components/layout/trivia/` → `components/layout/training/` in a follow-up task, updating every import, `app/src/modules/types.ts`/`app/src/modules/interfaces.ts`'s barrel re-exports, and `decisions/frontend/architecture.md`'s D261 cross-reference
+
+### F80 — `warm-up.engine.module.ts` was never updated for the weight-based `WarmUpV1Config`/`WarmUpPhaseConfig`, so its own test suite fails on `main`
+Status: Open · Found: 2026-09-11 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: `app/src/modules/exercise/warm-up.engine.module.ts` still implements Warm-Up against the config shape `WarmUpV1Config`/`WarmUpEngineInputSchema` had before the weight-based generalization (`app/src/lib/exercise/rulesets/types.ts`, changed in commit `57bca0b`) — `deriveState()` reads `phase.durationSeconds`, a field the current `WarmUpPhaseConfig` no longer declares (it now declares `weight` instead), and the constructor's `WarmUpV1Config.parse(config)` is `.strict()`, so it throws on the `stepDurationSeconds` key `WarmUpEngineInputSchema` (the engine's own documented construction input, per that schema's doc comment) adds
+Evidence: `cd app && npx vitest run tests/modules/exercise/warm-up.engine.module.test.ts` fails 7 of 8 tests with `ZodError: Unrecognized key(s) in object: 'stepDurationSeconds'` at `app/src/modules/exercise/warm-up.engine.module.ts:42` (`WarmUpV1Config.parse`); confirmed this is not caused by this task's own changes — this task (Task 3, `SwitchingEngine`) touched no file under `app/src/modules/exercise/warm-up.engine.module.ts` or `app/src/lib/exercise/rulesets/types.ts`, and the failure is present at `HEAD` before this task's commit as well as after it
+Impact: `npx vitest run` (full suite) reports 194 passed / 1 failed test file on this branch regardless of Task 3; any task after this one that runs the full suite as part of its own verification will see the same 7 pre-existing failures and needs to know they are not its own regression
+Proposed: this is exactly the "WARM_UP weight generalization" item already named in the Phase A plan (commit `3c9e182`, `docs: add Phase A plan (SWITCHING/DOUBLE_PATTERN engines, WARM_UP weight generalization, Balanced Training seed)`) — no action here; that task should update `warm-up.engine.module.ts`'s `deriveState()`/constructor (and `WarmUpConfigData`'s stale shape assumption) to match the current weight-based schema, and its own commit will resolve this finding
+
+### F81 — `SwitchingV1Config.targets` allows 25 (bull) as a target, but `SwitchingEngine`'s scoring has no bull zone and silently scores it 0
+Status: Open · Found: 2026-09-11 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: a Switching target list can legally include `25` (`app/src/lib/exercise/rulesets/types.ts` — `targets: z.array(z.number().int().min(1).max(25))...`, same board-number range as Warm-Up's own "25 is the bull" targets), implying a bull hit is a valid, scorable target
+Evidence: `pointsFor` (`app/src/modules/exercise/switching.engine.module.ts:73-84`) only recognizes zone keys `SINGLE`/`INNER_SINGLE`/`OUTER_SINGLE`/`DOUBLE`/`TREBLE`; a dart landing on the bull with `hitTargetNumber === 25 === intendedTarget` matches none of them and falls through to `return 0` — indistinguishable from a genuine miss on the current target. The design spec (`docs/superpowers/specs/2026-09-11-training-page-and-balanced-training-design.md` §5.2/design spec text) only ever describes single/double/treble/outside scoring for Switching and never mentions bull as a target
+Impact: configuring a Switching template with `25` in `targets` would silently under-score every visit to that target, with no validation error to surface the mistake — a template author has no signal their config is unsupported
+Proposed: either lower the per-element bound on `targets` from `.max(25)` to `.max(20)` (the array-length bound `.min(1).max(20)` is separate and does not constrain element values) or add an explicit bull zone/score to `pointsFor` and the config schema — a design decision, not made here
