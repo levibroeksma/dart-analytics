@@ -27,3 +27,19 @@ export type SwitchingState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Double Pattern state, derived on every `state()` call by replaying
+ * `facts()` (`foldDoublePatternState`), exactly like `SwitchingState`.
+ * `patternIndex`/`targetWithinPattern` locate the *next* dart inside
+ * `config.patterns`; `currentDoubleNumber` is that double's own board
+ * number, e.g. `20` for `D20`.
+ */
+export type DoublePatternState = {
+  patternIndex: number;
+  targetWithinPattern: number;
+  currentDoubleNumber: number;
+  totalPoints: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
