@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { warmUpValidator } from "@services/exercise-rulesets/warm-up/warm-up.validator";
 
 const VALID = {
-  phases: [{ name: "Upper", targets: [5, 20, 1], durationSeconds: 60 }],
+  phases: [{ name: "Upper", targets: [5, 20, 1], weight: 1 }],
 };
 
 describe("warmUpValidator.validateConfig", () => {
@@ -28,7 +28,7 @@ describe("warmUpValidator.validateConfig", () => {
 
   it("rejects a target outside the board", () => {
     const result = warmUpValidator.validateConfig({
-      config: { phases: [{ name: "Bad", targets: [26], durationSeconds: 60 }] },
+      config: { phases: [{ name: "Bad", targets: [26], weight: 1 }] },
     });
 
     expect(result.ok).toBe(false);
@@ -36,7 +36,7 @@ describe("warmUpValidator.validateConfig", () => {
 
   it("names the offending path in its issues", () => {
     const result = warmUpValidator.validateConfig({
-      config: { phases: [{ name: "", targets: [5], durationSeconds: 60 }] },
+      config: { phases: [{ name: "", targets: [5], weight: 1 }] },
     });
 
     expect(result.ok).toBe(false);

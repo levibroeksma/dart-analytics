@@ -1,70 +1,39 @@
 import { describe, expect, it } from "vitest";
-import {
-  EXERCISE_RULESET_CONFIGS,
-  WarmUpPhaseConfig,
-  WarmUpV1Config,
-} from "@lib/types";
+import { SwitchingV1Config } from "@lib/exercise/rulesets/types";
 
-const VALID_PHASE = { name: "Upper", targets: [5, 20, 1], durationSeconds: 60 };
+describe("SwitchingV1Config", () => {
+  const VALID = {
+    targets: [20, 19, 18],
+    scoring: { single: 1, double: 2, treble: 3 },
+  };
 
-describe("WarmUpPhaseConfig", () => {
-  it("accepts a well-formed phase", () => {
-    expect(WarmUpPhaseConfig.safeParse(VALID_PHASE).success).toBe(true);
+  it("accepts a well-formed configuration", () => {
+    expect(SwitchingV1Config.safeParse(VALID).success).toBe(true);
   });
 
-  it("rejects an empty name", () => {
-    const result = WarmUpPhaseConfig.safeParse({ ...VALID_PHASE, name: "" });
+  it("rejects an empty target list", () => {
+    const result = SwitchingV1Config.safeParse({ ...VALID, targets: [] });
     expect(result.success).toBe(false);
   });
 
-  it("rejects a target above 25 (past the bull)", () => {
-    const result = WarmUpPhaseConfig.safeParse({
-      ...VALID_PHASE,
-      targets: [26],
-    });
+  it("rejects a target outside the board", () => {
+    const result = SwitchingV1Config.safeParse({ ...VALID, targets: [26] });
     expect(result.success).toBe(false);
   });
 
-  it("rejects an empty targets list", () => {
-    const result = WarmUpPhaseConfig.safeParse({ ...VALID_PHASE, targets: [] });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a non-positive duration", () => {
-    const result = WarmUpPhaseConfig.safeParse({
-      ...VALID_PHASE,
-      durationSeconds: 0,
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects an unknown key (strict object)", () => {
-    const result = WarmUpPhaseConfig.safeParse({
-      ...VALID_PHASE,
+  it("rejects an unknown key", () => {
+    const result = SwitchingV1Config.safeParse({
+      ...VALID,
       captureModeKey: "ANALYTICS",
     });
     expect(result.success).toBe(false);
   });
-});
 
-describe("WarmUpV1Config", () => {
-  it("accepts a non-empty phase list", () => {
-    const result = WarmUpV1Config.safeParse({ phases: [VALID_PHASE] });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects an empty phase list", () => {
-    expect(WarmUpV1Config.safeParse({ phases: [] }).success).toBe(false);
-  });
-
-  it("rejects more than twelve phases", () => {
-    const phases = Array.from({ length: 13 }, () => VALID_PHASE);
-    expect(WarmUpV1Config.safeParse({ phases }).success).toBe(false);
-  });
-});
-
-describe("EXERCISE_RULESET_CONFIGS", () => {
-  it("maps WARM_UP_V1 to WarmUpV1Config", () => {
-    expect(EXERCISE_RULESET_CONFIGS.WARM_UP_V1).toBe(WarmUpV1Config);
+  it("rejects negative scoring values", () => {
+    const result = SwitchingV1Config.safeParse({
+      ...VALID,
+      scoring: { single: -1, double: 2, treble: 3 },
+    });
+    expect(result.success).toBe(false);
   });
 });
