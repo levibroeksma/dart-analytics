@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-11
-highest-issued: F88
+updated: 2026-09-12
+highest-issued: F89
 -->
 
 # Findings
@@ -43,6 +43,15 @@ Evidence: `path/to/file.md:12` vs what is actually true
 Impact: what it costs an agent that trusts the claim
 Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
+
+---
+
+### F89 — `0007_capability_seed_checks.sql`'s VALUES lists were never updated for `SINGLES_V2`/`SHANGHAI_V2`, so its Step 4 parity check already fails against current seed data
+Status: Open · Found: 2026-09-12 · Task: claude/singles-accuracy-mode-4g5857
+Claim: `database/verification/0007_capability_seed_checks.sql`'s own header states it asserts "the table holds exactly the triples declared in `app/src/lib/game/rulesets/capabilities.ts`, no more and no fewer"
+Evidence: `database/seeds/0007_ruleset_version_capabilities.sql`'s `VALUES` list includes `SINGLES_V2` and `SHANGHAI_V2` pairs (added by D247 and D245 respectively), and `app/src/lib/game/rulesets/capabilities.ts`'s `RULESET_CAPABILITIES` declares both — but `database/verification/0007_capability_seed_checks.sql`'s own Step 2 and Step 4 `VALUES` lists still only enumerate the original 20 triples from the file's initial authoring, never updated when either V2 was added. Discovered while adding `SINGLES_V3`'s own narrow `database/verification/0031_singles_training_v3_capability_checks.sql` per the same D243/D245/D247 precedent (append a new script, don't touch the master one) and confirming that precedent's actual state
+Impact: Step 4 ("table holds no capability row outside capabilities.ts") would already report FAIL against any live database with `seeds/0007` fully applied, since the `SINGLES_V2`/`SHANGHAI_V2` rows are real rows the script's own `NOT EXISTS` VALUES list doesn't know about. Step 1's hardcoded `count(*) = 20` would also already read FAIL (actual count is 24). Nobody has run this script against a live database since those two ruleset versions shipped (D193 — no Postgres in this container), so the drift is invisible until someone does
+Proposed: add the 4 missing triples (`SINGLES_V2`/`SHANGHAI_V2` × `RECREATIONAL`+`DETAILED_DARTS`/`ANALYTICS`+`VISUAL_BOARD`) to both `0007_capability_seed_checks.sql`'s Step 2 and Step 4 `VALUES` lists and bump Step 1's expected count from 20 to 24 — mechanical, but touches a shared verification script outside this task's own ruleset-scoped change, and needs a live database to confirm the fix actually passes
 
 ---
 

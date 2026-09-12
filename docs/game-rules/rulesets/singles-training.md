@@ -17,6 +17,7 @@ Use this table to declare what ships when. Edit the **Version** column (`V1`, `V
 | Easy: score whatever you hit (misses allowed) | v1      |
 | Hard: at least 1 dart must hit the target     | V2      |
 | Extreme: at least 2 darts must hit            | V2      |
+| Accuracy mode: only outer single / either bull ring scores | V3      |
 | Professional: all 3 darts must hit            | TBD     |
 | Visit = 3 darts per target                    | v1      |
 | Track score / hit quality                     | v1      |
@@ -42,6 +43,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 | Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
 | Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
+| Scoring    | Standard (default) or Accuracy — editable from V3 onward         | Editable (V3+)         |
 
 ## How to play (V1)
 
@@ -82,6 +84,17 @@ A difficulty toggle, **Easy** (default), **Hard**, or **Extreme**, editable on t
 - **Extreme:** same rule, but at least 2 of the visit's 3 darts must land on the current section.
 
 Available under both Recreational and Analytical capture modes, same as V1.
+
+### Accuracy mode (V3 — implemented)
+
+A scoring-mode toggle, **Standard** (default, identical to V1/V2's ring-quality scoring) or **Accuracy**, editable on the config screen alongside order and difficulty:
+
+- **Standard:** identical to V1/V2 — single = 1, double = 2, treble = 3 on a NUMBER target; outer bull = 1, inner bull = 2.
+- **Accuracy:** only the outer (large) single ring on a NUMBER target scores — 1 point. A miss, a double, a treble, the inner single, or a hit on the wrong target all score 0 for that dart. On the BULL, either ring (outer or inner) scores 1 point — the bull has no "outer single" equivalent, so the whole segment counts.
+
+Accuracy mode is combinable with Hard/Extreme: the mandatory-hit bust check still counts a dart as "hit" whenever it lands anywhere in the current section (any ring), independent of whether that ring actually scores under Accuracy.
+
+Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture is the only way to distinguish an outer single from an inner one) — the per-dart keypad (`RECREATIONAL` + `DETAILED_DARTS`) only ever records a generic single hit, so the setup screen hides the Accuracy toggle under keypad capture, and the toggle defaults to Standard.
 
 ### Variants
 
