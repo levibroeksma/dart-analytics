@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-11
-highest-issued: F86
+highest-issued: F88
 -->
 
 # Findings
@@ -227,3 +227,17 @@ Claim: `00-File-Inventory.md`'s "Game engine code + mechanical guards" table reg
 Evidence: before this task's own commit, `git grep -n "warm-up.engine.module.ts\|engine.registry.ts\|exercise/interfaces.ts\|exercise/types.ts" docs/architecture/00-File-Inventory.md` returned no rows for `app/src/modules/exercise/warm-up.engine.module.ts`, `app/src/modules/exercise/engine.registry.ts`, `app/src/modules/exercise/interfaces.ts`, or `app/src/modules/exercise/types.ts` — none of the pre-existing (Warm-Up-era) exercise module files had a row, only the Task 1/3/6 files this task just added rows for
 Impact: a reader using `00-File-Inventory.md` to orient in `app/src/modules/exercise/` finds the new `SWITCHING`/`DOUBLE_PATTERN` files but not the `ExerciseEngine`/`WarmUpEngine`/`engine.registry.ts` foundation they build on, an inconsistent registration depth within the same folder
 Proposed: add rows for `app/src/modules/exercise/interfaces.ts` (pre-existing `ExerciseEngine`/`ExerciseEngineFactory` half), `app/src/modules/exercise/types.ts`, `app/src/modules/exercise/engine.registry.ts`, and `app/src/modules/exercise/warm-up.engine.module.ts`, matching the new rows' format — a follow-up documentation task, not made here
+
+### F87 — No `database/verification/` script for seeds `0016`/`0017`, and `0017` is the first seed to mutate an already-seeded row's JSONB with nothing asserting the mutation lands
+Status: Open · Found: 2026-09-12 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: `database/CLAUDE.md` (D193) requires a `verification/` script for "behaviour a migration can only prove against a real database"; `database/verification/0015_warm_up_routine_checks.sql` is the established precedent for exactly this kind of routine seed (asserts `0014`/`0015` resolve end to end: exercise types, ruleset version, a one-step system routine with five phases)
+Evidence: `database/verification/` has no `0016`/`0017`-prefixed script; `database/seeds/0017_balanced_training_routine.sql` is also the first seed in the repo to `UPDATE` an already-seeded row's JSONB in place (the Warm-Up template's `default_configuration`, from `durationSeconds`-per-phase to `weight`-per-phase) rather than only inserting new idempotent rows — the one seed behaviour here most in need of a live-DB assertion (does the new `weight` key actually land? does the four-step Balanced Training routine resolve end-to-end?) has no check
+Impact: nothing currently proves the `UPDATE` took, or that the new routine's four steps resolve against real FKs, until someone manually runs `db:seed` against a live database — the exact gap D193/`00-Database-Agent-Guide.md`'s verification-script convention exists to close
+Proposed: add `database/verification/0017_balanced_training_checks.sql` modelled on `0015`'s, asserting: the Warm-Up template's `default_configuration` now has `weight` (not `durationSeconds`) on every phase; the Balanced Training routine has exactly 4 `routine_steps` summing to 30 minutes; the Finishing step's `configuration` parses against `TuodConfig`'s required fields. No DB credentials in this sandbox (D193) — the script can be written and read-reviewed here, but not run
+
+### F88 — `docs/architecture/00-File-Inventory.md`'s `decisions/game-engine.md` row wasn't updated to mention D267
+Status: Open · Found: 2026-09-12 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: Task 11 appended decision `D267` (`DartExerciseEngine` contract) to `decisions/game-engine.md`, and other rows in `00-File-Inventory.md`'s decision-ledger section (e.g. `decisions/database.md`) list the specific decision ids they carry (D263/D266), implying `decisions/game-engine.md`'s own row should list D267 the same way
+Evidence: `docs/architecture/00-File-Inventory.md`'s `decisions/game-engine.md` row was not touched by Task 11's commit (`bdcfc89`) even though the file it describes gained a new decision block in the same commit
+Impact: a reader scanning `00-File-Inventory.md` for "which file carries which decision id" undercounts `decisions/game-engine.md`'s content by one; low severity since the file itself is still the source of truth and `check-decision-ids.sh` doesn't depend on this row
+Proposed: add `D267` to the row's decision-id list, matching the format the `decisions/database.md` row already uses — one-line fix, not made here
