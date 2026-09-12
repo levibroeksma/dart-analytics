@@ -178,3 +178,68 @@ describe("balancedTrainingPlay — Switching", () => {
     expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
 });
+
+const DOUBLE_PATTERN_STEP = {
+  sequenceNumber: 3,
+  exerciseTypeKey: "DOUBLE_PATTERN",
+  exerciseRulesetVersionKey: "DOUBLE_PATTERN_V1",
+  gameTypeKey: null,
+  durationSeconds: 300,
+  configuration: { patterns: [[20, 10, 5]] },
+};
+
+describe("balancedTrainingPlay — Double Pattern", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("startCurrentStep() for DOUBLE_PATTERN builds the dart engine and arms a deadline", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: DOUBLE_PATTERN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = balancedTrainingPlay();
+    await store.init();
+    expect(store.doublePatternEngine).not.toBeNull();
+    expect(store.doublePatternEngine).toBeDefined();
+    expect(store.doublePatternEngine!.state().currentDoubleNumber).toBe(20);
+  });
+
+  it("visitMarkers() reads from doublePatternEngine when that is the active step", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: DOUBLE_PATTERN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = balancedTrainingPlay();
+    await store.init();
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(store.visitMarkers()).toHaveLength(1);
+    expect(store.doublePatternEngine!.state().totalPoints).toBe(1);
+  });
+});

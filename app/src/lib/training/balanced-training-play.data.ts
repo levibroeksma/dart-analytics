@@ -9,13 +9,19 @@ import { getExerciseEngineFactory } from "@modules/exercise/engine.registry";
 import "@modules/exercise/warm-up.engine.module";
 import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.registry";
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
-import { boardInputData } from "@lib/game/board-input.data";
+import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
+import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import type { ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
-import type { WarmUpEngineInput, SwitchingConfigData } from "@lib/types";
+import type {
+  WarmUpEngineInput,
+  SwitchingConfigData,
+  DoublePatternConfigData,
+} from "@lib/types";
 import type { DartObservation } from "@modules/types";
+import type { BoardMarker } from "@lib/types";
 import type {
   BalancedTrainingPlayContext,
   TrainingStepResolved,
@@ -36,11 +42,26 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
     training: null,
     warmUpEngine: null,
     switchingEngine: null,
+    doublePatternEngine: null,
     stepDeadline: null,
     ...boardInputData(
-      (observation) => self.recordSwitchingDart(observation),
-      () => self.switchingEngine?.facts().turns ?? [],
+      (observation) => {
+        if (self.switchingEngine) self.recordSwitchingDart(observation);
+        else if (self.doublePatternEngine)
+          self.recordDoublePatternDart(observation);
+      },
+      () => self.activeDartEngine()?.facts().turns ?? [],
     ),
+
+    activeDartEngine(
+      this: BalancedTrainingPlayContext,
+    ): SwitchingEngine | DoublePatternEngine | null {
+      return this.switchingEngine ?? this.doublePatternEngine ?? null;
+    },
+
+    visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[] {
+      return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
+    },
 
     async init(this: BalancedTrainingPlayContext) {
       self = this;
@@ -109,6 +130,15 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
           created instanceof SwitchingEngine ? created : null;
         this.armStepDeadline(step.durationSeconds);
       }
+      if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
+        const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
+        const created = factory?.create(
+          result.configuration as DoublePatternConfigData,
+        );
+        this.doublePatternEngine =
+          created instanceof DoublePatternEngine ? created : null;
+        this.armStepDeadline(step.durationSeconds);
+      }
     },
 
     advanceWarmUp(this: BalancedTrainingPlayContext) {
@@ -125,6 +155,7 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
     ) {
       this.stepDeadline = setTimeout(() => {
         this.switchingEngine?.expireTimer();
+        this.doublePatternEngine?.expireTimer();
         void this.completeCurrentStep();
       }, durationSeconds * 1000);
     },
@@ -137,12 +168,20 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
       this.switchingEngine.record(observation);
     },
 
+    recordDoublePatternDart(
+      this: BalancedTrainingPlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.doublePatternEngine) return;
+      this.doublePatternEngine.record(observation);
+    },
+
     undoVisit(this: BalancedTrainingPlayContext) {
-      this.switchingEngine?.undo();
+      this.activeDartEngine()?.undo();
     },
 
     async uploadCurrentStepFacts(this: BalancedTrainingPlayContext) {
-      const engine = this.switchingEngine;
+      const engine = this.activeDartEngine();
       if (!engine || !this.currentSessionId || !this.currentParticipantRef) {
         return;
       }
@@ -169,6 +208,7 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
       this.currentParticipantRef = null;
       this.warmUpEngine = null;
       this.switchingEngine = null;
+      this.doublePatternEngine = null;
       const state = this.training.completeStep();
       if (state.status === "COMPLETE") {
         await apiCompleteTraining(this.activityId);

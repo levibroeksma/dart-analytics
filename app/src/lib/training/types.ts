@@ -2,7 +2,9 @@ import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type { StartTrainingResponseData } from "@client/api/types";
 import type { SwitchingEngine } from "@modules/exercise/switching.engine.module";
+import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
+import type { BoardMarker } from "@lib/types";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
@@ -16,6 +18,7 @@ export type BalancedTrainingPlayContext = {
   training: TrainingEngine | null;
   warmUpEngine: ExerciseEngine<WarmUpState> | null;
   switchingEngine: SwitchingEngine | null;
+  doublePatternEngine: DoublePatternEngine | null;
   stepDeadline: ReturnType<typeof setTimeout> | null;
   init(this: BalancedTrainingPlayContext): Promise<void>;
   currentStep(this: BalancedTrainingPlayContext): TrainingStepResolved | null;
@@ -25,7 +28,15 @@ export type BalancedTrainingPlayContext = {
     this: BalancedTrainingPlayContext,
     durationSeconds: number,
   ): void;
+  activeDartEngine(
+    this: BalancedTrainingPlayContext,
+  ): SwitchingEngine | DoublePatternEngine | null;
+  visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[];
   recordSwitchingDart(
+    this: BalancedTrainingPlayContext,
+    observation: DartObservation,
+  ): void;
+  recordDoublePatternDart(
     this: BalancedTrainingPlayContext,
     observation: DartObservation,
   ): void;
