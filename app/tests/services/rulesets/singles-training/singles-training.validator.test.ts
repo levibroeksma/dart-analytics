@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   singlesTrainingValidator,
   singlesTrainingV2Validator,
+  singlesTrainingV3Validator,
 } from "@services/rulesets/singles-training/singles-training.validator";
 import type { DartFactInput } from "@routes/types";
 
@@ -14,6 +15,11 @@ const validConfig = {
   points_single: 1,
   points_double: 2,
   points_treble: 3,
+};
+
+const validConfigV3 = {
+  ...validConfig,
+  scoring_mode: "STANDARD",
 };
 
 const hitDart: DartFactInput = {
@@ -271,5 +277,74 @@ describe("singlesTrainingValidator.validateBatch — visual board", () => {
     });
 
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("singlesTrainingV3Validator.validateConfig", () => {
+  it("accepts RECREATIONAL + DETAILED_DARTS with STANDARD scoring", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: validConfigV3,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts ANALYTICS + VISUAL_BOARD with STANDARD scoring", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: validConfigV3,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts ANALYTICS + VISUAL_BOARD with ACCURACY scoring", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: { ...validConfigV3, scoring_mode: "ACCURACY" },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects RECREATIONAL + DETAILED_DARTS with ACCURACY scoring — keypad cannot distinguish inner/outer single", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: { ...validConfigV3, scoring_mode: "ACCURACY" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a scoring_mode value outside STANDARD/ACCURACY", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: { ...validConfigV3, scoring_mode: "PRECISE" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a capture/input mode combination the ruleset does not support", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: validConfigV3,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("accepts HARD/EXTREME difficulty combined with ACCURACY scoring", () => {
+    const result = singlesTrainingV3Validator.validateConfig({
+      config: {
+        ...validConfigV3,
+        difficulty: "HARD",
+        scoring_mode: "ACCURACY",
+      },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
   });
 });

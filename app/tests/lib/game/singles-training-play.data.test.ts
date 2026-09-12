@@ -20,10 +20,12 @@ import {
 import {
   singlesTrainingEngineFactory,
   singlesTrainingV2EngineFactory,
+  singlesTrainingV3EngineFactory,
 } from "@modules/game/singles-training.engine.module";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
 import type {
   SinglesSnapshot,
+  SinglesV3Snapshot,
   Seated,
   SeatFact,
   SinglesTrainingPlayContext,
@@ -68,6 +70,12 @@ function defaultConfig(): Seated<SinglesSnapshot> {
     pointsTreble: 3,
     seats: SEATS,
   };
+}
+
+function defaultV3Config(
+  scoringMode: "STANDARD" | "ACCURACY" = "STANDARD",
+): Seated<SinglesV3Snapshot> {
+  return { ...defaultConfig(), scoringMode };
 }
 
 /** `n` prior turns (targets 1..n), each 3 SINGLE hits, so a fresh engine
@@ -162,6 +170,7 @@ beforeEach(() => {
   resetEngineRegistry();
   registerEngineFactory(singlesTrainingEngineFactory);
   registerEngineFactory(singlesTrainingV2EngineFactory);
+  registerEngineFactory(singlesTrainingV3EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -185,6 +194,20 @@ describe("init", () => {
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
     expect(play.engine?.rulesetVersionKey).toBe("SINGLES_V2");
+  });
+
+  it("resumes the engine for a SINGLES_V3 session just as it does for SINGLES_V1/V2", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "SINGLES_V3" },
+    ]);
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V3",
+      configSnapshot: defaultV3Config("ACCURACY"),
+    });
+    await play.init.call(play);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
+    expect(play.engine?.rulesetVersionKey).toBe("SINGLES_V3");
   });
 
   it("leaves hasActiveSession false when there is no server session for this game", async () => {
@@ -545,6 +568,50 @@ describe("previewSegments", () => {
       hitZoneKey: "SINGLE",
       locationX: null,
       locationY: null,
+    });
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "miss" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+});
+
+describe("previewSegments — ACCURACY scoring mode", () => {
+  it("marks an OUTER_SINGLE hit on target as a hit, an INNER_SINGLE hit as a miss", async () => {
+    const play = makePlay({ configSnapshot: defaultV3Config("ACCURACY") });
+    await play.init.call(play);
+
+    await play.commitDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "OUTER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    await play.commitDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "INNER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("marks a DOUBLE/TREBLE hit on target as a miss under ACCURACY", async () => {
+    const play = makePlay({ configSnapshot: defaultV3Config("ACCURACY") });
+    await play.init.call(play);
+
+    await play.commitDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 0,
     });
 
     expect(play.previewSegments.call(play)).toEqual([
@@ -1282,6 +1349,64 @@ describe("playAgain", () => {
       "Could not start a new session. Try again.",
     );
     expect(play.finished).toBe(true);
+  });
+});
+
+describe("playAgain — scoring_mode presence", () => {
+  it("carries scoring_mode when replaying a SINGLES_V3 session", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SINGLES_V3",
+      turns: priorTurnsThroughNumber(20),
+      configSnapshot: defaultV3Config("ACCURACY"),
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "SINGLES_V3",
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ scoring_mode: "ACCURACY" }),
+        }),
+      }),
+    );
+  });
+
+  it("omits scoring_mode when replaying a SINGLES_V1 session", async () => {
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    const call = vi.mocked(createSession).mock.calls[0][0] as {
+      config: { overrides: Record<string, unknown> };
+    };
+    expect(call.config.overrides).not.toHaveProperty("scoring_mode");
   });
 });
 

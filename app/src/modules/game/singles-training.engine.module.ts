@@ -4,6 +4,7 @@ import type {
   SeatFact,
   SinglesSnapshot,
   SinglesV2Snapshot,
+  SinglesV3Snapshot,
 } from "@lib/types";
 import {
   BULL_TARGET_NUMBER,
@@ -38,7 +39,10 @@ import type {
 
 const STAGE = exerciseBlockStage();
 
-type SinglesEngineConfig = Seated<SinglesSnapshot> | Seated<SinglesV2Snapshot>;
+type SinglesEngineConfig =
+  | Seated<SinglesSnapshot>
+  | Seated<SinglesV2Snapshot>
+  | Seated<SinglesV3Snapshot>;
 
 function initialSeatState(seat: SeatFact): SinglesTrainingSeatState {
   return {
@@ -109,11 +113,40 @@ function isHitOnTarget(
   );
 }
 
+/** `scoringMode` is absent on every V1/V2 config; reads as `"STANDARD"` —
+ * the ring-quality point ladder both those versions have always used. */
+function scoringModeOf(config: SinglesEngineConfig): "STANDARD" | "ACCURACY" {
+  return "scoringMode" in config ? config.scoringMode : "STANDARD";
+}
+
+/**
+ * Accuracy scoring: 1 point for the outer/large single on a NUMBER target,
+ * or either bull ring — 0 for everything else, including a genuine hit on
+ * the wrong ring (inner single, double, treble) or the wrong target.
+ */
+function accuracyPointsFor(
+  target: BoardTarget,
+  observation: DartObservation,
+): number {
+  if (target.kind === "BULL") {
+    if (observation.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
+    return observation.hitZoneKey === "OUTER_BULL" ||
+      observation.hitZoneKey === "INNER_BULL"
+      ? 1
+      : 0;
+  }
+  if (observation.hitTargetNumber !== target.number) return 0;
+  return observation.hitZoneKey === "OUTER_SINGLE" ? 1 : 0;
+}
+
 function trainingPointsFor(
   target: BoardTarget,
   config: SinglesEngineConfig,
   observation: DartObservation,
 ): number {
+  if (scoringModeOf(config) === "ACCURACY") {
+    return accuracyPointsFor(target, observation);
+  }
   if (target.kind === "BULL") {
     if (observation.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
     if (observation.hitZoneKey === "OUTER_BULL") return config.pointsSingle;
@@ -415,3 +448,17 @@ export const singlesTrainingV2EngineFactory: GameEngineFactory<
 };
 
 registerEngineFactory(singlesTrainingV2EngineFactory);
+
+export const singlesTrainingV3EngineFactory: GameEngineFactory<
+  Seated<SinglesV3Snapshot>,
+  DartObservation,
+  SinglesTrainingState
+> = {
+  rulesetVersionKey: "SINGLES_V3",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<SinglesV3Snapshot>, prior?: EngineFacts) {
+    return new SinglesTrainingEngine(config, prior, "SINGLES_V3");
+  },
+};
+
+registerEngineFactory(singlesTrainingV3EngineFactory);

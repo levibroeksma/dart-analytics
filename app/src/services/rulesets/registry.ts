@@ -10,6 +10,7 @@ import { shanghaiValidator } from "./shanghai/shanghai.validator";
 import { shanghaiV2Validator } from "./shanghai/shanghai.validator";
 import { singlesTrainingValidator } from "./singles-training/singles-training.validator";
 import { singlesTrainingV2Validator } from "./singles-training/singles-training.validator";
+import { singlesTrainingV3Validator } from "./singles-training/singles-training.validator";
 import { tuodValidator } from "./tuod/tuod.validator";
 
 const REGISTRY: Record<string, RulesetValidator> = {
@@ -17,6 +18,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   BOBS27_V1: bobs27Validator,
   SINGLES_V1: singlesTrainingValidator,
   SINGLES_V2: singlesTrainingV2Validator,
+  SINGLES_V3: singlesTrainingV3Validator,
   DOUBLES_TRAINING_V1: doublesTrainingValidator,
   "501_V1": fiveOhOneValidator,
   TUOD_V1: tuodValidator,
