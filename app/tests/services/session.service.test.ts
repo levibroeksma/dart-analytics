@@ -14,6 +14,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
     findCaptureModeId: vi.fn(),
     findInputModeId: vi.fn(),
     findGameStatusId: vi.fn(),
+    findExerciseTypeId: vi.fn(),
     findParticipantTypeId: vi.fn(),
     findPlayerDisplayName: vi.fn(),
     findConfigurationTemplate: vi.fn(),
@@ -112,6 +113,7 @@ describe("createSession", () => {
     vi.mocked(repo.findCaptureModeId).mockResolvedValue(1);
     vi.mocked(repo.findInputModeId).mockResolvedValue(1);
     vi.mocked(repo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(repo.findExerciseTypeId).mockResolvedValue("et1");
     vi.mocked(repo.findParticipantTypeId).mockImplementation(
       async (_db: unknown, key: string) =>
         key === "PLAYER" ? 1 : key === "GUEST" ? 2 : 3,
@@ -195,6 +197,18 @@ describe("createSession", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.participants[0].displayName).toBe("Levi");
+  });
+
+  it("resolves the GAME exercise type and threads its id into the session insert", async () => {
+    const result = await createSession("player-1", inlineRequest);
+
+    expect(result.ok).toBe(true);
+    expect(repo.findExerciseTypeId).toHaveBeenCalledWith(
+      expect.anything(),
+      "GAME",
+    );
+    const written = vi.mocked(repo.insertSessionRecords).mock.calls[0][0];
+    expect(written.exerciseTypeId).toBe("et1");
   });
 
   it("writes the seats into the configuration snapshot, matching the minted ids", async () => {

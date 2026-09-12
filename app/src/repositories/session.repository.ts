@@ -8,6 +8,7 @@ import {
   exerciseConfigurations,
   exerciseSessions,
   exerciseStages,
+  exerciseTypes,
   gameStatuses,
   gameTypes,
   inputModes,
@@ -97,6 +98,18 @@ export async function findGameStatusId(
     .select({ id: gameStatuses.id })
     .from(gameStatuses)
     .where(eq(gameStatuses.implementationKey, key))
+    .limit(1);
+  return row?.id;
+}
+
+export async function findExerciseTypeId(
+  db: Db,
+  key: string,
+): Promise<string | undefined> {
+  const [row] = await db
+    .select({ id: exerciseTypes.id })
+    .from(exerciseTypes)
+    .where(eq(exerciseTypes.implementationKey, key))
     .limit(1);
   return row?.id;
 }
@@ -337,6 +350,7 @@ export async function insertSessionRecords(
       inputModeId: input.inputModeId,
       statusId: input.activeStatusId,
       rulesetVersionId: input.rulesetVersionId,
+      exerciseTypeId: input.exerciseTypeId,
       startedAt: now,
       createdAt: now,
     });

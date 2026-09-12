@@ -14,6 +14,7 @@ import {
   findConfigurationPresets,
   findConfigurationTemplate,
   findDartZoneIdMap,
+  findExerciseTypeId,
   findGameStatusId,
   findGameTypeAndRuleset,
   findIdempotencyRecord,
@@ -69,6 +70,7 @@ async function loadCreateSessionLookups(
     guestParticipantTypeId: number;
     dartbotParticipantTypeId: number;
     displayName: string;
+    exerciseTypeId: string;
   }>
 > {
   const [
@@ -79,6 +81,7 @@ async function loadCreateSessionLookups(
     guestParticipantTypeId,
     dartbotParticipantTypeId,
     displayName,
+    exerciseTypeId,
   ] = await Promise.all([
     findCaptureModeId(db, input.captureModeKey),
     findInputModeId(db, input.inputModeKey),
@@ -87,6 +90,7 @@ async function loadCreateSessionLookups(
     findParticipantTypeId(db, "GUEST"),
     findParticipantTypeId(db, "DARTBOT"),
     findPlayerDisplayName(db, playerId),
+    findExerciseTypeId(db, "GAME"),
   ]);
   if (!captureModeId)
     return {
@@ -105,7 +109,8 @@ async function loadCreateSessionLookups(
     !playerParticipantTypeId ||
     !guestParticipantTypeId ||
     !dartbotParticipantTypeId ||
-    !displayName
+    !displayName ||
+    !exerciseTypeId
   ) {
     return {
       ok: false,
@@ -124,6 +129,7 @@ async function loadCreateSessionLookups(
       guestParticipantTypeId,
       dartbotParticipantTypeId,
       displayName,
+      exerciseTypeId,
     },
   };
 }
@@ -197,6 +203,7 @@ async function insertSessionWithActiveGuard(
     captureModeId: number;
     inputModeId: number;
     activeStatusId: number;
+    exerciseTypeId: string;
     configuration: Record<string, unknown>;
   },
 ): Promise<ServiceResult<{ sessionId: string }>> {
@@ -212,6 +219,7 @@ async function insertSessionWithActiveGuard(
       captureModeId: params.captureModeId,
       inputModeId: params.inputModeId,
       activeStatusId: params.activeStatusId,
+      exerciseTypeId: params.exerciseTypeId,
       configuration: params.configuration,
     });
   } catch (error) {
@@ -367,6 +375,7 @@ export async function createSession(
     guestParticipantTypeId,
     dartbotParticipantTypeId,
     displayName,
+    exerciseTypeId,
   } = lookups.data;
 
   const configuration = await resolveSessionConfiguration(
@@ -417,6 +426,7 @@ export async function createSession(
     captureModeId,
     inputModeId,
     activeStatusId,
+    exerciseTypeId,
     configuration: { ...configuration.data.config, seats },
   });
   if (!inserted.ok) return inserted;

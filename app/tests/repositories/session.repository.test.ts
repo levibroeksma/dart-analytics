@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 function fakeSelect(rows: unknown[]) {
   const chain = {
@@ -31,6 +31,24 @@ describe("findGameTypeAndRuleset", () => {
     const { findGameTypeAndRuleset } =
       await import("@repositories/session.repository");
     const result = await findGameTypeAndRuleset(db, "UNKNOWN", "UNKNOWN_V1");
+    expect(result).toBeUndefined();
+  });
+});
+
+describe("findExerciseTypeId", () => {
+  it("returns the id for a matching implementation key", async () => {
+    const db = { select: vi.fn(() => fakeSelect([{ id: "et1" }])) } as any;
+    const { findExerciseTypeId } =
+      await import("@repositories/session.repository");
+    const result = await findExerciseTypeId(db, "GAME");
+    expect(result).toBe("et1");
+  });
+
+  it("returns undefined when no row matches", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    const { findExerciseTypeId } =
+      await import("@repositories/session.repository");
+    const result = await findExerciseTypeId(db, "UNKNOWN");
     expect(result).toBeUndefined();
   });
 });
@@ -103,17 +121,31 @@ describe("findIdempotencyRecord", () => {
   });
 });
 
+const insertedValuesByTable = new Map<unknown, unknown>();
+
 vi.mock("@db/client", () => ({
   withTransaction: vi.fn(async (fn: (tx: unknown) => unknown) => {
     // Every table's `.insert(...).values(...)` just needs to resolve — this
     // proves insertSessionRecords runs inside withTransaction and returns the
-    // right shape, without asserting per-table row content (see note below).
-    const tx = { insert: () => ({ values: () => Promise.resolve() }) };
+    // right shape. Values are also recorded per table so a specific insert's
+    // row content can be asserted (see the exercise_sessions row test below).
+    const tx = {
+      insert: (table: unknown) => ({
+        values: (values: unknown) => {
+          insertedValuesByTable.set(table, values);
+          return Promise.resolve();
+        },
+      }),
+    };
     return fn(tx);
   }),
 }));
 
 describe("insertSessionRecords", () => {
+  beforeEach(() => {
+    insertedValuesByTable.clear();
+  });
+
   it("resolves with the generated sessionId", async () => {
     const { insertSessionRecords } =
       await import("@repositories/session.repository");
@@ -135,6 +167,7 @@ describe("insertSessionRecords", () => {
       captureModeId: 1,
       inputModeId: 1,
       activeStatusId: 1,
+      exerciseTypeId: "et1",
       configuration: {
         duration_type: "ROUNDS",
         duration_value: 10,
@@ -142,6 +175,41 @@ describe("insertSessionRecords", () => {
       },
     });
     expect(result).toEqual({ sessionId: "s1" });
+  });
+
+  it("writes exerciseTypeId onto the exercise_sessions row (required NOT NULL since migration 0031)", async () => {
+    const { insertSessionRecords } =
+      await import("@repositories/session.repository");
+    const { exerciseSessions } = await import("@db/schema");
+    await insertSessionRecords({
+      activityId: "a1",
+      sessionId: "s1",
+      configurationId: "c1",
+      participants: [
+        {
+          id: "pt1",
+          participantTypeId: 1,
+          playerId: "p1",
+          displayName: "Levi",
+        },
+      ],
+      playerId: "p1",
+      gameTypeId: "gt1",
+      rulesetVersionId: "rv1",
+      captureModeId: 1,
+      inputModeId: 1,
+      activeStatusId: 1,
+      exerciseTypeId: "et1",
+      configuration: {
+        duration_type: "ROUNDS",
+        duration_value: 10,
+        max_darts_per_turn: 3,
+      },
+    });
+    const row = insertedValuesByTable.get(exerciseSessions) as {
+      exerciseTypeId?: string;
+    };
+    expect(row.exerciseTypeId).toBe("et1");
   });
 });
 

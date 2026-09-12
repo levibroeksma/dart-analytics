@@ -55,20 +55,6 @@ Proposed: add the 4 missing triples (`SINGLES_V2`/`SHANGHAI_V2` × `RECREATIONAL
 
 ---
 
-### F79 — `insertSessionRecords` never sets `exercise_sessions.exercise_type_id`, required since migration 0031
-Status: Open · Found: 2026-09-11 · Task: claude/inspiring-edison-0h3wiq
-Claim: `insertSessionRecords` (`app/src/repositories/session.repository.ts:319-343`) inserts a complete, valid `exercise_sessions` row for a game session
-Evidence: `database/migrations/0029_session_exercise_generalization.sql` added `exercise_sessions.exercise_type_id` (FK to `exercise_types`) and `database/migrations/0031_session_exercise_type_not_null.sql` promoted it to `NOT NULL`, backfilling existing rows to `GAME` via `database/seeds/0014_exercise_types.sql`. `insertSessionRecords`'s `tx.insert(exerciseSessions).values({...})` call (line 331) and its `CreateSessionRecordsInput` type (`app/src/repositories/interfaces.ts`) set `gameTypeId`/`captureModeId`/`inputModeId`/`rulesetVersionId` but never `exerciseTypeId` — confirmed against a schema regenerated via `drizzle-kit introspect` against a migrated database, where `astro check` fails with ts(2769) at this exact call site ("Property 'exerciseTypeId' is missing")
-Impact: once `app/src/db/schema.ts` is regenerated to match the applied migration chain (see F78), every game-session creation through this path fails to type-check, and would fail its `NOT NULL` constraint against a live database regardless of typing
-Proposed: have the caller resolve the `GAME` exercise type's id (lookup by `implementation_key`, matching the pattern `05-Database/10-Database-Agent-Guide.md` documents elsewhere) and thread it into `CreateSessionRecordsInput`/the insert — small, but a real behavior change outside this task's read-only check
-
-### F78 — `app/src/db/schema.ts` (committed `drizzle-kit introspect` output) is stale against applied migrations 0027–0032
-Status: Open · Found: 2026-09-11 · Task: claude/inspiring-edison-0h3wiq
-Claim: `app/CLAUDE.md`'s non-negotiable "Re-run `drizzle-kit introspect` after architecture migration changes" means the committed `app/src/db/schema.ts` reflects every applied migration under `database/migrations/`
-Evidence: grepping the whole repo (outside `database/`) for `exerciseTypeId`/`exercise_type_id` returns zero matches, yet `database/migrations/0027_exercise_type_reference.sql` through `database/migrations/0032_exercise_template_type_not_null.sql` are applied migrations that add and constrain exactly that column (and `exercise_ruleset_version_id`, `routine_step_sequence_number`) on `exercise_sessions`/related tables. `npm run check` (astro check) against the checked-in `app/src/db/schema.ts` reports 0 errors on `main`; the same command against `app/src/db/schema.ts` freshly introspected from a database with 0027-0032 applied fails at `app/src/repositories/session.repository.ts:331` (see F79)
-Impact: `npm run validate:app`/CI's astro-check step is currently blind to any type error the 0027-0032 schema changes should surface, including the real bug in F79 — it only catches such drift once someone locally reintrospects and diffs, which nothing currently automates or requires before merge
-Proposed: run `drizzle-kit introspect` against a database with all migrations through 0032 applied and commit the resulting `app/src/db/schema.ts` (and `app/src/db/meta/` snapshot) as its own dedicated task — mechanical regen, but will surface F79 as a build failure the moment it lands, so the two should be fixed together
-
 ### F73 — `deploy.yml` deploys the Worker on every merge to `main` but never applies pending database migrations to production
 Status: Open · Found: 2026-09-08 · Task: claude/statistics-500-highest-checkout-fix
 Claim: a merge to `main` ships a production Worker whose API routes work against the production schema
