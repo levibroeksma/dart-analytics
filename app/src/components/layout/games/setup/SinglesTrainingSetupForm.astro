@@ -11,7 +11,7 @@ import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 const infoSection = {
   title: "Singles training rules",
   description:
-    "One target at a time, three darts each: 1 through 20 and bull, in the order you choose below. Single = 1 point, double = 2, treble = 3 — only on the current target. On the bull, outer = 1 point, inner = 2, no treble. Misses score 0. The session ends once every target has been visited once. Hard requires at least 1 dart on target each visit, Extreme at least 2 — miss the requirement and it's game over.",
+    "One target at a time, three darts each: 1 through 20 and bull, in the order you choose below. Single = 1 point, double = 2, treble = 3 — only on the current target. On the bull, outer = 1 point, inner = 2, no treble. Misses score 0. The session ends once every target has been visited once. Hard requires at least 1 dart on target each visit, Extreme at least 2 — miss the requirement and it's game over. Accuracy mode only scores the outer (large) single ring on a number target, or either bull ring — misses, doubles, trebles, the inner single, and the wrong target all score nothing.",
 };
 
 const orderModeOpts = [
@@ -24,6 +24,11 @@ const difficultyOpts = [
   { value: "EASY", label: "Easy" },
   { value: "HARD", label: "Hard" },
   { value: "EXTREME", label: "Extreme" },
+];
+
+const scoringModeOpts = [
+  { value: "STANDARD", label: "Standard" },
+  { value: "ACCURACY", label: "Accuracy" },
 ];
 const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
@@ -54,6 +59,18 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
           orientation="horizontal"
           options={difficultyOpts}
           x-model="difficulty"
+          class="w-full"
+        />
+      </div>
+      <div
+        x-show="$store.settings.captureModeKey === 'ANALYTICS'"
+        x-cloak
+      >
+        <label class={labelClass}>Scoring</label>
+        <Toggle
+          orientation="horizontal"
+          options={scoringModeOpts}
+          x-model="scoringMode"
           class="w-full"
         />
       </div>
