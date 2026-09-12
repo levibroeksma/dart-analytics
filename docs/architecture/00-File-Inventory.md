@@ -21,7 +21,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
 | `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19); New non-game client tool (Trivia) pack row added (2026-09-09) | canonical | ~1.9k |
-| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~10.7k |
+| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~13.4k |
 | `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19) | historical | ~66.6k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
