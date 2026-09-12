@@ -40,4 +40,9 @@ export {
   type UpdatePlayerProfileInput,
   type PlayerProfileResponseData,
   type StatisticsOverviewResponseData,
+  StartTrainingRequest,
+  type StartTrainingRequestInput,
+  type StartTrainingResponseData,
+  type StartTrainingStepResponseData,
+  type CompleteTrainingResponseData,
 } from "@routes/types";
