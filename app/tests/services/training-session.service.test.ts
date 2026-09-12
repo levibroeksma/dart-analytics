@@ -1,20 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@db/client", () => ({ getDb: vi.fn(() => ({})) }));
+vi.mock("@db/client", () => ({
+  getDb: vi.fn(() => ({})),
+  withTransaction: vi.fn((fn: (tx: unknown) => unknown) => fn({})),
+}));
 vi.mock("@lib/id", () => ({ generateId: vi.fn(() => "generated-id") }));
 vi.mock("@repositories/training-session.repository", () => ({
   findRoutineTemplateSteps: vi.fn(),
   insertTrainingActivity: vi.fn(),
+  findActivityConfiguration: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@repositories/session.repository")>();
-  return { ...actual, findGameStatusId: vi.fn() };
+  return {
+    ...actual,
+    findGameStatusId: vi.fn(),
+    findExerciseTypeId: vi.fn(),
+    findExerciseRulesetVersionId: vi.fn(),
+    findGameTypeAndRuleset: vi.fn(),
+    findCaptureModeId: vi.fn(),
+    findInputModeId: vi.fn(),
+    findParticipantTypeId: vi.fn(),
+    findPlayerDisplayName: vi.fn(),
+    insertExerciseSessionRecord: vi.fn(),
+    findActiveSessionForGameType: vi.fn(),
+  };
 });
 
 import * as trainingRepo from "@repositories/training-session.repository";
 import * as sessionRepo from "@repositories/session.repository";
-import { startTraining } from "@services/training-session.service";
+import {
+  startTraining,
+  startTrainingStep,
+} from "@services/training-session.service";
 
 const RESOLVED = {
   routineTemplateId: "rt-1",
@@ -85,5 +104,134 @@ describe("startTraining", () => {
     expect(trainingRepo.insertTrainingActivity).toHaveBeenCalledWith(
       expect.objectContaining({ activityId: "generated-id", playerId: "p1" }),
     );
+  });
+});
+
+const SNAPSHOT = {
+  routineName: "Balanced Training",
+  steps: [
+    {
+      sequenceNumber: 1,
+      exerciseTypeKey: "WARM_UP",
+      exerciseRulesetVersionKey: "WARM_UP_V1",
+      gameTypeKey: null,
+      durationSeconds: 600,
+      configuration: { stepDurationSeconds: 600, phases: [] },
+    },
+    {
+      sequenceNumber: 4,
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      gameTypeKey: "TUOD",
+      durationSeconds: 600,
+      configuration: { starting_target: 41 },
+    },
+  ],
+};
+
+describe("startTrainingStep", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns VALIDATION_FAILED for an out-of-range sequenceNumber", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    const result = await startTrainingStep("p1", "act-1", 99);
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown sequenceNumber" },
+    });
+  });
+
+  it("inserts a non-game exercise session for WARM_UP", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-warmup");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-1",
+    );
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 1);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exerciseTypeKey).toBe("WARM_UP");
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        activityId: "act-1",
+        exerciseTypeId: "et-warmup",
+        exerciseRulesetVersionId: "erv-1",
+        routineStepSequenceNumber: 1,
+      }),
+    );
+  });
+
+  it("inserts a GAME exercise session for Finishing, resolving TUOD_V1", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-game");
+    vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
+      gameTypeId: "gt-tuod",
+      rulesetVersionId: "rv-tuod-1",
+    });
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 4);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.gameTypeKey).toBe("TUOD");
+    expect(result.data.rulesetVersionKey).toBe("TUOD_V1");
+    expect(sessionRepo.findGameTypeAndRuleset).toHaveBeenCalledWith(
+      expect.anything(),
+      "TUOD",
+      "TUOD_V1",
+    );
+  });
+
+  it("returns SESSION_ALREADY_ACTIVE when the Finishing insert hits the unique-active conflict", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-game");
+    vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
+      gameTypeId: "gt-tuod",
+      rulesetVersionId: "rv-tuod-1",
+    });
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockRejectedValue({
+      code: "23505",
+      constraint: "uq_sessions_single_active",
+    });
+    vi.mocked(sessionRepo.findActiveSessionForGameType).mockResolvedValue({
+      sessionId: "active-1",
+      startedAt: "2026-09-12T00:00:00Z",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 4);
+    expect(result).toMatchObject({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: { sessionId: "active-1" },
+    });
   });
 });

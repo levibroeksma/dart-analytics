@@ -47,7 +47,7 @@ import type {
  * (Postgres 23505 on that partial index), i.e. an active session for this
  * (player, game type) already exists.
  */
-function isActiveSessionConflict(error: unknown): boolean {
+export function isActiveSessionConflict(error: unknown): boolean {
   const e = error as { code?: string; constraint?: string; message?: string };
   return (
     e?.code === "23505" &&
