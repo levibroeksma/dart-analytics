@@ -54,13 +54,26 @@ export interface CreateSessionRecordsInput {
     displayName: string;
   }[];
   playerId: string;
-  gameTypeId: string;
-  rulesetVersionId: string;
-  captureModeId: number;
-  inputModeId: number;
+  gameTypeId?: string;
+  rulesetVersionId?: string;
+  captureModeId?: number;
+  inputModeId?: number;
   activeStatusId: number;
   exerciseTypeId: string;
+  exerciseRulesetVersionId?: string;
+  routineStepSequenceNumber?: number;
   configuration: Record<string, unknown>;
+}
+
+export interface RoutineStepTemplateRow {
+  sequenceNumber: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  durationTypeKey: string;
+  durationValue: number;
+  defaultConfiguration: unknown;
+  stepConfiguration: unknown;
 }
 
 export interface BatchInsertStage {
