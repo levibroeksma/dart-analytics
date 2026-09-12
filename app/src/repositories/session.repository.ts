@@ -6,6 +6,7 @@ import {
   dartZones,
   darts,
   exerciseConfigurations,
+  exerciseRulesetVersions,
   exerciseSessions,
   exerciseStages,
   exerciseTypes,
@@ -329,49 +330,86 @@ export async function findConfigurationPresets(
     );
 }
 
+type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
+  ? T
+  : never;
+
+export async function insertActivityRecord(
+  tx: Tx,
+  input: { activityId: string; playerId: string; activeStatusId: number },
+): Promise<void> {
+  const now = new Date().toISOString();
+  await tx.insert(activities).values({
+    id: input.activityId,
+    playerId: input.playerId,
+    statusId: input.activeStatusId,
+    startedAt: now,
+    createdAt: now,
+  });
+}
+
+export async function insertExerciseSessionRecord(
+  tx: Tx,
+  input: CreateSessionRecordsInput,
+): Promise<{ sessionId: string }> {
+  const now = new Date().toISOString();
+  await tx.insert(exerciseSessions).values({
+    id: input.sessionId,
+    activityId: input.activityId,
+    playerId: input.playerId,
+    gameTypeId: input.gameTypeId ?? null,
+    captureModeId: input.captureModeId ?? null,
+    inputModeId: input.inputModeId ?? null,
+    statusId: input.activeStatusId,
+    rulesetVersionId: input.rulesetVersionId ?? null,
+    exerciseTypeId: input.exerciseTypeId,
+    exerciseRulesetVersionId: input.exerciseRulesetVersionId ?? null,
+    routineStepSequenceNumber: input.routineStepSequenceNumber ?? null,
+    startedAt: now,
+    createdAt: now,
+  });
+  await tx.insert(exerciseConfigurations).values({
+    id: input.configurationId,
+    exerciseSessionId: input.sessionId,
+    configuration: input.configuration,
+    createdAt: now,
+  });
+  await tx.insert(participants).values(
+    input.participants.map((participant) => ({
+      id: participant.id,
+      exerciseSessionId: input.sessionId,
+      participantTypeId: participant.participantTypeId,
+      playerId: participant.playerId,
+      displayName: participant.displayName,
+      createdAt: now,
+    })),
+  );
+  return { sessionId: input.sessionId };
+}
+
 export async function insertSessionRecords(
   input: CreateSessionRecordsInput,
 ): Promise<{ sessionId: string }> {
   return withTransaction(async (tx) => {
-    const now = new Date().toISOString();
-    await tx.insert(activities).values({
-      id: input.activityId,
-      playerId: input.playerId,
-      statusId: input.activeStatusId,
-      startedAt: now,
-      createdAt: now,
-    });
-    await tx.insert(exerciseSessions).values({
-      id: input.sessionId,
+    await insertActivityRecord(tx, {
       activityId: input.activityId,
       playerId: input.playerId,
-      gameTypeId: input.gameTypeId,
-      captureModeId: input.captureModeId,
-      inputModeId: input.inputModeId,
-      statusId: input.activeStatusId,
-      rulesetVersionId: input.rulesetVersionId,
-      exerciseTypeId: input.exerciseTypeId,
-      startedAt: now,
-      createdAt: now,
+      activeStatusId: input.activeStatusId,
     });
-    await tx.insert(exerciseConfigurations).values({
-      id: input.configurationId,
-      exerciseSessionId: input.sessionId,
-      configuration: input.configuration,
-      createdAt: now,
-    });
-    await tx.insert(participants).values(
-      input.participants.map((participant) => ({
-        id: participant.id,
-        exerciseSessionId: input.sessionId,
-        participantTypeId: participant.participantTypeId,
-        playerId: participant.playerId,
-        displayName: participant.displayName,
-        createdAt: now,
-      })),
-    );
-    return { sessionId: input.sessionId };
+    return insertExerciseSessionRecord(tx, input);
   });
+}
+
+export async function findExerciseRulesetVersionId(
+  db: Db,
+  key: string,
+): Promise<string | undefined> {
+  const [row] = await db
+    .select({ id: exerciseRulesetVersions.id })
+    .from(exerciseRulesetVersions)
+    .where(eq(exerciseRulesetVersions.implementationKey, key))
+    .limit(1);
+  return row?.id;
 }
 
 export async function insertBatchRecords(

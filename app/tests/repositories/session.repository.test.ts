@@ -213,6 +213,117 @@ describe("insertSessionRecords", () => {
   });
 });
 
+describe("insertActivityRecord", () => {
+  beforeEach(() => {
+    insertedValuesByTable.clear();
+  });
+
+  it("inserts one activities row with the given id", async () => {
+    const { insertActivityRecord } =
+      await import("@repositories/session.repository");
+    const { activities } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    await withTransaction((tx) =>
+      insertActivityRecord(tx as any, {
+        activityId: "act-1",
+        playerId: "p1",
+        activeStatusId: 1,
+      }),
+    );
+    const row = insertedValuesByTable.get(activities) as { id?: string };
+    expect(row.id).toBe("act-1");
+  });
+});
+
+describe("insertExerciseSessionRecord", () => {
+  beforeEach(() => {
+    insertedValuesByTable.clear();
+  });
+
+  it("does not touch the activities table", async () => {
+    const { insertExerciseSessionRecord } =
+      await import("@repositories/session.repository");
+    const { activities } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    await withTransaction((tx) =>
+      insertExerciseSessionRecord(tx as any, {
+        activityId: "act-1",
+        sessionId: "s1",
+        configurationId: "c1",
+        participants: [
+          {
+            id: "pt1",
+            participantTypeId: 1,
+            playerId: "p1",
+            displayName: "Levi",
+          },
+        ],
+        playerId: "p1",
+        activeStatusId: 1,
+        exerciseTypeId: "et-warmup",
+        exerciseRulesetVersionId: "erv-1",
+        routineStepSequenceNumber: 1,
+        configuration: { phases: [] },
+      }),
+    );
+    expect(insertedValuesByTable.has(activities)).toBe(false);
+  });
+
+  it("writes routineStepSequenceNumber and exerciseRulesetVersionId onto the row", async () => {
+    const { insertExerciseSessionRecord } =
+      await import("@repositories/session.repository");
+    const { exerciseSessions } = await import("@db/schema");
+    const { withTransaction } = await import("@db/client");
+    await withTransaction((tx) =>
+      insertExerciseSessionRecord(tx as any, {
+        activityId: "act-1",
+        sessionId: "s1",
+        configurationId: "c1",
+        participants: [
+          {
+            id: "pt1",
+            participantTypeId: 1,
+            playerId: "p1",
+            displayName: "Levi",
+          },
+        ],
+        playerId: "p1",
+        activeStatusId: 1,
+        exerciseTypeId: "et-warmup",
+        exerciseRulesetVersionId: "erv-1",
+        routineStepSequenceNumber: 2,
+        configuration: { phases: [] },
+      }),
+    );
+    const row = insertedValuesByTable.get(exerciseSessions) as {
+      routineStepSequenceNumber?: number;
+      exerciseRulesetVersionId?: string;
+      gameTypeId?: string | null;
+    };
+    expect(row.routineStepSequenceNumber).toBe(2);
+    expect(row.exerciseRulesetVersionId).toBe("erv-1");
+    expect(row.gameTypeId).toBeNull();
+  });
+});
+
+describe("findExerciseRulesetVersionId", () => {
+  it("returns the id for a matching implementation key", async () => {
+    const db = { select: vi.fn(() => fakeSelect([{ id: "erv1" }])) } as any;
+    const { findExerciseRulesetVersionId } =
+      await import("@repositories/session.repository");
+    const result = await findExerciseRulesetVersionId(db, "WARM_UP_V1");
+    expect(result).toBe("erv1");
+  });
+
+  it("returns undefined when no row matches", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    const { findExerciseRulesetVersionId } =
+      await import("@repositories/session.repository");
+    const result = await findExerciseRulesetVersionId(db, "UNKNOWN");
+    expect(result).toBeUndefined();
+  });
+});
+
 describe("insertBatchRecords", () => {
   it("resolves with the created counts", async () => {
     const { insertBatchRecords } =
