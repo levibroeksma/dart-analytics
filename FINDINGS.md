@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-12
-highest-issued: F89
+highest-issued: F90
 -->
 
 # Findings
@@ -43,6 +43,15 @@ Evidence: `path/to/file.md:12` vs what is actually true
 Impact: what it costs an agent that trusts the claim
 Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
+
+---
+
+### F90 — Balanced Training's Finishing step renders bare `TenUpOneDown`, with no checkout confirm, finish confirm, or results modal
+Status: Open · Found: 2026-09-12 · Task: claude/finalize-balanced-training-playable
+Claim: `docs/superpowers/specs/2026-09-12-balanced-training-playable-design.md` §2/§6 says the Finishing step "reuses the existing TUOD play UI in place," implying the same play experience a standalone TUOD game gives
+Evidence: `app/src/pages/training/balanced-training/play/index.astro`'s Finishing branch renders only `<TenUpOneDown x-show="!finished" />` plus a static "Finishing complete." message inside the nested `x-data="finishing"` scope — unlike `app/src/pages/games/tuod/play/index.astro`, it includes no `app/src/components/layout/games/CheckoutConfirm.astro` (double-out confirm), no finish-confirm `app/src/components/ui/ConfirmDialog.astro`, and no `app/src/components/layout/games/result-modals/TenUpOneDownResults.astro`. `finishingStep()`'s wrapped object (`app/src/lib/training/finishing-step.data.ts`) still carries `showDoubleConfirm`/`showFinishConfirm`/`resultsSnapshot` state from the underlying `tuodPlay()` — the state exists and updates correctly, nothing in the store was simplified — only the page's own markup omits the panels that read it
+Impact: a player finishing a checkout that requires double confirmation, or wanting to confirm ending the session early, or expecting a results summary at the end of Finishing, sees no UI for any of the three — `showDoubleConfirm`/`showFinishConfirm` becoming true has no visible effect, and `resultsSnapshot` is computed but never displayed. The routine instead falls straight to the page's own "Finishing complete." text and then to `/training`
+Proposed: add the same three conditional blocks the standalone TUOD page has (`CheckoutConfirm`, finish-confirm `ConfirmDialog`, `TenUpOneDownResults`) to the nested `x-data="finishing"` scope in `play/index.astro` — each reads fields `finishingStep()` already exposes unchanged, so this is additive markup only, no store change
 
 ---
 

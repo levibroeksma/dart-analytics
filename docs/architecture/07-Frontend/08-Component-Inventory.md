@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-10
+updated: 2026-09-12
 -->
 
 # Component Inventory
@@ -97,4 +97,5 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `RoutineDetail.astro` | Routine-detail shell: title + duration pill, ordered step list, disabled `Start` CTA | `title`, `durationLabel`, `steps` (2026-09-11) |
+| `RoutineDetail.astro` | Routine-detail shell: title + duration pill, ordered step list, `Start` CTA wired to `routineStart()` (navigates to `playPath`; the routine itself starts on the play page) | `title`, `durationLabel`, `steps`, `playPath` (2026-09-11; Start wired 2026-09-12) |
+| `ExerciseBoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row for a non-game exercise session (Switching, Double Pattern) — mirrors `BoardInputPanel.astro` minus the `$store.game` gate, since an exercise session has no game store, is always `VISUAL_BOARD`, and has no clock (2026-09-12) | none (reads `board`, pointer handlers, `recordUnseen`, `visitMarkers`, `finished`, `undoVisit()` from the page scope) |
