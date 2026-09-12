@@ -103,3 +103,24 @@ describe("insertTrainingActivity", () => {
     ).toBe("act-1");
   });
 });
+
+describe("findActivityConfiguration", () => {
+  it("returns the stored snapshot's configuration", async () => {
+    const snapshot = { routineName: "Balanced Training", steps: [] };
+    const db = {
+      select: vi.fn(() => fakeSelect([{ configuration: snapshot }])),
+    } as any;
+    const { findActivityConfiguration } =
+      await import("@repositories/training-session.repository");
+    const result = await findActivityConfiguration(db, "act-1");
+    expect(result).toEqual(snapshot);
+  });
+
+  it("returns undefined when the activity has no snapshot", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    const { findActivityConfiguration } =
+      await import("@repositories/training-session.repository");
+    const result = await findActivityConfiguration(db, "unknown");
+    expect(result).toBeUndefined();
+  });
+});

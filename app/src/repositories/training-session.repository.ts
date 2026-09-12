@@ -68,6 +68,19 @@ export async function findRoutineTemplateSteps(
   return { routineTemplateId: template.id, steps };
 }
 
+export async function findActivityConfiguration(
+  db: Db,
+  activityId: string,
+): Promise<{ routineName: string; steps: unknown[] } | undefined> {
+  const [row] = await db
+    .select({ configuration: activityConfigurations.configuration })
+    .from(activityConfigurations)
+    .where(eq(activityConfigurations.activityId, activityId))
+    .limit(1);
+  return row?.configuration as
+    { routineName: string; steps: unknown[] } | undefined;
+}
+
 export async function insertTrainingActivity(input: {
   activityId: string;
   playerId: string;

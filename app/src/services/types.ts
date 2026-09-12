@@ -49,6 +49,17 @@ export type StartTrainingResult = {
   steps: TrainingStepResolved[];
 };
 
+export type StartTrainingStepResult = {
+  sessionId: string;
+  exerciseTypeKey: TrainingStepResolved["exerciseTypeKey"];
+  configuration: Record<string, unknown>;
+  participant: { ref: string; displayName: string };
+  gameTypeKey?: string;
+  rulesetVersionKey?: string;
+  captureModeKey?: string;
+  inputModeKey?: string;
+};
+
 /**
  * One seat as it will be persisted: the participant row to insert plus the
  * side it plays for. Built before the write so participants and the

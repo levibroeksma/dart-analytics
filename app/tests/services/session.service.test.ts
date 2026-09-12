@@ -49,6 +49,7 @@ import {
   updateSessionStatus,
   listActiveSessions,
   listConfigurationPresets,
+  isActiveSessionConflict,
 } from "@services/session.service";
 import type { DartFactInput } from "@routes/types";
 
@@ -1025,5 +1026,20 @@ describe("listActiveSessions / listConfigurationPresets", () => {
     ]);
     const rows = await listConfigurationPresets("p1", "SCORE_TRAINING");
     expect(rows).toHaveLength(1);
+  });
+});
+
+describe("isActiveSessionConflict", () => {
+  it("matches a unique-active-session Postgres error by constraint name", () => {
+    expect(
+      isActiveSessionConflict({
+        code: "23505",
+        constraint: "uq_sessions_single_active",
+      }),
+    ).toBe(true);
+  });
+
+  it("returns false for an unrelated error", () => {
+    expect(isActiveSessionConflict(new Error("boom"))).toBe(false);
   });
 });
