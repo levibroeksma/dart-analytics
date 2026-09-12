@@ -6,6 +6,7 @@ import {
   SinglesTrainingEngine,
   singlesTrainingEngineFactory,
   singlesTrainingV2EngineFactory,
+  singlesTrainingV3EngineFactory,
 } from "@modules/game/singles-training.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -15,7 +16,12 @@ import type {
   EngineFacts,
   SinglesTrainingSeatState,
 } from "@modules/types";
-import type { SinglesSnapshot, SinglesV2Snapshot, Seated } from "@lib/types";
+import type {
+  SinglesSnapshot,
+  SinglesV2Snapshot,
+  SinglesV3Snapshot,
+  Seated,
+} from "@lib/types";
 
 const SEATS = [
   {
@@ -1530,5 +1536,223 @@ describe("foldSinglesTrainingState", () => {
     const folded = foldSinglesTrainingState(engine.facts(), config);
 
     expect(folded).toEqual(expected);
+  });
+});
+
+describe("singlesTrainingV3EngineFactory", () => {
+  it("registers itself under SINGLES_V3", () => {
+    expect(singlesTrainingV3EngineFactory.rulesetVersionKey).toBe("SINGLES_V3");
+    expect(getEngineFactory("SINGLES_V3")).toBe(singlesTrainingV3EngineFactory);
+  });
+
+  it("builds a SinglesTrainingEngine bound to SINGLES_V3, with STANDARD behaving exactly like V2", () => {
+    const v3Config: Seated<SinglesV3Snapshot> = {
+      ...config,
+      difficulty: "EASY",
+      scoringMode: "STANDARD",
+    };
+    const engine = singlesTrainingV3EngineFactory.create(v3Config);
+    expect(engine).toBeInstanceOf(SinglesTrainingEngine);
+    expect(engine.rulesetVersionKey).toBe("SINGLES_V3");
+    expect(engine.state()).toEqual(initialSinglesTrainingState(v3Config));
+  });
+});
+
+describe("applySinglesTrainingDart — ACCURACY scoring mode", () => {
+  const accuracyConfig: Seated<SinglesV3Snapshot> = {
+    ...config,
+    scoringMode: "ACCURACY",
+  };
+
+  it("scores 1 point for an OUTER_SINGLE hit on the right number", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "OUTER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(1);
+  });
+
+  it("scores 0 for an INNER_SINGLE hit on the right number", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "INNER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+
+  it("scores 0 for a DOUBLE hit on the right number", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+
+  it("scores 0 for a TREBLE hit on the right number", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+
+  it("scores 0 for a MISS", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+
+  it("scores 0 for a genuine hit on the wrong number", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(accuracyConfig, state, {
+      hitTargetNumber: 20,
+      hitZoneKey: "OUTER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+
+  it("scores 1 point for an OUTER_BULL hit on the bull visit", () => {
+    const bullState: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 20,
+      totalPoints: 0,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applySinglesTrainingDart(accuracyConfig, bullState, {
+      hitTargetNumber: 25,
+      hitZoneKey: "OUTER_BULL",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(1);
+  });
+
+  it("scores 1 point for an INNER_BULL hit on the bull visit — bull always a point, no inner/outer distinction", () => {
+    const bullState: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 20,
+      totalPoints: 0,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applySinglesTrainingDart(accuracyConfig, bullState, {
+      hitTargetNumber: 25,
+      hitZoneKey: "INNER_BULL",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(next.totalPoints).toBe(1);
+  });
+
+  it("scores 0 for a MISS on the bull visit", () => {
+    const bullState: SinglesTrainingSeatState = {
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 20,
+      totalPoints: 0,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+      status: "IN_PROGRESS",
+    };
+    const next = applySinglesTrainingDart(accuracyConfig, bullState, {
+      hitTargetNumber: 25,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.totalPoints).toBe(0);
+  });
+});
+
+describe("applySinglesTrainingDart — scoringMode absence defaults to STANDARD", () => {
+  it("V1/V2 configs (no scoringMode key) score via the STANDARD ring ladder, not ACCURACY", () => {
+    const state = initialSeat();
+    const next = applySinglesTrainingDart(config, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(next.totalPoints).toBe(2);
+  });
+});
+
+describe("applySinglesTrainingDart — HARD combined with ACCURACY", () => {
+  const accuracyHardConfig: Seated<SinglesV3Snapshot> = {
+    ...config,
+    difficulty: "HARD",
+    scoringMode: "ACCURACY",
+  };
+
+  it("a visit landing an INNER_SINGLE (0 accuracy points) still counts as a hit for the mandatory-hit bust check", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "INNER_SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.totalPoints).toBe(0);
+    expect(state.targetIndex).toBe(1);
+  });
+
+  it("a visit with zero hits still ends the seat as LOST, independent of accuracy points", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    state = applySinglesTrainingDart(accuracyHardConfig, state, {
+      hitTargetNumber: 1,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(state.status).toBe("LOST");
   });
 });

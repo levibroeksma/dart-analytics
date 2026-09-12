@@ -31,6 +31,7 @@ import type {
   SeatFact,
   SinglesSnapshot,
   SinglesV2Snapshot,
+  SinglesV3Snapshot,
 } from "@lib/types";
 import type {
   BoardTarget,
@@ -64,9 +65,11 @@ const GAME_TYPE_KEY = "SINGLES_TRAINING";
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
   "SINGLES_V1",
   "SINGLES_V2",
+  "SINGLES_V3",
 ]);
 
-type SinglesConfigSnapshot = SinglesSnapshot | SinglesV2Snapshot;
+type SinglesConfigSnapshot =
+  SinglesSnapshot | SinglesV2Snapshot | SinglesV3Snapshot;
 
 const EMPTY_SEGMENTS: readonly SinglesPreviewSegment[] = [
   { status: "empty" },
@@ -136,11 +139,32 @@ function targetHitCounts(
   return { singles, doubles, trebles, misses };
 }
 
+/** Mirrors the engine's own (unexported) `scoringModeOf` — same
+ * module-boundary duplication as `SINGLE_ZONE_KEYS` above. */
+function scoringModeOf(config: SinglesConfigSnapshot): "STANDARD" | "ACCURACY" {
+  return "scoringMode" in config ? config.scoringMode : "STANDARD";
+}
+
+/** Mirrors the engine's own (unexported) `accuracyPointsFor`. */
+function accuracyPointsFor(target: BoardTarget, dart: DartFact): number {
+  if (target.kind === "BULL") {
+    if (dart.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
+    return dart.hitZoneKey === "OUTER_BULL" || dart.hitZoneKey === "INNER_BULL"
+      ? 1
+      : 0;
+  }
+  if (dart.hitTargetNumber !== target.number) return 0;
+  return dart.hitZoneKey === "OUTER_SINGLE" ? 1 : 0;
+}
+
 function trainingPointsFor(
   target: BoardTarget,
   config: SinglesConfigSnapshot,
   dart: DartFact,
 ): number {
+  if (scoringModeOf(config) === "ACCURACY") {
+    return accuracyPointsFor(target, dart);
+  }
   if (target.kind === "BULL") {
     if (dart.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
     if (dart.hitZoneKey === "OUTER_BULL") return config.pointsSingle;
@@ -615,6 +639,9 @@ export function singlesTrainingPlay() {
               order_mode: priorConfig.orderMode,
               target_order: targetOrder,
               difficulty: priorConfig.difficulty,
+              ...("scoringMode" in priorConfig
+                ? { scoring_mode: priorConfig.scoringMode }
+                : {}),
             },
           };
         },
