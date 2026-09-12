@@ -22,6 +22,25 @@ function cloneStages(stages: readonly StageFact[]): StageFact[] {
 }
 
 /**
+ * Resolves each phase's own duration, in seconds, from the routine step's
+ * total duration split proportionally to `phase.weight` (design spec
+ * 2026-09-11 §5.1). One entry per phase, in `config.phases` order. Rounded
+ * per phase, so the sum across all entries can differ from
+ * `config.stepDurationSeconds` by a handful of seconds.
+ */
+export function resolveWarmUpPhaseDurations(
+  config: WarmUpEngineInput,
+): number[] {
+  const totalWeight = config.phases.reduce(
+    (sum, phase) => sum + phase.weight,
+    0,
+  );
+  return config.phases.map((phase) =>
+    Math.round((config.stepDurationSeconds * phase.weight) / totalWeight),
+  );
+}
+
+/**
  * Warm-Up: ordered timed sections, no dart input, no score
  * (09-training-routines.md §16). One `EXERCISE_SECTION` stage is appended per
  * section entered, flat under the exercise session — the session already
@@ -58,13 +77,9 @@ class WarmUpEngine implements ExerciseEngine<WarmUpState> {
   private deriveState(): WarmUpState {
     const phaseIndex = this.stages.length - 1;
     const phase = this.config.phases[phaseIndex];
-    const totalWeight = this.config.phases.reduce(
-      (sum, p) => sum + p.weight,
-      0,
-    );
-    const phaseDurationSeconds = Math.round(
-      (this.config.stepDurationSeconds * phase.weight) / totalWeight,
-    );
+    const phaseDurationSeconds = resolveWarmUpPhaseDurations(this.config)[
+      phaseIndex
+    ];
     return {
       phaseIndex,
       phaseName: phase.name,
