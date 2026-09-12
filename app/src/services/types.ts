@@ -34,6 +34,21 @@ export type AppendBatchResult = {
   created: { stages: number; turns: number; darts: number };
 };
 
+export type TrainingStepResolved = {
+  sequenceNumber: number;
+  exerciseTypeKey: "WARM_UP" | "SWITCHING" | "DOUBLE_PATTERN" | "GAME";
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  durationSeconds: number;
+  configuration: Record<string, unknown>;
+};
+
+export type StartTrainingResult = {
+  activityId: string;
+  routineName: string;
+  steps: TrainingStepResolved[];
+};
+
 /**
  * One seat as it will be persisted: the participant row to insert plus the
  * side it plays for. Built before the write so participants and the
