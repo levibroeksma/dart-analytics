@@ -18,17 +18,21 @@ interface Props {
   title: string;
   durationLabel: string;
   steps: RoutineDetailStep[];
+  playPath: string;
 }
 
 // Props
-const { title, durationLabel, steps }: Props = Astro.props;
+const { title, durationLabel, steps, playPath }: Props = Astro.props;
 
 // Components
 import Badge from "@components/ui/Badge.astro";
 import Button from "@components/forms/Button.astro";
 ---
 
-<div class="space-y-4">
+<div
+  class="space-y-4"
+  x-data={`routineStart(${JSON.stringify(playPath)})`}
+>
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-semibold text-foreground">{title}</h1>
     <Badge>{durationLabel}</Badge>
@@ -54,7 +58,7 @@ import Button from "@components/forms/Button.astro";
     title="Start"
     variant="primary"
     grow
-    disabled
-    ariaLabel="Start — coming soon"
+    @click="start()"
+    loadingExpr="starting"
   />
 </div>
