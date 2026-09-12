@@ -157,14 +157,12 @@ function accuracyPointsFor(target: BoardTarget, dart: DartFact): number {
   return dart.hitZoneKey === "OUTER_SINGLE" ? 1 : 0;
 }
 
-function trainingPointsFor(
+/** Mirrors the engine's own (unexported) `standardPointsFor`. */
+function standardPointsFor(
   target: BoardTarget,
   config: SinglesConfigSnapshot,
   dart: DartFact,
 ): number {
-  if (scoringModeOf(config) === "ACCURACY") {
-    return accuracyPointsFor(target, dart);
-  }
   if (target.kind === "BULL") {
     if (dart.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
     if (dart.hitZoneKey === "OUTER_BULL") return config.pointsSingle;
@@ -176,6 +174,16 @@ function trainingPointsFor(
   if (dart.hitZoneKey === "DOUBLE") return config.pointsDouble;
   if (dart.hitZoneKey === "TREBLE") return config.pointsTreble;
   return 0;
+}
+
+function trainingPointsFor(
+  target: BoardTarget,
+  config: SinglesConfigSnapshot,
+  dart: DartFact,
+): number {
+  return scoringModeOf(config) === "ACCURACY"
+    ? accuracyPointsFor(target, dart)
+    : standardPointsFor(target, config, dart);
 }
 
 /**

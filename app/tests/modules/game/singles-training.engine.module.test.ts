@@ -1556,6 +1556,21 @@ describe("singlesTrainingV3EngineFactory", () => {
     expect(engine.rulesetVersionKey).toBe("SINGLES_V3");
     expect(engine.state()).toEqual(initialSinglesTrainingState(v3Config));
   });
+
+  it("scores a TREBLE hit via standardPointsFor's dispatch, identically to V2's ring ladder", () => {
+    const v3Config: Seated<SinglesV3Snapshot> = {
+      ...config,
+      scoringMode: "STANDARD",
+    };
+    const engine = singlesTrainingV3EngineFactory.create(v3Config);
+    engine.record({
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(engine.state().seats[0].totalPoints).toBe(3);
+  });
 });
 
 describe("applySinglesTrainingDart — ACCURACY scoring mode", () => {

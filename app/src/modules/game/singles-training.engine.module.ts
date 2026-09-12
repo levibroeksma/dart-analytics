@@ -139,14 +139,16 @@ function accuracyPointsFor(
   return observation.hitZoneKey === "OUTER_SINGLE" ? 1 : 0;
 }
 
-function trainingPointsFor(
+/**
+ * Standard scoring: the ring-quality point ladder V1/V2 have always used,
+ * unchanged by V3's addition — single/double/treble on a NUMBER target,
+ * outer/inner on BULL, each worth the configured point value.
+ */
+function standardPointsFor(
   target: BoardTarget,
   config: SinglesEngineConfig,
   observation: DartObservation,
 ): number {
-  if (scoringModeOf(config) === "ACCURACY") {
-    return accuracyPointsFor(target, observation);
-  }
   if (target.kind === "BULL") {
     if (observation.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
     if (observation.hitZoneKey === "OUTER_BULL") return config.pointsSingle;
@@ -158,6 +160,16 @@ function trainingPointsFor(
   if (observation.hitZoneKey === "DOUBLE") return config.pointsDouble;
   if (observation.hitZoneKey === "TREBLE") return config.pointsTreble;
   return 0;
+}
+
+function trainingPointsFor(
+  target: BoardTarget,
+  config: SinglesEngineConfig,
+  observation: DartObservation,
+): number {
+  return scoringModeOf(config) === "ACCURACY"
+    ? accuracyPointsFor(target, observation)
+    : standardPointsFor(target, config, observation);
 }
 
 /**

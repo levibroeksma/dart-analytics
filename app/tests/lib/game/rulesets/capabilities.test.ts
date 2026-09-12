@@ -23,6 +23,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SHANGHAI_V2",
       "SINGLES_V1",
       "SINGLES_V2",
+      "SINGLES_V3",
       "TUOD_V1",
     ]);
   });
@@ -137,6 +138,7 @@ describe("capableRulesets", () => {
       "SHANGHAI_V2",
       "SINGLES_V1",
       "SINGLES_V2",
+      "SINGLES_V3",
       "TUOD_V1",
     ]);
   });
