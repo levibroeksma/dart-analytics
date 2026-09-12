@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-09-10
+updated: 2026-09-12
 -->
 
 # Database SQL Artifacts
@@ -62,6 +62,7 @@ astro check
 15. `seeds/0015_warm_up_routine.sql`
 16. `seeds/0016_switching_double_pattern_exercise_types.sql`
 17. `seeds/0017_balanced_training_routine.sql`
+18. `seeds/0018_singles_training_v3_game_engine_reference.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -101,6 +102,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0029_session_generalization_checks.sql` | a warm-up-shaped session is accepted past `fk_sessions_capability`, both pair CHECKs reject a half-set pair, a capture pair without a game pair is accepted (5 checks) |
 | `verification/0030_activity_configuration_checks.sql` | the training snapshot round-trips as JSONB, is unique per activity, and CASCADEs with its activity (3 checks) |
 | `verification/0015_warm_up_routine_checks.sql` | seeds `0014`/`0015` resolve end to end: both exercise types, `WARM_UP_V1`, `EXERCISE_SECTION`, a one-step system routine on a WARM_UP template with five phases, no unbackfilled session (7 checks) |
+| `verification/0031_singles_training_v3_capability_checks.sql` | `seeds/0018`+`0007` combined: `SINGLES_V3`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V3`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 
 ## References
 
