@@ -685,6 +685,8 @@ ExerciseSectionChanged
 
 The frontend can respond by playing the configured ping sound.
 
+**Implemented** (`WARM_UP_V1`, `app/src/modules/exercise/warm-up.engine.module.ts`): each phase's configuration carries a `weight`, not a fixed `durationSeconds` — the engine splits the routine step's own total duration proportionally to weight at construction time, so the same template serves both this routine (5 phases, 5 minutes) and Balanced Training's Warm-Up step (same 5 phases, 10 minutes) without a second template.
+
 The warm-up should not invent artificial performance metrics simply to conform to analytics exercises.
 
 ---
@@ -720,6 +722,8 @@ exercise score
 progress
 ```
 
+**Implemented** (`SWITCHING_V1`, `app/src/modules/exercise/switching.engine.module.ts`): `targets: number[]` (board numbers, e.g. `[20, 19, 18]`) and `scoring: { single, double, treble }` replace this section's `T20`/`evaluation` notation one-for-one. There is no `outside` config key — a dart landing on any number other than the visit's own current target always scores 0, by omission rather than by a configured value.
+
 ---
 
 ## Double Patterns
@@ -736,6 +740,8 @@ patterns:
 ```
 
 The engine tracks the current pattern and evaluates each observed dart against the intended target.
+
+**Implemented** (`DOUBLE_PATTERN_V1`, `app/src/modules/exercise/double-pattern.engine.module.ts`): `patterns: number[][]` (e.g. `[[20, 10, 5], [16, 8, 4], [12, 6, 3]]`) replaces the `D20 → D10 → D5` notation — each element is a board number whose double counts. One point per hit double; nothing else scores.
 
 ---
 
