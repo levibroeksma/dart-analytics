@@ -81,6 +81,27 @@ export async function findActivityConfiguration(
     { routineName: string; steps: unknown[] } | undefined;
 }
 
+export async function updateActivityStatusRecord(
+  db: Db,
+  input: { activityId: string; playerId: string; statusId: number },
+): Promise<{ activityId: string; completedAt: string } | undefined> {
+  const now = new Date().toISOString();
+  const [row] = await db
+    .update(activities)
+    .set({ statusId: input.statusId, completedAt: now })
+    .where(
+      and(
+        eq(activities.id, input.activityId),
+        eq(activities.playerId, input.playerId),
+      ),
+    )
+    .returning({
+      activityId: activities.id,
+      completedAt: activities.completedAt,
+    });
+  return row as { activityId: string; completedAt: string } | undefined;
+}
+
 export async function insertTrainingActivity(input: {
   activityId: string;
   playerId: string;
