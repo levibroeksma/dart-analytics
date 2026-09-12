@@ -6,6 +6,8 @@ Scope: everything under `app/`. Authority order and per-task context packs live 
 
 Local setup: `app/.env.example`, `app/README.md`. Neon local env: `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`); production file via `npm run env:prod` — never pull `main` into `.env`. `npm run dev` runs `env:dev` first. (2026-07-24)
 
+`db:status`/`db:migrate`/`db:seed` target `.env` (dbmate's own default env-file loading; no shell export needed). Against `.env.production`, use `db:status:prod`/`db:migrate:prod`/`db:seed:prod` instead — there is no flag on the dev scripts that switches file. (2026-09-12)
+
 When starting the dev server, use background mode:
 
 ```

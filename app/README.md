@@ -29,7 +29,7 @@ neon auth
 npm run env:dev
 ```
 
-(`env:dev` checks out Neon `dev`, pulls vars into `.env`, and mirrors `PUBLIC_NEON_AUTH_BASE_URL`. Use `npm run env:prod` for `.env.production` — never pull `main` into `.env`.)
+(`env:dev` checks out Neon `dev`, pulls vars into `.env`, and mirrors `PUBLIC_NEON_AUTH_BASE_URL`. Use `npm run env:prod` for `.env.production` — never pull `main` into `.env`. `db:status`/`db:migrate`/`db:seed` read `.env`; use the `:prod` variants (`db:status:prod`, `db:migrate:prod`, `db:seed:prod`) to target `.env.production`.)
 
 3. Install dependencies:
 
