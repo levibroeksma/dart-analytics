@@ -620,6 +620,24 @@ describe("previewSegments — ACCURACY scoring mode", () => {
       { status: "empty" },
     ]);
   });
+
+  it("marks a DOUBLE hit on target as a hit under STANDARD's standardPointsFor dispatch", async () => {
+    const play = makePlay({ configSnapshot: defaultV3Config("STANDARD") });
+    await play.init.call(play);
+
+    await play.commitDart.call(play, {
+      hitTargetNumber: 1,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 0,
+    });
+
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
 });
 
 describe("previewSegments — reveal-then-clear timer", () => {
