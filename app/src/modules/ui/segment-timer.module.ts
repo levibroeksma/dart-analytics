@@ -1,8 +1,17 @@
 import type { SegmentTimerOptions } from "./interfaces";
 
+function cumulativeSums(durationsSeconds: number[]): number[] {
+  let running = 0;
+  return durationsSeconds.map((duration) => {
+    running += duration;
+    return running;
+  });
+}
+
 export class SegmentTimer {
   private totalSeconds: number;
   private intervalSeconds: number;
+  private segmentBoundaries: number[] | null;
   private remaining: number;
   private direction: "countdown" | "countup";
   private timerId: ReturnType<typeof setInterval> | null = null;
@@ -14,8 +23,21 @@ export class SegmentTimer {
   private onComplete?: () => void;
 
   constructor(options: SegmentTimerOptions) {
-    this.totalSeconds = options.totalMinutes * 60;
-    this.intervalSeconds = options.intervalMinutes * 60;
+    if (
+      options.segmentDurationsSeconds === undefined &&
+      options.totalMinutes === undefined
+    ) {
+      throw new Error(
+        "SegmentTimer requires either totalMinutes or segmentDurationsSeconds",
+      );
+    }
+    this.segmentBoundaries = options.segmentDurationsSeconds
+      ? cumulativeSums(options.segmentDurationsSeconds)
+      : null;
+    this.totalSeconds = this.segmentBoundaries
+      ? this.segmentBoundaries[this.segmentBoundaries.length - 1]
+      : options.totalMinutes! * 60;
+    this.intervalSeconds = (options.intervalMinutes ?? 0) * 60;
     this.direction = options.direction ?? "countdown";
     this.remaining = this.direction === "countup" ? 0 : this.totalSeconds;
 
@@ -69,6 +91,16 @@ export class SegmentTimer {
   private tickCountup(): void {
     this.remaining++;
     this.onTick?.(this.remaining);
+
+    if (
+      this.segmentBoundaries &&
+      this.segmentIndex < this.segmentBoundaries.length - 1 &&
+      this.remaining >= this.segmentBoundaries[this.segmentIndex]
+    ) {
+      this.segmentIndex++;
+      this.playBeep();
+      this.onSegmentChange?.(this.segmentIndex);
+    }
 
     if (this.remaining >= this.totalSeconds) {
       this.completeTimer();

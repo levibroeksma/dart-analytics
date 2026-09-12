@@ -131,4 +131,42 @@ describe("SegmentTimer", () => {
     expect(countup.getElapsed()).toBe(3);
     countup.stop();
   });
+
+  it("countup with segmentDurationsSeconds fires onSegmentChange at each cumulative boundary", () => {
+    const onSegmentChange = vi.fn();
+    const onComplete = vi.fn();
+    const timer = new SegmentTimer({
+      direction: "countup",
+      segmentDurationsSeconds: [2, 3],
+      onSegmentChange,
+      onComplete,
+    });
+    timer.start();
+    vi.advanceTimersByTime(2000);
+    expect(onSegmentChange).toHaveBeenCalledTimes(1);
+    expect(onSegmentChange).toHaveBeenCalledWith(1);
+    expect(onComplete).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(3000);
+    expect(onSegmentChange).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("countup with a single segmentDurationsSeconds entry never fires onSegmentChange", () => {
+    const onSegmentChange = vi.fn();
+    const onComplete = vi.fn();
+    const timer = new SegmentTimer({
+      direction: "countup",
+      segmentDurationsSeconds: [3],
+      onSegmentChange,
+      onComplete,
+    });
+    timer.start();
+    vi.advanceTimersByTime(3000);
+    expect(onSegmentChange).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when constructed with neither totalMinutes nor segmentDurationsSeconds", () => {
+    expect(() => new SegmentTimer({})).toThrow();
+  });
 });
