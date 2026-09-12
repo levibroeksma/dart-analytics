@@ -100,21 +100,47 @@ Creates one `activities` row and one `activity_configurations` snapshot row
 
 Reads the step from the **activity's own snapshot**, never the live
 template — runtime immutability. Creates the `exercise_sessions` row under
-the **existing** `activityId`:
+the **existing** `activityId`, stamping `routine_step_sequence_number`
+(column already exists — migration `0029`, "indexes into
+`activity_configurations`, no foreign key"):
 
-- **`GAME` step (Finishing/TUOD):** same insert shape `createSession` already
-  performs, but `activityId` is a parameter instead of `generateId()`'s
-  result. The game/ruleset/capture/input ids and participant rows are minted
-  exactly as today. Requires extracting the activity-id-minting line out of
-  `insertSessionRecords` into a parameter — the one touch point inside
-  `session.service.ts`, and it is additive (existing callers keep minting
-  their own).
+- **`GAME` step (Finishing/TUOD):** same insert shape `createSession`
+  already performs as of the `exercise_type_id` NOT NULL fix merged into
+  `main` (commit `e9cd19e`, closes F78/F79) — `loadCreateSessionLookups`
+  resolves `exerciseTypeId` via `findExerciseTypeId(db, "GAME")` and
+  `insertSessionWithActiveGuard`/`insertSessionRecords` both already thread
+  it through. The repository's `insertSessionRecords` already accepts
+  `activityId` as an input field (not internally minted) — the **only**
+  remaining touch point is `insertSessionWithActiveGuard` itself
+  (`session.service.ts`), which still always calls `activityId:
+  generateId()` at its own call site; it needs an optional `activityId`
+  parameter (default to a fresh `generateId()` so every existing caller is
+  unaffected) that `startTrainingStep` can pass the routine's own
+  `activityId` into. Smaller change than originally scoped here — no new
+  parameter on the repository layer, just the service function.
 - **Non-game steps (`WARM_UP`, `SWITCHING`, `DOUBLE_PATTERN`):** a simpler
-  insert — `exercise_type_id` + `exercise_ruleset_version_id`, and for
-  `WARM_UP` no game pair and no capture pair (both NULL, migration 0029's
-  verified shape); for `SWITCHING`/`DOUBLE_PATTERN` a capture pair
-  (`ANALYTICS` + `VISUAL_BOARD`) with no game pair (also already verified by
-  `0029_session_generalization_checks.sql`).
+  insert — `exercise_type_id` (via the same generic `findExerciseTypeId(db,
+  key)`) + `exercise_ruleset_version_id` (the dedicated column, separate
+  from `ruleset_version_id` which stays NULL for non-game steps — D264's
+  parallel-contract split, confirmed in `schema.ts`), and for `WARM_UP` no
+  game pair and no capture pair (both NULL, migration 0029's verified
+  shape); for `SWITCHING`/`DOUBLE_PATTERN` a capture pair (`ANALYTICS` +
+  `VISUAL_BOARD`) with no game pair (also already verified by
+  `database/verification/0029_session_generalization_checks.sql`).
+
+`CreateSessionRecordsInput` (`app/src/repositories/interfaces.ts`) only
+covers the `GAME` shape today — `gameTypeId`/`rulesetVersionId`/
+`captureModeId`/`inputModeId` are all required fields, and it has no
+`exerciseRulesetVersionId` or `routineStepSequenceNumber`. Two additive
+changes, not a rewrite: (1) widen those four fields to optional (the
+columns are already nullable) and add `exerciseRulesetVersionId?`/
+`routineStepSequenceNumber?` to the one interface and its one
+`insertSessionRecords` implementation — both the `GAME` and non-game insert
+paths go through it; (2) a new, small `insertExerciseSessionRecords`-style
+call in `training-session.service.ts` supplies the non-game fields
+(`exerciseTypeId`, `exerciseRulesetVersionId`) and omits the game ones,
+while the existing `createSession`/`insertSessionWithActiveGuard` path
+keeps supplying its own unchanged.
 
 Returns `{ sessionId, exerciseTypeKey, configuration, participants? }`. For
 v1 the Finishing step always runs as a single `PLAYER` seat — no
