@@ -35,7 +35,6 @@ function fakeBoard(): SVGSVGElement {
 type Harness = ReturnType<typeof boardInputData> & {
   $refs: { board: SVGSVGElement };
   $store: {
-    game: { turns: TurnFact[] };
     boardInput: { handedness: "LEFT" | "RIGHT" };
   };
 };
@@ -45,10 +44,13 @@ function harness(
   turns: TurnFact[] = [],
   handedness: "LEFT" | "RIGHT" = "RIGHT",
 ): Harness {
-  return Object.assign(boardInputData(onCommit), {
-    $refs: { board: fakeBoard() },
-    $store: { game: { turns }, boardInput: { handedness } },
-  });
+  return Object.assign(
+    boardInputData(onCommit, () => turns),
+    {
+      $refs: { board: fakeBoard() },
+      $store: { boardInput: { handedness } },
+    },
+  );
 }
 
 function dart(overrides: Partial<DartFact> = {}): DartFact {
@@ -341,7 +343,7 @@ describe("boardInputData", () => {
     }
   });
 
-  it("exposes the current visit's markers from the store", () => {
+  it("exposes the current visit's markers from the getTurns() callback, not a fixed store", () => {
     const data = harness(() => {}, [turn()]);
 
     expect(data.visitMarkers()).toEqual([

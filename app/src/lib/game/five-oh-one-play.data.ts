@@ -311,7 +311,10 @@ export function fiveOhOnePlay() {
     engine: null as FiveOhOneEngine | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     /** Overrides `boardInputData`'s own default — object-literal key order
      * means this later definition wins. Delegates to `play-lifecycle.ts`'s

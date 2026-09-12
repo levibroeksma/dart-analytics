@@ -193,7 +193,10 @@ export function bobs27Play() {
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
     engine: null as Bobs27Engine | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     state(this: Bobs27PlayContext): Bobs27State | null {
       const config = this.$store.game.configSnapshot;

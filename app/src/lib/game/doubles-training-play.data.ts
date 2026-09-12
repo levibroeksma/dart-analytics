@@ -102,7 +102,10 @@ export function doublesTrainingPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as DoublesTrainingEngine | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
       const config = this.$store.game.configSnapshot;

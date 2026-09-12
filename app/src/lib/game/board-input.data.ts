@@ -100,7 +100,6 @@ type BoardInputDataContext = {
   pointerY: number;
   $refs: { board: SVGSVGElement };
   $store: {
-    game: { turns: TurnFact[] };
     boardInput: { handedness: Handedness };
   };
   syncBoard(this: BoardInputDataContext): void;
@@ -186,6 +185,7 @@ export function markersForTurns(turns: TurnFact[]): BoardMarker[] {
  */
 export function boardInputData(
   onCommit: (observation: DartObservation) => void,
+  getTurns: () => TurnFact[],
 ) {
   return {
     input: null as BoardInputController | null,
@@ -277,7 +277,7 @@ export function boardInputData(
     },
 
     visitMarkers(this: BoardInputDataContext): BoardMarker[] {
-      return markersForTurns(this.$store.game.turns);
+      return markersForTurns(getTurns());
     },
   };
 }

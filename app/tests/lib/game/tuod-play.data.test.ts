@@ -1394,6 +1394,8 @@ describe("recordDart — reveal-then-clear board markers", () => {
 
     const clientKey = store.turns[0].clientKey;
     expect(component.hiddenTurnKey).toBeNull();
+    // Reviewed against board-input.data.ts's getTurns() generalization: this
+    // still reads the store's turns through the now-parameterized accessor.
     expect(component.visitMarkers.call(component)).not.toEqual([]);
 
     vi.advanceTimersByTime(1500);

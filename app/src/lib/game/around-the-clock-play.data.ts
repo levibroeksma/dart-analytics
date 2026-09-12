@@ -171,7 +171,10 @@ export function aroundTheClockPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as AroundTheClockEngine | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     state(this: AroundTheClockPlayContext): AroundTheClockState | null {
       const config = this.$store.game.configSnapshot;
