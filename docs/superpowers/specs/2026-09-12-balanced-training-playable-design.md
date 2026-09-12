@@ -104,20 +104,27 @@ the **existing** `activityId`, stamping `routine_step_sequence_number`
 (column already exists — migration `0029`, "indexes into
 `activity_configurations`, no foreign key"):
 
-- **`GAME` step (Finishing/TUOD):** same insert shape `createSession`
-  already performs as of the `exercise_type_id` NOT NULL fix merged into
-  `main` (commit `e9cd19e`, closes F78/F79) — `loadCreateSessionLookups`
-  resolves `exerciseTypeId` via `findExerciseTypeId(db, "GAME")` and
-  `insertSessionWithActiveGuard`/`insertSessionRecords` both already thread
-  it through. The repository's `insertSessionRecords` already accepts
-  `activityId` as an input field (not internally minted) — the **only**
-  remaining touch point is `insertSessionWithActiveGuard` itself
-  (`session.service.ts`), which still always calls `activityId:
-  generateId()` at its own call site; it needs an optional `activityId`
-  parameter (default to a fresh `generateId()` so every existing caller is
-  unaffected) that `startTrainingStep` can pass the routine's own
-  `activityId` into. Smaller change than originally scoped here — no new
-  parameter on the repository layer, just the service function.
+- **`GAME` step (Finishing/TUOD):** `insertSessionRecords`
+  (`session.repository.ts`) inserts `activities` + `exercise_sessions` +
+  `exercise_configurations` + `participants` in **one transaction on every
+  call** — correct for a standalone game (one activity per session,
+  today's only case) but wrong for a routine's Finishing step: the
+  activity already exists (created once by `startTraining`), so calling
+  this as-is would either collide on that row's id or mint a second,
+  orphaned activity. `insertSessionRecords` must split into two repository
+  functions sharing its current transaction: `insertActivityRecord(tx,
+  {activityId, playerId, activeStatusId})` (just the `activities` insert)
+  and `insertExerciseSessionRecord(tx, {...the rest})` (session +
+  configuration + participants, against a caller-supplied `activityId`).
+  `insertSessionRecords` itself becomes a thin wrapper calling both inside
+  one `withTransaction` — every existing caller (`createSession` via
+  `insertSessionWithActiveGuard`) is unaffected. `startTrainingStep`'s
+  `GAME` path calls `insertExerciseSessionRecord` alone, inside its own
+  `withTransaction` + the same `uq_sessions_single_active` conflict guard
+  `insertSessionWithActiveGuard` already wraps around today's insert. The
+  exercise-type lookup itself (`findExerciseTypeId(db, "GAME")`) already
+  exists and needs no change (merged into `main` as part of the
+  `exercise_type_id` NOT NULL fix, commit `e9cd19e`, closes F78/F79).
 - **Non-game steps (`WARM_UP`, `SWITCHING`, `DOUBLE_PATTERN`):** a simpler
   insert — `exercise_type_id` (via the same generic `findExerciseTypeId(db,
   key)`) + `exercise_ruleset_version_id` (the dedicated column, separate
