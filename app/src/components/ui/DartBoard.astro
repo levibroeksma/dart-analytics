@@ -16,18 +16,28 @@
  * @param {string} [boardRef] `x-ref` name for the root `<svg>`; omit on an
  *   instance that is not the controller's binding target
  * @param {string} [class] Extra wrapper classes
+ * @param {string} [highlightExpr] Raw Alpine expression evaluating to the
+ *   currently-targeted board numbers (e.g. `warmUpEngine.state().targets`);
+ *   when supplied, renders a highlight outline overlay toggled by membership.
  */
 interface Props {
   boardRef?: string;
   class?: string;
+  highlightExpr?: string;
   [key: string]: unknown;
 }
 
 // Props
-const { boardRef, class: classNameProp, ...props }: Props = Astro.props;
+const {
+  boardRef,
+  class: classNameProp,
+  highlightExpr,
+  ...props
+}: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
+import { DARTBOARD_HIGHLIGHT_PATHS } from "@lib/game/board/board-highlight.module";
 
 // Styles
 const wrapperClass = cn("relative touch-none select-none", classNameProp);
@@ -699,6 +709,26 @@ const refAttrs = boardRef ? { "x-ref": boardRef } : {};
         ></circle>
       </g>
     </g>
+    {
+      highlightExpr && (
+        <g
+          class="board-highlight-group pointer-events-none"
+          aria-hidden="true"
+        >
+          {DARTBOARD_HIGHLIGHT_PATHS.map((p) => (
+            <path
+              d={p.d}
+              data-number={p.number}
+              stroke-width="3"
+              class="fill-none stroke-accent opacity-0"
+              {...{
+                ":class": `{'opacity-100': (${highlightExpr}).includes(${p.number})}`,
+              }}
+            />
+          ))}
+        </g>
+      )
+    }
   </svg>
 
   <slot />
