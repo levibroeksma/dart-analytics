@@ -147,7 +147,14 @@ VALUES (
         4,
         2,
         10,
-        '{"rulesetVersionKey":"TUOD_V1","durationType":"MINUTES","durationValue":10}'::jsonb,
+        '{
+            "starting_target": 41,
+            "finish_bonus": 10,
+            "miss_penalty": 1,
+            "duration_type": "MINUTES",
+            "duration_value": 10,
+            "max_darts_per_turn": 3
+        }'::jsonb,
         now()
     ) ON CONFLICT (id) DO NOTHING;
 
