@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  applySwitchingDart,
+  foldSwitchingState,
   SwitchingEngine,
   switchingEngineFactory,
 } from "@modules/exercise/switching.engine.module";
@@ -122,5 +124,63 @@ describe("switchingEngineFactory", () => {
     });
 
     expect(engine.facts().turns).toHaveLength(1);
+  });
+});
+
+describe("applySwitchingDart", () => {
+  it("folds a single dart onto the initial progress", () => {
+    const progress = applySwitchingDart(
+      CONFIG,
+      { targetIndex: 0, totalPoints: 0, dartsThrown: 0 },
+      { hitTargetNumber: 20, hitZoneKey: "TREBLE" },
+    );
+
+    expect(progress).toEqual({
+      targetIndex: 1,
+      totalPoints: 3,
+      dartsThrown: 1,
+    });
+  });
+});
+
+describe("foldSwitchingState", () => {
+  it("derives state directly from a fact log without an engine instance", () => {
+    const state = foldSwitchingState(
+      {
+        stages: [],
+        turns: [
+          {
+            clientKey: "t1",
+            stageClientKey: "block-1",
+            participantRef: "solo",
+            sequence: 1,
+            completedAt: null,
+            totalScore: 0,
+            darts: [
+              {
+                sequence: 1,
+                hitTargetNumber: 20,
+                hitZoneKey: "SINGLE",
+                intendedTargetNumber: 20,
+                intendedZoneKey: null,
+                score: 1,
+                locationX: null,
+                locationY: null,
+              },
+            ],
+          },
+        ],
+      },
+      CONFIG,
+      false,
+    );
+
+    expect(state).toEqual({
+      currentTargetNumber: 19,
+      targetIndex: 1,
+      totalPoints: 1,
+      dartsThrown: 1,
+      status: "IN_PROGRESS",
+    });
   });
 });

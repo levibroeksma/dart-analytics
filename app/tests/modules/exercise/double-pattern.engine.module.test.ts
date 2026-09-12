@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyDoublePatternDart,
   DoublePatternEngine,
   doublePatternEngineFactory,
+  foldDoublePatternState,
 } from "@modules/exercise/double-pattern.engine.module";
 import type { DoublePatternConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
@@ -115,6 +117,71 @@ describe("doublePatternEngineFactory", () => {
     const resumed = doublePatternEngineFactory.create(CONFIG, prior);
 
     expect(resumed.state()).toEqual({
+      patternIndex: 0,
+      targetWithinPattern: 1,
+      currentDoubleNumber: 10,
+      totalPoints: 1,
+      dartsThrown: 1,
+      status: "IN_PROGRESS",
+    });
+  });
+});
+
+describe("applyDoublePatternDart", () => {
+  it("folds a single hit dart onto the initial progress", () => {
+    const progress = applyDoublePatternDart(
+      CONFIG,
+      { dartsThrown: 0, totalPoints: 0 },
+      { hitTargetNumber: 20, hitZoneKey: "DOUBLE" },
+    );
+
+    expect(progress).toEqual({ dartsThrown: 1, totalPoints: 1 });
+  });
+
+  it("scores 0 for a miss on the intended double", () => {
+    const progress = applyDoublePatternDart(
+      CONFIG,
+      { dartsThrown: 0, totalPoints: 0 },
+      { hitTargetNumber: 20, hitZoneKey: "SINGLE" },
+    );
+
+    expect(progress).toEqual({ dartsThrown: 1, totalPoints: 0 });
+  });
+});
+
+describe("foldDoublePatternState", () => {
+  it("derives state directly from a fact log without an engine instance", () => {
+    const state = foldDoublePatternState(
+      {
+        stages: [],
+        turns: [
+          {
+            clientKey: "t1",
+            stageClientKey: "block-1",
+            participantRef: "solo",
+            sequence: 1,
+            completedAt: null,
+            totalScore: 0,
+            darts: [
+              {
+                sequence: 1,
+                hitTargetNumber: 20,
+                hitZoneKey: "DOUBLE",
+                intendedTargetNumber: 20,
+                intendedZoneKey: "DOUBLE",
+                score: 1,
+                locationX: null,
+                locationY: null,
+              },
+            ],
+          },
+        ],
+      },
+      CONFIG,
+      false,
+    );
+
+    expect(state).toEqual({
       patternIndex: 0,
       targetWithinPattern: 1,
       currentDoubleNumber: 10,
