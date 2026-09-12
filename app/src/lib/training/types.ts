@@ -5,6 +5,7 @@ import type { SwitchingEngine } from "@modules/exercise/switching.engine.module"
 import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker } from "@lib/types";
+import type { finishingStep } from "./finishing-step.data";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
@@ -20,6 +21,13 @@ export type BalancedTrainingPlayContext = {
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
   stepDeadline: ReturnType<typeof setTimeout> | null;
+  finishing: ReturnType<typeof finishingStep> | null;
+  $store: {
+    game: {
+      reset(): void;
+      startSession(input: unknown): void;
+    };
+  };
   init(this: BalancedTrainingPlayContext): Promise<void>;
   currentStep(this: BalancedTrainingPlayContext): TrainingStepResolved | null;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;

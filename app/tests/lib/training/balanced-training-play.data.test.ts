@@ -12,6 +12,16 @@ vi.mock("@client/api/sessions", () => ({
 
 import * as trainingApi from "@client/api/training-sessions";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
+import type { BalancedTrainingPlayContext } from "@lib/types";
+
+function makeStore(): BalancedTrainingPlayContext {
+  return {
+    ...balancedTrainingPlay(),
+    $store: {
+      game: { reset: vi.fn(), startSession: vi.fn() },
+    },
+  };
+}
 
 const STEPS = [
   {
@@ -43,7 +53,7 @@ describe("balancedTrainingPlay", () => {
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     expect(store.activityId).toBe("act-1");
     expect(store.currentStep()?.exerciseTypeKey).toBe("WARM_UP");
@@ -61,7 +71,7 @@ describe("balancedTrainingPlay", () => {
       configuration: STEPS[0].configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-1", 1);
     expect(store.warmUpEngine).not.toBeNull();
@@ -80,7 +90,7 @@ describe("balancedTrainingPlay", () => {
       configuration: STEPS[0].configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     store.advanceWarmUp();
     expect(store.warmUpEngine!.state().status).toBe(
@@ -125,7 +135,7 @@ describe("balancedTrainingPlay — Switching", () => {
       configuration: SWITCHING_STEP.configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     expect(store.switchingEngine).not.toBeNull();
     expect(store.switchingEngine!.state().currentTargetNumber).toBe(20);
@@ -143,7 +153,7 @@ describe("balancedTrainingPlay — Switching", () => {
       configuration: SWITCHING_STEP.configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     store.recordSwitchingDart({
       hitTargetNumber: 20,
@@ -171,7 +181,7 @@ describe("balancedTrainingPlay — Switching", () => {
       activityId: "act-1",
       completedAt: "2026-09-12T12:00:00.000Z",
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     vi.advanceTimersByTime(300_000);
     await vi.runAllTimersAsync();
@@ -212,7 +222,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
       configuration: DOUBLE_PATTERN_STEP.configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     expect(store.doublePatternEngine).not.toBeNull();
     expect(store.doublePatternEngine).toBeDefined();
@@ -231,7 +241,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
       configuration: DOUBLE_PATTERN_STEP.configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
-    const store = balancedTrainingPlay();
+    const store = makeStore();
     await store.init();
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
@@ -241,5 +251,54 @@ describe("balancedTrainingPlay — Double Pattern", () => {
     });
     expect(store.visitMarkers()).toHaveLength(1);
     expect(store.doublePatternEngine!.state().totalPoints).toBe(1);
+  });
+});
+
+const GAME_STEP = {
+  sequenceNumber: 4,
+  exerciseTypeKey: "GAME",
+  exerciseRulesetVersionKey: null,
+  gameTypeKey: "TUOD",
+  durationSeconds: 600,
+  configuration: { starting_target: 41 },
+};
+
+describe("balancedTrainingPlay — Finishing", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it("startCurrentStep() for GAME populates the global game store and builds finishingStep", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "GAME",
+      configuration: GAME_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+      gameTypeKey: "TUOD",
+      rulesetVersionKey: "TUOD_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.$store.game.reset).toHaveBeenCalledOnce();
+    expect(store.$store.game.startSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        sessionId: "s1",
+      }),
+    );
+    expect(store.finishing).not.toBeNull();
   });
 });
