@@ -30,9 +30,23 @@
 BEGIN;
 -- ============================================================
 -- Exercise templates
+--
+-- exercise_type_id is resolved by joining exercise_types on
+-- implementation_key = 'GAME' rather than a literal value: that
+-- row is seeded by 0014_exercise_types.sql, which runs after
+-- this file. On the first of seed.ts's two passes the join
+-- matches nothing and these 4 rows are silently not inserted
+-- (same forward-reference trick 0007_ruleset_version_
+-- capabilities.sql uses); the second pass inserts them once
+-- 0014 has committed the GAME row. Do not switch this back to a
+-- literal VALUES insert: exercise_type_id is NOT NULL (migration
+-- 0032) with a FOREIGN KEY to exercise_types, and a literal id
+-- for a row that doesn't exist yet fails hard on pass 1 instead
+-- of silently matching zero rows.
 -- ============================================================
 INSERT INTO exercise_templates (
         id,
+        exercise_type_id,
         game_type_id,
         name,
         description,
@@ -40,42 +54,23 @@ INSERT INTO exercise_templates (
         created_at,
         updated_at
     )
-VALUES (
-        '0198f200-0000-7000-8000-000000000001',
-        '0198f000-0000-7000-8000-000000000001',
-        '501 Match',
-        'Standard 501 match play.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000002',
-        '0198f000-0000-7000-8000-000000000002',
-        'Ten Up One Down',
-        'Progressive target training starting at 41.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000003',
-        '0198f000-0000-7000-8000-000000000003',
-        'Singles Accuracy',
-        'Singles accuracy training across all targets.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000004',
-        '0198f000-0000-7000-8000-000000000004',
-        'Score Training Block',
-        'Repeated scoring practice on the 20 segment.',
-        TRUE,
-        now(),
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
+SELECT declared.id,
+    et.id,
+    declared.game_type_id,
+    declared.name,
+    declared.description,
+    TRUE,
+    now(),
+    now()
+FROM (
+        VALUES
+            ('0198f200-0000-7000-8000-000000000001'::uuid, '0198f000-0000-7000-8000-000000000001'::uuid, '501 Match', 'Standard 501 match play.'),
+            ('0198f200-0000-7000-8000-000000000002'::uuid, '0198f000-0000-7000-8000-000000000002'::uuid, 'Ten Up One Down', 'Progressive target training starting at 41.'),
+            ('0198f200-0000-7000-8000-000000000003'::uuid, '0198f000-0000-7000-8000-000000000003'::uuid, 'Singles Accuracy', 'Singles accuracy training across all targets.'),
+            ('0198f200-0000-7000-8000-000000000004'::uuid, '0198f000-0000-7000-8000-000000000004'::uuid, 'Score Training Block', 'Repeated scoring practice on the 20 segment.')
+    ) AS declared(id, game_type_id, name, description)
+    JOIN exercise_types et ON et.implementation_key = 'GAME'
+ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 -- Configuration presets: 501
 --
@@ -316,6 +311,11 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
+-- exercise_template_id is joined against exercise_templates
+-- (rather than inserted as a literal value) for the same reason
+-- as the exercise_templates insert above: on pass 1 those rows
+-- don't exist yet either, so this must match zero rows too
+-- instead of hard-failing its own FOREIGN KEY.
 INSERT INTO routine_steps (
         id,
         routine_template_id,
@@ -325,31 +325,19 @@ INSERT INTO routine_steps (
         duration_value,
         created_at
     )
-VALUES (
-        '0198f500-0000-7000-8000-000000000001',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000003',
-        1,
-        2,
-        15,
-        now()
-    ),
-    (
-        '0198f500-0000-7000-8000-000000000002',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000004',
-        2,
-        2,
-        20,
-        now()
-    ),
-    (
-        '0198f500-0000-7000-8000-000000000003',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000002',
-        3,
-        1,
-        10,
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
+SELECT declared.id,
+    declared.routine_template_id,
+    et.id,
+    declared.sequence_number,
+    declared.duration_type_id,
+    declared.duration_value,
+    now()
+FROM (
+        VALUES
+            ('0198f500-0000-7000-8000-000000000001'::uuid, '0198f400-0000-7000-8000-000000000001'::uuid, '0198f200-0000-7000-8000-000000000003'::uuid, 1, 2, 15),
+            ('0198f500-0000-7000-8000-000000000002'::uuid, '0198f400-0000-7000-8000-000000000001'::uuid, '0198f200-0000-7000-8000-000000000004'::uuid, 2, 2, 20),
+            ('0198f500-0000-7000-8000-000000000003'::uuid, '0198f400-0000-7000-8000-000000000001'::uuid, '0198f200-0000-7000-8000-000000000002'::uuid, 3, 1, 10)
+    ) AS declared(id, routine_template_id, exercise_template_id, sequence_number, duration_type_id, duration_value)
+    JOIN exercise_templates et ON et.id = declared.exercise_template_id
+ON CONFLICT (id) DO NOTHING;
 COMMIT;
