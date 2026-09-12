@@ -16,6 +16,7 @@ import {
   findActivityConfiguration,
   findRoutineTemplateSteps,
   insertTrainingActivity,
+  updateActivityStatusRecord,
 } from "@repositories/training-session.repository";
 import type { RoutineStepTemplateRow } from "@repositories/interfaces";
 import { isActiveSessionConflict } from "./session.service";
@@ -244,4 +245,28 @@ export async function startTrainingStep(
       participant: { ref: participantId, displayName },
     },
   };
+}
+
+export async function completeTraining(
+  playerId: string,
+  activityId: string,
+): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
+  const db = getDb();
+  const completedStatusId = await findGameStatusId(db, "COMPLETED");
+  if (!completedStatusId) {
+    return {
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    };
+  }
+  const updated = await updateActivityStatusRecord(db, {
+    activityId,
+    playerId,
+    statusId: completedStatusId,
+  });
+  if (!updated) {
+    return { ok: false, code: "NOT_FOUND", details: { activityId } };
+  }
+  return { ok: true, data: updated };
 }

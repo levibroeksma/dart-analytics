@@ -9,6 +9,7 @@ vi.mock("@repositories/training-session.repository", () => ({
   findRoutineTemplateSteps: vi.fn(),
   insertTrainingActivity: vi.fn(),
   findActivityConfiguration: vi.fn(),
+  updateActivityStatusRecord: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
   const actual =
@@ -33,6 +34,7 @@ import * as sessionRepo from "@repositories/session.repository";
 import {
   startTraining,
   startTrainingStep,
+  completeTraining,
 } from "@services/training-session.service";
 
 const RESOLVED = {
@@ -232,6 +234,40 @@ describe("startTrainingStep", () => {
       ok: false,
       code: "SESSION_ALREADY_ACTIVE",
       details: { sessionId: "active-1" },
+    });
+  });
+});
+
+describe("completeTraining", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("marks the activity completed", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(2);
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-12T12:00:00.000Z",
+    });
+    const result = await completeTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: true,
+      data: { activityId: "act-1", completedAt: "2026-09-12T12:00:00.000Z" },
+    });
+    expect(trainingRepo.updateActivityStatusRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      { activityId: "act-1", playerId: "p1", statusId: 2 },
+    );
+  });
+
+  it("returns NOT_FOUND when the activity does not belong to the player", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(2);
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
+      undefined,
+    );
+    const result = await completeTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "NOT_FOUND",
+      details: { activityId: "act-1" },
     });
   });
 });

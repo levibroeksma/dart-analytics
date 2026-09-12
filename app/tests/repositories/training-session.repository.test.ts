@@ -124,3 +124,47 @@ describe("findActivityConfiguration", () => {
     expect(result).toBeUndefined();
   });
 });
+
+function fakeUpdate(rows: unknown[]) {
+  const chain = {
+    set: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue(rows),
+  };
+  return chain;
+}
+
+describe("updateActivityStatusRecord", () => {
+  it("marks the activity completed and returns the new completedAt", async () => {
+    const db = {
+      update: vi.fn(() =>
+        fakeUpdate([
+          { activityId: "act-1", completedAt: "2026-09-12T12:00:00.000Z" },
+        ]),
+      ),
+    } as any;
+    const { updateActivityStatusRecord } =
+      await import("@repositories/training-session.repository");
+    const result = await updateActivityStatusRecord(db, {
+      activityId: "act-1",
+      playerId: "p1",
+      statusId: 2,
+    });
+    expect(result).toEqual({
+      activityId: "act-1",
+      completedAt: "2026-09-12T12:00:00.000Z",
+    });
+  });
+
+  it("returns undefined when no activity matches the player", async () => {
+    const db = { update: vi.fn(() => fakeUpdate([])) } as any;
+    const { updateActivityStatusRecord } =
+      await import("@repositories/training-session.repository");
+    const result = await updateActivityStatusRecord(db, {
+      activityId: "act-1",
+      playerId: "someone-else",
+      statusId: 2,
+    });
+    expect(result).toBeUndefined();
+  });
+});
