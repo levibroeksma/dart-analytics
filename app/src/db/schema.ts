@@ -266,14 +266,80 @@ export const playerSettings = pgTable(
   ],
 );
 
+/**
+ * Hand-written, not `drizzle-kit introspect` output — no live database exists
+ * in this container (same caveat as the hand-written views below). Mirrors
+ * `database/migrations/0027_exercise_type_reference.sql` column-for-column.
+ * Verify against a real `db:introspect` run before merge.
+ */
+export const exerciseTypes = pgTable(
+  "exercise_types",
+  {
+    id: uuid().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    description: text(),
+    isPublished: boolean("is_published").default(false).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("uq_exercise_types_implementation_key").on(table.implementationKey),
+  ],
+);
+
+/**
+ * Hand-written — see `exerciseTypes` above. Mirrors
+ * `database/migrations/0027_exercise_type_reference.sql`.
+ */
+export const exerciseRulesetVersions = pgTable(
+  "exercise_ruleset_versions",
+  {
+    id: uuid().primaryKey().notNull(),
+    exerciseTypeId: uuid("exercise_type_id").notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    versionNumber: integer("version_number").notNull(),
+    description: text(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.exerciseTypeId],
+      foreignColumns: [exerciseTypes.id],
+      name: "fk_exercise_ruleset_versions_type",
+    }).onDelete("restrict"),
+    unique("uq_exercise_ruleset_versions_implementation_key").on(
+      table.implementationKey,
+    ),
+  ],
+);
+
+/**
+ * Hand-written — see `exerciseTypes` above. `gameTypeId`/`exerciseTypeId`
+ * nullability and the exercise-type FK mirror
+ * `database/migrations/0028_template_exercise_types.sql`;
+ * `exerciseTypeId`'s NOT NULL mirrors
+ * `database/migrations/0032_exercise_template_type_not_null.sql`.
+ */
 export const exerciseTemplates = pgTable(
   "exercise_templates",
   {
     id: uuid().primaryKey().notNull(),
-    gameTypeId: uuid("game_type_id").notNull(),
+    gameTypeId: uuid("game_type_id"),
+    exerciseTypeId: uuid("exercise_type_id").notNull(),
     name: text().notNull(),
     description: text(),
     isSystemTemplate: boolean("is_system_template").default(false).notNull(),
+    defaultConfiguration: jsonb("default_configuration"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -292,6 +358,11 @@ export const exerciseTemplates = pgTable(
       columns: [table.gameTypeId],
       foreignColumns: [gameTypes.id],
       name: "fk_exercise_templates_game_type",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.exerciseTypeId],
+      foreignColumns: [exerciseTypes.id],
+      name: "fk_exercise_templates_exercise_type",
     }).onDelete("restrict"),
   ],
 );
@@ -364,17 +435,55 @@ export const activities = pgTable(
   ],
 );
 
+/**
+ * Hand-written, not `drizzle-kit introspect` output — see the caveat on
+ * `exerciseTypes` above. Mirrors
+ * `database/migrations/0030_activity_configurations.sql`.
+ */
+export const activityConfigurations = pgTable(
+  "activity_configurations",
+  {
+    id: uuid().primaryKey().notNull(),
+    activityId: uuid("activity_id").notNull(),
+    configuration: jsonb().notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.activityId],
+      foreignColumns: [activities.id],
+      name: "fk_activity_configurations_activity",
+    }).onDelete("cascade"),
+    unique("uq_activity_configurations_activity").on(table.activityId),
+  ],
+);
+
+/**
+ * Hand-written, not `drizzle-kit introspect` output — see the caveat on
+ * `exerciseTypes` above. `exerciseTypeId`/`exerciseRulesetVersionId`/
+ * `routineStepSequenceNumber` and the relaxed nullability on
+ * `gameTypeId`/`rulesetVersionId`/`captureModeId`/`inputModeId` mirror
+ * `database/migrations/0029_session_exercise_generalization.sql`;
+ * `exerciseTypeId`'s NOT NULL mirrors
+ * `database/migrations/0031_session_exercise_type_not_null.sql`.
+ */
 export const exerciseSessions = pgTable(
   "exercise_sessions",
   {
     id: uuid().primaryKey().notNull(),
     activityId: uuid("activity_id").notNull(),
     playerId: uuid("player_id").notNull(),
-    gameTypeId: uuid("game_type_id").notNull(),
-    captureModeId: smallint("capture_mode_id").notNull(),
-    inputModeId: smallint("input_mode_id").notNull(),
+    gameTypeId: uuid("game_type_id"),
+    captureModeId: smallint("capture_mode_id"),
+    inputModeId: smallint("input_mode_id"),
     statusId: smallint("status_id").notNull(),
-    rulesetVersionId: uuid("ruleset_version_id").notNull(),
+    rulesetVersionId: uuid("ruleset_version_id"),
+    exerciseTypeId: uuid("exercise_type_id").notNull(),
+    exerciseRulesetVersionId: uuid("exercise_ruleset_version_id"),
+    routineStepSequenceNumber: integer("routine_step_sequence_number"),
     startedAt: timestamp("started_at", {
       withTimezone: true,
       mode: "string",
@@ -463,9 +572,27 @@ export const exerciseSessions = pgTable(
       ],
       name: "fk_sessions_capability",
     }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.exerciseTypeId],
+      foreignColumns: [exerciseTypes.id],
+      name: "fk_exercise_sessions_exercise_type",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.exerciseRulesetVersionId],
+      foreignColumns: [exerciseRulesetVersions.id],
+      name: "fk_exercise_sessions_exercise_ruleset_version",
+    }).onDelete("restrict"),
     check(
       "chk_session_completed_after_start",
       sql`(completed_at IS NULL) OR (completed_at >= started_at)`,
+    ),
+    check(
+      "chk_exercise_sessions_game_pair",
+      sql`(game_type_id IS NULL) = (ruleset_version_id IS NULL)`,
+    ),
+    check(
+      "chk_exercise_sessions_capture_pair",
+      sql`(capture_mode_id IS NULL) = (input_mode_id IS NULL)`,
     ),
   ],
 );
@@ -648,6 +775,12 @@ export const exerciseStages = pgTable(
   ],
 );
 
+/**
+ * `configuration` is hand-written, not `drizzle-kit introspect` output — see
+ * the caveat on `exerciseTypes` above. Mirrors
+ * `database/migrations/0028_template_exercise_types.sql`'s
+ * Routine Exercise Configuration column.
+ */
 export const routineSteps = pgTable(
   "routine_steps",
   {
@@ -657,6 +790,7 @@ export const routineSteps = pgTable(
     sequenceNumber: integer("sequence_number").notNull(),
     durationTypeId: smallint("duration_type_id").notNull(),
     durationValue: integer("duration_value").notNull(),
+    configuration: jsonb(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",

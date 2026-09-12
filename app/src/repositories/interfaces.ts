@@ -59,6 +59,7 @@ export interface CreateSessionRecordsInput {
   captureModeId: number;
   inputModeId: number;
   activeStatusId: number;
+  exerciseTypeId: string;
   configuration: Record<string, unknown>;
 }
 
