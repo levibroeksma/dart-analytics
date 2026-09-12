@@ -1,0 +1,27 @@
+---
+import Button from "@components/forms/Button.astro";
+---
+
+<div class="flex flex-col items-center gap-4 p-4">
+  <p
+    class="text-sm text-muted-foreground"
+    x-text="`Phase ${warmUpEngine.state().phaseIndex + 1} of ${warmUpEngine.state().phaseCount}`"
+  >
+  </p>
+  <h2
+    class="text-xl font-semibold text-foreground"
+    x-text="warmUpEngine.state().phaseName"
+  >
+  </h2>
+  <p
+    class="text-sm text-muted-foreground"
+    x-text="warmUpEngine.state().targets.join(', ')"
+  >
+  </p>
+  <Button
+    title="Next phase"
+    variant="primary"
+    grow
+    @click="advanceWarmUp()"
+  />
+</div>
