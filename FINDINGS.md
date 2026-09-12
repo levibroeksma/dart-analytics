@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-11
-highest-issued: F85
+highest-issued: F86
 -->
 
 # Findings
@@ -220,3 +220,10 @@ Claim: Task 2 (commit `57bca0b`) changed `WarmUpPhaseConfig`'s shape and updated
 Evidence: staging only `app/src/modules/exercise/warm-up.engine.module.ts` + `FINDINGS.md` and running `git commit` reproduced `FAIL: app/src/modules/exercise/warm-up.engine.module.ts changed but none of its covering tests changed with it (app/tests/modules/exercise/warm-up.engine.module.test.ts)`; the same gate run in its no-staged-files mode (CI's merge-base-with-origin/main diff, per `scripts/check-test-coverage.sh`'s own comment "for CI") does NOT fail, since that wider window includes both Task 2's and Task 8's commits — the gate is only impossible to satisfy in the stricter, staged-only, per-commit form the local pre-commit hook uses
 Impact: any future plan that intentionally sequences "widen a shared config schema + fix up existing fixtures" ahead of "update the one remaining consumer" as separate task commits (exactly what the Phase A plan did for `WARM_UP`) will hit this same false-positive block locally, with no per-file silencer available (`check_test_coverage.py`'s `in_scope`/`covering_tests` logic has none by design); Task 8 worked around it by adding a small, genuine doc comment to `warm-up.engine.module.test.ts` so it would show a real staged diff, but that is a workaround chosen under time pressure, not a designed escape hatch
 Proposed: either document this interaction explicitly (a note in `check-test-coverage.sh`'s own comment block, or in the plan-writing guidance) so a plan author knows to keep a schema change and its last consumer's fix in one commit when D224 is locally enforced, or give the pre-commit invocation the same wider window CI already uses (e.g. diff against the branch's merge-base instead of bare `HEAD` even when files are staged) — a decision for whoever owns `check-test-coverage.sh`, not made here
+
+### F86 — `docs/architecture/00-File-Inventory.md` has no per-file rows for most pre-existing `app/src/modules/exercise/*` files
+Status: Open · Found: 2026-09-11 · Task: claude/training-exercises-architecture-pq6v0e
+Claim: `00-File-Inventory.md`'s "Game engine code + mechanical guards" table registers every `*.engine.module.ts` under `app/src/modules/game/` individually, implying the same per-file registration convention applies to `app/src/modules/exercise/*`
+Evidence: before this task's own commit, `git grep -n "warm-up.engine.module.ts\|engine.registry.ts\|exercise/interfaces.ts\|exercise/types.ts" docs/architecture/00-File-Inventory.md` returned no rows for `app/src/modules/exercise/warm-up.engine.module.ts`, `app/src/modules/exercise/engine.registry.ts`, `app/src/modules/exercise/interfaces.ts`, or `app/src/modules/exercise/types.ts` — none of the pre-existing (Warm-Up-era) exercise module files had a row, only the Task 1/3/6 files this task just added rows for
+Impact: a reader using `00-File-Inventory.md` to orient in `app/src/modules/exercise/` finds the new `SWITCHING`/`DOUBLE_PATTERN` files but not the `ExerciseEngine`/`WarmUpEngine`/`engine.registry.ts` foundation they build on, an inconsistent registration depth within the same folder
+Proposed: add rows for `app/src/modules/exercise/interfaces.ts` (pre-existing `ExerciseEngine`/`ExerciseEngineFactory` half), `app/src/modules/exercise/types.ts`, `app/src/modules/exercise/engine.registry.ts`, and `app/src/modules/exercise/warm-up.engine.module.ts`, matching the new rows' format — a follow-up documentation task, not made here
