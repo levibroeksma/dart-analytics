@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/training-sessions", () => ({
   startTraining: vi.fn(),
@@ -86,5 +86,95 @@ describe("balancedTrainingPlay", () => {
     expect(store.warmUpEngine!.state().status).toBe(
       STEPS[0].configuration.phases.length > 1 ? "IN_PROGRESS" : "COMPLETE",
     );
+  });
+});
+
+const SWITCHING_STEP = {
+  sequenceNumber: 2,
+  exerciseTypeKey: "SWITCHING",
+  exerciseRulesetVersionKey: "SWITCHING_V1",
+  gameTypeKey: null,
+  durationSeconds: 300,
+  configuration: {
+    targets: [20, 19, 18],
+    scoring: { single: 1, double: 2, treble: 3 },
+  },
+};
+
+describe("balancedTrainingPlay — Switching", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("startCurrentStep() for SWITCHING builds the dart engine and arms a deadline", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = balancedTrainingPlay();
+    await store.init();
+    expect(store.switchingEngine).not.toBeNull();
+    expect(store.switchingEngine!.state().currentTargetNumber).toBe(20);
+  });
+
+  it("recordSwitchingDart() folds the dart into the engine", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = balancedTrainingPlay();
+    await store.init();
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    expect(store.switchingEngine!.state().dartsThrown).toBe(1);
+  });
+
+  it("the armed deadline expires the engine and completes the step", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-12T12:00:00.000Z",
+    });
+    const store = balancedTrainingPlay();
+    await store.init();
+    vi.advanceTimersByTime(300_000);
+    await vi.runAllTimersAsync();
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
 });
