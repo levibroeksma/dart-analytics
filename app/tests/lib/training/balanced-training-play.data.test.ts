@@ -78,6 +78,13 @@ describe("balancedTrainingPlay", () => {
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
   });
 
+  it("buildWarmUpEngine() builds the Warm-Up engine directly from a configuration object", () => {
+    const store = makeStore();
+    store.buildWarmUpEngine(STEPS[0].configuration);
+    expect(store.warmUpEngine).not.toBeNull();
+    expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
+  });
+
   it("advanceWarmUp() moves the engine to its next phase", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",

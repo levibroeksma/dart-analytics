@@ -1,6 +1,9 @@
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
-import type { StartTrainingResponseData } from "@client/api/types";
+import type {
+  StartTrainingResponseData,
+  StartTrainingStepResponseData,
+} from "@client/api/types";
 import type { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
@@ -30,6 +33,22 @@ export type BalancedTrainingPlayContext = {
   };
   init(this: BalancedTrainingPlayContext): Promise<void>;
   currentStep(this: BalancedTrainingPlayContext): TrainingStepResolved | null;
+  buildWarmUpEngine(
+    this: BalancedTrainingPlayContext,
+    configuration: Record<string, unknown>,
+  ): void;
+  buildSwitchingEngine(
+    this: BalancedTrainingPlayContext,
+    configuration: Record<string, unknown>,
+  ): void;
+  buildDoublePatternEngine(
+    this: BalancedTrainingPlayContext,
+    configuration: Record<string, unknown>,
+  ): void;
+  startFinishingStep(
+    this: BalancedTrainingPlayContext,
+    result: StartTrainingStepResponseData,
+  ): void;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
   advanceWarmUp(this: BalancedTrainingPlayContext): void;
   armStepDeadline(

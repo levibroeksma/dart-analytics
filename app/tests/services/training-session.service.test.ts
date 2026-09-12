@@ -131,6 +131,10 @@ const SNAPSHOT = {
   ],
 };
 
+// startTrainingStep was split into startGameStep/startNonGameStep/
+// resolveActiveSessionConflict helpers to clear npx fallow's complexity
+// gate; these cases still exercise the exported function end to end and
+// all pass unchanged, confirming the split carries no behavior change.
 describe("startTrainingStep", () => {
   beforeEach(() => vi.clearAllMocks());
 

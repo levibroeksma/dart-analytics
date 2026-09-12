@@ -23,6 +23,7 @@ import type {
 } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker } from "@lib/types";
+import type { StartTrainingStepResponseData } from "@client/api/types";
 import type {
   BalancedTrainingPlayContext,
   TrainingStepResolved,
@@ -105,6 +106,55 @@ export function balancedTrainingPlay() {
       return this.steps[stepIndex] ?? null;
     },
 
+    buildWarmUpEngine(
+      this: BalancedTrainingPlayContext,
+      configuration: Record<string, unknown>,
+    ) {
+      const factory = getExerciseEngineFactory("WARM_UP_V1");
+      this.warmUpEngine = factory
+        ? (factory.create(
+            configuration as WarmUpEngineInput,
+          ) as ExerciseEngine<WarmUpState>)
+        : null;
+    },
+
+    buildSwitchingEngine(
+      this: BalancedTrainingPlayContext,
+      configuration: Record<string, unknown>,
+    ) {
+      const factory = getDartExerciseEngineFactory("SWITCHING_V1");
+      const created = factory?.create(configuration as SwitchingConfigData);
+      this.switchingEngine =
+        created instanceof SwitchingEngine ? created : null;
+    },
+
+    buildDoublePatternEngine(
+      this: BalancedTrainingPlayContext,
+      configuration: Record<string, unknown>,
+    ) {
+      const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
+      const created = factory?.create(configuration as DoublePatternConfigData);
+      this.doublePatternEngine =
+        created instanceof DoublePatternEngine ? created : null;
+    },
+
+    startFinishingStep(
+      this: BalancedTrainingPlayContext,
+      result: StartTrainingStepResponseData,
+    ) {
+      self.$store.game.reset();
+      self.$store.game.startSession({
+        gameTypeKey: result.gameTypeKey,
+        rulesetVersionKey: result.rulesetVersionKey,
+        sessionId: result.sessionId,
+        templateRef: null,
+        configSnapshot: { ...result.configuration, seats: [] },
+        captureModeKey: result.captureModeKey,
+        inputModeKey: result.inputModeKey,
+      });
+      this.finishing = finishingStep(() => this.completeCurrentStep());
+    },
+
     async startCurrentStep(this: BalancedTrainingPlayContext) {
       const step = this.currentStep();
       if (!this.activityId || !step) return;
@@ -116,43 +166,18 @@ export function balancedTrainingPlay() {
       this.currentParticipantRef = result.participant.ref;
 
       if (result.exerciseTypeKey === "WARM_UP") {
-        const factory = getExerciseEngineFactory("WARM_UP_V1");
-        this.warmUpEngine = factory
-          ? (factory.create(
-              result.configuration as WarmUpEngineInput,
-            ) as ExerciseEngine<WarmUpState>)
-          : null;
+        this.buildWarmUpEngine(result.configuration);
       }
       if (result.exerciseTypeKey === "SWITCHING") {
-        const factory = getDartExerciseEngineFactory("SWITCHING_V1");
-        const created = factory?.create(
-          result.configuration as SwitchingConfigData,
-        );
-        this.switchingEngine =
-          created instanceof SwitchingEngine ? created : null;
+        this.buildSwitchingEngine(result.configuration);
         this.armStepDeadline(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
-        const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
-        const created = factory?.create(
-          result.configuration as DoublePatternConfigData,
-        );
-        this.doublePatternEngine =
-          created instanceof DoublePatternEngine ? created : null;
+        this.buildDoublePatternEngine(result.configuration);
         this.armStepDeadline(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "GAME") {
-        self.$store.game.reset();
-        self.$store.game.startSession({
-          gameTypeKey: result.gameTypeKey,
-          rulesetVersionKey: result.rulesetVersionKey,
-          sessionId: result.sessionId,
-          templateRef: null,
-          configSnapshot: { ...result.configuration, seats: [] },
-          captureModeKey: result.captureModeKey,
-          inputModeKey: result.inputModeKey,
-        });
-        this.finishing = finishingStep(() => this.completeCurrentStep());
+        this.startFinishingStep(result);
       }
     },
 

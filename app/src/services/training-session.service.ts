@@ -99,6 +99,142 @@ export async function startTraining(
   };
 }
 
+type Db = ReturnType<typeof getDb>;
+
+type StepStartContext = {
+  db: Db;
+  playerId: string;
+  activityId: string;
+  sequenceNumber: number;
+  step: TrainingStepResolved;
+  activeStatusId: number;
+  sessionId: string;
+  participantId: string;
+  displayName: string;
+  participants: {
+    id: string;
+    participantTypeId: number;
+    playerId: string;
+    displayName: string;
+  }[];
+};
+
+async function startGameStep(
+  ctx: StepStartContext,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const { db, playerId, activityId, sequenceNumber, step } = ctx;
+  const exerciseTypeId = await findExerciseTypeId(db, "GAME");
+  const gameLookup = await findGameTypeAndRuleset(
+    db,
+    FINISHING_GAME_TYPE_KEY,
+    FINISHING_RULESET_VERSION_KEY,
+  );
+  const captureModeId = await findCaptureModeId(db, "ANALYTICS");
+  const inputModeId = await findInputModeId(db, "VISUAL_BOARD");
+  if (!exerciseTypeId || !gameLookup || !captureModeId || !inputModeId) {
+    return {
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    };
+  }
+  try {
+    await withTransaction((tx) =>
+      insertExerciseSessionRecord(tx, {
+        activityId,
+        sessionId: ctx.sessionId,
+        configurationId: generateId(),
+        participants: ctx.participants,
+        playerId,
+        gameTypeId: gameLookup.gameTypeId,
+        rulesetVersionId: gameLookup.rulesetVersionId,
+        captureModeId,
+        inputModeId,
+        activeStatusId: ctx.activeStatusId,
+        exerciseTypeId,
+        routineStepSequenceNumber: sequenceNumber,
+        configuration: step.configuration,
+      }),
+    );
+  } catch (error) {
+    if (!isActiveSessionConflict(error)) throw error;
+    return resolveActiveSessionConflict(db, playerId, gameLookup.gameTypeId);
+  }
+  return {
+    ok: true,
+    data: {
+      sessionId: ctx.sessionId,
+      exerciseTypeKey: "GAME",
+      configuration: step.configuration,
+      participant: { ref: ctx.participantId, displayName: ctx.displayName },
+      gameTypeKey: FINISHING_GAME_TYPE_KEY,
+      rulesetVersionKey: FINISHING_RULESET_VERSION_KEY,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    },
+  };
+}
+
+async function resolveActiveSessionConflict(
+  db: Db,
+  playerId: string,
+  gameTypeId: string,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const active = await findActiveSessionForGameType(db, playerId, gameTypeId);
+  return active
+    ? {
+        ok: false,
+        code: "SESSION_ALREADY_ACTIVE",
+        details: { sessionId: active.sessionId, startedAt: active.startedAt },
+      }
+    : {
+        ok: false,
+        code: "INTERNAL_ERROR",
+        details: { reason: "conflict with no active row" },
+      };
+}
+
+async function startNonGameStep(
+  ctx: StepStartContext,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const { db, step } = ctx;
+  const exerciseTypeId = await findExerciseTypeId(db, step.exerciseTypeKey);
+  const exerciseRulesetVersionId = step.exerciseRulesetVersionKey
+    ? await findExerciseRulesetVersionId(db, step.exerciseRulesetVersionKey)
+    : undefined;
+  if (!exerciseTypeId) {
+    return {
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    };
+  }
+  await withTransaction((tx) =>
+    insertExerciseSessionRecord(tx, {
+      activityId: ctx.activityId,
+      sessionId: ctx.sessionId,
+      configurationId: generateId(),
+      participants: ctx.participants,
+      playerId: ctx.playerId,
+      activeStatusId: ctx.activeStatusId,
+      exerciseTypeId,
+      exerciseRulesetVersionId,
+      routineStepSequenceNumber: ctx.sequenceNumber,
+      configuration: step.configuration,
+    }),
+  );
+
+  return {
+    ok: true,
+    data: {
+      sessionId: ctx.sessionId,
+      exerciseTypeKey: step.exerciseTypeKey,
+      configuration: step.configuration,
+      participant: { ref: ctx.participantId, displayName: ctx.displayName },
+    },
+  };
+}
+
 export async function startTrainingStep(
   playerId: string,
   activityId: string,
@@ -129,122 +265,29 @@ export async function startTrainingStep(
   }
 
   const participantId = generateId();
-  const participants = [
-    {
-      id: participantId,
-      participantTypeId: playerParticipantTypeId,
-      playerId,
-      displayName,
-    },
-  ];
-  const sessionId = generateId();
-
-  if (step.exerciseTypeKey === "GAME") {
-    const exerciseTypeId = await findExerciseTypeId(db, "GAME");
-    const gameLookup = await findGameTypeAndRuleset(
-      db,
-      FINISHING_GAME_TYPE_KEY,
-      FINISHING_RULESET_VERSION_KEY,
-    );
-    const captureModeId = await findCaptureModeId(db, "ANALYTICS");
-    const inputModeId = await findInputModeId(db, "VISUAL_BOARD");
-    if (!exerciseTypeId || !gameLookup || !captureModeId || !inputModeId) {
-      return {
-        ok: false,
-        code: "INTERNAL_ERROR",
-        details: { reason: "reference data missing" },
-      };
-    }
-    try {
-      await withTransaction((tx) =>
-        insertExerciseSessionRecord(tx, {
-          activityId,
-          sessionId,
-          configurationId: generateId(),
-          participants,
-          playerId,
-          gameTypeId: gameLookup.gameTypeId,
-          rulesetVersionId: gameLookup.rulesetVersionId,
-          captureModeId,
-          inputModeId,
-          activeStatusId,
-          exerciseTypeId,
-          routineStepSequenceNumber: sequenceNumber,
-          configuration: step.configuration,
-        }),
-      );
-    } catch (error) {
-      if (!isActiveSessionConflict(error)) throw error;
-      const active = await findActiveSessionForGameType(
-        db,
+  const ctx: StepStartContext = {
+    db,
+    playerId,
+    activityId,
+    sequenceNumber,
+    step,
+    activeStatusId,
+    sessionId: generateId(),
+    participantId,
+    displayName,
+    participants: [
+      {
+        id: participantId,
+        participantTypeId: playerParticipantTypeId,
         playerId,
-        gameLookup.gameTypeId,
-      );
-      return active
-        ? {
-            ok: false,
-            code: "SESSION_ALREADY_ACTIVE",
-            details: {
-              sessionId: active.sessionId,
-              startedAt: active.startedAt,
-            },
-          }
-        : {
-            ok: false,
-            code: "INTERNAL_ERROR",
-            details: { reason: "conflict with no active row" },
-          };
-    }
-    return {
-      ok: true,
-      data: {
-        sessionId,
-        exerciseTypeKey: "GAME",
-        configuration: step.configuration,
-        participant: { ref: participantId, displayName },
-        gameTypeKey: FINISHING_GAME_TYPE_KEY,
-        rulesetVersionKey: FINISHING_RULESET_VERSION_KEY,
-        captureModeKey: "ANALYTICS",
-        inputModeKey: "VISUAL_BOARD",
+        displayName,
       },
-    };
-  }
-
-  const exerciseTypeId = await findExerciseTypeId(db, step.exerciseTypeKey);
-  const exerciseRulesetVersionId = step.exerciseRulesetVersionKey
-    ? await findExerciseRulesetVersionId(db, step.exerciseRulesetVersionKey)
-    : undefined;
-  if (!exerciseTypeId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
-  }
-  await withTransaction((tx) =>
-    insertExerciseSessionRecord(tx, {
-      activityId,
-      sessionId,
-      configurationId: generateId(),
-      participants,
-      playerId,
-      activeStatusId,
-      exerciseTypeId,
-      exerciseRulesetVersionId,
-      routineStepSequenceNumber: sequenceNumber,
-      configuration: step.configuration,
-    }),
-  );
-
-  return {
-    ok: true,
-    data: {
-      sessionId,
-      exerciseTypeKey: step.exerciseTypeKey,
-      configuration: step.configuration,
-      participant: { ref: participantId, displayName },
-    },
+    ],
   };
+
+  return step.exerciseTypeKey === "GAME"
+    ? startGameStep(ctx)
+    : startNonGameStep(ctx);
 }
 
 export async function completeTraining(
