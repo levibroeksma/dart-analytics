@@ -12,3 +12,34 @@ export type WarmUpState = {
   phaseCount: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Switching state, derived on every `state()` call by replaying `facts()`
+ * (`foldSwitchingState`) — nothing here is held as mutable engine state.
+ * `targetIndex` is the position in `config.targets` the *next* dart scores
+ * against; `currentTargetNumber` is that same target's board number, so a
+ * caller never has to index into its own copy of the config to render it.
+ */
+export type SwitchingState = {
+  currentTargetNumber: number;
+  targetIndex: number;
+  totalPoints: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
+ * Double Pattern state, derived on every `state()` call by replaying
+ * `facts()` (`foldDoublePatternState`), exactly like `SwitchingState`.
+ * `patternIndex`/`targetWithinPattern` locate the *next* dart inside
+ * `config.patterns`; `currentDoubleNumber` is that double's own board
+ * number, e.g. `20` for `D20`.
+ */
+export type DoublePatternState = {
+  patternIndex: number;
+  targetWithinPattern: number;
+  currentDoubleNumber: number;
+  totalPoints: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

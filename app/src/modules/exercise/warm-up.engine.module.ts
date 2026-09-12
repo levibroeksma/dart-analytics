@@ -1,5 +1,5 @@
-import { WarmUpV1Config } from "@lib/exercise/rulesets/types";
-import type { WarmUpConfigData } from "@lib/types";
+import { WarmUpEngineInputSchema } from "@lib/exercise/rulesets/types";
+import type { WarmUpEngineInput } from "@lib/types";
 import { newClientKey } from "@modules/game/client-key.module";
 import type { EngineFacts, StageFact } from "@modules/types";
 import { registerExerciseEngineFactory } from "./engine.registry";
@@ -30,16 +30,25 @@ function cloneStages(stages: readonly StageFact[]): StageFact[] {
  * The engine owns no clock. A caller drives section transitions with
  * `advance()`; elapsed time belongs to the controller, which keeps this engine
  * deterministic with respect to its configuration alone (§9).
+ *
+ * Each phase's own duration is resolved from `config.stepDurationSeconds`
+ * (the routine step's total duration) split proportionally to
+ * `phase.weight` — not a fixed per-phase value — so the same template
+ * config serves routines of different lengths (design spec 2026-09-11
+ * §5.1). Rounding is per-phase (`Math.round`), so the sum of all
+ * `phaseDurationSeconds` across a routine's steps can differ from
+ * `stepDurationSeconds` by at most a handful of seconds — acceptable for a
+ * UI-facing duration display, not a value anything sums back up.
  */
 class WarmUpEngine implements ExerciseEngine<WarmUpState> {
   readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
 
-  private readonly config: WarmUpConfigData;
+  private readonly config: WarmUpEngineInput;
   private stages: StageFact[];
   private complete = false;
 
-  constructor(config: WarmUpConfigData, prior?: EngineFacts) {
-    this.config = WarmUpV1Config.parse(config);
+  constructor(config: WarmUpEngineInput, prior?: EngineFacts) {
+    this.config = WarmUpEngineInputSchema.parse(config);
     this.stages =
       prior && prior.stages.length > 0
         ? cloneStages(prior.stages)
@@ -49,11 +58,18 @@ class WarmUpEngine implements ExerciseEngine<WarmUpState> {
   private deriveState(): WarmUpState {
     const phaseIndex = this.stages.length - 1;
     const phase = this.config.phases[phaseIndex];
+    const totalWeight = this.config.phases.reduce(
+      (sum, p) => sum + p.weight,
+      0,
+    );
+    const phaseDurationSeconds = Math.round(
+      (this.config.stepDurationSeconds * phase.weight) / totalWeight,
+    );
     return {
       phaseIndex,
       phaseName: phase.name,
       targets: [...phase.targets],
-      phaseDurationSeconds: phase.durationSeconds,
+      phaseDurationSeconds,
       phaseCount: this.config.phases.length,
       status: this.complete ? "COMPLETE" : "IN_PROGRESS",
     };
@@ -93,11 +109,11 @@ class WarmUpEngine implements ExerciseEngine<WarmUpState> {
 }
 
 export const warmUpEngineFactory: ExerciseEngineFactory<
-  WarmUpConfigData,
+  WarmUpEngineInput,
   WarmUpState
 > = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: WarmUpConfigData, prior?: EngineFacts) {
+  create(config: WarmUpEngineInput, prior?: EngineFacts) {
     return new WarmUpEngine(config, prior);
   },
 };

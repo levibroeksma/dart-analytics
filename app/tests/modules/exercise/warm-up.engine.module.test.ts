@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { warmUpEngineFactory } from "@modules/exercise/warm-up.engine.module";
-import type { WarmUpConfigData } from "@lib/types";
+import type { WarmUpEngineInput } from "@lib/types";
 
-const CONFIG: WarmUpConfigData = {
+/**
+ * Equal `weight` across all three phases, so each phase's
+ * `phaseDurationSeconds` splits `stepDurationSeconds` evenly
+ * (180 / 3 = 60) — the unequal-weight rounding case has its own
+ * fixture below ("splits step duration proportionally to phase weight").
+ */
+const CONFIG: WarmUpEngineInput = {
   phases: [
-    { name: "Upper", targets: [5, 20, 1], durationSeconds: 60 },
-    { name: "Lower", targets: [19, 3, 17], durationSeconds: 60 },
-    { name: "Bull", targets: [25], durationSeconds: 60 },
+    { name: "Upper", targets: [5, 20, 1], weight: 1 },
+    { name: "Lower", targets: [19, 3, 17], weight: 1 },
+    { name: "Bull", targets: [25], weight: 1 },
   ],
+  stepDurationSeconds: 180,
 };
 
 describe("warmUpEngineFactory", () => {
@@ -92,6 +99,21 @@ describe("warmUpEngineFactory", () => {
   });
 
   it("rejects an empty phase list", () => {
-    expect(() => warmUpEngineFactory.create({ phases: [] })).toThrow();
+    expect(() =>
+      warmUpEngineFactory.create({ phases: [], stepDurationSeconds: 60 }),
+    ).toThrow();
+  });
+
+  it("splits step duration proportionally to phase weight", () => {
+    const engine = warmUpEngineFactory.create({
+      phases: [
+        { name: "Long", targets: [20], weight: 3 },
+        { name: "Short", targets: [19], weight: 1 },
+      ],
+      stepDurationSeconds: 600,
+    });
+
+    expect(engine.state().phaseDurationSeconds).toBe(450);
+    expect(engine.advance().phaseDurationSeconds).toBe(150);
   });
 });
