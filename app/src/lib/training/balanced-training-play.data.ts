@@ -13,6 +13,7 @@ import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.mod
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { finishingStep } from "./finishing-step.data";
 import type { ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type {
@@ -31,7 +32,7 @@ const ROUTINE_NAME = "Balanced Training";
 
 let self: BalancedTrainingPlayContext;
 
-export function balancedTrainingPlay(): BalancedTrainingPlayContext {
+export function balancedTrainingPlay() {
   return {
     loading: false,
     error: "",
@@ -44,6 +45,7 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
     switchingEngine: null,
     doublePatternEngine: null,
     stepDeadline: null,
+    finishing: null,
     ...boardInputData(
       (observation) => {
         if (self.switchingEngine) self.recordSwitchingDart(observation);
@@ -139,6 +141,19 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
           created instanceof DoublePatternEngine ? created : null;
         this.armStepDeadline(step.durationSeconds);
       }
+      if (result.exerciseTypeKey === "GAME") {
+        self.$store.game.reset();
+        self.$store.game.startSession({
+          gameTypeKey: result.gameTypeKey,
+          rulesetVersionKey: result.rulesetVersionKey,
+          sessionId: result.sessionId,
+          templateRef: null,
+          configSnapshot: { ...result.configuration, seats: [] },
+          captureModeKey: result.captureModeKey,
+          inputModeKey: result.inputModeKey,
+        });
+        this.finishing = finishingStep(() => this.completeCurrentStep());
+      }
     },
 
     advanceWarmUp(this: BalancedTrainingPlayContext) {
@@ -203,12 +218,15 @@ export function balancedTrainingPlay(): BalancedTrainingPlayContext {
         this.stepDeadline = null;
       }
       await this.uploadCurrentStepFacts();
-      await completeSession(this.currentSessionId, "COMPLETED");
+      if (this.currentStep()?.exerciseTypeKey !== "GAME") {
+        await completeSession(this.currentSessionId, "COMPLETED");
+      }
       this.currentSessionId = null;
       this.currentParticipantRef = null;
       this.warmUpEngine = null;
       this.switchingEngine = null;
       this.doublePatternEngine = null;
+      this.finishing = null;
       const state = this.training.completeStep();
       if (state.status === "COMPLETE") {
         await apiCompleteTraining(this.activityId);
