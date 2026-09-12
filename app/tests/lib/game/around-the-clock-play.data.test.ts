@@ -452,6 +452,10 @@ describe("undoVisit", () => {
     play.undoVisit.call(play);
 
     expect(play.currentTargetLabel.call(play)).toBe("1");
+    // This store overrides boardInputData()'s visitMarkers with its own
+    // (later object-literal key wins), so board-input.data.ts's
+    // getTurns() generalization never runs here — confirmed by reading
+    // around-the-clock-play.data.ts's spread call and its own override.
     expect(play.$store.game.turns).toHaveLength(0);
   });
 });

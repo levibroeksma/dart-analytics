@@ -396,7 +396,10 @@ export function singlesTrainingPlay() {
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
     engine: null as SinglesTrainingEngine | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
       const config = this.$store.game.configSnapshot;

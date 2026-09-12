@@ -237,7 +237,10 @@ export function shanghaiPlay() {
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
     engine: null as ShanghaiEngine | null,
-    ...boardInputData((observation) => self.recordDart(observation)),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
 
     state(this: ShanghaiPlayContext): ShanghaiState | null {
       const config = this.$store.game.configSnapshot;

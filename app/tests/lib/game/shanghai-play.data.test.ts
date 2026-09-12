@@ -1105,6 +1105,8 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
 
     const clientKey = play.$store.game.turns[0].clientKey;
     expect(play.hiddenTurnKey).toBeNull();
+    // Reviewed against board-input.data.ts's getTurns() generalization: this
+    // still reads the store's turns through the now-parameterized accessor.
     expect(play.visitMarkers.call(play)).not.toEqual([]);
 
     vi.advanceTimersByTime(1500);
