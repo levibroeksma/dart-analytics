@@ -6,7 +6,8 @@ import {
 import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/training.module";
 import { getExerciseEngineFactory } from "@modules/exercise/engine.registry";
-import "@modules/exercise/warm-up.engine.module";
+import { resolveWarmUpPhaseDurations } from "@modules/exercise/warm-up.engine.module";
+import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.registry";
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
@@ -46,6 +47,8 @@ export function balancedTrainingPlay() {
     switchingEngine: null,
     doublePatternEngine: null,
     stepDeadline: null,
+    warmUpTimer: null,
+    warmUpElapsedSeconds: 0,
     finishing: null,
     ...boardInputData(
       (observation) => {
@@ -167,6 +170,7 @@ export function balancedTrainingPlay() {
 
       if (result.exerciseTypeKey === "WARM_UP") {
         this.buildWarmUpEngine(result.configuration);
+        this.startWarmUpTimer(result.configuration);
       }
       if (result.exerciseTypeKey === "SWITCHING") {
         this.buildSwitchingEngine(result.configuration);
@@ -181,12 +185,34 @@ export function balancedTrainingPlay() {
       }
     },
 
-    advanceWarmUp(this: BalancedTrainingPlayContext) {
-      if (!this.warmUpEngine) return;
-      this.warmUpEngine.advance();
-      if (this.warmUpEngine.isComplete()) {
-        void this.completeCurrentStep();
-      }
+    startWarmUpTimer(
+      this: BalancedTrainingPlayContext,
+      configuration: Record<string, unknown>,
+    ) {
+      this.warmUpElapsedSeconds = 0;
+      this.warmUpTimer = new SegmentTimer({
+        direction: "countup",
+        segmentDurationsSeconds: resolveWarmUpPhaseDurations(
+          configuration as WarmUpEngineInput,
+        ),
+        onTick: (elapsed) => {
+          this.warmUpElapsedSeconds = elapsed;
+        },
+        onSegmentChange: () => {
+          this.warmUpEngine?.advance();
+        },
+        onComplete: () => {
+          this.warmUpEngine?.advance();
+          void this.completeCurrentStep();
+        },
+      });
+      this.warmUpTimer.start();
+    },
+
+    formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string {
+      const minutes = Math.floor(this.warmUpElapsedSeconds / 60);
+      const seconds = this.warmUpElapsedSeconds % 60;
+      return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     },
 
     armStepDeadline(
@@ -241,6 +267,10 @@ export function balancedTrainingPlay() {
       if (this.stepDeadline) {
         clearTimeout(this.stepDeadline);
         this.stepDeadline = null;
+      }
+      if (this.warmUpTimer) {
+        this.warmUpTimer.stop();
+        this.warmUpTimer = null;
       }
       await this.uploadCurrentStepFacts();
       if (this.currentStep()?.exerciseTypeKey !== "GAME") {
