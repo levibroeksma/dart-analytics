@@ -1,0 +1,78 @@
+---
+/**
+ * Pointer-driven dartboard for a non-game exercise session (Switching,
+ * Double Pattern) — mirrors BoardInputPanel.astro, minus the game-store
+ * gate: an exercise session has no inputModeKey choice (always
+ * VISUAL_BOARD) and no timerPaused flag (D264, no clock).
+ *
+ * Declares no x-data of its own: mounts inside the exercise step's own
+ * scope and reads what boardInputData() contributes there (board, the
+ * pointer handlers, recordUnseen, visitMarkers) plus the page's `finished`
+ * flag and `undoVisit()`.
+ */
+
+// Components
+import DartBoard from "@components/ui/DartBoard.astro";
+import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
+import Button from "@components/forms/Button.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
+---
+
+<div
+  x-show="!finished"
+  x-cloak
+  class="mt-3 flex min-h-0 flex-col items-center gap-3"
+>
+  <div
+    class="relative min-h-0 max-h-[60vh] max-w-full flex-1 aspect-square touch-none"
+    @pointerdown="onPointerDown($event)"
+    @pointermove="onPointerMove($event)"
+    @pointerup="onPointerUp()"
+    @pointercancel="onPointerCancel()"
+  >
+    <DartBoard boardRef="board">
+      <div
+        class="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        <template
+          x-for="marker in visitMarkers()"
+          :key="marker.sequence"
+        >
+          <span
+            class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+            :style="`left: ${marker.leftPercent}%; top: ${marker.topPercent}%`"
+          >
+          </span>
+        </template>
+      </div>
+    </DartBoard>
+
+    <BoardMagnifier />
+  </div>
+
+  <div class="flex w-full shrink-0 gap-3">
+    <Button
+      type="button"
+      variant="secondary"
+      icon
+      ariaLabel="Undo dart"
+      class="flex-1"
+      @click="undoVisit()"
+    >
+      <UndoIcon
+        slot="iconBefore"
+        class="size-6 text-muted"
+      />
+    </Button>
+    <Button
+      type="button"
+      variant="ghost"
+      title="Bounce out"
+      class="glass flex-1"
+      @click="recordUnseen()"
+    />
+  </div>
+</div>
