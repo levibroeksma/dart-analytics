@@ -21,6 +21,7 @@ import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
+import { routineStart } from "@lib/training/routine-start.data";
 
 export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);
@@ -45,4 +46,5 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("tuodPlay", tuodPlay);
   Alpine.data("quickSubtractPlay", quickSubtractPlay);
   Alpine.data("balancedTrainingPlay", balancedTrainingPlay);
+  Alpine.data("routineStart", routineStart);
 }
