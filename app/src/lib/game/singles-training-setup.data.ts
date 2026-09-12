@@ -12,22 +12,37 @@ export function singlesTrainingSetup() {
   return {
     orderMode: "LOW_TO_HIGH" as SinglesTrainingSetupContext["orderMode"],
     difficulty: "EASY" as SinglesTrainingSetupContext["difficulty"],
+    scoringMode: "STANDARD" as SinglesTrainingSetupContext["scoringMode"],
     ...createPresetSetupController<SinglesTrainingSetupContext>({
       gameTypeKey: "SINGLES_TRAINING",
-      rulesetVersionKey: (ctx) => (guested(ctx) ? "SINGLES_V1" : "SINGLES_V2"),
+      rulesetVersionKey: (ctx) => (guested(ctx) ? "SINGLES_V1" : "SINGLES_V3"),
       playHref: "/games/singles-training/play",
       label: "Singles Training",
-      configOverrides: (ctx) => ({
-        order_mode: ctx.orderMode,
-        target_order: targetOrderFor(ctx.orderMode),
-        difficulty: ctx.difficulty,
-      }),
+      configOverrides: (ctx) =>
+        guested(ctx)
+          ? {
+              order_mode: ctx.orderMode,
+              target_order: targetOrderFor(ctx.orderMode),
+              difficulty: ctx.difficulty,
+            }
+          : {
+              order_mode: ctx.orderMode,
+              target_order: targetOrderFor(ctx.orderMode),
+              difficulty: ctx.difficulty,
+              scoring_mode: ctx.scoringMode,
+            },
     }),
     addGuest(this: SinglesTrainingSetupContext) {
-      if (addTypedGuest(this)) this.difficulty = "EASY";
+      if (addTypedGuest(this)) {
+        this.difficulty = "EASY";
+        this.scoringMode = "STANDARD";
+      }
     },
     addBot(this: SinglesTrainingSetupContext) {
-      if (addBotOpponent(this)) this.difficulty = "EASY";
+      if (addBotOpponent(this)) {
+        this.difficulty = "EASY";
+        this.scoringMode = "STANDARD";
+      }
     },
   };
 }
