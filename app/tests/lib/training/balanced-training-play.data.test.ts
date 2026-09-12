@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/training-sessions", () => ({
@@ -40,11 +41,38 @@ const STEPS = [
 describe("balancedTrainingPlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "AudioContext",
+      vi.fn().mockImplementation(function () {
+        return {
+          createOscillator: () => ({
+            connect: vi.fn(),
+            frequency: {},
+            start: vi.fn(),
+            stop: vi.fn(),
+          }),
+          createGain: () => ({
+            connect: vi.fn(),
+            gain: {
+              setValueAtTime: vi.fn(),
+              exponentialRampToValueAtTime: vi.fn(),
+            },
+          }),
+          destination: {},
+          currentTime: 0,
+        };
+      }),
+    );
     Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("init() starts the routine and builds the training engine from the returned steps", async () => {
@@ -85,7 +113,35 @@ describe("balancedTrainingPlay", () => {
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
   });
 
-  it("advanceWarmUp() moves the engine to its next phase", async () => {
+  it("the Warm-Up timer advances the engine through its phase and completes the step at the end", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-12T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
+    expect(store.warmUpTimer).not.toBeNull();
+
+    vi.advanceTimersByTime(600_000);
+    await vi.runAllTimersAsync();
+
+    expect(globalThis.location.href).toBe("/training");
+    expect(store.warmUpTimer).toBeNull();
+  });
+
+  it("formattedWarmUpElapsed() reports mm:ss as the timer ticks", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineName: "Balanced Training",
@@ -99,10 +155,8 @@ describe("balancedTrainingPlay", () => {
     });
     const store = makeStore();
     await store.init();
-    store.advanceWarmUp();
-    expect(store.warmUpEngine!.state().status).toBe(
-      STEPS[0].configuration.phases.length > 1 ? "IN_PROGRESS" : "COMPLETE",
-    );
+    vi.advanceTimersByTime(65_000);
+    expect(store.formattedWarmUpElapsed()).toBe("1:05");
   });
 });
 

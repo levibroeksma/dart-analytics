@@ -1,5 +1,6 @@
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
+import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   StartTrainingResponseData,
   StartTrainingStepResponseData,
@@ -24,6 +25,8 @@ export type BalancedTrainingPlayContext = {
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
   stepDeadline: ReturnType<typeof setTimeout> | null;
+  warmUpTimer: SegmentTimer | null;
+  warmUpElapsedSeconds: number;
   finishing: ReturnType<typeof finishingStep> | null;
   $store: {
     game: {
@@ -50,7 +53,11 @@ export type BalancedTrainingPlayContext = {
     result: StartTrainingStepResponseData,
   ): void;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
-  advanceWarmUp(this: BalancedTrainingPlayContext): void;
+  startWarmUpTimer(
+    this: BalancedTrainingPlayContext,
+    configuration: Record<string, unknown>,
+  ): void;
+  formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string;
   armStepDeadline(
     this: BalancedTrainingPlayContext,
     durationSeconds: number,

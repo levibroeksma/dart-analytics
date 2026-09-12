@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { warmUpEngineFactory } from "@modules/exercise/warm-up.engine.module";
+import {
+  warmUpEngineFactory,
+  resolveWarmUpPhaseDurations,
+} from "@modules/exercise/warm-up.engine.module";
 import type { WarmUpEngineInput } from "@lib/types";
 
 /**
@@ -115,5 +118,32 @@ describe("warmUpEngineFactory", () => {
 
     expect(engine.state().phaseDurationSeconds).toBe(450);
     expect(engine.advance().phaseDurationSeconds).toBe(150);
+  });
+});
+
+describe("resolveWarmUpPhaseDurations", () => {
+  it("splits step duration evenly across equal-weight phases", () => {
+    expect(
+      resolveWarmUpPhaseDurations({
+        phases: [
+          { name: "Upper", targets: [5], weight: 1 },
+          { name: "Lower", targets: [19], weight: 1 },
+          { name: "Bull", targets: [25], weight: 1 },
+        ],
+        stepDurationSeconds: 180,
+      }),
+    ).toEqual([60, 60, 60]);
+  });
+
+  it("splits step duration proportionally to unequal phase weights", () => {
+    expect(
+      resolveWarmUpPhaseDurations({
+        phases: [
+          { name: "Long", targets: [20], weight: 3 },
+          { name: "Short", targets: [19], weight: 1 },
+        ],
+        stepDurationSeconds: 600,
+      }),
+    ).toEqual([450, 150]);
   });
 });

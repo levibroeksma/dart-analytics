@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BOARD_RADII_MM,
+  SECTOR_WIDTH_DEGREES,
   classify,
   zoneCentroid,
 } from "@lib/game/board/board-geometry.module";
@@ -160,5 +161,11 @@ describe("zoneCentroid", () => {
 
   it("still has no centroid for an unbanded single", () => {
     expect(zoneCentroid(20, "SINGLE")).toBeNull();
+  });
+});
+
+describe("SECTOR_WIDTH_DEGREES", () => {
+  it("is 18 degrees for 20 sectors", () => {
+    expect(SECTOR_WIDTH_DEGREES).toBe(18);
   });
 });
