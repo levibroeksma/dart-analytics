@@ -60,6 +60,8 @@ astro check
 13. `seeds/0013_singles_training_v2_game_engine_reference.sql`
 14. `seeds/0014_exercise_types.sql`
 15. `seeds/0015_warm_up_routine.sql`
+16. `seeds/0016_switching_double_pattern_exercise_types.sql`
+17. `seeds/0017_balanced_training_routine.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
