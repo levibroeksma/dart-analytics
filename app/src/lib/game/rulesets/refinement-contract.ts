@@ -5,6 +5,7 @@ import {
   ScoreTrainingConfig,
   SinglesConfig,
   SinglesV2Config,
+  SinglesV3Config,
   TuodConfig,
 } from "./types";
 import type { SchemaRefinementContract } from "./types";
@@ -204,6 +205,61 @@ const singlesTrainingV2Contract: SchemaRefinementContract<SinglesV2Input> = {
           label: "wrong length (20 entries, missing BULL)",
           config: {
             ...singlesV2Base,
+            target_order: [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20,
+            ],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+type SinglesV3Input = z.input<typeof SinglesV3Config>;
+
+const singlesV3Base = {
+  order_mode: "LOW_TO_HIGH",
+  difficulty: "EASY",
+  scoring_mode: "STANDARD",
+  points_single: 1,
+  points_double: 2,
+  points_treble: 3,
+} satisfies Omit<SinglesV3Input, "target_order">;
+
+/**
+ * Mirrors `singlesTrainingV2Contract` exactly — `SinglesV3Config`
+ * re-declares the identical `target_order` `superRefine` (Zod schemas
+ * don't compose a diff), so the same two probes apply verbatim.
+ */
+const singlesTrainingV3Contract: SchemaRefinementContract<SinglesV3Input> = {
+  schemaName: "SinglesV3Config",
+  schema: SinglesV3Config,
+  fields: [
+    {
+      field: "target_order",
+      accept: [
+        {
+          label: "a valid permutation of 1..20 and 25",
+          config: { ...singlesV3Base, target_order: ASCENDING_TARGET_ORDER },
+        },
+      ],
+      reject: [
+        {
+          label:
+            "a duplicate value (two 1s, missing 2) — load-bearing, length stays 21",
+          config: {
+            ...singlesV3Base,
+            target_order: [
+              1, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 25,
+            ],
+          },
+        },
+        {
+          label: "wrong length (20 entries, missing BULL)",
+          config: {
+            ...singlesV3Base,
             target_order: [
               1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
               20,
@@ -434,6 +490,7 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   scoreTrainingContract,
   singlesTrainingContract,
   singlesTrainingV2Contract,
+  singlesTrainingV3Contract,
   doublesTrainingContract,
   oneTwentyOneV2Contract,
   tuodContract,

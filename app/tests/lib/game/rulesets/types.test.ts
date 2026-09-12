@@ -8,6 +8,7 @@ import {
   ShanghaiV2Config,
   SinglesConfig,
   SinglesV2Config,
+  SinglesV3Config,
   TuodConfig,
 } from "@lib/types";
 
@@ -458,6 +459,37 @@ describe("SinglesV2Config difficulty", () => {
   it("rejects an unrecognized difficulty value", () => {
     expect(
       SinglesV2Config.safeParse({ ...validRest, difficulty: "PROFESSIONAL" })
+        .success,
+    ).toBe(false);
+  });
+});
+
+describe("SinglesV3Config scoring_mode", () => {
+  const validRest = {
+    order_mode: "LOW_TO_HIGH",
+    target_order: [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ],
+    difficulty: "EASY",
+  };
+
+  it("accepts STANDARD", () => {
+    expect(
+      SinglesV3Config.safeParse({ ...validRest, scoring_mode: "STANDARD" })
+        .success,
+    ).toBe(true);
+  });
+
+  it("accepts ACCURACY", () => {
+    expect(
+      SinglesV3Config.safeParse({ ...validRest, scoring_mode: "ACCURACY" })
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects an unrecognized scoring_mode value", () => {
+    expect(
+      SinglesV3Config.safeParse({ ...validRest, scoring_mode: "PRECISE" })
         .success,
     ).toBe(false);
   });

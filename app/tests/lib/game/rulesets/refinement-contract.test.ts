@@ -33,6 +33,12 @@ describe("ruleset refinement contract", () => {
     ).toContain("SinglesV2Config");
   });
 
+  it("covers SinglesV3Config's target_order refinement", () => {
+    expect(
+      REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),
+    ).toContain("SinglesV3Config");
+  });
+
   for (const contract of REFINEMENT_CONTRACTS) {
     describe(contract.schemaName, () => {
       it("names a schema that types.ts actually exports under that name", () => {
