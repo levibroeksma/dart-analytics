@@ -13,8 +13,9 @@ updated: 2026-09-10
 > - Why was something decided? `DECISIONS.md` routes to `decisions/**`.
 > - Provenance and version history? `00-Context-Map-History.md` (never
 >   loaded by a task).
-> - Noticed something the task didn't ask you to change? Log it in
->   `FINDINGS.md`; never fix it in the same pass.
+> - Noticed something the task didn't ask you to change? Capture it as a
+>   GitHub issue via the `capturing-discovered-work` skill; never fix it in
+>   the same pass.
 
 ---
 
