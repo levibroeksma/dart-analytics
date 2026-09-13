@@ -36,7 +36,7 @@ function seatValueExpr(row: (typeof statRows)[number]): string {
 {/* Loading: one column of StatRowSkeleton entries */}
 <dl
   class="mt-4 space-y-1 text-sm text-muted-foreground flex flex-col"
-  x-show="completionStatus === 'pending' || completionStatus === 'saving'"
+  x-show="(completionStatus === 'pending' || completionStatus === 'saving') && $store.game.seats.length === 1"
   x-cloak
 >
   {statRows.map((row) => <StatRowSkeleton label={row.label} />)}
