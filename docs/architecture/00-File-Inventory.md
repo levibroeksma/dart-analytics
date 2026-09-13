@@ -233,7 +233,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction; +D261 Trivia tools outside GameEngine (2026-09-09) | canonical | ~6.2k |
 | `decisions/frontend/astro.md` | 21 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28) | canonical | ~5.1k |
-| `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show | canonical | ~5k |
+| `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show (D270 Warm-Up tap-to-unlock audio, 2026-09-13) | canonical | ~6.8k |
 | `decisions/frontend/style.md` | 12 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban, container queries | canonical | ~3.2k |
 | `decisions/context-system.md` | 35 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky | canonical | ~6.6k |
 

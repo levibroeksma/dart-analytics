@@ -2,8 +2,8 @@
 status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
-updated: 2026-09-12
-highest-issued: F90
+updated: 2026-09-13
+highest-issued: F91
 -->
 
 # Findings
@@ -43,6 +43,15 @@ Evidence: `path/to/file.md:12` vs what is actually true
 Impact: what it costs an agent that trusts the claim
 Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
+
+---
+
+### F91 — Other `SegmentTimer` consumers may share Warm-Up's silent-audio defect if ever reached without a preceding click
+Status: Open · Found: 2026-09-13 · Task: claude/warmup-sound-timer-bug-v96xgf
+Claim: only Balanced Training's Warm-Up step was confirmed to suffer the browser-autoplay-policy defect this task fixes (D270) — Score Training, TUOD, 121, and Quick Subtract's `SegmentTimer` usage were assumed safe because their timers currently start from a genuine "Start" button click
+Evidence: `app/src/modules/ui/segment-timer.module.ts`'s `playBeep()`/`getAudioContext()` still lazily create and resume the `AudioContext` from inside the `setInterval` tick for every caller, not just Warm-Up's — `app/src/lib/game/score-training-play.data.ts:194`, `app/src/lib/game/tuod-play.data.ts:263`, `app/src/lib/game/one-twenty-one-play.data.ts:221`, and `app/src/lib/trivia/quick-subtract-play.data.ts:50` (and `:68`) all construct a `SegmentTimer` and never call the new `unlockAudio()`. Whether each one's timer is always reachable only via a direct click (never via a reload, a resumed/reconciled session, or another automatic `init()` path) was not verified in this task
+Impact: if any of those flows can start a timer without a synchronous user gesture immediately beforehand, its segment-change/completion beep would be silently dropped the same way Warm-Up's was, with no error surfaced anywhere
+Proposed: audit each consumer's actual start path for a guaranteed preceding click; where one is missing, call the same `unlockAudio()` pattern D270 introduced
 
 ---
 

@@ -57,11 +57,28 @@ export class SegmentTimer {
     return this.audioCtx;
   }
 
-  playBeep(frequency: number = 880, duration: number = 0.3): void {
-    const ctx = this.getAudioContext();
+  /**
+   * Creates (or reuses) the `AudioContext` and resumes it if suspended. Must
+   * be called synchronously from within a real user-gesture event handler
+   * (e.g. a click) — browser autoplay policy only lifts a suspended context
+   * inside that call stack, never from a later `setInterval` tick. Callers
+   * that drive `playBeep()` from a timer with no further user interaction
+   * (the Warm-Up ping) call this once, up front, from the gesture that
+   * starts the timer.
+   */
+  unlockAudio(): void {
+    this.resumeIfSuspended(this.getAudioContext());
+  }
+
+  private resumeIfSuspended(ctx: AudioContext): void {
     if (ctx.state === "suspended") {
       void ctx.resume();
     }
+  }
+
+  playBeep(frequency: number = 880, duration: number = 0.3): void {
+    const ctx = this.getAudioContext();
+    this.resumeIfSuspended(ctx);
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 

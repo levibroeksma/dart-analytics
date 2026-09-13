@@ -50,6 +50,8 @@ export function balancedTrainingPlay() {
     stepDeadline: null,
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
+    warmUpReady: false,
+    warmUpConfiguration: null,
     finishing: null,
     ...boardInputData(
       (observation) => {
@@ -171,7 +173,8 @@ export function balancedTrainingPlay() {
 
       if (result.exerciseTypeKey === "WARM_UP") {
         this.buildWarmUpEngine(result.configuration);
-        this.startWarmUpTimer(result.configuration);
+        this.warmUpReady = false;
+        this.warmUpConfiguration = result.configuration;
       }
       if (result.exerciseTypeKey === "SWITCHING") {
         this.buildSwitchingEngine(result.configuration);
@@ -186,6 +189,18 @@ export function balancedTrainingPlay() {
       }
     },
 
+    confirmWarmUpReady(this: BalancedTrainingPlayContext) {
+      if (!this.warmUpConfiguration || this.warmUpReady) return;
+      this.warmUpReady = true;
+      this.startWarmUpTimer(this.warmUpConfiguration);
+    },
+
+    /**
+     * Only ever reached via `confirmWarmUpReady()`'s click handler — that
+     * gesture is what lets `SegmentTimer.unlockAudio()` actually unlock the
+     * `AudioContext`; the timer's later beeps run from `setInterval`, which
+     * alone can never satisfy browser autoplay policy.
+     */
     startWarmUpTimer(
       this: BalancedTrainingPlayContext,
       configuration: Record<string, unknown>,
@@ -207,6 +222,7 @@ export function balancedTrainingPlay() {
           void this.completeCurrentStep();
         },
       });
+      this.warmUpTimer.unlockAudio();
       this.warmUpTimer.start();
     },
 

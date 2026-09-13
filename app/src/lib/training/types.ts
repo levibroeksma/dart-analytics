@@ -27,6 +27,8 @@ export type BalancedTrainingPlayContext = {
   stepDeadline: ReturnType<typeof setTimeout> | null;
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
+  warmUpReady: boolean;
+  warmUpConfiguration: Record<string, unknown> | null;
   finishing: ReturnType<typeof finishingStep> | null;
   $store: {
     game: {
@@ -53,6 +55,7 @@ export type BalancedTrainingPlayContext = {
     result: StartTrainingStepResponseData,
   ): void;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  confirmWarmUpReady(this: BalancedTrainingPlayContext): void;
   startWarmUpTimer(
     this: BalancedTrainingPlayContext,
     configuration: Record<string, unknown>,
