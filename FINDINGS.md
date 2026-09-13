@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-13
-highest-issued: F92
+highest-issued: F94
 -->
 
 # Findings
@@ -43,6 +43,24 @@ Evidence: `path/to/file.md:12` vs what is actually true
 Impact: what it costs an agent that trusts the claim
 Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
+
+---
+
+### F94 — `uq_sessions_single_active` never actually constrains non-`GAME` exercise sessions, since Postgres treats NULL `game_type_id` values as distinct
+Status: Open · Found: 2026-09-13 · Task: claude/training-warmup-transition-bug-tbt39y
+Claim: `uq_sessions_single_active` (`database/migrations/0011_ordering_and_uniqueness.sql:37-38`, `UNIQUE INDEX ... ON exercise_sessions (player_id, game_type_id) WHERE completed_at IS NULL`) enforces "one active session per player per game type," per its name and `database/verification/0020_capability_fk_checks.sql:105`'s comment about it
+Evidence: `startNonGameStep`'s (server-side, `app/src/services/training-session.service.ts`) `insertExerciseSessionRecord` call never sets `gameTypeId` for `WARM_UP`/`SWITCHING`/`DOUBLE_PATTERN` exercise sessions, so that column is `NULL` for all of them. Postgres unique indexes (unlike a `NULLS NOT DISTINCT` index, PG15+, not used here) treat every `NULL` as distinct from every other `NULL` for uniqueness purposes, so two or more `ACTIVE` (`completed_at IS NULL`) exercise-type sessions for the same player can coexist without violating this index — found while investigating whether a stale/duplicate `ACTIVE` non-game session could block Balanced Training's Warm-Up → Switching step transition (it can't, because nothing stops the duplicate row from being inserted in the first place)
+Impact: a client bug that starts a step's session twice without completing the first (e.g. a retried request, or the transition bug this task's own fix addresses) leaves two concurrently `ACTIVE` exercise sessions for the same player with no DB-level signal — unlike a duplicate `GAME` session, which the index does catch (real, non-NULL `game_type_id`)
+Proposed: either give exercise sessions a synthetic non-NULL discriminator so the same index protects them too (e.g. include `exercise_type_id` in the index and coalesce, or key non-game sessions by their own `exercise_type_id` the way `GAME` sessions key by `game_type_id`), or accept the gap explicitly in `05-Database/10-Database-Agent-Guide.md` if the single-active invariant was only ever meant to cover `GAME` sessions — a schema decision, not made here
+
+---
+
+### F93 — Warm-Up's own `EXERCISE_SECTION` stage facts are computed every phase but never uploaded to the server
+Status: Open · Found: 2026-09-13 · Task: claude/training-warmup-transition-bug-tbt39y
+Claim: root `CLAUDE.md`'s Hard Invariants — "Store what happened" — implies every exercise's facts reach the server before its session is marked `COMPLETED`, the same way Switching's and Double Pattern's dart facts do
+Evidence: `app/src/lib/training/balanced-training-play.data.ts`'s `uploadCurrentStepFacts()` calls `this.activeDartEngine()`, which resolves to `this.switchingEngine ?? this.doublePatternEngine ?? null` — `warmUpEngine` is never included. `completeCurrentStep()` calls `uploadCurrentStepFacts()` unconditionally before marking the session `COMPLETED`, but for a `WARM_UP` step that call is always a no-op (engine `null` → early return), so `warmUpEngine.facts()` (the `EXERCISE_SECTION` stages `WarmUpEngine.advance()` builds up, one per phase entered) is computed correctly in memory but never reaches `appendBatch`/the server
+Impact: every completed Warm-Up step's phase-by-phase record is silently discarded — the exercise session is marked `COMPLETED` with zero persisted stages, contradicting "store what happened" and leaving nothing for any future Warm-Up-specific view/statistic to read
+Proposed: extend `uploadCurrentStepFacts()` (or add a parallel branch in `completeCurrentStep()`) to also upload `warmUpEngine.facts()` via `buildEventsBatch`/`appendBatch` when the current step is `WARM_UP`, mirroring the dart-engine branch — needs its own participant-ref resolution path since Warm-Up has no darts (`resolveSoloParticipantRef` is written against `EngineFacts` with turns, worth checking it degrades correctly for a turns-less fact log)
 
 ---
 
