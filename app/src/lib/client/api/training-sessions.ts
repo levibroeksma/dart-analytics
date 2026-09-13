@@ -5,6 +5,7 @@ import {
   type StartTrainingResponseData,
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
+  type AbandonTrainingResponseData,
 } from "./types";
 import { SessionApiError } from "./sessions";
 
@@ -39,6 +40,18 @@ export async function completeTraining(
 ): Promise<CompleteTrainingResponseData> {
   const result = await apiRequest<CompleteTrainingResponseData>(
     `/api/training-sessions/${activityId}/complete`,
+    { method: "PATCH" },
+  );
+  if (!result.ok)
+    throw new SessionApiError(result.error.code, result.error.message);
+  return result.data;
+}
+
+export async function abandonTraining(
+  activityId: string,
+): Promise<AbandonTrainingResponseData> {
+  const result = await apiRequest<AbandonTrainingResponseData>(
+    `/api/training-sessions/${activityId}/abandon`,
     { method: "PATCH" },
   );
   if (!result.ok)

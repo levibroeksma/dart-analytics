@@ -45,4 +45,5 @@ export {
   type StartTrainingResponseData,
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
+  type AbandonTrainingResponseData,
 } from "@routes/types";

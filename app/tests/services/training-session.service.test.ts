@@ -35,6 +35,7 @@ import {
   startTraining,
   startTrainingStep,
   completeTraining,
+  abandonTraining,
 } from "@services/training-session.service";
 
 const RESOLVED = {
@@ -272,6 +273,54 @@ describe("completeTraining", () => {
       ok: false,
       code: "NOT_FOUND",
       details: { activityId: "act-1" },
+    });
+  });
+});
+
+describe("abandonTraining", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("marks the activity abandoned", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(3);
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-13T12:00:00.000Z",
+    });
+    const result = await abandonTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: true,
+      data: { activityId: "act-1", completedAt: "2026-09-13T12:00:00.000Z" },
+    });
+    expect(sessionRepo.findGameStatusId).toHaveBeenCalledWith(
+      expect.anything(),
+      "ABANDONED",
+    );
+    expect(trainingRepo.updateActivityStatusRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      { activityId: "act-1", playerId: "p1", statusId: 3 },
+    );
+  });
+
+  it("returns NOT_FOUND when the activity does not belong to the player", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(3);
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
+      undefined,
+    );
+    const result = await abandonTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "NOT_FOUND",
+      details: { activityId: "act-1" },
+    });
+  });
+
+  it("returns INTERNAL_ERROR when the ABANDONED status lookup is missing", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(undefined);
+    const result = await abandonTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
     });
   });
 });

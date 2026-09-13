@@ -2,6 +2,7 @@ import {
   startTraining,
   startTrainingStep,
   completeTraining as apiCompleteTraining,
+  abandonTraining,
 } from "@client/api/training-sessions";
 import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/training.module";
@@ -22,6 +23,7 @@ import type {
   WarmUpEngineInput,
   SwitchingConfigData,
   DoublePatternConfigData,
+  TuodPlayContext,
 } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker } from "@lib/types";
@@ -158,7 +160,12 @@ export function balancedTrainingPlay() {
         captureModeKey: result.captureModeKey,
         inputModeKey: result.inputModeKey,
       });
-      this.finishing = finishingStep(() => this.completeCurrentStep());
+      this.finishing = finishingStep(
+        () => this.completeCurrentStep(),
+        async () => {
+          if (this.activityId) await abandonTraining(this.activityId);
+        },
+      );
     },
 
     async startCurrentStep(this: BalancedTrainingPlayContext) {
@@ -310,6 +317,49 @@ export function balancedTrainingPlay() {
         return;
       }
       await this.startCurrentStep();
+    },
+
+    /**
+     * The Finishing step's TenUpOneDown carries its own engine and facts on
+     * `$store.game` (via `startFinishingStep`), so its wrapped
+     * `abandonAndExit` (`finishing-step.data.ts`) already uploads any
+     * partial darts, marks that session ABANDONED, abandons the routine,
+     * and redirects to `/training`. Every earlier step has no `GameEngine`,
+     * so it abandons the current step's session directly and never touches
+     * `$store.game`.
+     */
+    async abandonAndExit(this: BalancedTrainingPlayContext) {
+      if (this.finishing) {
+        if (this.stepDeadline) {
+          clearTimeout(this.stepDeadline);
+          this.stepDeadline = null;
+        }
+        return (this.finishing as unknown as TuodPlayContext).abandonAndExit();
+      }
+      if (this.$store.game.loading) return;
+      this.$store.game.loading = true;
+      this.error = "";
+      try {
+        if (this.stepDeadline) {
+          clearTimeout(this.stepDeadline);
+          this.stepDeadline = null;
+        }
+        if (this.warmUpTimer) {
+          this.warmUpTimer.stop();
+          this.warmUpTimer = null;
+        }
+        if (this.currentSessionId) {
+          await this.uploadCurrentStepFacts();
+          await completeSession(this.currentSessionId, "ABANDONED");
+        }
+        if (this.activityId) {
+          await abandonTraining(this.activityId);
+        }
+        globalThis.location.href = "/training";
+      } catch {
+        this.error = "Could not leave. Try again.";
+        this.$store.game.loading = false;
+      }
     },
   };
 }

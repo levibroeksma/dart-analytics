@@ -47,3 +47,11 @@ export const CompleteTrainingResponse = z.object({
 export type CompleteTrainingResponseData = z.infer<
   typeof CompleteTrainingResponse
 >;
+
+export const AbandonTrainingResponse = z.object({
+  activityId: z.string(),
+  completedAt: z.string(),
+});
+export type AbandonTrainingResponseData = z.infer<
+  typeof AbandonTrainingResponse
+>;
