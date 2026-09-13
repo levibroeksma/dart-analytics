@@ -63,5 +63,17 @@ const { title, gameTitle, gameTitleExpr, exitDescription }: Props = Astro.props;
     <template x-if="showExitModal">
       <ExitModal description={exitDescription} />
     </template>
+    <template x-if="wakeLockDebug">
+      <div
+        class="pointer-events-none fixed inset-x-2 bottom-2 z-50 rounded bg-surface-overlay p-2 font-mono text-xs text-muted"
+      >
+        <template
+          x-for="(line, index) in wakeLockLog"
+          :key="index"
+        >
+          <div x-text="line"></div>
+        </template>
+      </div>
+    </template>
   </div>
 </BaseLayout>

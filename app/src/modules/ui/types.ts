@@ -8,3 +8,12 @@ export type ToggleOpts = {
   initial?: string;
   onPillChange?: (pill: Pill) => void;
 };
+
+export type WakeLockStatus =
+  "idle" | "unsupported" | "requesting" | "held" | "released" | "blocked";
+
+export type WakeLockEvent = {
+  status: WakeLockStatus;
+  detail?: string;
+  at: number;
+};
