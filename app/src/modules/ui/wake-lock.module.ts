@@ -50,12 +50,17 @@ function createFallbackVideo(): HTMLVideoElement {
   return video;
 }
 
+const GESTURE_EVENTS = ["pointerdown", "keydown"] as const;
+
 /**
  * Requests a screen wake lock and re-acquires it when the tab returns to
  * the foreground — the browser silently drops the lock on backgrounding.
  * In standalone (iOS Home Screen) mode the native API can resolve without
  * actually preventing sleep, so a silent looping video runs in parallel
- * there regardless of the native request's outcome.
+ * there regardless of the native request's outcome. Both mechanisms need
+ * real transient activation on iOS Safari, so acquisition is deferred to
+ * the first user gesture after `acquire()` is called rather than run
+ * immediately (`docs/superpowers/specs/2026-09-13-wake-lock-gesture-gate-design.md`).
  */
 export class WakeLockController {
   private sentinel: WakeLockSentinelLike | null = null;
@@ -67,6 +72,12 @@ export class WakeLockController {
     if (!this.sentinel) void this.requestSentinel();
     if (this.fallbackVideo?.paused) void this.fallbackVideo.play();
   };
+  private readonly handleFirstGesture = () => {
+    this.removeGestureListeners();
+    if (!this.held) return;
+    void this.requestSentinel();
+    if (isStandaloneDisplayMode()) this.startFallbackVideo();
+  };
 
   constructor(options: WakeLockControllerOptions = {}) {
     this.onError = options.onError;
@@ -75,8 +86,15 @@ export class WakeLockController {
 
   async acquire(): Promise<void> {
     this.held = true;
-    await this.requestSentinel();
-    if (isStandaloneDisplayMode()) this.startFallbackVideo();
+    for (const event of GESTURE_EVENTS) {
+      document.addEventListener(event, this.handleFirstGesture);
+    }
+  }
+
+  private removeGestureListeners(): void {
+    for (const event of GESTURE_EVENTS) {
+      document.removeEventListener(event, this.handleFirstGesture);
+    }
   }
 
   private async requestSentinel(): Promise<void> {
@@ -111,6 +129,7 @@ export class WakeLockController {
 
   async release(): Promise<void> {
     this.held = false;
+    this.removeGestureListeners();
     this.stopFallbackVideo();
     if (!this.sentinel) return;
     await this.sentinel.release();
@@ -123,6 +142,7 @@ export class WakeLockController {
       "visibilitychange",
       this.handleVisibilityChange,
     );
+    this.removeGestureListeners();
     this.stopFallbackVideo();
     void this.sentinel?.release();
     this.sentinel = null;
