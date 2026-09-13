@@ -158,6 +158,13 @@ describe("balancedTrainingPlay", () => {
     vi.advanceTimersByTime(65_000);
     expect(store.formattedWarmUpElapsed()).toBe("1:05");
   });
+
+  it("warmUpHighlightPath() reflects the current phase's targets and is empty once there is no engine", () => {
+    const store = makeStore();
+    expect(store.warmUpHighlightPath()).toBe("");
+    store.buildWarmUpEngine(STEPS[0].configuration);
+    expect(store.warmUpHighlightPath()).not.toBe("");
+  });
 });
 
 const SWITCHING_STEP = {

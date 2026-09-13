@@ -7,6 +7,7 @@ import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/training.module";
 import { getExerciseEngineFactory } from "@modules/exercise/engine.registry";
 import { resolveWarmUpPhaseDurations } from "@modules/exercise/warm-up.engine.module";
+import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.registry";
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
@@ -213,6 +214,10 @@ export function balancedTrainingPlay() {
       const minutes = Math.floor(this.warmUpElapsedSeconds / 60);
       const seconds = this.warmUpElapsedSeconds % 60;
       return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    },
+
+    warmUpHighlightPath(this: BalancedTrainingPlayContext): string {
+      return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
     },
 
     armStepDeadline(

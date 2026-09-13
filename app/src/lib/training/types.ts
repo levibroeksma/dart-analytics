@@ -58,6 +58,7 @@ export type BalancedTrainingPlayContext = {
     configuration: Record<string, unknown>,
   ): void;
   formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string;
+  warmUpHighlightPath(this: BalancedTrainingPlayContext): string;
   armStepDeadline(
     this: BalancedTrainingPlayContext,
     durationSeconds: number,
