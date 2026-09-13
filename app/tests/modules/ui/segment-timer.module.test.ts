@@ -2,9 +2,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 
+let resumeMock: ReturnType<typeof vi.fn>;
+
 describe("SegmentTimer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    resumeMock = vi.fn();
     vi.stubGlobal(
       "AudioContext",
       vi.fn().mockImplementation(function () {
@@ -24,6 +27,8 @@ describe("SegmentTimer", () => {
           }),
           destination: {},
           currentTime: 0,
+          state: "suspended",
+          resume: resumeMock,
         };
       }),
     );
@@ -168,5 +173,15 @@ describe("SegmentTimer", () => {
 
   it("throws when constructed with neither totalMinutes nor segmentDurationsSeconds", () => {
     expect(() => new SegmentTimer({})).toThrow();
+  });
+
+  it("resumes a suspended audio context before playing a beep", () => {
+    const timer = new SegmentTimer({
+      totalMinutes: 1,
+      intervalMinutes: 1 / 60,
+    });
+    timer.start();
+    vi.advanceTimersByTime(1000);
+    expect(resumeMock).toHaveBeenCalled();
   });
 });

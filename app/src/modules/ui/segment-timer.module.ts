@@ -59,6 +59,9 @@ export class SegmentTimer {
 
   playBeep(frequency: number = 880, duration: number = 0.3): void {
     const ctx = this.getAudioContext();
+    if (ctx.state === "suspended") {
+      void ctx.resume();
+    }
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 

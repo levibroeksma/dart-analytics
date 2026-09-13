@@ -28,15 +28,12 @@ function polarPoint(
 }
 
 /**
- * One continuous outline around `targetNumber`'s full angular sector, from
- * `innerRadiusMm` to `outerRadiusMm` — both radial edges plus the inner and
- * outer arcs, with no line at the internal single/treble/double boundaries.
- * Mirrors the quadrilateral-with-two-arcs shape `DartBoard.astro`'s own
- * per-ring paths already draw.
+ * The outer rim arc of `targetNumber`'s angular sector, at `outerRadiusMm` —
+ * no radial edges and no inner arc, so adjacent highlighted sectors don't
+ * draw a shared line between them.
  */
 export function wedgeOutlinePath(
   targetNumber: number,
-  innerRadiusMm: number,
   outerRadiusMm: number,
 ): string {
   const index = SECTOR_ORDER.indexOf(targetNumber);
@@ -47,13 +44,9 @@ export function wedgeOutlinePath(
   const half = SECTOR_WIDTH_DEGREES / 2;
   const outerStart = polarPoint(outerRadiusMm, center - half);
   const outerEnd = polarPoint(outerRadiusMm, center + half);
-  const innerEnd = polarPoint(innerRadiusMm, center + half);
-  const innerStart = polarPoint(innerRadiusMm, center - half);
   return (
     `M${outerStart.x},${outerStart.y}` +
-    `A${outerRadiusMm},${outerRadiusMm},0,0,1,${outerEnd.x},${outerEnd.y}` +
-    `L${innerEnd.x},${innerEnd.y}` +
-    `A${innerRadiusMm},${innerRadiusMm},0,0,0,${innerStart.x},${innerStart.y}Z`
+    `A${outerRadiusMm},${outerRadiusMm},0,0,1,${outerEnd.x},${outerEnd.y}`
   );
 }
 
@@ -81,11 +74,7 @@ export const DARTBOARD_HIGHLIGHT_PATHS: ReadonlyArray<{
 }> = [
   ...SECTOR_ORDER.map((number) => ({
     number,
-    d: wedgeOutlinePath(
-      number,
-      BOARD_RADII_MM.outerBull - HIGHLIGHT_GAP_MM,
-      BOARD_RADII_MM.doubleOuter + HIGHLIGHT_GAP_MM,
-    ),
+    d: wedgeOutlinePath(number, BOARD_RADII_MM.doubleOuter + HIGHLIGHT_GAP_MM),
   })),
   {
     number: BULL_TARGET_NUMBER,

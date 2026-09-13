@@ -12,15 +12,16 @@ function radiiIn(d: string): number[] {
 }
 
 describe("wedgeOutlinePath", () => {
-  it("draws the full sector from innerRadiusMm to outerRadiusMm, no internal boundaries", () => {
-    const d = wedgeOutlinePath(20, 11.9, 174);
+  it("draws only the outer rim arc, no radial edges or inner arc", () => {
+    const d = wedgeOutlinePath(20, 174);
     expect(d.startsWith("M")).toBe(true);
-    expect(d.endsWith("Z")).toBe(true);
-    expect(radiiIn(d)).toEqual([174, 11.9]);
+    expect(d.endsWith("Z")).toBe(false);
+    expect(d.includes("L")).toBe(false);
+    expect(radiiIn(d)).toEqual([174]);
   });
 
   it("throws for a number that isn't on the board", () => {
-    expect(() => wedgeOutlinePath(21, 11.9, 174)).toThrow();
+    expect(() => wedgeOutlinePath(21, 174)).toThrow();
   });
 });
 
@@ -38,11 +39,10 @@ describe("DARTBOARD_HIGHLIGHT_PATHS", () => {
     ]);
   });
 
-  it("offsets a number's outline outward/inward by HIGHLIGHT_GAP_MM from the scoring boundary", () => {
+  it("offsets a number's outline outward by HIGHLIGHT_GAP_MM from the scoring boundary", () => {
     const wedge = DARTBOARD_HIGHLIGHT_PATHS.find((p) => p.number === 20)!;
     expect(radiiIn(wedge.d)).toEqual([
       BOARD_RADII_MM.doubleOuter + HIGHLIGHT_GAP_MM,
-      BOARD_RADII_MM.outerBull - HIGHLIGHT_GAP_MM,
     ]);
   });
 
