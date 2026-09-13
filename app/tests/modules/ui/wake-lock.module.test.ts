@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { WakeLockController } from "@modules/ui/wake-lock.module";
+import type { WakeLockEvent } from "@modules/types";
 
 type MockSentinel = {
   released: boolean;
@@ -29,11 +30,8 @@ function makeSentinel(): MockSentinel {
   return sentinel;
 }
 
-function stubWakeLock(
-  request: ReturnType<typeof vi.fn>,
-  extra: Record<string, unknown> = {},
-) {
-  vi.stubGlobal("navigator", { wakeLock: { request }, ...extra });
+function stubWakeLock(request: ReturnType<typeof vi.fn>) {
+  vi.stubGlobal("navigator", { wakeLock: { request } });
 }
 
 function stubVisibility(state: "visible" | "hidden") {
@@ -43,30 +41,14 @@ function stubVisibility(state: "visible" | "hidden") {
   });
 }
 
-function stubMatchMedia(matches: boolean) {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn(() => ({ matches })) as unknown as typeof matchMedia,
-  );
-}
-
-function stubVideoFallback() {
-  const playSpy = vi.fn(async function (this: HTMLVideoElement) {
-    Object.defineProperty(this, "paused", {
-      value: false,
-      configurable: true,
-    });
-  });
-  HTMLMediaElement.prototype.play =
-    playSpy as unknown as HTMLMediaElement["play"];
-  HTMLMediaElement.prototype.pause =
-    vi.fn() as unknown as HTMLMediaElement["pause"];
-
-  return { playSpy };
-}
-
 function fireGesture() {
   document.dispatchEvent(new Event("pointerdown"));
+}
+
+async function settle() {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 let controllers: WakeLockController[] = [];
@@ -86,269 +68,254 @@ beforeEach(() => {
 afterEach(() => {
   controllers.forEach((controller) => controller.destroy());
   controllers = [];
-  document.querySelectorAll("video").forEach((video) => video.remove());
-  delete (HTMLMediaElement.prototype as { play?: unknown }).play;
-  delete (HTMLMediaElement.prototype as { pause?: unknown }).pause;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe("WakeLockController", () => {
-  it("does not request a screen wake lock before a gesture", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
+  it("requests a screen wake lock immediately on acquire", async () => {
+    const request = vi.fn(async () => makeSentinel());
     stubWakeLock(request);
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
-
-    expect(request).not.toHaveBeenCalled();
-  });
-
-  it("requests a screen wake lock on the first gesture after acquire", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
-    stubWakeLock(request);
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
 
     expect(request).toHaveBeenCalledWith("screen");
+    expect(controller.status).toBe("held");
   });
 
-  it("ignores a second gesture after the first", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
+  it("does not request again while the lock is held", async () => {
+    const request = vi.fn(async () => makeSentinel());
     stubWakeLock(request);
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
     fireGesture();
     fireGesture();
+    await settle();
 
     expect(request).toHaveBeenCalledTimes(1);
   });
 
-  it("cancels the pending gesture listener on release", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
+  it("retries on a later gesture after a blocked request", async () => {
+    const request = vi
+      .fn<() => Promise<MockSentinel>>()
+      .mockRejectedValueOnce(new DOMException("nope", "NotAllowedError"))
+      .mockResolvedValue(makeSentinel());
     stubWakeLock(request);
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
-    await controller.release();
-    fireGesture();
+    expect(controller.status).toBe("blocked");
 
-    expect(request).not.toHaveBeenCalled();
+    fireGesture();
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(controller.status).toBe("held");
   });
 
-  it("cancels the pending gesture listener on destroy", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
+  it("re-acquires when the platform revokes the sentinel with no visibility change", async () => {
+    const first = makeSentinel();
+    const request = vi
+      .fn<() => Promise<MockSentinel>>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValue(makeSentinel());
     stubWakeLock(request);
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
+    first._fireRelease();
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(controller.status).toBe("held");
+  });
+
+  it("re-acquires when the tab becomes visible again", async () => {
+    const first = makeSentinel();
+    const request = vi
+      .fn<() => Promise<MockSentinel>>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValue(makeSentinel());
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    await controller.acquire();
+
+    stubVisibility("hidden");
+    first._fireRelease();
+    await settle();
+    expect(request).toHaveBeenCalledTimes(1);
+
+    stubVisibility("visible");
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("re-acquires on pageshow", async () => {
+    const first = makeSentinel();
+    const request = vi
+      .fn<() => Promise<MockSentinel>>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValue(makeSentinel());
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    await controller.acquire();
+
+    stubVisibility("hidden");
+    first._fireRelease();
+    await settle();
+    stubVisibility("visible");
+    window.dispatchEvent(new Event("pageshow"));
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("re-acquires from the watchdog sweep when no event fires", async () => {
+    vi.useFakeTimers();
+    const first = makeSentinel();
+    const request = vi
+      .fn<() => Promise<MockSentinel>>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValue(makeSentinel());
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 1000 });
+    await controller.acquire();
+    first.released = true;
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(request).toHaveBeenCalledTimes(2);
     controller.destroy();
-    fireGesture();
+    vi.useRealTimers();
+  });
+
+  it("does not request while the document is hidden", async () => {
+    const request = vi.fn(async () => makeSentinel());
+    stubWakeLock(request);
+    stubVisibility("hidden");
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    await controller.acquire();
 
     expect(request).not.toHaveBeenCalled();
   });
 
-  it("does nothing when the Wake Lock API is unsupported", async () => {
+  it("reports an unsupported platform once", async () => {
     vi.stubGlobal("navigator", {});
-    const onError = vi.fn();
+    const events: WakeLockEvent[] = [];
 
-    const controller = trackedController({ onError });
+    const controller = trackedController({
+      watchdogIntervalMs: 0,
+      onEvent: (event) => events.push(event),
+    });
     await controller.acquire();
     fireGesture();
+    await settle();
 
-    expect(onError).not.toHaveBeenCalled();
+    expect(events.map((event) => event.status)).toEqual(["unsupported"]);
   });
 
-  it("reports a rejected request via onError instead of throwing", async () => {
+  it("reports a rejected request with its error name instead of throwing", async () => {
     const request = vi.fn(async () => {
-      throw new Error("denied");
+      throw new DOMException("denied", "NotAllowedError");
     });
     stubWakeLock(request);
-    const onError = vi.fn();
+    const events: WakeLockEvent[] = [];
 
-    const controller = trackedController({ onError });
+    const controller = trackedController({
+      watchdogIntervalMs: 0,
+      onEvent: (event) => events.push(event),
+    });
     await controller.acquire();
-    fireGesture();
-    await Promise.resolve();
 
-    expect(onError).toHaveBeenCalledWith(expect.any(Error));
+    expect(events.at(-1)).toMatchObject({
+      status: "blocked",
+      detail: "NotAllowedError",
+    });
   });
 
   it("releases the held sentinel", async () => {
     const sentinel = makeSentinel();
     stubWakeLock(vi.fn(async () => sentinel));
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
-    fireGesture();
-    await Promise.resolve();
     await controller.release();
+
+    expect(sentinel.release).toHaveBeenCalled();
+    expect(controller.status).toBe("idle");
+  });
+
+  it("stops retrying after release", async () => {
+    const request = vi.fn(async () => makeSentinel());
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    await controller.acquire();
+    await controller.release();
+    fireGesture();
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops retrying after destroy", async () => {
+    const request = vi.fn(async () => makeSentinel());
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    await controller.acquire();
+    controller.destroy();
+    fireGesture();
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases a sentinel that resolves after release was called", async () => {
+    const sentinel = makeSentinel();
+    let resolveRequest: ((value: MockSentinel) => void) | undefined;
+    const request = vi.fn(
+      () =>
+        new Promise<MockSentinel>((resolve) => {
+          resolveRequest = resolve;
+        }),
+    );
+    stubWakeLock(request);
+
+    const controller = trackedController({ watchdogIntervalMs: 0 });
+    const pending = controller.acquire();
+    await controller.release();
+    resolveRequest?.(sentinel);
+    await pending;
+    await settle();
 
     expect(sentinel.release).toHaveBeenCalled();
   });
 
   it("is safe to release before acquire", async () => {
     stubWakeLock(vi.fn(async () => makeSentinel()));
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
 
     await expect(controller.release()).resolves.toBeUndefined();
   });
 
-  it("re-acquires when the tab becomes visible after the sentinel released", async () => {
-    const first = makeSentinel();
-    const second = makeSentinel();
-    const request = vi.fn(async () => first);
-    stubWakeLock(request);
+  it("never plays a media element as a fallback", async () => {
+    stubWakeLock(vi.fn(async () => makeSentinel()));
 
-    const controller = trackedController();
+    const controller = trackedController({ watchdogIntervalMs: 0 });
     await controller.acquire();
     fireGesture();
-
-    first._fireRelease();
-    request.mockImplementation(async () => second);
-    stubVisibility("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(request).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not re-acquire on visibilitychange once destroyed", async () => {
-    const sentinel = makeSentinel();
-    const request = vi.fn(async () => sentinel);
-    stubWakeLock(request);
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-    controller.destroy();
-
-    sentinel._fireRelease();
-    document.dispatchEvent(new Event("visibilitychange"));
-    await Promise.resolve();
-
-    expect(request).toHaveBeenCalledTimes(1);
-  });
-
-  it("releases the sentinel on destroy", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(vi.fn(async () => sentinel));
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-    await Promise.resolve();
-    controller.destroy();
-
-    expect(sentinel.release).toHaveBeenCalled();
-  });
-
-  it("starts a video fallback when navigator.standalone is true", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(
-      vi.fn(async () => sentinel),
-      { standalone: true },
-    );
-    const { playSpy } = stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-
-    expect(playSpy).toHaveBeenCalled();
-    expect(document.querySelector("video")).not.toBeNull();
-  });
-
-  it("starts a video fallback when matchMedia reports standalone display-mode", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(vi.fn(async () => sentinel));
-    stubMatchMedia(true);
-    const { playSpy } = stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-
-    expect(playSpy).toHaveBeenCalled();
-  });
-
-  it("does not start a video fallback outside standalone mode", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(vi.fn(async () => sentinel));
-    const { playSpy } = stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-
-    expect(playSpy).not.toHaveBeenCalled();
-    expect(document.querySelector("video")).toBeNull();
-  });
-
-  it("stops the video fallback on release", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(
-      vi.fn(async () => sentinel),
-      { standalone: true },
-    );
-    stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-    await controller.release();
+    await settle();
 
     expect(document.querySelector("video")).toBeNull();
-  });
-
-  it("stops the video fallback on destroy", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(
-      vi.fn(async () => sentinel),
-      { standalone: true },
-    );
-    stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-    controller.destroy();
-
-    expect(document.querySelector("video")).toBeNull();
-  });
-
-  it("resumes a paused video fallback when the tab becomes visible", async () => {
-    const sentinel = makeSentinel();
-    stubWakeLock(
-      vi.fn(async () => sentinel),
-      { standalone: true },
-    );
-    const { playSpy } = stubVideoFallback();
-
-    const controller = trackedController();
-    await controller.acquire();
-    fireGesture();
-    playSpy.mockClear();
-
-    const video = document.querySelector("video") as HTMLVideoElement;
-    Object.defineProperty(video, "paused", {
-      value: true,
-      configurable: true,
-    });
-
-    stubVisibility("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
-    await Promise.resolve();
-
-    expect(playSpy).toHaveBeenCalled();
   });
 });
