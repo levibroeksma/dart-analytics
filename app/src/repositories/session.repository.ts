@@ -193,15 +193,12 @@ export async function findSessionRow(
       inputModeKey: inputModes.implementationKey,
     })
     .from(exerciseSessions)
-    .innerJoin(
+    .leftJoin(
       rulesetVersions,
       eq(rulesetVersions.id, exerciseSessions.rulesetVersionId),
     )
-    .innerJoin(
-      captureModes,
-      eq(captureModes.id, exerciseSessions.captureModeId),
-    )
-    .innerJoin(inputModes, eq(inputModes.id, exerciseSessions.inputModeId))
+    .leftJoin(captureModes, eq(captureModes.id, exerciseSessions.captureModeId))
+    .leftJoin(inputModes, eq(inputModes.id, exerciseSessions.inputModeId))
     .where(eq(exerciseSessions.id, sessionId))
     .limit(1);
   return row;

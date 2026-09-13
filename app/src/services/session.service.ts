@@ -673,6 +673,13 @@ export async function appendBatch(
   if (!structure.ok) return structure;
   const stageIds = structure.data;
 
+  if (
+    !session.rulesetVersionKey ||
+    !session.captureModeKey ||
+    !session.inputModeKey
+  ) {
+    return { ok: false, code: "INTERNAL_ERROR" };
+  }
   const config = await findSessionConfiguration(db, sessionId);
   const validator = getRulesetValidator(session.rulesetVersionKey);
   if (!validator || !config) return { ok: false, code: "INTERNAL_ERROR" };

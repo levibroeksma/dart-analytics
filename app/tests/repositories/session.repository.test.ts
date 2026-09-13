@@ -4,6 +4,7 @@ function fakeSelect(rows: unknown[]) {
   const chain = {
     from: vi.fn().mockReturnThis(),
     innerJoin: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     groupBy: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue(rows),
@@ -74,6 +75,21 @@ describe("findSessionRow", () => {
       rulesetVersionKey: "SCORE_TRAINING_V1",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
+    };
+    const db = { select: vi.fn(() => fakeSelect([row])) } as any;
+    const { findSessionRow } = await import("@repositories/session.repository");
+    const result = await findSessionRow(db, "s1");
+    expect(result).toEqual(row);
+  });
+
+  it("left-joins so a non-GAME exercise session (no ruleset/capture/input mode) is still found", async () => {
+    const row = {
+      id: "s1",
+      playerId: "p1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      captureModeKey: null,
+      inputModeKey: null,
     };
     const db = { select: vi.fn(() => fakeSelect([row])) } as any;
     const { findSessionRow } = await import("@repositories/session.repository");
