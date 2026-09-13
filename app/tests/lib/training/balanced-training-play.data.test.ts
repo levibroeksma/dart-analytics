@@ -214,6 +214,80 @@ describe("balancedTrainingPlay", () => {
     store.buildWarmUpEngine(STEPS[0].configuration);
     expect(store.warmUpHighlightPath()).not.toBe("");
   });
+
+  it("the Warm-Up timer completing advances a multi-step routine into the next step's engine", async () => {
+    const nextStep = {
+      sequenceNumber: 2,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      durationSeconds: 300,
+      configuration: {
+        targets: [20, 19, 18],
+        scoring: { single: 1, double: 2, treble: 3 },
+      },
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [STEPS[0], nextStep] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce({
+        sessionId: "s1",
+        exerciseTypeKey: "WARM_UP",
+        configuration: STEPS[0].configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      })
+      .mockResolvedValueOnce({
+        sessionId: "s2",
+        exerciseTypeKey: "SWITCHING",
+        configuration: nextStep.configuration,
+        participant: { ref: "pt2", displayName: "Levi" },
+      });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-1", 2);
+    expect(store.currentStep()?.exerciseTypeKey).toBe("SWITCHING");
+    expect(store.switchingEngine).not.toBeNull();
+    expect(store.warmUpEngine).toBeNull();
+    expect(store.error).toBe("");
+  });
+
+  it("surfaces an error instead of freezing on the Warm-Up screen when advancing to the next step fails", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValueOnce({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockRejectedValue(
+      new Error("network down"),
+    );
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(store.error).not.toBe("");
+  });
 });
 
 const SWITCHING_STEP = {

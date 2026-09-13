@@ -17,7 +17,7 @@ import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
-import type { ExerciseEngine } from "@modules/interfaces";
+import type { ExerciseEngine, TrainingEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type {
   WarmUpEngineInput,
@@ -36,6 +36,31 @@ import type {
 const ROUTINE_NAME = "Balanced Training";
 
 let self: BalancedTrainingPlayContext;
+
+async function advanceAfterStepCompletion(
+  ctx: BalancedTrainingPlayContext,
+  sessionId: string,
+  activityId: string,
+  training: TrainingEngine,
+): Promise<void> {
+  await ctx.uploadCurrentStepFacts();
+  if (ctx.currentStep()?.exerciseTypeKey !== "GAME") {
+    await completeSession(sessionId, "COMPLETED");
+  }
+  ctx.currentSessionId = null;
+  ctx.currentParticipantRef = null;
+  ctx.warmUpEngine = null;
+  ctx.switchingEngine = null;
+  ctx.doublePatternEngine = null;
+  ctx.finishing = null;
+  const state = training.completeStep();
+  if (state.status === "COMPLETE") {
+    await apiCompleteTraining(activityId);
+    globalThis.location.href = "/training";
+    return;
+  }
+  await ctx.startCurrentStep();
+}
 
 export function balancedTrainingPlay() {
   return {
@@ -300,23 +325,16 @@ export function balancedTrainingPlay() {
         this.warmUpTimer.stop();
         this.warmUpTimer = null;
       }
-      await this.uploadCurrentStepFacts();
-      if (this.currentStep()?.exerciseTypeKey !== "GAME") {
-        await completeSession(this.currentSessionId, "COMPLETED");
+      try {
+        await advanceAfterStepCompletion(
+          this,
+          this.currentSessionId,
+          this.activityId,
+          this.training,
+        );
+      } catch {
+        this.error = "Could not continue to the next step. Try again.";
       }
-      this.currentSessionId = null;
-      this.currentParticipantRef = null;
-      this.warmUpEngine = null;
-      this.switchingEngine = null;
-      this.doublePatternEngine = null;
-      this.finishing = null;
-      const state = this.training.completeStep();
-      if (state.status === "COMPLETE") {
-        await apiCompleteTraining(this.activityId);
-        globalThis.location.href = "/training";
-        return;
-      }
-      await this.startCurrentStep();
     },
 
     /**
