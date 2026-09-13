@@ -13,6 +13,7 @@ vi.mock("@client/api/sessions", () => ({
 
 import * as trainingApi from "@client/api/training-sessions";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
+import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { BalancedTrainingPlayContext } from "@lib/types";
 
 function makeStore(): BalancedTrainingPlayContext {
@@ -106,6 +107,47 @@ describe("balancedTrainingPlay", () => {
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
   });
 
+  it("startCurrentStep() for WARM_UP does not start the timer until confirmWarmUpReady() runs", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.warmUpReady).toBe(false);
+    expect(store.warmUpTimer).toBeNull();
+
+    store.confirmWarmUpReady();
+    expect(store.warmUpReady).toBe(true);
+    expect(store.warmUpTimer).not.toBeNull();
+  });
+
+  it("confirmWarmUpReady() unlocks the timer's audio synchronously, before any tick fires", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const unlockSpy = vi.spyOn(SegmentTimer.prototype, "unlockAudio");
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+    expect(unlockSpy).toHaveBeenCalledOnce();
+  });
+
   it("buildWarmUpEngine() builds the Warm-Up engine directly from a configuration object", () => {
     const store = makeStore();
     store.buildWarmUpEngine(STEPS[0].configuration);
@@ -132,6 +174,7 @@ describe("balancedTrainingPlay", () => {
     const store = makeStore();
     await store.init();
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
+    store.confirmWarmUpReady();
     expect(store.warmUpTimer).not.toBeNull();
 
     vi.advanceTimersByTime(600_000);
@@ -155,6 +198,7 @@ describe("balancedTrainingPlay", () => {
     });
     const store = makeStore();
     await store.init();
+    store.confirmWarmUpReady();
     vi.advanceTimersByTime(65_000);
     expect(store.formattedWarmUpElapsed()).toBe("1:05");
   });

@@ -184,4 +184,10 @@ describe("SegmentTimer", () => {
     vi.advanceTimersByTime(1000);
     expect(resumeMock).toHaveBeenCalled();
   });
+
+  it("unlockAudio() creates the AudioContext and resumes it if suspended, with no tick required", () => {
+    const timer = new SegmentTimer({ totalMinutes: 1, intervalMinutes: 1 });
+    timer.unlockAudio();
+    expect(resumeMock).toHaveBeenCalled();
+  });
 });
