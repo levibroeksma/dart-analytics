@@ -290,13 +290,14 @@ export async function startTrainingStep(
     : startNonGameStep(ctx);
 }
 
-export async function completeTraining(
+async function transitionTrainingActivity(
   playerId: string,
   activityId: string,
+  statusKey: "COMPLETED" | "ABANDONED",
 ): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
   const db = getDb();
-  const completedStatusId = await findGameStatusId(db, "COMPLETED");
-  if (!completedStatusId) {
+  const statusId = await findGameStatusId(db, statusKey);
+  if (!statusId) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -306,10 +307,24 @@ export async function completeTraining(
   const updated = await updateActivityStatusRecord(db, {
     activityId,
     playerId,
-    statusId: completedStatusId,
+    statusId,
   });
   if (!updated) {
     return { ok: false, code: "NOT_FOUND", details: { activityId } };
   }
   return { ok: true, data: updated };
+}
+
+export async function completeTraining(
+  playerId: string,
+  activityId: string,
+): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
+  return transitionTrainingActivity(playerId, activityId, "COMPLETED");
+}
+
+export async function abandonTraining(
+  playerId: string,
+  activityId: string,
+): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
+  return transitionTrainingActivity(playerId, activityId, "ABANDONED");
 }

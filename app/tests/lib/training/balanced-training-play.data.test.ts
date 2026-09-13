@@ -5,22 +5,27 @@ vi.mock("@client/api/training-sessions", () => ({
   startTraining: vi.fn(),
   startTrainingStep: vi.fn(),
   completeTraining: vi.fn(),
+  abandonTraining: vi.fn(),
 }));
 vi.mock("@client/api/sessions", () => ({
   completeSession: vi.fn(),
   appendBatch: vi.fn(),
 }));
+vi.mock("@lib/game/play-lifecycle", () => ({
+  playAbandonAndExit: vi.fn(),
+}));
 
 import * as trainingApi from "@client/api/training-sessions";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { playAbandonAndExit } from "@lib/game/play-lifecycle";
 import type { BalancedTrainingPlayContext } from "@lib/types";
 
 function makeStore(): BalancedTrainingPlayContext {
   return {
     ...balancedTrainingPlay(),
     $store: {
-      game: { reset: vi.fn(), startSession: vi.fn() },
+      game: { loading: false, reset: vi.fn(), startSession: vi.fn() },
     },
   };
 }
@@ -412,5 +417,132 @@ describe("balancedTrainingPlay — Finishing", () => {
       }),
     );
     expect(store.finishing).not.toBeNull();
+  });
+});
+
+describe("balancedTrainingPlay — abandonAndExit", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it("during a non-GAME step: abandons the current step's session and the routine, then redirects to /training", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    vi.mocked(trainingApi.abandonTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-13T00:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+
+    await store.abandonAndExit();
+
+    expect(sessionApi.completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+    expect(trainingApi.abandonTraining).toHaveBeenCalledWith("act-1");
+    expect(globalThis.location.href).toBe("/training");
+    expect(playAbandonAndExit).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an error and clears the loading flag when abandoning the step session fails", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(sessionApi.completeSession).mockRejectedValue(
+      new Error("network down"),
+    );
+    const store = makeStore();
+    await store.init();
+
+    await store.abandonAndExit();
+
+    expect(store.error).toBe("Could not leave. Try again.");
+    expect(store.$store.game.loading).toBe(false);
+    expect(globalThis.location.href).toBe("");
+  });
+
+  it("is a no-op re-entrant call while a previous abandon is already in flight", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    store.$store.game.loading = true;
+
+    await store.abandonAndExit();
+
+    const sessionApi = await import("@client/api/sessions");
+    expect(sessionApi.completeSession).not.toHaveBeenCalled();
+  });
+
+  it("during the GAME step: delegates to playAbandonAndExit on the finishing controller, redirecting to /training and abandoning the routine", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "GAME",
+      configuration: GAME_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+      gameTypeKey: "TUOD",
+      rulesetVersionKey: "TUOD_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    vi.mocked(trainingApi.abandonTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-13T00:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+
+    await store.abandonAndExit();
+
+    expect(playAbandonAndExit).toHaveBeenCalledWith(
+      store.finishing,
+      expect.any(Function),
+      "/training",
+    );
+    const onAbandoned = vi.mocked(playAbandonAndExit).mock.calls[0]![1]!;
+    await onAbandoned();
+    expect(trainingApi.abandonTraining).toHaveBeenCalledWith("act-1");
   });
 });

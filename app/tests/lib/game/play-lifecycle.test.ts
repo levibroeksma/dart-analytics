@@ -1386,6 +1386,44 @@ describe("playAbandonAndExit", () => {
     expect(appendBatch).not.toHaveBeenCalled();
     expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
   });
+
+  it("redirects to a caller-supplied path instead of the /games default", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const context = makeContext();
+
+    await playAbandonAndExit(context, undefined, "/training");
+
+    expect(locationSpy.href).toBe("/training");
+  });
+
+  it("awaits an async onAbandoned callback before resetting the store and redirecting", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const context = makeContext();
+    let resolved = false;
+    const onAbandoned = vi.fn(async () => {
+      await Promise.resolve();
+      resolved = true;
+    });
+
+    await playAbandonAndExit(context, onAbandoned);
+
+    expect(onAbandoned).toHaveBeenCalledTimes(1);
+    expect(resolved).toBe(true);
+    expect(context.$store.game.reset).toHaveBeenCalled();
+    expect(locationSpy.href).toBe("/games");
+  });
 });
 
 describe("runPlayAgain", () => {

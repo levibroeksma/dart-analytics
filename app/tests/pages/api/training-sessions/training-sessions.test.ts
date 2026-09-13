@@ -4,6 +4,7 @@ vi.mock("@services/training-session.service", () => ({
   startTraining: vi.fn(),
   startTrainingStep: vi.fn(),
   completeTraining: vi.fn(),
+  abandonTraining: vi.fn(),
 }));
 
 import * as service from "@services/training-session.service";
@@ -85,5 +86,37 @@ describe("PATCH /api/training-sessions/[activityId]/complete", () => {
     } as any);
     expect(response.status).toBe(200);
     expect(service.completeTraining).toHaveBeenCalledWith("p1", "act-1");
+  });
+});
+
+describe("PATCH /api/training-sessions/[activityId]/abandon", () => {
+  it("delegates to abandonTraining", async () => {
+    vi.mocked(service.abandonTraining).mockResolvedValue({
+      ok: true,
+      data: { activityId: "act-1", completedAt: "2026-09-13T12:00:00.000Z" },
+    });
+    const { PATCH } =
+      await import("@pages/api/training-sessions/[activityId]/abandon");
+    const response = await PATCH({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      params: { activityId: "act-1" },
+    } as any);
+    expect(response.status).toBe(200);
+    expect(service.abandonTraining).toHaveBeenCalledWith("p1", "act-1");
+  });
+
+  it("returns a NOT_FOUND envelope when the activity does not belong to the player", async () => {
+    vi.mocked(service.abandonTraining).mockResolvedValue({
+      ok: false,
+      code: "NOT_FOUND",
+      details: { activityId: "act-1" },
+    });
+    const { PATCH } =
+      await import("@pages/api/training-sessions/[activityId]/abandon");
+    const response = await PATCH({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      params: { activityId: "act-1" },
+    } as any);
+    expect(response.status).toBe(404);
   });
 });

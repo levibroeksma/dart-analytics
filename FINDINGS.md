@@ -3,7 +3,7 @@ status: canonical
 scope: open findings — defects and contradictions noticed but deliberately not fixed
 read-when: triaging what to fix next; never loaded by a task
 updated: 2026-09-13
-highest-issued: F91
+highest-issued: F92
 -->
 
 # Findings
@@ -43,6 +43,15 @@ Evidence: `path/to/file.md:12` vs what is actually true
 Impact: what it costs an agent that trusts the claim
 Proposed: the smallest change that would resolve it — a proposal, not a plan
 ```
+
+---
+
+### F92 — The whole `/api/training-sessions/*` route family is missing from `06-API/00-Overview.md`'s Route Surface
+Status: Open · Found: 2026-09-13 · Task: claude/issue-274-eyep7v
+Claim: `06-API/00-Overview.md`'s "Route Surface (v1 Baseline)" section lists every implemented API endpoint, organized by resource
+Evidence: `docs/architecture/06-API/00-Overview.md`'s Route Surface has sections for Sessions, Routines, Configuration Templates, Statistics, Players, and Auth Proxy, but none for training sessions — `POST /api/training-sessions`, `POST /api/training-sessions/:activityId/steps/:sequenceNumber`, and `PATCH /api/training-sessions/:activityId/complete` were already implemented and tested (`app/src/pages/api/training-sessions/`) before this task, with no entry here; this task adds a fourth, `PATCH /api/training-sessions/:activityId/abandon`, to the same undocumented family
+Impact: a reader relying on this document as the API's route inventory would not learn the training-sessions endpoints exist at all, `06-API/04-Endpoint-Contracts.md` likewise never describes their request/response shapes, and the gap widens by one endpoint every time this family grows without anyone noticing it was never there to begin with
+Proposed: add a "Training Sessions" subsection to the Route Surface listing all four routes, plus request/response contracts in `04-Endpoint-Contracts.md` matching the existing per-resource sections' format — a documentation-only backfill, not made here since it covers three pre-existing endpoints beyond this task's own change
 
 ---
 

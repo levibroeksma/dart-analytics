@@ -7,6 +7,7 @@ import {
   startTraining,
   startTrainingStep,
   completeTraining,
+  abandonTraining,
 } from "@client/api/training-sessions";
 import { SessionApiError } from "@client/api/sessions";
 
@@ -103,6 +104,35 @@ describe("completeTraining", () => {
       error: { code: "NOT_FOUND", message: "not found", retryable: false },
     });
     await expect(completeTraining("act-1")).rejects.toBeInstanceOf(
+      SessionApiError,
+    );
+  });
+});
+
+describe("abandonTraining", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("patches the abandon endpoint and returns parsed data", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: { activityId: "act-1", completedAt: "2026-09-13T12:00:00.000Z" },
+    });
+    const result = await abandonTraining("act-1");
+    expect(result.completedAt).toBe("2026-09-13T12:00:00.000Z");
+    expect(apiRequest).toHaveBeenCalledWith(
+      "/api/training-sessions/act-1/abandon",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+  });
+
+  it("throws SessionApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+    await expect(abandonTraining("act-1")).rejects.toBeInstanceOf(
       SessionApiError,
     );
   });

@@ -5,6 +5,7 @@ import {
   StartTrainingStepRequest,
   StartTrainingStepResponse,
   CompleteTrainingResponse,
+  AbandonTrainingResponse,
 } from "@routes/training-sessions/types";
 
 describe("StartTrainingRequest", () => {
@@ -107,6 +108,17 @@ describe("CompleteTrainingResponse", () => {
       CompleteTrainingResponse.safeParse({
         activityId: "act-1",
         completedAt: "2026-09-12T12:00:00.000Z",
+      }).success,
+    ).toBe(true);
+  });
+});
+
+describe("AbandonTrainingResponse", () => {
+  it("accepts an activityId and completedAt", () => {
+    expect(
+      AbandonTrainingResponse.safeParse({
+        activityId: "act-1",
+        completedAt: "2026-09-13T12:00:00.000Z",
       }).success,
     ).toBe(true);
   });

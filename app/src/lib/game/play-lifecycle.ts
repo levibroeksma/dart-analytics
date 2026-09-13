@@ -462,13 +462,14 @@ export async function playAbandonAndExit<
   TResults,
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
-  onAbandoned?: () => void,
+  onAbandoned?: () => void | Promise<void>,
+  redirectTo = "/games",
 ): Promise<void> {
   if (context.$store.game.loading) return;
   const sessionId = context.$store.game.sessionId;
   if (!sessionId) {
     context.$store.game.reset();
-    globalThis.location.href = "/games";
+    globalThis.location.href = redirectTo;
     return;
   }
   context.$store.game.loading = true;
@@ -483,9 +484,9 @@ export async function playAbandonAndExit<
       await appendBatch(sessionId, context.$store.game.idempotencyKey, batch);
     }
     await completeSession(sessionId, "ABANDONED");
-    onAbandoned?.();
+    await onAbandoned?.();
     context.$store.game.reset();
-    globalThis.location.href = "/games";
+    globalThis.location.href = redirectTo;
   } catch {
     context.error = "Could not abandon session. Try again.";
     context.$store.game.loading = false;

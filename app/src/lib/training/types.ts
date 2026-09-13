@@ -32,6 +32,7 @@ export type BalancedTrainingPlayContext = {
   finishing: ReturnType<typeof finishingStep> | null;
   $store: {
     game: {
+      loading: boolean;
       reset(): void;
       startSession(input: unknown): void;
     };
@@ -81,4 +82,5 @@ export type BalancedTrainingPlayContext = {
   undoVisit(this: BalancedTrainingPlayContext): void;
   uploadCurrentStepFacts(this: BalancedTrainingPlayContext): Promise<void>;
   completeCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  abandonAndExit(this: BalancedTrainingPlayContext): Promise<void>;
 };
