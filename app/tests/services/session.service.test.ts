@@ -696,6 +696,24 @@ describe("appendBatch", () => {
     });
   });
 
+  it("returns INTERNAL_ERROR for a non-GAME exercise session with no ruleset/capture/input mode", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      captureModeKey: null,
+      inputModeKey: null,
+    });
+    const result = await appendBatch(
+      "player-1",
+      "session-1",
+      "idem-1",
+      sampleBatch(),
+    );
+    expect(result).toMatchObject({ ok: false, code: "INTERNAL_ERROR" });
+  });
+
   it("returns SESSION_ALREADY_COMPLETED for a non-active session", async () => {
     vi.mocked(repo.findSessionRow).mockResolvedValue({
       id: "session-1",
@@ -960,6 +978,27 @@ describe("updateSessionStatus", () => {
       expect.anything(),
       "session-1",
       2,
+      expect.any(String),
+    );
+  });
+
+  it("abandons a non-GAME training exercise session (no ruleset/capture/input mode)", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      captureModeKey: null,
+      inputModeKey: null,
+    });
+    const result = await updateSessionStatus("player-1", "session-1", {
+      status: "ABANDONED",
+    });
+    expect(result.ok).toBe(true);
+    expect(repo.updateSessionStatusRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      "session-1",
+      3,
       expect.any(String),
     );
   });

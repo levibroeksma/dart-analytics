@@ -22,13 +22,18 @@ export interface ConfigurationTemplateRow {
   configuration: unknown;
 }
 
+/**
+ * A non-GAME exercise session (training's WARM_UP/SWITCHING/DOUBLE_PATTERN
+ * steps) has no game ruleset/capture/input mode, so these three are absent
+ * rather than always present (D264).
+ */
 export interface SessionRow {
   id: string;
   playerId: string;
   statusId: number;
-  rulesetVersionKey: string;
-  captureModeKey: string;
-  inputModeKey: string;
+  rulesetVersionKey: string | null;
+  captureModeKey: string | null;
+  inputModeKey: string | null;
 }
 
 export interface IdempotencyRecord {
