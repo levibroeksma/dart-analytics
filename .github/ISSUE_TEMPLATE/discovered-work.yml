@@ -1,0 +1,82 @@
+name: Discovered Work
+description: Record unrelated actionable work noticed while doing something else — a bug, missing test, stale doc, architecture gap, technical debt, UI/UX issue, or infra gap. See .claude/skills/capturing-discovered-work/SKILL.md for the agent-facing procedure this mirrors.
+title: "[Discovered] "
+labels:
+  - discovered-work
+
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - bug
+        - architecture
+        - backend
+        - frontend
+        - ui
+        - ux
+        - testing
+        - documentation
+        - infrastructure
+        - security
+        - performance
+        - developer-experience
+        - technical-debt
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Describes the problem's own impact, not how it was found.
+      options:
+        - critical
+        - high
+        - medium
+        - low
+        - trivial
+    validations:
+      required: true
+
+  - type: input
+    id: found-during
+    attributes:
+      label: Found during task
+      description: What task, branch, or activity exposed this?
+      placeholder: "claude/warmup-sound-timer-bug-v96xgf"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is wrong, missing, or inconsistent? Cite the claim being contradicted and the file/line evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Why it matters
+      description: Concrete consequence — who or what this actually costs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-fix
+    attributes:
+      label: Proposed fix
+      description: Initial hypothesis, not a validated design — the smallest change that would resolve it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else useful to whoever picks this up later.
+    validations:
+      required: false

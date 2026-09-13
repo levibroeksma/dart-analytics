@@ -15,7 +15,6 @@ bash scripts/check-doc-links.sh
 bash scripts/check-context-budget.sh
 bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
-bash scripts/check-findings-log.sh
 bash scripts/check-test-coverage.sh
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: context-maintenance
-description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md sync, context-map registration, decisions/** entry, gate scripts, branch/PR check, findings gate) so the context system never goes stale.
+description: Use before claiming any Dart Analytics task done — runs the mandatory context-upkeep steps (CLAUDE.md sync, context-map registration, decisions/** entry, gate scripts, branch/PR check, discovered-work capture) so the context system never goes stale.
 ---
 
 # Context Maintenance
@@ -14,7 +14,7 @@ Before claiming any task done on this repository:
 5. **Gate scripts.** Invoke the `run-all-gates` skill and confirm every script it runs passes.
 6. **Knowledge graph.** Freshness is CI-owned: `.github/workflows/graph.yml` rebuilds `graphify-out/graph.json` on every merge to `main` and opens a PR with the delta. No local refresh action is required, and no deferred-list entry is needed for graph staleness — this step is a no-op by design.
 7. **Branch/PR.** Confirm the work is on `main` or an open PR targets `main`; report the PR link (or the reason none exists) in the completion report.
-8. **Findings gate.** Anything this task surfaced that it was not asked to change — a contradiction, an unenforced rule, a stale doc, a bug outside scope — is appended to `FINDINGS.md` as a new `F` entry (bump `highest-issued:` in the same edit) and named in the completion report. Never fix it in the same pass; never apply a rule change unilaterally. A rule sharpening is just a finding whose subject is a rule — it uses this same path, not a separate one. If the user approves acting on a finding, that is a new task on its own branch, and the entry is deleted when it lands. Run `scripts/check-findings-log.sh` and confirm it passes.
+8. **Discovered-work capture.** Anything this task surfaced that it was not asked to change — a contradiction, an unenforced rule, a stale doc, a bug outside scope — is filed as a GitHub issue per the `capturing-discovered-work` skill and named (number + summary) in the completion report. Never fix it in the same pass; never apply a rule change unilaterally. A rule sharpening is just a finding whose subject is a rule — it uses this same path, not a separate one. If the user approves acting on one, that is a new task on its own branch.
 
 9. **Component inventory.** If this task added, renamed, or removed a shared component under `app/src/components/ui/`, `components/forms/`, or the shared (non-per-game) part of `components/layout/games/`, update `docs/architecture/07-Frontend/08-Component-Inventory.md` in the same change. Per-game components (`interfaces/`, `result-modals/`, `*SetupForm.astro`) are out of scope.
 
