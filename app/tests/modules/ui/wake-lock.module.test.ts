@@ -65,6 +65,10 @@ function stubVideoFallback() {
   return { playSpy };
 }
 
+function fireGesture() {
+  document.dispatchEvent(new Event("pointerdown"));
+}
+
 let controllers: WakeLockController[] = [];
 
 function trackedController(
@@ -90,7 +94,7 @@ afterEach(() => {
 });
 
 describe("WakeLockController", () => {
-  it("requests a screen wake lock on acquire", async () => {
+  it("does not request a screen wake lock before a gesture", async () => {
     const sentinel = makeSentinel();
     const request = vi.fn(async () => sentinel);
     stubWakeLock(request);
@@ -98,7 +102,58 @@ describe("WakeLockController", () => {
     const controller = trackedController();
     await controller.acquire();
 
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("requests a screen wake lock on the first gesture after acquire", async () => {
+    const sentinel = makeSentinel();
+    const request = vi.fn(async () => sentinel);
+    stubWakeLock(request);
+
+    const controller = trackedController();
+    await controller.acquire();
+    fireGesture();
+
     expect(request).toHaveBeenCalledWith("screen");
+  });
+
+  it("ignores a second gesture after the first", async () => {
+    const sentinel = makeSentinel();
+    const request = vi.fn(async () => sentinel);
+    stubWakeLock(request);
+
+    const controller = trackedController();
+    await controller.acquire();
+    fireGesture();
+    fireGesture();
+
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels the pending gesture listener on release", async () => {
+    const sentinel = makeSentinel();
+    const request = vi.fn(async () => sentinel);
+    stubWakeLock(request);
+
+    const controller = trackedController();
+    await controller.acquire();
+    await controller.release();
+    fireGesture();
+
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("cancels the pending gesture listener on destroy", async () => {
+    const sentinel = makeSentinel();
+    const request = vi.fn(async () => sentinel);
+    stubWakeLock(request);
+
+    const controller = trackedController();
+    await controller.acquire();
+    controller.destroy();
+    fireGesture();
+
+    expect(request).not.toHaveBeenCalled();
   });
 
   it("does nothing when the Wake Lock API is unsupported", async () => {
@@ -106,7 +161,8 @@ describe("WakeLockController", () => {
     const onError = vi.fn();
 
     const controller = trackedController({ onError });
-    await expect(controller.acquire()).resolves.toBeUndefined();
+    await controller.acquire();
+    fireGesture();
 
     expect(onError).not.toHaveBeenCalled();
   });
@@ -119,7 +175,9 @@ describe("WakeLockController", () => {
     const onError = vi.fn();
 
     const controller = trackedController({ onError });
-    await expect(controller.acquire()).resolves.toBeUndefined();
+    await controller.acquire();
+    fireGesture();
+    await Promise.resolve();
 
     expect(onError).toHaveBeenCalledWith(expect.any(Error));
   });
@@ -130,6 +188,8 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
+    await Promise.resolve();
     await controller.release();
 
     expect(sentinel.release).toHaveBeenCalled();
@@ -150,6 +210,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
 
     first._fireRelease();
     request.mockImplementation(async () => second);
@@ -168,6 +229,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
     controller.destroy();
 
     sentinel._fireRelease();
@@ -183,6 +245,8 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
+    await Promise.resolve();
     controller.destroy();
 
     expect(sentinel.release).toHaveBeenCalled();
@@ -198,6 +262,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
 
     expect(playSpy).toHaveBeenCalled();
     expect(document.querySelector("video")).not.toBeNull();
@@ -211,6 +276,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
 
     expect(playSpy).toHaveBeenCalled();
   });
@@ -222,6 +288,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
 
     expect(playSpy).not.toHaveBeenCalled();
     expect(document.querySelector("video")).toBeNull();
@@ -237,6 +304,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
     await controller.release();
 
     expect(document.querySelector("video")).toBeNull();
@@ -252,6 +320,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
     controller.destroy();
 
     expect(document.querySelector("video")).toBeNull();
@@ -267,6 +336,7 @@ describe("WakeLockController", () => {
 
     const controller = trackedController();
     await controller.acquire();
+    fireGesture();
     playSpy.mockClear();
 
     const video = document.querySelector("video") as HTMLVideoElement;
