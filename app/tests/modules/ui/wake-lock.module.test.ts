@@ -51,12 +51,6 @@ function stubMatchMedia(matches: boolean) {
 }
 
 function stubVideoFallback() {
-  const tracks = [{ stop: vi.fn() }];
-  const stream = { getTracks: () => tracks } as unknown as MediaStream;
-  const captureStream = vi.fn(() => stream);
-  HTMLCanvasElement.prototype.captureStream =
-    captureStream as unknown as HTMLCanvasElement["captureStream"];
-
   const playSpy = vi.fn(async function (this: HTMLVideoElement) {
     Object.defineProperty(this, "paused", {
       value: false,
@@ -65,8 +59,10 @@ function stubVideoFallback() {
   });
   HTMLMediaElement.prototype.play =
     playSpy as unknown as HTMLMediaElement["play"];
+  HTMLMediaElement.prototype.pause =
+    vi.fn() as unknown as HTMLMediaElement["pause"];
 
-  return { captureStream, playSpy, tracks };
+  return { playSpy };
 }
 
 let controllers: WakeLockController[] = [];
@@ -87,9 +83,8 @@ afterEach(() => {
   controllers.forEach((controller) => controller.destroy());
   controllers = [];
   document.querySelectorAll("video").forEach((video) => video.remove());
-  delete (HTMLCanvasElement.prototype as { captureStream?: unknown })
-    .captureStream;
   delete (HTMLMediaElement.prototype as { play?: unknown }).play;
+  delete (HTMLMediaElement.prototype as { pause?: unknown }).pause;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -199,12 +194,11 @@ describe("WakeLockController", () => {
       vi.fn(async () => sentinel),
       { standalone: true },
     );
-    const { captureStream, playSpy } = stubVideoFallback();
+    const { playSpy } = stubVideoFallback();
 
     const controller = trackedController();
     await controller.acquire();
 
-    expect(captureStream).toHaveBeenCalledWith(1);
     expect(playSpy).toHaveBeenCalled();
     expect(document.querySelector("video")).not.toBeNull();
   });
@@ -233,19 +227,18 @@ describe("WakeLockController", () => {
     expect(document.querySelector("video")).toBeNull();
   });
 
-  it("stops the video fallback and its tracks on release", async () => {
+  it("stops the video fallback on release", async () => {
     const sentinel = makeSentinel();
     stubWakeLock(
       vi.fn(async () => sentinel),
       { standalone: true },
     );
-    const { tracks } = stubVideoFallback();
+    stubVideoFallback();
 
     const controller = trackedController();
     await controller.acquire();
     await controller.release();
 
-    expect(tracks[0].stop).toHaveBeenCalled();
     expect(document.querySelector("video")).toBeNull();
   });
 
@@ -255,13 +248,12 @@ describe("WakeLockController", () => {
       vi.fn(async () => sentinel),
       { standalone: true },
     );
-    const { tracks } = stubVideoFallback();
+    stubVideoFallback();
 
     const controller = trackedController();
     await controller.acquire();
     controller.destroy();
 
-    expect(tracks[0].stop).toHaveBeenCalled();
     expect(document.querySelector("video")).toBeNull();
   });
 
