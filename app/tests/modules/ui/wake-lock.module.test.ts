@@ -29,8 +29,11 @@ function makeSentinel(): MockSentinel {
   return sentinel;
 }
 
-function stubWakeLock(request: ReturnType<typeof vi.fn>) {
-  vi.stubGlobal("navigator", { wakeLock: { request } });
+function stubWakeLock(
+  request: ReturnType<typeof vi.fn>,
+  extra: Record<string, unknown> = {},
+) {
+  vi.stubGlobal("navigator", { wakeLock: { request }, ...extra });
 }
 
 function stubVisibility(state: "visible" | "hidden") {
@@ -38,6 +41,32 @@ function stubVisibility(state: "visible" | "hidden") {
     value: state,
     configurable: true,
   });
+}
+
+function stubMatchMedia(matches: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches })) as unknown as typeof matchMedia,
+  );
+}
+
+function stubVideoFallback() {
+  const tracks = [{ stop: vi.fn() }];
+  const stream = { getTracks: () => tracks } as unknown as MediaStream;
+  const captureStream = vi.fn(() => stream);
+  HTMLCanvasElement.prototype.captureStream =
+    captureStream as unknown as HTMLCanvasElement["captureStream"];
+
+  const playSpy = vi.fn(async function (this: HTMLVideoElement) {
+    Object.defineProperty(this, "paused", {
+      value: false,
+      configurable: true,
+    });
+  });
+  HTMLMediaElement.prototype.play =
+    playSpy as unknown as HTMLMediaElement["play"];
+
+  return { captureStream, playSpy, tracks };
 }
 
 let controllers: WakeLockController[] = [];
@@ -57,6 +86,10 @@ beforeEach(() => {
 afterEach(() => {
   controllers.forEach((controller) => controller.destroy());
   controllers = [];
+  document.querySelectorAll("video").forEach((video) => video.remove());
+  delete (HTMLCanvasElement.prototype as { captureStream?: unknown })
+    .captureStream;
+  delete (HTMLMediaElement.prototype as { play?: unknown }).play;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -158,5 +191,102 @@ describe("WakeLockController", () => {
     controller.destroy();
 
     expect(sentinel.release).toHaveBeenCalled();
+  });
+
+  it("starts a video fallback when navigator.standalone is true", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(
+      vi.fn(async () => sentinel),
+      { standalone: true },
+    );
+    const { captureStream, playSpy } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+
+    expect(captureStream).toHaveBeenCalledWith(1);
+    expect(playSpy).toHaveBeenCalled();
+    expect(document.querySelector("video")).not.toBeNull();
+  });
+
+  it("starts a video fallback when matchMedia reports standalone display-mode", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(vi.fn(async () => sentinel));
+    stubMatchMedia(true);
+    const { playSpy } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+
+    expect(playSpy).toHaveBeenCalled();
+  });
+
+  it("does not start a video fallback outside standalone mode", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(vi.fn(async () => sentinel));
+    const { playSpy } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+
+    expect(playSpy).not.toHaveBeenCalled();
+    expect(document.querySelector("video")).toBeNull();
+  });
+
+  it("stops the video fallback and its tracks on release", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(
+      vi.fn(async () => sentinel),
+      { standalone: true },
+    );
+    const { tracks } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+    await controller.release();
+
+    expect(tracks[0].stop).toHaveBeenCalled();
+    expect(document.querySelector("video")).toBeNull();
+  });
+
+  it("stops the video fallback on destroy", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(
+      vi.fn(async () => sentinel),
+      { standalone: true },
+    );
+    const { tracks } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+    controller.destroy();
+
+    expect(tracks[0].stop).toHaveBeenCalled();
+    expect(document.querySelector("video")).toBeNull();
+  });
+
+  it("resumes a paused video fallback when the tab becomes visible", async () => {
+    const sentinel = makeSentinel();
+    stubWakeLock(
+      vi.fn(async () => sentinel),
+      { standalone: true },
+    );
+    const { playSpy } = stubVideoFallback();
+
+    const controller = trackedController();
+    await controller.acquire();
+    playSpy.mockClear();
+
+    const video = document.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "paused", {
+      value: true,
+      configurable: true,
+    });
+
+    stubVisibility("visible");
+    document.dispatchEvent(new Event("visibilitychange"));
+    await Promise.resolve();
+
+    expect(playSpy).toHaveBeenCalled();
   });
 });
