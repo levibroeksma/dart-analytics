@@ -21,7 +21,7 @@ const { title, gameTitle, gameTitleExpr, exitDescription }: Props = Astro.props;
 <BaseLayout title={title}>
   <div
     class="mx-auto flex h-full max-w-lg flex-col"
-    x-data="{ showExitModal: false }"
+    x-data="gameLayout()"
   >
     <header class="relative flex items-center pt-3">
       <div class="w-1/8">
