@@ -315,6 +315,28 @@ export function balancedTrainingPlay() {
       this.doublePatternEngine.record(observation);
     },
 
+    switchingPoints(this: BalancedTrainingPlayContext): number {
+      return this.switchingEngine?.state().totalPoints ?? 0;
+    },
+
+    switchingTargetLabel(this: BalancedTrainingPlayContext): string {
+      const target = this.switchingEngine?.state().currentTargetNumber;
+      return target === undefined ? "" : String(target);
+    },
+
+    doublePatternPoints(this: BalancedTrainingPlayContext): number {
+      return this.doublePatternEngine?.state().totalPoints ?? 0;
+    },
+
+    doublePatternLabel(this: BalancedTrainingPlayContext): string {
+      const double = this.doublePatternEngine?.state().currentDoubleNumber;
+      return double === undefined ? "" : `D${double}`;
+    },
+
+    dartsThrown(this: BalancedTrainingPlayContext): number {
+      return this.activeDartEngine()?.state().dartsThrown ?? 0;
+    },
+
     undoVisit(this: BalancedTrainingPlayContext) {
       this.activeDartEngine()?.undo();
     },

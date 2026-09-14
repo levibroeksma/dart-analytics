@@ -69,6 +69,11 @@ export type BalancedTrainingPlayContext = {
     durationSeconds: number,
   ): void;
   formattedStepRemaining(this: BalancedTrainingPlayContext): string;
+  switchingPoints(this: BalancedTrainingPlayContext): number;
+  switchingTargetLabel(this: BalancedTrainingPlayContext): string;
+  doublePatternPoints(this: BalancedTrainingPlayContext): number;
+  doublePatternLabel(this: BalancedTrainingPlayContext): string;
+  dartsThrown(this: BalancedTrainingPlayContext): number;
   activeDartEngine(
     this: BalancedTrainingPlayContext,
   ): SwitchingEngine | DoublePatternEngine | null;

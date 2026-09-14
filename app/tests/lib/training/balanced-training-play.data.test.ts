@@ -471,6 +471,33 @@ describe("balancedTrainingPlay — Switching", () => {
     await vi.runAllTimersAsync();
     expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
+
+  it("switchingPoints() and switchingTargetLabel() read the engine's derived state", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.switchingPoints()).toBe(0);
+    expect(store.switchingTargetLabel()).toBe("20");
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -103,
+    });
+    expect(store.switchingPoints()).toBe(3);
+    expect(store.switchingTargetLabel()).toBe("19");
+    expect(store.dartsThrown()).toBe(1);
+  });
 });
 
 const DOUBLE_PATTERN_STEP = {
@@ -539,6 +566,33 @@ describe("balancedTrainingPlay — Double Pattern", () => {
     });
     expect(store.visitMarkers()).toHaveLength(1);
     expect(store.doublePatternEngine!.state().totalPoints).toBe(1);
+  });
+
+  it("doublePatternPoints() and doublePatternLabel() read the engine's derived state", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: DOUBLE_PATTERN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.doublePatternLabel()).toBe("D20");
+    expect(store.doublePatternPoints()).toBe(0);
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    expect(store.doublePatternPoints()).toBe(1);
+    expect(store.doublePatternLabel()).toBe("D10");
+    expect(store.dartsThrown()).toBe(1);
   });
 });
 
