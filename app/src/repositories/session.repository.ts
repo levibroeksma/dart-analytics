@@ -189,6 +189,7 @@ export async function findSessionRow(
       playerId: exerciseSessions.playerId,
       statusId: exerciseSessions.statusId,
       rulesetVersionKey: rulesetVersions.implementationKey,
+      exerciseRulesetVersionKey: exerciseRulesetVersions.implementationKey,
       captureModeKey: captureModes.implementationKey,
       inputModeKey: inputModes.implementationKey,
     })
@@ -196,6 +197,10 @@ export async function findSessionRow(
     .leftJoin(
       rulesetVersions,
       eq(rulesetVersions.id, exerciseSessions.rulesetVersionId),
+    )
+    .leftJoin(
+      exerciseRulesetVersions,
+      eq(exerciseRulesetVersions.id, exerciseSessions.exerciseRulesetVersionId),
     )
     .leftJoin(captureModes, eq(captureModes.id, exerciseSessions.captureModeId))
     .leftJoin(inputModes, eq(inputModes.id, exerciseSessions.inputModeId))

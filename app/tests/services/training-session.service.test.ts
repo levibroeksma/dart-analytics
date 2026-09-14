@@ -122,6 +122,14 @@ const SNAPSHOT = {
       configuration: { stepDurationSeconds: 600, phases: [] },
     },
     {
+      sequenceNumber: 2,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      durationSeconds: 300,
+      configuration: { targets: [20, 19, 18] },
+    },
+    {
       sequenceNumber: 4,
       exerciseTypeKey: "GAME",
       exerciseRulesetVersionKey: null,
@@ -177,6 +185,46 @@ describe("startTrainingStep", () => {
         exerciseTypeId: "et-warmup",
         exerciseRulesetVersionId: "erv-1",
         routineStepSequenceNumber: 1,
+        captureModeId: undefined,
+        inputModeId: undefined,
+      }),
+    );
+  });
+
+  it("inserts SWITCHING under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-switching");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-switching",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 2);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(sessionRepo.findCaptureModeId).toHaveBeenCalledWith(
+      expect.anything(),
+      "ANALYTICS",
+    );
+    expect(sessionRepo.findInputModeId).toHaveBeenCalledWith(
+      expect.anything(),
+      "VISUAL_BOARD",
+    );
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        exerciseRulesetVersionId: "erv-switching",
+        captureModeId: 3,
+        inputModeId: 4,
       }),
     );
   });

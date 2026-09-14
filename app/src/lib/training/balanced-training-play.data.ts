@@ -392,8 +392,11 @@ export function balancedTrainingPlay() {
           this.activityId,
           this.training,
         );
-      } catch {
-        this.error = "Could not continue to the next step. Try again.";
+      } catch (err: unknown) {
+        const code = (err as { code?: string }).code;
+        this.error = code
+          ? `Could not continue to the next step (${code}). Try again.`
+          : "Could not continue to the next step. Try again.";
       }
     },
 

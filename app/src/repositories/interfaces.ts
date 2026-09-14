@@ -32,6 +32,7 @@ export interface SessionRow {
   playerId: string;
   statusId: number;
   rulesetVersionKey: string | null;
+  exerciseRulesetVersionKey: string | null;
   captureModeKey: string | null;
   inputModeKey: string | null;
 }

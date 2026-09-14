@@ -634,6 +634,7 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -696,12 +697,54 @@ describe("appendBatch", () => {
     });
   });
 
-  it("returns INTERNAL_ERROR for a non-GAME exercise session with no ruleset/capture/input mode", async () => {
+  it("returns INTERNAL_ERROR for a Warm-Up session, which records no dart", async () => {
     vi.mocked(repo.findSessionRow).mockResolvedValue({
       id: "session-1",
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: null,
+      exerciseRulesetVersionKey: "WARM_UP_V1",
+      captureModeKey: null,
+      inputModeKey: null,
+    });
+    const result = await appendBatch(
+      "player-1",
+      "session-1",
+      "idem-1",
+      sampleBatch(),
+    );
+    expect(result).toMatchObject({ ok: false, code: "INTERNAL_ERROR" });
+  });
+
+  it("inserts a dart-exercise step's batch, which carries no game ruleset", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    const result = await appendBatch(
+      "player-1",
+      "session-1",
+      "idem-1",
+      sampleBatch(),
+    );
+    expect(result).toEqual({
+      ok: true,
+      data: { created: { stages: 1, turns: 1, darts: 0 } },
+    });
+  });
+
+  it("returns INTERNAL_ERROR for an exercise session with no capture pair", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      exerciseRulesetVersionKey: "SWITCHING_V1",
       captureModeKey: null,
       inputModeKey: null,
     });
@@ -720,6 +763,7 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 2,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -797,6 +841,7 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
     });
@@ -857,6 +902,7 @@ describe("appendBatch", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "BOBS27_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "DETAILED_DARTS",
     });
@@ -960,6 +1006,7 @@ describe("updateSessionStatus", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });
@@ -988,6 +1035,7 @@ describe("updateSessionStatus", () => {
       playerId: "player-1",
       statusId: 1,
       rulesetVersionKey: null,
+      exerciseRulesetVersionKey: null,
       captureModeKey: null,
       inputModeKey: null,
     });
@@ -1037,6 +1085,7 @@ describe("updateSessionStatus", () => {
       playerId: "player-1",
       statusId: 2,
       rulesetVersionKey: "SCORE_TRAINING_V1",
+      exerciseRulesetVersionKey: null,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
     });

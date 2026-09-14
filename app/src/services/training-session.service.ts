@@ -194,6 +194,18 @@ async function resolveActiveSessionConflict(
       };
 }
 
+/**
+ * The capture pair a dart-throwing exercise step records under. Switching and
+ * Double Pattern capture every dart on the visual board, exactly as an
+ * `ANALYTICS` + `VISUAL_BOARD` game does, and `exercise_sessions` stores the
+ * pair as both-or-neither (`chk_exercise_sessions_capture_pair`, migration
+ * `0029`). Warm-Up throws no recorded dart, so it keeps the NULL pair.
+ */
+const DART_EXERCISE_CAPTURE_MODE_KEY = "ANALYTICS";
+const DART_EXERCISE_INPUT_MODE_KEY = "VISUAL_BOARD";
+
+const DART_EXERCISE_TYPE_KEYS = new Set(["SWITCHING", "DOUBLE_PATTERN"]);
+
 async function startNonGameStep(
   ctx: StepStartContext,
 ): Promise<ServiceResult<StartTrainingStepResult>> {
@@ -202,7 +214,14 @@ async function startNonGameStep(
   const exerciseRulesetVersionId = step.exerciseRulesetVersionKey
     ? await findExerciseRulesetVersionId(db, step.exerciseRulesetVersionKey)
     : undefined;
-  if (!exerciseTypeId) {
+  const capturesDarts = DART_EXERCISE_TYPE_KEYS.has(step.exerciseTypeKey);
+  const captureModeId = capturesDarts
+    ? await findCaptureModeId(db, DART_EXERCISE_CAPTURE_MODE_KEY)
+    : undefined;
+  const inputModeId = capturesDarts
+    ? await findInputModeId(db, DART_EXERCISE_INPUT_MODE_KEY)
+    : undefined;
+  if (!exerciseTypeId || (capturesDarts && (!captureModeId || !inputModeId))) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -217,6 +236,8 @@ async function startNonGameStep(
       participants: ctx.participants,
       playerId: ctx.playerId,
       activeStatusId: ctx.activeStatusId,
+      captureModeId,
+      inputModeId,
       exerciseTypeId,
       exerciseRulesetVersionId,
       routineStepSequenceNumber: ctx.sequenceNumber,
