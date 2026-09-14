@@ -722,7 +722,7 @@ exercise score
 progress
 ```
 
-**Implemented** (`SWITCHING_V1`, `app/src/modules/exercise/switching.engine.module.ts`): `targets: number[]` (board numbers, e.g. `[20, 19, 18]`) and `scoring: { single, double, treble }` replace this section's `T20`/`evaluation` notation one-for-one. There is no `outside` config key — a dart landing on any number other than the visit's own current target always scores 0, by omission rather than by a configured value.
+**Implemented** (`SWITCHING_V1`, `app/src/modules/exercise/switching.engine.module.ts`): `targets: number[]` (board numbers, e.g. `[20, 19, 18]`) and `scoring: { single, double, treble }` replace this section's `T20`/`evaluation` notation one-for-one. There is no `outside` config key — a dart landing on any number other than the visit's own current target always scores 0, by omission rather than by a configured value. Its play screen renders total points as the primary readout with target/darts/remaining-time stat rows and a three-dart visit preview, the same shape a board-input game uses (D275, 2026-09-14).
 
 ---
 
@@ -741,7 +741,7 @@ patterns:
 
 The engine tracks the current pattern and evaluates each observed dart against the intended target.
 
-**Implemented** (`DOUBLE_PATTERN_V1`, `app/src/modules/exercise/double-pattern.engine.module.ts`): `patterns: number[][]` (e.g. `[[20, 10, 5], [16, 8, 4], [12, 6, 3]]`) replaces the `D20 → D10 → D5` notation — each element is a board number whose double counts. One point per hit double; nothing else scores.
+**Implemented** (`DOUBLE_PATTERN_V1`, `app/src/modules/exercise/double-pattern.engine.module.ts`): `patterns: number[][]` (e.g. `[[20, 10, 5], [16, 8, 4], [12, 6, 3]]`) replaces the `D20 → D10 → D5` notation — each element is a board number whose double counts. One point per hit double; nothing else scores. Its play screen uses the same shape as Switching's, labelling the current target `D20` and counting only a hit double as a preview hit (D275, 2026-09-14).
 
 ---
 
