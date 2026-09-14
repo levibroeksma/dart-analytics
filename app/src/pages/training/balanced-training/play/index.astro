@@ -10,7 +10,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 <GameLayout
   title="Balanced Training — Play"
-  gameTitle="Balanced Training"
+  gameTitleExpr="$store.trainingSession.headerLabel"
 >
   <div
     class="flex flex-col flex-1 min-h-0 p-3"

@@ -1,6 +1,7 @@
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
+import type { SessionClock } from "@modules/ui/session-clock.module";
 import type {
   StartTrainingResponseData,
   StartTrainingStepResponseData,
@@ -10,8 +11,11 @@ import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engin
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { finishingStep } from "./finishing-step.data";
+import type { trainingSessionStore } from "@stores/training-session.store";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
+
+export type TrainingStepKey = TrainingStepResolved["exerciseTypeKey"];
 
 export type BalancedTrainingPlayContext = {
   loading: boolean;
@@ -31,12 +35,14 @@ export type BalancedTrainingPlayContext = {
   warmUpReady: boolean;
   warmUpConfiguration: Record<string, unknown> | null;
   finishing: ReturnType<typeof finishingStep> | null;
+  sessionClock: SessionClock | null;
   $store: {
     game: {
       loading: boolean;
       reset(): void;
       startSession(input: unknown): void;
     };
+    trainingSession: TrainingSessionStoreContext;
   };
   init(this: BalancedTrainingPlayContext): Promise<void>;
   currentStep(this: BalancedTrainingPlayContext): TrainingStepResolved | null;
@@ -57,6 +63,8 @@ export type BalancedTrainingPlayContext = {
     result: StartTrainingStepResponseData,
   ): void;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  startSessionClock(this: BalancedTrainingPlayContext): void;
+  stopSessionClock(this: BalancedTrainingPlayContext): void;
   confirmWarmUpReady(this: BalancedTrainingPlayContext): void;
   startWarmUpTimer(
     this: BalancedTrainingPlayContext,
@@ -92,3 +100,7 @@ export type BalancedTrainingPlayContext = {
   completeCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
   abandonAndExit(this: BalancedTrainingPlayContext): Promise<void>;
 };
+
+export type TrainingSessionStoreContext = ReturnType<
+  typeof trainingSessionStore
+>;

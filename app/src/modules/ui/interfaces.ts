@@ -7,3 +7,7 @@ export interface SegmentTimerOptions {
   onSegmentChange?: (segmentIndex: number) => void;
   onComplete?: () => void;
 }
+
+export interface SessionClockOptions {
+  onTick?: (elapsedSeconds: number) => void;
+}
