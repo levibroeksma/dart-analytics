@@ -24,7 +24,8 @@ export type BalancedTrainingPlayContext = {
   warmUpEngine: ExerciseEngine<WarmUpState> | null;
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
-  stepDeadline: ReturnType<typeof setTimeout> | null;
+  stepTimer: SegmentTimer | null;
+  stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
   warmUpReady: boolean;
@@ -63,10 +64,11 @@ export type BalancedTrainingPlayContext = {
   ): void;
   formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string;
   warmUpHighlightPath(this: BalancedTrainingPlayContext): string;
-  armStepDeadline(
+  startStepTimer(
     this: BalancedTrainingPlayContext,
     durationSeconds: number,
   ): void;
+  formattedStepRemaining(this: BalancedTrainingPlayContext): string;
   activeDartEngine(
     this: BalancedTrainingPlayContext,
   ): SwitchingEngine | DoublePatternEngine | null;

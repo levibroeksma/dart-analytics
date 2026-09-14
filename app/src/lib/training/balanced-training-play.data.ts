@@ -74,7 +74,8 @@ export function balancedTrainingPlay() {
     warmUpEngine: null,
     switchingEngine: null,
     doublePatternEngine: null,
-    stepDeadline: null,
+    stepTimer: null,
+    stepRemainingSeconds: 0,
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
     warmUpReady: false,
@@ -210,11 +211,11 @@ export function balancedTrainingPlay() {
       }
       if (result.exerciseTypeKey === "SWITCHING") {
         this.buildSwitchingEngine(result.configuration);
-        this.armStepDeadline(step.durationSeconds);
+        this.startStepTimer(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
         this.buildDoublePatternEngine(result.configuration);
-        this.armStepDeadline(step.durationSeconds);
+        this.startStepTimer(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "GAME") {
         this.startFinishingStep(result);
@@ -268,15 +269,34 @@ export function balancedTrainingPlay() {
       return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
     },
 
-    armStepDeadline(
-      this: BalancedTrainingPlayContext,
-      durationSeconds: number,
-    ) {
-      this.stepDeadline = setTimeout(() => {
-        this.switchingEngine?.expireTimer();
-        this.doublePatternEngine?.expireTimer();
-        void this.completeCurrentStep();
-      }, durationSeconds * 1000);
+    /**
+     * The step's own clock. `SegmentTimer` drives both the on-screen
+     * countdown and expiry, so there is no second scheduler to drift
+     * against it. The engines stay clockless (D264): expiry reaches them
+     * as `expireTimer()`.
+     */
+    startStepTimer(this: BalancedTrainingPlayContext, durationSeconds: number) {
+      this.stepRemainingSeconds = durationSeconds;
+      this.stepTimer = new SegmentTimer({
+        segmentDurationsSeconds: [durationSeconds],
+        direction: "countdown",
+        onTick: (remaining) => {
+          this.stepRemainingSeconds = remaining;
+        },
+        onComplete: () => {
+          this.switchingEngine?.expireTimer();
+          this.doublePatternEngine?.expireTimer();
+          void this.completeCurrentStep();
+        },
+      });
+      this.stepTimer.start();
+    },
+
+    formattedStepRemaining(this: BalancedTrainingPlayContext): string {
+      const remaining = Math.max(0, this.stepRemainingSeconds);
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     },
 
     recordSwitchingDart(
@@ -317,9 +337,9 @@ export function balancedTrainingPlay() {
       if (!this.currentSessionId || !this.training || !this.activityId) {
         return;
       }
-      if (this.stepDeadline) {
-        clearTimeout(this.stepDeadline);
-        this.stepDeadline = null;
+      if (this.stepTimer) {
+        this.stepTimer.stop();
+        this.stepTimer = null;
       }
       if (this.warmUpTimer) {
         this.warmUpTimer.stop();
@@ -348,9 +368,9 @@ export function balancedTrainingPlay() {
      */
     async abandonAndExit(this: BalancedTrainingPlayContext) {
       if (this.finishing) {
-        if (this.stepDeadline) {
-          clearTimeout(this.stepDeadline);
-          this.stepDeadline = null;
+        if (this.stepTimer) {
+          this.stepTimer.stop();
+          this.stepTimer = null;
         }
         return (this.finishing as unknown as TuodPlayContext).abandonAndExit();
       }
@@ -358,9 +378,9 @@ export function balancedTrainingPlay() {
       this.$store.game.loading = true;
       this.error = "";
       try {
-        if (this.stepDeadline) {
-          clearTimeout(this.stepDeadline);
-          this.stepDeadline = null;
+        if (this.stepTimer) {
+          this.stepTimer.stop();
+          this.stepTimer = null;
         }
         if (this.warmUpTimer) {
           this.warmUpTimer.stop();

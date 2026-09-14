@@ -302,19 +302,48 @@ const SWITCHING_STEP = {
   },
 };
 
+function stubAudioContext(): void {
+  vi.stubGlobal(
+    "AudioContext",
+    vi.fn().mockImplementation(function () {
+      return {
+        createOscillator: () => ({
+          connect: vi.fn(),
+          frequency: {},
+          start: vi.fn(),
+          stop: vi.fn(),
+        }),
+        createGain: () => ({
+          connect: vi.fn(),
+          gain: {
+            setValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn(),
+          },
+        }),
+        destination: {},
+        currentTime: 0,
+      };
+    }),
+  );
+}
+
 describe("balancedTrainingPlay — Switching", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    stubAudioContext();
     Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
-  it("startCurrentStep() for SWITCHING builds the dart engine and arms a deadline", async () => {
+  it("startCurrentStep() for SWITCHING builds the dart engine and starts the countdown", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineName: "Balanced Training",
@@ -355,6 +384,70 @@ describe("balancedTrainingPlay — Switching", () => {
     expect(store.switchingEngine!.state().dartsThrown).toBe(1);
   });
 
+  it("startCurrentStep() for SWITCHING starts a countdown that ticks stepRemainingSeconds", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.stepRemainingSeconds).toBe(300);
+    vi.advanceTimersByTime(5_000);
+    expect(store.stepRemainingSeconds).toBe(295);
+  });
+
+  it("formattedStepRemaining() renders m:ss", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    vi.advanceTimersByTime(19_000);
+    expect(store.formattedStepRemaining()).toBe("4:41");
+    vi.advanceTimersByTime(281_000);
+    expect(store.formattedStepRemaining()).toBe("0:00");
+  });
+
+  it("completeCurrentStep() stops the step timer", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    await store.completeCurrentStep();
+    expect(store.stepTimer).toBeNull();
+    const afterStop = store.stepRemainingSeconds;
+    vi.advanceTimersByTime(10_000);
+    expect(store.stepRemainingSeconds).toBe(afterStop);
+  });
+
   it("the armed deadline expires the engine and completes the step", async () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
@@ -393,15 +486,19 @@ describe("balancedTrainingPlay — Double Pattern", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    stubAudioContext();
     Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
-  it("startCurrentStep() for DOUBLE_PATTERN builds the dart engine and arms a deadline", async () => {
+  it("startCurrentStep() for DOUBLE_PATTERN builds the dart engine and starts the countdown", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineName: "Balanced Training",
