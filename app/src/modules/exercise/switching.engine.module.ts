@@ -33,6 +33,18 @@ const STAGE = exerciseBlockStage();
 const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
 
 /**
+ * What every Switching dart is aimed at: the target number's treble
+ * (09-training-routines.md §17 writes the sequence as `T20 → T19 → T18`,
+ * and the seeded scoring pays the treble most). Every ring on the target
+ * still scores, so the zone is intent only — `pointsFor` reads the ring
+ * that was hit, never this. It is stamped because `darts` requires an
+ * intended zone whenever an intended target is set
+ * (`chk_dart_target_consistency`), so a null zone made the step's batch
+ * unuploadable.
+ */
+const INTENDED_ZONE_KEY = "TREBLE" as const;
+
+/**
  * Points for one dart already known to have been thrown at `intendedTarget`
  * — a dart that landed on a different number than the visit's own current
  * target always scores 0 ("outside", 09-training-routines.md §14/§17).
@@ -164,7 +176,7 @@ export class SwitchingEngine implements DartExerciseEngine<SwitchingState> {
       ];
     appendObservedDart(turn, observation, {
       intendedTargetNumber: intendedTarget,
-      intendedZoneKey: null,
+      intendedZoneKey: INTENDED_ZONE_KEY,
     });
     if (turn.darts.length === this.config.targets.length) {
       turn.completedAt = new Date().toISOString();
