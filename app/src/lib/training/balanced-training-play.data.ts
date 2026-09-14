@@ -14,6 +14,7 @@ import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.regi
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
@@ -26,7 +27,7 @@ import type {
   TuodPlayContext,
 } from "@lib/types";
 import type { DartObservation } from "@modules/types";
-import type { BoardMarker } from "@lib/types";
+import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { StartTrainingStepResponseData } from "@client/api/types";
 import type {
   BalancedTrainingPlayContext,
@@ -98,6 +99,23 @@ export function balancedTrainingPlay() {
 
     visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[] {
       return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
+    },
+
+    /**
+     * Hit/miss marks for the current visit's darts. Each dart carries the
+     * target it was thrown at (`intendedTargetNumber`), so no config lookup
+     * is needed; Double Pattern additionally requires the double, since
+     * nothing else scores under `DOUBLE_PATTERN_V1`.
+     */
+    previewSegments(this: BalancedTrainingPlayContext): PreviewSegment[] {
+      const turns = this.activeDartEngine()?.facts().turns ?? [];
+      const requireDouble = this.doublePatternEngine !== null;
+      return playPreviewSegments(turns, null, (dart) =>
+        dart.hitTargetNumber === dart.intendedTargetNumber &&
+        (!requireDouble || dart.hitZoneKey === "DOUBLE")
+          ? "hit"
+          : "miss",
+      );
     },
 
     async init(this: BalancedTrainingPlayContext) {

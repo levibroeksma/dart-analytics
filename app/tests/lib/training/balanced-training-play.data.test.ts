@@ -11,7 +11,8 @@ vi.mock("@client/api/sessions", () => ({
   completeSession: vi.fn(),
   appendBatch: vi.fn(),
 }));
-vi.mock("@lib/game/play-lifecycle", () => ({
+vi.mock("@lib/game/play-lifecycle", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@lib/game/play-lifecycle")>()),
   playAbandonAndExit: vi.fn(),
 }));
 
@@ -498,6 +499,44 @@ describe("balancedTrainingPlay — Switching", () => {
     expect(store.switchingTargetLabel()).toBe("19");
     expect(store.dartsThrown()).toBe(1);
   });
+
+  it("previewSegments() marks an on-target dart hit and an off-target dart miss", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.previewSegments()).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+    store.recordSwitchingDart({
+      hitTargetNumber: 7,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 120,
+    });
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
 });
 
 const DOUBLE_PATTERN_STEP = {
@@ -593,6 +632,39 @@ describe("balancedTrainingPlay — Double Pattern", () => {
     expect(store.doublePatternPoints()).toBe(1);
     expect(store.doublePatternLabel()).toBe("D10");
     expect(store.dartsThrown()).toBe(1);
+  });
+
+  it("previewSegments() counts only the double as a hit", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: DOUBLE_PATTERN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    store.recordDoublePatternDart({
+      hitTargetNumber: 10,
+      hitZoneKey: "SINGLE",
+      locationX: 120,
+      locationY: 40,
+    });
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
   });
 });
 
