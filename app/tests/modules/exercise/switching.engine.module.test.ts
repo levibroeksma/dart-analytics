@@ -7,6 +7,8 @@ import {
 } from "@modules/exercise/switching.engine.module";
 import type { SwitchingConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
+import { buildEventsBatch } from "@modules/game/events.payload.module";
+import { EventsBatchRequest } from "@pages/api/sessions/types";
 
 const CONFIG: SwitchingConfigData = {
   targets: [20, 19, 18],
@@ -181,6 +183,30 @@ describe("foldSwitchingState", () => {
       totalPoints: 1,
       dartsThrown: 1,
       status: "IN_PROGRESS",
+    });
+  });
+});
+
+describe("SwitchingEngine upload payload", () => {
+  it("produces facts the events-batch API accepts", () => {
+    const engine = new SwitchingEngine(CONFIG);
+    engine.record(dart(20, "TREBLE"));
+    engine.record(dart(5, "SINGLE"));
+
+    const parsed = EventsBatchRequest.safeParse(
+      buildEventsBatch(engine.facts()),
+    );
+
+    expect(parsed.success).toBe(true);
+  });
+
+  it("stamps the treble as each dart's intended zone", () => {
+    const engine = new SwitchingEngine(CONFIG);
+    engine.record(dart(20, "SINGLE"));
+
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
     });
   });
 });
