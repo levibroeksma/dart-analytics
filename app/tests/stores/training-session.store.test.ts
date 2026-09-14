@@ -63,4 +63,27 @@ describe("trainingSessionStore", () => {
     expect(store.stepKey).toBeNull();
     expect(store.headerLabel).toBe("");
   });
+  it("markComplete() freezes the elapsed time and relabels the header", () => {
+    const store = trainingSessionStore();
+    store.startSession();
+    store.setStep("GAME");
+    store.tick(1934);
+
+    store.markComplete();
+
+    expect(store.elapsedSeconds).toBe(1934);
+    expect(store.headerLabel).toBe("32:14 - complete");
+  });
+
+  it("reset() clears a completed session's header", () => {
+    const store = trainingSessionStore();
+    store.startSession();
+    store.setStep("GAME");
+    store.tick(1934);
+    store.markComplete();
+
+    store.reset();
+
+    expect(store.headerLabel).toBe("");
+  });
 });
