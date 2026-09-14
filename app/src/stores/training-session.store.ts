@@ -12,6 +12,8 @@ const STEP_LABELS: Record<TrainingStepKey, string> = {
   GAME: "finishing",
 };
 
+const COMPLETE_LABEL = "complete";
+
 function formatElapsed(totalSeconds: number): string {
   const minutes = Math.floor(Math.max(0, totalSeconds) / 60);
   const seconds = Math.max(0, totalSeconds) % 60;
@@ -33,8 +35,10 @@ export function trainingSessionStore() {
     active: false,
     elapsedSeconds: 0,
     stepKey: null as TrainingStepKey | null,
+    complete: false,
 
     get stepLabel(): string {
+      if (this.complete) return COMPLETE_LABEL;
       return this.stepKey ? STEP_LABELS[this.stepKey] : "";
     },
 
@@ -45,11 +49,16 @@ export function trainingSessionStore() {
 
     startSession() {
       this.active = true;
+      this.complete = false;
       this.elapsedSeconds = 0;
     },
 
     setStep(stepKey: TrainingStepKey) {
       this.stepKey = stepKey;
+    },
+
+    markComplete() {
+      this.complete = true;
     },
 
     tick(elapsedSeconds: number) {
@@ -58,6 +67,7 @@ export function trainingSessionStore() {
 
     reset() {
       this.active = false;
+      this.complete = false;
       this.elapsedSeconds = 0;
       this.stepKey = null;
     },
