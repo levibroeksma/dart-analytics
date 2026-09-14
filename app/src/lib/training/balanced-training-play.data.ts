@@ -98,7 +98,8 @@ export function balancedTrainingPlay() {
     sessionClock: null,
     stepSummaries: [],
     routineFinished: false,
-    completionStatus: "pending",
+    completionStatus: "pending" as
+      "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
     ...boardInputData(
       (observation) => {

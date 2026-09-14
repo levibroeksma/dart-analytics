@@ -1,0 +1,101 @@
+---
+/**
+ * End-of-routine results: one card per completed exercise, the routine's
+ * total time, and the save status of the `completeTraining` call. Rows are
+ * built at runtime by `routine-summary.module.ts`, so `StatRow.astro` —
+ * which takes its label as a build-time prop — cannot render them.
+ *
+ * `ResultsModalShell` is deliberately not reused: its button row is bound
+ * to a per-game `back()`/`playAgain()` pair and a per-game `finished`
+ * flag, none of which a routine has.
+ */
+
+// Components
+import Button from "@components/forms/Button.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div
+  class="fixed inset-0 z-50 flex w-full items-center justify-center bg-black/50 p-4"
+  x-show="routineFinished"
+  x-cloak
+>
+  <div
+    class="glass w-full max-w-sm rounded-lg border border-border bg-surface-raised p-6 shadow-lg"
+  >
+    <h2 class="font-display text-lg font-semibold text-foreground">
+      Training complete
+    </h2>
+    <p
+      class="font-mono text-sm tabular-nums text-muted-foreground"
+      x-text="$store.trainingSession.headerLabel"
+    >
+    </p>
+
+    <template
+      x-for="step in stepSummaries"
+      :key="step.stepKey"
+    >
+      <section class="mt-4">
+        <h3
+          class="font-display text-sm font-semibold text-foreground"
+          x-text="step.label"
+        >
+        </h3>
+        <dl class="mt-1 space-y-1">
+          <template
+            x-for="row in step.rows"
+            :key="row.label"
+          >
+            <div class="flex items-center justify-between font-display-mono">
+              <dt
+                class="font-mono text-sm text-muted-foreground"
+                x-text="row.label"
+              >
+              </dt>
+              <dd
+                class="font-mono text-sm font-bold tabular-nums text-foreground"
+                x-text="row.value"
+              >
+              </dd>
+            </div>
+          </template>
+        </dl>
+      </section>
+    </template>
+
+    <p
+      class="mt-4 text-sm text-muted-foreground"
+      x-show="stepSummaries.length === 0"
+      x-cloak
+    >
+      No exercise results to show.
+    </p>
+
+    <div
+      class="mt-4"
+      x-show="completionStatus === 'failed'"
+      x-cloak
+    >
+      <ErrorAlert
+        textExpr="completionError"
+        alwaysVisible
+      />
+      <Button
+        class="mt-2"
+        @click="completeRoutine()"
+        title="Retry"
+      />
+    </div>
+
+    <div class="mt-6">
+      <Button
+        @click="dismissSummary()"
+        :disabled="completionStatus !== 'succeeded'"
+        loadingExpr="completionStatus === 'saving'"
+        title="Done"
+        grow
+      />
+    </div>
+  </div>
+</div>

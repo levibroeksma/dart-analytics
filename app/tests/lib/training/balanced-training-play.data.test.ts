@@ -1188,6 +1188,15 @@ describe("balancedTrainingPlay — routine summary", () => {
     return store;
   }
 
+  it("starts with no summary, no save attempt and the modal hidden", () => {
+    const store = makeStore();
+
+    expect(store.stepSummaries).toEqual([]);
+    expect(store.routineFinished).toBe(false);
+    expect(store.completionStatus).toBe("pending");
+    expect(store.completionError).toBe("");
+  });
+
   it("captures one summary card for the exercise that just finished", async () => {
     vi.mocked(trainingApi.completeTraining).mockResolvedValue({
       activityId: "act-1",
