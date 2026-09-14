@@ -1,18 +1,39 @@
 ---
-import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import StatRow from "@components/layout/games/StatRow.astro";
+import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
 ---
 
 <div class="flex flex-col flex-1 min-h-0 gap-3 p-3">
-  <dl class="space-y-1 px-4">
-    <StatRow
-      label="Double"
-      value="'D' + doublePatternEngine.state().currentDoubleNumber"
-    />
-    <StatRow
-      label="Points"
-      value="doublePatternEngine.state().totalPoints"
-    />
-  </dl>
+  <SinglePlayerDisplay
+    isTarget={false}
+    score="doublePatternPoints()"
+    class="max-h-2/5 h-full"
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="Double"
+          value="doublePatternLabel()"
+        />
+        <StatRow
+          label="Darts"
+          value="dartsThrown()"
+        />
+        <StatRow
+          label="Time"
+          value="formattedStepRemaining()"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
+
+  <VisitPreview />
+
   <ExerciseBoardInputPanel />
 </div>
