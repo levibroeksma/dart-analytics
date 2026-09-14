@@ -42,3 +42,23 @@ export type RoutineStepDuration = {
 
 export type RoutineDurationResult =
   { ok: true; totalMinutes: number } | { ok: false; issues: string[] };
+
+/**
+ * One line of a routine summary card. `value` is already formatted for
+ * display — the modal renders rows through `x-for` and formats nothing.
+ */
+export type RoutineStatRow = {
+  label: string;
+  value: string;
+};
+
+/**
+ * One completed exercise's contribution to the routine summary. Warm-Up
+ * throws no darts and produces none, which is why the key is narrower than
+ * `TrainingStepKey`.
+ */
+export type RoutineStepSummary = {
+  stepKey: "SWITCHING" | "DOUBLE_PATTERN" | "GAME";
+  label: string;
+  rows: RoutineStatRow[];
+};
