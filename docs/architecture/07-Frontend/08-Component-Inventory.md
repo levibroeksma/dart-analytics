@@ -98,4 +98,5 @@ evaluated in the page's own Alpine scope.
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `RoutineDetail.astro` | Routine-detail shell: title + duration pill, ordered step list, `Start` CTA wired to `routineStart()` (navigates to `playPath`; the routine itself starts on the play page) | `title`, `durationLabel`, `steps`, `playPath` (2026-09-11; Start wired 2026-09-12) |
+| `RoutineSummaryModal.astro` | End-of-routine results overlay: one card per completed exercise (`stepSummaries`), total session time, `completeTraining` save status with Retry, and a `Done` button that resets the header store and leaves for `/training` | none — reads the play page's `x-data` scope (2026-09-14) |
 | `ExerciseBoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row for a non-game exercise session (Switching, Double Pattern) — mirrors `BoardInputPanel.astro` minus the `$store.game` gate, since an exercise session has no game store, is always `VISUAL_BOARD`, and has no clock (2026-09-12) | none (reads `board`, pointer handlers, `recordUnseen`, `visitMarkers`, `finished`, `undoVisit()` from the page scope) |
