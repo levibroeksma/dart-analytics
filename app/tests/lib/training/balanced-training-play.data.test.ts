@@ -11,6 +11,10 @@ vi.mock("@client/api/sessions", () => ({
   completeSession: vi.fn(),
   appendBatch: vi.fn(),
 }));
+vi.mock("@modules/ui/audio-cue.module", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@modules/ui/audio-cue.module")>()),
+  playAudioCue: vi.fn(),
+}));
 vi.mock("@lib/game/play-lifecycle", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@lib/game/play-lifecycle")>()),
   playAbandonAndExit: vi.fn(),
@@ -18,15 +22,23 @@ vi.mock("@lib/game/play-lifecycle", async (importOriginal) => ({
 
 import * as trainingApi from "@client/api/training-sessions";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
+import { trainingSessionStore } from "@stores/training-session.store";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";
-import type { BalancedTrainingPlayContext } from "@lib/types";
+import { playAudioCue } from "@modules/ui/audio-cue.module";
+import { foldTuodState } from "@modules/game/tuod.engine.module";
+import type {
+  BalancedTrainingPlayContext,
+  Seated,
+  TuodSnapshot,
+} from "@lib/types";
 
 function makeStore(): BalancedTrainingPlayContext {
   return {
     ...balancedTrainingPlay(),
     $store: {
       game: { loading: false, reset: vi.fn(), startSession: vi.fn() },
+      trainingSession: trainingSessionStore(),
     },
   };
 }
@@ -78,6 +90,7 @@ describe("balancedTrainingPlay", () => {
     });
   });
   afterEach(() => {
+    vi.clearAllTimers();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -265,6 +278,158 @@ describe("balancedTrainingPlay", () => {
     expect(store.error).toBe("");
   });
 
+  it("the routine clock starts with the Warm-Up and reports the running step in the header", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.$store.trainingSession.headerLabel).toBe("00:00 - warm up");
+    expect(store.sessionClock).toBeNull();
+
+    store.confirmWarmUpReady();
+    vi.advanceTimersByTime(38_000);
+
+    expect(store.sessionClock).not.toBeNull();
+    expect(store.$store.trainingSession.headerLabel).toBe("00:38 - warm up");
+  });
+
+  it("the routine clock keeps running across a step change, and the header names the new step", async () => {
+    const nextStep = {
+      sequenceNumber: 2,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      durationSeconds: 300,
+      configuration: {
+        targets: [20, 19, 18],
+        scoring: { single: 1, double: 2, treble: 3 },
+      },
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [STEPS[0], nextStep] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce({
+        sessionId: "s1",
+        exerciseTypeKey: "WARM_UP",
+        configuration: STEPS[0].configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      })
+      .mockResolvedValueOnce({
+        sessionId: "s2",
+        exerciseTypeKey: "SWITCHING",
+        configuration: nextStep.configuration,
+        participant: { ref: "pt2", displayName: "Levi" },
+      });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(601_000);
+
+    expect(store.$store.trainingSession.headerLabel).toBe("10:01 - switching");
+    store.stopSessionClock();
+  });
+
+  it("plays a cue on every step change, and none when the first step opens", async () => {
+    const nextStep = {
+      sequenceNumber: 2,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      durationSeconds: 300,
+      configuration: {
+        targets: [20, 19, 18],
+        scoring: { single: 1, double: 2, treble: 3 },
+      },
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [STEPS[0], nextStep] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce({
+        sessionId: "s1",
+        exerciseTypeKey: "WARM_UP",
+        configuration: STEPS[0].configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      })
+      .mockResolvedValueOnce({
+        sessionId: "s2",
+        exerciseTypeKey: "SWITCHING",
+        configuration: nextStep.configuration,
+        participant: { ref: "pt2", displayName: "Levi" },
+      });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = makeStore();
+    await store.init();
+    expect(playAudioCue).not.toHaveBeenCalled();
+
+    store.confirmWarmUpReady();
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    const stepChangeCues = vi
+      .mocked(playAudioCue)
+      .mock.calls.filter(([frequency]) => frequency === 660);
+    expect(stepChangeCues).toHaveLength(1);
+    store.stopSessionClock();
+  });
+
+  it("stops the routine clock and clears the header once the last step completes", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-12T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(store.sessionClock).toBeNull();
+    expect(store.$store.trainingSession.headerLabel).toBe("");
+  });
+
   it("surfaces an error instead of freezing on the Warm-Up screen when advancing to the next step fails", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
@@ -340,6 +505,7 @@ describe("balancedTrainingPlay — Switching", () => {
     });
   });
   afterEach(() => {
+    vi.clearAllTimers();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -468,8 +634,7 @@ describe("balancedTrainingPlay — Switching", () => {
     });
     const store = makeStore();
     await store.init();
-    vi.advanceTimersByTime(300_000);
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(300_000);
     expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
 
@@ -590,6 +755,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
     });
   });
   afterEach(() => {
+    vi.clearAllTimers();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -704,17 +870,29 @@ const GAME_STEP = {
   exerciseRulesetVersionKey: null,
   gameTypeKey: "TUOD",
   durationSeconds: 600,
-  configuration: { starting_target: 41 },
+  configuration: {
+    starting_target: 41,
+    finish_bonus: 10,
+    miss_penalty: 1,
+    duration_type: "MINUTES",
+    duration_value: 10,
+    max_darts_per_turn: 3,
+  },
 };
 
 describe("balancedTrainingPlay — Finishing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it("startCurrentStep() for GAME populates the global game store and builds finishingStep", async () => {
@@ -745,16 +923,95 @@ describe("balancedTrainingPlay — Finishing", () => {
     );
     expect(store.finishing).not.toBeNull();
   });
+
+  it("hands TUOD a camelCase snapshot seated on the step's own participant, so the play screen can derive its state", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "GAME",
+      configuration: GAME_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+      gameTypeKey: "TUOD",
+      rulesetVersionKey: "TUOD_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    const store = makeStore();
+    await store.init();
+
+    const input = vi.mocked(store.$store.game.startSession).mock
+      .calls[0]![0] as {
+      configSnapshot: Seated<TuodSnapshot>;
+    };
+    expect(input.configSnapshot).toMatchObject({
+      startingTarget: 41,
+      finishBonus: 10,
+      missPenalty: 1,
+      durationType: "MINUTES",
+      durationValue: 10,
+      maxDartsPerTurn: 3,
+    });
+    expect(input.configSnapshot.seats).toEqual([
+      {
+        participantRef: "pt1",
+        displayName: "Levi",
+        sideKey: "A",
+        participantTypeKey: "PLAYER",
+      },
+    ]);
+  });
+
+  it("the seated snapshot folds into a live TUOD state instead of throwing", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "GAME",
+      configuration: GAME_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+      gameTypeKey: "TUOD",
+      rulesetVersionKey: "TUOD_V1",
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    const store = makeStore();
+    await store.init();
+
+    const input = vi.mocked(store.$store.game.startSession).mock
+      .calls[0]![0] as {
+      configSnapshot: Seated<TuodSnapshot>;
+    };
+    const state = foldTuodState(
+      { stages: [], turns: [] },
+      input.configSnapshot,
+      false,
+    );
+    expect(state.seats).toHaveLength(1);
+    expect(state.seats[0]!.currentTarget).toBe(41);
+    expect(state.activeParticipantRef).toBe("pt1");
+  });
 });
 
 describe("balancedTrainingPlay — abandonAndExit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     Object.defineProperty(globalThis, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it("during a non-GAME step: abandons the current step's session and the routine, then redirects to /training", async () => {

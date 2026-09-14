@@ -10,6 +10,9 @@ import { getExerciseEngineFactory } from "@modules/exercise/engine.registry";
 import { resolveWarmUpPhaseDurations } from "@modules/exercise/warm-up.engine.module";
 import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { SessionClock } from "@modules/ui/session-clock.module";
+import { playAudioCue } from "@modules/ui/audio-cue.module";
+import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.registry";
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
@@ -35,6 +38,9 @@ import type {
 } from "./types";
 
 const ROUTINE_NAME = "Balanced Training";
+const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
+const STEP_CHANGE_CUE_HZ = 660;
+const STEP_CHANGE_CUE_SECONDS = 0.25;
 
 let self: BalancedTrainingPlayContext;
 
@@ -56,6 +62,8 @@ async function advanceAfterStepCompletion(
   ctx.finishing = null;
   const state = training.completeStep();
   if (state.status === "COMPLETE") {
+    ctx.stopSessionClock();
+    ctx.$store.trainingSession.reset();
     await apiCompleteTraining(activityId);
     globalThis.location.href = "/training";
     return;
@@ -82,6 +90,7 @@ export function balancedTrainingPlay() {
     warmUpReady: false,
     warmUpConfiguration: null,
     finishing: null,
+    sessionClock: null,
     ...boardInputData(
       (observation) => {
         if (self.switchingEngine) self.recordSwitchingDart(observation);
@@ -200,10 +209,21 @@ export function balancedTrainingPlay() {
         rulesetVersionKey: result.rulesetVersionKey,
         sessionId: result.sessionId,
         templateRef: null,
-        configSnapshot: { ...result.configuration, seats: [] },
+        configSnapshot: {
+          ...toSnapshot(FINISHING_RULESET_VERSION_KEY, result.configuration),
+          seats: [
+            {
+              participantRef: result.participant.ref,
+              displayName: result.participant.displayName,
+              sideKey: "A",
+              participantTypeKey: "PLAYER",
+            },
+          ],
+        },
         captureModeKey: result.captureModeKey,
         inputModeKey: result.inputModeKey,
       });
+      this.startSessionClock();
       this.finishing = finishingStep(
         () => this.completeCurrentStep(),
         async () => {
@@ -221,6 +241,10 @@ export function balancedTrainingPlay() {
       );
       this.currentSessionId = result.sessionId;
       this.currentParticipantRef = result.participant.ref;
+      if (this.$store.trainingSession.active) {
+        playAudioCue(STEP_CHANGE_CUE_HZ, STEP_CHANGE_CUE_SECONDS);
+      }
+      this.$store.trainingSession.setStep(result.exerciseTypeKey);
 
       if (result.exerciseTypeKey === "WARM_UP") {
         this.buildWarmUpEngine(result.configuration);
@@ -238,6 +262,27 @@ export function balancedTrainingPlay() {
       if (result.exerciseTypeKey === "GAME") {
         this.startFinishingStep(result);
       }
+    },
+
+    /**
+     * The routine's own clock: one count-up spanning every step, started by
+     * whichever step runs first and stopped only when the last one ends.
+     * Idempotent — each step calls it, the first call wins.
+     */
+    startSessionClock(this: BalancedTrainingPlayContext) {
+      if (this.sessionClock) return;
+      this.$store.trainingSession.startSession();
+      this.sessionClock = new SessionClock({
+        onTick: (elapsed) => {
+          this.$store.trainingSession.tick(elapsed);
+        },
+      });
+      this.sessionClock.start();
+    },
+
+    stopSessionClock(this: BalancedTrainingPlayContext) {
+      this.sessionClock?.stop();
+      this.sessionClock = null;
     },
 
     confirmWarmUpReady(this: BalancedTrainingPlayContext) {
@@ -275,6 +320,7 @@ export function balancedTrainingPlay() {
       });
       this.warmUpTimer.unlockAudio();
       this.warmUpTimer.start();
+      this.startSessionClock();
     },
 
     formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string {
@@ -308,6 +354,7 @@ export function balancedTrainingPlay() {
         },
       });
       this.stepTimer.start();
+      this.startSessionClock();
     },
 
     formattedStepRemaining(this: BalancedTrainingPlayContext): string {
@@ -415,6 +462,8 @@ export function balancedTrainingPlay() {
           this.stepTimer.stop();
           this.stepTimer = null;
         }
+        this.stopSessionClock();
+        this.$store.trainingSession.reset();
         return (this.finishing as unknown as TuodPlayContext).abandonAndExit();
       }
       if (this.$store.game.loading) return;
@@ -429,6 +478,8 @@ export function balancedTrainingPlay() {
           this.warmUpTimer.stop();
           this.warmUpTimer = null;
         }
+        this.stopSessionClock();
+        this.$store.trainingSession.reset();
         if (this.currentSessionId) {
           await this.uploadCurrentStepFacts();
           await completeSession(this.currentSessionId, "ABANDONED");

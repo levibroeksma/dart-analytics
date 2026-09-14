@@ -1,3 +1,4 @@
+import { playAudioCue, unlockAudioCues } from "./audio-cue.module";
 import type { SegmentTimerOptions } from "./interfaces";
 
 function cumulativeSums(durationsSeconds: number[]): number[] {
@@ -15,7 +16,6 @@ export class SegmentTimer {
   private remaining: number;
   private direction: "countdown" | "countup";
   private timerId: ReturnType<typeof setInterval> | null = null;
-  private audioCtx: AudioContext | null = null;
   private segmentIndex = 0;
 
   private onTick?: (secondsRemaining: number) => void;
@@ -46,51 +46,18 @@ export class SegmentTimer {
     this.onComplete = options.onComplete;
   }
 
-  private getAudioContext(): AudioContext {
-    if (!this.audioCtx) {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
-      this.audioCtx = new AudioContextClass();
-    }
-    return this.audioCtx;
-  }
-
   /**
-   * Creates (or reuses) the `AudioContext` and resumes it if suspended. Must
-   * be called synchronously from within a real user-gesture event handler
-   * (e.g. a click) — browser autoplay policy only lifts a suspended context
-   * inside that call stack, never from a later `setInterval` tick. Callers
-   * that drive `playBeep()` from a timer with no further user interaction
-   * (the Warm-Up ping) call this once, up front, from the gesture that
-   * starts the timer.
+   * Unlocks the page's shared audio context (`audio-cue.module.ts`). Must be
+   * called synchronously from within a real user-gesture event handler — the
+   * timer's own beeps run from `setInterval`, which alone can never satisfy
+   * browser autoplay policy. One unlock covers every timer on the page.
    */
   unlockAudio(): void {
-    this.resumeIfSuspended(this.getAudioContext());
-  }
-
-  private resumeIfSuspended(ctx: AudioContext): void {
-    if (ctx.state === "suspended") {
-      void ctx.resume();
-    }
+    unlockAudioCues();
   }
 
   playBeep(frequency: number = 880, duration: number = 0.3): void {
-    const ctx = this.getAudioContext();
-    this.resumeIfSuspended(ctx);
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + duration);
+    playAudioCue(frequency, duration);
   }
 
   start(): void {

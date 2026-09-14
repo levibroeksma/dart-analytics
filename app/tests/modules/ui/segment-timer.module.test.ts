@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { resetAudioCues } from "@modules/ui/audio-cue.module";
 
 let resumeMock: ReturnType<typeof vi.fn>;
 
 describe("SegmentTimer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    resetAudioCues();
     resumeMock = vi.fn();
     vi.stubGlobal(
       "AudioContext",
@@ -37,6 +39,7 @@ describe("SegmentTimer", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    resetAudioCues();
   });
 
   it("counts down and calls onComplete at zero without firing onSegmentChange (interval === total)", () => {
@@ -185,7 +188,7 @@ describe("SegmentTimer", () => {
     expect(resumeMock).toHaveBeenCalled();
   });
 
-  it("unlockAudio() creates the AudioContext and resumes it if suspended, with no tick required", () => {
+  it("unlockAudio() unlocks the shared audio context, with no tick required", () => {
     const timer = new SegmentTimer({ totalMinutes: 1, intervalMinutes: 1 });
     timer.unlockAudio();
     expect(resumeMock).toHaveBeenCalled();
