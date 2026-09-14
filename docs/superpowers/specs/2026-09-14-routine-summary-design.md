@@ -92,8 +92,10 @@ Derivations:
 - **Finishing** — reuses TUOD's existing `computeStats` output (`target`,
   `doubleAccuracy`) off `resultsSnapshot`; nothing is recomputed.
 
-Formatting: a local `formatPercent(hits, darts)` returns a whole-percent string, or
-`"—"` when `darts === 0`. Every value in a `RoutineStatRow` is already a display
+Formatting: a local `hitRateRow(hits, darts)` returns `"—"` when `darts === 0` and
+otherwise delegates to `accuracyDisplay` (`app/src/lib/game/play-visit-stats.ts`), the
+two-decimal percent helper TUOD's own `doubleAccuracy` already uses, so both accuracy
+figures on the summary read the same way. Every value in a `RoutineStatRow` is already a display
 string, so the modal formats nothing.
 
 ## 5. Completion flow
