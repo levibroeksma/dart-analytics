@@ -199,7 +199,8 @@ describe("balancedTrainingPlay", () => {
     vi.advanceTimersByTime(600_000);
     await vi.runAllTimersAsync();
 
-    expect(globalThis.location.href).toBe("/training");
+    expect(globalThis.location.href).toBe("");
+    expect(store.routineFinished).toBe(true);
     expect(store.warmUpTimer).toBeNull();
   });
 
@@ -398,7 +399,7 @@ describe("balancedTrainingPlay", () => {
     store.stopSessionClock();
   });
 
-  it("stops the routine clock and clears the header once the last step completes", async () => {
+  it("stops the routine clock and marks the header complete once the last step completes", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineName: "Balanced Training",
@@ -427,7 +428,7 @@ describe("balancedTrainingPlay", () => {
     await vi.advanceTimersByTimeAsync(600_000);
 
     expect(store.sessionClock).toBeNull();
-    expect(store.$store.trainingSession.headerLabel).toBe("");
+    expect(store.$store.trainingSession.headerLabel).toBe("09:59 - complete");
   });
 
   it("surfaces an error instead of freezing on the Warm-Up screen when advancing to the next step fails", async () => {
@@ -1128,5 +1129,163 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
     const onAbandoned = vi.mocked(playAbandonAndExit).mock.calls[0]![1]!;
     await onAbandoned();
     expect(trainingApi.abandonTraining).toHaveBeenCalledWith("act-1");
+  });
+});
+
+describe("balancedTrainingPlay — routine summary", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  async function runSwitchingRoutine(): Promise<BalancedTrainingPlayContext> {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue({
+      accepted: 1,
+    } as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    store.recordSwitchingDart({
+      hitTargetNumber: 5,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 0,
+    });
+    await store.completeCurrentStep();
+    return store;
+  }
+
+  it("captures one summary card for the exercise that just finished", async () => {
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+
+    const store = await runSwitchingRoutine();
+
+    expect(store.stepSummaries).toEqual([
+      {
+        stepKey: "SWITCHING",
+        label: "Switching",
+        rows: [
+          { label: "Points", value: "1" },
+          { label: "Darts", value: "2" },
+          { label: "Hit rate", value: "50.00%" },
+        ],
+      },
+    ]);
+  });
+
+  it("captures nothing for the Warm-Up", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(store.stepSummaries).toEqual([]);
+    expect(store.routineFinished).toBe(true);
+  });
+
+  it("marks the routine saved once completeTraining resolves", async () => {
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+
+    const store = await runSwitchingRoutine();
+
+    expect(trainingApi.completeTraining).toHaveBeenCalledWith("act-1");
+    expect(store.completionStatus).toBe("succeeded");
+    expect(store.completionError).toBe("");
+  });
+
+  it("shows the summary with a retryable error when completeTraining fails, and clears it on a successful retry", async () => {
+    vi.mocked(trainingApi.completeTraining).mockRejectedValueOnce(
+      new Error("offline"),
+    );
+
+    const store = await runSwitchingRoutine();
+
+    expect(store.routineFinished).toBe(true);
+    expect(store.completionStatus).toBe("failed");
+    expect(store.completionError).not.toBe("");
+    expect(globalThis.location.href).toBe("");
+
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+    await store.completeRoutine();
+
+    expect(store.completionStatus).toBe("succeeded");
+    expect(store.completionError).toBe("");
+  });
+
+  it("dismissSummary() clears the header store and leaves for the training page", async () => {
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-14T12:00:00.000Z",
+    });
+    const store = await runSwitchingRoutine();
+
+    store.dismissSummary();
+
+    expect(store.$store.trainingSession.headerLabel).toBe("");
+    expect(globalThis.location.href).toBe("/training");
   });
 });
