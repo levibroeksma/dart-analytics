@@ -14,6 +14,7 @@ import { getDartExerciseEngineFactory } from "@modules/exercise/dart-engine.regi
 import { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
@@ -26,7 +27,7 @@ import type {
   TuodPlayContext,
 } from "@lib/types";
 import type { DartObservation } from "@modules/types";
-import type { BoardMarker } from "@lib/types";
+import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { StartTrainingStepResponseData } from "@client/api/types";
 import type {
   BalancedTrainingPlayContext,
@@ -74,7 +75,8 @@ export function balancedTrainingPlay() {
     warmUpEngine: null,
     switchingEngine: null,
     doublePatternEngine: null,
-    stepDeadline: null,
+    stepTimer: null,
+    stepRemainingSeconds: 0,
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
     warmUpReady: false,
@@ -97,6 +99,23 @@ export function balancedTrainingPlay() {
 
     visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[] {
       return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
+    },
+
+    /**
+     * Hit/miss marks for the current visit's darts. Each dart carries the
+     * target it was thrown at (`intendedTargetNumber`), so no config lookup
+     * is needed; Double Pattern additionally requires the double, since
+     * nothing else scores under `DOUBLE_PATTERN_V1`.
+     */
+    previewSegments(this: BalancedTrainingPlayContext): PreviewSegment[] {
+      const turns = this.activeDartEngine()?.facts().turns ?? [];
+      const requireDouble = this.doublePatternEngine !== null;
+      return playPreviewSegments(turns, null, (dart) =>
+        dart.hitTargetNumber === dart.intendedTargetNumber &&
+        (!requireDouble || dart.hitZoneKey === "DOUBLE")
+          ? "hit"
+          : "miss",
+      );
     },
 
     async init(this: BalancedTrainingPlayContext) {
@@ -210,11 +229,11 @@ export function balancedTrainingPlay() {
       }
       if (result.exerciseTypeKey === "SWITCHING") {
         this.buildSwitchingEngine(result.configuration);
-        this.armStepDeadline(step.durationSeconds);
+        this.startStepTimer(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
         this.buildDoublePatternEngine(result.configuration);
-        this.armStepDeadline(step.durationSeconds);
+        this.startStepTimer(step.durationSeconds);
       }
       if (result.exerciseTypeKey === "GAME") {
         this.startFinishingStep(result);
@@ -268,15 +287,34 @@ export function balancedTrainingPlay() {
       return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
     },
 
-    armStepDeadline(
-      this: BalancedTrainingPlayContext,
-      durationSeconds: number,
-    ) {
-      this.stepDeadline = setTimeout(() => {
-        this.switchingEngine?.expireTimer();
-        this.doublePatternEngine?.expireTimer();
-        void this.completeCurrentStep();
-      }, durationSeconds * 1000);
+    /**
+     * The step's own clock. `SegmentTimer` drives both the on-screen
+     * countdown and expiry, so there is no second scheduler to drift
+     * against it. The engines stay clockless (D264): expiry reaches them
+     * as `expireTimer()`.
+     */
+    startStepTimer(this: BalancedTrainingPlayContext, durationSeconds: number) {
+      this.stepRemainingSeconds = durationSeconds;
+      this.stepTimer = new SegmentTimer({
+        segmentDurationsSeconds: [durationSeconds],
+        direction: "countdown",
+        onTick: (remaining) => {
+          this.stepRemainingSeconds = remaining;
+        },
+        onComplete: () => {
+          this.switchingEngine?.expireTimer();
+          this.doublePatternEngine?.expireTimer();
+          void this.completeCurrentStep();
+        },
+      });
+      this.stepTimer.start();
+    },
+
+    formattedStepRemaining(this: BalancedTrainingPlayContext): string {
+      const remaining = Math.max(0, this.stepRemainingSeconds);
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     },
 
     recordSwitchingDart(
@@ -293,6 +331,28 @@ export function balancedTrainingPlay() {
     ) {
       if (!this.doublePatternEngine) return;
       this.doublePatternEngine.record(observation);
+    },
+
+    switchingPoints(this: BalancedTrainingPlayContext): number {
+      return this.switchingEngine?.state().totalPoints ?? 0;
+    },
+
+    switchingTargetLabel(this: BalancedTrainingPlayContext): string {
+      const target = this.switchingEngine?.state().currentTargetNumber;
+      return target === undefined ? "" : String(target);
+    },
+
+    doublePatternPoints(this: BalancedTrainingPlayContext): number {
+      return this.doublePatternEngine?.state().totalPoints ?? 0;
+    },
+
+    doublePatternLabel(this: BalancedTrainingPlayContext): string {
+      const double = this.doublePatternEngine?.state().currentDoubleNumber;
+      return double === undefined ? "" : `D${double}`;
+    },
+
+    dartsThrown(this: BalancedTrainingPlayContext): number {
+      return this.activeDartEngine()?.state().dartsThrown ?? 0;
     },
 
     undoVisit(this: BalancedTrainingPlayContext) {
@@ -317,9 +377,9 @@ export function balancedTrainingPlay() {
       if (!this.currentSessionId || !this.training || !this.activityId) {
         return;
       }
-      if (this.stepDeadline) {
-        clearTimeout(this.stepDeadline);
-        this.stepDeadline = null;
+      if (this.stepTimer) {
+        this.stepTimer.stop();
+        this.stepTimer = null;
       }
       if (this.warmUpTimer) {
         this.warmUpTimer.stop();
@@ -348,9 +408,9 @@ export function balancedTrainingPlay() {
      */
     async abandonAndExit(this: BalancedTrainingPlayContext) {
       if (this.finishing) {
-        if (this.stepDeadline) {
-          clearTimeout(this.stepDeadline);
-          this.stepDeadline = null;
+        if (this.stepTimer) {
+          this.stepTimer.stop();
+          this.stepTimer = null;
         }
         return (this.finishing as unknown as TuodPlayContext).abandonAndExit();
       }
@@ -358,9 +418,9 @@ export function balancedTrainingPlay() {
       this.$store.game.loading = true;
       this.error = "";
       try {
-        if (this.stepDeadline) {
-          clearTimeout(this.stepDeadline);
-          this.stepDeadline = null;
+        if (this.stepTimer) {
+          this.stepTimer.stop();
+          this.stepTimer = null;
         }
         if (this.warmUpTimer) {
           this.warmUpTimer.stop();

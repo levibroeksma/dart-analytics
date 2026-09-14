@@ -8,7 +8,7 @@ import type {
 import type { SwitchingEngine } from "@modules/exercise/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
-import type { BoardMarker } from "@lib/types";
+import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { finishingStep } from "./finishing-step.data";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
@@ -24,7 +24,8 @@ export type BalancedTrainingPlayContext = {
   warmUpEngine: ExerciseEngine<WarmUpState> | null;
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
-  stepDeadline: ReturnType<typeof setTimeout> | null;
+  stepTimer: SegmentTimer | null;
+  stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
   warmUpReady: boolean;
@@ -63,14 +64,21 @@ export type BalancedTrainingPlayContext = {
   ): void;
   formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string;
   warmUpHighlightPath(this: BalancedTrainingPlayContext): string;
-  armStepDeadline(
+  startStepTimer(
     this: BalancedTrainingPlayContext,
     durationSeconds: number,
   ): void;
+  formattedStepRemaining(this: BalancedTrainingPlayContext): string;
+  switchingPoints(this: BalancedTrainingPlayContext): number;
+  switchingTargetLabel(this: BalancedTrainingPlayContext): string;
+  doublePatternPoints(this: BalancedTrainingPlayContext): number;
+  doublePatternLabel(this: BalancedTrainingPlayContext): string;
+  dartsThrown(this: BalancedTrainingPlayContext): number;
   activeDartEngine(
     this: BalancedTrainingPlayContext,
   ): SwitchingEngine | DoublePatternEngine | null;
   visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[];
+  previewSegments(this: BalancedTrainingPlayContext): PreviewSegment[];
   recordSwitchingDart(
     this: BalancedTrainingPlayContext,
     observation: DartObservation,
