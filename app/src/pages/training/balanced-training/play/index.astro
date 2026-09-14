@@ -6,6 +6,8 @@ import SwitchingPanel from "@components/layout/training/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/DoublePatternPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Button from "@components/forms/Button.astro";
+import RoutineSummaryModal from "@components/layout/training/RoutineSummaryModal.astro";
 ---
 
 <GameLayout
@@ -46,13 +48,30 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
           x-cloak
         />
         <div
-          x-show="finished"
+          x-show="finished && completionStatus === 'failed'"
+          x-cloak
+          class="p-4"
+        >
+          <ErrorAlert
+            textExpr="completionError"
+            alwaysVisible
+          />
+          <Button
+            class="mt-2"
+            @click="uploadAndCompleteSession()"
+            title="Retry"
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus !== 'failed'"
           x-cloak
           class="p-4 text-center"
         >
-          <p class="text-foreground">Finishing complete.</p>
+          <p class="text-foreground">Saving your finishing session…</p>
         </div>
       </div>
     </template>
+
+    <RoutineSummaryModal />
   </div>
 </GameLayout>
