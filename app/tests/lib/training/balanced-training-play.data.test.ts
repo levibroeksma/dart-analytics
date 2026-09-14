@@ -473,6 +473,36 @@ describe("balancedTrainingPlay — Switching", () => {
     expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
 
+  it("names the API error code when the step's upload fails", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await store.init();
+    vi.mocked(sessionApi.appendBatch).mockRejectedValueOnce(
+      Object.assign(new Error("Batch rejected"), { code: "INTERNAL_ERROR" }),
+    );
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -103,
+    });
+    await store.completeCurrentStep();
+    expect(store.error).toBe(
+      "Could not continue to the next step (INTERNAL_ERROR). Try again.",
+    );
+  });
+
   it("switchingPoints() and switchingTargetLabel() read the engine's derived state", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",

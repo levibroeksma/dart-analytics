@@ -5,6 +5,7 @@ import {
   supportsMode,
 } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
+import { exerciseRulesetWritesDarts } from "./exercise-rulesets/registry";
 import { composeSeatFacts, rejectSeatRequest } from "./session-seats.service";
 import {
   countTurnsForSession,
@@ -35,6 +36,7 @@ import type {
   UpdateSessionRequestInput,
 } from "@routes/types";
 import type { RulesetVersionKey } from "@lib/types";
+import type { SessionRow } from "@repositories/interfaces";
 import type {
   AppendBatchResult,
   CreateSessionResult,
@@ -635,6 +637,51 @@ function buildBatchInsertPayload(
   return { insertStages, insertTurns };
 }
 
+/**
+ * Runs the session's own ruleset rules over one batch. A game session is
+ * validated by its `RulesetValidator` (the registry's only kind); a training
+ * routine's dart-exercise step carries an exercise ruleset instead, which
+ * validates configuration only, so its batch is admitted on `appendBatch`'s
+ * structural checks alone (D277). Either way a capture pair is required — a
+ * Warm-Up session has none and records no dart, so a batch for one is a
+ * client bug.
+ */
+async function validateBatchAgainstRuleset(
+  db: ReturnType<typeof getDb>,
+  session: SessionRow,
+  batch: EventsBatchRequestInput,
+): Promise<ServiceResult<null>> {
+  if (!session.captureModeKey || !session.inputModeKey) {
+    return { ok: false, code: "INTERNAL_ERROR" };
+  }
+  const config = await findSessionConfiguration(db, session.id);
+  if (!config) return { ok: false, code: "INTERNAL_ERROR" };
+
+  if (!session.rulesetVersionKey) {
+    return exerciseRulesetWritesDarts(session.exerciseRulesetVersionKey)
+      ? { ok: true, data: null }
+      : { ok: false, code: "INTERNAL_ERROR" };
+  }
+
+  const validator = getRulesetValidator(session.rulesetVersionKey);
+  if (!validator) return { ok: false, code: "INTERNAL_ERROR" };
+
+  const validation = validator.validateBatch({
+    config,
+    batch,
+    existingTurnCounts: await countTurnsForSession(db, session.id),
+    captureModeKey: session.captureModeKey,
+    inputModeKey: session.inputModeKey,
+  });
+  return validation.valid
+    ? { ok: true, data: null }
+    : {
+        ok: false,
+        code: validation.code,
+        details: { issues: validation.issues },
+      };
+}
+
 export async function appendBatch(
   playerId: string,
   sessionId: string,
@@ -673,32 +720,8 @@ export async function appendBatch(
   if (!structure.ok) return structure;
   const stageIds = structure.data;
 
-  if (
-    !session.rulesetVersionKey ||
-    !session.captureModeKey ||
-    !session.inputModeKey
-  ) {
-    return { ok: false, code: "INTERNAL_ERROR" };
-  }
-  const config = await findSessionConfiguration(db, sessionId);
-  const validator = getRulesetValidator(session.rulesetVersionKey);
-  if (!validator || !config) return { ok: false, code: "INTERNAL_ERROR" };
-
-  const existingTurnCounts = await countTurnsForSession(db, sessionId);
-  const batchValidation = validator.validateBatch({
-    config,
-    batch,
-    existingTurnCounts,
-    captureModeKey: session.captureModeKey,
-    inputModeKey: session.inputModeKey,
-  });
-  if (!batchValidation.valid) {
-    return {
-      ok: false,
-      code: batchValidation.code,
-      details: { issues: batchValidation.issues },
-    };
-  }
+  const rulesetCheck = await validateBatchAgainstRuleset(db, session, batch);
+  if (!rulesetCheck.ok) return rulesetCheck;
 
   const idMaps = await resolveBatchIdMaps(db, batch);
   if (!idMaps.ok) return idMaps;

@@ -14,3 +14,24 @@ export function getExerciseRulesetValidator(
 ): ExerciseRulesetValidator | undefined {
   return REGISTRY[exerciseRulesetVersionKey];
 }
+
+/**
+ * The exercise rulesets whose engines write turns and darts, and so upload an
+ * events batch (`POST /api/sessions/:id/events/batch`). `WARM_UP_V1` is
+ * deliberately absent: it persists nothing but the session row itself
+ * (09-training-routines.md §16), so a batch arriving for a Warm-Up session is
+ * a client bug, not data to store.
+ */
+const DART_WRITING_RULESET_VERSION_KEYS = new Set([
+  "SWITCHING_V1",
+  "DOUBLE_PATTERN_V1",
+]);
+
+export function exerciseRulesetWritesDarts(
+  exerciseRulesetVersionKey: string | null,
+): boolean {
+  return (
+    exerciseRulesetVersionKey !== null &&
+    DART_WRITING_RULESET_VERSION_KEYS.has(exerciseRulesetVersionKey)
+  );
+}
