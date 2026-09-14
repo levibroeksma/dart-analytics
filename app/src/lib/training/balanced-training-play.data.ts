@@ -21,6 +21,11 @@ import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
+import {
+  summariseSwitching,
+  summariseDoublePattern,
+  summariseFinishing,
+} from "@modules/training/routine-summary.module";
 import type { ExerciseEngine, TrainingEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type {
@@ -47,13 +52,13 @@ let self: BalancedTrainingPlayContext;
 async function advanceAfterStepCompletion(
   ctx: BalancedTrainingPlayContext,
   sessionId: string,
-  activityId: string,
   training: TrainingEngine,
 ): Promise<void> {
   await ctx.uploadCurrentStepFacts();
   if (ctx.currentStep()?.exerciseTypeKey !== "GAME") {
     await completeSession(sessionId, "COMPLETED");
   }
+  ctx.captureStepSummary();
   ctx.currentSessionId = null;
   ctx.currentParticipantRef = null;
   ctx.warmUpEngine = null;
@@ -63,9 +68,9 @@ async function advanceAfterStepCompletion(
   const state = training.completeStep();
   if (state.status === "COMPLETE") {
     ctx.stopSessionClock();
-    ctx.$store.trainingSession.reset();
-    await apiCompleteTraining(activityId);
-    globalThis.location.href = "/training";
+    ctx.$store.trainingSession.markComplete();
+    ctx.routineFinished = true;
+    await ctx.completeRoutine();
     return;
   }
   await ctx.startCurrentStep();
@@ -91,6 +96,10 @@ export function balancedTrainingPlay() {
     warmUpConfiguration: null,
     finishing: null,
     sessionClock: null,
+    stepSummaries: [],
+    routineFinished: false,
+    completionStatus: "pending",
+    completionError: "",
     ...boardInputData(
       (observation) => {
         if (self.switchingEngine) self.recordSwitchingDart(observation);
@@ -420,6 +429,57 @@ export function balancedTrainingPlay() {
       await appendBatch(this.currentSessionId, idempotencyKey, batch);
     },
 
+    /**
+     * Snapshots the step that just finished while its engine is still in
+     * memory — `advanceAfterStepCompletion` clears every engine field a few
+     * lines later, and nothing re-reads them afterwards. Warm-Up throws no
+     * darts, so it contributes nothing.
+     */
+    captureStepSummary(this: BalancedTrainingPlayContext) {
+      if (this.switchingEngine) {
+        this.stepSummaries.push(
+          summariseSwitching(
+            this.switchingEngine.state(),
+            this.switchingEngine.facts(),
+          ),
+        );
+        return;
+      }
+      if (this.doublePatternEngine) {
+        this.stepSummaries.push(
+          summariseDoublePattern(this.doublePatternEngine.state()),
+        );
+        return;
+      }
+      const seat = (this.finishing as unknown as TuodPlayContext | null)
+        ?.resultsSnapshot?.seats[0];
+      if (seat) this.stepSummaries.push(summariseFinishing(seat));
+    },
+
+    /**
+     * Marks the routine complete server-side. Separate from the summary's
+     * own visibility so a failed call leaves the player looking at their
+     * results with a retry, rather than at a dead screen.
+     */
+    async completeRoutine(this: BalancedTrainingPlayContext) {
+      if (!this.activityId) return;
+      this.completionStatus = "saving";
+      this.completionError = "";
+      try {
+        await apiCompleteTraining(this.activityId);
+        this.completionStatus = "succeeded";
+      } catch {
+        this.completionError =
+          "Could not save your session. Check your connection and retry.";
+        this.completionStatus = "failed";
+      }
+    },
+
+    dismissSummary(this: BalancedTrainingPlayContext) {
+      this.$store.trainingSession.reset();
+      globalThis.location.href = "/training";
+    },
+
     async completeCurrentStep(this: BalancedTrainingPlayContext) {
       if (!this.currentSessionId || !this.training || !this.activityId) {
         return;
@@ -436,7 +496,6 @@ export function balancedTrainingPlay() {
         await advanceAfterStepCompletion(
           this,
           this.currentSessionId,
-          this.activityId,
           this.training,
         );
       } catch (err: unknown) {

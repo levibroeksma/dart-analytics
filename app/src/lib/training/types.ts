@@ -1,5 +1,5 @@
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
-import type { WarmUpState } from "@modules/types";
+import type { WarmUpState, RoutineStepSummary } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { SessionClock } from "@modules/ui/session-clock.module";
 import type {
@@ -36,6 +36,10 @@ export type BalancedTrainingPlayContext = {
   warmUpConfiguration: Record<string, unknown> | null;
   finishing: ReturnType<typeof finishingStep> | null;
   sessionClock: SessionClock | null;
+  stepSummaries: RoutineStepSummary[];
+  routineFinished: boolean;
+  completionStatus: "pending" | "saving" | "succeeded" | "failed";
+  completionError: string;
   $store: {
     game: {
       loading: boolean;
@@ -98,6 +102,9 @@ export type BalancedTrainingPlayContext = {
   undoVisit(this: BalancedTrainingPlayContext): void;
   uploadCurrentStepFacts(this: BalancedTrainingPlayContext): Promise<void>;
   completeCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  captureStepSummary(this: BalancedTrainingPlayContext): void;
+  completeRoutine(this: BalancedTrainingPlayContext): Promise<void>;
+  dismissSummary(this: BalancedTrainingPlayContext): void;
   abandonAndExit(this: BalancedTrainingPlayContext): Promise<void>;
 };
 
