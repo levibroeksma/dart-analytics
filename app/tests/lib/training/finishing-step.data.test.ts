@@ -1,42 +1,63 @@
-import { describe, it, expect, vi } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@lib/game/tuod-play.data", () => ({
-  tuodPlay: vi.fn(() => ({
-    finished: false,
-    timer: null,
-    async uploadAndCompleteSession() {
-      this.finished = true;
-    },
-  })),
+  tuodPlay: vi.fn(),
 }));
 vi.mock("@lib/game/play-lifecycle", () => ({
   playAbandonAndExit: vi.fn(),
 }));
 
 import { finishingStep } from "@lib/training/finishing-step.data";
+import { tuodPlay } from "@lib/game/tuod-play.data";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";
+import type { TuodPlayContext } from "@lib/types";
+
+function baseDouble(uploadOutcome: "succeeded" | "failed") {
+  return {
+    completionStatus: "pending" as string,
+    timer: { stop: vi.fn() },
+    async uploadAndCompleteSession(this: { completionStatus: string }) {
+      this.completionStatus = uploadOutcome;
+    },
+    async abandonAndExit() {},
+  };
+}
 
 describe("finishingStep", () => {
-  it("calls onStepComplete after tuodPlay()'s own upload finishes", async () => {
-    const onStepComplete = vi.fn();
-    const wrapped = finishingStep(onStepComplete, vi.fn());
-    await wrapped.uploadAndCompleteSession.call(wrapped as never);
-    expect(wrapped.finished).toBe(true);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("advances the routine once TUOD's own upload succeeded", async () => {
+    vi.mocked(tuodPlay).mockReturnValue(baseDouble("succeeded") as never);
+    const onStepComplete = vi.fn().mockResolvedValue(undefined);
+    const store = finishingStep(onStepComplete, vi.fn());
+
+    await (store as unknown as TuodPlayContext).uploadAndCompleteSession();
+
     expect(onStepComplete).toHaveBeenCalledOnce();
   });
 
-  it("abandonAndExit stops the timer and delegates to playAbandonAndExit, redirecting to /training", async () => {
+  it("leaves the routine on the Finishing step when the upload failed, so the darts can still be retried", async () => {
+    vi.mocked(tuodPlay).mockReturnValue(baseDouble("failed") as never);
+    const onStepComplete = vi.fn().mockResolvedValue(undefined);
+    const store = finishingStep(onStepComplete, vi.fn());
+
+    await (store as unknown as TuodPlayContext).uploadAndCompleteSession();
+
+    expect(onStepComplete).not.toHaveBeenCalled();
+  });
+
+  it("abandonAndExit() stops the timer and routes back to the training page", async () => {
+    vi.mocked(tuodPlay).mockReturnValue(baseDouble("succeeded") as never);
     const onAbandon = vi.fn();
-    const wrapped = finishingStep(vi.fn(), onAbandon);
-    wrapped.timer = { stop: vi.fn() } as never;
+    const store = finishingStep(vi.fn(), onAbandon);
 
-    await wrapped.abandonAndExit.call(wrapped as never);
+    await (store as unknown as TuodPlayContext).abandonAndExit();
 
-    expect(
-      (wrapped.timer as unknown as { stop: () => void }).stop,
-    ).toHaveBeenCalledOnce();
     expect(playAbandonAndExit).toHaveBeenCalledWith(
-      wrapped,
+      expect.anything(),
       onAbandon,
       "/training",
     );

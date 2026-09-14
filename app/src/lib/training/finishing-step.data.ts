@@ -13,6 +13,11 @@ import type { TuodPlayContext } from "@lib/types";
  * to `/games`) so leaving mid-Finishing lands back on `/training` and also
  * abandons the routine itself via onAbandon.
  *
+ * The advance is gated on `completionStatus`: `playUploadAndCompleteSession`
+ * reports an upload failure by setting `completionStatus = "failed"` and
+ * returning rather than throwing, so an unconditional call here would
+ * complete the routine with the Finishing step's darts never persisted.
+ *
  * Both overrides are never bound to `base` directly - `base` itself lacks
  * `$store` (Alpine injects it only once the object is mounted as
  * `x-data`), so each original/shared call goes through `this` instead,
@@ -26,6 +31,7 @@ export function finishingStep(
   const originalUpload = base.uploadAndCompleteSession;
   base.uploadAndCompleteSession = async function (this: TuodPlayContext) {
     await originalUpload.call(this);
+    if (this.completionStatus !== "succeeded") return;
     await onStepComplete();
   };
   base.abandonAndExit = async function (this: TuodPlayContext) {
