@@ -1240,6 +1240,14 @@ const TREBLE_20: DartObservation = {
   locationY: -102,
 };
 
+/** S1 — 1, leaves 39 remaining against a 40 target: neither a bust nor a finish. */
+const SINGLE_1: DartObservation = {
+  hitTargetNumber: 1,
+  hitZoneKey: "SINGLE",
+  locationX: 15,
+  locationY: -46,
+};
+
 describe("recordDart (board input)", () => {
   it("records a checkout dart and mirrors it into the store", async () => {
     const store = gameStub({
@@ -1335,6 +1343,33 @@ describe("recordDart (board input)", () => {
     expect(component.pendingDartObservation).toBeNull();
     expect(component.showFinishConfirm).toBe(false);
     expect(store.turns).toHaveLength(0);
+  });
+
+  it("does not finish the session on a non-resolving dart thrown right after the MINUTES timer expires mid-visit", async () => {
+    const store = gameStub({
+      configSnapshot: { ...minutes(15), startingTarget: 40 },
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    // Closes one visit (bust against target 40), so attempts >= 1.
+    await component.recordDart.call(component, TREBLE_20);
+    expect(store.turns).toHaveLength(1);
+    expect(component.finished).toBe(false);
+
+    (segmentTimerInstances[0].options.onComplete as () => void)();
+    expect(store.timerExpired).toBe(true);
+
+    // First dart of a fresh visit — does not resolve it (no bust, no checkout).
+    await component.recordDart.call(component, SINGLE_1);
+
+    expect(component.finished).toBe(false);
+    expect(store.turns).toHaveLength(2);
+    expect(store.turns[1].completedAt).toBeNull();
+    expect(store.turns[1].darts).toHaveLength(1);
   });
 
   it("computes a VISUAL_BOARD double accuracy from a missed checkout attempt", async () => {

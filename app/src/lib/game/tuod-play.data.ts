@@ -8,10 +8,10 @@ import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  armHiddenTimer,
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
-  playCommitDart,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -659,11 +659,33 @@ export function tuodPlay() {
       await this.commitDart(observation);
     },
 
+    /**
+     * Records one dart and mirrors it into the store — never inferring
+     * completion from a post-record `isComplete()` read, unlike the shared
+     * `playCommitDart` this used to delegate to. A solo MINUTES session's
+     * `isComplete()` can already read true — timer expired, at least one
+     * prior visit closed — before the dart just recorded has resolved the
+     * CURRENT visit (`TuodEngine.isMatchDecided()`'s own doc comment), and a
+     * generic post-record check cannot tell the difference. `recordDart`'s
+     * own pre-record `wouldComplete()` gate is the sole completion signal;
+     * `confirmFinish` ends the session explicitly for the dart it defers.
+     * Mirrors `score-training-play.data.ts`'s own `recordDart`.
+     */
     async commitDart(
       this: TuodPlayContext,
       observation: DartObservation,
     ): Promise<void> {
-      await playCommitDart(this, observation);
+      if (!this.engine || this.$store.game.timerPaused) return;
+      try {
+        this.engine.record(observation);
+      } catch (err: unknown) {
+        this.error = (err as Error).message;
+        return;
+      }
+      this.error = "";
+      const facts = this.engine.facts();
+      this.$store.game.recordFacts(facts);
+      armHiddenTimer(this, facts.turns);
       await this.maybeRunBotVisit();
     },
 
@@ -674,7 +696,11 @@ export function tuodPlay() {
         const observation = this.pendingDartObservation;
         this.pendingDartObservation = null;
         this.showFinishConfirm = false;
-        await this.commitDart(observation);
+        this.engine.record(observation);
+        this.$store.game.recordFacts(this.engine.facts());
+        this.finished = true;
+        this.completionStatus = "pending";
+        await this.uploadAndCompleteSession();
         return;
       }
 
