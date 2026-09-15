@@ -685,7 +685,7 @@ ExerciseSectionChanged
 
 The frontend can respond by playing the configured ping sound.
 
-**Implemented** (`WARM_UP_V1`, `app/src/modules/exercise/warm-up.engine.module.ts`): each phase's configuration carries a `weight`, not a fixed `durationSeconds` — the engine splits the routine step's own total duration proportionally to weight at construction time, so the same template serves both this routine (5 phases, 5 minutes) and Balanced Training's Warm-Up step (same 5 phases, 10 minutes) without a second template.
+**Implemented** (`WARM_UP_V1`, `app/src/modules/exercise/warm-up.engine.module.ts`): each phase's configuration carries a `weight`, not a fixed `durationSeconds` — the engine splits the routine step's own total duration proportionally to weight at construction time, so the same template serves both this routine (5 phases, 5 minutes) and Balanced Training's Warm-Up step (same 5 phases, 10 minutes) without a second template. Its step session still carries no capture pair (D277) and records no dart, but its `EXERCISE_SECTION` stages — one per phase entered — upload through the same `POST /api/sessions/:id/events/batch` route as any dart-carrying step: `appendBatch` admits a turn-less batch unconditionally, since a batch with no turn has no dart to validate and needs no capture pair (D281, 2026-09-15).
 
 The warm-up should not invent artificial performance metrics simply to conform to analytics exercises.
 

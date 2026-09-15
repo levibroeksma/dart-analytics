@@ -417,7 +417,7 @@ export function balancedTrainingPlay() {
     },
 
     async uploadCurrentStepFacts(this: BalancedTrainingPlayContext) {
-      const engine = this.activeDartEngine();
+      const engine = this.activeDartEngine() ?? this.warmUpEngine;
       if (!engine || !this.currentSessionId || !this.currentParticipantRef) {
         return;
       }
