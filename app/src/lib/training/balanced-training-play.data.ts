@@ -501,8 +501,9 @@ export function balancedTrainingPlay() {
         );
       } catch (err: unknown) {
         const code = (err as { code?: string }).code;
+        const requestId = (err as { requestId?: string }).requestId;
         this.error = code
-          ? `Could not continue to the next step (${code}). Try again.`
+          ? `Could not continue to the next step (${code}${requestId ? `, ${requestId}` : ""}). Try again.`
           : "Could not continue to the next step. Try again.";
       }
     },

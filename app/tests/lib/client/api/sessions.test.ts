@@ -50,6 +50,31 @@ describe("createSession", () => {
       }),
     ).rejects.toBeInstanceOf(SessionApiError);
   });
+
+  it("carries the envelope's requestId and error details onto the thrown error", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "req-42",
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Internal error",
+        retryable: false,
+        details: { reason: "reference data missing" },
+      },
+    });
+    await expect(
+      createSession({
+        gameTypeKey: "x",
+        rulesetVersionKey: "x",
+        captureModeKey: "x",
+        inputModeKey: "x",
+        config: { source: "inline", config: {} },
+      }),
+    ).rejects.toMatchObject({
+      requestId: "req-42",
+      details: { reason: "reference data missing" },
+    });
+  });
 });
 
 describe("appendBatch", () => {

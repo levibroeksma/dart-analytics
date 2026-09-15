@@ -78,6 +78,21 @@ describe("startTrainingStep", () => {
       SessionApiError,
     );
   });
+
+  it("carries the envelope's requestId onto the thrown error so a server-side INTERNAL_ERROR can be traced in logs", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "req-99",
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Internal error",
+        retryable: false,
+      },
+    });
+    await expect(startTrainingStep("act-1", 4)).rejects.toMatchObject({
+      requestId: "req-99",
+    });
+  });
 });
 
 describe("completeTraining", () => {
