@@ -279,6 +279,43 @@ describe("balancedTrainingPlay", () => {
     expect(store.error).toBe("");
   });
 
+  it("completing the Warm-Up step uploads its EXERCISE_SECTION stages", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-15T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.confirmWarmUpReady();
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalledWith(
+      "s1",
+      expect.any(String),
+      {
+        stages: [
+          expect.objectContaining({
+            stageTypeKey: "EXERCISE_SECTION",
+            turns: [],
+          }),
+        ],
+      },
+    );
+  });
+
   it("the routine clock starts with the Warm-Up and reports the running step in the header", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",

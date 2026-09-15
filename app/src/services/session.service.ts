@@ -642,15 +642,19 @@ function buildBatchInsertPayload(
  * validated by its `RulesetValidator` (the registry's only kind); a training
  * routine's dart-exercise step carries an exercise ruleset instead, which
  * validates configuration only, so its batch is admitted on `appendBatch`'s
- * structural checks alone (D277). Either way a capture pair is required — a
- * Warm-Up session has none and records no dart, so a batch for one is a
- * client bug.
+ * structural checks alone (D277). A capture pair is required only once a
+ * batch actually carries a turn — a dart-less batch (Warm-Up's
+ * `EXERCISE_SECTION` stages) needs no capture pair and no ruleset check,
+ * since there is no dart to validate (D281).
  */
 async function validateBatchAgainstRuleset(
   db: ReturnType<typeof getDb>,
   session: SessionRow,
   batch: EventsBatchRequestInput,
 ): Promise<ServiceResult<null>> {
+  const hasTurns = batch.stages.some((stage) => stage.turns.length > 0);
+  if (!hasTurns) return { ok: true, data: null };
+
   if (!session.captureModeKey || !session.inputModeKey) {
     return { ok: false, code: "INTERNAL_ERROR" };
   }

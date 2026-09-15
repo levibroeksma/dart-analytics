@@ -738,6 +738,41 @@ describe("appendBatch", () => {
     });
   });
 
+  it("inserts a Warm-Up session's dart-less EXERCISE_SECTION batch despite no capture pair", async () => {
+    vi.mocked(repo.findSessionRow).mockResolvedValue({
+      id: "session-1",
+      playerId: "player-1",
+      statusId: 1,
+      rulesetVersionKey: null,
+      exerciseRulesetVersionKey: "WARM_UP_V1",
+      captureModeKey: null,
+      inputModeKey: null,
+    });
+    vi.mocked(repo.findStageTypeIdMap).mockResolvedValue(
+      new Map([["EXERCISE_SECTION", 6]]),
+    );
+    vi.mocked(repo.insertBatchRecords).mockResolvedValue({
+      stages: 1,
+      turns: 0,
+      darts: 0,
+    });
+    const result = await appendBatch("player-1", "session-1", "idem-1", {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_SECTION",
+          parentClientKey: null,
+          sequence: 1,
+          turns: [],
+        },
+      ],
+    });
+    expect(result).toEqual({
+      ok: true,
+      data: { created: { stages: 1, turns: 0, darts: 0 } },
+    });
+  });
+
   it("returns INTERNAL_ERROR for an exercise session with no capture pair", async () => {
     vi.mocked(repo.findSessionRow).mockResolvedValue({
       id: "session-1",
