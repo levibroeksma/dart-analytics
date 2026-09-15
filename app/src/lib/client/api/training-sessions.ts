@@ -18,7 +18,12 @@ export async function startTraining(
     { method: "POST", body: JSON.stringify(payload) },
   );
   if (!result.ok)
-    throw new SessionApiError(result.error.code, result.error.message);
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
   return result.data;
 }
 
@@ -31,7 +36,12 @@ export async function startTrainingStep(
     { method: "POST", body: "{}" },
   );
   if (!result.ok)
-    throw new SessionApiError(result.error.code, result.error.message);
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
   return result.data;
 }
 
@@ -43,7 +53,12 @@ export async function completeTraining(
     { method: "PATCH" },
   );
   if (!result.ok)
-    throw new SessionApiError(result.error.code, result.error.message);
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
   return result.data;
 }
 
@@ -55,6 +70,11 @@ export async function abandonTraining(
     { method: "PATCH" },
   );
   if (!result.ok)
-    throw new SessionApiError(result.error.code, result.error.message);
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
   return result.data;
 }
