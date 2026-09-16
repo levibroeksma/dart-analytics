@@ -1107,6 +1107,7 @@ export type DoublesTrainingPlayContext = {
   resultsSnapshot: DoublesTrainingResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
+  botThrowing: boolean;
   $store: PlayStoreContext<DoublesTrainingSnapshot>;
   engine: DoublesTrainingEngine | null;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
@@ -1132,7 +1133,8 @@ export type DoublesTrainingPlayContext = {
     this: DoublesTrainingPlayContext,
     observation: DartObservation,
   ): Promise<void>;
-  undoVisit(this: DoublesTrainingPlayContext): void;
+  maybeRunBotVisit(this: DoublesTrainingPlayContext): Promise<void>;
+  undoVisit(this: DoublesTrainingPlayContext): Promise<void>;
   uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void>;
   resultsTitle(this: DoublesTrainingPlayContext): string;
   back(this: DoublesTrainingPlayContext): Promise<void>;
@@ -1269,6 +1271,7 @@ export type AroundTheClockPlayContext = {
   resultsSnapshot: AroundTheClockResultsSnapshot | null;
   hiddenTurnKey: string | null;
   hiddenTimer: ReturnType<typeof setTimeout> | null;
+  botThrowing: boolean;
   $store: PlayStoreContext<AroundTheClockSnapshot>;
   engine: AroundTheClockEngine | null;
   visitMarkers(this: AroundTheClockPlayContext): BoardMarker[];
@@ -1303,7 +1306,8 @@ export type AroundTheClockPlayContext = {
     this: AroundTheClockPlayContext,
     observation: DartObservation,
   ): Promise<void>;
-  undoVisit(this: AroundTheClockPlayContext): void;
+  maybeRunBotVisit(this: AroundTheClockPlayContext): Promise<void>;
+  undoVisit(this: AroundTheClockPlayContext): Promise<void>;
   uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void>;
   resultsTitle(this: AroundTheClockPlayContext): string;
   back(this: AroundTheClockPlayContext): Promise<void>;

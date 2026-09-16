@@ -13,21 +13,30 @@ import {
   playCommitDart,
   playInit,
   playRetryReconciliation,
+  playRunBotVisualBoardVisit,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey } from "@lib/types";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   DartObservation,
   DoublesTrainingSeatState,
   DoublesTrainingState,
+  TurnFact,
 } from "@modules/types";
 import type {
   BoardMarker,
+  BotDartThrower,
+  BotPacing,
   DoublesPreviewSegment,
   DoublesTrainingPlayContext,
   DoublesTrainingResultsSnapshot,
@@ -83,6 +92,67 @@ function resumeEngine(
   return engine instanceof DoublesTrainingEngine ? engine : null;
 }
 
+const BOT_PRE_THROW_MS = 900;
+const BOT_POST_THROW_MS = 250;
+
+type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
+  return turns
+    .filter((turn) => turn.participantRef === botRef)
+    .reduce((sum, turn) => sum + turn.darts.length, 0);
+}
+
+/**
+ * The real per-dart thrower: the shipped skill curve, seeded RNG, dictated
+ * strategy and throw engine, combined the same way `bobs27-play.data.ts`
+ * already does. The target path reads `config.targetOrder` rather than the
+ * default ascending doubles path, since Doubles Training's order mode is
+ * itself configurable. `dartIndex` is re-derived from the fact log on every
+ * call — never held on this closure — so an undone bot visit re-throws
+ * identically from the same seed (`08-DartBot.md` §Determinism and Replay).
+ */
+function throwBotDart(
+  context: DoublesTrainingPlayContext,
+  botSeat: DartbotSeat,
+): { observation: DartObservation; pacing: BotPacing } {
+  const config = context.$store.game.configSnapshot;
+  const state = context.state();
+  const seatState = state?.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  );
+  if (!config || !state || !seatState) {
+    throw new Error("DartBot has no seat in this session's engine state");
+  }
+  const profile = skillProfileForLevel(botSeat.dartbot.level);
+  const dartIndex = botDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+  );
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const target = targetAt(
+    doublesPath(config.targetOrder),
+    seatState.targetIndex,
+  );
+  const intent = chooseTarget({ target });
+  const thrown = botThrowDart(intent, profile, rng);
+  return {
+    observation: {
+      hitTargetNumber: thrown.hit.targetNumber,
+      hitZoneKey: thrown.hit.zoneKey,
+      locationX: thrown.landing.x,
+      locationY: thrown.landing.y,
+    },
+    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+  };
+}
+
+function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
+  return seats.find(
+    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
+  );
+}
+
 export function doublesTrainingPlay() {
   let self: DoublesTrainingPlayContext;
 
@@ -101,6 +171,7 @@ export function doublesTrainingPlay() {
     resultsSnapshot: null as DoublesTrainingResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    botThrowing: false,
     engine: null as DoublesTrainingEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),
@@ -173,9 +244,10 @@ export function doublesTrainingPlay() {
       );
     },
 
-    init(this: DoublesTrainingPlayContext) {
+    async init(this: DoublesTrainingPlayContext) {
       self = this;
-      return playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await this.maybeRunBotVisit();
     },
 
     retryReconciliation(this: DoublesTrainingPlayContext) {
@@ -199,8 +271,19 @@ export function doublesTrainingPlay() {
       await this.commitDart(doublesPathObservation(target, hit));
     },
 
-    commitDart(this: DoublesTrainingPlayContext, observation: DartObservation) {
-      return playCommitDart(this, observation);
+    async commitDart(
+      this: DoublesTrainingPlayContext,
+      observation: DartObservation,
+    ) {
+      await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
+    },
+
+    async maybeRunBotVisit(this: DoublesTrainingPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat) return;
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
     },
 
     async recordDart(
@@ -218,8 +301,17 @@ export function doublesTrainingPlay() {
       return playVisitMarkers(this);
     },
 
-    undoVisit(this: DoublesTrainingPlayContext) {
-      playUndoVisit(this);
+    async undoVisit(this: DoublesTrainingPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        playUndoVisit(this);
+      }
+      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
