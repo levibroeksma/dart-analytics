@@ -14,6 +14,7 @@ import {
 } from "@repositories/session.repository";
 import {
   findActivityConfiguration,
+  findActivityStatus,
   findRoutineTemplateSteps,
   insertTrainingActivity,
   updateActivityStatusRecord,
@@ -262,8 +263,16 @@ export async function startTrainingStep(
   sequenceNumber: number,
 ): Promise<ServiceResult<StartTrainingStepResult>> {
   const db = getDb();
-  const snapshot = await findActivityConfiguration(db, activityId);
-  const step = (snapshot?.steps as TrainingStepResolved[] | undefined)?.find(
+  const snapshot = await findActivityConfiguration(db, activityId, playerId);
+  if (!snapshot) {
+    return {
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId },
+    };
+  }
+
+  const step = (snapshot.steps as TrainingStepResolved[] | undefined)?.find(
     (candidate) => candidate.sequenceNumber === sequenceNumber,
   );
   if (!step) {
@@ -311,6 +320,11 @@ export async function startTrainingStep(
     : startNonGameStep(ctx);
 }
 
+/**
+ * Terminal transition for a training activity. The UPDATE itself carries the
+ * "still ACTIVE" predicate, so a completed routine can never be re-transitioned
+ * and lose its original `completed_at` (root `CLAUDE.md` § Hard Invariants).
+ */
 async function transitionTrainingActivity(
   playerId: string,
   activityId: string,
@@ -318,7 +332,8 @@ async function transitionTrainingActivity(
 ): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
   const db = getDb();
   const statusId = await findGameStatusId(db, statusKey);
-  if (!statusId) {
+  const activeStatusId = await findGameStatusId(db, "ACTIVE");
+  if (!statusId || !activeStatusId) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -329,11 +344,19 @@ async function transitionTrainingActivity(
     activityId,
     playerId,
     statusId,
+    expectedStatusId: activeStatusId,
   });
-  if (!updated) {
+  if (updated) return { ok: true, data: updated };
+
+  const current = await findActivityStatus(db, activityId, playerId);
+  if (!current) {
     return { ok: false, code: "NOT_FOUND", details: { activityId } };
   }
-  return { ok: true, data: updated };
+  return {
+    ok: false,
+    code: "SESSION_ALREADY_COMPLETED",
+    details: { activityId },
+  };
 }
 
 export async function completeTraining(

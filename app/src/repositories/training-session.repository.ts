@@ -68,22 +68,61 @@ export async function findRoutineTemplateSteps(
   return { routineTemplateId: template.id, steps };
 }
 
+/**
+ * The activity's configuration snapshot, visible only to the player who owns
+ * the activity — an unowned or unknown `activityId` reads as `undefined`
+ * (`06-API/02-Middleware-And-Layering.md` Rules #5).
+ */
 export async function findActivityConfiguration(
   db: Db,
   activityId: string,
+  playerId: string,
 ): Promise<{ routineName: string; steps: unknown[] } | undefined> {
   const [row] = await db
     .select({ configuration: activityConfigurations.configuration })
     .from(activityConfigurations)
-    .where(eq(activityConfigurations.activityId, activityId))
+    .innerJoin(activities, eq(activities.id, activityConfigurations.activityId))
+    .where(
+      and(
+        eq(activityConfigurations.activityId, activityId),
+        eq(activities.playerId, playerId),
+      ),
+    )
     .limit(1);
   return row?.configuration as
     { routineName: string; steps: unknown[] } | undefined;
 }
 
+/** The activity's current status, scoped to the player who owns it. */
+export async function findActivityStatus(
+  db: Db,
+  activityId: string,
+  playerId: string,
+): Promise<{ statusId: number } | undefined> {
+  const [row] = await db
+    .select({ statusId: activities.statusId })
+    .from(activities)
+    .where(
+      and(eq(activities.id, activityId), eq(activities.playerId, playerId)),
+    )
+    .limit(1);
+  return row;
+}
+
+/**
+ * Moves an activity to a terminal status. `expectedStatusId` is part of the
+ * UPDATE predicate, so a row that already left that status matches nothing and
+ * keeps its original `completed_at`; no row returned means "not owned, unknown,
+ * or no longer in the expected status".
+ */
 export async function updateActivityStatusRecord(
   db: Db,
-  input: { activityId: string; playerId: string; statusId: number },
+  input: {
+    activityId: string;
+    playerId: string;
+    statusId: number;
+    expectedStatusId: number;
+  },
 ): Promise<{ activityId: string; completedAt: string } | undefined> {
   const now = new Date().toISOString();
   const [row] = await db
@@ -93,6 +132,7 @@ export async function updateActivityStatusRecord(
       and(
         eq(activities.id, input.activityId),
         eq(activities.playerId, input.playerId),
+        eq(activities.statusId, input.expectedStatusId),
       ),
     )
     .returning({
