@@ -70,6 +70,22 @@ describe("POST /api/training-sessions/[activityId]/steps/[sequenceNumber]", () =
     expect(response.status).toBe(201);
     expect(service.startTrainingStep).toHaveBeenCalledWith("p1", "act-1", 1);
   });
+
+  it("returns 403 when the activity belongs to another player", async () => {
+    vi.mocked(service.startTrainingStep).mockResolvedValue({
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId: "act-1" },
+    });
+    const { POST } =
+      await import("@pages/api/training-sessions/[activityId]/steps/[sequenceNumber]");
+    const response = await POST({
+      locals: { auth: { playerId: "intruder" }, requestId: "req-1" },
+      params: { activityId: "act-1", sequenceNumber: "1" },
+      request: request({}),
+    } as any);
+    expect(response.status).toBe(403);
+  });
 });
 
 describe("PATCH /api/training-sessions/[activityId]/complete", () => {
@@ -118,5 +134,20 @@ describe("PATCH /api/training-sessions/[activityId]/abandon", () => {
       params: { activityId: "act-1" },
     } as any);
     expect(response.status).toBe(404);
+  });
+
+  it("returns a 409 envelope when the activity already reached a terminal status", async () => {
+    vi.mocked(service.abandonTraining).mockResolvedValue({
+      ok: false,
+      code: "SESSION_ALREADY_COMPLETED",
+      details: { activityId: "act-1" },
+    });
+    const { PATCH } =
+      await import("@pages/api/training-sessions/[activityId]/abandon");
+    const response = await PATCH({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      params: { activityId: "act-1" },
+    } as any);
+    expect(response.status).toBe(409);
   });
 });

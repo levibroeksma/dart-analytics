@@ -9,6 +9,7 @@ vi.mock("@repositories/training-session.repository", () => ({
   findRoutineTemplateSteps: vi.fn(),
   insertTrainingActivity: vi.fn(),
   findActivityConfiguration: vi.fn(),
+  findActivityStatus: vi.fn(),
   updateActivityStatusRecord: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
@@ -159,6 +160,31 @@ describe("startTrainingStep", () => {
     });
   });
 
+  it("reads the configuration snapshot scoped to the calling player", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    await startTrainingStep("p1", "act-1", 99);
+    expect(trainingRepo.findActivityConfiguration).toHaveBeenCalledWith(
+      expect.anything(),
+      "act-1",
+      "p1",
+    );
+  });
+
+  it("returns SESSION_OWNERSHIP_MISMATCH when the activity is not the caller's", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      undefined,
+    );
+    const result = await startTrainingStep("intruder", "act-1", 1);
+    expect(result).toEqual({
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId: "act-1" },
+    });
+    expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();
+  });
+
   it("inserts a non-game exercise session for WARM_UP", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
       SNAPSHOT as any,
@@ -291,11 +317,26 @@ describe("startTrainingStep", () => {
   });
 });
 
+const ACTIVE_STATUS_ID = 1;
+const COMPLETED_STATUS_ID = 2;
+const ABANDONED_STATUS_ID = 3;
+
+function mockStatusIds() {
+  vi.mocked(sessionRepo.findGameStatusId).mockImplementation(
+    async (_db: unknown, key: string) =>
+      ({
+        ACTIVE: ACTIVE_STATUS_ID,
+        COMPLETED: COMPLETED_STATUS_ID,
+        ABANDONED: ABANDONED_STATUS_ID,
+      })[key],
+  );
+}
+
 describe("completeTraining", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("marks the activity completed", async () => {
-    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(2);
+  it("marks the activity completed, guarding on the ACTIVE status", async () => {
+    mockStatusIds();
     vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
       activityId: "act-1",
       completedAt: "2026-09-12T12:00:00.000Z",
@@ -307,15 +348,21 @@ describe("completeTraining", () => {
     });
     expect(trainingRepo.updateActivityStatusRecord).toHaveBeenCalledWith(
       expect.anything(),
-      { activityId: "act-1", playerId: "p1", statusId: 2 },
+      {
+        activityId: "act-1",
+        playerId: "p1",
+        statusId: COMPLETED_STATUS_ID,
+        expectedStatusId: ACTIVE_STATUS_ID,
+      },
     );
   });
 
   it("returns NOT_FOUND when the activity does not belong to the player", async () => {
-    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(2);
+    mockStatusIds();
     vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
       undefined,
     );
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue(undefined);
     const result = await completeTraining("p1", "act-1");
     expect(result).toEqual({
       ok: false,
@@ -329,7 +376,7 @@ describe("abandonTraining", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("marks the activity abandoned", async () => {
-    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(3);
+    mockStatusIds();
     vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
       activityId: "act-1",
       completedAt: "2026-09-13T12:00:00.000Z",
@@ -345,15 +392,37 @@ describe("abandonTraining", () => {
     );
     expect(trainingRepo.updateActivityStatusRecord).toHaveBeenCalledWith(
       expect.anything(),
-      { activityId: "act-1", playerId: "p1", statusId: 3 },
+      {
+        activityId: "act-1",
+        playerId: "p1",
+        statusId: ABANDONED_STATUS_ID,
+        expectedStatusId: ACTIVE_STATUS_ID,
+      },
     );
   });
 
-  it("returns NOT_FOUND when the activity does not belong to the player", async () => {
-    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(3);
+  it("returns SESSION_ALREADY_COMPLETED when the activity already reached a terminal status", async () => {
+    mockStatusIds();
     vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
       undefined,
     );
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue({
+      statusId: COMPLETED_STATUS_ID,
+    });
+    const result = await abandonTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "SESSION_ALREADY_COMPLETED",
+      details: { activityId: "act-1" },
+    });
+  });
+
+  it("returns NOT_FOUND when the activity does not belong to the player", async () => {
+    mockStatusIds();
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
+      undefined,
+    );
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue(undefined);
     const result = await abandonTraining("p1", "act-1");
     expect(result).toEqual({
       ok: false,
