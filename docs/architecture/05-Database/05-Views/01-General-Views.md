@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views/general
 read-when: adding or changing a career-wide (cross-game) statistic view
-updated: 2026-09-06
+updated: 2026-09-16
 -->
 
 # General Views
@@ -30,7 +30,8 @@ career-wide turn-level statistics.
 
 ## Sources
 
-- turns → participants, exercise_stages → exercise_sessions → game_types, stage_types
+- turns → participants, exercise_stages → exercise_sessions → stage_types
+- game_types (LEFT JOIN — a training exercise session binds none)
 - exercise_configurations (LEFT JOIN, for the configured `max_darts_per_turn`)
 - darts (LEFT JOIN, for the real dart count)
 
@@ -42,7 +43,9 @@ career-wide turn-level statistics.
 `configured_max_darts_per_turn` (the ruleset's configured value for the
 session, from the JSONB configuration snapshot). Scoped to the session's
 OWNING player (`p.player_id = es.player_id`, mirroring `v_dart_analytics`).
-Only completed turns are included.
+Only completed turns are included. `game_type_key` is NULL for a training
+exercise session — every game type **and** every non-game exercise, as the
+purpose above says, since migration `0033`.
 
 ## Design Rationale
 
@@ -66,7 +69,8 @@ Only X01 games (501/121/TUOD) ever create a `LEG` stage.
 
 ## Sources
 
-- turns → participants, exercise_stages → exercise_sessions → game_types, stage_types (filtered to `LEG`)
+- turns → participants, exercise_stages → exercise_sessions → stage_types (filtered to `LEG`)
+- game_types (LEFT JOIN — a training exercise session binds none)
 - darts (LEFT JOIN, for the real dart count per turn)
 
 ## Exposes
@@ -75,6 +79,9 @@ Only X01 games (501/121/TUOD) ever create a `LEG` stage.
 `total_darts_in_leg` (the owning player's real dart count summed across the
 leg's turns). Scoped to the session's OWNING player. A leg is included only
 when every one of that player's turns in it has at least one real dart row.
+`game_type_key` is nullable (migration `0033`); in practice only X01 games
+open a `LEG` stage, so the population is unchanged — the join no longer
+decides that, the `LEG` filter does.
 
 ## Design Rationale
 

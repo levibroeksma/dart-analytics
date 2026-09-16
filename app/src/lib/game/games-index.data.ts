@@ -18,6 +18,10 @@ const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
  * A failed fetch falls back to "no active session" rather than blocking the
  * page: the worst case is a card the player must switch modes to reach, which
  * beats an empty games page whenever the network is down.
+ *
+ * An active session with no ruleset version — a training exercise step, which
+ * `v_active_sessions` returns since migration `0033` — gates no card and is
+ * dropped here rather than widening `activeRulesetKeys` to hold NULL.
  */
 export function gamesIndex() {
   return {
@@ -25,9 +29,9 @@ export function gamesIndex() {
 
     async init(this: GamesIndexContext) {
       try {
-        this.activeRulesetKeys = (await fetchActiveSessions()).map(
-          (session) => session.rulesetVersionKey,
-        );
+        this.activeRulesetKeys = (await fetchActiveSessions())
+          .map((session) => session.rulesetVersionKey)
+          .filter((key) => key !== null);
       } catch {
         this.activeRulesetKeys = [];
       }

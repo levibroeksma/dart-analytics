@@ -168,13 +168,19 @@ export const UpdateSessionRequest = z.object({
 });
 export type UpdateSessionRequestInput = z.infer<typeof UpdateSessionRequest>;
 
+/**
+ * Every lookup key is nullable: `v_active_sessions` LEFT JOINs the session's
+ * game type, capture/input mode and ruleset version (migration `0033`), so a
+ * training exercise session appears here with those fields NULL rather than
+ * being dropped from the resume list entirely.
+ */
 export const SessionActive = z.object({
   sessionId: z.string(),
-  gameTypeKey: z.string(),
-  gameTypeName: z.string(),
-  captureModeKey: z.string(),
-  inputModeKey: z.string(),
-  rulesetVersionKey: z.string(),
+  gameTypeKey: z.string().nullable(),
+  gameTypeName: z.string().nullable(),
+  captureModeKey: z.string().nullable(),
+  inputModeKey: z.string().nullable(),
+  rulesetVersionKey: z.string().nullable(),
   startedAt: z.string().datetime(),
 });
 export type SessionActiveData = z.infer<typeof SessionActive>;

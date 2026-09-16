@@ -2,7 +2,7 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-08-22
+updated: 2026-09-16
 -->
 
 # API Endpoint Contracts
@@ -395,16 +395,16 @@ camelCase Zod sketches (source of truth; `type = z.infer<>`). Mapped from the no
 ```typescript
 const SessionActive = z.object({            // v_active_sessions — GET /sessions/active → SessionActive[]
   sessionId: z.string(),
-  gameTypeKey: z.string(), gameTypeName: z.string(),
-  captureModeKey: z.string(), inputModeKey: z.string(),
-  rulesetVersionKey: z.string(),
+  gameTypeKey: z.string().nullable(), gameTypeName: z.string().nullable(),
+  captureModeKey: z.string().nullable(), inputModeKey: z.string().nullable(),
+  rulesetVersionKey: z.string().nullable(), // all five NULL for a training exercise session (migration 0033)
   startedAt: z.string().datetime(),
 });
 
 const SessionOverview = z.object({          // v_session_overview — list, GET /sessions/:id, PATCH result
   sessionId: z.string(),
-  gameTypeKey: z.string(), gameTypeName: z.string(),
-  statusKey: z.string(), captureModeKey: z.string(),
+  gameTypeKey: z.string().nullable(), gameTypeName: z.string().nullable(),
+  statusKey: z.string(), captureModeKey: z.string().nullable(),
   startedAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
   durationSeconds: z.number().int(),
@@ -423,7 +423,7 @@ const ReplayEntry = z.object({              // v_game_replay — GET /sessions/:
 });
 
 const DartAnalytics = z.object({            // v_dart_analytics (session-filtered) — GET /sessions/:id/darts → DartAnalytics[]
-  gameTypeKey: z.string(),
+  gameTypeKey: z.string().nullable(),
   intendedTargetNumber: z.number().int(), intendedZoneKey: z.string(), // non-null: view WHERE guarantees
   hitTargetNumber: z.number().int().nullable(), hitZoneKey: z.string().nullable(),
   score: z.number().int(), exactHit: z.boolean(),
@@ -436,7 +436,7 @@ const RoutineSummary = z.object({           // v_routine_execution aggregated �
 const RoutineStep = z.object({              // v_routine_execution row
   sequenceNumber: z.number().int(),
   exerciseTemplateId: z.string(), exerciseName: z.string(),
-  gameTypeKey: z.string(),
+  gameTypeKey: z.string().nullable(),       // NULL for a non-game exercise step
   durationValue: z.number().int(), durationTypeKey: z.string(),
 });
 const RoutineExecution = z.object({         // GET /routines/:id and /:id/execution → RoutineExecution
@@ -448,6 +448,8 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
   created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
 });
 ```
+
+Every lookup key a read DTO projects is nullable exactly when its view column is. Since migration `0033` the read model LEFT JOINs the lookups a training exercise session leaves NULL, so `gameTypeKey`/`gameTypeName`/`captureModeKey`/`inputModeKey`/`rulesetVersionKey` arrive as `null` for such a session rather than the session vanishing from the response. <!-- 2026-09-16 -->
 
 All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview).
 

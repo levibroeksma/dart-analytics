@@ -561,6 +561,16 @@ export type ModePair = {
   inputModeKey: string;
 };
 
+/**
+ * The capture/input pair an existing session records. Both keys are NULL for a
+ * session that captures no darts, which `v_active_sessions` now returns rather
+ * than dropping (migration `0033`).
+ */
+export type SessionModePair = {
+  captureModeKey: string | null;
+  inputModeKey: string | null;
+};
+
 /** One game card on the games page, with the ruleset version that gates it. */
 export type GameCardDescriptor = {
   rulesetVersionKey: RulesetVersionKey;
