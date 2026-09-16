@@ -22,6 +22,7 @@ import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
+import { activeSessionConflict } from "./step-session-conflict";
 import {
   summariseSwitching,
   summariseDoublePattern,
@@ -97,6 +98,9 @@ export function balancedTrainingPlay() {
     warmUpConfiguration: null,
     finishing: null,
     sessionClock: null,
+    blockingSession: null,
+    blockingError: "",
+    resolvingBlockingSession: false,
     stepSummaries: [],
     routineFinished: false,
     completionStatus: "pending" as
@@ -243,13 +247,37 @@ export function balancedTrainingPlay() {
       );
     },
 
+    /**
+     * Starts the step the engine is on. An already-active game is the one
+     * failure the player can resolve without leaving the routine, so it is
+     * held in `blockingSession` for the modal rather than thrown — every
+     * other failure still reaches the caller's own handling.
+     */
     async startCurrentStep(this: BalancedTrainingPlayContext) {
       const step = this.currentStep();
       if (!this.activityId || !step) return;
-      const result = await startTrainingStep(
-        this.activityId,
-        step.sequenceNumber,
-      );
+      let result: StartTrainingStepResponseData;
+      try {
+        result = await startTrainingStep(this.activityId, step.sequenceNumber);
+      } catch (err: unknown) {
+        const conflict = activeSessionConflict(err);
+        if (!conflict) throw err;
+        this.blockingSession = conflict;
+        return;
+      }
+      this.blockingSession = null;
+      this.openStep(result, step.durationSeconds);
+    },
+
+    /**
+     * Binds a started step's server session to the screen: its engine, its
+     * clock and the header the routine store drives.
+     */
+    openStep(
+      this: BalancedTrainingPlayContext,
+      result: StartTrainingStepResponseData,
+      durationSeconds: number,
+    ) {
       this.currentSessionId = result.sessionId;
       this.currentParticipantRef = result.participant.ref;
       if (this.$store.trainingSession.active) {
@@ -264,14 +292,61 @@ export function balancedTrainingPlay() {
       }
       if (result.exerciseTypeKey === "SWITCHING") {
         this.buildSwitchingEngine(result.configuration);
-        this.startStepTimer(step.durationSeconds);
+        this.startStepTimer(durationSeconds);
       }
       if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
         this.buildDoublePatternEngine(result.configuration);
-        this.startStepTimer(step.durationSeconds);
+        this.startStepTimer(durationSeconds);
       }
       if (result.exerciseTypeKey === "GAME") {
         this.startFinishingStep(result);
+      }
+    },
+
+    /**
+     * When the blocking game started, for the modal's own copy. Empty when
+     * the server named no start time, so the sentence reads without it.
+     */
+    blockingStartedLabel(this: BalancedTrainingPlayContext): string {
+      const startedAt = this.blockingSession?.startedAt;
+      if (!startedAt) return "";
+      const started = new Date(startedAt);
+      return Number.isNaN(started.getTime())
+        ? ""
+        : started.toLocaleDateString(undefined, {
+            day: "numeric",
+            month: "short",
+          });
+    },
+
+    /**
+     * Abandons the game that blocks the current step and starts that step
+     * again, so a forgotten Ten Up One Down costs the player one tap instead
+     * of the whole routine (issue #357). Only the player may end that game —
+     * it can hold real darts — which is why nothing here runs automatically.
+     * A retry that hits the conflict again re-arms the modal on whatever
+     * session the server now names.
+     */
+    async resolveBlockingSession(this: BalancedTrainingPlayContext) {
+      const blocking = this.blockingSession;
+      if (!blocking || this.resolvingBlockingSession) return;
+      this.resolvingBlockingSession = true;
+      this.blockingError = "";
+      try {
+        await completeSession(blocking.sessionId, "ABANDONED");
+      } catch {
+        this.blockingError =
+          "Could not abandon that game. Check your connection and try again.";
+        this.resolvingBlockingSession = false;
+        return;
+      }
+      this.blockingSession = null;
+      try {
+        await this.startCurrentStep();
+      } catch (err: unknown) {
+        this.error = stepAdvanceErrorMessage(err);
+      } finally {
+        this.resolvingBlockingSession = false;
       }
     },
 

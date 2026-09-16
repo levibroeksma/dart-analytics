@@ -8,6 +8,7 @@ import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Button from "@components/forms/Button.astro";
 import RoutineSummaryModal from "@components/layout/training/RoutineSummaryModal.astro";
+import BlockedStepModal from "@components/layout/training/BlockedStepModal.astro";
 ---
 
 <GameLayout
@@ -70,6 +71,10 @@ import RoutineSummaryModal from "@components/layout/training/RoutineSummaryModal
           <p class="text-foreground">Saving your finishing session…</p>
         </div>
       </div>
+    </template>
+
+    <template x-if="blockingSession">
+      <BlockedStepModal />
     </template>
 
     <RoutineSummaryModal />
