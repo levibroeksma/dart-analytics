@@ -23,6 +23,7 @@ import type {
   DoublesTrainingPlayContext,
   DoublesTrainingSnapshot,
   Seated,
+  SeatFact,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
 
@@ -1004,5 +1005,54 @@ describe("reveal-then-clear under VISUAL_BOARD", () => {
     vi.advanceTimersByTime(1000);
 
     expect(play.hiddenTurnKey).toBeNull();
+  });
+});
+
+const BOT_SEATS: SeatFact[] = [
+  ...SEATS,
+  {
+    participantRef: "bot-1",
+    displayName: "DartBot",
+    sideKey: "B",
+    participantTypeKey: "DARTBOT",
+    dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" },
+  },
+];
+
+function botConfig(): Seated<DoublesTrainingSnapshot> {
+  return { ...defaultConfig(), seats: BOT_SEATS };
+}
+
+describe("doublesTrainingPlay — DartBot opponent", () => {
+  it("throws automatically once it becomes the bot's turn, without any UI action", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    // Three misses closes the human's visit and hands the turn to the bot,
+    // whose own visit should follow with no further calls from this test.
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+
+    const botTurns = play
+      .engine!.facts()
+      .turns.filter((turn) => turn.participantRef === "bot-1");
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.botThrowing).toBe(false);
+  });
+
+  it("undoVisit returns control to the human across the bot's own turn", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    // The bot has now thrown its own visit automatically.
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+
+    await play.undoVisit.call(play);
+
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
 });
