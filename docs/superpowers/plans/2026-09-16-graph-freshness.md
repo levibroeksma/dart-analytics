@@ -386,9 +386,11 @@ gh issue list --label discovered-work --state open --search "refresh PR could no
 Expected: the run concludes **success**, and an open issue titled `graph: refresh PR could not be
 opened` exists, carrying the compare link and the delta block.
 
-If the run is green but no issue appears, the `issues: write` assumption is wrong — stop, read the run
-log for the `refresh` job, and report before proceeding to Task 3. Do not flip the settings to make the
-symptom disappear; that would destroy the only chance to observe this path.
+If the `issues: write` assumption is wrong, the run goes **red** at the first issues API call — no
+try/catch wraps it — so read the `refresh` job log rather than proceeding to Task 3. A green run with
+no issue means the 403 fallback simply did not fire: either `pulls.create` unexpectedly succeeded, or
+the graph was unchanged. Do not flip the settings to make the symptom disappear; that would destroy the
+only chance to observe this path.
 
 - [ ] **Step 7: Confirm idempotency on a second push**
 

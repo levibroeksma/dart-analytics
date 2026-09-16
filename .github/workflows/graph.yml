@@ -119,6 +119,14 @@ jobs:
             // would page past every open issue in a repo that routinely carries many.
             // An issue whose labels are stripped by hand is therefore invisible here
             // and yields one duplicate -- the acceptable end of that trade.
+            //
+            // Also gated to issues authored by github-actions[bot]. This lookup is not
+            // read-only: the caller both updates and closes whatever it returns, so a
+            // body-substring match alone is unsafe -- this repo mandates discovered-work
+            // issues, so a human's own issue about this workflow could paste the marker
+            // (even fenced in a code block, still a substring) and get its body silently
+            // overwritten or its issue auto-closed. The author check survives a human
+            // editing the body later, unlike anchoring the marker to the string's start.
             async function findBlockedIssue() {
               const issues = await github.paginate(github.rest.issues.listForRepo, {
                 owner,
@@ -127,7 +135,14 @@ jobs:
                 labels: "discovered-work",
                 per_page: 100,
               });
-              return issues.find((i) => !i.pull_request && i.body && i.body.includes(MARKER));
+              return issues.find(
+                (i) =>
+                  !i.pull_request &&
+                  i.user &&
+                  i.user.login === "github-actions[bot]" &&
+                  i.body &&
+                  i.body.includes(MARKER)
+              );
             }
 
             const { data: existing } = await github.rest.pulls.list({
@@ -168,7 +183,7 @@ jobs:
                 // lost, and failing the run would paint main red on every merge --
                 // noise that gets ignored, which is how staleness crept in the first
                 // place (D186). But a run-summary notice is read by nobody, which is
-                // how it stayed crept in for 692 commits. File an issue instead: it
+                // how it stayed crept in for 701 commits. File an issue instead: it
                 // survives the run, it is visible where work is tracked, and it costs
                 // main nothing. Any other error still fails the job.
                 const forbidden =
