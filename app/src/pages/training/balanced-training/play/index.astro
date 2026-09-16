@@ -5,6 +5,8 @@ import WarmUpPanel from "@components/layout/training/WarmUpPanel.astro";
 import SwitchingPanel from "@components/layout/training/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/DoublePatternPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
+import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Button from "@components/forms/Button.astro";
 import RoutineSummaryModal from "@components/layout/training/RoutineSummaryModal.astro";
@@ -48,6 +50,32 @@ import BlockedStepModal from "@components/layout/training/BlockedStepModal.astro
           x-show="!finished"
           x-cloak
         />
+        {
+          /* TUOD's own confirm gates, same wiring as `games/tuod/play`. The
+          store raises these instead of recording: a session-ending dart sets
+          `showFinishConfirm` and waits, so without the dialog the Finishing
+          step can never finish and the routine hangs. */
+        }
+        <div
+          x-show="showDoubleConfirm"
+          x-cloak
+        >
+          <CheckoutConfirm />
+        </div>
+        <div
+          x-show="showFinishConfirm"
+          x-cloak
+        >
+          <ConfirmDialog
+            titleId="routine-finish-confirm-title"
+            title="Finish session?"
+            description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
+            confirmLabel="Confirm"
+            onCancel="cancelFinish()"
+            onConfirm="confirmFinish()"
+            dismissible={false}
+          />
+        </div>
         <div
           x-show="finished && completionStatus === 'failed'"
           x-cloak
