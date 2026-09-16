@@ -3,6 +3,7 @@ import {
   CreateSessionRequest,
   ParticipantInput,
   ParticipantRef,
+  SessionActive,
 } from "@routes/sessions/types";
 
 const config = {
@@ -175,6 +176,41 @@ describe("ParticipantRef", () => {
         displayName: "DartBot",
         dartbot: { level: 8, seed: 123456, levelSource: "AUTO" },
       }).success,
+    ).toBe(false);
+  });
+});
+
+describe("SessionActive", () => {
+  const gameSession = {
+    sessionId: "s1",
+    gameTypeKey: "X01",
+    gameTypeName: "501",
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "QUICK_SCORE",
+    rulesetVersionKey: "501_V1",
+    startedAt: "2026-09-16T10:00:00.000Z",
+  };
+
+  it("accepts a game session with every lookup key present", () => {
+    expect(SessionActive.safeParse(gameSession).success).toBe(true);
+  });
+
+  it("accepts a training exercise session, whose lookup keys are all NULL", () => {
+    expect(
+      SessionActive.safeParse({
+        ...gameSession,
+        gameTypeKey: null,
+        gameTypeName: null,
+        captureModeKey: null,
+        inputModeKey: null,
+        rulesetVersionKey: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("still rejects a missing sessionId", () => {
+    expect(
+      SessionActive.safeParse({ ...gameSession, sessionId: undefined }).success,
     ).toBe(false);
   });
 });

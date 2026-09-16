@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-08-15
+updated: 2026-09-16
 -->
 
 # Database Migration Strategy
@@ -605,6 +605,27 @@ Guest participants throw into the same `turns`/`darts` tables as the owning play
 `v_game_replay` is deliberately NOT filtered — it exists to replay a session as it was played, every participant included.
 
 Never edits `0009`/`0013`/`0014`/`0018`.
+
+---
+
+## 0033_read_model_non_game_sessions.sql
+
+Purpose:
+
+Let the read model see a session with no game bound to it. <!-- 2026-09-16 -->
+
+Contains:
+
+- rewritten `v_active_sessions` (`game_types`, `ruleset_versions`, `capture_modes`, `input_modes` become `LEFT JOIN`s)
+- rewritten `v_session_overview` (`game_types`, `capture_modes`)
+- rewritten `v_dart_analytics` and `v_dart_locations` (`game_types`; `input_modes` in the latter)
+- rewritten `v_player_visit_facts`, `v_player_leg_facts` and `v_routine_execution` (`game_types`)
+
+`0028`/`0029` made those foreign keys nullable so a non-game exercise could be recorded, but no view was generalised with them — an INNER JOIN deleted the whole row rather than returning NULL keys, so training gameplay was written to `turns`/`darts` and readable by nothing. The `*_key`/`*_name` columns those joins feed are nullable from here on (D283).
+
+`v_configuration_presets` and `v_double_out_checkout_darts` are deliberately untouched: `configuration_templates.game_type_id` is still `NOT NULL`, and `v_double_out_checkout_darts` filters to 501 `VISUAL_BOARD` in its own WHERE clause, which no non-game session can satisfy. `v_game_replay` has no `game_types` join at all.
+
+Never edits `0013`/`0016`/`0023`/`0025`/`0026`.
 
 ---
 

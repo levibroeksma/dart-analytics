@@ -354,3 +354,26 @@ describe("gameStore", () => {
     expect(new Set(aliasesAtInit).size).toBe(aliasesAtInit.length);
   });
 });
+
+describe("setSessionModes", () => {
+  it("adopts the server's capture/input pair", () => {
+    const store = gameStore(stubPersistFactory());
+    store.setSessionModes({
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(store.captureModeKey).toBe("ANALYTICS");
+    expect(store.inputModeKey).toBe("VISUAL_BOARD");
+  });
+
+  it("adopts a null pair from a session that captures no darts", () => {
+    const store = gameStore(stubPersistFactory());
+    store.setSessionModes({
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    store.setSessionModes({ captureModeKey: null, inputModeKey: null });
+    expect(store.captureModeKey).toBeNull();
+    expect(store.inputModeKey).toBeNull();
+  });
+});

@@ -1,5 +1,5 @@
 import type { PersistFactory } from "@alpinejs/persist";
-import type { ModePair, RulesetVersionKey, SeatFact } from "@lib/types";
+import type { RulesetVersionKey, SeatFact, SessionModePair } from "@lib/types";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
 import type { ConfigSnapshot } from "./types";
 
@@ -119,9 +119,11 @@ export function gameStore(persist: PersistFactory) {
     /**
      * Adopts the mode pair the server holds for the ACTIVE session, so a resumed
      * session plays in the mode it was created with rather than whatever the
-     * settings screen was last set to.
+     * settings screen was last set to. A session that captures no darts holds
+     * no pair, and NULL is adopted as-is — these fields are nullable and every
+     * play-time consumer already reads them that way.
      */
-    setSessionModes(modes: ModePair) {
+    setSessionModes(modes: SessionModePair) {
       this.captureModeKey = modes.captureModeKey;
       this.inputModeKey = modes.inputModeKey;
     },

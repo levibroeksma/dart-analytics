@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-06
+updated: 2026-09-16
 -->
 
 # Database View Strategy
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0024)
+# Implemented Views (migrations 0009–0033)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -154,6 +154,16 @@ The name should describe the returned data, not the underlying tables.
 | `v_double_out_checkout_darts` | Analytics | Raw per-dart facts + running leg score for 501 VISUAL_BOARD checkout accuracy, owning player only (2026-09-05) |
 | `v_player_visit_facts` | Analytics | One row per completed turn, every game type/capture mode, for career-wide turn-level statistics (2026-09-06) |
 | `v_player_leg_facts` | Analytics | One row per complete-capture LEG stage, for best-leg/darts-per-leg style statistics (2026-09-06) |
+
+Every view above that reaches `exercise_sessions.game_type_id` or
+`exercise_templates.game_type_id` joins `game_types` with a `LEFT JOIN` from
+migration `0033` on, so a session or template with no game bound to it appears
+with a NULL `game_type_key` rather than vanishing. The same applies to the
+other lookups `0028`/`0029` made nullable (`ruleset_versions`, `capture_modes`,
+`input_modes`). The two exceptions are `v_configuration_presets` — whose
+`configuration_templates.game_type_id` is still NOT NULL — and
+`v_double_out_checkout_darts`, which restricts itself to 501 `VISUAL_BOARD` in
+its own WHERE clause. <!-- 2026-09-16 -->
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
@@ -387,6 +397,11 @@ average_score
 ```
 
 Avoid aliases that introduce frontend terminology.
+
+A `*_key`/`*_name` column is nullable whenever the column it projects is: an
+INNER JOIN onto a nullable FK silently deletes the row instead of returning a
+NULL label, which is the one failure mode a read model must never have.
+<!-- 2026-09-16 -->
 
 **Read-model column standard (migration `0013`):** expose implementation keys as `<concept>_key`, human labels as `<concept>_name` only where a screen renders the label, and **do not expose internal lookup `*_id` columns**. Keep only entity UUIDs a client must address later (`session_id`, `routine_id`, `exercise_template_id`, `player_id`). See `01-Naming-Conventions.md` §"View Column Key And Label Naming". <!-- 2026-07-12 -->
 

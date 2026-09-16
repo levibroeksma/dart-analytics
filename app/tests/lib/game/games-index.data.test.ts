@@ -5,6 +5,18 @@ import * as sessionsApi from "@client/api/sessions";
 
 vi.mock("@client/api/sessions");
 
+/** A training exercise step session: no game, so no ruleset version key. */
+const trainingStepSession = () =>
+  ({
+    sessionId: "session-training-step",
+    gameTypeKey: null,
+    gameTypeName: null,
+    captureModeKey: null,
+    inputModeKey: null,
+    rulesetVersionKey: null,
+    startedAt: "2026-09-16T10:00:00.000Z",
+  }) as any;
+
 const activeSession = (rulesetVersionKey: string) =>
   ({
     sessionId: `session-${rulesetVersionKey}`,
@@ -87,6 +99,20 @@ describe("gamesIndex", () => {
 
     expect(page.isVisible("501_V1")).toBe(true);
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(true);
+  });
+
+  it("drops a training step session, which has no ruleset version to gate a card", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      trainingStepSession(),
+      activeSession("501_V1"),
+    ]);
+    store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
+    const page = createPage();
+    await page.init();
+
+    expect(page.activeRulesetKeys).toEqual(["501_V1"]);
+    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
   });
 
   it("falls back to no active session when the fetch fails", async () => {

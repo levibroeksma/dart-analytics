@@ -18,11 +18,17 @@ export function totalPlayTimeSeconds(
   return completedRows(rows).reduce((sum, row) => sum + row.durationSeconds, 0);
 }
 
+/**
+ * Training exercise sessions carry no game type (`gameTypeKey` NULL) and are
+ * skipped: they count towards play time and session totals, but a session with
+ * no game cannot be anyone's favourite game.
+ */
 export function favoriteGameTypeKey(
   rows: readonly PlayerSessionSummaryRow[],
 ): string | null {
   const counts = new Map<string, number>();
   for (const row of completedRows(rows)) {
+    if (row.gameTypeKey === null) continue;
     counts.set(row.gameTypeKey, (counts.get(row.gameTypeKey) ?? 0) + 1);
   }
   let best: string | null = null;

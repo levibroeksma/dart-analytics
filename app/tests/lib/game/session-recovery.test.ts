@@ -21,6 +21,24 @@ function activeSession(
 }
 
 /**
+ * A training step session (`startTrainingStep`'s non-game path, D277/D281):
+ * no game type, and for Warm-Up no capture pair or ruleset version either.
+ * Visible in `v_active_sessions` since the read model stopped inner-joining
+ * `game_types`, so every game's reconciliation now has to step over it.
+ */
+function nonGameSession(sessionId: string): SessionActiveData {
+  return {
+    sessionId,
+    gameTypeKey: null,
+    gameTypeName: null,
+    captureModeKey: null,
+    inputModeKey: null,
+    rulesetVersionKey: null,
+    startedAt: "2026-09-16T10:00:00Z",
+  };
+}
+
+/**
  * Declared as the concrete call signature, not an intersection with vitest's
  * Mock: under vitest 4 that intersection widens to
  * `Mock<Procedure | Constructable>`, which `astro check` rejects as an
@@ -143,6 +161,37 @@ describe("reconcileActiveSession", () => {
   it("picks this game's ACTIVE session out of a list holding several games", async () => {
     const server = [
       activeSession("bobs-id", "BOBS27"),
+      activeSession("score-id"),
+    ];
+
+    const result = await reconcileActiveSession(
+      "SCORE_TRAINING",
+      "score-id",
+      server,
+      store,
+    );
+
+    expect(result).toEqual({ action: "match", activeSession: server[1] });
+  });
+
+  it("never matches or auto-abandons a training step session with no game type", async () => {
+    const server = [nonGameSession("training-step-id")];
+
+    const result = await reconcileActiveSession(
+      "SCORE_TRAINING",
+      null,
+      server,
+      store,
+    );
+
+    expect(api.completeSession).not.toHaveBeenCalled();
+    expect(store.reset).not.toHaveBeenCalled();
+    expect(result).toEqual({ action: "no_active", activeSession: null });
+  });
+
+  it("still finds this game's session when a training step session is in the list", async () => {
+    const server = [
+      nonGameSession("training-step-id"),
       activeSession("score-id"),
     ];
 

@@ -68,6 +68,30 @@ describe("favoriteGameTypeKey", () => {
     ];
     expect(favoriteGameTypeKey(rows)).toBe("TUOD");
   });
+
+  it("ignores non-game exercise sessions, which have no game type key", () => {
+    const rows = [
+      session({ gameTypeKey: null }),
+      session({ gameTypeKey: null }),
+      session({ gameTypeKey: "501" }),
+    ];
+    expect(favoriteGameTypeKey(rows)).toBe("501");
+  });
+
+  it("returns null when every session is a non-game exercise", () => {
+    expect(favoriteGameTypeKey([session({ gameTypeKey: null })])).toBeNull();
+  });
+});
+
+describe("non-game exercise sessions in career totals", () => {
+  it("counts a completed training session as played time", () => {
+    const rows = [
+      session({ gameTypeKey: null, durationSeconds: 120 }),
+      session({ gameTypeKey: "501", durationSeconds: 300 }),
+    ];
+    expect(totalGamesPlayed(rows)).toBe(2);
+    expect(totalPlayTimeSeconds(rows)).toBe(420);
+  });
 });
 
 describe("longestPlayStreakDays", () => {

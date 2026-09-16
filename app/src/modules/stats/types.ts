@@ -1,15 +1,19 @@
-/** Fields `career-summary.module.ts` needs from a `v_session_overview` row. */
+/**
+ * Fields `career-summary.module.ts` needs from a `v_session_overview` row.
+ * `gameTypeKey` is NULL for a training exercise session, which has no game
+ * bound to it (migration `0033`).
+ */
 export type PlayerSessionSummaryRow = {
-  gameTypeKey: string;
+  gameTypeKey: string | null;
   statusKey: string;
   startedAt: string;
   durationSeconds: number;
 };
 
-/** One row of `v_player_visit_facts`. */
+/** One row of `v_player_visit_facts`; `gameTypeKey` is NULL for a training exercise session. */
 export type PlayerVisitFactRow = {
   sessionId: string;
-  gameTypeKey: string;
+  gameTypeKey: string | null;
   stageId: string;
   stageTypeKey: string;
   turnSequence: number;
@@ -32,10 +36,10 @@ export type ScoreBandCounts = {
   oneEighties: number;
 };
 
-/** One row of `v_player_leg_facts`. */
+/** One row of `v_player_leg_facts`; `gameTypeKey` is NULL for a training exercise session. */
 export type PlayerLegFactRow = {
   sessionId: string;
-  gameTypeKey: string;
+  gameTypeKey: string | null;
   stageId: string;
   totalDartsInLeg: number;
 };

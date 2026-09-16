@@ -35,7 +35,7 @@ import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { GameEngine } from "@modules/interfaces";
 import type {
-  ModePair,
+  SessionModePair,
   RulesetVersionKey,
   ScoreTrainingSnapshot,
   SeatFact,
@@ -232,7 +232,7 @@ export type PlayStoreContext<TConfig> = {
     idempotencyKey?: string | null;
     loading: boolean;
     recordFacts(facts: EngineFacts): void;
-    setSessionModes(modes: ModePair): void;
+    setSessionModes(modes: SessionModePair): void;
     reset(): void;
   };
   settings: {
