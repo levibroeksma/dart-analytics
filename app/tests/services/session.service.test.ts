@@ -1162,7 +1162,50 @@ describe("isActiveSessionConflict", () => {
     ).toBe(true);
   });
 
+  it("matches the wrapped error drizzle actually throws, which carries the Postgres fields on cause", () => {
+    const pgError = Object.assign(
+      new Error(
+        'duplicate key value violates unique constraint "uq_sessions_single_active"',
+      ),
+      { code: "23505", constraint: "uq_sessions_single_active" },
+    );
+    const wrapped = Object.assign(
+      new Error('Failed query: insert into "exercise_sessions" ...\nparams: '),
+      { cause: pgError },
+    );
+    expect(isActiveSessionConflict(wrapped)).toBe(true);
+  });
+
+  it("matches a conflict nested more than one wrapper deep", () => {
+    const pgError = Object.assign(new Error("duplicate key"), {
+      code: "23505",
+      constraint: "uq_sessions_single_active",
+    });
+    const wrapped = Object.assign(new Error("Failed query"), {
+      cause: Object.assign(new Error("transaction failed"), { cause: pgError }),
+    });
+    expect(isActiveSessionConflict(wrapped)).toBe(true);
+  });
+
   it("returns false for an unrelated error", () => {
     expect(isActiveSessionConflict(new Error("boom"))).toBe(false);
+  });
+
+  it("returns false for an unrelated error wrapped the same way", () => {
+    const wrapped = Object.assign(new Error("Failed query"), {
+      cause: Object.assign(
+        new Error("null value in column violates not-null"),
+        {
+          code: "23502",
+        },
+      ),
+    });
+    expect(isActiveSessionConflict(wrapped)).toBe(false);
+  });
+
+  it("terminates on a self-referencing cause chain", () => {
+    const looping = new Error("loop") as Error & { cause?: unknown };
+    looping.cause = looping;
+    expect(isActiveSessionConflict(looping)).toBe(false);
   });
 });

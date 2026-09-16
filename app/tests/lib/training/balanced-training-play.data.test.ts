@@ -966,6 +966,42 @@ describe("balancedTrainingPlay — Finishing", () => {
     vi.useRealTimers();
   });
 
+  it("names the unfinished game when the Finishing step's session is blocked by an already-active TUOD session", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    vi.mocked(sessionApi.completeSession).mockReset();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP, GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce({
+        sessionId: "s1",
+        exerciseTypeKey: "DOUBLE_PATTERN",
+        configuration: DOUBLE_PATTERN_STEP.configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      })
+      .mockRejectedValueOnce(
+        Object.assign(new Error("Session already active"), {
+          code: "SESSION_ALREADY_ACTIVE",
+          requestId: "req-88",
+        }),
+      );
+    const store = makeStore();
+    await store.init();
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -160,
+    });
+    await store.completeCurrentStep();
+    expect(store.error).toBe(
+      "You have an unfinished Ten Up One Down game. Finish or abandon it under Games, then start this routine again.",
+    );
+  });
+
   it("startCurrentStep() for GAME populates the global game store and builds finishingStep", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",

@@ -44,18 +44,41 @@ import type {
   ServiceResult,
 } from "./types";
 
+/** How many `cause` links to follow before giving up, so a cyclic chain cannot hang the request. */
+const MAX_CAUSE_DEPTH = 8;
+
 /**
  * True when the error is the uq_sessions_single_active unique violation
  * (Postgres 23505 on that partial index), i.e. an active session for this
  * (player, game type) already exists.
+ *
+ * Walks the `cause` chain: drizzle wraps every query error in a
+ * `DrizzleQueryError` whose own message is `Failed query: ...` and whose
+ * `code`/`constraint` are undefined — the Postgres fields survive only on
+ * `cause`. Reading the top-level error alone made a conflict look like an
+ * unrelated throw, so it escaped to the middleware boundary as a 500
+ * instead of SESSION_ALREADY_ACTIVE (issue #355).
  */
 export function isActiveSessionConflict(error: unknown): boolean {
-  const e = error as { code?: string; constraint?: string; message?: string };
-  return (
-    e?.code === "23505" &&
-    (e?.constraint === "uq_sessions_single_active" ||
-      (e?.message?.includes("uq_sessions_single_active") ?? false))
-  );
+  let current: unknown = error;
+  for (let depth = 0; depth < MAX_CAUSE_DEPTH && current; depth++) {
+    const e = current as {
+      code?: string;
+      constraint?: string;
+      message?: string;
+      cause?: unknown;
+    };
+    if (
+      e.code === "23505" &&
+      (e.constraint === "uq_sessions_single_active" ||
+        (e.message?.includes("uq_sessions_single_active") ?? false))
+    ) {
+      return true;
+    }
+    if (e.cause === current) return false;
+    current = e.cause;
+  }
+  return false;
 }
 
 /** Loads lookup ids and player display metadata required to create a session. */

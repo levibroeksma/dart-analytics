@@ -21,6 +21,7 @@ import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
+import { stepAdvanceErrorMessage } from "./step-advance-error";
 import {
   summariseSwitching,
   summariseDoublePattern,
@@ -500,11 +501,7 @@ export function balancedTrainingPlay() {
           this.training,
         );
       } catch (err: unknown) {
-        const code = (err as { code?: string }).code;
-        const requestId = (err as { requestId?: string }).requestId;
-        this.error = code
-          ? `Could not continue to the next step (${code}${requestId ? `, ${requestId}` : ""}). Try again.`
-          : "Could not continue to the next step. Try again.";
+        this.error = stepAdvanceErrorMessage(err);
       }
     },
 
