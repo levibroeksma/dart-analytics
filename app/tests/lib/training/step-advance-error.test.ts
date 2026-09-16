@@ -2,20 +2,7 @@ import { describe, it, expect } from "vitest";
 import { stepAdvanceErrorMessage } from "@lib/training/step-advance-error";
 
 describe("stepAdvanceErrorMessage", () => {
-  it("names the unfinished game for an already-active session, the one failure the player can act on", () => {
-    expect(
-      stepAdvanceErrorMessage(
-        Object.assign(new Error("Session already active"), {
-          code: "SESSION_ALREADY_ACTIVE",
-          requestId: "req-1",
-        }),
-      ),
-    ).toBe(
-      "You have an unfinished Ten Up One Down game. Finish or abandon it under Games, then start this routine again.",
-    );
-  });
-
-  it("names the code and request id for any other coded failure", () => {
+  it("names the code and request id for any coded failure", () => {
     expect(
       stepAdvanceErrorMessage(
         Object.assign(new Error("Batch rejected"), {

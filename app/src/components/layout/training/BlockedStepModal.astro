@@ -1,0 +1,67 @@
+---
+/**
+ * Presentational — the routine's play page owns `blockingSession` (x-if).
+ * Shown when an unfinished Ten Up One Down game blocks the Finishing step:
+ * abandoning it resumes the routine where it stands, so a forgotten game no
+ * longer costs the whole run (issue #357). Not `ContinueSessionModal` — its
+ * Continue action leaves for that game, which is the dead end here.
+ */
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<Modal
+  titleId="blocked-step-title"
+  descriptionId="blocked-step-desc"
+  dismissible={false}
+>
+  <h2
+    id="blocked-step-title"
+    class="font-display text-lg font-semibold text-foreground"
+  >
+    Unfinished game
+  </h2>
+  <p
+    id="blocked-step-desc"
+    class="mt-2 text-sm text-muted-foreground"
+  >
+    A Ten Up One Down game
+    <span
+      x-show="blockingStartedLabel()"
+      x-cloak
+      >from <span x-text="blockingStartedLabel()"></span></span
+    > is still open, so this step cannot start. Abandon it to play your Finishing
+    step now.
+  </p>
+  <p
+    class="mt-3 text-sm text-error"
+    x-show="blockingError"
+    x-text="blockingError"
+    x-cloak
+  >
+  </p>
+
+  <div
+    slot="footer"
+    class="mt-6 flex gap-3"
+  >
+    <Button
+      type="button"
+      variant="secondary"
+      class="flex-1"
+      title="Leave routine"
+      @click="abandonAndExit()"
+      :disabled="resolvingBlockingSession"
+    />
+    <Button
+      type="button"
+      class="flex-1"
+      title="Abandon & continue"
+      @click="resolveBlockingSession()"
+      loadingExpr="resolvingBlockingSession"
+      :disabled="resolvingBlockingSession"
+    />
+  </div>
+</Modal>

@@ -72,7 +72,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02) | canonical | ~1.3k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29); container-query sizing for variable-length content (D262, 2026-09-09) | canonical | ~4.4k |
-| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08) | canonical | ~2.2k |
+| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08); `BlockedStepModal.astro` added (2026-09-16) | canonical | ~2.7k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
@@ -229,7 +229,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/testing.md` | 6 decisions — test, TDD, Vitest, mock, coverage, change-set test gate | canonical | ~1.4k |
 | `decisions/frontend/architecture.md` | 19 decisions — layering, folder structure, suffix, barrel, type import, error mapping, API client, one-shape-per-game extraction; +D261 Trivia tools outside GameEngine (2026-09-09) | canonical | ~6.2k |
 | `decisions/frontend/astro.md` | 21 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28) | canonical | ~6.6k |
-| `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show (D280 client-derived routine summary, 2026-09-14) | canonical | ~8.8k |
+| `decisions/frontend/alpine.md` | Alpine, stores, state, persist, recovery, x-data, x-show (D286 in-routine blocking-game resolution, 2026-09-16) | canonical | ~9.3k |
 | `decisions/frontend/style.md` | 12 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban, container queries | canonical | ~3.2k |
 | `decisions/context-system.md` | 36 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D273 retires `FINDINGS.md`, 2026-09-13) | canonical | ~7.3k |
 

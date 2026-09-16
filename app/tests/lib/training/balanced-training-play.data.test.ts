@@ -966,7 +966,176 @@ describe("balancedTrainingPlay — Finishing", () => {
     vi.useRealTimers();
   });
 
-  it("names the unfinished game when the Finishing step's session is blocked by an already-active TUOD session", async () => {
+  it("offers the blocking TUOD game for resolution instead of dead-ending the Finishing step", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    vi.mocked(sessionApi.completeSession).mockReset();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP, GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce({
+        sessionId: "s1",
+        exerciseTypeKey: "DOUBLE_PATTERN",
+        configuration: DOUBLE_PATTERN_STEP.configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      })
+      .mockRejectedValueOnce(
+        Object.assign(new Error("Session already active"), {
+          code: "SESSION_ALREADY_ACTIVE",
+          requestId: "req-88",
+          details: {
+            sessionId: "blocker-1",
+            startedAt: "2026-09-14T19:05:00Z",
+          },
+        }),
+      );
+    const store = makeStore();
+    await store.init();
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -160,
+    });
+    await store.completeCurrentStep();
+    expect(store.blockingSession).toEqual({
+      sessionId: "blocker-1",
+      startedAt: "2026-09-14T19:05:00Z",
+    });
+    expect(store.error).toBe("");
+    expect(store.currentStep()?.exerciseTypeKey).toBe("GAME");
+  });
+
+  it("blockingStartedLabel() dates the blocking game, and is empty when the server named no start time", async () => {
+    const store = makeStore();
+    store.blockingSession = {
+      sessionId: "blocker-1",
+      startedAt: "2026-09-14T19:05:00Z",
+    };
+    expect(store.blockingStartedLabel()).toBe(
+      new Date("2026-09-14T19:05:00Z").toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+      }),
+    );
+    store.blockingSession = { sessionId: "blocker-1", startedAt: null };
+    expect(store.blockingStartedLabel()).toBe("");
+    store.blockingSession = { sessionId: "blocker-1", startedAt: "nonsense" };
+    expect(store.blockingStartedLabel()).toBe("");
+    store.blockingSession = null;
+    expect(store.blockingStartedLabel()).toBe("");
+  });
+
+  it("resolveBlockingSession() abandons that game and resumes the routine on its Finishing step", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    vi.mocked(sessionApi.completeSession).mockReset();
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "blocker-1",
+      statusKey: "ABANDONED",
+      completedAt: "2026-09-16T10:00:00Z",
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockRejectedValueOnce(
+        Object.assign(new Error("Session already active"), {
+          code: "SESSION_ALREADY_ACTIVE",
+          details: { sessionId: "blocker-1", startedAt: null },
+        }),
+      )
+      .mockResolvedValueOnce({
+        sessionId: "s-finishing",
+        exerciseTypeKey: "GAME",
+        configuration: GAME_STEP.configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      });
+    const store = makeStore();
+    await store.init();
+    expect(store.blockingSession).not.toBeNull();
+    await store.resolveBlockingSession();
+    expect(sessionApi.completeSession).toHaveBeenCalledWith(
+      "blocker-1",
+      "ABANDONED",
+    );
+    expect(store.blockingSession).toBeNull();
+    expect(store.blockingError).toBe("");
+    expect(store.currentSessionId).toBe("s-finishing");
+    expect(store.finishing).not.toBeNull();
+  });
+
+  it("resolveBlockingSession() keeps the choice open with an error when the abandon fails", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    vi.mocked(sessionApi.completeSession).mockReset();
+    vi.mocked(sessionApi.completeSession).mockRejectedValue(
+      new Error("offline"),
+    );
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockRejectedValue(
+      Object.assign(new Error("Session already active"), {
+        code: "SESSION_ALREADY_ACTIVE",
+        details: { sessionId: "blocker-1", startedAt: null },
+      }),
+    );
+    const store = makeStore();
+    await store.init();
+    await store.resolveBlockingSession();
+    expect(store.blockingSession).toEqual({
+      sessionId: "blocker-1",
+      startedAt: null,
+    });
+    expect(store.blockingError).toBe(
+      "Could not abandon that game. Check your connection and try again.",
+    );
+    expect(store.resolvingBlockingSession).toBe(false);
+  });
+
+  it("re-blocks rather than resuming when the retried step start hits the conflict again", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    vi.mocked(sessionApi.completeSession).mockReset();
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "blocker-1",
+      statusKey: "ABANDONED",
+      completedAt: "2026-09-16T10:00:00Z",
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockRejectedValue(
+      Object.assign(new Error("Session already active"), {
+        code: "SESSION_ALREADY_ACTIVE",
+        details: { sessionId: "blocker-2", startedAt: null },
+      }),
+    );
+    const store = makeStore();
+    await store.init();
+    await store.resolveBlockingSession();
+    expect(store.blockingSession).toEqual({
+      sessionId: "blocker-2",
+      startedAt: null,
+    });
+    expect(store.error).toBe("");
+  });
+
+  it("still names an already-active conflict the server sent no session id for", async () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(sessionApi.appendBatch).mockReset();
     vi.mocked(sessionApi.completeSession).mockReset();
@@ -997,8 +1166,9 @@ describe("balancedTrainingPlay — Finishing", () => {
       locationY: -160,
     });
     await store.completeCurrentStep();
+    expect(store.blockingSession).toBeNull();
     expect(store.error).toBe(
-      "You have an unfinished Ten Up One Down game. Finish or abandon it under Games, then start this routine again.",
+      "Could not continue to the next step (SESSION_ALREADY_ACTIVE, req-88). Try again.",
     );
   });
 

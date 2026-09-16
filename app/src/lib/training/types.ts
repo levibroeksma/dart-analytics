@@ -17,6 +17,11 @@ export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
 export type TrainingStepKey = TrainingStepResolved["exerciseTypeKey"];
 
+export type BlockingSession = {
+  sessionId: string;
+  startedAt: string | null;
+};
+
 export type BalancedTrainingPlayContext = {
   loading: boolean;
   error: string;
@@ -36,6 +41,9 @@ export type BalancedTrainingPlayContext = {
   warmUpConfiguration: Record<string, unknown> | null;
   finishing: ReturnType<typeof finishingStep> | null;
   sessionClock: SessionClock | null;
+  blockingSession: BlockingSession | null;
+  blockingError: string;
+  resolvingBlockingSession: boolean;
   stepSummaries: RoutineStepSummary[];
   routineFinished: boolean;
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
@@ -67,6 +75,13 @@ export type BalancedTrainingPlayContext = {
     result: StartTrainingStepResponseData,
   ): void;
   startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  openStep(
+    this: BalancedTrainingPlayContext,
+    result: StartTrainingStepResponseData,
+    durationSeconds: number,
+  ): void;
+  resolveBlockingSession(this: BalancedTrainingPlayContext): Promise<void>;
+  blockingStartedLabel(this: BalancedTrainingPlayContext): string;
   startSessionClock(this: BalancedTrainingPlayContext): void;
   stopSessionClock(this: BalancedTrainingPlayContext): void;
   confirmWarmUpReady(this: BalancedTrainingPlayContext): void;
