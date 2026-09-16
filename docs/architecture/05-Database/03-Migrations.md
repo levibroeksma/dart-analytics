@@ -621,7 +621,7 @@ Contains:
 - rewritten `v_dart_analytics` and `v_dart_locations` (`game_types`; `input_modes` in the latter)
 - rewritten `v_player_visit_facts`, `v_player_leg_facts` and `v_routine_execution` (`game_types`)
 
-`0028`/`0029` made those foreign keys nullable so a non-game exercise could be recorded, but no view was generalised with them — an INNER JOIN deleted the whole row rather than returning NULL keys, so training gameplay was written to `turns`/`darts` and readable by nothing. The `*_key`/`*_name` columns those joins feed are nullable from here on (D283).
+`0028`/`0029` made those foreign keys nullable so a non-game exercise could be recorded, but no view was generalised with them — an INNER JOIN deleted the whole row rather than returning NULL keys, so training gameplay was written to `turns`/`darts` and readable by nothing. The `*_key`/`*_name` columns those joins feed are nullable from here on (D284).
 
 `v_configuration_presets` and `v_double_out_checkout_darts` are deliberately untouched: `configuration_templates.game_type_id` is still `NOT NULL`, and `v_double_out_checkout_darts` filters to 501 `VISUAL_BOARD` in its own WHERE clause, which no non-game session can satisfy. `v_game_replay` has no `game_types` join at all.
 
