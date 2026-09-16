@@ -19,6 +19,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      # The 403 fallback below files a tracking issue. Issue creation is granted by
+      # this scope alone and is NOT gated by the "Allow GitHub Actions to create and
+      # approve pull requests" setting that blocks pulls.create -- which is the whole
+      # reason the fallback uses an issue rather than, say, a draft PR.
+      issues: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,31 +95,55 @@ jobs:
 
       - name: Open or update the refresh PR
         if: steps.check.outputs.changed == 'true'
+        env:
+          MAIN_SHA: ${{ github.sha }}
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require("fs");
             const body = fs.readFileSync("/tmp/graph-pr-body.md", "utf8");
             const title = "chore(graph): refresh knowledge graph";
+            const branch = "chore/graph-refresh";
+            const { owner, repo } = context.repo;
+            const compare =
+              `https://github.com/${owner}/${repo}/compare/main...${branch}?expand=1`;
+
+            // Idempotency key for the fallback issue. Kept in the body rather than
+            // the title so a human can retitle the issue without the workflow losing
+            // track of it and opening a duplicate on the next push.
+            const MARKER = "<!-- graph-refresh-blocked -->";
+            const BLOCKED_TITLE = "graph: refresh PR could not be opened";
+            const BLOCKED_LABELS = ["discovered-work", "type:infrastructure", "severity:high"];
+
+            // Scoped to the label the fallback itself applies: an unfiltered listing
+            // would page past every open issue in a repo that routinely carries many.
+            // An issue whose labels are stripped by hand is therefore invisible here
+            // and yields one duplicate -- the acceptable end of that trade.
+            async function findBlockedIssue() {
+              const issues = await github.paginate(github.rest.issues.listForRepo, {
+                owner,
+                repo,
+                state: "open",
+                labels: "discovered-work",
+                per_page: 100,
+              });
+              return issues.find((i) => !i.pull_request && i.body && i.body.includes(MARKER));
+            }
 
             const { data: existing } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner,
+              repo,
               state: "open",
-              head: `${context.repo.owner}:chore/graph-refresh`,
+              head: `${owner}:${branch}`,
               base: "main",
             });
-
-            const branch = "chore/graph-refresh";
-            const compare =
-              `https://github.com/${context.repo.owner}/${context.repo.repo}/compare/main...${branch}?expand=1`;
 
             let pr;
             if (existing.length > 0) {
               pr = existing[0];
               await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo,
                 pull_number: pr.number,
                 title,
                 body,
@@ -123,8 +152,8 @@ jobs:
             } else {
               try {
                 const { data: created } = await github.rest.pulls.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
+                  owner,
+                  repo,
                   title,
                   head: branch,
                   base: "main",
@@ -133,40 +162,94 @@ jobs:
                 pr = created;
                 core.notice(`Opened graph refresh PR #${pr.number}`);
               } catch (err) {
-                // The repo setting "Allow GitHub Actions to create and approve
-                // pull requests" is off, so GITHUB_TOKEN gets a 403 on POST
-                // /pulls. The refreshed graph is already pushed to the branch,
-                // so the work is not lost and failing the run would only paint
-                // main red on every merge -- noise that gets ignored, which is
-                // how staleness crept back in the first place. Surface it in the
-                // run summary instead. Any other error still fails the job.
+                // The repo setting "Allow GitHub Actions to create and approve pull
+                // requests" is off, so GITHUB_TOKEN gets a 403 on POST /pulls. The
+                // refreshed graph is already pushed to the branch, so the work is not
+                // lost, and failing the run would paint main red on every merge --
+                // noise that gets ignored, which is how staleness crept in the first
+                // place (D186). But a run-summary notice is read by nobody, which is
+                // how it stayed crept in for 692 commits. File an issue instead: it
+                // survives the run, it is visible where work is tracked, and it costs
+                // main nothing. Any other error still fails the job.
                 const forbidden =
                   err.status === 403 &&
                   /not permitted to create or approve pull requests/i.test(err.message);
                 if (!forbidden) throw err;
 
-                core.warning(
-                  `Graph refreshed and pushed to ${branch}, but this repo does not ` +
-                  `allow GitHub Actions to open pull requests, so no PR was created.`
-                );
+                const issueBody = [
+                  MARKER,
+                  `The knowledge graph was rebuilt from \`main\` @ ${process.env.MAIN_SHA} and ` +
+                    `pushed to \`${branch}\`, but GitHub Actions is not permitted to open pull ` +
+                    `requests in this repository, so no refresh PR was created.`,
+                  "",
+                  `**Land it now:** [compare main...${branch}](${compare})`,
+                  "",
+                  `**Stop this recurring:** enable *Settings -> Actions -> General -> Workflow ` +
+                    `permissions -> "Allow GitHub Actions to create and approve pull requests"*.`,
+                  "",
+                  `This issue is opened and updated automatically by \`.github/workflows/graph.yml\` ` +
+                    `and closes itself once a refresh PR opens successfully.`,
+                  "",
+                  body,
+                ].join("\n");
+
+                const blocked = await findBlockedIssue();
+                if (blocked) {
+                  await github.rest.issues.update({
+                    owner,
+                    repo,
+                    issue_number: blocked.number,
+                    body: issueBody,
+                  });
+                  core.warning(
+                    `Graph refreshed and pushed to ${branch}; PR creation is still blocked. ` +
+                    `Updated tracking issue #${blocked.number}.`
+                  );
+                } else {
+                  const { data: opened } = await github.rest.issues.create({
+                    owner,
+                    repo,
+                    title: BLOCKED_TITLE,
+                    body: issueBody,
+                    labels: BLOCKED_LABELS,
+                  });
+                  core.warning(
+                    `Graph refreshed and pushed to ${branch}, but this repo does not allow ` +
+                    `GitHub Actions to open pull requests. Filed tracking issue #${opened.number}.`
+                  );
+                }
+
                 await core.summary
                   .addHeading("Knowledge graph refreshed — PR not opened", 3)
                   .addRaw(
-                    `The rebuilt graph is pushed to \`${branch}\`, but GitHub Actions ` +
-                    `is not permitted to create pull requests in this repository, so it ` +
-                    `could not open one.`
+                    `The rebuilt graph is pushed to \`${branch}\`, but GitHub Actions is not ` +
+                    `permitted to create pull requests in this repository. A tracking issue ` +
+                    `carries the details.`
                   )
                   .addBreak()
-                  .addRaw(
-                    `**Open it manually:** [compare main...${branch}](${compare}) — ` +
-                    `or enable *Settings → Actions → General → Workflow permissions → ` +
-                    `"Allow GitHub Actions to create and approve pull requests"* and this ` +
-                    `becomes automatic.`
-                  )
+                  .addRaw(`**Open it manually:** [compare main...${branch}](${compare})`)
                   .addCodeBlock(body, "text")
                   .write();
                 return;
               }
+            }
+
+            // Reaching here means a PR exists, so the blocked condition has cleared.
+            const blocked = await findBlockedIssue();
+            if (blocked) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: blocked.number,
+                body: `Refresh PR #${pr.number} opened successfully — closing.`,
+              });
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: blocked.number,
+                state: "closed",
+              });
+              core.notice(`Closed stale tracking issue #${blocked.number}`);
             }
 
             try {
