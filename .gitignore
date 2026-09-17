@@ -27,3 +27,6 @@ app/db/
 app/src/db/0000_*.sql
 app/src/db/relations.ts
 app/src/db/meta/
+
+# worktrees are local scratch checkouts, never committed
+.claude/worktrees/

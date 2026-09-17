@@ -13,7 +13,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This repo does not use git worktrees. Task branches are checked out directly in the main working copy (`git checkout -b <branch>`) — see the root `CLAUDE.md` hard invariants.
+**Context:** Task branches may be worked in a git worktree under `.claude/worktrees/` or checked out directly in the main working copy — see the root `CLAUDE.md` hard invariants.
 
 **Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
