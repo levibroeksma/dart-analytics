@@ -315,28 +315,17 @@ export type ScoreTrainingResultsSnapshot = {
   seats: ScoreTrainingSeatResult[];
 };
 
-export type ScoreTrainingPlayContext = {
+export type ScoreTrainingPlayContext = PlayLifecycleContext<
+  ScoreTrainingSnapshot,
+  ScoreTrainingEngine,
+  ScoreTrainingResultsSnapshot
+> & {
   scoreInput: ScoreInputBuffer;
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: ScoreTrainingResultsSnapshot | null;
   pendingFinishScore: number | null;
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   botThrowing: boolean;
-  $store: PlayStoreContext<ScoreTrainingSnapshot>;
-  engine: ScoreTrainingEngine | null;
   timer: SegmentTimer | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
   totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
