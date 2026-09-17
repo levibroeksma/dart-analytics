@@ -1,4 +1,13 @@
 // @vitest-environment jsdom
+/**
+ * The wrapper's own contract, over a double: that `finishingStep` advances the
+ * routine only on a succeeded upload, and that leaving mid-step routes back to
+ * `/training`. Mocking `tuodPlay` keeps these three cases independent of TUOD's
+ * rules, but it also means the seam between the store and the routine —
+ * `recordDart` -> `showFinishConfirm` -> `confirmFinish` -> the advance — runs
+ * in no test here. `finishing-step-seam.test.ts` covers that path against the
+ * real store (issue #370).
+ */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@lib/game/tuod-play.data", () => ({
