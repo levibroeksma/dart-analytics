@@ -25,7 +25,7 @@ Checkout Trivia is a standalone flashcard quiz: shown a number, the player answe
 
 # Scope and Status
 
-Nothing described here is implemented. The document exists first, per `01-Principles.md` §Architecture First.
+Nothing described here is implemented. The document exists first, per `../01-Principles.md` §Architecture First.
 
 In scope: the question pool and its filters, the answer-evaluation model, the preferred-route explanation mechanism (not its content — see §Preferred-Route Explanations), the input flow, and where the code lives.
 

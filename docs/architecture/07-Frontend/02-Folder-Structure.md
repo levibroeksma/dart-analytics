@@ -42,10 +42,11 @@ app/src/
 │   │   └── logout.data.ts
 │   ├── game/                        # @lib/game — game data factories, session recovery
 │   │   └── rulesets/                # cross-runtime: ruleset config schemas + codec
-│   ├── exercise/                    # exercise ruleset schemas + solo-participant upload
-│   ├── training/                    # routine start/step-advance data factories
+│   ├── training/                    # training umbrella — trivia, exercises, routines (D308)
+│   │   ├── exercises/               # exercise ruleset schemas + solo-participant upload
+│   │   ├── routines/                # routine start/step-advance data factories
+│   │   └── trivia/                  # trivia play data factories
 │   ├── stats/                       # statistics overview formatting
-│   ├── trivia/                      # trivia play data factories
 │   ├── ui/                          # shared layout/toggle data factories
 │   └── utils/                       # @utils (note: alias maps here, not to top-level utils/)
 ├── utils/                           # @utils — widely reused pure helpers
@@ -53,10 +54,11 @@ app/src/
 ├── modules/
 │   ├── ui/                          # portable OOP (*.module.ts)
 │   ├── game/                        # *.engine.module.ts, *.payload.module.ts
-│   ├── exercise/                    # *.engine.module.ts + engine registries (training exercises)
-│   ├── training/                    # routine orchestration (*.module.ts)
+│   ├── training/                    # training umbrella — trivia, exercises, routines (D308)
+│   │   ├── exercises/               # *.engine.module.ts + engine registries (training exercises)
+│   │   ├── routines/                # routine orchestration (*.module.ts)
+│   │   └── trivia/                  # non-GameEngine client tools (*.module.ts)
 │   ├── stats/                       # pure statistics aggregation (*.module.ts, D258)
-│   ├── trivia/                      # non-GameEngine client tools (*.module.ts)
 │   └── dartbot/                     # simulated opponent (*.module.ts, *.strategy.module.ts)
 ├── components/
 │   ├── ui/                          # portable Astro + Alpine wiring

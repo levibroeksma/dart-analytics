@@ -82,7 +82,7 @@ Reason: The doc calls itself the authoritative `app/src/` layout, so an alias mi
 Consequences: Adding a path alias is now a two-file change — `app/tsconfig.json` and this doc — plus `app/vitest.config.ts` unless the alias is `@styles`-like and allowlisted. The gate parses the table by line shape (`| `@name/*` | ... |`), so reformatting that table into a non-table form breaks the check rather than silently passing; the table must stay a pipe table. The tree portion of the same document is still unenforced — nine missing `lib/`/`modules/` trees were the other half of #347 and no gate would have caught them either.
 Supersedes: none.
 
-### D303 — `training/` is the umbrella domain; trivia and exercises are its sub-domains
+### D308 — `training/` is the umbrella domain; trivia and exercises are its sub-domains
 Status: Accepted · Date: 2026-09-17 · Refines: D261, D265
 Decision: `lib/`, `modules/` and `components/layout/` each carry one `training/` domain with three children — `trivia/`, `exercises/`, `routines/`. `docs/architecture/09-Training/` and `docs/game-rules/training/` mirror it. `components/layout/games/`, `services/exercise-rulesets/` and `docs/game-rules/rulesets/` stay outside the umbrella.
 Reason: D265 retired "trivia" as a UI category — Quick Subtract is a flat card under `/training`, a sibling of Balanced Training — but only the page routes moved, leaving three source folders named after an IA that no longer exists (issue #297). `/training` bundles trivia tools and routine exercises, so one umbrella with named sub-domains says what the app is, where three flat siblings said what it used to be.
