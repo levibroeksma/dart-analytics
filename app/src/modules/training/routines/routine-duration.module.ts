@@ -5,7 +5,7 @@ import type {
 
 /**
  * A routine is one focused training block and may not exceed sixty minutes of
- * active training (09-training-routines.md §7). Its duration is the sum of its
+ * active training (09-Training/01-Routines.md §7). Its duration is the sum of its
  * steps and is never stored independently (§6), so this cannot be a database
  * CHECK — a CHECK cannot sum sibling rows — and the repository uses no
  * triggers. It is validated here and called from every routine write.

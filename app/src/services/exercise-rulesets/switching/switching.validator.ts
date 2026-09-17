@@ -5,7 +5,7 @@ import type { ExerciseConfigValidationResult } from "@services/types";
 /**
  * Switching v1 asserts only that the target list and scoring parse: the
  * ruleset has no mode pair to cross-check and no dart rows to bound
- * (09-training-routines.md §17). The §7 sixty-minute cap spans a whole
+ * (09-Training/01-Routines.md §17). The §7 sixty-minute cap spans a whole
  * routine, so it belongs to `modules/training/routine-duration.module.ts`,
  * not here.
  */

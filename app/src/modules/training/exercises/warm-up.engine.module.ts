@@ -42,7 +42,7 @@ export function resolveWarmUpPhaseDurations(
 
 /**
  * Warm-Up: ordered timed sections, no dart input, no score
- * (09-training-routines.md §16). One `EXERCISE_SECTION` stage is appended per
+ * (09-Training/01-Routines.md §16). One `EXERCISE_SECTION` stage is appended per
  * section entered, flat under the exercise session — the session already
  * represents the exercise, so no grouping stage is created.
  *

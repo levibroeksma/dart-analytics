@@ -1,7 +1,7 @@
 /**
  * Warm-Up state, derived on every `state()` call. It carries no elapsed time:
  * an `ExerciseEngine` is deterministic with respect to its inputs,
- * configuration and ruleset (09-training-routines.md §9), so the clock lives in
+ * configuration and ruleset (09-Training/01-Routines.md §9), so the clock lives in
  * the caller and transitions arrive as `advance()` calls.
  */
 export type WarmUpState = {

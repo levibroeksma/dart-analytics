@@ -34,7 +34,7 @@ const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
 
 /**
  * What every Switching dart is aimed at: the target number's treble
- * (09-training-routines.md §17 writes the sequence as `T20 → T19 → T18`,
+ * (09-Training/01-Routines.md §17 writes the sequence as `T20 → T19 → T18`,
  * and the seeded scoring pays the treble most). Every ring on the target
  * still scores, so the zone is intent only — `pointsFor` reads the ring
  * that was hit, never this. It is stamped because `darts` requires an
@@ -47,7 +47,7 @@ const INTENDED_ZONE_KEY = "TREBLE" as const;
 /**
  * Points for one dart already known to have been thrown at `intendedTarget`
  * — a dart that landed on a different number than the visit's own current
- * target always scores 0 ("outside", 09-training-routines.md §14/§17).
+ * target always scores 0 ("outside", 09-Training/01-Routines.md §14/§17).
  */
 function pointsFor(
   intendedTarget: number,
@@ -128,7 +128,7 @@ export function foldSwitchingState(
 /**
  * Switching: cycles a fixed target list dart by dart, scoring each dart by
  * the ring it hit relative to its own visit's current target
- * (09-training-routines.md §17, design spec 2026-09-11 §5.2). One visit —
+ * (09-Training/01-Routines.md §17, design spec 2026-09-11 §5.2). One visit —
  * one `TurnFact` — is one full pass through `config.targets`. The engine
  * owns no clock: completion arrives only through `expireTimer()`, called by
  * the (not yet built) controller driving the step's countdown, exactly like

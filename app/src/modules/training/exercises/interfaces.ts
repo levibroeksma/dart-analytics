@@ -3,7 +3,7 @@ import type { DartObservation, EngineFacts } from "@modules/types";
 
 /**
  * Contract every exercise engine implements, parallel to `GameEngine` and
- * never built on top of one (09-training-routines.md §10). `TState` is the
+ * never built on top of one (09-Training/01-Routines.md §10). `TState` is the
  * shape `state()` and `advance()` return.
  */
 export interface ExerciseEngine<TState> {
@@ -27,7 +27,7 @@ export interface ExerciseEngineFactory<TConfig, TState> {
 
 /**
  * Contract for an exercise engine that operates in analytics mode
- * (09-training-routines.md §13) — one that takes dart input rather than
+ * (09-Training/01-Routines.md §13) — one that takes dart input rather than
  * advancing through timed phases. Sibling to `ExerciseEngine`, not an
  * extension of it: nothing here has a phase to `advance()` through, and
  * nothing in `ExerciseEngine` has an observation to `record()`. Shaped like

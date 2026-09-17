@@ -19,7 +19,7 @@ export function getExerciseRulesetValidator(
  * The exercise rulesets whose engines write turns and darts, and so upload an
  * events batch (`POST /api/sessions/:id/events/batch`). `WARM_UP_V1` is
  * deliberately absent: it persists nothing but the session row itself
- * (09-training-routines.md §16), so a batch arriving for a Warm-Up session is
+ * (09-Training/01-Routines.md §16), so a batch arriving for a Warm-Up session is
  * a client bug, not data to store.
  */
 const DART_WRITING_RULESET_VERSION_KEYS = new Set([

@@ -113,7 +113,7 @@ export function foldDoublePatternState(
 /**
  * Double Pattern: cycles a fixed list of double-number patterns, one visit
  * per pattern — each visit throws as many darts as its own pattern has
- * entries (09-training-routines.md §17, design spec 2026-09-11 §5.3). Every
+ * entries (09-Training/01-Routines.md §17, design spec 2026-09-11 §5.3). Every
  * hit double scores 1 point; nothing else scores. The engine owns no clock:
  * completion arrives only through `expireTimer()` (D264), exactly like
  * `SwitchingEngine`.

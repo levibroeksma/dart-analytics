@@ -2,7 +2,7 @@ import type { ExerciseRulesetVersionKey } from "@lib/types";
 
 /**
  * One resolved step of a routine as stored in the training snapshot. Resolved,
- * not template-shaped: any adaptive resolution (09-training-routines.md §21)
+ * not template-shaped: any adaptive resolution (09-Training/01-Routines.md §21)
  * has already been applied before this reaches the runtime.
  */
 export type RoutineStepSnapshot = {

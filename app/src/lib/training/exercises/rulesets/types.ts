@@ -5,7 +5,7 @@ import { z } from "zod";
  * `RulesetVersionKey` union. `scripts/check-game-wiring.sh` requires every
  * key in `services/rulesets/registry.ts` to declare a capture/input mode
  * pair and game pages; an exercise ruleset has neither
- * (09-training-routines.md §24).
+ * (09-Training/01-Routines.md §24).
  */
 export type ExerciseRulesetVersionKey =
   "WARM_UP_V1" | "SWITCHING_V1" | "DOUBLE_PATTERN_V1";
@@ -65,7 +65,7 @@ export type WarmUpEngineInput = z.infer<typeof WarmUpEngineInputSchema>;
 /**
  * Per-zone points for one Switching target: a dart that lands on the
  * intended target number scores by which ring it hit; a dart landing
- * anywhere else scores 0 ("outside", 09-training-routines.md §14/§17) —
+ * anywhere else scores 0 ("outside", 09-Training/01-Routines.md §14/§17) —
  * there is deliberately no `outside` key, since it is not a configurable
  * value.
  */
@@ -82,7 +82,7 @@ export const SwitchingScoringConfig = z
  * by dart for the step's full duration — one visit is one full pass through
  * `targets` (design spec 2026-09-11 §5.2). Targets stop at 20: the bull is
  * not a Switching target, because every dart is aimed at its target's
- * treble (`INTENDED_ZONE_KEY`, 09-training-routines.md §17) and the bull has
+ * treble (`INTENDED_ZONE_KEY`, 09-Training/01-Routines.md §17) and the bull has
  * none (D297). Warm-Up's own targets still admit 25 — it aims at no ring.
  */
 export const SwitchingV1Config = z
