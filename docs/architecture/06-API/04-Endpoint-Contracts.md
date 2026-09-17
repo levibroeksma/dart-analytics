@@ -371,6 +371,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines` (not implemented) | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
 | `GET /api/routines/:routineId` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 | `GET /api/routines/:routineId/execution` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
+| `GET /api/exercise-templates` (not implemented) | *planned view, not yet defined* | `ExerciseTemplateCatalogEntry[]` | 2026-09-17 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -385,6 +386,26 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 **Analytics-only darts:** `GET /api/sessions/:sessionId/darts` (`v_dart_analytics`) includes only darts with complete intention data and returns an empty array for recreational sessions — expected behaviour, not an error. <!-- 2026-07-12 -->
 
 **Authorization:** All reads are player-scoped; filters applied at view level or service layer ensure only the requesting player's data is returned.
+
+---
+
+## Custom Routine Write Contracts (planned, Phase 1 — unbuilt)
+
+Per D306 and `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
+§3.4. Not implemented — documented ahead of the builder so implementation has
+a frozen target, the same approach D299 took for the read side.
+
+| Endpoint | Body | Response | Ownership |
+| -------- | ---- | -------- | --------- |
+| `POST /api/routines` | `CreateRoutineRequest` | `RoutineExecution` | creates under caller's `player_id` |
+| `PUT /api/routines/:routineId` | `UpdateRoutineRequest` | `RoutineExecution` | owner only |
+| `DELETE /api/routines/:routineId` | — | `204` | owner only, never a system routine |
+
+`PUT` replaces `name`/`description`/the full ordered `steps[]` — no partial-reorder
+patch. `sequence_number` is assigned server-side from array position and is
+never accepted from the request body. Any write against a system routine
+(`is_system_template = TRUE`) or a routine owned by another player returns the
+standard 403/404 domain error envelope.
 
 ---
 
@@ -444,6 +465,16 @@ const RoutineExecution = z.object({         // GET /routines/:id and /:id/execut
   steps: z.array(RoutineStep),
 });
 
+const RoutineStepInput = z.object({         // request shape inside steps[] — POST/PUT /routines
+  exerciseTemplateId: z.string(),
+  durationValue: z.number().int(), durationTypeKey: z.string(),
+});
+const CreateRoutineRequest = z.object({     // POST /routines body → RoutineExecution
+  name: z.string(), description: z.string().nullable(),
+  steps: z.array(RoutineStepInput),
+});
+const UpdateRoutineRequest = CreateRoutineRequest; // PUT /routines/:id body — full replace, same shape
+
 const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch — counts only
   created: z.object({ stages: z.number().int(), turns: z.number().int(), darts: z.number().int() }),
 });
@@ -451,7 +482,7 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
 
 Every lookup key a read DTO projects is nullable exactly when its view column is. Since migration `0033` the read model LEFT JOINs the lookups a training exercise session leaves NULL, so `gameTypeKey`/`gameTypeName`/`captureModeKey`/`inputModeKey`/`rulesetVersionKey` arrive as `null` for such a session rather than the session vanishing from the response. <!-- 2026-09-16 -->
 
-All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview).
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview). `POST`/`PUT /api/routines` return the updated `RoutineExecution`; `CreateRoutineRequest`/`UpdateRoutineRequest` (planned, D306) are the request DTOs.
 
 ---
 
