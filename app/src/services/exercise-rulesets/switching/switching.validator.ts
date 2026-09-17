@@ -1,4 +1,4 @@
-import { SwitchingV1Config } from "@lib/exercise/rulesets/types";
+import { SwitchingV1Config } from "@lib/training/exercises/rulesets/types";
 import type { ExerciseRulesetValidator } from "@services/interfaces";
 import type { ExerciseConfigValidationResult } from "@services/types";
 

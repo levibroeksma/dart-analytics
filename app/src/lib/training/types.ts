@@ -1,3 +1,5 @@
+export * from "./exercises/types";
+
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
 import type { WarmUpState, RoutineStepSummary } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
@@ -6,8 +8,8 @@ import type {
   StartTrainingResponseData,
   StartTrainingStepResponseData,
 } from "@client/api/types";
-import type { SwitchingEngine } from "@modules/exercise/switching.engine.module";
-import type { DoublePatternEngine } from "@modules/exercise/double-pattern.engine.module";
+import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
+import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { finishingStep } from "./finishing-step.data";

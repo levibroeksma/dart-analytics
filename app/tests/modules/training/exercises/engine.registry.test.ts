@@ -3,7 +3,7 @@ import {
   getExerciseEngineFactory,
   registerExerciseEngineFactory,
   resetExerciseEngineRegistry,
-} from "@modules/exercise/engine.registry";
+} from "@modules/training/exercises/engine.registry";
 
 const stubFactory = {
   exerciseRulesetVersionKey: "WARM_UP_V1" as const,

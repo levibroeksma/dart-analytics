@@ -1,5 +1,5 @@
 import type { DoublePatternConfigData } from "@lib/types";
-import { DoublePatternV1Config } from "@lib/exercise/rulesets/types";
+import { DoublePatternV1Config } from "@lib/training/exercises/rulesets/types";
 import type {
   DartFact,
   DartObservation,

@@ -1,4 +1,4 @@
-import { WarmUpEngineInputSchema } from "@lib/exercise/rulesets/types";
+import { WarmUpEngineInputSchema } from "@lib/training/exercises/rulesets/types";
 import type { WarmUpEngineInput } from "@lib/types";
 import { newClientKey } from "@modules/game/client-key.module";
 import type { EngineFacts, StageFact } from "@modules/types";

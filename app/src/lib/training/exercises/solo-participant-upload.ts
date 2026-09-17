@@ -1,4 +1,4 @@
-import { SOLO_PARTICIPANT_REF } from "@modules/exercise/solo-participant.module";
+import { SOLO_PARTICIPANT_REF } from "@modules/training/exercises/solo-participant.module";
 import type { EngineFacts } from "@modules/types";
 
 /**

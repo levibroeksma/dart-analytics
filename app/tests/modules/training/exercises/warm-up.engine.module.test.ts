@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   warmUpEngineFactory,
   resolveWarmUpPhaseDurations,
-} from "@modules/exercise/warm-up.engine.module";
+} from "@modules/training/exercises/warm-up.engine.module";
 import type { WarmUpEngineInput } from "@lib/types";
 
 /**

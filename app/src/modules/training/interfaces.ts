@@ -1,3 +1,4 @@
+export * from "./exercises/interfaces";
 export * from "./trivia/interfaces";
 
 import type { TrainingState } from "./types";

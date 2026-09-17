@@ -1,4 +1,8 @@
 // @vitest-environment jsdom
+// Confirmed after #297: balancedTrainingPlay's engine imports now resolve
+// under @modules/training/exercises/ and @lib/training/exercises/ (moved
+// from @modules/exercise/ and @lib/exercise/); import specifiers only, so
+// this file's assertions are unaffected.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@client/api/training-sessions", () => ({

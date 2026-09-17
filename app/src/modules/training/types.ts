@@ -1,3 +1,4 @@
+export * from "./exercises/types";
 export * from "./trivia/types";
 
 import type { ExerciseRulesetVersionKey } from "@lib/types";

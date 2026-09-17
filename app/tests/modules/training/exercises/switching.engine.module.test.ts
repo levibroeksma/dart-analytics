@@ -4,7 +4,7 @@ import {
   foldSwitchingState,
   SwitchingEngine,
   switchingEngineFactory,
-} from "@modules/exercise/switching.engine.module";
+} from "@modules/training/exercises/switching.engine.module";
 import type { SwitchingConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import { buildEventsBatch } from "@modules/game/events.payload.module";

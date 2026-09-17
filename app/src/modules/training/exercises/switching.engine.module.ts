@@ -1,5 +1,5 @@
 import type { SwitchingConfigData } from "@lib/types";
-import { SwitchingV1Config } from "@lib/exercise/rulesets/types";
+import { SwitchingV1Config } from "@lib/training/exercises/rulesets/types";
 import type {
   DartFact,
   DartObservation,

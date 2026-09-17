@@ -3,7 +3,7 @@ import {
   getDartExerciseEngineFactory,
   registerDartExerciseEngineFactory,
   resetDartExerciseEngineRegistry,
-} from "@modules/exercise/dart-engine.registry";
+} from "@modules/training/exercises/dart-engine.registry";
 
 const stubFactory = {
   exerciseRulesetVersionKey: "SWITCHING_V1" as const,

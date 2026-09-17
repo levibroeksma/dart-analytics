@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
+import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 
 describe("resolveSoloParticipantRef", () => {
   it("replaces every turn's solo participantRef with the real one", () => {

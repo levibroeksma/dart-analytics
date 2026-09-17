@@ -4,7 +4,7 @@ import {
   DoublePatternEngine,
   doublePatternEngineFactory,
   foldDoublePatternState,
-} from "@modules/exercise/double-pattern.engine.module";
+} from "@modules/training/exercises/double-pattern.engine.module";
 import type { DoublePatternConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 

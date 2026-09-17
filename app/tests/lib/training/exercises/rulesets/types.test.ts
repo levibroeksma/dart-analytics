@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   SwitchingV1Config,
   WarmUpV1Config,
-} from "@lib/exercise/rulesets/types";
+} from "@lib/training/exercises/rulesets/types";
 
 describe("SwitchingV1Config", () => {
   const VALID = {
