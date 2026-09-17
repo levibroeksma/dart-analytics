@@ -561,6 +561,17 @@ describe("tuodPlay", () => {
       await component.init.call(component);
       expect(() => component.destroy.call(component)).not.toThrow();
     });
+
+    it("formats the remaining countdown label through the shared helper", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.remainingLabel.call(component)).toBe("15:00");
+    });
   });
 
   describe("togglePause", () => {

@@ -200,6 +200,29 @@ export type BotQuickScoreFold = {
   dartsThrown: number;
 };
 
+/** The DARTBOT variant of `SeatFact`, narrowed once so every bot-visit path
+ * can take `botSeat.dartbot` without re-narrowing. */
+export type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
+
+/** The store fields the MINUTES countdown reads and writes. Structural, so
+ * any play store carrying these four fields can use these helpers. */
+export type CountdownGame = {
+  timerRemainingMs?: number | null;
+  timerStartedAt?: string | null;
+  timerExpired?: boolean;
+  timerPaused?: boolean;
+};
+
+/** The engine surface the countdown drives: expiry is the engine's own
+ * completion authority, not the store's. */
+export type ExpirableEngine = { expireTimer(): void };
+
+/** The config fields the MINUTES branch reads. */
+export type CountdownConfig = {
+  durationType: string;
+  durationValue: number;
+};
+
 /**
  * The `$store` shape every play page reads, parameterised by the game's own
  * config snapshot. Written once rather than per game: the two copies had

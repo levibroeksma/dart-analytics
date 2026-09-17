@@ -25,15 +25,21 @@ import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  formatRemaining,
+  maybeResumeCountdown,
+  startCountdown,
+} from "@lib/game/play-countdown";
 import {
   classifyDoubleAttempts,
   type CheckoutVisitDarts,
 } from "@modules/game/double-attempt.module";
 import { turnsBeforeVisit } from "@modules/game/turn-log.module";
 import type {
+  DartbotSeat,
   RulesetVersionKey,
   Seated,
-  SeatFact,
   TuodSnapshot,
 } from "@lib/types";
 import type {
@@ -73,20 +79,6 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "TUOD_V1";
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 function throwOneDart(
   remaining: number,
@@ -142,13 +134,6 @@ function throwBotQuickScoreDart(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.currentTarget;
   return throwOneDart(remaining, botSeat, dartIndex);
-}
-
-function formatRemaining(ms: number | null | undefined): string {
-  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 /**
@@ -239,67 +224,6 @@ function computeStats(
       statsFor(seat, facts, config, inputModeKey),
     ),
   };
-}
-
-/**
- * Starts the MINUTES countdown, resuming from the persisted remaining time
- * when a prior session left one and starting a fresh segment otherwise.
- * Mirrors `score-training-play.data.ts`'s `startCountdown`.
- */
-function startCountdown(
-  game: TuodPlayContext["$store"]["game"],
-  durationValue: number,
-  engine: TuodEngine,
-): SegmentTimer {
-  const resumedRemainingMs = game.timerRemainingMs;
-  const durationMinutes =
-    resumedRemainingMs != null ? resumedRemainingMs / 60000 : durationValue;
-
-  game.timerRemainingMs = durationMinutes * 60000;
-  if (resumedRemainingMs == null) {
-    game.timerStartedAt = new Date().toISOString();
-  }
-
-  const timer = new SegmentTimer({
-    totalMinutes: durationMinutes,
-    intervalMinutes: durationMinutes,
-    onTick: (secondsRemaining) => {
-      game.timerRemainingMs = secondsRemaining * 1000;
-    },
-    onComplete: () => {
-      game.timerExpired = true;
-      engine.expireTimer();
-    },
-  });
-  timer.start();
-  return timer;
-}
-
-type TuodConfig = NonNullable<
-  TuodPlayContext["$store"]["game"]["configSnapshot"]
->;
-
-/**
- * `init()`'s own MINUTES branch, extracted so init() reads as one decision
- * (resume, mark already-expired, or do nothing) instead of nested
- * conditionals — mirrors `one-twenty-one-play.data.ts`'s own
- * `maybeResumeCountdown`.
- */
-function maybeResumeCountdown(
-  game: TuodPlayContext["$store"]["game"],
-  config: TuodConfig,
-  engine: TuodEngine,
-): SegmentTimer | null {
-  if (config.durationType !== "MINUTES") return null;
-  if (game.timerExpired) {
-    engine.expireTimer();
-    return null;
-  }
-  const timer = startCountdown(game, config.durationValue, engine);
-  if (game.timerPaused) {
-    timer.stop();
-  }
-  return timer;
 }
 
 /** Whether `submitVisit` may record an attempt right now. */

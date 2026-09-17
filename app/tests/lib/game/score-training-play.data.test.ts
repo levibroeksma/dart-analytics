@@ -718,6 +718,17 @@ describe("scoreTrainingPlay", () => {
 
       expect(SegmentTimer).not.toHaveBeenCalled();
     });
+
+    it("formats the remaining countdown label through the shared helper", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.remainingLabel.call(component)).toBe("15:00");
+    });
   });
 
   describe("togglePause", () => {
