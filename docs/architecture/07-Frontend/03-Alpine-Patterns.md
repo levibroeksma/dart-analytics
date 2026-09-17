@@ -1,7 +1,7 @@
 <!--
 status: canonical
 scope: frontend/alpine-patterns
-read-when: Alpine stores, forms, data components, persist
+read-when: Alpine stores, data components, persist
 updated: 2026-08-30
 -->
 
@@ -9,7 +9,7 @@ updated: 2026-08-30
 
 > **Version:** 0.3.0
 >
-> Alpine.js entry factory, store/form/data patterns, and `$persist` rules.
+> Alpine.js entry factory, store/data patterns, and `$persist` rules.
 >
 > Folder layout: `02-Folder-Structure.md`. Module boundaries: `04-Modules-And-OOP.md`.
 
@@ -19,7 +19,7 @@ updated: 2026-08-30
 
 This document defines how Alpine.js is bootstrapped and how client state is structured.
 
-Alpine is the interactive layer on prerendered Astro shells (`01-Rendering-Strategy.md`). API calls are orchestrated by pages and forms — not by modules (`02-Folder-Structure.md`).
+Alpine is the interactive layer on prerendered Astro shells (`01-Rendering-Strategy.md`). API calls are orchestrated by pages — not by modules (`02-Folder-Structure.md`).
 
 ---
 
@@ -30,11 +30,11 @@ Astro page (shell)
     ↓
 Alpine.data (*.data.ts) — x-data="componentState()"
     ↓
-Alpine.store (*.store.ts) / form (*.form.ts)
+Alpine.store (*.store.ts)
     ↓
 Module (*.engine.module.ts, *.payload.module.ts)
     ↓
-@client/api/ (pages/forms/stores only)
+@client/api/ (pages/stores only)
 ```
 
 ---
@@ -105,14 +105,6 @@ export function registerStores(Alpine: Alpine) {
 **`game.store.ts`** exports a factory returning the store object. Gameplay blobs are keyed by `gameTypeKey` (D09 — one active session per game type). **`outbox.store.ts`** holds completed-but-unsent batches until the server confirms them (see Completed-Batch Outbox below).
 
 Timer **state** (`timerRemainingMs`, `timerStartedAt`) lives in `game.store.ts` for recovery. The `SegmentTimer` module (`modules/ui/segment-timer.module.ts`) drives display only.
-
----
-
-# Form Pattern
-
-Forms hold draft UI interaction state. In v1 they **substitute for `player_settings`** (D77): last-used capture mode, input mode, template selection. Values are sent on every `POST /api/sessions` per D60.
-
-`$persist` is allowed in `*.form.ts` for draft preferences only — not for submitted payloads.
 
 ---
 
@@ -199,12 +191,11 @@ Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Al
 
 # `$persist` Scope
 
-`$persist` is allowed **only** in `*.store.ts` and `*.form.ts`.
+`$persist` is allowed **only** in `*.store.ts`.
 
 | Persisted | Never persisted |
 | --------- | --------------- |
 | Gameplay / session recovery (`stores/`) | Modal open state |
-| Draft UI prefs (`forms/`) | Toast queue |
 | Timer fields in `game.store.ts` | Chart hover/selection |
 | `idempotencyKey` until batch ACK | Ephemeral `.data.ts` fields |
 | Completed-but-unsent batches (`outbox`) | — |

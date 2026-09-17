@@ -14,7 +14,6 @@
       "@auth/*": ["./src/lib/auth/*"],
       "@server/*": ["./src/lib/server/*"],
       "@stores/*": ["./src/stores/*"],
-      "@forms/*": ["./src/forms/*"],
       "@modules/*": ["./src/modules/*"],
       "@utils/*": ["./src/lib/utils/*"],
       "@styles/*": ["./src/styles/*"],

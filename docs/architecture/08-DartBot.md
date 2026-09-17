@@ -179,7 +179,7 @@ The precedent for a `.module.ts` holding pure functions rather than a class is n
 
 ```
 modules/dartbot/*  →  @lib/game/board/*, @modules/game/types, @utils
-modules/dartbot/*  ↛  @client/api, @stores, @forms, Alpine, services/, repositories/,
+modules/dartbot/*  ↛  @client/api, @stores, Alpine, services/, repositories/,
                       @lib/game/rulesets/*, @modules/game/seat-rota.module
 ```
 

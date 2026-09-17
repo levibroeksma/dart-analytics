@@ -731,11 +731,11 @@ Astro page (prerender + middleware)
     ↓
 Alpine.data (*.data.ts) — x-data="componentState()"
     ↓
-Alpine.store / form (*.store.ts, *.form.ts)
+Alpine.store (*.store.ts)
     ↓
 Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
     ↓
-@client/api/ (orchestrated by pages/forms/stores only)
+@client/api/ (orchestrated by pages/stores only)
 ```
 
 ## Application
@@ -743,7 +743,7 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 - Alpine boots only via `lib/client/alpine/app.factory.ts` (`@astrojs/alpinejs` entrypoint).
 - Alpine v3 shorthand: `:attr` and `@event` — not `x-bind:*` / `x-on:*` (D100; Astro `{}` linter escape only).
 - No `x-init`. Always `x-data="factory()"`.
-- `$persist` only in `*.store.ts` and `*.form.ts`.
+- `$persist` only in `*.store.ts`.
 - Modules never import `@client/api` or Alpine.
 - Client recovery auto-cleans on session mismatch (D88).
 

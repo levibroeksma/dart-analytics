@@ -1,3 +1,6 @@
+// Confirmed after #297: the three validators' `@lib/exercise/rulesets/types`
+// import moved to @lib/training/exercises/rulesets/types; import specifiers
+// only, so this file's assertions are unaffected.
 import { describe, expect, it } from "vitest";
 import {
   exerciseRulesetWritesDarts,

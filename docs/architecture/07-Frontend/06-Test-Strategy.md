@@ -68,12 +68,12 @@ Rationale and the bounded scope: **D303** (`decisions/testing.md`).
 
 # A Wrapped Store Is Tested Through The Real Store
 
-`finishingStep()` (`app/src/lib/training/finishing-step.data.ts`) wraps `tuodPlay()` so the Finishing step's completion also advances the routine. A test that mocks `tuodPlay` wholesale proves the wrapper's own contract, but never proves the inner store reaches the override — and that seam is where every Finishing-step dead-end has lived (#216, #357, #370).
+`finishingStep()` (`app/src/lib/training/routines/finishing-step.data.ts`) wraps `tuodPlay()` so the Finishing step's completion also advances the routine. A test that mocks `tuodPlay` wholesale proves the wrapper's own contract, but never proves the inner store reaches the override — and that seam is where every Finishing-step dead-end has lived (#216, #357, #370).
 
 So the step has two test files, deliberately:
 
-- `app/tests/lib/training/finishing-step.data.test.ts` — `vi.mock`s `tuodPlay`. Cheap, independent of TUOD's rules, pins advance-on-success / hold-on-failure / exit-to-`/training`.
-- `app/tests/lib/training/finishing-step-seam.test.ts` — the **real** store and engine, with only `@client/api/sessions` and `SegmentTimer` mocked. Drives `recordDart` → `showFinishConfirm` → `confirmFinish` → the routine's advance.
+- `app/tests/lib/training/routines/finishing-step.data.test.ts` — `vi.mock`s `tuodPlay`. Cheap, independent of TUOD's rules, pins advance-on-success / hold-on-failure / exit-to-`/training`.
+- `app/tests/lib/training/routines/finishing-step-seam.test.ts` — the **real** store and engine, with only `@client/api/sessions` and `SegmentTimer` mocked. Drives `recordDart` → `showFinishConfirm` → `confirmFinish` → the routine's advance.
 
 The module-scope `vi.mock` of `tuodPlay` is why these cannot share a file.
 

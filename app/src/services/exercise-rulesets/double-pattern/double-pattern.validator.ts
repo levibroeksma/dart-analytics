@@ -1,10 +1,10 @@
-import { DoublePatternV1Config } from "@lib/exercise/rulesets/types";
+import { DoublePatternV1Config } from "@lib/training/exercises/rulesets/types";
 import type { ExerciseRulesetValidator } from "@services/interfaces";
 import type { ExerciseConfigValidationResult } from "@services/types";
 
 /**
  * Double Pattern v1 asserts only that the pattern list parses — no mode
- * pair, no dart rows to bound (09-training-routines.md §17). The §7
+ * pair, no dart rows to bound (09-Training/01-Routines.md §17). The §7
  * sixty-minute cap spans a whole routine, handled elsewhere.
  */
 export const doublePatternValidator: ExerciseRulesetValidator = {

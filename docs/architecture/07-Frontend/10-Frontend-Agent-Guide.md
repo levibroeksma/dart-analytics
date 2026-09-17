@@ -36,7 +36,6 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 | Suffix | Role |
 | ------ | ---- |
 | `.store.ts` | Alpine store factory |
-| `.form.ts` | Form/draft factory (v1 `player_settings` substitute) |
 | `.data.ts` | Alpine.data factory |
 | `.module.ts` | Portable UI class |
 | `.engine.module.ts` | Game engine |
@@ -69,14 +68,14 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 ## 6. Import direction
 
 ```
-pages / forms              →  @client/api
+pages                      →  @client/api
 stores                     →  @client/api (recovery bootstrap only)
 modules/*                  →  never @client/api, never Alpine
 ```
 
 ## 7. `$persist`
 
-Only in `*.store.ts` and `*.form.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91). Store factories take a `PersistFactory` and call it once per field (D120) — never reuse one `persist()` across fields.
+Only in `*.store.ts`. Persisted shapes are additive-only (D89); a single `_v` per store discards on incompatible bump (D91). Store factories take a `PersistFactory` and call it once per field (D120) — never reuse one `persist()` across fields.
 
 ## 8. Recovery
 
@@ -131,7 +130,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - HTTP in `modules/`
 - Server imports in browser code
 - Hand-authored DTO types duplicating API contract
-- Inline `export type`/`export interface` in `.store.ts`/`.module.ts`/`.data.ts`/`.form.ts` — belongs in that folder's `types.ts`/`interfaces.ts`
+- Inline `export type`/`export interface` in `.store.ts`/`.module.ts`/`.data.ts` — belongs in that folder's `types.ts`/`interfaces.ts`
 - Statistics API calls before post-v1 endpoints ship
 - Production behavior without a preceding failing test
 - Skipping `npm test` in validation

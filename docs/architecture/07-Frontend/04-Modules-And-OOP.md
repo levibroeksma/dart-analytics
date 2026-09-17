@@ -28,11 +28,11 @@ This document defines where object-oriented code belongs in the frontend, how po
 | `modules/ui/*.module.ts` | **Yes** | `new Timer(opts)`, lifecycle methods |
 | `modules/game/*.engine.module.ts` | **Yes** | `GameEngine` contract — one shape for every game (Pattern 18) |
 | `modules/game/*.payload.module.ts` | Prefer functions | Assembles typed API payloads; one generic builder, not one per game |
-| `modules/exercise/*.engine.module.ts` | **Yes** | `ExerciseEngine<TState>` — the training-exercise parallel to `GameEngine`, each engine a class reached through an exported `ExerciseEngineFactory` and resolved by `engine.registry.ts`/`dart-engine.registry.ts`, not the game-wiring pipeline |
-| `modules/training/*.module.ts` | Prefer functions | Routine orchestration — duration validation, per-step summaries, and the `trainingEngine` object literal. No classes today; under `modules/` because the routine family is a unit |
+| `modules/training/exercises/*.engine.module.ts` | **Yes** | `ExerciseEngine<TState>` — the training-exercise parallel to `GameEngine`, each engine a class reached through an exported `ExerciseEngineFactory` and resolved by `engine.registry.ts`/`dart-engine.registry.ts`, not the game-wiring pipeline |
+| `modules/training/routines/*.module.ts` | Prefer functions | Routine orchestration — duration validation, per-step summaries, and the `trainingEngine` object literal. No classes today; under `modules/` because the routine family is a unit |
 | `modules/stats/*.module.ts` | Prefer functions | Pure statistics aggregation over view rows; the application judgment D258 keeps out of SQL. Class-free by preference, under `modules/` because the aggregation family is a unit, not because it is stateful |
-| `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/10-trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/trivia/` instead) |
-| `stores/`, `forms/`, `*.data.ts` | **No** | Object factories |
+| `modules/training/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/09-Training/02-Trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/training/trivia/` instead) |
+| `stores/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |
 
 Classes are permitted **only** under `src/modules/`.
@@ -81,7 +81,7 @@ Every `components/ui/<Name>.astro` has exactly one `modules/ui/<name>.module.ts`
 | Rule | `modules/ui/` + `components/ui/` |
 | ---- | ---------------------------------- |
 | May import | Paired module, Tailwind utilities |
-| Must not import | `@stores`, `@forms`, `@pages`, `@client/api`, `@services`, `@repositories` |
+| Must not import | `@stores`, `@pages`, `@client/api`, `@services`, `@repositories` |
 | Styling | Tailwind utilities — no app-specific design tokens |
 | Copy-paste | Drop both folders into another Astro+Alpine project; adjust classes |
 
@@ -122,7 +122,7 @@ Shared ruleset configuration schemas live in `lib/game/rulesets/` — see `02-Fo
 | `clientKey` (per turn/dart) | Engine / payload assembly | Minted at fact creation |
 | `Idempotency-Key` (batch header) | `game.store.ts` | Minted at session-complete; held until batch ACK |
 
-Pages/forms pass the store-held idempotency key to `@client/api` on `POST .../events/batch`.
+Pages pass the store-held idempotency key to `@client/api` on `POST .../events/batch`.
 
 ---
 
@@ -160,7 +160,7 @@ pipeline (`09-Adding-A-Game.md`) entirely:
   obligation still applies (root `CLAUDE.md` Hard Invariants): name the fact
   shape before writing it, even though V1 defers it.
 
-`docs/game-rules/trivia/README.md` is the source-material entry point for
+`docs/game-rules/training/trivia/README.md` is the source-material entry point for
 tools built this way.
 
 ---
@@ -169,8 +169,8 @@ tools built this way.
 
 | Anti-pattern | Reason |
 | ------------ | ------ |
-| Classes in `stores/` or `forms/` | OOP boundary violation |
-| `@client/api` in `modules/` | HTTP belongs in pages/forms/stores |
+| Classes in `stores/` | OOP boundary violation |
+| `@client/api` in `modules/` | HTTP belongs in pages/stores |
 | Alpine import in `modules/` | Factory entrypoint only |
 | Portable UI importing `@stores` | Breaks copy-paste contract |
 | Duplicating API validation as source of truth | Drift from frozen contract |
@@ -189,7 +189,7 @@ tools built this way.
 
 | Document | Purpose |
 | -------- | ------- |
-| `03-Alpine-Patterns.md` | Stores, forms, factory |
+| `03-Alpine-Patterns.md` | Stores, factory |
 | `02-Folder-Structure.md` | Suffix table |
 | `../06-API/04-Endpoint-Contracts.md` | `EventsBatchRequest`, `DartFact` |
 | `../06-API/03-Shared-Conventions.md` | Zod `z.infer<>` type rules |

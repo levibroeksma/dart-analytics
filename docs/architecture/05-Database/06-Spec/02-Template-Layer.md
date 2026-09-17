@@ -108,7 +108,7 @@ blocked while templates reference it (migration 0028).
 
 `default_configuration` holds the defaults and constraints an exercise type provides — default,
 minimum, maximum and recommended duration, and any exercise-specific defaults
-(`09-training-routines.md` §5). A routine step's own `configuration` overrides it.
+(`09-Training/01-Routines.md` §5). A routine step's own `configuration` overrides it.
 
 `exercise_ruleset_version_id` pins the exercise ruleset version `default_configuration` was written
 against, so a routine step resolves one version rather than every version of its exercise type
@@ -252,7 +252,7 @@ Steps are the composition mechanism: a routine is an ordered list of exercise re
 
 `sequence_number` defines execution order explicitly rather than relying on insertion order.
 
-`configuration` is the **Routine Exercise Configuration** of `09-training-routines.md` §3.5: targets,
+`configuration` is the **Routine Exercise Configuration** of `09-Training/01-Routines.md` §3.5: targets,
 target sequences, patterns, game selection and exercise-specific parameters, contextual to this
 routine. Duration stays in its own two columns because it is structural and queried
 (routine duration is the sum of its steps, §6); everything else contextual lives in the JSONB.
