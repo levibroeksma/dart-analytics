@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-09-09
+updated: 2026-09-17
 -->
 
 # Frontend Modules And OOP
 
-> **Version:** 0.2.2 (derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
+> **Version:** 0.3.0 (exercise, training and stats module families added to the OOP boundary table, issue #347, 2026-09-17; prior 0.2.2 derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -28,6 +28,9 @@ This document defines where object-oriented code belongs in the frontend, how po
 | `modules/ui/*.module.ts` | **Yes** | `new Timer(opts)`, lifecycle methods |
 | `modules/game/*.engine.module.ts` | **Yes** | `GameEngine` contract — one shape for every game (Pattern 18) |
 | `modules/game/*.payload.module.ts` | Prefer functions | Assembles typed API payloads; one generic builder, not one per game |
+| `modules/exercise/*.engine.module.ts` | **Yes** | `ExerciseEngine<TState>` — the training-exercise parallel to `GameEngine`, each engine a class reached through an exported `ExerciseEngineFactory` and resolved by `engine.registry.ts`/`dart-engine.registry.ts`, not the game-wiring pipeline |
+| `modules/training/*.module.ts` | Prefer functions | Routine orchestration — duration validation, per-step summaries, and the `trainingEngine` object literal. No classes today; under `modules/` because the routine family is a unit |
+| `modules/stats/*.module.ts` | Prefer functions | Pure statistics aggregation over view rows; the application judgment D258 keeps out of SQL. Class-free by preference, under `modules/` because the aggregation family is a unit, not because it is stateful |
 | `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/10-trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/trivia/` instead) |
 | `stores/`, `forms/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |

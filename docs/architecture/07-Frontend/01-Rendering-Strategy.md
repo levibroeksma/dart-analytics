@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/rendering
 read-when: new routes, prerender vs SSR decisions
-updated: 2026-07-29
+updated: 2026-09-17
 -->
 
 # Frontend Rendering Strategy
 
-> **Version:** 0.2.0 (same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
+> **Version:** 0.3.0 (`/training` route class classified; `/statistics` restated as shipped, D258; issue #350, 2026-09-17; prior 0.2.0 same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
 >
 > Prerender-default rendering on Cloudflare Workers.
 >
@@ -113,7 +113,8 @@ The public list is **extensible** (marketing pages later). When adding a public 
 | `/` | Home |
 | `/games` | Gameplay and session flows |
 | `/profile` | Player profile |
-| `/statistics` | Post-v1 placeholder shell — no stats API calls until view-backed endpoints ship (D63) |
+| `/training` | Training routines — `/training`, `/training/quick-subtract`, `/training/balanced-training` and its `/play` page; all four `prerender = true`, same shell + client auth gate as `/games` <!-- 2026-09-17 --> |
+| `/statistics` | Shipped — the shell fetches `GET /api/statistics/overview` client-side after paint, via `stats.store.ts`. D63 deferred this endpoint post-v1; D258 is where it landed, composed from four views in the service layer <!-- 2026-09-17 --> |
 
 **Rule:** every new HTML route must be classified **public** or **protected** in this document and reflected in `middleware.ts`.
 
@@ -155,7 +156,7 @@ Use only when the browser must never see a value and prerender cannot supply it.
 
 - JWT-protected domain data (use client `fetch`)
 - gameplay or session state
-- statistics (deferred post-v1)
+- statistics (JWT-protected domain data like any other — `GET /api/statistics/overview` is read client-side, D258)
 
 ---
 
