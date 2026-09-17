@@ -268,9 +268,14 @@ jobs:
             }
 
             try {
+              // Pinned to SQUASH: main's ruleset requires linear history, so the
+              // default MERGE method is rejected outright (run 35150854970:
+              // "merge commits are not allowed on this repository"). Squash
+              // also satisfies required_signatures: GitHub signs the squash
+              // commit itself, unlike replaying the bot's unsigned commit.
               await github.graphql(
                 `mutation($id: ID!) {
-                  enablePullRequestAutoMerge(input: { pullRequestId: $id }) {
+                  enablePullRequestAutoMerge(input: { pullRequestId: $id, mergeMethod: SQUASH }) {
                     clientMutationId
                   }
                 }`,
@@ -279,8 +284,8 @@ jobs:
               core.notice("Auto-merge enabled on the refresh PR.");
             } catch (err) {
               core.notice(
-                `Auto-merge not enabled (repo setting off, or branch protection ` +
-                `requirements unmet): ${err.message}`
+                `Auto-merge not enabled (squash disabled, required reviews/checks ` +
+                `unmet, or another ruleset precondition unmet): ${err.message}`
               );
             }
 
