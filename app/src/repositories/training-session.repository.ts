@@ -63,8 +63,8 @@ export async function findRoutineTemplateSteps(
     .leftJoin(
       exerciseRulesetVersions,
       eq(
-        exerciseRulesetVersions.exerciseTypeId,
-        exerciseTemplates.exerciseTypeId,
+        exerciseRulesetVersions.id,
+        exerciseTemplates.exerciseRulesetVersionId,
       ),
     )
     .where(eq(routineSteps.routineTemplateId, template.id))

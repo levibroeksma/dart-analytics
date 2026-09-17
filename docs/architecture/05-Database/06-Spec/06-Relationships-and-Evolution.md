@@ -28,7 +28,7 @@ updated: 2026-07-11
 | ruleset_versions | game_types | exercise_sessions |
 | players | — | player_settings, activities, exercise_sessions, participants, routine_templates, configuration_templates |
 | player_settings | players, capture_modes, input_modes | — |
-| exercise_templates | game_types | routine_steps |
+| exercise_templates | game_types, exercise_types, exercise_ruleset_versions | routine_steps |
 | routine_templates | players | routine_steps |
 | routine_steps | routine_templates, exercise_templates, duration_types | — |
 | configuration_templates | game_types, players | — |
