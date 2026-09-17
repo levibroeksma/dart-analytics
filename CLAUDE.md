@@ -48,7 +48,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - **Consult the committed file before broad grep/exploration.** `graphify-out/graph.json` is in the repo and readable with the tools every session already has — grep it for an entity, or read it directly. Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
 - **The CLI is optional.** Where `graphify` is installed, `graphify query "<question>"`, `graphify path "<A>" "<B>"` and `graphify explain "<entity>"` are the nicer interface to the same file. It is not present in the session container, so nothing in this manual depends on it — see `app/CLAUDE.md` for a local install.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
-- **Freshness is CI-owned, and landing it needs one approval**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main`, pushes it to `chore/graph-refresh`, opens a PR and arms squash auto-merge; the repo ruleset still requires a human approval, which a bot cannot give itself. If the PR cannot be opened at all, the workflow files a `graph: refresh PR could not be opened` issue rather than passing silently (D287). Either way it is not a local completion-report item.
+- **Freshness is CI-owned; landing it is one human merge**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main`, pushes it to `chore/graph-refresh` and opens a PR. The bot's commit is unsigned and `main`'s ruleset requires verified signatures, so only a bypass actor can merge it — no amount of approval lets it land itself (D289). If the PR cannot be opened at all, the workflow files a `graph: refresh PR could not be opened` issue rather than passing silently (D287). Either way it is not a local completion-report item.
 - **Scope caveat:** `.astro` files are only partially parsed (no tree-sitter grammar); TS/JS/SQL/Markdown are fully covered.
 
 ---
@@ -60,7 +60,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - An engine-only task must still prove its state shape can be persisted: name the capture/input mode, the stage type, and the `turns`/`darts` mapping in the spec before implementation. Deferring persistence is allowed; choosing a state shape that cannot express it is not. (2026-07-26)
 - IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
-- Never modify applied migrations (`0001`–`0033`); new schema change = new numbered migration + spec update.
+- Never modify applied migrations (`0001`–`0034`); new schema change = new numbered migration + spec update.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
 - At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`. (2026-07-26; gate added 2026-07-28)

@@ -1,8 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, exists, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
   activityConfigurations,
+  exerciseSessions,
   durationTypes,
   exerciseRulesetVersions,
   exerciseTemplates,
@@ -14,6 +15,10 @@ import {
 import type { RoutineStepTemplateRow } from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
+
+type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
+  ? T
+  : never;
 
 export async function findRoutineTemplateSteps(
   db: Db,
@@ -142,27 +147,70 @@ export async function updateActivityStatusRecord(
   return row as { activityId: string; completedAt: string } | undefined;
 }
 
-export async function insertTrainingActivity(input: {
-  activityId: string;
-  playerId: string;
-  activeStatusId: number;
-  configurationId: string;
-  configuration: unknown;
-}): Promise<void> {
-  await withTransaction(async (tx) => {
-    const now = new Date().toISOString();
-    await tx.insert(activities).values({
-      id: input.activityId,
-      playerId: input.playerId,
-      statusId: input.activeStatusId,
-      startedAt: now,
-      createdAt: now,
-    });
-    await tx.insert(activityConfigurations).values({
-      id: input.configurationId,
-      activityId: input.activityId,
-      configuration: input.configuration,
-      createdAt: now,
-    });
+/**
+ * Closes every training activity the player still has open, and with it any
+ * step session left running under one. A training activity is the one carrying
+ * an `activity_configurations` snapshot, which is what separates it from the
+ * activity a standalone game creates. Returns the closed activity ids.
+ */
+export async function abandonActiveTrainingActivities(
+  tx: Tx,
+  input: { playerId: string; abandonedStatusId: number },
+): Promise<string[]> {
+  const now = new Date().toISOString();
+  const closed = await tx
+    .update(activities)
+    .set({ statusId: input.abandonedStatusId, completedAt: now })
+    .where(
+      and(
+        eq(activities.playerId, input.playerId),
+        isNull(activities.completedAt),
+        exists(
+          sql`select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id}`,
+        ),
+      ),
+    )
+    .returning({ activityId: activities.id });
+
+  const activityIds = closed.map((row) => row.activityId as string);
+  if (activityIds.length === 0) return [];
+
+  await tx
+    .update(exerciseSessions)
+    .set({ statusId: input.abandonedStatusId, completedAt: now })
+    .where(
+      and(
+        inArray(exerciseSessions.activityId, activityIds),
+        isNull(exerciseSessions.completedAt),
+      ),
+    )
+    .returning({ sessionId: exerciseSessions.id });
+
+  return activityIds;
+}
+
+export async function insertTrainingActivity(
+  tx: Tx,
+  input: {
+    activityId: string;
+    playerId: string;
+    activeStatusId: number;
+    configurationId: string;
+    configuration: unknown;
+  },
+): Promise<void> {
+  const now = new Date().toISOString();
+  await tx.insert(activities).values({
+    id: input.activityId,
+    playerId: input.playerId,
+    statusId: input.activeStatusId,
+    startedAt: now,
+    createdAt: now,
+  });
+  await tx.insert(activityConfigurations).values({
+    id: input.configurationId,
+    activityId: input.activityId,
+    configuration: input.configuration,
+    createdAt: now,
   });
 }
