@@ -107,6 +107,32 @@ describe("balancedTrainingPlay", () => {
     expect(store.currentStep()?.exerciseTypeKey).toBe("WARM_UP");
   });
 
+  it("init() names the API error code and request id when the routine cannot be opened", async () => {
+    vi.mocked(trainingApi.startTraining).mockRejectedValue(
+      Object.assign(new Error("rejected"), {
+        code: "INTERNAL_ERROR",
+        requestId: "req-42",
+      }),
+    );
+    const store = makeStore();
+    await store.init();
+    expect(store.error).toBe(
+      "Could not start this routine (INTERNAL_ERROR, req-42). Try again.",
+    );
+    expect(store.loading).toBe(false);
+  });
+
+  it("init() keeps the connection wording when the start never reached the API", async () => {
+    vi.mocked(trainingApi.startTraining).mockRejectedValue(
+      new TypeError("Failed to fetch"),
+    );
+    const store = makeStore();
+    await store.init();
+    expect(store.error).toBe(
+      "Could not start this routine. Check your connection and retry.",
+    );
+  });
+
   it("startCurrentStep() calls startTrainingStep with the current sequenceNumber and builds the Warm-Up engine", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
