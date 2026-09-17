@@ -382,19 +382,12 @@ export type TuodResultsSnapshot = {
   seats: TuodSeatResult[];
 };
 
-export type TuodPlayContext = {
+export type TuodPlayContext = PlayLifecycleContext<
+  TuodSnapshot,
+  TuodEngine,
+  TuodResultsSnapshot
+> & {
   scoreInput: ScoreInputBuffer;
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: TuodResultsSnapshot | null;
   pendingAttempt: TuodAttemptInput | null;
   pendingCheckoutScore: number | null;
   pendingDartObservation: DartObservation | null;
@@ -406,10 +399,7 @@ export type TuodPlayContext = {
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
-  engine: TuodEngine | null;
   timer: SegmentTimer | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: TuodPlayContext): BoardMarker[];
   state(this: TuodPlayContext): TuodState | null;
   currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
@@ -673,19 +663,12 @@ export type FiveOhOneResultsSnapshot = {
   seats: FiveOhOneSeatResult[];
 };
 
-export type FiveOhOnePlayContext = {
+export type FiveOhOnePlayContext = PlayLifecycleContext<
+  FiveOhOneSnapshot,
+  FiveOhOneEngine,
+  FiveOhOneResultsSnapshot
+> & {
   scoreInput: ScoreInputBuffer;
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: FiveOhOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
   dartsAtDouble: DartCount | null;
   dartsToFinish: DartCount | null;
@@ -696,9 +679,6 @@ export type FiveOhOnePlayContext = {
   $store: PlayStoreContext<FiveOhOneSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
-  engine: FiveOhOneEngine | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: FiveOhOnePlayContext): BoardMarker[];
   turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[];
   state(this: FiveOhOnePlayContext): FiveOhOneState | null;
@@ -767,19 +747,12 @@ export type OneTwentyOneResultsSnapshot = {
   seats: OneTwentyOneSeatResult[];
 };
 
-export type OneTwentyOnePlayContext = {
+export type OneTwentyOnePlayContext = PlayLifecycleContext<
+  OneTwentyOneSnapshot | OneTwentyOneV2Snapshot,
+  OneTwentyOneEngine,
+  OneTwentyOneResultsSnapshot
+> & {
   scoreInput: ScoreInputBuffer;
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: OneTwentyOneResultsSnapshot | null;
   pendingCheckoutScore: number | null;
   dartsAtDouble: DartCount | null;
   dartsToFinish: DartCount | null;
@@ -790,10 +763,7 @@ export type OneTwentyOnePlayContext = {
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
-  engine: OneTwentyOneEngine | null;
   timer: SegmentTimer | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
   visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[];
   state(this: OneTwentyOnePlayContext): OneTwentyOneState | null;
   remainingInAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
@@ -862,23 +832,12 @@ export type Bobs27ResultsSnapshot = {
   seats: Bobs27SeatResult[];
 };
 
-export type Bobs27PlayContext = {
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: Bobs27ResultsSnapshot | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
+export type Bobs27PlayContext = PlayLifecycleContext<
+  Bobs27Snapshot,
+  Bobs27Engine,
+  Bobs27ResultsSnapshot
+> & {
   botThrowing: boolean;
-  $store: PlayStoreContext<Bobs27Snapshot>;
-  engine: Bobs27Engine | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   state(this: Bobs27PlayContext): Bobs27State | null;
   currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string;
@@ -930,23 +889,12 @@ export type SinglesTrainingResultsSnapshot = {
   seats: SinglesTrainingSeatResult[];
 };
 
-export type SinglesTrainingPlayContext = {
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: SinglesTrainingResultsSnapshot | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
+export type SinglesTrainingPlayContext = PlayLifecycleContext<
+  SinglesSnapshot | SinglesV2Snapshot,
+  SinglesTrainingEngine,
+  SinglesTrainingResultsSnapshot
+> & {
   botThrowing: boolean;
-  $store: PlayStoreContext<SinglesSnapshot | SinglesV2Snapshot>;
-  engine: SinglesTrainingEngine | null;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
   recordDart(
@@ -1082,23 +1030,12 @@ export type DoublesTrainingResultsSnapshot = {
   seats: DoublesTrainingSeatResult[];
 };
 
-export type DoublesTrainingPlayContext = {
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: DoublesTrainingResultsSnapshot | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
+export type DoublesTrainingPlayContext = PlayLifecycleContext<
+  DoublesTrainingSnapshot,
+  DoublesTrainingEngine,
+  DoublesTrainingResultsSnapshot
+> & {
   botThrowing: boolean;
-  $store: PlayStoreContext<DoublesTrainingSnapshot>;
-  engine: DoublesTrainingEngine | null;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
   recordDart(
@@ -1167,23 +1104,12 @@ export type ShanghaiResultsSnapshot = {
   seats: ShanghaiSeatResult[];
 };
 
-export type ShanghaiPlayContext = {
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: ShanghaiResultsSnapshot | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
+export type ShanghaiPlayContext = PlayLifecycleContext<
+  ShanghaiSnapshot | ShanghaiV2Snapshot,
+  ShanghaiEngine,
+  ShanghaiResultsSnapshot
+> & {
   botThrowing: boolean;
-  $store: PlayStoreContext<ShanghaiSnapshot | ShanghaiV2Snapshot>;
-  engine: ShanghaiEngine | null;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
   recordDart(
     this: ShanghaiPlayContext,
@@ -1246,23 +1172,12 @@ export type AroundTheClockResultsSnapshot = {
   seats: AroundTheClockSeatResult[];
 };
 
-export type AroundTheClockPlayContext = {
-  loading: boolean;
-  error: string;
-  finished: boolean;
-  hasActiveSession: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  completionStatus: "pending" | "saving" | "succeeded" | "failed";
-  completionError: string;
-  playAgainError: string;
-  playAgainLoading: boolean;
-  resultsSnapshot: AroundTheClockResultsSnapshot | null;
-  hiddenTurnKey: string | null;
-  hiddenTimer: ReturnType<typeof setTimeout> | null;
+export type AroundTheClockPlayContext = PlayLifecycleContext<
+  AroundTheClockSnapshot,
+  AroundTheClockEngine,
+  AroundTheClockResultsSnapshot
+> & {
   botThrowing: boolean;
-  $store: PlayStoreContext<AroundTheClockSnapshot>;
-  engine: AroundTheClockEngine | null;
   visitMarkers(this: AroundTheClockPlayContext): BoardMarker[];
   recordDart(
     this: AroundTheClockPlayContext,
