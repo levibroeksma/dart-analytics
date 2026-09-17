@@ -1,4 +1,4 @@
-import { QuickSubtractGame } from "@modules/trivia/quick-subtract.module";
+import { QuickSubtractGame } from "@modules/training/trivia/quick-subtract.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import type { AnswerResult, Calculation } from "@modules/interfaces";

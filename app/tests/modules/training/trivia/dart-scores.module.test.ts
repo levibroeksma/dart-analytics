@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   ONE_DART_SCORES,
   getRandomDartScore,
-} from "@modules/trivia/dart-scores.module";
+} from "@modules/training/trivia/dart-scores.module";
 
 describe("ONE_DART_SCORES", () => {
   it("contains every reachable one-dart score exactly once, sorted ascending", () => {

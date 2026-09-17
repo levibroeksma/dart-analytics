@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { QuickSubtractGame } from "@modules/trivia/quick-subtract.module";
+import { QuickSubtractGame } from "@modules/training/trivia/quick-subtract.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 
 function countupTimer() {

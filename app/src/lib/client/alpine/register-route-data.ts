@@ -19,7 +19,7 @@ import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
-import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
+import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
 import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
 import { routineStart } from "@lib/training/routine-start.data";
 

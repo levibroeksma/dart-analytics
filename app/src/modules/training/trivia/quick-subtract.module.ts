@@ -1,5 +1,5 @@
 import { getRandomDartScore } from "./dart-scores.module";
-import type { SegmentTimer } from "../ui/segment-timer.module";
+import type { SegmentTimer } from "../../ui/segment-timer.module";
 import type { GameStatus } from "./types";
 import type {
   AnswerResult,

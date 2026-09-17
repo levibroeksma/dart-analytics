@@ -1,3 +1,5 @@
+export * from "./trivia/interfaces";
+
 import type { TrainingState } from "./types";
 
 /**

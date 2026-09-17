@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { quickSubtractPlay } from "@lib/trivia/quick-subtract-play.data";
+import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
 
 describe("quickSubtractPlay", () => {
   beforeEach(() => {

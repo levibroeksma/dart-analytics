@@ -1,4 +1,4 @@
-import type { SegmentTimer } from "../ui/segment-timer.module";
+import type { SegmentTimer } from "../../ui/segment-timer.module";
 
 export interface Calculation {
   readonly start: number;
