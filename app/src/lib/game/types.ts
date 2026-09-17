@@ -265,14 +265,16 @@ export type PlayStoreContext<TConfig> = {
 };
 
 /**
- * The play-page lifecycle shape shared by every ruleset whose game loop is a
- * plain record → mirror → complete cycle with no board input and no
- * reveal-then-clear timer (currently Doubles Training and Singles Training —
- * Bob's 27's board/timer branch and 501/Score Training's `ScoreInputBuffer`
- * shape are different enough to stay out of this module, D208/D209).
- * `init`/`uploadAndCompleteSession` are declared here because the shared
- * functions in `play-lifecycle.ts` call back into whichever concrete
- * wrapper a page assigns to those keys.
+ * The play-page lifecycle members every ruleset shares: the record → mirror →
+ * complete cycle's loading, error and completion state, the store, the engine
+ * and the reveal-then-clear timer keys. Originally the shape of the two
+ * rulesets whose loop needed nothing else (D208/D209); all nine `*PlayContext`
+ * types now intersect it with their own members — board input, a
+ * `ScoreInputBuffer`, a checkout-hints store — rather than restating these
+ * seventeen by hand (D309). `init`/`uploadAndCompleteSession` are declared
+ * here because the shared functions in `play-lifecycle.ts` call back into
+ * whichever concrete wrapper a page assigns to those keys; each concrete
+ * context re-declares them with a bound `this`.
  */
 export type PlayLifecycleContext<
   TConfig,
