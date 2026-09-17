@@ -1,5 +1,4 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
@@ -15,6 +14,7 @@ import {
   playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  resumeGameEngine,
   runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -37,7 +37,11 @@ import {
   maybeResumeCountdown,
   startCountdown,
 } from "@lib/game/play-countdown";
-import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
+import type {
+  DartbotSeat,
+  RulesetVersionKey,
+  ScoreTrainingSnapshot,
+} from "@lib/types";
 import type {
   DartObservation,
   ScoreTrainingSeatState,
@@ -126,32 +130,6 @@ function statsFor(
     highestScore: highestVisitScore(seatTurns),
     ...visitScoreBandCounts(seatTurns),
   };
-}
-
-/**
- * Rebuilds the engine for the persisted session, replaying the store's fact
- * log so a reload restores the game exactly.
- *
- * Only this page's own ruleset is ever resolved: a store still holding another
- * game's `rulesetVersionKey` must not build that game's engine here, however
- * the shared registry would happily hand one over once every game registers.
- *
- * @returns null when the store holds no config to resume from, when its
- *   ruleset belongs to a different game, when no engine is registered, or when
- *   the registered factory builds something other than a Score Training engine.
- */
-function resumeEngine(
-  game: ScoreTrainingPlayContext["$store"]["game"],
-): ScoreTrainingEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof ScoreTrainingEngine ? engine : null;
 }
 
 /**
@@ -315,7 +293,15 @@ export function scoreTrainingPlay() {
         this.$store.game.setSessionModes(result.activeSession);
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
+        const engine = resumeGameEngine<
+          ScoreTrainingSnapshot,
+          ScoreTrainingEngine
+        >(
+          this.$store.game,
+          RULESET_VERSION_KEY,
+          (candidate): candidate is ScoreTrainingEngine =>
+            candidate instanceof ScoreTrainingEngine,
+        );
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;

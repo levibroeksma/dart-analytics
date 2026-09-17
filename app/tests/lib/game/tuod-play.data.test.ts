@@ -53,7 +53,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
+import {
+  TuodEngine,
+  tuodEngineFactory,
+} from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
@@ -400,6 +403,25 @@ describe("tuodPlay", () => {
 
       expect(store.turns).toHaveLength(1);
       expect(store.turns[0].clientKey).toBe("t1");
+    });
+
+    it("rebuilds a real TuodEngine from the persisted config and facts on resume", async () => {
+      const store = gameStub({
+        sessionId: "match-id",
+        configSnapshot: rounds(20),
+        turns: [turnFact("t1", 1, 41)],
+      });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { ...ACTIVE_SESSION, sessionId: "match-id" },
+      ]);
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.engine).toBeInstanceOf(TuodEngine);
+      expect(component.engine!.facts().turns).toHaveLength(1);
     });
 
     it("leaves the session unplayable when no engine is registered for the persisted ruleset", async () => {

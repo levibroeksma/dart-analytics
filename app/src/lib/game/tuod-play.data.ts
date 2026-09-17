@@ -1,4 +1,3 @@
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -17,6 +16,7 @@ import {
   playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  resumeGameEngine,
   runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -134,25 +134,6 @@ function throwBotQuickScoreDart(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.currentTarget;
   return throwOneDart(remaining, botSeat, dartIndex);
-}
-
-/**
- * Rebuilds the engine for the persisted session, replaying the store's fact
- * log so a reload restores the ladder exactly. Mirrors
- * `score-training-play.data.ts`'s `resumeEngine`.
- */
-function resumeEngine(
-  game: TuodPlayContext["$store"]["game"],
-): TuodEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof TuodEngine ? engine : null;
 }
 
 /**
@@ -381,7 +362,12 @@ export function tuodPlay() {
         this.$store.game.setSessionModes(result.activeSession);
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
+        const engine = resumeGameEngine<TuodSnapshot, TuodEngine>(
+          this.$store.game,
+          RULESET_VERSION_KEY,
+          (candidate): candidate is TuodEngine =>
+            candidate instanceof TuodEngine,
+        );
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;

@@ -47,6 +47,29 @@ function currentFacts<
   );
 }
 
+/**
+ * The generic form of each play-data file's own `resumeEngine`: rebuild a
+ * ruleset's engine from the persisted store, or return null when the store
+ * holds nothing resumable. `isEngine` is the caller's own `instanceof` guard —
+ * the registry is keyed by ruleset version, so a mismatched factory is a real
+ * possibility this must reject rather than cast past.
+ */
+export function resumeGameEngine<TConfig, TEngine>(
+  game: PlayStoreContext<TConfig>["game"],
+  rulesetVersionKey: RulesetVersionKey,
+  isEngine: (candidate: unknown) => candidate is TEngine,
+): TEngine | null {
+  const { configSnapshot, rulesetVersionKey: storedKey } = game;
+  if (!configSnapshot || storedKey !== rulesetVersionKey) return null;
+  const factory = getEngineFactory(rulesetVersionKey);
+  if (!factory) return null;
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
+  return isEngine(engine) ? engine : null;
+}
+
 export async function playInit<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
