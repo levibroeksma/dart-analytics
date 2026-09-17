@@ -1,4 +1,4 @@
-import { and, eq, exists, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
@@ -152,6 +152,10 @@ export async function updateActivityStatusRecord(
  * step session left running under one. A training activity is the one carrying
  * an `activity_configurations` snapshot, which is what separates it from the
  * activity a standalone game creates. Returns the closed activity ids.
+ *
+ * The snapshot predicate is a raw `sql` EXISTS rather than drizzle's `exists()`
+ * helper: that helper parenthesises a subquery builder but emits a raw chunk
+ * verbatim, which Postgres rejects as a syntax error.
  */
 export async function abandonActiveTrainingActivities(
   tx: Tx,
@@ -165,9 +169,7 @@ export async function abandonActiveTrainingActivities(
       and(
         eq(activities.playerId, input.playerId),
         isNull(activities.completedAt),
-        exists(
-          sql`select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id}`,
-        ),
+        sql`exists (select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id})`,
       ),
     )
     .returning({ activityId: activities.id });
