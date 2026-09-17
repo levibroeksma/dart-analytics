@@ -226,11 +226,11 @@ ON exercise_sessions(player_id, status_id)
 WHERE completed_at IS NULL;
 ```
 
-Lifecycle enforcement (migration `0011` — unique partial index):
+Lifecycle enforcement (migration `0011`, rewritten by `0034` — unique partial index):
 
 ```sql
 CREATE UNIQUE INDEX uq_sessions_single_active
-ON exercise_sessions(player_id, game_type_id)
+ON exercise_sessions(player_id, COALESCE(game_type_id, exercise_type_id))
 WHERE completed_at IS NULL;
 ```
 
@@ -483,17 +483,21 @@ Stage ordering requires two partial indexes because `parent_stage_id` is nullabl
 
 ---
 
-## Lifecycle Uniqueness (migration 0011)
+## Lifecycle Uniqueness (migration 0011, rewritten by 0034)
 
 The single-active-session rule is enforced with a unique partial index:
 
 ```sql
 CREATE UNIQUE INDEX uq_sessions_single_active
-ON exercise_sessions(player_id, game_type_id)
+ON exercise_sessions(player_id, COALESCE(game_type_id, exercise_type_id))
 WHERE completed_at IS NULL;
 ```
 
-One player can have at most one uncompleted session per game type.
+One player can have at most one uncompleted session per game type, and at
+most one per exercise type for a session with no game bound to it. The
+`COALESCE` key exists because `0029` made `game_type_id` nullable: keyed on
+the bare column, every non-game session carried a NULL that Postgres reads as
+distinct, so the index constrained nothing for training steps (issue #310). <!-- 2026-09-17 -->
 
 ---
 
