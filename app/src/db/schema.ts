@@ -1190,14 +1190,19 @@ export const vPlayerProfile = pgView("v_player_profile", {
 export const vRoutineExecution = pgView("v_routine_execution", {
   routineId: uuid("routine_id"),
   routineName: text("routine_name"),
+  isSystemTemplate: boolean("is_system_template"),
   sequenceNumber: integer("sequence_number"),
   exerciseTemplateId: uuid("exercise_template_id"),
   exerciseName: text("exercise_name"),
+  exerciseTypeKey: text("exercise_type_key"),
+  exerciseRulesetVersionKey: text("exercise_ruleset_version_key"),
   gameTypeKey: text("game_type_key"),
   durationValue: integer("duration_value"),
   durationTypeKey: text("duration_type_key"),
+  defaultConfiguration: jsonb("default_configuration"),
+  stepConfiguration: jsonb("step_configuration"),
 }).as(
-  sql`SELECT rt.id AS routine_id, rt.name AS routine_name, rs.sequence_number, et.id AS exercise_template_id, et.name AS exercise_name, gt.implementation_key AS game_type_key, rs.duration_value, dt.implementation_key AS duration_type_key FROM routine_templates rt JOIN routine_steps rs ON rs.routine_template_id = rt.id JOIN exercise_templates et ON et.id = rs.exercise_template_id JOIN duration_types dt ON dt.id = rs.duration_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id`,
+  sql`SELECT rt.id AS routine_id, rt.name AS routine_name, rt.is_system_template, rs.sequence_number, et.id AS exercise_template_id, et.name AS exercise_name, ext.implementation_key AS exercise_type_key, erv.implementation_key AS exercise_ruleset_version_key, gt.implementation_key AS game_type_key, rs.duration_value, dt.implementation_key AS duration_type_key, et.default_configuration, rs.configuration AS step_configuration FROM routine_templates rt JOIN routine_steps rs ON rs.routine_template_id = rt.id JOIN exercise_templates et ON et.id = rs.exercise_template_id JOIN exercise_types ext ON ext.id = et.exercise_type_id JOIN duration_types dt ON dt.id = rs.duration_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN exercise_ruleset_versions erv ON erv.id = et.exercise_ruleset_version_id`,
 );
 
 export const vDartAnalytics = pgView("v_dart_analytics", {
@@ -1250,8 +1255,9 @@ export const vDoubleOutCheckoutDarts = pgView("v_double_out_checkout_darts", {
   hitZoneKey: text("hit_zone_key"),
   score: integer(),
   priorScoredInStage: bigint("prior_scored_in_stage", { mode: "number" }),
+  startingScore: integer("starting_score"),
 }).as(
-  sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, t.sequence_number AS turn_sequence, d.dart_number, d.hit_target_number, hit_zone.implementation_key AS hit_zone_key, d.score, SUM(d.score) OVER (PARTITION BY st.id, t.participant_id ORDER BY t.sequence_number, d.dart_number ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS prior_scored_in_stage FROM darts d JOIN turns t ON t.id = d.turn_id JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN dart_zones hit_zone ON hit_zone.id = d.hit_zone_id WHERE gt.implementation_key = '501'::text AND im.implementation_key = 'VISUAL_BOARD'::text AND p.player_id = es.player_id`,
+  sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, t.sequence_number AS turn_sequence, d.dart_number, d.hit_target_number, hit_zone.implementation_key AS hit_zone_key, d.score, SUM(d.score) OVER (PARTITION BY st.id, t.participant_id ORDER BY t.sequence_number, d.dart_number ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS prior_scored_in_stage, (ec.configuration ->> 'starting_score')::int AS starting_score FROM darts d JOIN turns t ON t.id = d.turn_id JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st ON st.id = t.exercise_stage_id JOIN exercise_sessions es ON es.id = st.exercise_session_id JOIN game_types gt ON gt.id = es.game_type_id JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN exercise_configurations ec ON ec.exercise_session_id = es.id LEFT JOIN dart_zones hit_zone ON hit_zone.id = d.hit_zone_id WHERE gt.implementation_key = '501'::text AND im.implementation_key = 'VISUAL_BOARD'::text AND p.player_id = es.player_id`,
 );
 
 /**

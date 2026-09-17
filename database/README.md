@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0035)
+├── migrations/     # ordered schema migrations (0001–0036)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -107,6 +107,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
 | `verification/0017_balanced_training_checks.sql` | seeds `0016`/`0017` resolve end to end: both new exercise types and their v1 rulesets, seed `0017`'s in-place Warm-Up JSONB update landed (five phases, all weighted, no `durationSeconds` left), the four-step Balanced Training routine sums to 30 MINUTES across distinct templates, the Finishing step holds exactly `TuodConfig`'s six keys on a TUOD-bound template, anti-vacuity guard (11 checks) |
 | `verification/0035_exercise_template_ruleset_version_checks.sql` | migration `0035` + seed `0019`: the pin column and its composite FK exist, a ruleset version of another exercise type is rejected and the template's own is accepted, an unpinned template is still allowed, RESTRICT blocks deleting a pinned version, all three non-game system templates were backfilled to their own v1, the GAME template stays unpinned, anti-vacuity guard (11 checks) |
+| `verification/0036_read_model_view_consumers_checks.sql` | migration `0036`: `v_double_out_checkout_darts` exposes `starting_score` and keeps its nine pre-`0036` columns, `uq_exercise_configuration_session` still makes the new LEFT JOIN non-fanning, every row's `starting_score` matches the session snapshot, `v_routine_execution` exposes the nine columns `findRoutineTemplateSteps` reads and returns all four Balanced Training steps (three of them non-game) with no fan-out, every non-game step carries its template's pinned ruleset version, anti-vacuity guard (10 checks) |
 
 ## References
 

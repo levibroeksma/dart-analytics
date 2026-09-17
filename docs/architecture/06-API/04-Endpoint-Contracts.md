@@ -323,7 +323,7 @@ The caller's career-wide stat overview. Read-only, backed by `v_session_overview
 
 **Auth:** standard protected route class — JWT-verified, player resolved by middleware. No path parameter, no query parameter, no request body.
 
-Every response field is always present. `null` means "not enough data to compute" (e.g. no completed sessions, no legs with complete dart capture) — never "field not implemented." `doubleAccuracy` and `highestCheckout` are computed from whatever `v_double_out_checkout_darts` currently returns (501+`VISUAL_BOARD` only, as of this writing) and will widen automatically, with no contract change, once that view's game-type filter is extended.
+Every response field is always present. `null` means "not enough data to compute" (e.g. no completed sessions, no legs with complete dart capture) — never "field not implemented." `doubleAccuracy` and `highestCheckout` are computed from whatever `v_double_out_checkout_darts` currently returns (501+`VISUAL_BOARD` only, as of this writing) and will widen automatically, with no contract change, once that view's game-type filter is extended. The session's `starting_score` is one of those columns from migration `0036` on, so the read no longer selects `exercise_configurations` itself (D298, issue #342). <!-- 2026-09-17 -->
 
 Success → `200` with the standard `ok()` envelope carrying `StatisticsOverviewResponse`. No new error codes — only the standard protected-route failures (`401`, `403 PLAYER_NOT_PROVISIONED`, `500`/`503` from the API error boundary).
 
@@ -368,9 +368,9 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/sessions/:sessionId` | `v_session_overview` | `SessionOverview` | 2026-07-12 |
 | `GET /api/sessions/:sessionId/replay` | `v_game_replay` | `ReplayEntry[]` | 2026-07-12 |
 | `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | `DartAnalytics[]` | 2026-07-12 |
-| `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
-| `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
-| `GET /api/routines/:routineId/execution` | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
+| `GET /api/routines` (not implemented) | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
+| `GET /api/routines/:routineId` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
+| `GET /api/routines/:routineId/execution` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -378,7 +378,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
-`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
+`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail — neither of which is built yet. Its consumer today is `POST /api/training-sessions`, which resolves a system routine's ordered steps through it (D299, issue #344). <!-- 2026-09-17 --> The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 

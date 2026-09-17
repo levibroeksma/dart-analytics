@@ -1,6 +1,5 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
-  exerciseConfigurations,
   vDoubleOutCheckoutDarts,
   vPlayerLegFacts,
   vPlayerVisitFacts,
@@ -82,26 +81,6 @@ export async function findLegFacts(
   })) as PlayerLegFactRow[];
 }
 
-async function findStartingScores(
-  db: Db,
-  sessionIds: string[],
-): Promise<Map<string, number>> {
-  const rows = await db
-    .select({
-      sessionId: exerciseConfigurations.exerciseSessionId,
-      configuration: exerciseConfigurations.configuration,
-    })
-    .from(exerciseConfigurations)
-    .where(inArray(exerciseConfigurations.exerciseSessionId, sessionIds));
-
-  return new Map(
-    rows.map((row) => [
-      row.sessionId,
-      (row.configuration as { starting_score: number }).starting_score,
-    ]),
-  );
-}
-
 type MutableCheckoutVisit = { startingRemaining: number; darts: DartFact[] };
 
 /**
@@ -110,6 +89,10 @@ type MutableCheckoutVisit = { startingRemaining: number; darts: DartFact[] };
  * `double-attempt.module.ts` classifies. `startingRemaining` for a turn is
  * the session's configured `starting_score` minus that turn's first dart's
  * `prior_scored_in_stage` (0 when null, meaning the stage's very first dart).
+ * Both come from the view: until migration `0036` exposed `starting_score`,
+ * this read selected `exercise_configurations` directly, the one raw-table
+ * dependency in a read path documented as view-backed (issue #342). A session
+ * that stored no configuration snapshot reads NULL, treated as 0 as before.
  */
 export async function findDoubleOutVisits(
   db: Db,
@@ -125,6 +108,7 @@ export async function findDoubleOutVisits(
       hitZoneKey: vDoubleOutCheckoutDarts.hitZoneKey,
       score: vDoubleOutCheckoutDarts.score,
       priorScoredInStage: vDoubleOutCheckoutDarts.priorScoredInStage,
+      startingScore: vDoubleOutCheckoutDarts.startingScore,
     })
     .from(vDoubleOutCheckoutDarts)
     .where(eq(vDoubleOutCheckoutDarts.playerId, playerId))
@@ -136,17 +120,14 @@ export async function findDoubleOutVisits(
 
   if (rows.length === 0) return [];
 
-  const sessionIds = [...new Set(rows.map((row) => row.sessionId as string))];
-  const startingScores = await findStartingScores(db, sessionIds);
-
   const visitsByKey = new Map<string, MutableCheckoutVisit>();
   for (const row of rows) {
     const key = `${row.stageId}:${row.turnSequence}`;
     let visit = visitsByKey.get(key);
     if (!visit) {
-      const startingScore = startingScores.get(row.sessionId as string) ?? 0;
       visit = {
-        startingRemaining: startingScore - (row.priorScoredInStage ?? 0),
+        startingRemaining:
+          (row.startingScore ?? 0) - (row.priorScoredInStage ?? 0),
         darts: [],
       };
       visitsByKey.set(key, visit);

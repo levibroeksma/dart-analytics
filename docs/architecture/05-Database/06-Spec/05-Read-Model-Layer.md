@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-09-16
+updated: 2026-09-17
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views/00-Overview.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Migration `0024` adds `v_double_out_checkout_darts`, scoped to 501 `VISUAL_BOARD` sessions only. <!-- 2026-09-05 --> Migrations `0025`/`0026` add `v_player_visit_facts` and `v_player_leg_facts` for career-wide statistics — full detail in `05-Views/01-General-Views.md`, not repeated here. <!-- 2026-09-06 --> Migration `0033` turns every join onto a lookup that `0028`/`0029` made nullable into a `LEFT JOIN`, so a session with no game bound to it appears with NULL keys instead of being dropped from the read model; the `*_key`/`*_name` columns those joins feed are nullable from `0033` onward. <!-- 2026-09-16 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Migration `0024` adds `v_double_out_checkout_darts`, scoped to 501 `VISUAL_BOARD` sessions only. <!-- 2026-09-05 --> Migrations `0025`/`0026` add `v_player_visit_facts` and `v_player_leg_facts` for career-wide statistics — full detail in `05-Views/01-General-Views.md`, not repeated here. <!-- 2026-09-06 --> Migration `0033` turns every join onto a lookup that `0028`/`0029` made nullable into a `LEFT JOIN`, so a session with no game bound to it appears with NULL keys instead of being dropped from the read model; the `*_key`/`*_name` columns those joins feed are nullable from `0033` onward. <!-- 2026-09-16 --> Migration `0036` recreates `v_double_out_checkout_darts` and `v_routine_execution` so each carries the columns its consumer reads, ending the two raw-table reads that went around them (D298). <!-- 2026-09-17 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -183,16 +183,18 @@ Shows the ordered exercises of a routine for execution.
 - routine_templates
 - routine_steps
 - exercise_templates
-- game_types (LEFT JOIN)
+- exercise_types
 - duration_types
+- game_types (LEFT JOIN)
+- exercise_ruleset_versions (LEFT JOIN, on the template's pinned version)
 
 ## Exposes
 
-Routine identity and name, step sequence, exercise identity and name, game type key, duration value and duration type key. Every lookup is exposed as a `*_key`; no internal lookup ids are exposed. <!-- 2026-07-12 --> `game_type_key` is NULL for a non-game exercise step — `exercise_templates.game_type_id` is nullable from migration `0028`, and `0033` stops the join dropping such a step from the routine entirely. <!-- 2026-09-16 -->
+Routine identity and name, `is_system_template`, step sequence, exercise identity and name, exercise type key, exercise ruleset version key, game type key, duration value and duration type key, plus the two configuration snapshots a step resolves from: the template's `default_configuration` and the step's own `step_configuration`. Every lookup is exposed as a `*_key`; no internal lookup ids are exposed. <!-- 2026-07-12 --> `game_type_key` is NULL for a non-game exercise step — `exercise_templates.game_type_id` is nullable from migration `0028`, and `0033` stops the join dropping such a step from the routine entirely. <!-- 2026-09-16 --> `exercise_ruleset_version_key` is the mirror case: NULL for a GAME step, which pins a game ruleset version on its session instead (D295). The six columns after `duration_type_key` were added by migration `0036` (D298). <!-- 2026-09-17 -->
 
 ## Design Rationale
 
-The frontend renders and executes a routine from this single view without touching template tables.
+The frontend renders and executes a routine from this single view without touching template tables. `findRoutineTemplateSteps` (`repositories/training-session.repository.ts`) does the same from migration `0036` on; until then it re-implemented the read against the template tables, because the view exposed none of the exercise type, ruleset version or configuration snapshots a step resolves from (issue #344, D299). A routine with no steps produces no rows here, so a stepless template reads as no routine at all. <!-- 2026-09-17 -->
 
 ---
 
@@ -264,11 +266,11 @@ Raw per-dart facts for 501 `VISUAL_BOARD` sessions, plus each dart's running sco
 
 ## Exposes
 
-Session id, player id, stage id, turn sequence, dart number, hit target + hit zone key, score, and `prior_scored_in_stage` (the running SUM of that seat's earlier dart scores within the same leg). Scoped to `game_type_key = '501'`, `input_mode_key = 'VISUAL_BOARD'`, and the session's OWNING player (mirrors migration `0023`). Its `game_types`/`input_modes` joins stay INNER deliberately: those two filters already exclude every session with no game bound to it, so migration `0033` left this view untouched. <!-- 2026-09-16 -->
+Session id, player id, stage id, turn sequence, dart number, hit target + hit zone key, score, `prior_scored_in_stage` (the running SUM of that seat's earlier dart scores within the same leg), and `starting_score` — the session's configured starting score, read out of the `exercise_configurations` JSONB snapshot by migration `0036` (D298), NULL when the session stored none. Scoped to `game_type_key = '501'`, `input_mode_key = 'VISUAL_BOARD'`, and the session's OWNING player (mirrors migration `0023`). Its `game_types`/`input_modes` joins stay INNER deliberately: those two filters already exclude every session with no game bound to it, so migration `0033` left this view untouched. <!-- 2026-09-16 -->
 
 ## Design Rationale
 
-Scoped to 501 only: TUOD/121's "remaining before a dart" depends on their ladder fold (`finishBonus`/`missPenalty` escalation), which is game-engine logic and does not belong in a view (`05-Views.md`). `prior_scored_in_stage` is plain arithmetic (a running sum), not the true remaining score — 501's `starting_score` lives in the session's JSONB configuration snapshot, not a queryable column, so the application read layer (which already loads that snapshot) adds it to get remaining-before-dart, then runs it through `classifyDoubleAttempts` (`app/src/modules/game/double-attempt.module.ts`) — the same classifier the live in-session stat uses, never reimplemented in SQL.
+Scoped to 501 only: TUOD/121's "remaining before a dart" depends on their ladder fold (`finishBonus`/`missPenalty` escalation), which is game-engine logic and does not belong in a view (`05-Views.md`). `prior_scored_in_stage` is plain arithmetic (a running sum), not the true remaining score; `starting_score - prior_scored_in_stage` is. Migration `0024` deliberately left `starting_score` out to keep the view free of JSONB parsing, and the read layer selected `exercise_configurations` itself — the one raw-table dependency in a read path documented as view-backed (issue #342). `0025` had already overtaken that rule by projecting `max_darts_per_turn` the same way on `v_player_visit_facts`, so `0036` follows `0025` and the read layer takes both columns from the view, then runs them through `classifyDoubleAttempts` (`app/src/modules/game/double-attempt.module.ts`) — the same classifier the live in-session stat uses, never reimplemented in SQL.
 
 ---
 
