@@ -12,8 +12,59 @@ jobs:
   quality:
     uses: ./.github/workflows/quality.yml
 
-  deploy:
+  # The schema change is rehearsed on a throwaway Neon branch cut from
+  # production before anything touches production itself (#354). A failure
+  # here blocks both the apply and the Worker deploy.
+  rehearse:
     needs: quality
+    uses: ./.github/workflows/db-rehearsal.yml
+    secrets: inherit
+
+  # Applies the pending chain to production BEFORE the Worker ships, so the
+  # Worker never runs ahead of its schema (#293). Every seed is
+  # `ON CONFLICT DO NOTHING` and the runner applies them in two passes by
+  # design, so re-running them on every deploy is a no-op once they are in.
+  migrate:
+    needs: rehearse
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: app
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Require the production connection string
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL is not set on the production environment. Add it as a secret (see docs/architecture/05-Database/11-Neon-Integration.md)."
+            exit 1
+          fi
+      - name: Pending migrations
+        run: |
+          {
+            echo "### Applying to production"
+            echo '```'
+            npm run --silent db:status:ci
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Apply migrations
+        run: npm run db:migrate:ci
+      - name: Apply seeds
+        run: npm run db:seed:ci
+      - name: Confirm nothing is left pending
+        run: npm run db:status:ci
+
+  deploy:
+    needs: migrate
     runs-on: ubuntu-latest
     environment: production
     defaults:
