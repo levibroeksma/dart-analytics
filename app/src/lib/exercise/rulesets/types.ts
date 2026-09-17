@@ -80,11 +80,14 @@ export const SwitchingScoringConfig = z
 /**
  * Switching v1: a fixed, ordered list of board-number targets, cycled dart
  * by dart for the step's full duration — one visit is one full pass through
- * `targets` (design spec 2026-09-11 §5.2).
+ * `targets` (design spec 2026-09-11 §5.2). Targets stop at 20: the bull is
+ * not a Switching target, because every dart is aimed at its target's
+ * treble (`INTENDED_ZONE_KEY`, 09-training-routines.md §17) and the bull has
+ * none (D297). Warm-Up's own targets still admit 25 — it aims at no ring.
  */
 export const SwitchingV1Config = z
   .object({
-    targets: z.array(z.number().int().min(1).max(25)).min(1).max(20),
+    targets: z.array(z.number().int().min(1).max(20)).min(1).max(20),
     scoring: SwitchingScoringConfig,
   })
   .strict();

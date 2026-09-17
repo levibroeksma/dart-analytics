@@ -109,6 +109,24 @@ describe("doublePatternEngineFactory", () => {
     expect(() => engine.record(dart(20, "DOUBLE"))).toThrow();
   });
 
+  it("opens a new turn per pattern when consecutive patterns differ in length", () => {
+    const uneven: DoublePatternConfigData = {
+      patterns: [
+        [20, 10],
+        [16, 8, 4],
+      ],
+    };
+    const engine = new DoublePatternEngine(uneven);
+
+    for (const target of [20, 10, 16, 8, 4]) {
+      engine.record(dart(target, "DOUBLE"));
+    }
+
+    expect(engine.facts().turns.map((turn) => turn.darts.length)).toEqual([
+      2, 3,
+    ]);
+  });
+
   it("rehydrates in-progress totals from prior facts", () => {
     const engine = doublePatternEngineFactory.create(CONFIG);
     engine.record(dart(20, "DOUBLE"));

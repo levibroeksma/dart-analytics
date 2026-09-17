@@ -21,6 +21,16 @@ describe("switchingValidator.validateConfig", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("rejects the bull as a target — Switching aims at trebles (D297)", () => {
+    const result = switchingValidator.validateConfig({
+      config: { ...VALID, targets: [20, 25] },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.issues.join(" ")).toContain("targets");
+  });
+
   it("names the offending path in its issues", () => {
     const result = switchingValidator.validateConfig({
       config: { ...VALID, scoring: { single: -1, double: 2, treble: 3 } },
