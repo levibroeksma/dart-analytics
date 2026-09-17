@@ -321,3 +321,31 @@ describe("abandonActiveTrainingActivities", () => {
     expect(sessionUpdate.set).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The mocked `tx` above never renders SQL, so a malformed predicate passes it
+ * unnoticed — an `exists` over a raw `sql` chunk emitted `exists select 1 ...`
+ * without the parentheses Postgres requires, and every routine start failed
+ * 42601 in production (issue #397). The pg-proxy driver renders the real
+ * statement without a connection, so the shape is asserted, not assumed.
+ */
+describe("abandonActiveTrainingActivities SQL", () => {
+  it("parenthesises the activity_configurations EXISTS subquery", async () => {
+    const statements: string[] = [];
+    const { drizzle } = await import("drizzle-orm/pg-proxy");
+    const tx = drizzle(async (query: string) => {
+      statements.push(query);
+      return { rows: [] };
+    }) as never;
+    const { abandonActiveTrainingActivities } =
+      await import("@repositories/training-session.repository");
+    await abandonActiveTrainingActivities(tx, {
+      playerId: "p1",
+      abandonedStatusId: 3,
+    });
+    expect(statements).toHaveLength(1);
+    expect(statements[0]).toMatch(
+      /exists \(select 1 from "activity_configurations"/,
+    );
+  });
+});
