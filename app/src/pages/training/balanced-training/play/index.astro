@@ -1,16 +1,16 @@
 ---
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
-import WarmUpPanel from "@components/layout/training/WarmUpPanel.astro";
-import SwitchingPanel from "@components/layout/training/SwitchingPanel.astro";
-import DoublePatternPanel from "@components/layout/training/DoublePatternPanel.astro";
+import WarmUpPanel from "@components/layout/training/exercises/WarmUpPanel.astro";
+import SwitchingPanel from "@components/layout/training/exercises/SwitchingPanel.astro";
+import DoublePatternPanel from "@components/layout/training/exercises/DoublePatternPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Button from "@components/forms/Button.astro";
-import RoutineSummaryModal from "@components/layout/training/RoutineSummaryModal.astro";
-import BlockedStepModal from "@components/layout/training/BlockedStepModal.astro";
+import RoutineSummaryModal from "@components/layout/training/routines/RoutineSummaryModal.astro";
+import BlockedStepModal from "@components/layout/training/exercises/BlockedStepModal.astro";
 ---
 
 <GameLayout

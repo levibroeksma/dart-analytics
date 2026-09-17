@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { routineStartErrorMessage } from "@lib/training/routine-start-error";
+import { routineStartErrorMessage } from "@lib/training/routines/routine-start-error";
 
 describe("routineStartErrorMessage", () => {
   it("names the code and request id for any coded failure", () => {

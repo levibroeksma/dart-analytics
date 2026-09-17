@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import type { Alpine } from "alpinejs";
 import { registerRouteData } from "@lib/client/alpine/register-route-data";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
-import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
-import { routineStart } from "@lib/training/routine-start.data";
+import { balancedTrainingPlay } from "@lib/training/routines/balanced-training-play.data";
+import { routineStart } from "@lib/training/routines/routine-start.data";
 
 describe("registerRouteData", () => {
   it("registers quickSubtractPlay as an Alpine data factory", () => {

@@ -17,7 +17,7 @@ vi.mock("@lib/game/play-lifecycle", () => ({
   playAbandonAndExit: vi.fn(),
 }));
 
-import { finishingStep } from "@lib/training/finishing-step.data";
+import { finishingStep } from "@lib/training/routines/finishing-step.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";
 import type { TuodPlayContext } from "@lib/types";

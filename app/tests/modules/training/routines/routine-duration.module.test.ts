@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_ROUTINE_MINUTES,
   validateRoutineDuration,
-} from "@modules/training/routine-duration.module";
+} from "@modules/training/routines/routine-duration.module";
 
 const minutes = (sequenceNumber: number, durationValue: number) => ({
   sequenceNumber,

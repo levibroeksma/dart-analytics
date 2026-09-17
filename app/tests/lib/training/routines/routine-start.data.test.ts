@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { routineStart } from "@lib/training/routine-start.data";
+import { routineStart } from "@lib/training/routines/routine-start.data";
 
 describe("routineStart", () => {
   it("start() sets starting=true and navigates to the given path", () => {

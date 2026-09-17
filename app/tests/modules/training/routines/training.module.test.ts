@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { trainingEngine } from "@modules/training/training.module";
+import { trainingEngine } from "@modules/training/routines/training.module";
 import type { RoutineSnapshot } from "@modules/types";
 
 const SNAPSHOT: RoutineSnapshot = {

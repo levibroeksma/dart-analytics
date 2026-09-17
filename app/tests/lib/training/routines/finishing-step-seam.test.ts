@@ -35,7 +35,7 @@ import {
   completeSession,
   fetchActiveSessions,
 } from "@client/api/sessions";
-import { finishingStep } from "@lib/training/finishing-step.data";
+import { finishingStep } from "@lib/training/routines/finishing-step.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type { DartObservation, EngineFacts, StageFact } from "@modules/types";
 

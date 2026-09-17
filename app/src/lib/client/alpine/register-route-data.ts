@@ -20,8 +20,8 @@ import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
-import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
-import { routineStart } from "@lib/training/routine-start.data";
+import { balancedTrainingPlay } from "@lib/training/routines/balanced-training-play.data";
+import { routineStart } from "@lib/training/routines/routine-start.data";
 
 export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);

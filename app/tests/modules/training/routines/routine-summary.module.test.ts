@@ -3,7 +3,7 @@ import {
   summariseSwitching,
   summariseDoublePattern,
   summariseFinishing,
-} from "@modules/training/routine-summary.module";
+} from "@modules/training/routines/routine-summary.module";
 import type {
   EngineFacts,
   SwitchingState,

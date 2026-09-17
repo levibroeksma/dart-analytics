@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { stepAdvanceErrorMessage } from "@lib/training/step-advance-error";
+import { stepAdvanceErrorMessage } from "@lib/training/routines/step-advance-error";
 
 describe("stepAdvanceErrorMessage", () => {
   it("names the code and request id for any coded failure", () => {

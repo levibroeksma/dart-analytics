@@ -25,7 +25,7 @@ vi.mock("@lib/game/play-lifecycle", async (importOriginal) => ({
 }));
 
 import * as trainingApi from "@client/api/training-sessions";
-import { balancedTrainingPlay } from "@lib/training/balanced-training-play.data";
+import { balancedTrainingPlay } from "@lib/training/routines/balanced-training-play.data";
 import { trainingSessionStore } from "@stores/training-session.store";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";

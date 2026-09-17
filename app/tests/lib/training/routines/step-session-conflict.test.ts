@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { activeSessionConflict } from "@lib/training/step-session-conflict";
+import { activeSessionConflict } from "@lib/training/routines/step-session-conflict";
 
 describe("activeSessionConflict", () => {
   it("reads the blocking session out of an already-active failure's details", () => {

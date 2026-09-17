@@ -5,7 +5,7 @@ import {
   abandonTraining,
 } from "@client/api/training-sessions";
 import { appendBatch, completeSession } from "@client/api/sessions";
-import { trainingEngine } from "@modules/training/training.module";
+import { trainingEngine } from "@modules/training/routines/training.module";
 import { getExerciseEngineFactory } from "@modules/training/exercises/engine.registry";
 import { resolveWarmUpPhaseDurations } from "@modules/training/exercises/warm-up.engine.module";
 import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
@@ -28,7 +28,7 @@ import {
   summariseSwitching,
   summariseDoublePattern,
   summariseFinishing,
-} from "@modules/training/routine-summary.module";
+} from "@modules/training/routines/routine-summary.module";
 import type { ExerciseEngine, TrainingEngine } from "@modules/interfaces";
 import type { WarmUpState } from "@modules/types";
 import type {
