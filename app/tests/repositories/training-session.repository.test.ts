@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderingDb, onlyStatement } from "./render-sql";
 
 function predicateColumns(clause: unknown): string[] {
   const names: string[] = [];
@@ -323,29 +324,57 @@ describe("abandonActiveTrainingActivities", () => {
 });
 
 /**
- * The mocked `tx` above never renders SQL, so a malformed predicate passes it
- * unnoticed — an `exists` over a raw `sql` chunk emitted `exists select 1 ...`
- * without the parentheses Postgres requires, and every routine start failed
- * 42601 in production (issue #397). The pg-proxy driver renders the real
- * statement without a connection, so the shape is asserted, not assumed.
+ * Rendered-statement coverage for this repository's write paths. The mocked
+ * `tx` above never renders SQL, so a malformed predicate passes it unnoticed —
+ * an `exists` over a raw `sql` chunk emitted `exists select 1 ...` without the
+ * parentheses Postgres requires, and every routine start failed 42601 in
+ * production (#400). `renderingDb` runs the real builder (issue #397).
  */
-describe("abandonActiveTrainingActivities SQL", () => {
+describe("training-session.repository rendered SQL", () => {
   it("parenthesises the activity_configurations EXISTS subquery", async () => {
-    const statements: string[] = [];
-    const { drizzle } = await import("drizzle-orm/pg-proxy");
-    const tx = drizzle(async (query: string) => {
-      statements.push(query);
-      return { rows: [] };
-    }) as never;
+    const { db, statements } = renderingDb();
     const { abandonActiveTrainingActivities } =
       await import("@repositories/training-session.repository");
-    await abandonActiveTrainingActivities(tx, {
+    await abandonActiveTrainingActivities(db, {
       playerId: "p1",
       abandonedStatusId: 3,
     });
-    expect(statements).toHaveLength(1);
-    expect(statements[0]).toMatch(
-      /exists \(select 1 from "activity_configurations"/,
+    expect(onlyStatement(statements)).toBe(
+      'update "activities" set "status_id" = $1, "completed_at" = $2 where ("activities"."player_id" = $3 and "activities"."completed_at" is null and exists (select 1 from "activity_configurations" where "activity_configurations"."activity_id" = "activities"."id")) returning "id"',
     );
+  });
+
+  it("renders the activity status update scoped to owner and expected status", async () => {
+    const { db, statements } = renderingDb([
+      ["a1", "2026-01-01T00:00:00.000Z"],
+    ]);
+    const { updateActivityStatusRecord } =
+      await import("@repositories/training-session.repository");
+    await updateActivityStatusRecord(db, {
+      activityId: "a1",
+      playerId: "p1",
+      statusId: 3,
+      expectedStatusId: 1,
+    });
+    expect(onlyStatement(statements)).toBe(
+      'update "activities" set "status_id" = $1, "completed_at" = $2 where ("activities"."id" = $3 and "activities"."player_id" = $4 and "activities"."status_id" = $5) returning "id", "completed_at"',
+    );
+  });
+
+  it("renders the activity and its configuration snapshot as two inserts", async () => {
+    const { db, statements } = renderingDb();
+    const { insertTrainingActivity } =
+      await import("@repositories/training-session.repository");
+    await insertTrainingActivity(db, {
+      activityId: "a1",
+      playerId: "p1",
+      activeStatusId: 1,
+      configurationId: "c1",
+      configuration: { routineName: "Balanced Training", steps: [] },
+    });
+    expect(statements.map((statement) => statement.sql)).toEqual([
+      'insert into "activities" ("id", "player_id", "status_id", "started_at", "completed_at", "created_at") values ($1, $2, $3, $4, default, $5)',
+      'insert into "activity_configurations" ("id", "activity_id", "configuration", "created_at") values ($1, $2, $3, $4)',
+    ]);
   });
 });

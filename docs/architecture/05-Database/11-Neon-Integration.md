@@ -77,8 +77,10 @@ Branch workflow:
 
 ```sh
 neon link
-npm run env:dev    # neon checkout dev + mirror PUBLIC_NEON_AUTH_BASE_URL
+npm run env:dev    # neon checkout dev + pull into .env + mirror PUBLIC_NEON_AUTH_BASE_URL
 ```
+
+`env:dev` pins its target with `--file .env` rather than letting the CLI choose. `neon env pull` writes an existing `.env` but falls back to `.env.local` when none exists, so on a fresh clone or worktree an unpinned pull lands in a file `env:mirror`, dbmate and `npm run dev` never read — the dev server then fails before Astro starts (issue #398, 2026-09-17).
 
 Production secrets for deploy scripts go in a separate file — never overwrite `.env`:
 
@@ -202,7 +204,7 @@ Sign-up UI is out of scope for v1. Provision the dev branch user once per enviro
 | ---- | ------ |
 | 1 | Enable email/password on the dev Neon Auth branch; disable email verification for local dev |
 | 2 | Add trusted origin `http://localhost:4321` (see Trusted origins above) |
-| 3 | Run `npm run env:dev` (checkout `dev` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
+| 3 | Run `npm run env:dev` (checkout `dev` + pull into `.env` + mirror `PUBLIC_NEON_AUTH_BASE_URL`) |
 | 4 | Run `npm run seed:dev-auth` from `app/` |
 
 Default dev credentials are documented in `app/scripts/seed-dev-auth.ts` header only (`levi@broeksma.nl` / `admin`, name `Levi`).

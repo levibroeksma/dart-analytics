@@ -51,6 +51,21 @@ Reproducing the pre-fix duplication on a throwaway branch and running `npx fallo
 
 **Known limitation:** `fallow`'s duplication gate (both modes) reliably catches copy-pasted blocks that keep the same identifiers, and can catch a renamed near-miss within the same file, but is not a substitute for reading two engine files side by side to spot a shared *rule* that was hand-copied with per-site renaming — that class of duplication is a code-review/audit responsibility (as this cleanup task itself was), not a gate one.
 
+# Repository Tests — Rendered SQL, Not A Mocked Builder
+
+Repository tests mock the drizzle query builder to assert control flow and return shape. That leaves the translation step — what drizzle actually emits — untested, and a statement Postgres rejects passes the whole suite (issue #397; the `exists()` defect it was found through, #400).
+
+Every mutating repository function, plus the single-active session lookups, therefore also has a **rendered-statement** test:
+
+- `app/tests/repositories/render-sql.ts` — `renderingDb(rows?)` returns a `drizzle-orm/pg-proxy` client that captures each statement instead of executing it, and `onlyStatement(statements)` reads the single statement a call rendered. No connection is involved, so this stays a unit test (D99, D104).
+- Seed rows are **positional arrays** (`[["p1", "2026-01-01T00:00:00.000Z"]]`), not objects — pg-proxy maps driver rows by column order.
+- A function that opens its own transaction (`upsertSettings`, `insertBatchRecords`) cannot be handed a client, so it gets one through `vi.mock("@db/client")` of `withTransaction`. That mock is module-scoped, so those tests live in their own files (`*.transaction.test.ts`, `*.batch.test.ts`).
+- Expected statements are written out in full. A change to a table's columns, a predicate, or drizzle's SQL generation is meant to fail here and be re-read, not to pass silently.
+
+Rationale and the bounded scope: **D298** (`decisions/testing.md`).
+
+---
+
 # Related Documents
 
 | Document | Purpose |
