@@ -2,12 +2,12 @@
 status: canonical
 scope: api/shared-conventions
 read-when: envelopes, headers, pagination, error codes
-updated: 2026-07-26
+updated: 2026-09-17
 -->
 
 # API Shared Conventions
 
-> **Version:** 1.7.0 (type-raising governs type imports; value imports exempt — D156, 2026-07-26; prior 1.6.0 `SESSION_ALREADY_ACTIVE` added to error-code registry, 2026-07-22)
+> **Version:** 1.8.0 (`X-Request-Id` emitted by the envelope builders; header contract scoped to envelope responses — D300, 2026-09-17; prior 1.7.0 type-raising governs type imports; value imports exempt — D156, 2026-07-26)
 >
 > Reusable, strictly-enforced conventions that every API endpoint obeys.
 > Subordinate to the frozen contract in `00-Overview.md` — this document details it and never overrides it.
@@ -74,13 +74,15 @@ Standard headers carried on every request and response:
 | `Authorization: Bearer <JWT>` | request | all protected routes | 2026-07-10 |
 | `Idempotency-Key` | request | batch write only | 2026-07-10 |
 | `Content-Type: application/json` | request/response | bodies | 2026-07-10 |
-| `X-Request-Id` (echo) | response | all responses | 2026-07-10 |
+| `X-Request-Id` (echo) | response | all envelope responses | 2026-07-10; scoped to envelope responses 2026-09-17 |
 
 ---
 
 ## requestId Propagation
 
 `requestId` is assigned by middleware (per `02-Middleware-And-Layering.md`), carried in `locals.requestId`, and echoed in every envelope and in the `X-Request-Id` response header. This enables distributed tracing and request correlation across logs.
+
+Both halves are built in `app/src/lib/server/envelope.ts`: `ok()` and `fail()` construct their headers per response, so the header and the body always carry the same id. The one route outside this contract is the `/api/auth/*` pass-through proxy, which returns the upstream response untouched and is never wrapped in the envelope — it emits no `X-Request-Id`. Every other response the API produces comes from one of the two envelope builders. (D300, issue #340) <!-- 2026-09-17 -->
 
 ---
 

@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-16
+updated: 2026-09-17
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.5.0 (Statistics Overview, 2026-09-06; prior 1.4.0 — `GET`/`PATCH /api/players/me`, 2026-08-15)
+> **Version:** 1.6.0 (`VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -93,7 +93,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 **Outcomes:**
 
 - Server creates activity / exercise session / config snapshot row / participant(s).
-- `captureModeKey` and `inputModeKey` are required and stored on the session (self-describing runtime record); both are validated against the ruleset (a ruleset may require `ANALYTICS` / `DETAILED_DARTS`). <!-- 2026-07-12 -->
+- `captureModeKey` and `inputModeKey` are required and stored on the session (self-describing runtime record); the pair is validated against the requested ruleset version's rows in `ruleset_version_capabilities` (migration `0019`, seeded in `0007`), so which pairs are legal is data, not a rule stated here. As seeded: every ruleset version pairs `ANALYTICS` with `VISUAL_BOARD`, and `RECREATIONAL` with `QUICK_SCORE` or `DETAILED_DARTS` depending on the game. `ANALYTICS` / `DETAILED_DARTS` is not a seeded pair for any ruleset. <!-- 2026-07-12; pairing corrected against seed `0007` 2026-09-17 -->
 - **Participants (v1):** the server derives exactly one participant of type `PLAYER` for the authenticated player, `displayName` copied from `players.display_name`, and returns its `ref`. Guest/DartBot participants are deferred post-v1 (added later as an optional `participants[]` input — additive, non-breaking). <!-- 2026-07-12 -->
 - **Participants (guests):** the optional `participants[]` input is now implemented as that decision anticipated. Array ORDER is seat order — it decides who throws first in leg 1. Omitting the field reproduces the single-`PLAYER` session above exactly. The `PLAYER` seat's `displayName` is always copied server-side from `players.display_name`; a client-supplied value is ignored, because migration `0005`'s CHECK requires exactly that. The seats are also written into the configuration snapshot under `seats`, in the same transaction as the participant rows. <!-- 2026-08-21 -->
 - **Seat rejections** (all `VALIDATION_FAILED`, asserted once in `app/src/services/session-seats.service.ts`, and nothing is written): fewer than 1 or more than 4 seats; not exactly one `PLAYER`; a `GUEST` with a blank name; two seats sharing one `sideKey` (2v2 is not implemented); more seats than the requested ruleset's own cap — see `SEAT_CAPS` below. Duplicate guest display names are deliberately allowed — seats are identified by ref, not name. <!-- 2026-08-21; seat cap generalized from a single 501_V1 special case to SEAT_CAPS 2026-08-22 -->
@@ -114,7 +114,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 
   <!-- 2026-08-22 -->
 - The events batch endpoint is unchanged: a turn's `participantRef` may now vary within one batch, which `validateBatchReferences` already allowed. <!-- 2026-08-21 -->
-- **Activity (v1):** the session's activity is created and managed server-side, one activity per session; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
+- **Activity (v1):** the session's activity is created and managed server-side. A standalone game session gets an activity of its own; a training routine's activity spans every step session started under it, so one activity to N sessions is the shipped shape, not a deferred one (D301, issue #339). Routine-run writes ship as `POST /api/training-sessions` and `POST /api/training-sessions/:activityId/steps`. <!-- 2026-07-12; restated as shipped 2026-09-17 -->
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
 - Returns server-generated `sessionId` (UUIDv7) and participant ref(s), enclosed in standard `ok()` envelope.
 - Template resolution or config validation failure → error using an appropriate code from the error-code registry in `03-Shared-Conventions.md` (do not introduce ad-hoc codes here).
@@ -130,7 +130,7 @@ const CreateSessionRequest = z.object({
   gameTypeKey: z.string(),                   // game_types.implementation_key
   rulesetVersionKey: z.string(),             // ruleset_versions.implementation_key
   captureModeKey: z.string(),                // capture_modes.implementation_key (RECREATIONAL | ANALYTICS)
-  inputModeKey: z.string(),                  // input_modes.implementation_key (QUICK_SCORE | DETAILED_DARTS)
+  inputModeKey: z.string(),                  // input_modes.implementation_key (QUICK_SCORE | DETAILED_DARTS | VISUAL_BOARD)
   config: ConfigInput,
   participants: z.array(ParticipantInput).optional(),  // array order IS seat order; omitted = one PLAYER seat
 });

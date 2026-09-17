@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-08-15
+updated: 2026-09-17
 -->
 
 # API Overview
 
-> **Version:** 1.8.0 (`GET /api/statistics/overview` routed, 2026-09-06; prior 1.7.0 — `GET`/`PATCH /api/players/me` routed, 2026-08-15)
+> **Version:** 1.9.0 (activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -239,7 +239,7 @@ Policy:
 - JWT middleware verification contract (v1): required claims are `sub` and `exp`.
 - Statistics scope: `overview` shipped 2026-09-06, composing 4 views in the service layer (no dedicated aggregate view); `trends` and `checkouts` remain deferred post-v1 and must be view-backed when built. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 - Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
-- Activity grouping (v1): one activity per session, server-managed; multi-session activities and routine-run writes are deferred post-v1. <!-- 2026-07-12 -->
+- Activity grouping (v1): activities are server-managed. A standalone game session gets one activity; a training routine's activity spans every step session started under it. Multi-session activities and routine-run writes shipped with Balanced Training and are no longer deferred (D301, supersedes D64). <!-- 2026-07-12; restated as shipped 2026-09-17 -->
 - Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
 - Freeze semantics: the route surface and behavioral semantics are frozen; documents may take doc-only version bumps without violating the freeze. <!-- 2026-07-13 -->
 - Session lifecycle (v1): every terminal transition (`COMPLETED`, `ABANDONED`) sets `completed_at` (server default `now()`); `ACTIVE` ⇔ `completed_at IS NULL` is a service-enforced invariant. <!-- 2026-07-13 -->
