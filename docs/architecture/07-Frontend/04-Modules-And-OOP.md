@@ -81,7 +81,7 @@ Every `components/ui/<Name>.astro` has exactly one `modules/ui/<name>.module.ts`
 | Rule | `modules/ui/` + `components/ui/` |
 | ---- | ---------------------------------- |
 | May import | Paired module, Tailwind utilities |
-| Must not import | `@stores`, `@forms`, `@pages`, `@client/api`, `@services`, `@repositories` |
+| Must not import | `@stores`, `@pages`, `@client/api`, `@services`, `@repositories` |
 | Styling | Tailwind utilities — no app-specific design tokens |
 | Copy-paste | Drop both folders into another Astro+Alpine project; adjust classes |
 

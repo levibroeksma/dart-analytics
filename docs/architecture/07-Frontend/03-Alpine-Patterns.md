@@ -30,7 +30,7 @@ Astro page (shell)
     ↓
 Alpine.data (*.data.ts) — x-data="componentState()"
     ↓
-Alpine.store (*.store.ts) / form (*.form.ts)
+Alpine.store (*.store.ts)
     ↓
 Module (*.engine.module.ts, *.payload.module.ts)
     ↓
@@ -111,8 +111,6 @@ Timer **state** (`timerRemainingMs`, `timerStartedAt`) lives in `game.store.ts` 
 # Form Pattern
 
 Forms hold draft UI interaction state. In v1 they **substitute for `player_settings`** (D77): last-used capture mode, input mode, template selection. Values are sent on every `POST /api/sessions` per D60.
-
-`$persist` is allowed in `*.form.ts` for draft preferences only — not for submitted payloads.
 
 ---
 
@@ -199,7 +197,7 @@ Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Al
 
 # `$persist` Scope
 
-`$persist` is allowed **only** in `*.store.ts` and `*.form.ts`.
+`$persist` is allowed **only** in `*.store.ts`.
 
 | Persisted | Never persisted |
 | --------- | --------------- |
