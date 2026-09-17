@@ -2,7 +2,7 @@
 status: canonical
 scope: database/runtime-layer
 read-when: adding/changing activities, sessions, stages, turns, darts, idempotency
-updated: 2026-09-10
+updated: 2026-09-17
 -->
 
 # Database Specification — Chapter 4: Runtime Layer
@@ -298,7 +298,7 @@ unconverted and silently mismatch the client's `SeatFact`.
 
 ## Purpose
 
-The immutable snapshot of the **Resolved Training Configuration** (`09-training-routines.md` §18) an
+The immutable snapshot of the **Resolved Training Configuration** (`09-Training/01-Routines.md` §18) an
 activity executed: the routine's name plus its ordered, resolved step list.
 
 ## Lifecycle

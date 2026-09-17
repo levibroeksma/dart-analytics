@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-09-10
+updated: 2026-09-17
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -446,7 +446,7 @@ Supporting duration through a reference entity allows additional measurement str
 
 ## Purpose
 
-Identifies the kind of exercise being executed (`09-training-routines.md` §3.4). The exercise type
+Identifies the kind of exercise being executed (`09-Training/01-Routines.md` §3.4). The exercise type
 selects the `ExerciseEngine` and the exercise ruleset responsible for execution.
 
 Examples: `GAME`, `WARM_UP`, and later `SWITCHING`, `DOUBLE_PATTERN`, `CHECKOUT`, `ACCURACY`.
@@ -485,7 +485,7 @@ Referenced by:
 ## Design Rationale
 
 An explicit exercise-type discriminator is what lets a non-game exercise exist at all: before it, a
-`NOT NULL game_type_id` forced every exercise into a game abstraction, which `09-training-routines.md`
+`NOT NULL game_type_id` forced every exercise into a game abstraction, which `09-Training/01-Routines.md`
 §12 explicitly forbids.
 
 Seeded by `0014_exercise_types.sql`.
@@ -532,7 +532,7 @@ Referenced by:
 foreign key a referenceable target; the primary key already made the pair unique, so the constraint
 adds no new restriction (migration 0035). <!-- 2026-09-17 -->
 
-Exercise rulesets and game rulesets are separate components (`09-training-routines.md` §24), and
+Exercise rulesets and game rulesets are separate components (`09-Training/01-Routines.md` §24), and
 §11's execution path (`ExerciseEngine → GameEngine → Game Ruleset`) has both live at once for a
 game-backed exercise. A single discriminated `ruleset_versions` table would give an
 `exercise_sessions` row one column for two values, so exercise rulesets get their own table and

@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/trivia
 read-when: checkout quiz, trivia tools, standalone practice features
-updated: 2026-08-28
+updated: 2026-09-17
 -->
 
 # Checkout Trivia Architecture
@@ -11,7 +11,7 @@ updated: 2026-08-28
 >
 > A standalone, untimed flashcard quiz for drilling checkout routes: what it covers, what it deliberately excludes, and the one piece of existing game code it reuses.
 >
-> Checkout chart it reuses: `app/src/modules/game/checkout-path.module.ts`. Dart vocabulary it borrows: `app/src/modules/game/types.ts` (`DartZoneKey`). Explicitly not integrated with: `09-training-routines.md`.
+> Checkout chart it reuses: `app/src/modules/game/checkout-path.module.ts`. Dart vocabulary it borrows: `app/src/modules/game/types.ts` (`DartZoneKey`). Explicitly not integrated with: `01-Routines.md`.
 
 ---
 
@@ -19,7 +19,7 @@ updated: 2026-08-28
 
 Checkout Trivia is a standalone flashcard quiz: shown a number, the player answers with the checkout route they would throw. It exists to build the route recall a player needs mid-leg, drilled outside a live game rather than during one.
 
-`docs/game-rules/trivia/README.md` frames "trivia" as a family of standalone practice tools, explicitly outside the `game_types` model. This document is the first tool in that family, and the first to resolve what "standalone" means in practice.
+`docs/game-rules/training/trivia/README.md` frames "trivia" as a family of standalone practice tools, explicitly outside the `game_types` model. This document is the first tool in that family, and the first to resolve what "standalone" means in practice.
 
 ---
 
@@ -29,17 +29,17 @@ Nothing described here is implemented. The document exists first, per `01-Princi
 
 In scope: the question pool and its filters, the answer-evaluation model, the preferred-route explanation mechanism (not its content — see §Preferred-Route Explanations), the input flow, and where the code lives.
 
-Out of scope, deliberately — see §Explicitly Deferred for the reasoning behind each: time pressure or decision-speed training, persisted attempt history, and any integration with `09-training-routines.md`.
+Out of scope, deliberately — see §Explicitly Deferred for the reasoning behind each: time pressure or decision-speed training, persisted attempt history, and any integration with `01-Routines.md`.
 
 ---
 
 # Architectural Placement
 
-Checkout Trivia is fully standalone: its own route, its own state, no dependency on `09-training-routines.md` and no code shared with it.
+Checkout Trivia is fully standalone: its own route, its own state, no dependency on `01-Routines.md` and no code shared with it.
 
-`09-training-routines.md` reserves a `CHECKOUT` Exercise Type and supports exercises that need no game engine, so folding this quiz into that framework was considered and rejected — not because it is a poor conceptual fit, but because three concrete mismatches make it a poor V1 fit: `09` has no implementation at all yet, every exercise there is duration-bound while this quiz's natural unit is question count, and `09`'s only non-dart-input precedent (Warm-Up) evaluates nothing, while this quiz needs to evaluate a keypad tap standing in for a dart that was never thrown.
+`01-Routines.md` reserves a `CHECKOUT` Exercise Type and supports exercises that need no game engine, so folding this quiz into that framework was considered and rejected — not because it is a poor conceptual fit, but because three concrete mismatches make it a poor V1 fit: `09` has no implementation at all yet, every exercise there is duration-bound while this quiz's natural unit is question count, and `09`'s only non-dart-input precedent (Warm-Up) evaluates nothing, while this quiz needs to evaluate a keypad tap standing in for a dart that was never thrown.
 
-If `09-training-routines.md` ships later and a `CHECKOUT` Exercise Type becomes real, integrating this quiz into it is a fresh decision made against the code that exists then. Nothing here is shaped to anticipate it.
+If `01-Routines.md` ships later and a `CHECKOUT` Exercise Type becomes real, integrating this quiz into it is a fresh decision made against the code that exists then. Nothing here is shaped to anticipate it.
 
 ---
 
@@ -153,10 +153,10 @@ app/src/pages/trivia/checkouts/index.astro  # the quiz itself
 
 Sibling to `games/`, never under it — this is not a `game_types` game. No `pages/api/**` route and no `api/sessions/*` call: there is nothing to create or persist server-side.
 
-All new code lives in its own `lib/trivia/` domain folder — the same scale as the existing `lib/auth/` or `lib/ui/` — not a new `modules/` subfolder. A class-based `modules/<domain>/` folder is warranted once logic is used by 2+ routes (`docs/architecture/07-Frontend/02-Folder-Structure.md`, verified current); this quiz is one route, so it colocates.
+All new code lives in its own `lib/training/trivia/` domain folder — the same scale as the existing `lib/auth/` or `lib/ui/` — not a new `modules/` subfolder. A class-based `modules/<domain>/` folder is warranted once logic is used by 2+ routes (`docs/architecture/07-Frontend/02-Folder-Structure.md`, verified current); this quiz is one route, so it colocates.
 
 ```
-app/src/lib/trivia/
+app/src/lib/training/trivia/
 ├── checkout-trivia-play.data.ts       # Alpine.data factory — phase, current question, entered darts, results[]
 ├── checkout-trivia-pool.ts            # buildCheckoutTriviaPool
 ├── checkout-trivia-evaluation.ts      # isValidFinish, classifyCheckoutAnswer
@@ -185,7 +185,7 @@ Decided against for V1, recorded so none of it is re-litigated as an oversight.
 
 - **Time pressure or decision-speed training.** V1 is untimed throughout — no timer field anywhere in the data shapes above. A speed layer, if ever built, is a separate design on top of this one, not a retrofit.
 - **Persisted attempt history.** No schema, no API call, nothing server-side. `results[]` in `checkout-trivia-play.data.ts` is already a list of discrete per-question outcomes rather than a running tally, so a future persistence layer folds that list rather than requiring anything here to be re-derived.
-- **Integration with `09-training-routines.md`.** No shared contract, no shared code, no seam kept open. See §Architectural Placement.
+- **Integration with `01-Routines.md`.** No shared contract, no shared code, no seam kept open. See §Architectural Placement.
 - **Full explanation content.** See §Preferred-Route Explanations — the mechanism ships, writing the remaining ~123 entries does not block release.
 
 ---
@@ -194,9 +194,9 @@ Decided against for V1, recorded so none of it is re-litigated as an oversight.
 
 | Document | Relationship |
 | -------- | ------------ |
-| `docs/game-rules/trivia/README.md` | The category framing this document resolves the "target shape" question for. |
-| `docs/game-rules/trivia/checkouts.md` | The raw brief this document formalizes. |
+| `docs/game-rules/training/trivia/README.md` | The category framing this document resolves the "target shape" question for. |
+| `docs/game-rules/training/trivia/checkouts.md` | The raw brief this document formalizes. |
 | `app/src/modules/game/checkout-path.module.ts` | The chart this design reuses in full — `checkoutPathFor` is the only import from existing game code. |
 | `app/src/modules/game/types.ts` | Source of the `DartZoneKey` vocabulary `DeclaredDart` narrows. |
-| `08-DartBot.md` | Sibling document in this folder. Its Module Boundary section describes a proposed extension to the frontend module/folder docs, not current convention — not mirrored here for that reason. |
-| `09-training-routines.md` | The framework this document deliberately does not integrate with — see §Architectural Placement. |
+| `../08-DartBot.md` | Neighboring document, one level up in `docs/architecture/`. Its Module Boundary section describes a proposed extension to the frontend module/folder docs, not current convention — not mirrored here for that reason. |
+| `01-Routines.md` | The framework this document deliberately does not integrate with — see §Architectural Placement. |
