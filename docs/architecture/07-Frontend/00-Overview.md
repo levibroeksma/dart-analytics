@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-08-26
+updated: 2026-09-17
 -->
 
 # Frontend Overview
@@ -26,6 +26,13 @@ It must not become the primary source of business logic or the owner of persiste
 This document defines how the presentation layer communicates with the API boundary defined in `06-API/`.
 
 Structural patterns (folders, Alpine, modules) live in the handbook chapters below.
+
+A player-authored routine builder is planned (Phase 1 of
+`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`)
+against the unbuilt `/api/routines` write contract in `06-API/04-Endpoint-Contracts.md`.
+Its drag-reorder mechanism (`@alpinejs/sort`) is a proposed dependency, not yet
+adopted — confirm it at that phase's own brainstorm before adding it to
+`app/package.json`.
 
 ---
 
