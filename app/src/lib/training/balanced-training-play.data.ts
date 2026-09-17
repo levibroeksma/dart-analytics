@@ -21,6 +21,7 @@ import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/exercise/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
+import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
 import { activeSessionConflict } from "./step-session-conflict";
 import {
@@ -166,9 +167,8 @@ export function balancedTrainingPlay() {
           })),
         });
         await this.startCurrentStep();
-      } catch {
-        this.error =
-          "Could not start this routine. Check your connection and retry.";
+      } catch (err) {
+        this.error = routineStartErrorMessage(err);
       } finally {
         this.loading = false;
       }

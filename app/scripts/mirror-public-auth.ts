@@ -3,7 +3,7 @@
  * Neon CLI env pull never writes the Astro PUBLIC_ key — run after checkout/pull.
  *
  * Run: npm run env:mirror
- *      npm run env:dev  (checkout + pull + mirror)
+ *      npm run env:dev  (checkout + pull into .env + mirror)
  */
 
 import { readFileSync, writeFileSync } from "node:fs";

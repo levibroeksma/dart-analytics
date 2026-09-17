@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { renderingDb, onlyStatement } from "./render-sql";
 
 function fakeSelect(rows: unknown[]) {
   const fromCalls: unknown[] = [];
@@ -114,5 +115,35 @@ describe("updatePlayerProfile", () => {
       dartsDescription: null,
       dartsWeightGrams: null,
     });
+  });
+});
+
+/**
+ * Rendered-statement coverage for the two write paths — the mocked builders
+ * above never render SQL, so a malformed statement passes them (issue #397).
+ */
+describe("player.repository rendered SQL", () => {
+  it("renders the provisioning upsert with its xmax created-flag", async () => {
+    const { db, statements } = renderingDb([["p1", "u1", "0"]]);
+    const { upsertPlayerByAuthUserId } =
+      await import("@repositories/player.repository");
+    await upsertPlayerByAuthUserId(db, "u1", "p1", "Levi");
+    expect(onlyStatement(statements)).toBe(
+      'insert into "players" ("id", "auth_user_id", "display_name", "darts_description", "darts_weight_grams", "created_at", "updated_at") values ($1, $2, $3, default, default, $4, $5) on conflict ("auth_user_id") do update set "updated_at" = $6 returning "id", "auth_user_id", xmax::text',
+    );
+  });
+
+  it("renders the profile update scoped to one player", async () => {
+    const { db, statements } = renderingDb([["Levi", "Target 24g", 24]]);
+    const { updatePlayerProfile } =
+      await import("@repositories/player.repository");
+    await updatePlayerProfile(db, "p1", {
+      displayName: "Levi",
+      dartsDescription: "Target 24g",
+      dartsWeightGrams: 24,
+    } as never);
+    expect(onlyStatement(statements)).toBe(
+      'update "players" set "display_name" = $1, "darts_description" = $2, "darts_weight_grams" = $3, "updated_at" = $4 where "players"."id" = $5 returning "display_name", "darts_description", "darts_weight_grams"',
+    );
   });
 });

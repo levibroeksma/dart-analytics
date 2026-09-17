@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderingDb, onlyStatement } from "./render-sql";
 
 function fakeSelect(rows: unknown[]) {
   const chain = {
@@ -643,6 +644,87 @@ describe("findConfigurationPresets projection", () => {
         "isSystemTemplate",
         "name",
       ].sort(),
+    );
+  });
+});
+
+/**
+ * Rendered-statement coverage for the write paths and the single-active reads.
+ * The mocked builders above assert which columns a predicate mentions, never
+ * what drizzle emits, so a statement Postgres rejects still passes them
+ * (issue #397). `renderingDb` runs the real builder and captures the SQL.
+ */
+describe("session.repository rendered SQL", () => {
+  it("renders the activity insert", async () => {
+    const { db, statements } = renderingDb();
+    const { insertActivityRecord } =
+      await import("@repositories/session.repository");
+    await insertActivityRecord(db, {
+      activityId: "a1",
+      playerId: "p1",
+      activeStatusId: 1,
+    });
+    expect(onlyStatement(statements)).toBe(
+      'insert into "activities" ("id", "player_id", "status_id", "started_at", "completed_at", "created_at") values ($1, $2, $3, $4, default, $5)',
+    );
+  });
+
+  it("renders the session, configuration and participant inserts", async () => {
+    const { db, statements } = renderingDb();
+    const { insertExerciseSessionRecord } =
+      await import("@repositories/session.repository");
+    await insertExerciseSessionRecord(db, {
+      sessionId: "s1",
+      activityId: "a1",
+      playerId: "p1",
+      configurationId: "c1",
+      configuration: {},
+      activeStatusId: 1,
+      exerciseTypeId: "et1",
+      participants: [
+        {
+          id: "pt1",
+          participantTypeId: 1,
+          playerId: "p1",
+          displayName: "Levi",
+        },
+      ],
+    } as never);
+    expect(statements).toHaveLength(3);
+    expect(statements[0].sql).toContain('insert into "exercise_sessions"');
+    expect(statements[1].sql).toContain(
+      'insert into "exercise_configurations"',
+    );
+    expect(statements[2].sql).toContain('insert into "participants"');
+  });
+
+  it("renders the session status update scoped to one session", async () => {
+    const { db, statements } = renderingDb();
+    const { updateSessionStatusRecord } =
+      await import("@repositories/session.repository");
+    await updateSessionStatusRecord(db, "s1", 2, "2026-01-01T00:00:00.000Z");
+    expect(onlyStatement(statements)).toBe(
+      'update "exercise_sessions" set "status_id" = $1, "completed_at" = $2 where "exercise_sessions"."id" = $3',
+    );
+  });
+
+  it("renders the game-type single-active lookup as an open-session predicate", async () => {
+    const { db, statements } = renderingDb();
+    const { findActiveSessionForGameType } =
+      await import("@repositories/session.repository");
+    await findActiveSessionForGameType(db, "p1", "gt1");
+    expect(onlyStatement(statements)).toBe(
+      'select "id", "started_at" from "exercise_sessions" where ("exercise_sessions"."player_id" = $1 and "exercise_sessions"."game_type_id" = $2 and "exercise_sessions"."completed_at" is null) limit $3',
+    );
+  });
+
+  it("renders the exercise-type single-active lookup with the null game-type guard", async () => {
+    const { db, statements } = renderingDb();
+    const { findActiveSessionForExerciseType } =
+      await import("@repositories/session.repository");
+    await findActiveSessionForExerciseType(db, "p1", "et1");
+    expect(onlyStatement(statements)).toBe(
+      'select "id", "started_at" from "exercise_sessions" where ("exercise_sessions"."player_id" = $1 and "exercise_sessions"."exercise_type_id" = $2 and "exercise_sessions"."game_type_id" is null and "exercise_sessions"."completed_at" is null) limit $3',
     );
   });
 });
