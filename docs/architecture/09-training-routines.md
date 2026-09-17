@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-01
+updated: 2026-09-17
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -365,6 +365,23 @@ Training Plan
 ```
 
 Such a concept is intentionally outside the current scope.
+
+### User-Created Routine Floor (planned, unbuilt)
+
+A player-authored routine additionally satisfies a floor:
+
+```text
+30 minutes <= user routine.duration <= 60 minutes
+```
+
+The floor applies only when `routine_templates.is_system_template = FALSE`. It
+does not apply to system routines — the seeded "Warm-Up" routine
+(`database/seeds/0015_warm_up_routine.sql`) is 5 minutes total by design, used
+both standalone and as a step inside Balanced Training. Scoping the floor to
+user-authored routines preserves that without a special case. See D305 and
+`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
+§3.2-3.3 for the enforcement mechanism (a deferred constraint trigger on
+`routine_steps`, not yet migrated).
 
 ---
 
@@ -855,6 +872,13 @@ Duration
 ```
 
 rather than creating a new engine.
+
+**Status (2026-09-17):** sequenced as Phase 1 of
+`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`.
+The ownership columns this section anticipates already exist
+(`routine_templates.player_id`, `is_system_template`, migration `0004`); the
+CRUD API and builder UI do not. See D305/D306 for the duration-bound and
+endpoint-contract decisions the roadmap fixed ahead of implementation.
 
 ---
 
