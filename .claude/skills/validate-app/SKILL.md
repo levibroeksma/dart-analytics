@@ -11,7 +11,7 @@ The sole validation procedure for `app/` changes:
 cd app && npm run validate:app
 ```
 
-This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `npm test` → `npm run check` (`rm -rf .astro && astro check --minimumFailingSeverity hint`) → `bash ../scripts/refresh-graph.sh` (warns instead of failing when the graphify CLI is absent; nothing to record and nothing to stage either way — graph freshness is CI-owned per D185, and `.github/workflows/graph.yml` rebuilds it on merge to `main`). Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`.
+This executes, in order: `db:status` → `db:migrate` → `db:introspect` → `npx fallow` → `npm test` → `npm run check` (`rm -rf .astro && astro check --minimumFailingSeverity hint`) → `bash ../scripts/refresh-graph.sh` (warns instead of failing when the graphify CLI is absent; nothing to record and nothing to stage either way — graph freshness is CI-owned per D185 and D287, and `.github/workflows/graph.yml` rebuilds it on merge to `main`). Seeding (`npm run db:seed`) is environment provisioning, not validation — see `docs/architecture/05-Database/11-Neon-Integration.md`.
 
 **Definition of done for the type gate:** `npm run check` must report **0 errors, 0 warnings, 0 hints**. It is run with `--minimumFailingSeverity hint`, so an unused import, an unread parameter, or any other hint-level diagnostic exits non-zero and the job is not finished. Delete the dead declaration; do not silence it. CI runs the same script (`quality.yml`, Type gate). (2026-08-21)
 
