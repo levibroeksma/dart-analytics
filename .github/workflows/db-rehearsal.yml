@@ -1,0 +1,99 @@
+name: db-rehearsal
+
+# Rehearses the pending schema change against a throwaway Neon branch cut from
+# production, so nothing is applied to production that has not already applied
+# cleanly to production's real shape once (#354). Runs on every PR that touches
+# the schema, and as the gate in front of `deploy.yml`'s apply job.
+#
+# The rehearsal branch is deleted in an `always()` step: a leaked branch costs
+# storage and keeps a compute warm, so the delete is not conditional on success.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/**'
+      - 'database/seeds/**'
+      - 'database/verification/**'
+      - 'app/scripts/seed.ts'
+      - 'app/scripts/verify-db.ts'
+      - 'app/package.json'
+      - '.github/workflows/db-rehearsal.yml'
+  workflow_call:
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      # Unique per attempt: a re-run must not collide with the branch its
+      # previous attempt may have failed to delete.
+      REHEARSAL_BRANCH: ci-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Resolve Neon project
+        id: neon
+        run: echo "project_id=$(jq -r .projectId .neon)" >> "$GITHUB_OUTPUT"
+
+      - name: Require the Neon API key
+        # Fail here rather than three steps later with an opaque neonctl error.
+        run: |
+          if [ -z "$NEON_API_KEY" ]; then
+            echo "::error::NEON_API_KEY is not set. Add it as a repository secret (see docs/architecture/05-Database/11-Neon-Integration.md)."
+            exit 1
+          fi
+
+      - name: Create the rehearsal branch from production
+        run: |
+          uri=$(npx --yes neonctl@2 branches create \
+            --project-id "${{ steps.neon.outputs.project_id }}" \
+            --parent main \
+            --name "$REHEARSAL_BRANCH" \
+            --output json | jq -r '.connection_uris[0].connection_uri')
+          if [ -z "$uri" ] || [ "$uri" = "null" ]; then
+            echo "::error::Neon returned no connection URI for $REHEARSAL_BRANCH"
+            exit 1
+          fi
+          # neonctl's output is not a GitHub secret, so nothing masks it for us.
+          echo "::add-mask::$uri"
+          echo "DATABASE_URL=$uri" >> "$GITHUB_ENV"
+
+      - name: Pending migrations
+        run: |
+          {
+            echo "### Pending on production (rehearsed on \`$REHEARSAL_BRANCH\`)"
+            echo '```'
+            npm run --silent db:status:ci
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Apply migrations
+        run: npm run db:migrate:ci
+
+      - name: Apply seeds
+        run: npm run db:seed:ci
+
+      - name: Verify
+        run: npm run db:verify:ci
+
+      - name: Confirm nothing is left pending
+        run: npm run db:status:ci
+
+      - name: Delete the rehearsal branch
+        if: always()
+        run: |
+          npx --yes neonctl@2 branches delete "$REHEARSAL_BRANCH" \
+            --project-id "${{ steps.neon.outputs.project_id }}" || \
+            echo "::warning::Could not delete $REHEARSAL_BRANCH; delete it by hand in the Neon console."
