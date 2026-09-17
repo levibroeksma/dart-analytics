@@ -48,7 +48,7 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 - **Consult the committed file before broad grep/exploration.** `graphify-out/graph.json` is in the repo and readable with the tools every session already has — grep it for an entity, or read it directly. Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
 - **The CLI is optional.** Where `graphify` is installed, `graphify query "<question>"`, `graphify path "<A>" "<B>"` and `graphify explain "<entity>"` are the nicer interface to the same file. It is not present in the session container, so nothing in this manual depends on it — see `app/CLAUDE.md` for a local install.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
-- **Freshness is CI-owned**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main` and opens a PR; it is no longer a local completion-report item.
+- **Freshness is CI-owned; landing it is one human merge**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main`, pushes it to `chore/graph-refresh` and opens a PR. The bot's commit is unsigned and `main`'s ruleset requires verified signatures, so only a bypass actor can merge it — no amount of approval lets it land itself (D289). If the PR cannot be opened at all, the workflow files a `graph: refresh PR could not be opened` issue rather than passing silently (D287). Either way it is not a local completion-report item.
 - **Scope caveat:** `.astro` files are only partially parsed (no tree-sitter grammar); TS/JS/SQL/Markdown are fully covered.
 
 ---
