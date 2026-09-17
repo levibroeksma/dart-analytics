@@ -160,7 +160,7 @@ export class DoublePatternEngine implements DartExerciseEngine<DoublePatternStat
       this.turns,
       STAGE.clientKey,
       SOLO_PARTICIPANT_REF,
-      (last) => last.darts.length < patternLength,
+      (last) => last.completedAt === null,
     );
     appendObservedDart(turn, observation, {
       intendedTargetNumber: intendedDouble,
