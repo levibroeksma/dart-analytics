@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/folder-structure
 read-when: new frontend files, aliases, import direction
-updated: 2026-09-09
+updated: 2026-09-17
 -->
 
 # Frontend Folder Structure
 
-> **Version:** 0.2.4 (single-route class carve-out for Trivia, 2026-09-09; prior 0.2.3 DartBot module suffix registration — `.module.ts` widened, `.strategy.module.ts` added, `modules/dartbot/` in the tree, 2026-09-01; 0.2.2 cross-runtime `lib/game/rulesets/`, 2026-07-26)
+> **Version:** 0.3.0 (tree and alias table reconciled with `app/src/` — nine missing `lib/`/`modules/` trees, three missing aliases; alias table now gate-enforced, D302, issue #347, 2026-09-17; prior 0.2.4 single-route class carve-out for Trivia, 2026-09-09; prior 0.2.3 DartBot module suffix registration — `.module.ts` widened, `.strategy.module.ts` added, `modules/dartbot/` in the tree, 2026-09-01; 0.2.2 cross-runtime `lib/game/rulesets/`, 2026-07-26)
 >
 > Authoritative `app/src/` layout for browser code, shared types, and Worker API areas.
 >
@@ -42,6 +42,11 @@ app/src/
 │   │   └── logout.data.ts
 │   ├── game/                        # @lib/game — game data factories, session recovery
 │   │   └── rulesets/                # cross-runtime: ruleset config schemas + codec
+│   ├── exercise/                    # exercise ruleset schemas + solo-participant upload
+│   ├── training/                    # routine start/step-advance data factories
+│   ├── stats/                       # statistics overview formatting
+│   ├── trivia/                      # trivia play data factories
+│   ├── ui/                          # shared layout/toggle data factories
 │   └── utils/                       # @utils (note: alias maps here, not to top-level utils/)
 ├── utils/                           # @utils — widely reused pure helpers
 ├── stores/                          # @stores — *.store.ts
@@ -49,6 +54,10 @@ app/src/
 ├── modules/
 │   ├── ui/                          # portable OOP (*.module.ts)
 │   ├── game/                        # *.engine.module.ts, *.payload.module.ts
+│   ├── exercise/                    # *.engine.module.ts + engine registries (training exercises)
+│   ├── training/                    # routine orchestration (*.module.ts)
+│   ├── stats/                       # pure statistics aggregation (*.module.ts, D258)
+│   ├── trivia/                      # non-GameEngine client tools (*.module.ts)
 │   └── dartbot/                     # simulated opponent (*.module.ts, *.strategy.module.ts)
 ├── components/
 │   ├── ui/                          # portable Astro + Alpine wiring
@@ -92,6 +101,8 @@ All imports use `@`-prefixed aliases. Deep relative paths (`../../../`) are forb
 | Alias | Maps to |
 | ----- | ------- |
 | `@client/*` | `src/lib/client/*` |
+| `@auth/*` | `src/lib/auth/*` |
+| `@server/*` | `src/lib/server/*` |
 | `@stores/*` | `src/stores/*` |
 | `@forms/*` | `src/forms/*` |
 | `@modules/*` | `src/modules/*` |
@@ -105,7 +116,13 @@ All imports use `@`-prefixed aliases. Deep relative paths (`../../../`) are forb
 | `@db/*` | `src/db/*` |
 | `@icons/*` | `src/icons/*` |
 | `@styles/*` | `src/styles/*` |
+| `@assets/*` | `src/assets/*` |
 | `@lib/*` | `src/lib/*` (legacy — browser code migrates to `@client`, D66/D78) |
+
+This table is the third source `scripts/check-alias-sync.sh` compares (D302): it
+must match `app/tsconfig.json`'s `compilerOptions.paths` exactly, alias for
+alias, and the gate fails the build when it does not. Adding an alias means
+adding it here in the same change. <!-- 2026-09-17 -->
 
 ### Barrel type imports
 
