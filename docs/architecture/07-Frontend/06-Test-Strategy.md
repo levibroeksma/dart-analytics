@@ -62,7 +62,7 @@ Every mutating repository function, plus the single-active session lookups, ther
 - A function that opens its own transaction (`upsertSettings`, `insertBatchRecords`) cannot be handed a client, so it gets one through `vi.mock("@db/client")` of `withTransaction`. That mock is module-scoped, so those tests live in their own files (`*.transaction.test.ts`, `*.batch.test.ts`).
 - Expected statements are written out in full. A change to a table's columns, a predicate, or drizzle's SQL generation is meant to fail here and be re-read, not to pass silently.
 
-Rationale and the bounded scope: **D302** (`decisions/testing.md`).
+Rationale and the bounded scope: **D303** (`decisions/testing.md`).
 
 ---
 
