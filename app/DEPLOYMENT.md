@@ -1,7 +1,7 @@
 # Cloudflare Deployment Guide
 
 **For:** Production deployment to Cloudflare (single Worker with Assets — frontend + API combined).
-**Status:** Automated via GitHub Actions (`.github/workflows/deploy.yml`) on push to `main`. Worker secrets are one-time manual setup.
+**Status:** Automated via GitHub Actions (`.github/workflows/deploy.yml`) on push to `main` — schema rehearsal, production migrations + seeds, then the Worker (D288). Worker secrets and the two database credentials are one-time manual setup.
 **Time:** ~15 minutes first-time secret setup; deploys after that are automatic on merge to `main`.
 
 ---
@@ -78,18 +78,23 @@ npm run db:status
 # Expected: all migrations applied
 ```
 
-**This phase is not one-time.** Phase 4's CI deploy runs on every merge to `main` and ships code only — it never touches the database. A PR that adds a migration and/or edits `database/seeds/**` (e.g. a new ruleset version, capability rows) merges and auto-deploys its code with production's schema/reference data unchanged; nothing fails or warns. Before or right after merging such a PR, re-run the relevant commands from Phase 1.3 against `.env.production`:
+**This phase is one-time for a fresh environment.** Since 2026-09-17 (D288, issues #293/#354) every merge to `main` applies the pending chain to production itself: `deploy.yml` runs `quality → rehearse → migrate → deploy`, where `rehearse` replays migrations + seeds + `db:verify` on a throwaway Neon branch cut from production, and `migrate` then applies them to production before the Worker ships. A PR that adds a migration or edits `database/seeds/**` no longer needs a manual production step, and a migration that fails blocks the deploy instead of shipping a Worker onto a schema it does not have.
+
+That path requires the two credentials in Phase 3.2. Until they are set, the `migrate` job fails with an explicit message and nothing deploys.
+
+The manual commands below remain correct for provisioning a new branch, or for recovering when CI cannot run:
 
 ```bash
 set -a
 source .env.production
 set +a
 
-npm run db:migrate   # only if the PR added a migration
-npm run db:seed       # if the PR touched database/seeds/** at all — always safe, idempotent
+npm run db:status    # what is pending
+npm run db:migrate   # only if a migration is pending
+npm run db:seed      # if the PR touched database/seeds/** at all — always safe, idempotent
 ```
 
-Seeds are idempotent (`ON CONFLICT DO NOTHING`), so re-running `db:seed` on every seed-touching PR is cheap insurance even when unsure whether it already ran.
+Seeds are idempotent (`ON CONFLICT DO NOTHING`), so re-running `db:seed` is cheap insurance even when unsure whether it already ran — which is also why the `migrate` job runs them on every deploy.
 
 ---
 
@@ -140,6 +145,21 @@ wrangler secret list
 
 **Must be under the `production` Environment**, not repo-level secrets or a different environment — `deploy.yml`'s `deploy` job runs with `environment: production`, so only secrets scoped there are visible to it.
 
+### 3.2 Database credentials for the `migrate` and `rehearse` jobs
+
+`deploy.yml`'s `migrate` job and `db-rehearsal.yml`'s `rehearse` job need database access CI did not previously hold (D288). Neither value may ever be written into a file, a log, an issue or a PR — enter them in GitHub's UI only.
+
+| Secret         | Where it goes                                                   | Value                                                                                                                                    | Used by                                       |
+| -------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `DATABASE_URL` | Settings → Environments → `production` → secrets                | Production (`main` branch) **pooled** connection string — the `DATABASE_URL` line from `.env.production`, produced by `npm run env:prod` | `migrate` (dbmate + seeds against production) |
+| `NEON_API_KEY` | Settings → Secrets and variables → Actions → repository secrets | Neon console → your profile → **API keys** → create a key scoped to this project                                                         | `rehearse` (`neonctl` branch create/delete)   |
+
+`NEON_API_KEY` is repo-level rather than environment-scoped because `db-rehearsal.yml` also runs on PRs, where the `production` environment is not in play. The Neon project id is _not_ a secret — it is read from committed `app/.neon`.
+
+Verify after adding both: merge any change to `main` and confirm `deploy.yml`'s run shows `rehearse` and `migrate` green with the pending list in the run summary.
+
+**Rotation:** rotating either value is a GitHub-UI edit only; no workflow change is needed. If the Neon key is revoked, `rehearse` fails closed and the deploy is blocked — which is the intended direction.
+
 ### `PUBLIC_NEON_AUTH_BASE_URL` build variable (not a secret, no longer required by app code)
 
 Browser auth traffic now goes through the same-origin `/api/auth` proxy (D172): `app/src/lib/client/auth/client.ts` builds its base URL from `globalThis.location.origin` and no longer reads `PUBLIC_NEON_AUTH_BASE_URL` at all — the throw-on-missing guard is gone with it. The server-side `NEON_AUTH_BASE_URL` Worker secret (Phase 2) is what the proxy forwards to and remains required.
@@ -153,7 +173,7 @@ Browser auth traffic now goes through the same-origin `/api/auth` proxy (D172): 
 
 ## Phase 4: Deploy
 
-Deploys are automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which runs quality checks, builds, and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker).
+Deploys are automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which runs quality checks, rehearses the schema change on a throwaway Neon branch, applies migrations and seeds to production, then builds and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker). The whole run is inside the `deploy-production` concurrency group, so two merges cannot race the same migration.
 
 **Manual deploy (optional, e.g. for local testing):**
 

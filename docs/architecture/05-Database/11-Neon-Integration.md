@@ -2,11 +2,13 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-09-10
+updated: 2026-09-17
 -->
 
 # Neon Integration Guide
 
+> **Version:** 1.2.0 (CI applies production migrations behind a Neon-branch rehearsal, D288, 2026-09-17)
+>
 > **Version:** 1.1.0 (per-branch trusted origins required by the same-origin auth proxy, D172, 2026-07-29)
 >
 > Canonical implementation guide for Neon project topology, environment setup, and migration/query tooling in this repository.
@@ -123,7 +125,7 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `database/migrations/` (`0001`–`0033`).
+Migrations remain in `database/migrations/` (`0001`–`0034`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
@@ -133,6 +135,33 @@ Provision a fresh branch: `npm run db:migrate && npm run db:seed`.
 Validate changes: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-- 2026-07-14 -->
 
 See also [`../../../database/README.md`](../../../database/README.md).
+
+---
+
+## Applying Migrations in CI (production)
+
+Merging to `main` applies the pending chain to production before the Worker ships. `.github/workflows/deploy.yml` runs `quality` -> `rehearse` -> `migrate` -> `deploy`, inside the existing `deploy-production` concurrency group, so two merges cannot race the same migration and the Worker never runs ahead of its schema (D288, issue #293). <!-- 2026-09-17 -->
+
+| Job | What it does | Against |
+| --- | --- | --- |
+| `rehearse` (`db-rehearsal.yml`) | Creates a throwaway Neon branch from `main`, applies migrations + seeds, confirms nothing is left pending, deletes the branch in an `always()` step | Ephemeral child of production |
+| `migrate` | `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
+| `deploy` | Build + `wrangler deploy`, only after `migrate` succeeds | Production |
+
+`db-rehearsal.yml` also runs on its own on any PR touching `database/migrations/**`, `database/seeds/**`, `database/verification/**`, the seed/verify runners, or `app/package.json`, so a faulty migration surfaces at review time rather than at merge time.
+
+The `:ci` script variants (`db:status:ci`, `db:migrate:ci`, `db:seed:ci`, `db:verify:ci`) read `DATABASE_URL` straight from the environment instead of an `.env` file, which is what makes them runnable headless; dbmate is invoked with `--no-dump-schema` there because CI has no `pg_dump`. The `:prod` variants stay as they are for local, deliberate use.
+
+Required secrets (values are set in GitHub's UI, never in a file, a log, or a PR):
+
+| Secret | Scope | Used by |
+| --- | --- | --- |
+| `DATABASE_URL` | `production` environment | `migrate` — the production pooled connection string |
+| `NEON_API_KEY` | Repository | `rehearse` — `neonctl` branch create/delete |
+
+The Neon project id is not a secret and is read from committed `app/.neon`. Both jobs fail with an explicit message when their credential is missing, rather than failing opaquely further down.
+
+`db:verify` is not part of the rehearsal. Its scripts assert on live data as well as on their own fixtures, and three open defects (#383, #384, #304) mean the suite cannot pass against production's rows at all; it stays a local, deliberate command until those are resolved (D288).
 
 ---
 

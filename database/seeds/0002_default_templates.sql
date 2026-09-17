@@ -31,51 +31,61 @@ BEGIN;
 -- ============================================================
 -- Exercise templates
 -- ============================================================
+-- exercise_type_id is NOT NULL since migration 0032, and the GAME
+-- exercise type is catalogued by seed 0014 — which runs after this
+-- file. The join is therefore the ordering guard: on the first pass
+-- of a fresh database it matches nothing and inserts nothing, and the
+-- second pass (seed.ts runs every file twice, by design) inserts once
+-- 0014 has committed the catalog. Without it this file is unappliable
+-- against the current schema: a bare VALUES list omitting the column
+-- fails ExecConstraints before ON CONFLICT is ever consulted, so even
+-- an already-seeded database cannot re-run it.
 INSERT INTO exercise_templates (
         id,
         game_type_id,
+        exercise_type_id,
         name,
         description,
         is_system_template,
         created_at,
         updated_at
     )
-VALUES (
-        '0198f200-0000-7000-8000-000000000001',
-        '0198f000-0000-7000-8000-000000000001',
-        '501 Match',
-        'Standard 501 match play.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000002',
-        '0198f000-0000-7000-8000-000000000002',
-        'Ten Up One Down',
-        'Progressive target training starting at 41.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000003',
-        '0198f000-0000-7000-8000-000000000003',
-        'Singles Accuracy',
-        'Singles accuracy training across all targets.',
-        TRUE,
-        now(),
-        now()
-    ),
-    (
-        '0198f200-0000-7000-8000-000000000004',
-        '0198f000-0000-7000-8000-000000000004',
-        'Score Training Block',
-        'Repeated scoring practice on the 20 segment.',
-        TRUE,
-        now(),
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
+SELECT v.id::uuid,
+    v.game_type_id::uuid,
+    game_type.id,
+    v.name,
+    v.description,
+    TRUE,
+    now(),
+    now()
+FROM (
+        VALUES (
+                '0198f200-0000-7000-8000-000000000001',
+                '0198f000-0000-7000-8000-000000000001',
+                '501 Match',
+                'Standard 501 match play.'
+            ),
+            (
+                '0198f200-0000-7000-8000-000000000002',
+                '0198f000-0000-7000-8000-000000000002',
+                'Ten Up One Down',
+                'Progressive target training starting at 41.'
+            ),
+            (
+                '0198f200-0000-7000-8000-000000000003',
+                '0198f000-0000-7000-8000-000000000003',
+                'Singles Accuracy',
+                'Singles accuracy training across all targets.'
+            ),
+            (
+                '0198f200-0000-7000-8000-000000000004',
+                '0198f000-0000-7000-8000-000000000004',
+                'Score Training Block',
+                'Repeated scoring practice on the 20 segment.'
+            )
+    ) AS v(id, game_type_id, name, description)
+    JOIN exercise_types AS game_type ON game_type.implementation_key = 'GAME'
+ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 -- Configuration presets: 501
 --
@@ -316,6 +326,11 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
+-- Joined to exercise_templates for the same reason the template
+-- insert above is joined to exercise_types: on a fresh database's
+-- first pass the templates do not exist yet, and a bare VALUES list
+-- would fail this file on the foreign key instead of waiting for the
+-- second pass.
 INSERT INTO routine_steps (
         id,
         routine_template_id,
@@ -325,31 +340,46 @@ INSERT INTO routine_steps (
         duration_value,
         created_at
     )
-VALUES (
-        '0198f500-0000-7000-8000-000000000001',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000003',
-        1,
-        2,
-        15,
-        now()
-    ),
-    (
-        '0198f500-0000-7000-8000-000000000002',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000004',
-        2,
-        2,
-        20,
-        now()
-    ),
-    (
-        '0198f500-0000-7000-8000-000000000003',
-        '0198f400-0000-7000-8000-000000000001',
-        '0198f200-0000-7000-8000-000000000002',
-        3,
-        1,
-        10,
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
+SELECT v.id::uuid,
+    v.routine_template_id::uuid,
+    template.id,
+    v.sequence_number,
+    v.duration_type_id,
+    v.duration_value,
+    now()
+FROM (
+        VALUES (
+                '0198f500-0000-7000-8000-000000000001',
+                '0198f400-0000-7000-8000-000000000001',
+                '0198f200-0000-7000-8000-000000000003',
+                1,
+                2,
+                15
+            ),
+            (
+                '0198f500-0000-7000-8000-000000000002',
+                '0198f400-0000-7000-8000-000000000001',
+                '0198f200-0000-7000-8000-000000000004',
+                2,
+                2,
+                20
+            ),
+            (
+                '0198f500-0000-7000-8000-000000000003',
+                '0198f400-0000-7000-8000-000000000001',
+                '0198f200-0000-7000-8000-000000000002',
+                3,
+                1,
+                10
+            )
+    ) AS v(
+        id,
+        routine_template_id,
+        exercise_template_id,
+        sequence_number,
+        duration_type_id,
+        duration_value
+    )
+    JOIN exercise_templates AS template ON template.id = v.exercise_template_id::uuid
+ON CONFLICT (id) DO NOTHING;
 COMMIT;

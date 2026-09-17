@@ -78,6 +78,8 @@ jobs:
           {
             echo "Knowledge graph rebuilt from \`main\` @ ${MAIN_SHA}."
             echo
+            echo "Merge this by hand: the commit below is authored by \`github-actions[bot]\` and is unsigned, and \`main\`'s ruleset requires verified signatures, so only a bypass actor can land it (D289)."
+            echo
             echo '```'
             cat /tmp/graph-delta.txt
             echo '```'
@@ -267,27 +269,17 @@ jobs:
               core.notice(`Closed stale tracking issue #${blocked.number}`);
             }
 
-            try {
-              // Pinned to SQUASH: main's ruleset requires linear history, so the
-              // default MERGE method is rejected outright (run 35150854970:
-              // "merge commits are not allowed on this repository"). Squash
-              // also satisfies required_signatures: GitHub signs the squash
-              // commit itself, unlike replaying the bot's unsigned commit.
-              await github.graphql(
-                `mutation($id: ID!) {
-                  enablePullRequestAutoMerge(input: { pullRequestId: $id, mergeMethod: SQUASH }) {
-                    clientMutationId
-                  }
-                }`,
-                { id: pr.node_id }
-              );
-              core.notice("Auto-merge enabled on the refresh PR.");
-            } catch (err) {
-              core.notice(
-                `Auto-merge not enabled (squash disabled, required reviews/checks ` +
-                `unmet, or another ruleset precondition unmet): ${err.message}`
-              );
-            }
+            // Auto-merge is deliberately NOT armed. Measured on PR #379: the
+            // `Main branch protection` ruleset carries `required_signatures`,
+            // this job's commit is authored by github-actions[bot] and is
+            // unsigned, and the bot is not one of the ruleset's bypass actors
+            // -- so the PR reports "Commits must have verified signatures" and
+            // stays blocked no matter how many approvals it collects. Arming
+            // auto-merge only advertises an automation that cannot complete.
+            // Landing the refresh is one deliberate human merge (D289).
+            core.notice(
+              `Refresh PR #${pr.number} is ready: approve and merge it to land the graph.`
+            );
 
   # Skips fork PRs (their token cannot comment, so it must skip rather than fail)
   # and the refresh job's own PR, whose entire content is the graph -- a delta

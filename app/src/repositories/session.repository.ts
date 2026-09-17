@@ -306,6 +306,34 @@ export async function findActiveSessionForGameType(
   return row;
 }
 
+/**
+ * The player's open session for a non-game exercise type. Mirrors
+ * `findActiveSessionForGameType` for the half of `uq_sessions_single_active`
+ * that keys on `exercise_type_id` (migration `0034`).
+ */
+export async function findActiveSessionForExerciseType(
+  db: Db,
+  playerId: string,
+  exerciseTypeId: string,
+): Promise<ActiveSessionSummary | undefined> {
+  const [row] = await db
+    .select({
+      sessionId: exerciseSessions.id,
+      startedAt: exerciseSessions.startedAt,
+    })
+    .from(exerciseSessions)
+    .where(
+      and(
+        eq(exerciseSessions.playerId, playerId),
+        eq(exerciseSessions.exerciseTypeId, exerciseTypeId),
+        isNull(exerciseSessions.gameTypeId),
+        isNull(exerciseSessions.completedAt),
+      ),
+    )
+    .limit(1);
+  return row;
+}
+
 export async function findConfigurationPresets(
   db: Db,
   gameTypeKey: string,

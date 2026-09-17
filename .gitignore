@@ -23,5 +23,10 @@ graphify-out/.graphify_root
 # dbmate writes a schema dump next to the migrations run; the migration chain is the source of truth
 app/db/
 
+# drizzle-kit introspect rewrites its whole out/ dir; only schema.ts is committed (D290, issue #352)
+app/src/db/0000_*.sql
+app/src/db/relations.ts
+app/src/db/meta/
+
 # worktrees are local scratch checkouts, never committed
 .claude/worktrees/

@@ -97,7 +97,15 @@ describe("insertTrainingActivity", () => {
     const { insertTrainingActivity } =
       await import("@repositories/training-session.repository");
     const { activities, activityConfigurations } = await import("@db/schema");
-    await insertTrainingActivity({
+    const tx = {
+      insert: (table: unknown) => ({
+        values: (values: unknown) => {
+          insertedValuesByTable.set(table, values);
+          return Promise.resolve();
+        },
+      }),
+    } as any;
+    await insertTrainingActivity(tx, {
       activityId: "act-1",
       playerId: "p1",
       activeStatusId: 1,
@@ -233,5 +241,48 @@ describe("updateActivityStatusRecord", () => {
       expectedStatusId: 1,
     });
     expect(result).toBeUndefined();
+  });
+});
+
+describe("abandonActiveTrainingActivities", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("closes the player's open training activities and their open sessions", async () => {
+    const activityUpdate = fakeUpdate([{ activityId: "act-old" }]);
+    const sessionUpdate = fakeUpdate([{ sessionId: "sess-old" }]);
+    let call = 0;
+    const tx = {
+      update: vi.fn(() => (call++ === 0 ? activityUpdate : sessionUpdate)),
+    } as any;
+    const { abandonActiveTrainingActivities } =
+      await import("@repositories/training-session.repository");
+    const result = await abandonActiveTrainingActivities(tx, {
+      playerId: "p1",
+      abandonedStatusId: 3,
+    });
+    expect(result).toEqual(["act-old"]);
+    expect(activityUpdate.set).toHaveBeenCalledWith(
+      expect.objectContaining({ statusId: 3 }),
+    );
+    expect(sessionUpdate.set).toHaveBeenCalledWith(
+      expect.objectContaining({ statusId: 3 }),
+    );
+  });
+
+  it("leaves sessions untouched when the player has no open training activity", async () => {
+    const activityUpdate = fakeUpdate([]);
+    const sessionUpdate = fakeUpdate([]);
+    let call = 0;
+    const tx = {
+      update: vi.fn(() => (call++ === 0 ? activityUpdate : sessionUpdate)),
+    } as any;
+    const { abandonActiveTrainingActivities } =
+      await import("@repositories/training-session.repository");
+    const result = await abandonActiveTrainingActivities(tx, {
+      playerId: "p1",
+      abandonedStatusId: 3,
+    });
+    expect(result).toEqual([]);
+    expect(sessionUpdate.set).not.toHaveBeenCalled();
   });
 });

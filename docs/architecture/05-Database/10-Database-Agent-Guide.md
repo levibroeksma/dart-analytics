@@ -91,7 +91,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0033` current chain
+- Four-digit prefix: `0001`–`0034` current chain
 - Schema in migrations; reference data in seeds
 - **Never modify an applied migration** — create a migration with the next unused number instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
@@ -113,7 +113,7 @@ Enforced in `0011`:
 - `uq_turns_stage_participant_sequence`
 - `uq_darts_turn_number`
 - Stage ordering via partial unique indexes (nullable parent)
-- `uq_sessions_single_active` — one active session per player per game type
+- `uq_sessions_single_active` — one active session per player per game type, or per exercise type when no game is bound (rewritten in `0034`)
 
 ## 10. JSONB configuration
 
@@ -233,7 +233,7 @@ docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── ...
 database/
-├── migrations/0001–0033.sql
+├── migrations/0001–0034.sql
 └── seeds/0001–0002.sql, 0003_game_engine_reference.sql, 0004_score_training_minutes_preset.sql, 0005_visual_board_input_mode.sql, 0006_single_band_dart_zones.sql, 0007_ruleset_version_capabilities.sql
 ```
 

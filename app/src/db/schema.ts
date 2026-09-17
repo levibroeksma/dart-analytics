@@ -525,7 +525,7 @@ export const exerciseSessions = pgTable(
       .using(
         "btree",
         table.playerId.asc().nullsLast().op("uuid_ops"),
-        table.gameTypeId.asc().nullsLast().op("uuid_ops"),
+        sql`COALESCE(game_type_id, exercise_type_id) uuid_ops`,
       )
       .where(sql`(completed_at IS NULL)`),
     foreignKey({
