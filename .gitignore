@@ -22,3 +22,6 @@ graphify-out/.graphify_root
 
 # dbmate writes a schema dump next to the migrations run; the migration chain is the source of truth
 app/db/
+
+# worktrees are local scratch checkouts, never committed
+.claude/worktrees/

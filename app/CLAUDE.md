@@ -16,7 +16,7 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
-Worktrees are not used in this repo — task branches are checked out directly in the main working copy (`git checkout -b <branch-name>`), never under `.worktrees/` (see root `CLAUDE.md`).
+Task branches may be worked in a git worktree under `.claude/worktrees/` or checked out directly in the main working copy (see root `CLAUDE.md`). A worktree is removed once its branch lands.
 
 ## Knowledge Graph (graphify)
 
