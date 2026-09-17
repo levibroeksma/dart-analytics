@@ -161,8 +161,8 @@ Browser code migrates from `@lib/api` → `@client/api`. Handbook documents the 
 | Scope | Location |
 | ----- | -------- |
 | Any `.ts` logic used by a page/component | `lib/<domain>/` — always, even single-route (e.g. `lib/auth/login.data.ts`) |
-| Used by 2+ routes, warrants store/form/module semantics | `stores/`, `modules/` |
-| A single-route class (stateful OOP, not a store/form) | `modules/<domain>/` — the OOP boundary (`04-Modules-And-OOP.md`) applies regardless of route count; the "2+ routes" warrant above governs plain-function code only |
+| Used by 2+ routes, warrants store/module semantics | `stores/`, `modules/` |
+| A single-route class (stateful OOP, not a store) | `modules/<domain>/` — the OOP boundary (`04-Modules-And-OOP.md`) applies regardless of route count; the "2+ routes" warrant above governs plain-function code only |
 
 **Agent rule:** no `.ts` file ever lives directly under `components/` or `pages/` — except `pages/api/**` — regardless of single- or multi-consumer use. `<domain>` uses the same vocabulary as `modules/<domain>/` and `stores/<domain>.store.ts` (e.g. `auth`, future `game`, `players`) — never a route or component-folder name.
 

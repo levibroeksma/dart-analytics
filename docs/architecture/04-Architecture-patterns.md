@@ -735,7 +735,7 @@ Alpine.store (*.store.ts)
     ↓
 Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
     ↓
-@client/api/ (orchestrated by pages/forms/stores only)
+@client/api/ (orchestrated by pages/stores only)
 ```
 
 ## Application

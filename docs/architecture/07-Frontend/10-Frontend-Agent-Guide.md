@@ -68,7 +68,7 @@ Load exactly the pack for your task type (`00-Context-Map.md`):
 ## 6. Import direction
 
 ```
-pages / forms              →  @client/api
+pages                      →  @client/api
 stores                     →  @client/api (recovery bootstrap only)
 modules/*                  →  never @client/api, never Alpine
 ```

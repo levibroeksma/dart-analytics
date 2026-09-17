@@ -32,7 +32,7 @@ This document defines where object-oriented code belongs in the frontend, how po
 | `modules/training/*.module.ts` | Prefer functions | Routine orchestration — duration validation, per-step summaries, and the `trainingEngine` object literal. No classes today; under `modules/` because the routine family is a unit |
 | `modules/stats/*.module.ts` | Prefer functions | Pure statistics aggregation over view rows; the application judgment D258 keeps out of SQL. Class-free by preference, under `modules/` because the aggregation family is a unit, not because it is stateful |
 | `modules/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/10-trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/trivia/` instead) |
-| `stores/`, `forms/`, `*.data.ts` | **No** | Object factories |
+| `stores/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |
 
 Classes are permitted **only** under `src/modules/`.
@@ -122,7 +122,7 @@ Shared ruleset configuration schemas live in `lib/game/rulesets/` — see `02-Fo
 | `clientKey` (per turn/dart) | Engine / payload assembly | Minted at fact creation |
 | `Idempotency-Key` (batch header) | `game.store.ts` | Minted at session-complete; held until batch ACK |
 
-Pages/forms pass the store-held idempotency key to `@client/api` on `POST .../events/batch`.
+Pages pass the store-held idempotency key to `@client/api` on `POST .../events/batch`.
 
 ---
 
@@ -169,8 +169,8 @@ tools built this way.
 
 | Anti-pattern | Reason |
 | ------------ | ------ |
-| Classes in `stores/` or `forms/` | OOP boundary violation |
-| `@client/api` in `modules/` | HTTP belongs in pages/forms/stores |
+| Classes in `stores/` | OOP boundary violation |
+| `@client/api` in `modules/` | HTTP belongs in pages/stores |
 | Alpine import in `modules/` | Factory entrypoint only |
 | Portable UI importing `@stores` | Breaks copy-paste contract |
 | Duplicating API validation as source of truth | Drift from frozen contract |
@@ -189,7 +189,7 @@ tools built this way.
 
 | Document | Purpose |
 | -------- | ------- |
-| `03-Alpine-Patterns.md` | Stores, forms, factory |
+| `03-Alpine-Patterns.md` | Stores, factory |
 | `02-Folder-Structure.md` | Suffix table |
 | `../06-API/04-Endpoint-Contracts.md` | `EventsBatchRequest`, `DartFact` |
 | `../06-API/03-Shared-Conventions.md` | Zod `z.infer<>` type rules |

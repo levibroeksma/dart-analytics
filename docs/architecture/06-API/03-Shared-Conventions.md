@@ -231,7 +231,7 @@ src/lib/client/api/types.ts      # Browser: re-exports what it needs (@client/ap
 ```
 
 `lib/client/api/types.ts` is the **only** browser file with a legitimate `@routes/types`
-import. Every other browser consumer (`modules/`, `forms/`, future `.data.ts` files) imports
+import. Every other browser consumer (`modules/`, future `.data.ts` files) imports
 from `@client/api/types` instead — the successor to the retired `@types/api` alias.
 
 ### `interfaces.ts` barrels — a parallel, separate chain
