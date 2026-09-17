@@ -2,7 +2,7 @@
 status: canonical
 scope: database/template-layer
 read-when: adding/changing exercise/routine/configuration templates
-updated: 2026-09-10
+updated: 2026-09-17
 -->
 
 # Database Specification — Chapter 2: Template Layer
@@ -260,6 +260,13 @@ routine. Duration stays in its own two columns because it is structural and quer
 Resolution merges `exercise_templates.default_configuration` with this column to produce the
 **Resolved Training Configuration** (§18) copied into `activity_configurations` at Training start.
 This is the seam §21 adaptive resolution occupies later, with no further schema change.
+
+**Planned (unbuilt):** a deferred constraint trigger will enforce a 30-60
+minute total-duration bound on a routine's steps when its parent
+`routine_templates.is_system_template = FALSE` (D305). System routines stay
+governed by the existing ≤60 minute ceiling only (`09-training-routines.md` §7).
+See `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
+§3.3.
 
 ---
 
