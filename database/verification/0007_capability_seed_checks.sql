@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 20 declared rows',
+    'seed inserted exactly the 26 declared rows',
     CASE
-        WHEN count(*) = 20 THEN 'PASS'
+        WHEN count(*) = 26 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 20, found %s', count(*))
+    format('expected 26, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -96,12 +96,18 @@ FROM (
             ('TUOD_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('SINGLES_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SINGLES_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('SINGLES_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SINGLES_V3', 'ANALYTICS', 'VISUAL_BOARD'),
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('SHANGHAI_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SHANGHAI_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),
@@ -121,12 +127,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 20 declared triples were actually checked',
+    'all 26 declared triples were actually checked',
     CASE
-        WHEN count(*) = 20 THEN 'PASS'
+        WHEN count(*) = 26 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 20 triple checks ran', count(*))
+    format('%s of 26 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -195,12 +201,18 @@ WHERE NOT EXISTS (
                     ('TUOD_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SINGLES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('SINGLES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('SINGLES_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SINGLES_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('SINGLES_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SINGLES_V3', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('SHANGHAI_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SHANGHAI_V2', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),

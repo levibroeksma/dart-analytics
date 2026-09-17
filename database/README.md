@@ -83,7 +83,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 
 | Script | Covers |
 | ------ | ------ |
-| `verification/0007_capability_seed_checks.sql` | `seeds/0007` row count, per-triple resolution, zero undeclared `exercise_sessions`, parity with `capabilities.ts` (12 checks) |
+| `verification/0007_capability_seed_checks.sql` | `seeds/0007` row count, per-triple resolution, zero undeclared `exercise_sessions`, parity with `capabilities.ts` (30 checks) |
 | `verification/0018_visual_board_checks.sql` | `chk_dart_location_pair`, `v_dart_locations` angles and filtering, bust divergence (11 checks) |
 | `verification/0020_capability_fk_checks.sql` | `fk_sessions_capability` exists over the exact composite columns, refuses an undeclared capture/input mode combination, permits a declared one (4 checks) |
 | `verification/0021_player_settings_checks.sql` | `v_player_settings` exists with the exact expected columns, translates known mode ids to implementation keys, omits a row for a player with no settings, and preserves the `LEFT JOIN` (NULL mode ids still yield a row with NULL keys) (7 checks) |
@@ -104,6 +104,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0015_warm_up_routine_checks.sql` | seeds `0014`/`0015` resolve end to end: both exercise types, `WARM_UP_V1`, `EXERCISE_SECTION`, a one-step system routine on a WARM_UP template with five phases, no unbackfilled session (7 checks) |
 | `verification/0031_singles_training_v3_capability_checks.sql` | `seeds/0018`+`0007` combined: `SINGLES_V3`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V3`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
+| `verification/0017_balanced_training_checks.sql` | seeds `0016`/`0017` resolve end to end: both new exercise types and their v1 rulesets, seed `0017`'s in-place Warm-Up JSONB update landed (five phases, all weighted, no `durationSeconds` left), the four-step Balanced Training routine sums to 30 MINUTES across distinct templates, the Finishing step holds exactly `TuodConfig`'s six keys on a TUOD-bound template, anti-vacuity guard (11 checks) |
 
 ## References
 
