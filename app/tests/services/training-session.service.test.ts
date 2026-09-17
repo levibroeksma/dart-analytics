@@ -11,6 +11,7 @@ vi.mock("@repositories/training-session.repository", () => ({
   findActivityConfiguration: vi.fn(),
   findActivityStatus: vi.fn(),
   updateActivityStatusRecord: vi.fn(),
+  abandonActiveTrainingActivities: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
   const actual =
@@ -27,6 +28,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
     findPlayerDisplayName: vi.fn(),
     insertExerciseSessionRecord: vi.fn(),
     findActiveSessionForGameType: vi.fn(),
+    findActiveSessionForExerciseType: vi.fn(),
   };
 });
 
@@ -106,8 +108,53 @@ describe("startTraining", () => {
       configuration: { starting_target: 41 },
     });
     expect(trainingRepo.insertTrainingActivity).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({ activityId: "generated-id", playerId: "p1" }),
     );
+  });
+
+  it("abandons the player's open training activity before inserting the new one", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
+      RESOLVED as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockImplementation(
+      async (_db: unknown, key: string) =>
+        ({ ACTIVE: 1, COMPLETED: 2, ABANDONED: 3 })[key],
+    );
+    vi.mocked(trainingRepo.abandonActiveTrainingActivities).mockResolvedValue([
+      "act-old",
+    ]);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(true);
+    expect(trainingRepo.abandonActiveTrainingActivities).toHaveBeenCalledWith(
+      expect.anything(),
+      { playerId: "p1", abandonedStatusId: 3 },
+    );
+    const abandonOrder = vi.mocked(trainingRepo.abandonActiveTrainingActivities)
+      .mock.invocationCallOrder[0];
+    const insertOrder = vi.mocked(trainingRepo.insertTrainingActivity).mock
+      .invocationCallOrder[0];
+    expect(abandonOrder).toBeLessThan(insertOrder);
+  });
+
+  it("returns INTERNAL_ERROR when the ABANDONED status is missing", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
+      RESOLVED as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockImplementation(
+      async (_db: unknown, key: string) => (key === "ACTIVE" ? 1 : undefined),
+    );
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+    expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
   });
 });
 
@@ -314,6 +361,64 @@ describe("startTrainingStep", () => {
       code: "SESSION_ALREADY_ACTIVE",
       details: { sessionId: "active-1" },
     });
+  });
+
+  it("returns SESSION_ALREADY_ACTIVE when a non-game step hits the unique-active conflict", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-switching");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-switching",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockRejectedValue({
+      code: "23505",
+      constraint: "uq_sessions_single_active",
+    });
+    vi.mocked(sessionRepo.findActiveSessionForExerciseType).mockResolvedValue({
+      sessionId: "active-switching",
+      startedAt: "2026-09-16T00:00:00Z",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 2);
+
+    expect(result).toMatchObject({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: { sessionId: "active-switching" },
+    });
+    expect(sessionRepo.findActiveSessionForExerciseType).toHaveBeenCalledWith(
+      expect.anything(),
+      "p1",
+      "et-switching",
+    );
+  });
+
+  it("rethrows a non-conflict failure from a non-game step insert", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-switching");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-switching",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockRejectedValue(
+      new Error("connection lost"),
+    );
+
+    await expect(startTrainingStep("p1", "act-1", 2)).rejects.toThrow(
+      "connection lost",
+    );
   });
 });
 

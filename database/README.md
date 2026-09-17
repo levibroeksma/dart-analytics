@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0033)
+├── migrations/     # ordered schema migrations (0001–0034)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -103,6 +103,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0030_activity_configuration_checks.sql` | the training snapshot round-trips as JSONB, is unique per activity, and CASCADEs with its activity (3 checks) |
 | `verification/0015_warm_up_routine_checks.sql` | seeds `0014`/`0015` resolve end to end: both exercise types, `WARM_UP_V1`, `EXERCISE_SECTION`, a one-step system routine on a WARM_UP template with five phases, no unbackfilled session (7 checks) |
 | `verification/0031_singles_training_v3_capability_checks.sql` | `seeds/0018`+`0007` combined: `SINGLES_V3`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V3`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
+| `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
 
 ## References
 

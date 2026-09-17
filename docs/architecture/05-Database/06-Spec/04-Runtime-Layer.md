@@ -186,7 +186,7 @@ Referenced by:
 
 ## Rules
 
-A player can have only one active exercise session per game type.
+A player can have only one active exercise session per game type, and only one per exercise type where the session binds no game (`0034`). <!-- 2026-09-17 -->
 
 Terminal statuses (COMPLETED, ABANDONED) always set completed_at ("when the session ended"); ACTIVE ⇔ completed_at IS NULL is a service-enforced invariant that uq_sessions_single_active keys on. This invariant is now server-guarded (D132): `POST /api/sessions` pre-checks for an active session and catches the `uq_sessions_single_active` violation, in addition to the DB partial unique index. <!-- 2026-07-22 -->
 

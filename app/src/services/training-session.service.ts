@@ -1,6 +1,7 @@
 import { generateId } from "@lib/id";
 import { getDb, withTransaction } from "@db/client";
 import {
+  findActiveSessionForExerciseType,
   findActiveSessionForGameType,
   findCaptureModeId,
   findExerciseRulesetVersionId,
@@ -13,6 +14,7 @@ import {
   insertExerciseSessionRecord,
 } from "@repositories/session.repository";
 import {
+  abandonActiveTrainingActivities,
   findActivityConfiguration,
   findActivityStatus,
   findRoutineTemplateSteps,
@@ -76,7 +78,8 @@ export async function startTraining(
   }
 
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
-  if (!activeStatusId) {
+  const abandonedStatusId = await findGameStatusId(db, "ABANDONED");
+  if (!activeStatusId || !abandonedStatusId) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -86,12 +89,15 @@ export async function startTraining(
 
   const steps = resolved.steps.map(resolveStep);
   const activityId = generateId();
-  await insertTrainingActivity({
-    activityId,
-    playerId,
-    activeStatusId,
-    configurationId: generateId(),
-    configuration: { routineName: routineTemplateName, steps },
+  await withTransaction(async (tx) => {
+    await abandonActiveTrainingActivities(tx, { playerId, abandonedStatusId });
+    await insertTrainingActivity(tx, {
+      activityId,
+      playerId,
+      activeStatusId,
+      configurationId: generateId(),
+      configuration: { routineName: routineTemplateName, steps },
+    });
   });
 
   return {
@@ -195,6 +201,29 @@ async function resolveActiveSessionConflict(
       };
 }
 
+async function resolveActiveExerciseConflict(
+  db: Db,
+  playerId: string,
+  exerciseTypeId: string,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const active = await findActiveSessionForExerciseType(
+    db,
+    playerId,
+    exerciseTypeId,
+  );
+  return active
+    ? {
+        ok: false,
+        code: "SESSION_ALREADY_ACTIVE",
+        details: { sessionId: active.sessionId, startedAt: active.startedAt },
+      }
+    : {
+        ok: false,
+        code: "INTERNAL_ERROR",
+        details: { reason: "conflict with no active row" },
+      };
+}
+
 /**
  * The capture pair a dart-throwing exercise step records under. Switching and
  * Double Pattern capture every dart on the visual board, exactly as an
@@ -207,44 +236,80 @@ const DART_EXERCISE_INPUT_MODE_KEY = "VISUAL_BOARD";
 
 const DART_EXERCISE_TYPE_KEYS = new Set(["SWITCHING", "DOUBLE_PATTERN"]);
 
+type NonGameReferences = {
+  exerciseTypeId: string;
+  exerciseRulesetVersionId?: string;
+  captureModeId?: number;
+  inputModeId?: number;
+};
+
+/**
+ * Reference ids a non-game step's session row needs. Returns undefined when any
+ * required id is missing: the capture pair is required exactly for the exercise
+ * types that record darts (`chk_exercise_sessions_capture_pair`, migration
+ * `0029`).
+ */
+async function resolveNonGameReferences(
+  db: Db,
+  step: TrainingStepResolved,
+): Promise<NonGameReferences | undefined> {
+  const exerciseTypeId = await findExerciseTypeId(db, step.exerciseTypeKey);
+  if (!exerciseTypeId) return undefined;
+
+  const exerciseRulesetVersionId = step.exerciseRulesetVersionKey
+    ? await findExerciseRulesetVersionId(db, step.exerciseRulesetVersionKey)
+    : undefined;
+  if (!DART_EXERCISE_TYPE_KEYS.has(step.exerciseTypeKey)) {
+    return { exerciseTypeId, exerciseRulesetVersionId };
+  }
+
+  const captureModeId = await findCaptureModeId(
+    db,
+    DART_EXERCISE_CAPTURE_MODE_KEY,
+  );
+  const inputModeId = await findInputModeId(db, DART_EXERCISE_INPUT_MODE_KEY);
+  if (!captureModeId || !inputModeId) return undefined;
+  return {
+    exerciseTypeId,
+    exerciseRulesetVersionId,
+    captureModeId,
+    inputModeId,
+  };
+}
+
 async function startNonGameStep(
   ctx: StepStartContext,
 ): Promise<ServiceResult<StartTrainingStepResult>> {
   const { db, step } = ctx;
-  const exerciseTypeId = await findExerciseTypeId(db, step.exerciseTypeKey);
-  const exerciseRulesetVersionId = step.exerciseRulesetVersionKey
-    ? await findExerciseRulesetVersionId(db, step.exerciseRulesetVersionKey)
-    : undefined;
-  const capturesDarts = DART_EXERCISE_TYPE_KEYS.has(step.exerciseTypeKey);
-  const captureModeId = capturesDarts
-    ? await findCaptureModeId(db, DART_EXERCISE_CAPTURE_MODE_KEY)
-    : undefined;
-  const inputModeId = capturesDarts
-    ? await findInputModeId(db, DART_EXERCISE_INPUT_MODE_KEY)
-    : undefined;
-  if (!exerciseTypeId || (capturesDarts && (!captureModeId || !inputModeId))) {
+  const refs = await resolveNonGameReferences(db, step);
+  if (!refs) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
       details: { reason: "reference data missing" },
     };
   }
-  await withTransaction((tx) =>
-    insertExerciseSessionRecord(tx, {
-      activityId: ctx.activityId,
-      sessionId: ctx.sessionId,
-      configurationId: generateId(),
-      participants: ctx.participants,
-      playerId: ctx.playerId,
-      activeStatusId: ctx.activeStatusId,
-      captureModeId,
-      inputModeId,
-      exerciseTypeId,
-      exerciseRulesetVersionId,
-      routineStepSequenceNumber: ctx.sequenceNumber,
-      configuration: step.configuration,
-    }),
-  );
+  try {
+    await withTransaction((tx) =>
+      insertExerciseSessionRecord(tx, {
+        activityId: ctx.activityId,
+        sessionId: ctx.sessionId,
+        configurationId: generateId(),
+        participants: ctx.participants,
+        playerId: ctx.playerId,
+        activeStatusId: ctx.activeStatusId,
+        captureModeId: refs.captureModeId,
+        inputModeId: refs.inputModeId,
+        exerciseTypeId: refs.exerciseTypeId,
+        exerciseRulesetVersionId: refs.exerciseRulesetVersionId,
+        routineStepSequenceNumber: ctx.sequenceNumber,
+        configuration: step.configuration,
+      }),
+    );
+  } catch (error) {
+    if (!isActiveSessionConflict(error)) throw error;
+    return resolveActiveExerciseConflict(db, ctx.playerId, refs.exerciseTypeId);
+  }
 
   return {
     ok: true,
