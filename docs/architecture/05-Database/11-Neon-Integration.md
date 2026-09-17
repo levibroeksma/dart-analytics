@@ -144,7 +144,7 @@ Merging to `main` applies the pending chain to production before the Worker ship
 
 | Job | What it does | Against |
 | --- | --- | --- |
-| `rehearse` (`db-rehearsal.yml`) | Creates a throwaway Neon branch from `main`, applies migrations + seeds, runs `db:verify`, deletes the branch in an `always()` step | Ephemeral child of production |
+| `rehearse` (`db-rehearsal.yml`) | Creates a throwaway Neon branch from `main`, applies migrations + seeds, confirms nothing is left pending, deletes the branch in an `always()` step | Ephemeral child of production |
 | `migrate` | `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
 | `deploy` | Build + `wrangler deploy`, only after `migrate` succeeds | Production |
 
@@ -160,6 +160,8 @@ Required secrets (values are set in GitHub's UI, never in a file, a log, or a PR
 | `NEON_API_KEY` | Repository | `rehearse` — `neonctl` branch create/delete |
 
 The Neon project id is not a secret and is read from committed `app/.neon`. Both jobs fail with an explicit message when their credential is missing, rather than failing opaquely further down.
+
+`db:verify` is not part of the rehearsal. Its scripts assert on live data as well as on their own fixtures, and three open defects (#383, #384, #304) mean the suite cannot pass against production's rows at all; it stays a local, deliberate command until those are resolved (D288).
 
 ---
 
