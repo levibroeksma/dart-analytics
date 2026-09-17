@@ -75,6 +75,7 @@ UUIDv7
 
 - id
 - exercise_type_id
+- exercise_ruleset_version_id (nullable — NULL when the exercise type is `GAME`) <!-- 2026-09-17 -->
 - game_type_id (nullable — NULL unless the exercise type is `GAME`)
 - name
 - description
@@ -88,6 +89,7 @@ UUIDv7
 References:
 
 - game_types (RESTRICT on delete)
+- exercise_ruleset_versions, on the composite pair (exercise_type_id, exercise_ruleset_version_id) (RESTRICT on delete) <!-- 2026-09-17 -->
 
 Referenced by:
 
@@ -107,6 +109,19 @@ blocked while templates reference it (migration 0028).
 `default_configuration` holds the defaults and constraints an exercise type provides — default,
 minimum, maximum and recommended duration, and any exercise-specific defaults
 (`09-training-routines.md` §5). A routine step's own `configuration` overrides it.
+
+`exercise_ruleset_version_id` pins the exercise ruleset version `default_configuration` was written
+against, so a routine step resolves one version rather than every version of its exercise type
+(migration 0035, seed 0019). The foreign key is composite over
+(exercise_type_id, exercise_ruleset_version_id), which makes a template pinned to another exercise
+type's ruleset unrepresentable. It is nullable and stays so: a `GAME` template pins a game ruleset
+version on its session instead. "A non-game template must pin a version" is asserted in
+`startTraining`, which refuses to open an activity whose step resolves no validator, rather than by
+a CHECK that would hardcode game-backed ⇔ no-exercise-ruleset into the schema. <!-- 2026-09-17 -->
+
+The version belongs here rather than on `routine_steps`: `default_configuration` and the ruleset
+version defining its shape are both the template's, and a per-step override would let one step's
+configuration diverge from its own template's. <!-- 2026-09-17 -->
 
 ---
 

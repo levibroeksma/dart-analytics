@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0034)
+├── migrations/     # ordered schema migrations (0001–0035)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -63,6 +63,7 @@ astro check
 16. `seeds/0016_switching_double_pattern_exercise_types.sql`
 17. `seeds/0017_balanced_training_routine.sql`
 18. `seeds/0018_singles_training_v3_game_engine_reference.sql`
+19. `seeds/0019_exercise_template_ruleset_versions.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -105,6 +106,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0031_singles_training_v3_capability_checks.sql` | `seeds/0018`+`0007` combined: `SINGLES_V3`/`RECREATIONAL`/`DETAILED_DARTS` and `SINGLES_V3`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
 | `verification/0017_balanced_training_checks.sql` | seeds `0016`/`0017` resolve end to end: both new exercise types and their v1 rulesets, seed `0017`'s in-place Warm-Up JSONB update landed (five phases, all weighted, no `durationSeconds` left), the four-step Balanced Training routine sums to 30 MINUTES across distinct templates, the Finishing step holds exactly `TuodConfig`'s six keys on a TUOD-bound template, anti-vacuity guard (11 checks) |
+| `verification/0035_exercise_template_ruleset_version_checks.sql` | migration `0035` + seed `0019`: the pin column and its composite FK exist, a ruleset version of another exercise type is rejected and the template's own is accepted, an unpinned template is still allowed, RESTRICT blocks deleting a pinned version, all three non-game system templates were backfilled to their own v1, the GAME template stays unpinned, anti-vacuity guard (11 checks) |
 
 ## References
 

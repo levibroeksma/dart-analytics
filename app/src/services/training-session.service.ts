@@ -23,6 +23,7 @@ import {
 } from "@repositories/training-session.repository";
 import type { RoutineStepTemplateRow } from "@repositories/interfaces";
 import { isActiveSessionConflict } from "./session.service";
+import { getExerciseRulesetValidator } from "./exercise-rulesets/registry";
 import type {
   ServiceResult,
   StartTrainingResult,
@@ -33,6 +34,13 @@ import type {
 const FINISHING_GAME_TYPE_KEY = "TUOD";
 const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
 
+/**
+ * The exercise type whose steps run a game engine. Such a step pins a game
+ * ruleset version on its session and has no exercise ruleset at all, so it is
+ * the one step kind `stepConfigurationIssues` has no validator to apply.
+ */
+const GAME_EXERCISE_TYPE_KEY = "GAME";
+
 function durationSecondsFor(
   durationTypeKey: string,
   durationValue: number,
@@ -40,15 +48,57 @@ function durationSecondsFor(
   return durationTypeKey === "MINUTES" ? durationValue * 60 : durationValue;
 }
 
-function resolveStep(row: RoutineStepTemplateRow): TrainingStepResolved {
+/**
+ * The template's `default_configuration` under the step's own overrides — what
+ * the step's exercise ruleset validates, before any derived field is added to
+ * it.
+ */
+function mergedConfiguration(
+  row: RoutineStepTemplateRow,
+): Record<string, unknown> {
+  return {
+    ...(row.defaultConfiguration as Record<string, unknown> | null),
+    ...(row.stepConfiguration as Record<string, unknown> | null),
+  };
+}
+
+/**
+ * The step's configuration issues, or undefined when it validates. A GAME step
+ * is skipped: its configuration belongs to a game ruleset, validated on the
+ * game path.
+ *
+ * A non-game step that resolves no validator is itself an issue. That is the
+ * assertion migration `0035` deliberately left out of the schema: a template
+ * whose `exercise_ruleset_version_id` was never backfilled fails here, loudly,
+ * instead of reaching the snapshot with an unvalidatable configuration.
+ */
+function stepConfigurationIssues(
+  row: RoutineStepTemplateRow,
+  configuration: Record<string, unknown>,
+): string[] | undefined {
+  if (row.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY) return undefined;
+
+  const validator = row.exerciseRulesetVersionKey
+    ? getExerciseRulesetValidator(row.exerciseRulesetVersionKey)
+    : undefined;
+  if (!validator) {
+    return [
+      `no exercise ruleset validator for ${row.exerciseRulesetVersionKey ?? "an unpinned ruleset version"}`,
+    ];
+  }
+
+  const result = validator.validateConfig({ config: configuration });
+  return result.ok ? undefined : result.issues;
+}
+
+function resolveStep(
+  row: RoutineStepTemplateRow,
+  configuration: Record<string, unknown>,
+): TrainingStepResolved {
   const durationSeconds = durationSecondsFor(
     row.durationTypeKey,
     row.durationValue,
   );
-  const configuration: Record<string, unknown> = {
-    ...(row.defaultConfiguration as Record<string, unknown> | null),
-    ...(row.stepConfiguration as Record<string, unknown> | null),
-  };
   if (row.exerciseTypeKey === "WARM_UP") {
     configuration.stepDurationSeconds = durationSeconds;
   }
@@ -87,7 +137,22 @@ export async function startTraining(
     };
   }
 
-  const steps = resolved.steps.map(resolveStep);
+  const steps: TrainingStepResolved[] = [];
+  const invalid: { sequenceNumber: number; issues: string[] }[] = [];
+  for (const row of resolved.steps) {
+    const configuration = mergedConfiguration(row);
+    const issues = stepConfigurationIssues(row, configuration);
+    if (issues) invalid.push({ sequenceNumber: row.sequenceNumber, issues });
+    steps.push(resolveStep(row, configuration));
+  }
+  if (invalid.length > 0) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "invalid step configuration", steps: invalid },
+    };
+  }
+
   const activityId = generateId();
   await withTransaction(async (tx) => {
     await abandonActiveTrainingActivities(tx, { playerId, abandonedStatusId });
@@ -380,7 +445,7 @@ export async function startTrainingStep(
     ],
   };
 
-  return step.exerciseTypeKey === "GAME"
+  return step.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY
     ? startGameStep(ctx)
     : startNonGameStep(ctx);
 }

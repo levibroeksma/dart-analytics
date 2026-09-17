@@ -320,6 +320,10 @@ export const exerciseRulesetVersions = pgTable(
     unique("uq_exercise_ruleset_versions_implementation_key").on(
       table.implementationKey,
     ),
+    unique("uq_exercise_ruleset_versions_type_id").on(
+      table.exerciseTypeId,
+      table.id,
+    ),
   ],
 );
 
@@ -336,6 +340,7 @@ export const exerciseTemplates = pgTable(
     id: uuid().primaryKey().notNull(),
     gameTypeId: uuid("game_type_id"),
     exerciseTypeId: uuid("exercise_type_id").notNull(),
+    exerciseRulesetVersionId: uuid("exercise_ruleset_version_id"),
     name: text().notNull(),
     description: text(),
     isSystemTemplate: boolean("is_system_template").default(false).notNull(),
@@ -363,6 +368,14 @@ export const exerciseTemplates = pgTable(
       columns: [table.exerciseTypeId],
       foreignColumns: [exerciseTypes.id],
       name: "fk_exercise_templates_exercise_type",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.exerciseTypeId, table.exerciseRulesetVersionId],
+      foreignColumns: [
+        exerciseRulesetVersions.exerciseTypeId,
+        exerciseRulesetVersions.id,
+      ],
+      name: "fk_exercise_templates_ruleset_version",
     }).onDelete("restrict"),
   ],
 );

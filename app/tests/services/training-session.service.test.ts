@@ -156,6 +156,130 @@ describe("startTraining", () => {
     });
     expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
   });
+
+  it("rejects a step whose merged configuration fails its exercise ruleset", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      routineTemplateId: "rt-1",
+      steps: [
+        {
+          ...RESOLVED.steps[0],
+          sequenceNumber: 2,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          defaultConfiguration: { targets: [20], scoring: { single: 1 } },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("VALIDATION_FAILED");
+    expect(result.details).toMatchObject({
+      reason: "invalid step configuration",
+      steps: [{ sequenceNumber: 2 }],
+    });
+    expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
+  });
+
+  it("reports the step's own overrides, not just the template default", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      routineTemplateId: "rt-1",
+      steps: [
+        {
+          ...RESOLVED.steps[0],
+          stepConfiguration: { phases: [] },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  /**
+   * The #338 gap, caught at the service boundary: migration 0035 leaves
+   * exercise_ruleset_version_id nullable, so a template the backfill missed
+   * reaches here with no version key at all.
+   */
+  it("rejects a non-game step that pins no exercise ruleset version", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      routineTemplateId: "rt-1",
+      steps: [{ ...RESOLVED.steps[0], exerciseRulesetVersionKey: null }],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("VALIDATION_FAILED");
+    expect(result.details).toMatchObject({
+      steps: [
+        { sequenceNumber: 1, issues: [expect.stringContaining("unpinned")] },
+      ],
+    });
+    expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
+  });
+
+  it("rejects a non-game step whose ruleset version has no registered validator", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      routineTemplateId: "rt-1",
+      steps: [
+        { ...RESOLVED.steps[0], exerciseRulesetVersionKey: "WARM_UP_V2" },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.details).toMatchObject({
+      steps: [{ issues: [expect.stringContaining("WARM_UP_V2")] }],
+    });
+  });
+
+  /**
+   * `WarmUpV1Config` is `.strict()` and `stepDurationSeconds` is deliberately
+   * not one of its keys, so validating the finished object rather than the
+   * merge would reject every Warm-Up step ever written.
+   */
+  it("validates the merged configuration before stepDurationSeconds is injected", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
+      RESOLVED as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.steps[0].configuration).toMatchObject({
+      stepDurationSeconds: 600,
+    });
+  });
+
+  it("accepts a GAME step whatever its configuration holds", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      routineTemplateId: "rt-1",
+      steps: [
+        { ...RESOLVED.steps[1], stepConfiguration: { not_a_tuod_key: true } },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+
+    const result = await startTraining("p1", "Balanced Training");
+
+    expect(result.ok).toBe(true);
+    expect(trainingRepo.insertTrainingActivity).toHaveBeenCalled();
+  });
 });
 
 const SNAPSHOT = {

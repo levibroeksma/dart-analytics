@@ -71,6 +71,41 @@ describe("findRoutineTemplateSteps", () => {
     expect(result?.steps).toHaveLength(2);
     expect(result?.steps[1].gameTypeKey).toBe("TUOD");
   });
+
+  /**
+   * The ruleset version is joined on the template's own pinned version, never
+   * on exercise type. Joining on type is unambiguous only while exactly one
+   * version exists per type: the first second version fans the join out, and a
+   * routine silently gains duplicate steps pinned to an arbitrary version
+   * (issue #338).
+   */
+  it("joins the exercise ruleset version on the template's pinned version id", async () => {
+    let call = 0;
+    const chains: ReturnType<typeof fakeSelect>[] = [];
+    const db = {
+      select: vi.fn(() => {
+        const chain = fakeSelect(call++ === 0 ? [{ id: "rt-1" }] : []);
+        chains.push(chain);
+        return chain;
+      }),
+    } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    await findRoutineTemplateSteps(db, "Balanced Training");
+
+    const joinPredicates = chains[1]!.leftJoin.mock.calls.map((args) =>
+      predicateColumns(args[1]),
+    );
+    expect(joinPredicates).toContainEqual([
+      "id",
+      "exercise_ruleset_version_id",
+    ]);
+    expect(joinPredicates).not.toContainEqual(["id", "exercise_type_id"]);
+    expect(joinPredicates).not.toContainEqual([
+      "exercise_type_id",
+      "exercise_type_id",
+    ]);
+  });
 });
 
 const insertedValuesByTable = new Map<unknown, unknown>();

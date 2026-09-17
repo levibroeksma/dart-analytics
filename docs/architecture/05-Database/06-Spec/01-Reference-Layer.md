@@ -524,8 +524,13 @@ References:
 Referenced by:
 
 - exercise_sessions (RESTRICT on delete)
+- exercise_templates, on the composite pair (exercise_type_id, id) (RESTRICT on delete) <!-- 2026-09-17 -->
 
 ## Design Rationale
+
+`uq_exercise_ruleset_versions_type_id` on (exercise_type_id, id) exists only to give that composite
+foreign key a referenceable target; the primary key already made the pair unique, so the constraint
+adds no new restriction (migration 0035). <!-- 2026-09-17 -->
 
 Exercise rulesets and game rulesets are separate components (`09-training-routines.md` §24), and
 §11's execution path (`ExerciseEngine → GameEngine → Game Ruleset`) has both live at once for a
