@@ -94,13 +94,6 @@ function fakeDoubleOutQuery(rows: unknown[]) {
   };
 }
 
-function fakeConfigQuery(rows: unknown[]) {
-  return {
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue(rows),
-  };
-}
-
 describe("findDoubleOutVisits", () => {
   it("returns an empty array when the player has no double-out darts", async () => {
     const db = { select: vi.fn(() => fakeDoubleOutQuery([])) } as any;
@@ -113,7 +106,7 @@ describe("findDoubleOutVisits", () => {
     expect(db.select).toHaveBeenCalledTimes(1);
   });
 
-  it("groups darts by turn and computes startingRemaining from the session's starting_score", async () => {
+  it("groups darts by turn and computes startingRemaining from the view's starting_score", async () => {
     const dartRows = [
       {
         sessionId: "s1",
@@ -124,6 +117,7 @@ describe("findDoubleOutVisits", () => {
         hitZoneKey: "TREBLE",
         score: 60,
         priorScoredInStage: null,
+        startingScore: 501,
       },
       {
         sessionId: "s1",
@@ -134,6 +128,7 @@ describe("findDoubleOutVisits", () => {
         hitZoneKey: "TREBLE",
         score: 60,
         priorScoredInStage: 60,
+        startingScore: 501,
       },
       {
         sessionId: "s1",
@@ -144,17 +139,10 @@ describe("findDoubleOutVisits", () => {
         hitZoneKey: "DOUBLE",
         score: 40,
         priorScoredInStage: 120,
+        startingScore: 501,
       },
     ];
-    const configRows = [
-      { sessionId: "s1", configuration: { starting_score: 501 } },
-    ];
-    const db = {
-      select: vi
-        .fn()
-        .mockReturnValueOnce(fakeDoubleOutQuery(dartRows))
-        .mockReturnValueOnce(fakeConfigQuery(configRows)),
-    } as any;
+    const db = { select: vi.fn(() => fakeDoubleOutQuery(dartRows)) } as any;
     const { findDoubleOutVisits } =
       await import("@repositories/statistics.repository");
 
@@ -202,5 +190,35 @@ describe("findDoubleOutVisits", () => {
         ],
       },
     ]);
+    expect(db.select).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * `starting_score` arrives from the view rather than a second select against
+   * `exercise_configurations` (migration `0036`, issue #342). A session that
+   * stored no configuration snapshot projects NULL, which reads as 0 — the
+   * same fallback the two-query version applied to a missing config row.
+   */
+  it("treats a NULL starting_score as 0 rather than NaN", async () => {
+    const dartRows = [
+      {
+        sessionId: "s1",
+        stageId: "stage-1",
+        turnSequence: 1,
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        priorScoredInStage: 60,
+        startingScore: null,
+      },
+    ];
+    const db = { select: vi.fn(() => fakeDoubleOutQuery(dartRows)) } as any;
+    const { findDoubleOutVisits } =
+      await import("@repositories/statistics.repository");
+
+    const result = await findDoubleOutVisits(db, "p1");
+
+    expect(result[0]?.startingRemaining).toBe(-60);
   });
 });

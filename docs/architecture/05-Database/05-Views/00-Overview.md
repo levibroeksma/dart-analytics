@@ -2,12 +2,12 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-16
+updated: 2026-09-17
 -->
 
 # Database View Strategy
 
-> **Version:** 1.3.0
+> **Version:** 1.4.0
 >
 > This document defines the strategy and rules for PostgreSQL views.
 >
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0033)
+# Implemented Views (migrations 0009–0036)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -146,12 +146,12 @@ The name should describe the returned data, not the underlying tables.
 | `v_session_overview` | API Read Model | History list |
 | `v_game_replay` | Replay | Chronological reconstruction |
 | `v_dart_analytics` | Analytics | Intention-complete dart dataset, scoped to the session's owning participant (2026-08-21) |
-| `v_routine_execution` | API Read Model | Ordered routine steps |
+| `v_routine_execution` | API Read Model | Ordered routine steps, carrying everything a step resolves from since `0036` (2026-09-17) |
 | `v_configuration_presets` | API Read Model | Preset discovery for game setup (2026-07-13) |
 | `v_dart_locations` | Analytics | Dart landing coordinates + derived radius/angle for `VISUAL_BOARD` capture; miss margin lives outside SQL (2026-08-05); scoped to the session's owning participant (2026-08-21) |
 | `v_player_settings` | API Read Model | Player default capture/input mode as `*_key`s; absent row means the service defaults apply (2026-08-08) |
 | `v_player_profile` | API Read Model | Player display name + darts equipment (2026-08-15) |
-| `v_double_out_checkout_darts` | Analytics | Raw per-dart facts + running leg score for 501 VISUAL_BOARD checkout accuracy, owning player only (2026-09-05) |
+| `v_double_out_checkout_darts` | Analytics | Raw per-dart facts + running leg score + the session's `starting_score` for 501 VISUAL_BOARD checkout accuracy, owning player only (2026-09-05; `starting_score` 2026-09-17) |
 | `v_player_visit_facts` | Analytics | One row per completed turn, every game type/capture mode, for career-wide turn-level statistics (2026-09-06) |
 | `v_player_leg_facts` | Analytics | One row per complete-capture LEG stage, for best-leg/darts-per-leg style statistics (2026-09-06) |
 
@@ -164,6 +164,16 @@ other lookups `0028`/`0029` made nullable (`ruleset_versions`, `capture_modes`,
 `configuration_templates.game_type_id` is still NOT NULL — and
 `v_double_out_checkout_darts`, which restricts itself to 501 `VISUAL_BOARD` in
 its own WHERE clause. <!-- 2026-09-16 -->
+
+A view exists for a consumer, and the consumer reads it: a read path documented
+as view-backed that selects a table directly is a defect in the view, not an
+accepted exception. Migration `0036` closed the two that had accumulated —
+`v_double_out_checkout_darts` gained the `starting_score` the statistics read
+was fetching from `exercise_configurations` itself, and `v_routine_execution`
+gained the exercise type, pinned ruleset version and configuration snapshots
+that had left it with no consumer at all (D298, issues #342/#344). Projecting a
+scalar out of a JSONB configuration snapshot is allowed and has been since
+`0025`; it is the same class of work as a join onto a lookup table. <!-- 2026-09-17 -->
 
 Per-view detail: `06-Database-Specification.md` Read Model Layer.
 

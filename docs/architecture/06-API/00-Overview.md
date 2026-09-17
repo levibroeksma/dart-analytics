@@ -158,9 +158,10 @@ Reads are view-backed and player-scoped.
 | `GET /api/sessions/:sessionId`           | `v_session_overview`  |
 | `GET /api/sessions/:sessionId/replay`    | `v_game_replay`       |
 | `GET /api/sessions/:sessionId/darts`     | `v_dart_analytics`    |
-| `GET /api/routines`                      | `v_routine_execution` |
-| `GET /api/routines/:routineId`           | `v_routine_execution` |
-| `GET /api/routines/:routineId/execution` | `v_routine_execution` |
+| `GET /api/routines` (not implemented)    | `v_routine_execution` |
+| `GET /api/routines/:routineId` (not implemented) | `v_routine_execution` |
+| `GET /api/routines/:routineId/execution` (not implemented) | `v_routine_execution` |
+| `POST /api/training-sessions`            | `v_routine_execution` (resolves the routine's steps) |
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
@@ -172,6 +173,8 @@ Policy:
 - list/overview endpoints may wrap view output for stable API response shape and pagination
 - `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
 - `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
+- the three `/api/routines*` rows are contract-defined and unbuilt, in the same sense as the `GET /api/sessions` list. `v_routine_execution`'s live consumer today is `POST /api/training-sessions`, which resolves a system routine's ordered steps through it — until migration `0036` gave the view the columns a step resolves from, that read went around it against the template tables, leaving the designated read model with no consumer at all (D298/D299, issue #344) <!-- 2026-09-17 -->
+- `GET /api/statistics/overview` is view-backed end to end: `starting_score` came from `exercise_configurations` directly until `0036` exposed it on `v_double_out_checkout_darts` (D298, issue #342) <!-- 2026-09-17 -->
 
 > **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08; `GET`/`PATCH /api/players/me` were added 2026-08-15. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
 

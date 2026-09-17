@@ -1,16 +1,10 @@
-import { and, eq, exists, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
   activityConfigurations,
   exerciseSessions,
-  durationTypes,
-  exerciseRulesetVersions,
-  exerciseTemplates,
-  exerciseTypes,
-  gameTypes,
-  routineSteps,
-  routineTemplates,
+  vRoutineExecution,
 } from "@db/schema";
 import type { RoutineStepTemplateRow } from "./interfaces";
 
@@ -20,57 +14,54 @@ type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
   ? T
   : never;
 
+/**
+ * Reads a system routine's ordered steps through `v_routine_execution` — the
+ * read model `06-API/00-Overview.md` designates for routines. It carried none
+ * of the columns a step resolves from until migration `0036`, so this read was
+ * a second, divergent definition of "a routine's steps" against the raw
+ * template tables (issue #344).
+ *
+ * A routine with no steps reads as no routine at all: the view is built from
+ * `routine_steps`, so a stepless template produces no rows. `startTraining`
+ * answers `VALIDATION_FAILED` rather than opening an activity with an empty
+ * step list, which is the better of the two answers.
+ */
 export async function findRoutineTemplateSteps(
   db: Db,
   routineTemplateName: string,
 ): Promise<
   { routineTemplateId: string; steps: RoutineStepTemplateRow[] } | undefined
 > {
-  const [template] = await db
-    .select({ id: routineTemplates.id })
-    .from(routineTemplates)
+  const rows = await db
+    .select({
+      routineTemplateId: vRoutineExecution.routineId,
+      sequenceNumber: vRoutineExecution.sequenceNumber,
+      exerciseTypeKey: vRoutineExecution.exerciseTypeKey,
+      exerciseRulesetVersionKey: vRoutineExecution.exerciseRulesetVersionKey,
+      gameTypeKey: vRoutineExecution.gameTypeKey,
+      durationTypeKey: vRoutineExecution.durationTypeKey,
+      durationValue: vRoutineExecution.durationValue,
+      defaultConfiguration: vRoutineExecution.defaultConfiguration,
+      stepConfiguration: vRoutineExecution.stepConfiguration,
+    })
+    .from(vRoutineExecution)
     .where(
       and(
-        eq(routineTemplates.name, routineTemplateName),
-        eq(routineTemplates.isSystemTemplate, true),
+        eq(vRoutineExecution.routineName, routineTemplateName),
+        eq(vRoutineExecution.isSystemTemplate, true),
       ),
     )
-    .limit(1);
-  if (!template) return undefined;
+    .orderBy(vRoutineExecution.sequenceNumber);
 
-  const steps = await db
-    .select({
-      sequenceNumber: routineSteps.sequenceNumber,
-      exerciseTypeKey: exerciseTypes.implementationKey,
-      exerciseRulesetVersionKey: exerciseRulesetVersions.implementationKey,
-      gameTypeKey: gameTypes.implementationKey,
-      durationTypeKey: durationTypes.implementationKey,
-      durationValue: routineSteps.durationValue,
-      defaultConfiguration: exerciseTemplates.defaultConfiguration,
-      stepConfiguration: routineSteps.configuration,
-    })
-    .from(routineSteps)
-    .innerJoin(
-      exerciseTemplates,
-      eq(exerciseTemplates.id, routineSteps.exerciseTemplateId),
-    )
-    .innerJoin(
-      exerciseTypes,
-      eq(exerciseTypes.id, exerciseTemplates.exerciseTypeId),
-    )
-    .innerJoin(durationTypes, eq(durationTypes.id, routineSteps.durationTypeId))
-    .leftJoin(gameTypes, eq(gameTypes.id, exerciseTemplates.gameTypeId))
-    .leftJoin(
-      exerciseRulesetVersions,
-      eq(
-        exerciseRulesetVersions.id,
-        exerciseTemplates.exerciseRulesetVersionId,
-      ),
-    )
-    .where(eq(routineSteps.routineTemplateId, template.id))
-    .orderBy(routineSteps.sequenceNumber);
+  const routineTemplateId = rows[0]?.routineTemplateId;
+  if (!routineTemplateId) return undefined;
 
-  return { routineTemplateId: template.id, steps };
+  return {
+    routineTemplateId,
+    steps: rows.map(
+      ({ routineTemplateId: _routineId, ...step }) => step,
+    ) as RoutineStepTemplateRow[],
+  };
 }
 
 /**
@@ -152,6 +143,10 @@ export async function updateActivityStatusRecord(
  * step session left running under one. A training activity is the one carrying
  * an `activity_configurations` snapshot, which is what separates it from the
  * activity a standalone game creates. Returns the closed activity ids.
+ *
+ * The snapshot predicate is a raw `sql` EXISTS rather than drizzle's `exists()`
+ * helper: that helper parenthesises a subquery builder but emits a raw chunk
+ * verbatim, which Postgres rejects as a syntax error.
  */
 export async function abandonActiveTrainingActivities(
   tx: Tx,
@@ -165,9 +160,7 @@ export async function abandonActiveTrainingActivities(
       and(
         eq(activities.playerId, input.playerId),
         isNull(activities.completedAt),
-        exists(
-          sql`select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id}`,
-        ),
+        sql`exists (select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id})`,
       ),
     )
     .returning({ activityId: activities.id });
