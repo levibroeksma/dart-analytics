@@ -2,12 +2,12 @@
 status: canonical
 scope: database/naming
 read-when: naming tables, views, indexes, constraints
-updated: 2026-07-13
+updated: 2026-09-18
 -->
 
 # Database Naming Conventions
 
-> **Version:** 1.3.0
+> **Version:** 1.3.1
 >
 > This document defines naming standards for the PostgreSQL database.
 >
@@ -648,6 +648,20 @@ chk_dart_score_positive
 
 chk_sessions_completed_after_start
 ```
+
+---
+
+## Applied Exceptions
+
+`exercise_configurations` (migration `0005`) names its constraints
+`uq_exercise_configuration_session` / `fk_exercise_configuration_session` —
+singular table word, referenced entity instead of the local column. It
+predates the formats above and is applied, so it stays as written (applied
+migrations are never modified). Its one-layer-up mirror
+`activity_configurations` (migration `0030`) follows the formats above
+(`uq_activity_configurations_activity` / `fk_activity_configurations_activity`);
+the mismatch between the two mirrored tables is historical, not meaningful.
+New tables follow the formats above without exception. (2026-09-18)
 
 ---
 
