@@ -629,6 +629,21 @@ Never edits `0013`/`0016`/`0023`/`0025`/`0026`.
 
 ---
 
+## 0037_exercise_configuration_constraint_naming.sql
+
+Purpose:
+
+Rename `exercise_configurations`' two constraints onto the repo's `uq_<table>_<column>` convention. <!-- 2026-09-18 -->
+
+Contains:
+
+- `uq_exercise_configuration_session` → `uq_exercise_configurations_exercise_session`
+- `fk_exercise_configuration_session` → `fk_exercise_configurations_exercise_session`
+
+Matches the convention `activity_configurations` (`0030`), `exercise_types` and `exercise_ruleset_versions` (`0027`) already follow. `RENAME CONSTRAINT` is metadata-only — no table rewrite, no row read or written — and fully reversible: `migrate:down` restores both original names. Nothing in `app/src` queries either name; the only reference is drizzle's generated `app/src/db/schema.ts`.
+
+---
+
 # Schema Changes
 
 
