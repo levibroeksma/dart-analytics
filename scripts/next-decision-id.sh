@@ -24,6 +24,17 @@
 # position-anchored for the same reason check-decision-ids.sh anchors them:
 # `D18` is also darts shorthand for double 18.
 #
+# RESERVATIONS COUNT AS TAKEN: a plan under docs/superpowers/plans/ names the id
+# its decision will use (`Decision id: **D123**`, or the later `**Decision id:**
+# D317` spelling) tasks before the block exists, and those plans merge to main
+# ahead of the decisions they reserve. Ignoring them hands the next author an id
+# an in-flight plan is already holding — which is why this branch's own id had to
+# skip D315, D316 and D317 to reach D318. They are unioned into the maximum
+# against both refs, so the printed id clears the ledger and the queue.
+#
+# SIDE EFFECT: this script runs `git fetch origin main`, which writes the local
+# origin/main remote-tracking ref. Advisory does not mean read-only.
+#
 # STDOUT CONTRACT — DEVIATION FROM THE PLAN'S DEFAULT: unlike this repo's other
 # scripts/*.sh, this one never prints a trailing OK: line on success; stdout
 # must stay exactly one line, `D<n>`, because Task 2 and the decision-authoring
@@ -44,7 +55,20 @@ ids_from_main() {
   git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' origin/main -- 'decisions/**.md' 2>/dev/null || true
 }
 
-MAX=$( { ids_from_tree; ids_from_main; } \
+# Both historical spellings: `- Decision id: **D123**` and `**Decision id:** D317
+# (reserved; ...)`. The asterisks are tolerated on either side of the colon, and
+# the id taken is the first D<digits> after it.
+RESERVED_RE='Decision id\*{0,2}:\*{0,2}[[:space:]]*\*{0,2}D[0-9]+'
+
+reserved_from_tree() {
+  git grep -ohE "$RESERVED_RE" -- 'docs/superpowers/plans/**.md' 2>/dev/null || true
+}
+
+reserved_from_main() {
+  git grep -ohE "$RESERVED_RE" origin/main -- 'docs/superpowers/plans/**.md' 2>/dev/null || true
+}
+
+MAX=$( { ids_from_tree; ids_from_main; reserved_from_tree; reserved_from_main; } \
   | grep -oE 'D[0-9]+' \
   | sed 's/D0*//' \
   | sort -n \

@@ -9,19 +9,25 @@
 # The blast radius also includes the id gate's own oracle: scripts/decision-
 # row-hashes.tsv, scripts/decision-map.txt, scripts/split-decisions.sh, and
 # the three decision scripts' own headers all cite ids as prose or data. The
-# on-main guard below makes this mostly unreachable in practice — every id
-# those files cite is already on main, so none of them can ever be OLD — but
-# that is worth saying rather than leaving implicit.
+# own-block guard below makes this mostly unreachable in practice — every id
+# those files cite has main's own block behind it, so none of them can ever be
+# OLD — but that is worth saying rather than leaving implicit.
 #
 # This rewrites every tracked occurrence and reports what it touched, so the
 # diff can be eyeballed before committing. The PR body is NOT rewritten — it
 # lives on GitHub, not in the tree. Fix it by hand; the script reminds you.
 #
-# SAFETY: refuses to run with a dirty working tree (so the rewrite is reviewable
-# as its own diff), refuses to renumber to an id that already has a row or heading in
-# decisions/**.md, and never touches decisions/** blocks other than by the
-# substitution itself — a renumbered id is still the same append-only block,
-# not an edit to a different one.
+# SAFETY: five refusals. A malformed or zero-padded id; a NEW that already has a
+# row or heading in decisions/**.md; a NEW in the 20-id never-issued set; an OLD
+# whose block in this tree is origin/main's own, or is declared twice (the
+# unresolved post-merge state — see the guard below for why those are one test);
+# and a dirty working tree, so the rewrite is reviewable as its own diff. It
+# never touches decisions/** blocks other than by the substitution itself — a
+# renumbered id is still the same append-only block, not an edit to a different
+# one.
+#
+# SIDE EFFECT: this script runs `git fetch origin main`, which writes the local
+# origin/main remote-tracking ref. Advisory does not mean read-only.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -53,19 +59,43 @@ if [[ "$NEVER_ISSUED_IDS" == *" ${NEW} "* ]]; then
   exit 1
 fi
 
-if ! git fetch --quiet origin main 2>/dev/null; then
-  echo "WARN: could not fetch origin/main — checking ${OLD} against a possibly stale local ref" >&2
-fi
-
-if git grep -qE "^\| ${OLD} \||^### ${OLD} " origin/main -- 'decisions/**.md' 2>/dev/null; then
-  echo "FAIL: ${OLD} is already on origin/main — this tool only moves an id that exists solely on the current branch" >&2
-  exit 1
-fi
-
 FILES=$(git grep -l "\b${OLD}\b" -- . ':!node_modules' || true)
 
 if [ -z "$FILES" ]; then
   echo "FAIL: ${OLD} does not appear in any tracked file" >&2
+  exit 1
+fi
+
+# The headline case is an id main has SINCE ISSUED to a different decision, so
+# OLD being present on origin/main is the norm, not a defect — a guard that
+# refuses on presence alone refuses every real collision. What must never happen
+# is rewriting main's own block. Pre-merge this tree holds only the branch's
+# block, so the substitution is safe; post-merge it holds both, and a blind
+# rewrite would rename main's too. OLD's declaration lines under decisions/**
+# tell those states apart: two of them is the unresolved post-merge tree, and
+# one that is byte-identical to a line on origin/main IS main's block.
+DECL_RE="^\| ${OLD} \||^### ${OLD}([^0-9]|\$)"
+OLD_DECLS=$(git grep -hE "$DECL_RE" -- 'decisions/**.md' 2>/dev/null || true)
+OLD_DECL_COUNT=$(printf '%s\n' "$OLD_DECLS" | grep -c . || true)
+
+if [ "$OLD_DECL_COUNT" -eq 0 ]; then
+  echo "FAIL: ${OLD} has no row or heading in decisions/**.md — this tool renumbers a decision's own block, not a bare citation of one" >&2
+  exit 1
+fi
+
+if [ "$OLD_DECL_COUNT" -gt 1 ]; then
+  echo "FAIL: ${OLD} is declared ${OLD_DECL_COUNT} times in decisions/**.md — that is the post-merge state where the branch's block and main's share one id; resolve the merge first, then renumber" >&2
+  exit 1
+fi
+
+if ! git fetch --quiet origin main 2>/dev/null; then
+  echo "WARN: could not fetch origin/main — checking ${OLD} against a possibly stale local ref" >&2
+fi
+
+MAIN_DECLS=$(git grep -hE "$DECL_RE" origin/main -- 'decisions/**.md' 2>/dev/null || true)
+
+if printf '%s\n' "$MAIN_DECLS" | grep -qxF -- "$OLD_DECLS"; then
+  echo "FAIL: ${OLD}'s block in this tree is origin/main's own — renumbering it would rewrite someone else's decision; this tool only moves a block the branch itself authored" >&2
   exit 1
 fi
 
