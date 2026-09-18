@@ -44,7 +44,7 @@ Durable facts — schemas, contracts, inventories, what a system *is* — belong
 
 Append a new block to the file matching the decision's domain (routing table above), after the existing table, at the end of the file — never inside it. Never create a new decision file without also adding it to the routing table above; `scripts/check-decision-ids.sh` fails any `decisions/**` file missing from this table.
 
-- Next id is the current maximum plus one — derive it, don't guess: `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
+- Next id is the current maximum plus one — derive it, don't guess: `bash scripts/next-decision-id.sh`, and re-run it immediately before opening the PR. It runs `git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' decisions/**.md | grep -oE 'D[0-9]+' | sed 's/D0*//' | sort -n | tail -1` against fetched `origin/main` as well as the working tree, and counts the ids in-flight plans have reserved; the bare command over the working tree alone goes stale the moment a decision lands on `main`. Migrated table rows and new blocks share one id space, so both patterns must be searched.
 - Never reuse an id, never edit an existing decision's block. A reversal cites `Supersedes:` and gets its own new id.
 - Block format:
 
