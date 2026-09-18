@@ -30,23 +30,23 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New general (career-wide) stat view | `05-Database/05-Views/01-General-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~4.1k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~2.2k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~4.6k |
-| New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~12.3k |
-| API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~9.8k |
-| Frontend page / component work | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/05-Astro-Components.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~14.6k |
-| Frontend gameplay / session features | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~17.7k |
+| New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~14.4k |
+| API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~9.2k |
+| Frontend page / component work | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/05-Astro-Components.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~14.5k |
+| Frontend gameplay / session features | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~18.5k |
 | Frontend new route / rendering | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/00-Overview.md`, `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `app/CLAUDE.md` | ~12.7k |
 | Frontend architecture / new pattern | `07-Frontend/01-Rendering-Strategy.md`, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/05-Astro-Components.md`, `04-Architecture-patterns.md`, `01-Principles.md` | ~17.5k |
-| New portable UI primitive | `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~12.1k |
-| New test / test-strategy question | `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md` | ~5.4k |
+| New portable UI primitive | `07-Frontend/04-Modules-And-OOP.md`, `07-Frontend/03-Alpine-Patterns.md`, `07-Frontend/07-Style-Guide.md`, `app/CLAUDE.md` | ~12.7k |
+| New test / test-strategy question | `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md` | ~4.1k |
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~6.4k |
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~12.4k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~8.6k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Actual per-task total varies with domain (router + testing.md, the smallest, runs ~2.3k; router + game-engine.md, the largest, runs ~5.8k) — the single figure in the last column below prices only the router + the one example file named above. | ~8.5k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0037`; never patch applied files | ~5.1k |
-| Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~10.3k |
-| New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~18.2k |
-| New non-game client tool (Trivia) | `09-Training/00-Overview.md`, `09-Training/02-Trivia.md`, `07-Frontend/04-Modules-And-OOP.md` §Non-Game Client Tools, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md`, `docs/game-rules/training/trivia/README.md` | ~18.8k |
+| Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~11.4k |
+| New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~17.1k |
+| New non-game client tool (Trivia) | `09-Training/00-Overview.md`, `09-Training/02-Trivia.md`, `07-Frontend/04-Modules-And-OOP.md` §Non-Game Client Tools, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md`, `docs/game-rules/training/trivia/README.md` | ~18.1k |
 
 Paths are relative to `docs/architecture/` unless they start with `docs/`, `database/`, or `app/`.
 

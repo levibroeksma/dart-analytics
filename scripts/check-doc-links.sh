@@ -31,6 +31,7 @@ python3 - <<'PY'
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -92,24 +93,25 @@ def canonical_files() -> list[Path]:
     for extra in (Path(".claude/skills"), Path(".claude/rules")):
         if extra.is_dir():
             files.extend(sorted(extra.rglob("*.md")))
-    pairs = [
-        Path("CLAUDE.md"),
-        Path("AGENT.md"),
-        Path("app/CLAUDE.md"),
-        Path("app/AGENT.md"),
-        Path("app/src/db/CLAUDE.md"),
-        Path("app/src/db/AGENT.md"),
-        Path("app/src/pages/api/CLAUDE.md"),
-        Path("app/src/pages/api/AGENT.md"),
-        Path("database/CLAUDE.md"),
-        Path("database/AGENT.md"),
-        Path("docs/CLAUDE.md"),
-        Path("docs/AGENT.md"),
-        Path("README.md"),
-    ]
-    for p in pairs:
+    # Every tracked CLAUDE.md / AGENT.md, derived rather than listed. The
+    # hardcoded thirteen-path list this replaces would have silently missed
+    # the five directory guides added alongside this change — a list that
+    # must be remembered is the same class of defect as a rule that must be
+    # remembered. git ls-files also excludes worktree copies for free: both
+    # .worktrees/ and .claude/worktrees/ are gitignored.
+    tracked = subprocess.run(
+        ["git", "ls-files", "*CLAUDE.md", "*AGENT.md"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    for ref in tracked:
+        p = Path(ref)
         if p.is_file():
             files.append(p)
+    readme = Path("README.md")
+    if readme.is_file():
+        files.append(readme)
     # de-dupe while preserving order
     seen: set[Path] = set()
     out: list[Path] = []

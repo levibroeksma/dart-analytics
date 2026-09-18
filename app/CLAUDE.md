@@ -1,6 +1,6 @@
 # Agent Rules — `app/`
 
-Scope: everything under `app/`. Authority order and per-task context packs live in `docs/architecture/00-Context-Map.md`; schema authority is `database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`. (2026-07-15)
+Scope: everything under `app/`. Authority order and per-task context packs live in `docs/architecture/00-Context-Map.md`; schema authority is `database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`, `app/src/services/CLAUDE.md`, `app/src/components/CLAUDE.md`, `app/src/stores/CLAUDE.md`, `app/src/modules/training/CLAUDE.md`, `app/tests/CLAUDE.md` — each loads when you open a file in its directory, so you do not need to read them from here. (2026-07-15)
 
 ## Development
 
@@ -22,17 +22,6 @@ Task branches may be worked in a git worktree under `.worktrees/` or checked out
 
 Freshness is CI-owned; nothing here is a local task. Looking something up: the `graph-lookup` skill. Building, refreshing, optional local install: `.claude/skills/graph-lookup/references/building.md`.
 
-## Astro Documentation
-
-Full documentation: https://docs.astro.build
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
-
 ## Non-Negotiable Rules
 
 - Never use Drizzle to generate or own migrations.
@@ -43,8 +32,6 @@ Full documentation: https://docs.astro.build
 - Keep secrets in `.env` / worker secrets; never in source files.
 - Re-run `drizzle-kit introspect` after architecture migration changes, and commit only `app/src/db/schema.ts` from its output — the dump, `relations.ts` and `meta/` it also writes are gitignored (D290). A view body that drifts from the migration chain fails `app/tests/db/schema-view-drift.test.ts`. (2026-09-17)
 - `tsconfig.json`'s `compilerOptions.paths` and `vitest.config.ts`'s `resolve.alias` must stay in sync: every path alias declared in one must exist in the other. A new alias used only inside `vi.mock(...)` factories can silently pass tests without ever needing real resolution — verify the alias resolves for a genuine (non-mocked) import before considering it wired. (2026-07-16)
-- **Game engines.** Every `*.engine.module.ts` implements the `GameEngine` contract (`docs/architecture/04-Architecture-patterns.md` Pattern 18): constructed from a validated config snapshot bound to a `rulesetVersionKey`, owns its `EngineFacts` log, mints `clientKey`/`sequence`/`completedAt`/`participantRef`, rehydrates from persisted facts via `create(config, prior)`, and exposes a pure `wouldComplete(input)`. Every engine also declares a static `stageOwnership` (`SHARED` | `PER_SEAT`) so the shared `modules/game/seat-rota.module.ts` can derive the active seat from the fact log; `record()` takes no seat — it applies to the derived active seat, and the active seat is never stored. (2026-08-21) `undo()` must be an exact inverse of `record()` over `facts()`, including any stage the record opened; undo depth is unbounded. `completedAt` is stamped when a visit resolves, never when it opens, and cleared when `undo()` reopens one. `state()` and `facts()` return derived copies — never a live field or a shared module constant. Anything a caller must change goes through a named method, not a write to a returned object. Never store a value the fact log can derive — no accumulated score, points, ratio or average fields. `bash scripts/check-game-engines.sh` must pass. (2026-07-26) An engine composes its log mechanics from `modules/game/turn-log.module.ts` and its per-seat derivation from `modules/game/seat-state.module.ts` rather than re-declaring them — those two modules hold everything with no ruleset content in it, and copying a neighbouring engine's copy is what put `npx fallow` over its duplication gate once already (D232, 2026-08-23). A new engine's `rulesetVersionKey` and its server-side validator (`services/rulesets/registry.ts`) must land in the same commit — `scripts/check-game-engines.sh` runs pre-commit and rejects one without the other, so a plan that splits them into separate tasks/commits cannot land as drafted; combine them at commit time. (2026-08-14)
-- **Exercise engines.** `modules/training/exercises/interfaces.ts`'s `ExerciseEngine<TState>` is a parallel contract to `GameEngine`, never built on top of it (D264) — non-game exercises (warm-ups and beyond) have no seats, no `rulesetVersionKey` from the game ruleset union, and take no dart input. An exercise engine owns no clock: state carries no elapsed-time field, so the caller drives transitions with `advance()`. Its ruleset key (`ExerciseRulesetVersionKey`, `lib/training/exercises/rulesets/types.ts`) and server-side validator (`services/exercise-rulesets/registry.ts`) stay out of `services/rulesets/registry.ts`/`RulesetVersionKey`/`RULESET_CAPABILITIES` — `scripts/check-game-wiring.sh` requires every key there to declare a capture/input mode pair, which an exercise has neither of. `modules/training/routines/training.module.ts`'s `TrainingEngine` orchestrates ordered steps across whichever `ExerciseEngine` each one resolves to and likewise holds no clock; a routine's total duration is validated separately by `modules/training/routines/routine-duration.module.ts` (09-Training/01-Routines.md §7) since a `CHECK` constraint cannot sum sibling rows. (D264, 2026-09-10)
 
 ## Comments (`app/src/**/*.ts`, `.astro` frontmatter)
 
@@ -77,12 +64,7 @@ Commands from `app/`: `npm test` (CI), `npm run test:watch` (local). Never commi
 Rules:
 
 - Place tests under `app/tests/`, mirroring `app/src/`'s (and `app/scripts/`'s) directory structure — never colocated beside the module under test.
-- Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
-- `.astro` markup: keep variant/branching logic inline in the component's own frontmatter. This logic is not unit-tested — there is no Astro-component test runner in this project — so do not extract a separate helper file solely to make it testable (D101).
-
-Framework: **Vitest** (`vitest.config.ts` at `app/` root).
-
-Ground rules beyond the procedure above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
+- Everything else about writing them — Vitest mocks, the `.astro` no-extraction carve-out (D101), the coverage gate — is in `app/tests/CLAUDE.md`.
 
 ## Validation Standard Procedure (sole definition)
 
@@ -111,7 +93,7 @@ A source edit with no test edit is not a completed task: `scripts/check-test-cov
 
 For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
-Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores; `PersistFactory` once per field (D120) — never reuse one `persist()` across store fields. (2026-07-17)
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.data.ts`, `*.module.ts`); modules never import `@client/api`. Component and Alpine rules: `app/src/components/CLAUDE.md`. Store rules: `app/src/stores/CLAUDE.md`. (2026-07-17; split 2026-09-18)
 
 **TypeScript file organization:** No `.ts` file lives directly under `components/` or `pages/` — except `pages/api/**` (Worker route handlers) — regardless of single- or multi-consumer use; mechanically enforced by `scripts/check-file-locations.sh`. All other `.ts` files live in `app/src/lib/` (except stores, which live at `stores/`):
 
@@ -120,14 +102,3 @@ Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.data.ts`
 - Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`
 
 Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
-
-**Style non-negotiables:**
-
-- Semantic tokens only — `surface` / `foreground` / `muted*` / `accent*` / states; never `bg-bg*` / `text-fg*` or raw palette utilities
-- Reuse primitives from `app/src/styles/global.css`; do not reinvent per screen
-- **Reuse existing UI components before hand-rolling markup.** A standalone action always renders through `components/forms/Button.astro` (`variant`/`icon`/`ariaLabel`/`loadingExpr`) — never a raw `<button>` with manually composed classes. Check `components/ui/` and `components/forms/` for a fitting component before writing new markup for any recurring UI shape (buttons, modals, form controls). If nothing fits, say so and propose a new component rather than hand-rolling one inline. Exempt: multi-part custom controls a shared primitive cannot express as-is — e.g. roving-tabindex `role="radio"` options carrying a label + checkmark (`AppModeForm.astro`, `HandednessForm.astro`) — which stay raw markup by established precedent. (2026-08-11; AppModeForm's caption dropped 2026-08-26)
-- Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
-- Forward leftover attributes as `{...props}` — never `{...rest}`
-- Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
-- Tailwind v4 utilities only — no important modifier at all, neither prefix (`!utility`) nor suffix (`utility!`); compose overrides through `cn()`'s merge ordering, or extend the primitive's own variant/prop surface when its defaults conflict; arbitrary negatives as `left-[-45%]`, never `-left-[45%]`
-- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities/Tailwind important modifier (either form) + `-prop-[…]` mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31; important-modifier ban widened to suffix form 2026-08-21)
