@@ -17,7 +17,10 @@ bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
 bash scripts/check-skill-pointers.sh
 bash scripts/check-test-coverage.sh
+bash scripts/check-doc-sync.sh
 ```
+
+`check-doc-sync.sh` fails when the change set touches `database/migrations/`, `app/src/services/` or a domain subdirectory of `app/src/modules/` (`game`, `training`, `dartbot`, `stats`) with no edit under `docs/architecture/` or `decisions/`. It reads the change set the same way `check-test-coverage.sh` does — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `DOC_SYNC_BASE_REF`). `docs/superpowers/` does not satisfy it: specs and plans are non-canonical (D312). It is absent from `.husky/pre-commit` on purpose — mid-branch it would fail the code commit that precedes the docs commit.
 
 `check-test-coverage.sh` reads the change set itself — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `TEST_COVERAGE_BASE_REF`). It fails when a runtime source file changed and no test importing it changed with it, so run it before the commit that would trip it, not after.
 
