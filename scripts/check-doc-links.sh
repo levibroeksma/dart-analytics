@@ -97,8 +97,8 @@ def canonical_files() -> list[Path]:
     # hardcoded thirteen-path list this replaces would have silently missed
     # the five directory guides added alongside this change — a list that
     # must be remembered is the same class of defect as a rule that must be
-    # remembered. git ls-files also excludes worktree copies for free: both
-    # .worktrees/ and .claude/worktrees/ are gitignored.
+    # remembered. git ls-files also excludes worktree copies for free:
+    # .worktrees/ is gitignored.
     tracked = subprocess.run(
         ["git", "ls-files", "*CLAUDE.md", "*AGENT.md"],
         capture_output=True,
