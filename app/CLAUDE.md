@@ -16,7 +16,7 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
-Task branches may be worked in a git worktree under `.claude/worktrees/` or checked out directly in the main working copy (see root `CLAUDE.md`). A worktree is removed once its branch lands.
+Task branches may be worked in a git worktree under `.worktrees/` or checked out directly in the main working copy (see root `CLAUDE.md`). A worktree is removed once its branch lands. (path moved 2026-09-18, D312)
 
 ## Knowledge Graph (graphify)
 
@@ -76,7 +76,15 @@ Full documentation: https://docs.astro.build
 
 ## Test-Driven Development (mandatory)
 
-Full red→green→refactor procedure: `verification-before-completion` skill, "Dart Analytics" section.
+Red → green → refactor, every `app/` behavior change (sole definition, D99):
+
+1. Write a failing test that names the expected behavior.
+2. Run `npm test` — confirm the **new** test fails for the right reason.
+3. Implement the minimal code to pass.
+4. Run `npm test` — all tests pass.
+5. Refactor only with tests green.
+
+Commands from `app/`: `npm test` (CI), `npm run test:watch` (local). Never commit production code without its failing test written first — except greenfield scaffold commits that only add test infrastructure. Run the command and read the output before claiming a result. This is the repo delta paired with `superpowers:test-driven-development` — load that skill for the discipline, this section for the procedure and commands; `superpowers:verification-before-completion` plus the `run-all-gates` skill cover the claim-time check. (procedure reinstated here 2026-09-18, D311)
 
 Rules:
 
@@ -86,7 +94,7 @@ Rules:
 
 Framework: **Vitest** (`vitest.config.ts` at `app/` root).
 
-Ground rules beyond the `verification-before-completion` skill's procedure (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`. (procedure moved to `verification-before-completion` skill, 2026-07-28)
+Ground rules beyond the procedure above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
 
 ## Validation Standard Procedure (sole definition)
 
