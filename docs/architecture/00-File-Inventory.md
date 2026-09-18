@@ -265,6 +265,7 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | `.github/ISSUE_TEMPLATE/discovered-work.yml` | Human-facing GitHub issue form mirroring `.claude/skills/capturing-discovered-work/SKILL.md`'s agent-facing procedure (2026-09-13, D273) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
 | `docs/superpowers/{specs,plans,handoffs}/` | Point-in-time task designs and plans | historical |
+| `docs/braindump/` | Raw, pre-decision research notes and proposals — non-canonical, never authority; adopting anything in one is a separate task with its own `decisions/**` entry (`badges.md` 2026-07; `agent-context-hardening.md` 2026-09-18) | historical |
 | `app/CLAUDE.md` (+ `app/src/**/CLAUDE.md`) | App implementation rules, validation procedure; mid-task fallow/`npm run check` gate; Prettier pre-PR gate after writing-plans execution (2026-07-22) | canonical |
 | `app/DEPLOYMENT.md` | Cloudflare Worker deploy guide: Neon prod setup, Worker secrets, GitHub Actions deploy vars, rollback, troubleshooting; `PUBLIC_NEON_AUTH_BASE_URL` no longer read by app code post-D172 (2026-07-29) | canonical |
 | `AGENT.md` (repo root, `app/`, `app/src/db/`, `app/src/pages/api/`, `database/`, `docs/`) | Fixed pointer stub redirecting to the sibling `CLAUDE.md` in the same directory — not a rule source, never carries content (D213, 2026-07-15) | canonical |
