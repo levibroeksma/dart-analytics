@@ -20,6 +20,9 @@ jobs:
         run: bash scripts/check-agent-mirrors.sh
       - name: Skill/rule pointer gate
         run: bash scripts/check-skill-pointers.sh
+
+      - name: Worktree location gate
+        run: bash scripts/check-worktree-location.sh
       - name: Astro class-composition gate
         run: bash scripts/check-astro-class-composition.sh
       - name: Astro conventions gate
