@@ -28,10 +28,12 @@ import type { PresetSetupContext, PresetSetupControllerOptions } from "./types";
  * V1 seeds exactly one configuration preset per game; index 0 is always that
  * preset.
  *
- * Six games use this: Bob's 27, Shanghai, 121, Around the Clock, Singles
- * Training and Doubles Training. `501` and Score Training deliberately do
- * not — both replace `start` wholesale, and routing them through here would
- * need one hook per branch, which is the factory dissolving into its callers.
+ * Five games use this: Bob's 27, Shanghai, Around the Clock, Singles
+ * Training and Doubles Training. `501`, Score Training, 121 and TUOD
+ * deliberately do not — each keeps a hand-written setup context that replaces
+ * `start` wholesale, and routing them through here would need one hook per
+ * branch, which is the factory dissolving into its callers (`types.ts`'s
+ * `OneTwentyOneSetupContext`/`FiveOhOneSetupContext` docs say the same).
  * The touch list and the reasoning live in
  * `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
  */

@@ -7,7 +7,6 @@ updated: 2026-09-17
 
 # Training, Exercise and Exercise Engine Architecture
 
-> Status: Proposed architectural design
 > Scope: Training routines, exercises, exercise engines, configurable training, adaptive training
 > Applies to: Domain model, frontend runtime architecture, configuration model, future analytics/coaching
 > Relationship: Extends the existing GameEngine, ruleset, configuration snapshot and runtime-session architecture
