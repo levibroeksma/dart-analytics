@@ -215,6 +215,8 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | `scripts/check-doc-links.sh` | Guard: markdown links and path-like backtick refs across the canonical doc set resolve (D133) | canonical |
 | `scripts/check-context-budget.sh` | Guard: this file's own `~Nk` token estimates don't drift from a chars/4 estimate (D133) | canonical |
 | `scripts/check-decision-ids.sh` | Guard: every id across `decisions/**` is unique, none of the 163-id 2026-08-02 baseline has disappeared, every `Supersedes:` target exists, `DECISIONS.md` stays a router, every migrated row still hash-matches `scripts/decision-row-hashes.tsv` (D184+ out of scope by design), every `decisions/**.md` file is registered in the router's routing table; position-anchored to avoid darts `D18`/`D20` notation; blind spots documented in its header (2026-08-02; hash + registration checks 2026-08-03) | canonical |
+| `scripts/next-decision-id.sh` | Helper: prints the next free decision id, derived against fetched `origin/main` union the working tree (both the table-row form and the `### D<n>` block form); advisory, not a gate (2026-09-18) | canonical |
+| `scripts/renumber-decision.sh` | Helper: rewrites one decision id across every tracked file when CI catches a late collision; refuses a dirty index or an already-used target id (2026-09-18) | canonical |
 | `scripts/decision-row-hashes.tsv` | Data file: id → sha256 of the 163 migrated rows' exact text at the 2026-08-02 split, read by `scripts/check-decision-ids.sh`'s row-integrity check | canonical |
 
 ## Brand asset generators (2026-07-31)
@@ -242,7 +244,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/frontend/astro.md` | 24 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28; D265 `/training` replaces `/trivia` as a flat IA with a reusable routine-detail shell, 2026-09-11; D272 Balanced Training's play page reuses `GameLayout`, 2026-09-13; D275 dart exercise panels adopt the game play-screen shape, 2026-09-14) | canonical | ~6.6k |
 | `decisions/frontend/alpine.md` | 25 decisions — Alpine, stores, state, persist, recovery, x-data, x-show (D286 in-routine blocking-game resolution, 2026-09-16; D307 the `forms/` layer retired unbuilt, `settings.store.ts` is D77's substitute in practice, 2026-09-17) | canonical | ~9.7k |
 | `decisions/frontend/style.md` | 13 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban, container queries | canonical | ~3.2k |
-| `decisions/context-system.md` | 43 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D316 moves directory-scoped rules out of `app/CLAUDE.md`, 2026-09-18) | canonical | ~13k |
+| `decisions/context-system.md` | 45 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D314 denies whole-file reads and gates skill/rule registration, D315 the knowledge-graph skill is a lookup skill and the graph is never read whole, D316 moves directory-scoped rules out of `app/CLAUDE.md`, D318 decision ids derive against fetched origin/main and re-derive before the PR opens, 2026-09-18) | canonical | ~9.9k |
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
 

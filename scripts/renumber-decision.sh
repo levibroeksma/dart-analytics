@@ -17,8 +17,8 @@
 # diff can be eyeballed before committing. The PR body is NOT rewritten — it
 # lives on GitHub, not in the tree. Fix it by hand; the script reminds you.
 #
-# SAFETY: refuses to run with a dirty index (so the rewrite is reviewable as its
-# own diff), refuses to renumber to an id that already has a row or heading in
+# SAFETY: refuses to run with a dirty working tree (so the rewrite is reviewable
+# as its own diff), refuses to renumber to an id that already has a row or heading in
 # decisions/**.md, and never touches decisions/** blocks other than by the
 # substitution itself — a renumbered id is still the same append-only block,
 # not an edit to a different one.
