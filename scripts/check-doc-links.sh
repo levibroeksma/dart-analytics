@@ -84,6 +84,16 @@ def canonical_files() -> list[Path]:
     # the note travels with the pattern so a future git-ls-files rewrite of
     # this loop doesn't reintroduce the gap.
     files.extend(sorted(Path("decisions").rglob("*.md")))
+    # .claude/rules/*.md carry path pointers into the doc tree and are not
+    # reachable from any other gate's scan set. .claude/skills/**/*.md is
+    # deliberately NOT here yet — see the plan for 2026-09-18-graph-lookup-skill,
+    # which removes the eight dangling references/*.md pointers (inherited from
+    # an upstream fork that copied SKILL.md without its references/ directory)
+    # by deleting the file that holds them, and widens this list in the same
+    # change.
+    rules_dir = Path(".claude/rules")
+    if rules_dir.is_dir():
+        files.extend(sorted(rules_dir.rglob("*.md")))
     pairs = [
         Path("CLAUDE.md"),
         Path("AGENT.md"),
