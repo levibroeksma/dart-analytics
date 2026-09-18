@@ -12,7 +12,8 @@ import type { SkillProfile } from "./types";
  * `app/scripts/dartbot-bias-flatspot-fix.ts`. `biasXMm`'s 7/8 pair brackets
  * against level 5 rather than level 6, because level 6's measured `-5.0` is
  * a sign anomaly rather than a curve point. `skill-profile.module.test.ts`
- * now forbids adjacent levels sharing a bias pair.
+ * now forbids adjacent levels sharing a bias pair, and separately pins bias
+ * magnitude strictly decreasing from level 7 to 15.
  */
 export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
   1: {
