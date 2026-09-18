@@ -126870,7 +126870,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/games/BoardInputPanel.astro",
-      "source_location": "L34",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -126882,7 +126882,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/games/BoardInputPanel.astro",
-      "source_location": "L35",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -126894,7 +126894,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/games/BoardInputPanel.astro",
-      "source_location": "L38",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -129174,7 +129174,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/exercises/ExerciseBoardInputPanel.astro",
-      "source_location": "L18",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -129186,7 +129186,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/exercises/ExerciseBoardInputPanel.astro",
-      "source_location": "L19",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -129198,7 +129198,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/exercises/ExerciseBoardInputPanel.astro",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -218884,5 +218884,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7553f0252b79418112e5729a5b1c8effd4041ddd"
+  "built_at_commit": "db67ebef0e800c2467fa2cb6bf3559e0ee0081d7"
 }
