@@ -23,10 +23,14 @@
  * `touch-none` on the pointer surface stops the browser turning a drag across
  * the board into a scroll or a pinch, so `pointermove` keeps arriving for the
  * length of the gesture. The board's own square (`aspect-square`) is a
- * `flex-1 min-h-0` item of this panel's column, capped at `max-h-[60vh]` —
- * it sizes off whatever height the play screen's flex layout actually leaves
- * it, rather than a viewport-relative width, so it shrinks first (never the
- * score/target section above it) on a screen too short to fit both (#131).
+ * `flex-1 min-h-0` item of this panel's own `flex-1 min-h-0` column, which
+ * is itself a flex-grow item of the play screen's column — so the board
+ * sizes off the real leftover height the play screen has available,
+ * clamped to the container's width by `max-w-full`, with no
+ * viewport-relative magic number. On a screen too short to fit both, it
+ * shrinks before the score/target section above it, because that
+ * section's own min-content size (the big score number) floors its
+ * height while the board — pure SVG, no text — has none (#131).
  */
 
 // Components
@@ -41,10 +45,10 @@ import UndoIcon from "@icons/undo.svg";
 <div
   x-show="!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
   x-cloak
-  class="mt-3 flex min-h-0 flex-col items-center gap-3"
+  class="mt-3 flex min-h-0 flex-1 flex-col items-center gap-3"
 >
   <div
-    class="relative min-h-0 max-h-[60vh] max-w-full flex-1 aspect-square touch-none"
+    class="relative min-h-0 max-w-full flex-1 aspect-square touch-none"
     @pointerdown="onPointerDown($event)"
     @pointermove="onPointerMove($event)"
     @pointerup="onPointerUp()"
