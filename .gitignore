@@ -29,4 +29,8 @@ app/src/db/relations.ts
 app/src/db/meta/
 
 # worktrees are local scratch checkouts, never committed
+# .worktrees/ is the current home (D312) — one of the two prefixes the
+# superpowers finishing skill owns at cleanup; .claude/worktrees/ stays
+# ignored while pre-D312 worktrees still exist locally.
+.worktrees/
 .claude/worktrees/

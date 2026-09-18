@@ -5,7 +5,7 @@ description: Use before claiming any Dart Analytics task done that touched app/,
 
 # Run All Gates
 
-Identifies and runs the gate scripts that apply to what changed, and reports every result explicitly — the "identify the command that proves the claim, then run it" step `verification-before-completion` demands.
+Identifies and runs the gate scripts that apply to what changed, and reports every result explicitly — the "identify the command that proves the claim, then run it" step `superpowers:verification-before-completion` demands. This skill is that skill's repo pairing (D312): it is what "the command that proves it" resolves to here, and what `superpowers:finishing-a-development-branch` Step 1 means by the test suite.
 
 ## Always run
 

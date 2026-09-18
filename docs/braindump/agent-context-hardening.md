@@ -1,7 +1,7 @@
 <!--
 status: proposal (non-canonical)
 scope: .claude/** configuration, CLAUDE.md layering, context-loading enforcement
-measured-against: main @ 0c3f97e6, 2026-09-18, with branch `chore/remove-forked-skills` applied
+measured-against: main @ 8cd71b5a, 2026-09-18 (PR #435 merged)
 resolved: F1 (PR #435 — D311 de-vendors the skills, D312 pairs the repo deltas with them)
 -->
 
@@ -25,18 +25,18 @@ updated at task end.
 
 ## Measured baseline
 
-Measured on a clean worktree of `main` @ `0c3f97e6` (2026-09-18) with the
-`chore/remove-forked-skills` branch applied. Token figures are
+Measured on a clean worktree of `main` @ `8cd71b5a` (2026-09-18, PR #435 merged).
+Token figures are
 `chars/4`, the same estimator `scripts/check-context-budget.sh` uses — directionally
 right, not exact.
 
 | Thing | Measured | Bar |
 | --- | --- | --- |
-| `CLAUDE.md` | 119 lines / 8,949 B | ≤200 lines ✅ |
-| `app/CLAUDE.md` | 145 lines / 15,567 B | ✅ by line count; ~60% is path-specific |
+| `CLAUDE.md` | 124 lines / 9,552 B | ≤200 lines ✅ |
+| `app/CLAUDE.md` | 145 lines / 15,776 B | ✅ by line count; ~60% is path-specific |
 | `app/src/db/CLAUDE.md` · `app/src/pages/api/CLAUDE.md` | 15 / 12 lines | ✅ |
 | `database/CLAUDE.md` · `docs/CLAUDE.md` | 21 / 36 lines | ✅ |
-| Project skills | 5 (was 13; 8 forks removed — F1 resolved) | — |
+| Project skills | 6 (was 13; 8 forks removed, `finishing-a-dart-branch` added — F1 resolved) | — |
 | `.claude/skills/graphify/SKILL.md` | 678 lines / 38,220 B (~9.5k tok on invoke) | ≤500 lines |
 | Always-on skill metadata | ~6.8k tok (397 project / 608 superpowers / ~5.8k user-level) | — |
 | `graphify-out/graph.json` | 7,732,501 B ≈ **1.9M tok if Read** · 5,491 nodes / 13,157 links · 218,728 lines, max 206 chars/line → **grep-safe** | — |
@@ -357,6 +357,95 @@ before removing anything.
 
 ---
 
+### F9 — Nothing checks that a cross-boundary pointer still resolves
+
+`scripts/check-doc-links.sh` resolves doc links and path-like references across 71
+files, which is why the repo's internal pointers are reliable. Two classes of
+pointer sit outside its reach, and both are now load-bearing:
+
+**Plugin skill names.** D312's pairing table in root `CLAUDE.md` names four
+`superpowers:` skills. Nothing verifies those four names exist in the installed
+plugin. An upstream rename silently turns a row into a pointer at nothing, and the
+failure is invisible — the plugin skill still works, the repo delta just stops being
+attached to it.
+
+**`.claude/skills/**` generally.** No gate script reads that tree at all. This is
+what made F1 possible: eight vendored skills drifted 710/306/181/52/34/22/15/14 diff
+lines from the installed v6.3.0 and **not one gate could have noticed**, because only
+some of them were ever registered in `00-File-Inventory.md` and nothing cross-checks
+the directory against the inventory in either direction. The same hole is still open
+for the six skills that remain.
+
+A `check-skill-pointers.sh` closing both would be ~30 lines: enumerate
+`.claude/skills/*/`, assert each is inventory-registered; extract `superpowers:<name>`
+mentions from tracked Markdown, assert each resolves under the plugin cache when it is
+present, and skip (not fail) when it is not — CI has no plugin cache, so the second
+half is a local-only check unless the workflow installs the plugin.
+
+This generalizes: **the repo's gates are strong inside its own tree and absent at
+every boundary it now depends on** — the plugin, the marketplace, the graph builder.
+F5 proposes the same shape of fix for a different boundary.
+
+---
+
+## What PR #435 established
+
+Recorded because the reasoning is not recoverable from the diff, and the same choice
+recurs every time a plugin skill and this repo disagree.
+
+**Trigger type decides the mechanism.** A repo delta has to arrive at the moment it
+applies, and what "the moment" is varies:
+
+| Delta fires on | Mechanism | Example |
+| --- | --- | --- |
+| a **path** — some file is touched | `.claude/rules/` with `paths:`, or the directory's `CLAUDE.md` | `app/` TDD procedure |
+| a **moment** — no file involved | a paired skill whose description matches the same trigger | always-Option-2 branch finish |
+| **neither** — must be unconditional | hook (`SessionStart`, `UserPromptSubmit`) | the concision rule |
+
+Prose in a `CLAUDE.md` is the weakest of the three for anything moment-triggered.
+`superpowers:finishing-a-development-branch` says *"Present the menu exactly as
+written"* and *"Integration is your human partner's decision"* — emphatic,
+specific, and arriving in context long after the line meant to override it. The
+authority order says CLAUDE.md wins; proximity and emphasis say otherwise, and only
+one of those is a mechanism. A paired skill costs one description line until invoked
+and fires at the same moment as the skill it modifies.
+
+**A pairing is a delta, never a copy.** `finishing-a-dart-branch` carries only what
+differs and names upstream for the rest. That is the whole distinction from the eight
+forks F1 removed: a fork accumulates upstream text that drifts unobserved, a delta has
+nothing to drift. A same-named skill would also not have shadowed the plugin's —
+plugin skills are namespaced, so both stay visible and compete. The distinct name is
+deliberate.
+
+**Check which upstream skill a delta actually belongs to.** `app/CLAUDE.md`'s TDD
+section cited `superpowers:verification-before-completion` while the plugin ships a
+`test-driven-development` skill that is the real counterpart. The citation was
+inherited from the fork and had been wrong since before the fork was deleted.
+
+**Where the plugin is right, move the repo.** Two rules changed direction rather than
+being overridden:
+
+- **`.claude/worktrees/` → `.worktrees/`.** Not cosmetic. The plugin's cleanup step
+  claims worktrees under `.worktrees/` or `worktrees/` and hands every other path to
+  "the host environment" — so a worktree at `.claude/worktrees/` was never going to be
+  removed by the skill that creates it, while the invariant called one left behind a
+  defect. Six were live, four stale. **A rule whose enforcement path does not run is
+  indistinguishable from no rule**, and this one had been dead since D293.
+- **`superpowers:brainstorming` commits its own spec.** The blanket "do not commit
+  unless the user asks" invariant predates the plugin owning that artifact.
+  Intercepting a skill's own output is the local contradiction F1 set out to stop, so
+  the invariant took a named exception instead.
+
+**Verified, not assumed** — `strings` on the installed binary (`2.1.236`) confirms
+`.claude/rules`, `claudeMdExcludes`, `InstructionsLoaded`, `additionalContext` and
+`alwaysApply` are all present. The Sources table below is documentation; this is the
+build actually running. One thing stayed unverified and so was not built on: whether
+`PreToolUse` accepts `additionalContext`, which would allow deterministic injection
+when a specific skill is invoked — strictly better than the pairing table if it works.
+Worth a spike before F2.
+
+---
+
 ## Plan
 
 | # | Change | Effort | Risk | Payoff |
@@ -368,9 +457,13 @@ before removing anything.
 | 6 | `.claude/agents/doc-router.md`, `gate-runner.md` | 1 h | low | keeps research out of the main window |
 | 7 | `permissions.deny` Read rules + `claudeMdExcludes` | 20 min | low | removes phantom CLAUDE.md + grep noise |
 | 8 | `InstructionsLoaded` logging, then prune per F8 | 1 h | low | evidence before cuts |
+| 9 | `check-skill-pointers.sh` — skills registered, `superpowers:` names resolve | 40 min | low | closes the hole that made F1 invisible |
 
 Sequence: **7** first (pure config, immediate effect), then **2 + 3** as one refactor
-(they are the same move), then **5**.
+(they are the same move), then **5**. **9** is independent of all of them and the
+cheapest thing on the list; a `PreToolUse` `additionalContext` spike (see *What PR
+#435 established*) belongs before **2**, since a positive result changes how every
+later delta is delivered.
 
 Each is an independent branch. The one-open-stacked-branch cap
 (`branch-stack-cap` in `pr-gates.yml`) means 2 and 3 must land as one branch, not two
@@ -411,8 +504,8 @@ Per the root `CLAUDE.md` invariant, captured rather than fixed. None of these we
 touched by this report.
 
 1. **Stale worktrees under `.claude/worktrees/`** — cleanup was in progress while this
-   was written and is still partial. As of `main` @ `0c3f97e6`, with no open PR on the
-   repo: `issue-345-graph-freshness` survives as a detached-HEAD directory after its
+   was written and is still partial. As of `main` @ `0c3f97e6` (before #435 and #436
+   were opened): `issue-345-graph-freshness` survives as a detached-HEAD directory after its
    branch (`fix/p3-constraint-naming`) landed as #431 and was deleted;
    `p4-dartbot-bias` holds `fix/p4-dartbot-bias-flatspots`, already merged and 0
    commits ahead, so its worktree is now a D293 violation; `b9-finishing-seam`
