@@ -111,7 +111,7 @@ A source edit with no test edit is not a completed task: `scripts/check-test-cov
 
 For page/component/session work, load `docs/architecture/07-Frontend/10-Frontend-Agent-Guide.md` and the tiered pack from `00-Context-Map.md`.
 
-Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.data.ts`, `*.module.ts`); Alpine v3 shorthand (`:attr`, `@event` — not `x-bind`/`x-on` except Astro `{}` linter escape); no `x-init`; `x-data="factory()"`; modules never import `@client/api`; `$persist` only in stores; `PersistFactory` once per field (D120) — never reuse one `persist()` across store fields. (2026-07-17)
+Handbook 0.1.0 non-negotiables: file suffix conventions (`.data.ts`, `*.module.ts`); modules never import `@client/api`. Component and Alpine rules: `app/src/components/CLAUDE.md`. Store rules: `app/src/stores/CLAUDE.md`. (2026-07-17; split 2026-09-18)
 
 **TypeScript file organization:** No `.ts` file lives directly under `components/` or `pages/` — except `pages/api/**` (Worker route handlers) — regardless of single- or multi-consumer use; mechanically enforced by `scripts/check-file-locations.sh`. All other `.ts` files live in `app/src/lib/` (except stores, which live at `stores/`):
 
@@ -120,14 +120,3 @@ Handbook 0.1.0 non-negotiables: file suffix conventions (`.store.ts`, `.data.ts`
 - Utilities: `lib/utils/` (migrating from legacy `utils/` folder) — imported via `@utils/`
 
 Full rules: `07-Frontend/01`–`04`, `02-Folder-Structure.md`.
-
-**Style non-negotiables:**
-
-- Semantic tokens only — `surface` / `foreground` / `muted*` / `accent*` / states; never `bg-bg*` / `text-fg*` or raw palette utilities
-- Reuse primitives from `app/src/styles/global.css`; do not reinvent per screen
-- **Reuse existing UI components before hand-rolling markup.** A standalone action always renders through `components/forms/Button.astro` (`variant`/`icon`/`ariaLabel`/`loadingExpr`) — never a raw `<button>` with manually composed classes. Check `components/ui/` and `components/forms/` for a fitting component before writing new markup for any recurring UI shape (buttons, modals, form controls). If nothing fits, say so and propose a new component rather than hand-rolling one inline. Exempt: multi-part custom controls a shared primitive cannot express as-is — e.g. roving-tabindex `role="radio"` options carrying a label + checkmark (`AppModeForm.astro`, `HandednessForm.astro`) — which stay raw markup by established precedent. (2026-08-11; AppModeForm's caption dropped 2026-08-26)
-- Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
-- Forward leftover attributes as `{...props}` — never `{...rest}`
-- Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
-- Tailwind v4 utilities only — no important modifier at all, neither prefix (`!utility`) nor suffix (`utility!`); compose overrides through `cn()`'s merge ordering, or extend the primitive's own variant/prop surface when its defaults conflict; arbitrary negatives as `left-[-45%]`, never `-left-[45%]`
-- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities/Tailwind important modifier (either form) + `-prop-[…]` mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31; important-modifier ban widened to suffix form 2026-08-21)
