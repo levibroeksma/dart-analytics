@@ -31,9 +31,14 @@
     ],
     "deny": [
       "Bash(drizzle-kit generate:*)",
-      "Bash(drizzle-kit push:*)"
+      "Bash(drizzle-kit push:*)",
+      "Read(./graphify-out/graph.json)",
+      "Read(./.worktrees/**/*)",
+      "Read(./.claude/worktrees/**/*)",
+      "Read(./app/src/db/schema.ts)"
     ]
   },
+  "claudeMdExcludes": ["**/.worktrees/**", "**/.claude/worktrees/**"],
   "hooks": {
     "PreToolUse": [
       {
