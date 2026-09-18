@@ -1,6 +1,6 @@
 # Agent Rules — `app/`
 
-Scope: everything under `app/`. Authority order and per-task context packs live in `docs/architecture/00-Context-Map.md`; schema authority is `database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`. (2026-07-15)
+Scope: everything under `app/`. Authority order and per-task context packs live in `docs/architecture/00-Context-Map.md`; schema authority is `database/` migrations and seeds. Scope guides: `app/src/db/CLAUDE.md`, `app/src/pages/api/CLAUDE.md`, `app/src/services/CLAUDE.md`, `app/src/components/CLAUDE.md`, `app/src/stores/CLAUDE.md`, `app/src/modules/training/CLAUDE.md`, `app/tests/CLAUDE.md` — each loads when you open a file in its directory, so you do not need to read them from here. (2026-07-15)
 
 ## Development
 
@@ -21,17 +21,6 @@ Task branches may be worked in a git worktree under `.worktrees/` or checked out
 ## Knowledge Graph (graphify)
 
 Freshness is CI-owned; nothing here is a local task. Looking something up: the `graph-lookup` skill. Building, refreshing, optional local install: `.claude/skills/graph-lookup/references/building.md`.
-
-## Astro Documentation
-
-Full documentation: https://docs.astro.build
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
 
 ## Non-Negotiable Rules
 
