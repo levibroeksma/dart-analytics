@@ -2,7 +2,7 @@
 status: canonical
 scope: database/template-layer
 read-when: adding/changing exercise/routine/configuration templates
-updated: 2026-09-17
+updated: 2026-09-18
 -->
 
 # Database Specification — Chapter 2: Template Layer
@@ -264,9 +264,13 @@ This is the seam §21 adaptive resolution occupies later, with no further schema
 **Planned (unbuilt):** a deferred constraint trigger will enforce a 30-60
 minute total-duration bound on a routine's steps when its parent
 `routine_templates.is_system_template = FALSE` (D305). System routines stay
-governed by the existing ≤60 minute ceiling only (`09-training-routines.md` §7).
-See `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
-§3.3.
+governed by the existing ≤60 minute ceiling only (`09-Training/01-Routines.md` §7).
+The same migration adds the ownership `CHECK` `routine_templates` lacks and
+`configuration_templates` has (a user routine always carries a `player_id`, a
+system routine never does), and recreates `v_routine_execution` with
+`player_id` and `description` so owner-scoped routine reads stay view-backed
+(D321, 2026-09-18). See
+`docs/superpowers/specs/2026-09-18-custom-routine-builder-design.md` §3.
 
 ---
 

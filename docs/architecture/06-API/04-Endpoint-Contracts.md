@@ -2,7 +2,7 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-17
+updated: 2026-09-18
 -->
 
 # API Endpoint Contracts
@@ -370,8 +370,8 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | `DartAnalytics[]` | 2026-07-12 |
 | `GET /api/routines` (not implemented) | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10 |
 | `GET /api/routines/:routineId` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
-| `GET /api/routines/:routineId/execution` (not implemented) | `v_routine_execution` | `RoutineExecution` | 2026-07-12 |
-| `GET /api/exercise-templates` (not implemented) | *planned view, not yet defined* | `ExerciseTemplateCatalogEntry[]` | 2026-09-17 |
+| `GET /api/routines/:routineId/execution` (dropped 2026-09-18, D321 — same shape as the row above; never built) | — | — | 2026-07-12 |
+| `GET /api/exercise-templates` (not implemented) | `v_exercise_template_catalog` (planned, D321) | `ExerciseTemplateCatalogEntry[]` | 2026-09-17 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -379,7 +379,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
-`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail — neither of which is built yet. Its consumer today is `POST /api/training-sessions`, which resolves a system routine's ordered steps through it (D299, issue #344). <!-- 2026-09-17 --> The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
+`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail — neither of which is built yet. Its consumer today is `POST /api/training-sessions`, which resolves a system routine's ordered steps through it (D299, issue #344). <!-- 2026-09-17 --> The view projects no `player_id` or `description` today, so the planned "system routines + caller's own" list cannot be read through it as-is; Phase 1 recreates it with both columns before the reads are built (D321). <!-- 2026-09-18 --> The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -400,12 +400,16 @@ a frozen target, the same approach D299 took for the read side.
 | `POST /api/routines` | `CreateRoutineRequest` | `RoutineExecution` | creates under caller's `player_id` |
 | `PUT /api/routines/:routineId` | `UpdateRoutineRequest` | `RoutineExecution` | owner only |
 | `DELETE /api/routines/:routineId` | — | `204` | owner only, never a system routine |
+| `POST /api/training-sessions` (change, D321) | `StartTrainingRequest` gains `routineTemplateId`, replacing `routineTemplateName` | unchanged | system, or caller-owned routine |
 
 `PUT` replaces `name`/`description`/the full ordered `steps[]` — no partial-reorder
 patch. `sequence_number` is assigned server-side from array position and is
-never accepted from the request body. Any write against a system routine
-(`is_system_template = TRUE`) or a routine owned by another player returns the
-standard 403/404 domain error envelope.
+never accepted from the request body. A write against another player's routine
+returns `NOT_FOUND` (existence is not leaked); a write against a system routine
+(`is_system_template = TRUE`) returns `VALIDATION_FAILED` with
+`details.reason = "system routine is read-only"` — the closed error registry in
+`03-Shared-Conventions.md` has no generic 403 code and is not reopened for this
+(D321, 2026-09-18). Phase 1 accepts `durationTypeKey: "MINUTES"` only.
 
 ---
 
@@ -452,17 +456,27 @@ const DartAnalytics = z.object({            // v_dart_analytics (session-filtere
 
 const RoutineSummary = z.object({           // v_routine_execution aggregated — GET /routines → ListResult<RoutineSummary>
   routineId: z.string(), routineName: z.string(), stepCount: z.number().int(),
+  description: z.string().nullable(), isSystemTemplate: z.boolean(),   // D321: the list must tell system from own
+  totalMinutes: z.number().int(),                                        // sum of MINUTES steps, derived per §6
 });
 
 const RoutineStep = z.object({              // v_routine_execution row
   sequenceNumber: z.number().int(),
   exerciseTemplateId: z.string(), exerciseName: z.string(),
+  exerciseDescription: z.string().nullable(),   // D321: the data-driven detail page renders it
+  exerciseTypeKey: z.string(),                  // D321: WARM_UP | SWITCHING | DOUBLE_PATTERN | GAME
   gameTypeKey: z.string().nullable(),       // NULL for a non-game exercise step
   durationValue: z.number().int(), durationTypeKey: z.string(),
 });
-const RoutineExecution = z.object({         // GET /routines/:id and /:id/execution → RoutineExecution
+const RoutineExecution = z.object({         // GET /routines/:id → RoutineExecution (the /execution alias is dropped, D321)
   routineId: z.string(), routineName: z.string(),
+  description: z.string().nullable(), isSystemTemplate: z.boolean(),
   steps: z.array(RoutineStep),
+});
+
+const ExerciseTemplateCatalogEntry = z.object({ // v_exercise_template_catalog — GET /exercise-templates (planned, D321)
+  exerciseTemplateId: z.string(), name: z.string(), description: z.string().nullable(),
+  exerciseTypeKey: z.string(), gameTypeKey: z.string().nullable(),
 });
 
 const RoutineStepInput = z.object({         // request shape inside steps[] — POST/PUT /routines

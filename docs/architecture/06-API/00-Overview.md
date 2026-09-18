@@ -2,7 +2,7 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-17
+updated: 2026-09-18
 -->
 
 # API Overview
@@ -67,7 +67,10 @@ Resource-first REST by domain.
 
 - `GET /api/routines`
 - `GET /api/routines/:routineId`
-- `GET /api/routines/:routineId/execution`
+- `GET /api/exercise-templates` (planned, D306)
+- `POST /api/routines`, `PUT /api/routines/:routineId`, `DELETE /api/routines/:routineId` (planned, D306)
+
+`GET /api/routines/:routineId/execution` was listed here until 2026-09-18; it duplicated the detail route's shape and was dropped unbuilt (D321).
 
 ### Configuration Templates
 
@@ -160,7 +163,6 @@ Reads are view-backed and player-scoped.
 | `GET /api/sessions/:sessionId/darts`     | `v_dart_analytics`    |
 | `GET /api/routines` (not implemented)    | `v_routine_execution` |
 | `GET /api/routines/:routineId` (not implemented) | `v_routine_execution` |
-| `GET /api/routines/:routineId/execution` (not implemented) | `v_routine_execution` |
 | `POST /api/training-sessions`            | `v_routine_execution` (resolves the routine's steps) |
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
