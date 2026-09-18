@@ -5,6 +5,15 @@ import type { SkillProfile } from "./types";
  * `sigmaAcrossMm`, `biasXMm`, `biasYMm` and `outlierRate` are calibrated
  * against level 1/6/15 anchors; the remaining fields are hand-set
  * independently of it.
+ *
+ * Levels 7/8, 9/10 and 12/13 each share an identical `biasXMm`/`biasYMm`
+ * pair. That is an inherited artifact of the original hand-set table, not a
+ * copy-paste error in a later edit: both refits (D-L's power-law rescale,
+ * D-N's log-space interpolation) preserve each level's pre-edit ratios, so a
+ * pair equal before a refit stays equal after it. Nothing reads bias equality
+ * across levels — every downstream stat is simulated — so it is cosmetic. If
+ * this table is ever hand-edited again rather than machine-generated, give
+ * those pairs distinct values along the same curve.
  */
 export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
   1: {
