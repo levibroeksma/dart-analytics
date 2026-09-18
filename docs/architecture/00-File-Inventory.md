@@ -21,7 +21,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | ---- | ------- | ------ | ------- |
 | `README.md` | Documentation philosophy and hierarchy | canonical | ~1.5k |
 | `00-Context-Map.md` | The router — context packs, authority order, maintenance protocol (2026-08-19); New non-game client tool (Trivia) pack row added (2026-09-09) | canonical | ~1.9k |
-| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~13.4k |
+| `00-File-Inventory.md` | This file — what each canonical document answers; escalation target when a pack falls short (2026-09-08) | canonical | ~16.9k |
 | `00-Context-Map-History.md` | Context-map version history and point-in-time task records; provenance only, never loaded by a task (2026-08-19; claim refreshed 2026-09-17) | historical | ~83.7k |
 | `01-Principles.md` | What we believe (core values + decision priorities) | canonical | ~2.1k |
 | `02-System-Architecture.md` | System layers, data flows, ownership | canonical | ~1.9k |
@@ -244,7 +244,7 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 | `decisions/frontend/astro.md` | 24 decisions — .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area (D244 cross-cutting markup extraction inside D215's boundary, 2026-08-28; D265 `/training` replaces `/trivia` as a flat IA with a reusable routine-detail shell, 2026-09-11; D272 Balanced Training's play page reuses `GameLayout`, 2026-09-13; D275 dart exercise panels adopt the game play-screen shape, 2026-09-14) | canonical | ~6.6k |
 | `decisions/frontend/alpine.md` | 25 decisions — Alpine, stores, state, persist, recovery, x-data, x-show (D286 in-routine blocking-game resolution, 2026-09-16; D307 the `forms/` layer retired unbuilt, `settings.store.ts` is D77's substitute in practice, 2026-09-17) | canonical | ~9.7k |
 | `decisions/frontend/style.md` | 13 decisions — style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, undo affordance, important-modifier ban, container queries | canonical | ~3.2k |
-| `decisions/context-system.md` | 45 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D314 denies whole-file reads and gates skill/rule registration, D315 the knowledge-graph skill is a lookup skill and the graph is never read whole, D316 moves directory-scoped rules out of `app/CLAUDE.md`, D318 decision ids derive against fetched origin/main and re-derive before the PR opens, 2026-09-18) | canonical | ~9.9k |
+| `decisions/context-system.md` | 45 decisions — docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky (D314 denies whole-file reads and gates skill/rule registration, D315 the knowledge-graph skill is a lookup skill and the graph is never read whole, D316 moves directory-scoped rules out of `app/CLAUDE.md`, D318 decision ids derive against fetched origin/main and re-derive before the PR opens, 2026-09-18) | canonical | ~13.5k |
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
 
