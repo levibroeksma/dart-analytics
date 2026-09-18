@@ -53,6 +53,11 @@ jobs:
           TEST_COVERAGE_BASE_REF: origin/${{ github.base_ref || github.event.repository.default_branch }}
         run: bash scripts/check-test-coverage.sh
 
+      - name: Doc-sync gate
+        env:
+          DOC_SYNC_BASE_REF: origin/${{ github.base_ref || github.event.repository.default_branch }}
+        run: bash scripts/check-doc-sync.sh
+
   app:
     runs-on: ubuntu-latest
     defaults:
