@@ -21,16 +21,18 @@ const verificationFiles = readdirSync(verificationDir)
   .sort();
 
 /**
- * A script that never selects from anything but information_schema/
- * pg_catalog and its own verification_results scratch table (e.g. a
- * constraint-rename check) touches no seeded domain table, so it has no
- * lookup to resolve by implementation_key -- D193's fixture convention does
- * not apply to it. Derived from what a script actually queries rather than
- * listed by name, so a future catalog-only script is exempt automatically
- * instead of by someone remembering to add it here.
+ * A script that never reads anything but the system catalogs
+ * (information_schema, pg_catalog, and bare pg_* tables) and its own
+ * verification_results scratch table (e.g. a constraint-rename check)
+ * touches no seeded domain table, so it has no lookup to resolve by
+ * implementation_key -- D193's fixture convention does not apply to it.
+ * Derived from what a script actually queries rather than listed by name, so
+ * a future catalog-only script is exempt automatically instead of by someone
+ * remembering to add it here. Only FROM and JOIN sources are inspected; a
+ * table reached any other way reads as domain data, which fails safe.
  */
 function queriesDomainData(sql: string): boolean {
-  return /\b(?:FROM|JOIN)\s+(?!information_schema\.|pg_catalog\.|verification_results\b)\w/i.test(
+  return /\b(?:FROM|JOIN)\s+(?!information_schema\.|pg_catalog\.|pg_[a-z_]+\b|verification_results\b)\w/i.test(
     sql,
   );
 }
