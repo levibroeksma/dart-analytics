@@ -21,6 +21,25 @@ const verificationFiles = readdirSync(verificationDir)
   .sort();
 
 /**
+ * A script that never selects from anything but information_schema/
+ * pg_catalog and its own verification_results scratch table (e.g. a
+ * constraint-rename check) touches no seeded domain table, so it has no
+ * lookup to resolve by implementation_key -- D193's fixture convention does
+ * not apply to it. Derived from what a script actually queries rather than
+ * listed by name, so a future catalog-only script is exempt automatically
+ * instead of by someone remembering to add it here.
+ */
+function queriesDomainData(sql: string): boolean {
+  return /\b(?:FROM|JOIN)\s+(?!information_schema\.|pg_catalog\.|verification_results\b)\w/i.test(
+    sql,
+  );
+}
+
+const fixtureBasedVerificationFiles = verificationFiles.filter((name) =>
+  queriesDomainData(readFileSync(`${verificationDir}/${name}`, "utf8")),
+);
+
+/**
  * These scripts assert against a live database, so nothing here can execute
  * them — that is the point of the runner. What is testable is the contract the
  * runner and the SQL have to hold up between them: every script must roll back
@@ -64,7 +83,7 @@ describe("verification runner", () => {
     expect(sql).not.toMatch(/^COMMIT;$/m);
   });
 
-  it.each(verificationFiles)(
+  it.each(fixtureBasedVerificationFiles)(
     "%s resolves seeded lookups by implementation_key",
     (name) => {
       const sql = readFileSync(`${verificationDir}/${name}`, "utf8");

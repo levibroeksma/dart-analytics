@@ -665,9 +665,11 @@ export const exerciseConfigurations = pgTable(
     foreignKey({
       columns: [table.exerciseSessionId],
       foreignColumns: [exerciseSessions.id],
-      name: "fk_exercise_configuration_session",
+      name: "fk_exercise_configurations_exercise_session",
     }).onDelete("cascade"),
-    unique("uq_exercise_configuration_session").on(table.exerciseSessionId),
+    unique("uq_exercise_configurations_exercise_session").on(
+      table.exerciseSessionId,
+    ),
     check(
       "chk_configuration_not_empty",
       sql`jsonb_typeof(configuration) = 'object'::text`,
