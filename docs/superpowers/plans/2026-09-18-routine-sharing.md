@@ -80,7 +80,7 @@ git checkout main && git pull && git checkout -b feat/routine-sharing
 -- Purpose:
 -- Copy-on-share of a player's own routine through a server-
 -- generated share code (spec 2026-09-18-routine-sharing-design.md,
--- D320). routine_shares is Template-layer (mutable: revocable).
+-- D321). routine_shares is Template-layer (mutable: revocable).
 -- routine_share_redemptions is a fact table: append-only in
 -- practice, nothing updates it but the SET NULL when the recipient
 -- later deletes their copy. "Redeemed N times" is derived.

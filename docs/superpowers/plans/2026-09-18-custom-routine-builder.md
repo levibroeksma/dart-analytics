@@ -4,11 +4,11 @@
 
 **Goal:** A player composes, saves, edits, deletes and *runs* their own 30–60 minute routine from the four seeded exercise templates; `/training` lists system and own routines from the API.
 
-**Architecture:** One migration (`0038`) adds the ownership `CHECK`, the deferred duration-bound trigger (D305), recreates `v_routine_execution` with owner columns and adds `v_exercise_template_catalog`. A new `routine.service.ts`/`routine.repository.ts` pair behind `/api/routines` and `/api/exercise-templates` (D306). `POST /api/training-sessions` starts by `routineTemplateId` (D320). The play page becomes data-driven; the builder is one Alpine data factory over three Astro components.
+**Architecture:** One migration (`0038`) adds the ownership `CHECK`, the deferred duration-bound trigger (D305), recreates `v_routine_execution` with owner columns and adds `v_exercise_template_catalog`. A new `routine.service.ts`/`routine.repository.ts` pair behind `/api/routines` and `/api/exercise-templates` (D306). `POST /api/training-sessions` starts by `routineTemplateId` (D321). The play page becomes data-driven; the builder is one Alpine data factory over three Astro components.
 
 **Tech Stack:** PostgreSQL (dbmate migrations, plpgsql constraint trigger), drizzle-orm, Astro server endpoints, Zod, Alpine.js, Vitest.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-custom-routine-builder-design.md` (Phase 1). Corrections it rests on: `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md` §8, D320.
+**Spec:** `docs/superpowers/specs/2026-09-18-custom-routine-builder-design.md` (Phase 1). Corrections it rests on: `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md` §8, D321.
 
 ## Global Constraints
 
@@ -16,7 +16,7 @@
 - Never edit migrations `0001`–`0037` or seeds `0001`–`0019`. New schema = `database/migrations/0038_custom_routines.sql`; new content = `database/seeds/0020_finishing_default_configuration.sql`. If another migration lands on `main` first, renumber to the chain head before merging.
 - Ids: `generateId()` (UUIDv7) in the service. The database never generates ids.
 - Reads through `v_routine_execution` / `v_exercise_template_catalog`; lookup tables (`duration_types`) may be read directly, as `session.repository.ts` reads `capture_modes`. Writes to `routine_templates`/`routine_steps` inside `withTransaction`.
-- Error codes come from the closed registry (`app/src/lib/server/errors.ts`): a foreign routine is `NOT_FOUND`; a system routine on a write is `VALIDATION_FAILED` with `details.reason = "system routine is read-only"`; there is no 403 (D320).
+- Error codes come from the closed registry (`app/src/lib/server/errors.ts`): a foreign routine is `NOT_FOUND`; a system routine on a write is `VALIDATION_FAILED` with `details.reason = "system routine is read-only"`; there is no 403 (D321).
 - User steps are `MINUTES` only; `durationValue` integer 1–60; 1–12 steps; name trimmed 1–60 chars; description ≤ 280 or `null`; total `MINUTES` 30–60. Constants live once, in `app/src/pages/api/routines/types.ts` (Zod) and `routine-duration.module.ts` (total).
 - TDD per `app/CLAUDE.md` §Test-Driven Development: failing test first, `npm test` from `app/`, then code. No `//` comments inside function bodies; doc comments cite, never narrate (D255).
 - Every new `.ts` under `app/src/` has a test under `app/tests/` mirroring its path (`scripts/check-test-coverage.sh`).
@@ -265,7 +265,7 @@ Create `database/migrations/0038_custom_routines.sql`:
 --
 -- Purpose:
 -- Make player-authored routines representable and bounded
--- (D305, D306, D320; 09-Training/01-Routines.md §7, §20).
+-- (D305, D306, D321; 09-Training/01-Routines.md §7, §20).
 --
 -- 1. chk_routine_templates_player_ownership: a system routine has
 --    no owner and a user routine always has one. Stricter than
@@ -436,7 +436,7 @@ Create `database/seeds/0020_finishing_default_configuration.sql`:
 --
 -- Purpose:
 -- Give the Finishing (TUOD) system template a default_configuration
--- so a player can pick it in the routine builder (D320). Until now
+-- so a player can pick it in the routine builder (D321). Until now
 -- the template carried NULL and Balanced Training's step 4 supplied
 -- the whole configuration; a user step carries no configuration, so
 -- it would resolve to {} and fail TUOD validation at start.
@@ -815,7 +815,7 @@ type Writer = Db | Tx;
 
 /**
  * The routines a player may read: every system routine plus their own
- * (`06-API/04-Endpoint-Contracts.md`, D320). A stepless routine has no rows
+ * (`06-API/04-Endpoint-Contracts.md`, D321). A stepless routine has no rows
  * in the view and so reads as absent, which for a user routine the `0038`
  * trigger makes impossible.
  */
@@ -1926,7 +1926,7 @@ Create `app/src/pages/api/routines/types.ts`:
 ```ts
 import { z } from "zod";
 
-/** Phase 1 accepts MINUTES only (06-API/04-Endpoint-Contracts.md, D320). */
+/** Phase 1 accepts MINUTES only (06-API/04-Endpoint-Contracts.md, D321). */
 export const RoutineStepInput = z.object({
   exerciseTemplateId: z.string().min(1),
   durationTypeKey: z.literal("MINUTES"),
@@ -2365,7 +2365,7 @@ Replace `findRoutineTemplateSteps` in `training-session.repository.ts` (import `
 ```ts
 /**
  * A routine's ordered steps through `v_routine_execution`, visible when the
- * routine is a system routine or the caller's own (D320). A stepless routine
+ * routine is a system routine or the caller's own (D321). A stepless routine
  * reads as no routine; `startTraining` answers `VALIDATION_FAILED`.
  */
 export async function findRoutineTemplateSteps(
@@ -2432,7 +2432,7 @@ const ROUTINE_INPUT_MODE_KEY = "VISUAL_BOARD";
 
 /**
  * TUOD reads its timed length from `duration_type`/`duration_value`; a
- * routine step's own minutes win over the template default (D320 §3.5).
+ * routine step's own minutes win over the template default (D321 §3.5).
  */
 function injectGameStepDuration(
   row: RoutineStepTemplateRow,
@@ -2523,7 +2523,7 @@ Expected: PASS. `balanced-training-play.data.test.ts` still passes (it mocks `st
 
 ```bash
 git add app/src/pages/api/training-sessions app/src/repositories/training-session.repository.ts app/src/services/training-session.service.ts app/src/services/types.ts app/tests/pages/api/training-sessions app/tests/repositories/training-session.repository.test.ts app/tests/services/training-session.service.test.ts
-git commit -m "feat(training): start a training by routineTemplateId; validate and time the GAME step (D320, #392)"
+git commit -m "feat(training): start a training by routineTemplateId; validate and time the GAME step (D321, #392)"
 ```
 
 ---
@@ -3795,7 +3795,7 @@ git fetch origin && bash scripts/next-decision-id.sh
 
 Use the printed id for the database decision and the next for the Alpine one.
 
-- [ ] **Step 2: Append the two decision blocks** (format per `DECISIONS.md` "How to add a decision"; cite D305, D306, D320; `Consequences:` names the trigger name the service matches and that `routine-duration.module.ts` is the shared pre-check).
+- [ ] **Step 2: Append the two decision blocks** (format per `DECISIONS.md` "How to add a decision"; cite D305, D306, D321; `Consequences:` names the trigger name the service matches and that `routine-duration.module.ts` is the shared pre-check).
 
 - [ ] **Step 3: Targeted doc edits** listed above — minimal diffs, ISO dates on each changed row, never regenerate a file.
 
@@ -3815,7 +3815,7 @@ File `discovered-work` issues (per `capturing-discovered-work`) for anything not
 
 ```bash
 git add docs decisions CLAUDE.md database/CLAUDE.md
-git commit -m "docs: custom routine builder shipped — template layer, views, API contracts, frontend handbook, decisions (D305/D306/D320 realised)"
+git commit -m "docs: custom routine builder shipped — template layer, views, API contracts, frontend handbook, decisions (D305/D306/D321 realised)"
 ```
 
 Report: branch name, commits, gate results, issues filed, and that the PR is opened only on the user's word (`finishing-a-dart-branch`).

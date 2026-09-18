@@ -78,7 +78,7 @@ git checkout main && git pull && git checkout -b feat/weekly-training-schedules
 -- Purpose:
 -- Named, swappable weekly schedules: one routine (or rest) per
 -- ISO weekday, at most one active schedule per player
--- (spec 2026-09-18-weekly-training-schedules-design.md; D320).
+-- (spec 2026-09-18-weekly-training-schedules-design.md; D321).
 --
 -- Template-layer: mutable, owned, never referenced by runtime
 -- tables. Rest is the absence of a row, not a NULL routine — one
