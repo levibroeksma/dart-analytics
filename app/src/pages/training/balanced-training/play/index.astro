@@ -45,7 +45,10 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
     <template
       x-if="!loading && currentStep()?.exerciseTypeKey === 'GAME' && finishing"
     >
-      <div x-data="finishing">
+      <div
+        x-data="finishing"
+        class="flex min-h-0 flex-1 flex-col"
+      >
         <TenUpOneDown
           x-show="!finished"
           x-cloak
