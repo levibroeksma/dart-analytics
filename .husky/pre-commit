@@ -10,6 +10,7 @@ fi
 cd app && npx lint-staged
 cd .. && bash scripts/check-file-locations.sh \
        && bash scripts/check-agent-mirrors.sh \
+       && bash scripts/check-skill-pointers.sh \
        && bash scripts/check-astro-class-composition.sh \
        && bash scripts/check-astro-conventions.sh \
        && bash scripts/check-game-engines.sh \

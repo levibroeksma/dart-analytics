@@ -15,10 +15,13 @@ bash scripts/check-doc-links.sh
 bash scripts/check-context-budget.sh
 bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
+bash scripts/check-skill-pointers.sh
 bash scripts/check-test-coverage.sh
 ```
 
 `check-test-coverage.sh` reads the change set itself — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `TEST_COVERAGE_BASE_REF`). It fails when a runtime source file changed and no test importing it changed with it, so run it before the commit that would trip it, not after.
+
+`check-skill-pointers.sh` asserts that every `.claude/skills/*/SKILL.md` and `.claude/rules/*.md` has a row in `00-File-Inventory.md`, and that every `superpowers:<name>` named in a live tracked Markdown file resolves under the installed plugin cache. That last check prints `SKIP` and passes when the cache is absent — CI installs no plugins, so it is a local-only check by design; the registration checks run everywhere.
 
 ## If `app/` changed, also run
 
