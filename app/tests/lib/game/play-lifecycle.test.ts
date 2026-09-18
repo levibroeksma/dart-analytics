@@ -51,6 +51,7 @@ import {
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  resumeGameEngine,
   runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -1879,5 +1880,43 @@ describe("playPreviewSegments", () => {
       return "hit";
     });
     expect(seenIndexes).toEqual([0, 1, 2]);
+  });
+});
+
+describe("resumeGameEngine", () => {
+  it("returns null when the store holds no config snapshot", () => {
+    const game = {
+      configSnapshot: null,
+      rulesetVersionKey: "SCORE_TRAINING_V1",
+      stages: [],
+      turns: [],
+    } as unknown as Parameters<typeof resumeGameEngine>[0];
+    expect(
+      resumeGameEngine(game, "SCORE_TRAINING_V1", (_c): _c is object => true),
+    ).toBeNull();
+  });
+
+  it("returns null when the stored ruleset key is a different game", () => {
+    const game = {
+      configSnapshot: {},
+      rulesetVersionKey: "TUOD_V1",
+      stages: [],
+      turns: [],
+    } as unknown as Parameters<typeof resumeGameEngine>[0];
+    expect(
+      resumeGameEngine(game, "SCORE_TRAINING_V1", (_c): _c is object => true),
+    ).toBeNull();
+  });
+
+  it("returns null when the guard rejects the built engine", () => {
+    const game = {
+      configSnapshot: {},
+      rulesetVersionKey: "SCORE_TRAINING_V1",
+      stages: [],
+      turns: [],
+    } as unknown as Parameters<typeof resumeGameEngine>[0];
+    expect(
+      resumeGameEngine(game, "SCORE_TRAINING_V1", (_c): _c is never => false),
+    ).toBeNull();
   });
 });

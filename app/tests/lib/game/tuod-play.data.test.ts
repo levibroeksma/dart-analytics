@@ -53,7 +53,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
+import {
+  TuodEngine,
+  tuodEngineFactory,
+} from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
@@ -402,6 +405,25 @@ describe("tuodPlay", () => {
       expect(store.turns[0].clientKey).toBe("t1");
     });
 
+    it("rebuilds a real TuodEngine from the persisted config and facts on resume", async () => {
+      const store = gameStub({
+        sessionId: "match-id",
+        configSnapshot: rounds(20),
+        turns: [turnFact("t1", 1, 41)],
+      });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { ...ACTIVE_SESSION, sessionId: "match-id" },
+      ]);
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.engine).toBeInstanceOf(TuodEngine);
+      expect(component.engine!.facts().turns).toHaveLength(1);
+    });
+
     it("leaves the session unplayable when no engine is registered for the persisted ruleset", async () => {
       const store = gameStub({ rulesetVersionKey: "BOBS27_V1" });
       const component = {
@@ -560,6 +582,17 @@ describe("tuodPlay", () => {
       };
       await component.init.call(component);
       expect(() => component.destroy.call(component)).not.toThrow();
+    });
+
+    it("formats the remaining countdown label through the shared helper", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.remainingLabel.call(component)).toBe("15:00");
     });
   });
 

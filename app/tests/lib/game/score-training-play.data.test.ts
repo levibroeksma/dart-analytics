@@ -51,7 +51,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
+import {
+  ScoreTrainingEngine,
+  scoreTrainingEngineFactory,
+} from "@modules/game/score-training.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import type { ScoreTrainingPlayContext } from "@lib/types";
@@ -377,6 +380,25 @@ describe("scoreTrainingPlay", () => {
       expect(component.hasActiveSession).toBe(true);
       expect(store.turns).toHaveLength(1);
       expect(store.turns[0].clientKey).toBe("t1");
+    });
+
+    it("rebuilds a real ScoreTrainingEngine from the persisted config and facts on resume", async () => {
+      const store = gameStub({
+        sessionId: "match-id",
+        configSnapshot: rounds(20),
+        turns: [turnFact("t1", 1, 50)],
+      });
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { ...ACTIVE_SESSION, sessionId: "match-id" },
+      ]);
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.engine).toBeInstanceOf(ScoreTrainingEngine);
+      expect(component.engine!.facts().turns).toHaveLength(1);
     });
 
     it("leaves the session unplayable when no engine is registered for the persisted ruleset", async () => {
@@ -717,6 +739,17 @@ describe("scoreTrainingPlay", () => {
       await component.init.call(component);
 
       expect(SegmentTimer).not.toHaveBeenCalled();
+    });
+
+    it("formats the remaining countdown label through the shared helper", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+
+      expect(component.remainingLabel.call(component)).toBe("15:00");
     });
   });
 

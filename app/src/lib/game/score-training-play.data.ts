@@ -1,5 +1,4 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
@@ -15,6 +14,7 @@ import {
   playToggleTimerPause,
   playUploadAndCompleteSession,
   playVisitMarkers,
+  resumeGameEngine,
   runPlayAgain,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -31,7 +31,17 @@ import {
   previousScoreDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  formatRemaining,
+  maybeResumeCountdown,
+  startCountdown,
+} from "@lib/game/play-countdown";
+import type {
+  DartbotSeat,
+  RulesetVersionKey,
+  ScoreTrainingSnapshot,
+} from "@lib/types";
 import type {
   DartObservation,
   ScoreTrainingSeatState,
@@ -66,20 +76,6 @@ const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
 
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
-
 /** No `remaining`/checkout view — `chooseTarget()` always fires treble 20
  * (Task 1, D-G). */
 function throwOneDart(
@@ -112,13 +108,6 @@ function throwBotDart(
   };
 }
 
-function formatRemaining(ms: number | null | undefined): string {
-  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
 /**
  * One seat's own results stats, replayed from its own completed visits in
  * `turns` — `total` is read off the already-folded engine state (never
@@ -141,96 +130,6 @@ function statsFor(
     highestScore: highestVisitScore(seatTurns),
     ...visitScoreBandCounts(seatTurns),
   };
-}
-
-/**
- * Rebuilds the engine for the persisted session, replaying the store's fact
- * log so a reload restores the game exactly.
- *
- * Only this page's own ruleset is ever resolved: a store still holding another
- * game's `rulesetVersionKey` must not build that game's engine here, however
- * the shared registry would happily hand one over once every game registers.
- *
- * @returns null when the store holds no config to resume from, when its
- *   ruleset belongs to a different game, when no engine is registered, or when
- *   the registered factory builds something other than a Score Training engine.
- */
-function resumeEngine(
-  game: ScoreTrainingPlayContext["$store"]["game"],
-): ScoreTrainingEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof ScoreTrainingEngine ? engine : null;
-}
-
-/**
- * Starts the MINUTES countdown, resuming from the persisted remaining time
- * when a prior session left one and starting a fresh segment otherwise.
- * `timerRemainingMs` is set synchronously so the label never renders 00:00
- * while waiting for the timer's first onTick (which fires 1s after start()).
- * Expiry is written to both authorities it governs: the persisted store flag
- * that survives a reload, and the engine, which owns session completion.
- */
-function startCountdown(
-  game: ScoreTrainingPlayContext["$store"]["game"],
-  durationValue: number,
-  engine: ScoreTrainingEngine,
-): SegmentTimer {
-  const resumedRemainingMs = game.timerRemainingMs;
-  const durationMinutes =
-    resumedRemainingMs != null ? resumedRemainingMs / 60000 : durationValue;
-
-  game.timerRemainingMs = durationMinutes * 60000;
-  if (resumedRemainingMs == null) {
-    game.timerStartedAt = new Date().toISOString();
-  }
-
-  const timer = new SegmentTimer({
-    totalMinutes: durationMinutes,
-    intervalMinutes: durationMinutes,
-    onTick: (secondsRemaining) => {
-      game.timerRemainingMs = secondsRemaining * 1000;
-    },
-    onComplete: () => {
-      game.timerExpired = true;
-      engine.expireTimer();
-    },
-  });
-  timer.start();
-  return timer;
-}
-
-type ScoreTrainingConfig = NonNullable<
-  ScoreTrainingPlayContext["$store"]["game"]["configSnapshot"]
->;
-
-/**
- * `init()`'s own MINUTES branch, extracted so init() reads as one decision
- * (resume, mark already-expired, or do nothing) instead of nested
- * conditionals — mirrors `one-twenty-one-play.data.ts`'s own
- * `maybeResumeCountdown`.
- */
-function maybeResumeCountdown(
-  game: ScoreTrainingPlayContext["$store"]["game"],
-  config: ScoreTrainingConfig,
-  engine: ScoreTrainingEngine,
-): SegmentTimer | null {
-  if (config.durationType !== "MINUTES") return null;
-  if (game.timerExpired) {
-    engine.expireTimer();
-    return null;
-  }
-  const timer = startCountdown(game, config.durationValue, engine);
-  if (game.timerPaused) {
-    timer.stop();
-  }
-  return timer;
 }
 
 /**
@@ -394,7 +293,15 @@ export function scoreTrainingPlay() {
         this.$store.game.setSessionModes(result.activeSession);
 
         const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
+        const engine = resumeGameEngine<
+          ScoreTrainingSnapshot,
+          ScoreTrainingEngine
+        >(
+          this.$store.game,
+          RULESET_VERSION_KEY,
+          (candidate): candidate is ScoreTrainingEngine =>
+            candidate instanceof ScoreTrainingEngine,
+        );
         if (!config || !engine) {
           this.hasActiveSession = false;
           return;
