@@ -75,12 +75,7 @@ Commands from `app/`: `npm test` (CI), `npm run test:watch` (local). Never commi
 Rules:
 
 - Place tests under `app/tests/`, mirroring `app/src/`'s (and `app/scripts/`'s) directory structure — never colocated beside the module under test.
-- Test pure functions, stores, clients, and utilities with Vitest mocks — no real network or Neon calls in unit tests.
-- `.astro` markup: keep variant/branching logic inline in the component's own frontmatter. This logic is not unit-tested — there is no Astro-component test runner in this project — so do not extract a separate helper file solely to make it testable (D101).
-
-Framework: **Vitest** (`vitest.config.ts` at `app/` root).
-
-Ground rules beyond the procedure above (shared-mock promotion threshold, full-suite-always-runs policy): `docs/architecture/07-Frontend/06-Test-Strategy.md`.
+- Everything else about writing them — Vitest mocks, the `.astro` no-extraction carve-out (D101), the coverage gate — is in `app/tests/CLAUDE.md`.
 
 ## Validation Standard Procedure (sole definition)
 
