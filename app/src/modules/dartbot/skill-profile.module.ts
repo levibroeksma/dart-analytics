@@ -6,14 +6,14 @@ import type { SkillProfile } from "./types";
  * against level 1/6/15 anchors; the remaining fields are hand-set
  * independently of it.
  *
- * Levels 7/8, 9/10 and 12/13 each share an identical `biasXMm`/`biasYMm`
- * pair. That is an inherited artifact of the original hand-set table, not a
- * copy-paste error in a later edit: both refits (D-L's power-law rescale,
- * D-N's log-space interpolation) preserve each level's pre-edit ratios, so a
- * pair equal before a refit stays equal after it. Nothing reads bias equality
- * across levels — every downstream stat is simulated — so it is cosmetic. If
- * this table is ever hand-edited again rather than machine-generated, give
- * those pairs distinct values along the same curve.
+ * Levels 7/8, 9/10 and 12/13 no longer share identical `biasXMm`/`biasYMm`
+ * pairs. The flat spots were removed by geometric interpolation between each
+ * pair's nearest distinct neighbours, via
+ * `app/scripts/dartbot-bias-flatspot-fix.ts`. `biasXMm`'s 7/8 pair brackets
+ * against level 5 rather than level 6, because level 6's measured `-5.0` is
+ * a sign anomaly rather than a curve point. `skill-profile.module.test.ts`
+ * now forbids adjacent levels sharing a bias pair, and separately pins bias
+ * magnitude strictly decreasing from level 7 to 15.
  */
 export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
   1: {
@@ -98,8 +98,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 23.1,
     sigmaAcrossMm: 17.4,
     covarianceRotationDegrees: 0,
-    biasXMm: 2.5,
-    biasYMm: 3.3,
+    biasXMm: 2.22,
+    biasYMm: 2.54,
     outlierRate: 0.0026,
     outlierSigmaMm: 60,
     bedOffsetMm: 1.4,
@@ -111,8 +111,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 18.9,
     sigmaAcrossMm: 14.8,
     covarianceRotationDegrees: 0,
-    biasXMm: 2.5,
-    biasYMm: 3.3,
+    biasXMm: 1.63,
+    biasYMm: 2.08,
     outlierRate: 0.0022,
     outlierSigmaMm: 55,
     bedOffsetMm: 1.2,
@@ -124,8 +124,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 15.0,
     sigmaAcrossMm: 12.4,
     covarianceRotationDegrees: 0,
-    biasXMm: 1.2,
-    biasYMm: 1.7,
+    biasXMm: 1.34,
+    biasYMm: 1.57,
     outlierRate: 0.0018,
     outlierSigmaMm: 50,
     bedOffsetMm: 1.0,
@@ -137,8 +137,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 13.3,
     sigmaAcrossMm: 10.1,
     covarianceRotationDegrees: 0,
-    biasXMm: 1.2,
-    biasYMm: 1.7,
+    biasXMm: 1.1,
+    biasYMm: 1.19,
     outlierRate: 0.0015,
     outlierSigmaMm: 48,
     bedOffsetMm: 0.9,
@@ -163,8 +163,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 8.4,
     sigmaAcrossMm: 6.2,
     covarianceRotationDegrees: 0,
-    biasXMm: 0.4,
-    biasYMm: 0.7,
+    biasXMm: 0.62,
+    biasYMm: 0.62,
     outlierRate: 0.0009,
     outlierSigmaMm: 42,
     bedOffsetMm: 0.6,
@@ -176,8 +176,8 @@ export const LEVEL_SKILL_TABLE: Readonly<Record<number, SkillProfile>> = {
     sigmaAlongMm: 6.9,
     sigmaAcrossMm: 5.2,
     covarianceRotationDegrees: 0,
-    biasXMm: 0.4,
-    biasYMm: 0.7,
+    biasXMm: 0.43,
+    biasYMm: 0.43,
     outlierRate: 0.0007,
     outlierSigmaMm: 40,
     bedOffsetMm: 0.5,
