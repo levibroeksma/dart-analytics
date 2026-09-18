@@ -11,4 +11,4 @@ This tree holds **non-canonical, pre-spec, human-authored** descriptions of dart
 
 `training/` mirrors the `lib/`/`modules/`/`components/layout/` source split (D308, 2026-09-17): the two subfolders that describe training-adjacent tools live there instead of directly under this root.
 
-**Translation mechanism:** when a ruleset or routine is ready to build, its raw-notes file here is the *input* to a `brainstorming` session. The output — a real spec under `docs/superpowers/specs/`, then the corresponding canonical doc/schema updates — is what becomes authoritative. The raw-notes file itself is disposable once translated; it is not a second source of truth alongside the spec.
+**Translation mechanism:** when a ruleset or routine is ready to build, its raw-notes file here is the *input* to a `superpowers:brainstorming` session. The output — a real spec under `docs/superpowers/specs/`, then the corresponding canonical doc/schema updates — is what becomes authoritative. The raw-notes file itself is disposable once translated; it is not a second source of truth alongside the spec.

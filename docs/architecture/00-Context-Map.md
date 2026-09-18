@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-09-17
+updated: 2026-09-18
 -->
 # Context Map
 
@@ -79,6 +79,8 @@ If code contradicts architecture docs, the docs win unless the user explicitly d
 # Non-Canonical Source Material
 
 `docs/game-rules/` holds raw, pre-spec, human-authored game/routine/trivia rule descriptions — entry point `docs/game-rules/README.md` (2026-07-16). This tree is deliberately **not** registered in the File Inventory above and carries no `status:` front-matter requirement: `scripts/check-context-map.sh` only enforces those rules for `docs/architecture/` and `database/`. See `docs/game-rules/README.md` for the per-subfolder translation targets.
+
+`docs/superpowers/specs/` is non-canonical on the same terms: `superpowers:brainstorming` writes and commits a design doc there per its own default, and this repo does not intercept it. Specs are an input to a task, never authority — they rank with git history and the decision ledger. No File Inventory row is owed per spec, and no `status:` front matter is required; the gate scripts do not reach the tree. (2026-09-18, D312)
 
 ---
 
