@@ -5,8 +5,10 @@
 # merge time: a branch cut when main was at D286 derives D287, and if two
 # decisions land on main in the meantime, that id is now someone else's.
 #
-# This script derives against fetched origin/main UNION the working tree, so an
-# id it prints is free on both. Run it when authoring a decision, and again
+# This script derives against fetched origin/main UNION the working tree — the
+# working tree being whichever repository the caller's cwd resolves to via
+# `git rev-parse --show-toplevel` below, not this script's own worktree — so
+# an id it prints is free on both. Run it when authoring a decision, and again
 # immediately before opening the PR.
 #
 # WHAT THIS CANNOT DO: it cannot see an id that exists only on another open
