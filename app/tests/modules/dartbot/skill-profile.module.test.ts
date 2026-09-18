@@ -63,4 +63,24 @@ describe("skillProfileForLevel", () => {
     expect(level15.sigmaAlongMm).toBe(4.4);
     expect(level15.sigmaAcrossMm).toBe(3.0);
   });
+
+  it("gives every adjacent level pair a distinct bias pair", () => {
+    for (let level = 1; level < 15; level++) {
+      const lower = skillProfileForLevel(level);
+      const upper = skillProfileForLevel(level + 1);
+      expect([upper.biasXMm, upper.biasYMm]).not.toEqual([
+        lower.biasXMm,
+        lower.biasYMm,
+      ]);
+    }
+  });
+
+  it("shrinks bias magnitude from level 7 to level 15", () => {
+    for (let level = 7; level < 15; level++) {
+      const weaker = skillProfileForLevel(level);
+      const stronger = skillProfileForLevel(level + 1);
+      expect(Math.abs(stronger.biasXMm)).toBeLessThan(Math.abs(weaker.biasXMm));
+      expect(Math.abs(stronger.biasYMm)).toBeLessThan(Math.abs(weaker.biasYMm));
+    }
+  });
 });
