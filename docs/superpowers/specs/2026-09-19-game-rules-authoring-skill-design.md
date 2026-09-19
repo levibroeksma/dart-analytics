@@ -55,6 +55,9 @@ it never replaces the spec that brainstorming writes.
 | D-m | A training-only rule never becomes a training-aware branch in a game ruleset; a test routes it to a game variant or to its own exercise type |
 | D-n | `Features` gains an `Applies to` column (`All` / `Single` / `1v1` / `2+`); seat-conditional statements carry the same token |
 | D-o | The skill writes only what it verified in a named file; unverifiable → halt and ask |
+| D-p | Execution model and entry points are **independent axes**; standalone playability does not make something a game |
+| D-q | `Entry points:` is a second header field; gaining `standalone` forces config, end condition and result in the same pass |
+| D-r | A genuine execution-model change is `git mv` + a `decisions/**` block, no pointer stub |
 
 ### D-h supersedes today's README
 
@@ -138,6 +141,18 @@ This is the **only** as-built fact in the document (D-b holds at row level:
 no per-feature shipped status). Amend mode cannot work without it — see below.
 The gate asserts the line exists and parses.
 
+### The `Entry points:` header field
+
+A second header line, on the same terms:
+
+```
+Entry points: routine step, standalone
+```
+
+Allowed values: `standalone`, `routine step`. Games are `standalone` unless
+they are also usable as a routine step. See "Execution model vs entry points"
+for why this is not the same question as which folder the file lives in.
+
 ---
 
 ## Player-count applicability
@@ -179,18 +194,23 @@ convenience in the rules document makes it legal downstream.
 
 **The routing test** (D-m), applied by the skill:
 
-> Would a player choose this mode in a standalone session, for its own sake?
+> Is this a rule of the game itself, or a rule of the training around it?
 
-- **Yes** → it is an ordinary **game variant**. It lands in the game's
+- **Of the game** → it is an ordinary **game variant**. It lands in the game's
   ruleset like any other variant, selectable by anyone. The routine reaches it
   through exercise configuration (`game: { type, … }`, §11) and the engine
   never learns why it was chosen. Preferred — no new doc, no duplication.
-- **No — it only makes sense inside a training block** → it is its own
-  **exercise type** under `training/exercises/`, wrapping the game. The
-  exercise doc owns the override; the game's ruleset is not touched.
+- **Of the training** → it is its own **exercise type** under
+  `training/exercises/`, wrapping the game. The exercise doc owns the
+  override; the game's ruleset is not touched.
 - **Neither fits** → the rule genuinely needs the engine to behave differently
   by context. That is an architecture change, not a rules edit: it requires a
   `decisions/game-engine.md` block before any doc edit, per D-l.
+
+**The test is not "would anyone play this standalone?"** That question
+answers a different axis — see "Execution model vs entry points" — and
+conflating the two produces a game ruleset for something that should never
+have had a `game_types` row.
 
 The skill records the verdict and its reason in the amended file, so the next
 amendment does not re-litigate it.
@@ -200,6 +220,68 @@ not produce a conventional score, so a scoring override can invalidate the
 game's existing `Capture` answers — most often "what `score` holds", which
 must stay the dart's **board** score and never a game- or exercise-specific
 point value (root `CLAUDE.md`).
+
+## Execution model vs entry points
+
+Two axes, independent (D-p). Conflating them is the likeliest design error in
+this whole area, so the skill states both explicitly for every subject.
+
+| Axis | Values | Decided by |
+| --- | --- | --- |
+| Execution model | **game** (`GameEngine`, seeded `game_types` row) · **exercise** (`ExerciseEngine`, `game_type_id` nullable) · **trivia** (neither, no persistence) | what executes it |
+| Entry points | **standalone** · **routine step** · **both** | where the player launches it |
+
+**Warm-Up is the proof they are independent.**
+`database/seeds/0015_warm_up_routine.sql:32` seeds its `exercise_templates`
+row with `game_type_id NULL` — it is not a game — and
+`09-Training/01-Routines.md:379` records it as used "both standalone and as a
+step inside Balanced Training". A thing can therefore be standalone-playable
+and still be an exercise, with no `game_types` row and no `GameEngine`.
+
+### Adding `standalone` to something defined as an exercise
+
+The common case: a mode was written as a training-only exercise, and later
+should be playable on its own. **This is an entry-point change, not a
+migration.** The file stays under `training/exercises/`; its execution model
+is untouched; `Entry points:` gains `standalone`.
+
+It is still a feature, so it takes a `Features` row, a version (`V2`/`V2+`,
+never `V1` once `Current version:` shows V1 shipped) and a reason like any
+other. And per D-q it is **incomplete** until three things are answered in the
+same pass, because a routine step inherits all three from its routine and a
+standalone session has no routine:
+
+| Question | Why a routine step never had to answer it |
+| --- | --- |
+| What does the config screen show? | The routine step's configuration came from `routine_steps.configuration` / the exercise template's defaults |
+| What ends the session? | The step ended on the duration the routine allocated it (§5) |
+| What result does the player see? | The training summary covered it; a standalone run has no training |
+
+Warm-Up would answer: its five 60-second phases are its own bound, so a
+standalone run ends after them — but that must be *written*, not inferred
+from the seed. The gate fails a file declaring `standalone` with an empty
+`Config & presets`.
+
+### When it genuinely is an execution-model change
+
+Only when the subject needs a seeded `game_types` row and a `GameEngine` does
+it become a game. Then (D-r):
+
+1. A `decisions/**` block first — a new seeded lookup row and a new engine are
+   architecture, not a notes edit. Seeded ids are SMALLINT and the database
+   never generates them (root `CLAUDE.md`), so the row is a migration/seed
+   decision too.
+2. `git mv docs/game-rules/training/exercises/<x>.md docs/game-rules/rulesets/<x>.md`
+   — history preserved.
+3. Re-shape to `GAME_RULESET_TEMPLATE.md`, carrying `Current version:`,
+   `Entry points:` and the full defer list across unchanged.
+4. **No pointer stub** at the old path. Git history is the trail; a stub is a
+   second source of truth and the gate would have to exempt it.
+
+The reverse — a game demoted to an exercise — follows the same steps in the
+other direction and is equally a decision, since it retires a `game_types`
+row that runtime rows may already reference (runtime tables never FK
+templates, but configuration snapshots hold copies).
 
 ## Verification rule
 
@@ -217,7 +299,10 @@ Concretely, the skill must **not** assume:
 - that an engine supports a mode because the rules document describes it;
 - that a player count is supported because `Features` claims it — the `Config
   & presets` row and the engine are the check;
-- that an `Open question` is still open, or still closed.
+- that an `Open question` is still open, or still closed;
+- that something is a game because it is standalone-playable, or an exercise
+  because it appears in a routine — `game_type_id` in the seed and the engine
+  it runs on are the check, not the folder the doc sits in.
 
 Every rule the skill writes or amends cites where it was confirmed — the file
 and the line, or the architecture section. When a claim cannot be confirmed:
@@ -343,6 +428,12 @@ without drifting from its own style.
    - **Training-only** — the mode exists only when the game runs as a routine
      step. Run the routing test in "Exercise-scoped modes" before writing
      anything; the answer decides which file is even being amended.
+   - **New entry point** — the subject becomes playable somewhere it was not
+     (typically an exercise gaining `standalone`). Amend `Entry points:` and
+     answer the three D-q questions; do **not** move the file. See
+     "Execution model vs entry points".
+   - **Execution-model change** — it must become a game (or stop being one).
+     Stop: `decisions/**` block first, then `git mv`, per D-r.
    - **Seat-conditional** — the mode applies only at some player counts. It
      needs an `Applies to` value and a token-prefixed statement, per
      "Player-count applicability".
@@ -390,18 +481,22 @@ from the folder.
 Assertions:
 
 1. Every required heading for the shape is present (level and spelling exact).
-2. A `Features` table exists with `Feature | Version | Reason` columns.
-3. Every `Version` cell is one of `V1`, `V2+`, `Deferred`, `Dropped`.
+2. A `Features` table exists with `Feature | Version | Applies to | Reason` columns.
+3. Every `Version` cell is one of `V1`, `V<n>` (n ≥ 2), `V2+`, `Deferred`, `Dropped`.
 4. Every non-`V1` row has a non-empty `Reason`.
 5. `Capture` present for games and exercises; absent for trivia.
 6. A `Current version:` line exists and parses (`none (V1 in design)`, or
-   `V<n> (shipped YYYY-MM-DD)`).
-7. **`Applies to` (D-n):** every `Features` row carries one of `All`,
+   `V<n> (shipped YYYY-MM-DD)`). An `Entry points:` line exists and lists
+   only `standalone` and/or `routine step`.
+7. A file declaring `standalone` has a non-empty `Config & presets` table and
+   states an end condition — the D-q requirements. A `routine step`-only file
+   is exempt: the routine supplies both.
+8. **`Applies to` (D-n):** every `Features` row carries one of `All`,
    `Single`, `1v1`, `2+`. A non-`All` value requires at least one
    token-prefixed statement in the body; a body token not present in
    `Features` fails. A file with any `1v1`/`2+` feature must not present
    `Players` as locked to single player in `Config & presets`.
-8. **Features ↔ Glossary agreement (D-k):** every `Features` row whose name is
+9. **Features ↔ Glossary agreement (D-k):** every `Features` row whose name is
    marked as a named variant has a matching `Glossary` term, and every
    `Glossary` term appears in `Features`. Marking convention: the variant's
    name is **bold** in both tables — the existing rulesets already bold
