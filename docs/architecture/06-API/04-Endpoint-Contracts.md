@@ -379,7 +379,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
-`v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D324). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D324. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
+`v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D336). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D336. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -395,7 +395,7 @@ Per D306 and `docs/superpowers/specs/2026-09-17-configurable-training-routines-r
 §3.4, refined by D321. Shipped 2026-09-19 (`app/src/pages/api/routines/`,
 `app/src/services/routine.service.ts`). The database side these routes write
 through — migration `0038`'s ownership `CHECK` and duration-bound trigger —
-is committed but applied to no database (D324).
+is committed but applied to no database (D336).
 
 | Endpoint | Body | Response | Ownership |
 | -------- | ---- | -------- | --------- |
