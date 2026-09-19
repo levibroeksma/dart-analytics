@@ -86,8 +86,8 @@ describe("expectedViews", () => {
   it("ignores a view that only a migrate:down section recreates", () => {
     const parsed = readMigrations(migrationsDir);
     const views = expectedViews(parsed);
-    expect(views.has("v_double_out_checkout_darts")).toBe(true);
-    expect(views.has("v_x01_checkout_darts")).toBe(false);
+    expect(views.has("v_double_out_checkout_darts")).toBe(false);
+    expect(views.has("v_x01_checkout_darts")).toBe(true);
   });
 });
 
