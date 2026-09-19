@@ -1,9 +1,9 @@
 -- ============================================================
--- Verification: 0038_x01_checkout_darts_view_checks.sql
+-- Verification: 0039_x01_checkout_darts_view_checks.sql
 --
 -- Runs assertions against a live database, since no PostgreSQL
 -- server exists in the container that authored
--- migrations/0038_x01_checkout_darts_view.sql (D193).
+-- migrations/0039_x01_checkout_darts_view.sql (D193).
 --
 --   1. v_x01_checkout_darts exists and v_double_out_checkout_darts
 --      does not.
@@ -16,15 +16,15 @@
 --
 -- Everything runs inside one transaction that ends in ROLLBACK.
 -- Lookup rows are resolved by implementation_key, never by
--- hardcoded id. UUIDs use the ...0000000038xx block, distinct
+-- hardcoded id. UUIDs use the ...0000000039xx block, distinct
 -- from 0024's ...0000000024xx block, so both verification files
 -- can run against the same database.
 --
 -- Usage:
---   psql "$DATABASE_URL" -f database/verification/0038_x01_checkout_darts_view_checks.sql
+--   psql "$DATABASE_URL" -f database/verification/0039_x01_checkout_darts_view_checks.sql
 --
 -- Expected: every result row reads PASS. Run only after
--- `npm run db:migrate` has applied migration 0038.
+-- `npm run db:migrate` has applied migration 0039.
 -- ============================================================
 BEGIN;
 
@@ -37,8 +37,8 @@ CREATE TEMP TABLE verification_results (
 
 INSERT INTO players (id, auth_user_id, display_name, created_at, updated_at)
 VALUES (
-        '01990000-0000-7000-8000-000000003801',
-        'verification-0038-owner',
+        '01990000-0000-7000-8000-000000003901',
+        'verification-0039-owner',
         'Verification Owner',
         now(),
         now()
@@ -46,8 +46,8 @@ VALUES (
 
 INSERT INTO activities (id, player_id, status_id, started_at, created_at)
 VALUES (
-        '01990000-0000-7000-8000-000000003802',
-        '01990000-0000-7000-8000-000000003801',
+        '01990000-0000-7000-8000-000000003902',
+        '01990000-0000-7000-8000-000000003901',
         (SELECT id FROM game_statuses WHERE implementation_key = 'ACTIVE'),
         now(),
         now()
@@ -70,9 +70,9 @@ INSERT INTO exercise_sessions (
         started_at,
         created_at
     )
-SELECT '01990000-0000-7000-8000-000000003803',
-    '01990000-0000-7000-8000-000000003802',
-    '01990000-0000-7000-8000-000000003801',
+SELECT '01990000-0000-7000-8000-000000003903',
+    '01990000-0000-7000-8000-000000003902',
+    '01990000-0000-7000-8000-000000003901',
     (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
     rv.game_type_id,
     (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
@@ -86,8 +86,8 @@ WHERE rv.implementation_key = '501_V1';
 
 INSERT INTO exercise_configurations (id, exercise_session_id, configuration, created_at)
 VALUES (
-        '01990000-0000-7000-8000-000000003804',
-        '01990000-0000-7000-8000-000000003803',
+        '01990000-0000-7000-8000-000000003904',
+        '01990000-0000-7000-8000-000000003903',
         '{"starting_score": 501}'::jsonb,
         now()
     );
@@ -100,8 +100,8 @@ INSERT INTO exercise_stages (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003805',
-        '01990000-0000-7000-8000-000000003803',
+        '01990000-0000-7000-8000-000000003905',
+        '01990000-0000-7000-8000-000000003903',
         (SELECT id FROM stage_types WHERE implementation_key = 'LEG'),
         1,
         now()
@@ -116,10 +116,10 @@ INSERT INTO participants (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003806',
-        '01990000-0000-7000-8000-000000003803',
+        '01990000-0000-7000-8000-000000003906',
+        '01990000-0000-7000-8000-000000003903',
         (SELECT id FROM participant_types WHERE implementation_key = 'PLAYER'),
-        '01990000-0000-7000-8000-000000003801',
+        '01990000-0000-7000-8000-000000003901',
         'Verification Owner',
         now()
     );
@@ -134,9 +134,9 @@ INSERT INTO turns (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003807',
-        '01990000-0000-7000-8000-000000003805',
-        '01990000-0000-7000-8000-000000003806',
+        '01990000-0000-7000-8000-000000003907',
+        '01990000-0000-7000-8000-000000003905',
+        '01990000-0000-7000-8000-000000003906',
         1,
         60,
         now(),
@@ -153,8 +153,8 @@ INSERT INTO darts (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003808',
-        '01990000-0000-7000-8000-000000003807',
+        '01990000-0000-7000-8000-000000003908',
+        '01990000-0000-7000-8000-000000003907',
         1,
         20,
         (SELECT id FROM dart_zones WHERE implementation_key = 'TREBLE'),
@@ -162,8 +162,8 @@ VALUES (
         now()
     ),
     (
-        '01990000-0000-7000-8000-000000003809',
-        '01990000-0000-7000-8000-000000003807',
+        '01990000-0000-7000-8000-000000003909',
+        '01990000-0000-7000-8000-000000003907',
         2,
         20,
         (SELECT id FROM dart_zones WHERE implementation_key = 'DOUBLE'),
@@ -187,9 +187,9 @@ INSERT INTO exercise_sessions (
         started_at,
         created_at
     )
-SELECT '01990000-0000-7000-8000-00000000380a',
-    '01990000-0000-7000-8000-000000003802',
-    '01990000-0000-7000-8000-000000003801',
+SELECT '01990000-0000-7000-8000-00000000390a',
+    '01990000-0000-7000-8000-000000003902',
+    '01990000-0000-7000-8000-000000003901',
     (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
     rv.game_type_id,
     (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
@@ -203,8 +203,8 @@ WHERE rv.implementation_key = 'TUOD_V1';
 
 INSERT INTO exercise_configurations (id, exercise_session_id, configuration, created_at)
 VALUES (
-        '01990000-0000-7000-8000-00000000380b',
-        '01990000-0000-7000-8000-00000000380a',
+        '01990000-0000-7000-8000-00000000390b',
+        '01990000-0000-7000-8000-00000000390a',
         '{"max_darts_per_turn": 3}'::jsonb,
         now()
     );
@@ -217,8 +217,8 @@ INSERT INTO exercise_stages (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-00000000380c',
-        '01990000-0000-7000-8000-00000000380a',
+        '01990000-0000-7000-8000-00000000390c',
+        '01990000-0000-7000-8000-00000000390a',
         (SELECT id FROM stage_types WHERE implementation_key = 'ROUND'),
         1,
         now()
@@ -233,10 +233,10 @@ INSERT INTO participants (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-00000000380d',
-        '01990000-0000-7000-8000-00000000380a',
+        '01990000-0000-7000-8000-00000000390d',
+        '01990000-0000-7000-8000-00000000390a',
         (SELECT id FROM participant_types WHERE implementation_key = 'PLAYER'),
-        '01990000-0000-7000-8000-000000003801',
+        '01990000-0000-7000-8000-000000003901',
         'Verification Owner',
         now()
     );
@@ -251,9 +251,9 @@ INSERT INTO turns (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-00000000380e',
-        '01990000-0000-7000-8000-00000000380c',
-        '01990000-0000-7000-8000-00000000380d',
+        '01990000-0000-7000-8000-00000000390e',
+        '01990000-0000-7000-8000-00000000390c',
+        '01990000-0000-7000-8000-00000000390d',
         1,
         26,
         now(),
@@ -270,8 +270,8 @@ INSERT INTO darts (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-00000000380f',
-        '01990000-0000-7000-8000-00000000380e',
+        '01990000-0000-7000-8000-00000000390f',
+        '01990000-0000-7000-8000-00000000390e',
         1,
         20,
         (SELECT id FROM dart_zones WHERE implementation_key = 'SINGLE'),
@@ -295,9 +295,9 @@ INSERT INTO exercise_sessions (
         started_at,
         created_at
     )
-SELECT '01990000-0000-7000-8000-000000003810',
-    '01990000-0000-7000-8000-000000003802',
-    '01990000-0000-7000-8000-000000003801',
+SELECT '01990000-0000-7000-8000-000000003910',
+    '01990000-0000-7000-8000-000000003902',
+    '01990000-0000-7000-8000-000000003901',
     (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
     rv.game_type_id,
     (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
@@ -317,8 +317,8 @@ INSERT INTO exercise_stages (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003811',
-        '01990000-0000-7000-8000-000000003810',
+        '01990000-0000-7000-8000-000000003911',
+        '01990000-0000-7000-8000-000000003910',
         (SELECT id FROM stage_types WHERE implementation_key = 'ROUND'),
         1,
         now()
@@ -333,10 +333,10 @@ INSERT INTO participants (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003812',
-        '01990000-0000-7000-8000-000000003810',
+        '01990000-0000-7000-8000-000000003912',
+        '01990000-0000-7000-8000-000000003910',
         (SELECT id FROM participant_types WHERE implementation_key = 'PLAYER'),
-        '01990000-0000-7000-8000-000000003801',
+        '01990000-0000-7000-8000-000000003901',
         'Verification Owner',
         now()
     );
@@ -351,9 +351,9 @@ INSERT INTO turns (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003813',
-        '01990000-0000-7000-8000-000000003811',
-        '01990000-0000-7000-8000-000000003812',
+        '01990000-0000-7000-8000-000000003913',
+        '01990000-0000-7000-8000-000000003911',
+        '01990000-0000-7000-8000-000000003912',
         1,
         60,
         now(),
@@ -370,8 +370,8 @@ INSERT INTO darts (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003814',
-        '01990000-0000-7000-8000-000000003813',
+        '01990000-0000-7000-8000-000000003914',
+        '01990000-0000-7000-8000-000000003913',
         1,
         20,
         (SELECT id FROM dart_zones WHERE implementation_key = 'TREBLE'),
@@ -398,9 +398,9 @@ INSERT INTO exercise_sessions (
         started_at,
         created_at
     )
-SELECT '01990000-0000-7000-8000-000000003815',
-    '01990000-0000-7000-8000-000000003802',
-    '01990000-0000-7000-8000-000000003801',
+SELECT '01990000-0000-7000-8000-000000003915',
+    '01990000-0000-7000-8000-000000003902',
+    '01990000-0000-7000-8000-000000003901',
     (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
     rv.game_type_id,
     (SELECT id FROM capture_modes WHERE implementation_key = 'RECREATIONAL'),
@@ -420,8 +420,8 @@ INSERT INTO exercise_stages (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003816',
-        '01990000-0000-7000-8000-000000003815',
+        '01990000-0000-7000-8000-000000003916',
+        '01990000-0000-7000-8000-000000003915',
         (SELECT id FROM stage_types WHERE implementation_key = 'ROUND'),
         1,
         now()
@@ -436,10 +436,10 @@ INSERT INTO participants (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003817',
-        '01990000-0000-7000-8000-000000003815',
+        '01990000-0000-7000-8000-000000003917',
+        '01990000-0000-7000-8000-000000003915',
         (SELECT id FROM participant_types WHERE implementation_key = 'PLAYER'),
-        '01990000-0000-7000-8000-000000003801',
+        '01990000-0000-7000-8000-000000003901',
         'Verification Owner',
         now()
     );
@@ -454,9 +454,9 @@ INSERT INTO turns (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003818',
-        '01990000-0000-7000-8000-000000003816',
-        '01990000-0000-7000-8000-000000003817',
+        '01990000-0000-7000-8000-000000003918',
+        '01990000-0000-7000-8000-000000003916',
+        '01990000-0000-7000-8000-000000003917',
         1,
         40,
         now(),
@@ -473,8 +473,8 @@ INSERT INTO darts (
         created_at
     )
 VALUES (
-        '01990000-0000-7000-8000-000000003819',
-        '01990000-0000-7000-8000-000000003818',
+        '01990000-0000-7000-8000-000000003919',
+        '01990000-0000-7000-8000-000000003918',
         1,
         20,
         (SELECT id FROM dart_zones WHERE implementation_key = 'DOUBLE'),
@@ -553,10 +553,10 @@ SELECT '3',
     ))
 FROM v_x01_checkout_darts
 WHERE session_id IN (
-        '01990000-0000-7000-8000-000000003803',
-        '01990000-0000-7000-8000-00000000380a',
-        '01990000-0000-7000-8000-000000003810',
-        '01990000-0000-7000-8000-000000003815'
+        '01990000-0000-7000-8000-000000003903',
+        '01990000-0000-7000-8000-00000000390a',
+        '01990000-0000-7000-8000-000000003910',
+        '01990000-0000-7000-8000-000000003915'
     );
 
 INSERT INTO verification_results
@@ -569,9 +569,9 @@ SELECT '3',
     format('distinct game types found: %s', count(DISTINCT game_type_key))
 FROM v_x01_checkout_darts
 WHERE session_id IN (
-        '01990000-0000-7000-8000-000000003803',
-        '01990000-0000-7000-8000-00000000380a',
-        '01990000-0000-7000-8000-000000003810'
+        '01990000-0000-7000-8000-000000003903',
+        '01990000-0000-7000-8000-00000000390a',
+        '01990000-0000-7000-8000-000000003910'
     );
 
 INSERT INTO verification_results
@@ -583,7 +583,7 @@ SELECT '3',
     END,
     format('expected 0, found %s', count(*))
 FROM v_x01_checkout_darts
-WHERE session_id = '01990000-0000-7000-8000-000000003815';
+WHERE session_id = '01990000-0000-7000-8000-000000003915';
 
 -- ------------------------------------------------------------
 -- Step 4: only VISUAL_BOARD sessions appear (the Bob's 27
@@ -606,9 +606,9 @@ FROM v_x01_checkout_darts v
     JOIN exercise_sessions es ON es.id = v.session_id
     JOIN input_modes im ON im.id = es.input_mode_id
 WHERE v.session_id IN (
-        '01990000-0000-7000-8000-000000003803',
-        '01990000-0000-7000-8000-00000000380a',
-        '01990000-0000-7000-8000-000000003810'
+        '01990000-0000-7000-8000-000000003903',
+        '01990000-0000-7000-8000-00000000390a',
+        '01990000-0000-7000-8000-000000003910'
     );
 
 -- ------------------------------------------------------------
@@ -630,9 +630,9 @@ SELECT '5',
 FROM v_x01_checkout_darts v
     JOIN participants p ON p.id = v.participant_id
 WHERE v.session_id IN (
-        '01990000-0000-7000-8000-000000003803',
-        '01990000-0000-7000-8000-00000000380a',
-        '01990000-0000-7000-8000-000000003810'
+        '01990000-0000-7000-8000-000000003903',
+        '01990000-0000-7000-8000-00000000390a',
+        '01990000-0000-7000-8000-000000003910'
     );
 
 -- ------------------------------------------------------------

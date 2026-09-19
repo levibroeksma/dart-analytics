@@ -129,7 +129,7 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `database/migrations/` (`0001`–`0038`).
+Migrations remain in `database/migrations/` (`0001`–`0039`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
@@ -144,7 +144,7 @@ Validate changes: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-
 
 `dev` is one database shared by every task branch, while migrations live per git branch. Working a branch that adds a migration and running `npm run db:migrate` applies it to `dev` for everyone — and switching back to `main` does not undo it. `dev` then carries schema no committed migration describes, until that branch lands.
 
-`dbmate status` does not report this. It enumerates the files under `database/migrations/` and prints each one's applied flag, so a `schema_migrations` row with no matching file produces no output at all and the summary still reads `Pending: 0`. On 2026-09-19 `dev` held migration `0038` from the never-pushed branch `fix/x01-checkout-percentage` — `v_double_out_checkout_darts` dropped, `v_x01_checkout_darts` created — while `db:status` reported `Applied: 37 / Pending: 0` (issue #503).
+`dbmate status` does not report this. It enumerates the files under `database/migrations/` and prints each one's applied flag, so a `schema_migrations` row with no matching file produces no output at all and the summary still reads `Pending: 0`. On 2026-09-19 `dev` held migration `0039` (then numbered `0038`) from the never-pushed branch `fix/x01-checkout-percentage` — `v_double_out_checkout_darts` dropped, `v_x01_checkout_darts` created — while `db:status` reported `Applied: 37 / Pending: 0` (issue #503).
 
 `npm run db:drift` (`app/scripts/check-migration-drift.ts`) is the check that sees it, and `validate:app` runs it between `db:migrate` and `db:introspect`:
 

@@ -319,7 +319,7 @@ Missing/unknown `gameType` → `422 VALIDATION_FAILED`.
 
 ## Statistics Overview — `GET /api/statistics/overview`
 
-The caller's career-wide stat overview. Read-only, backed by `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts` (migrations `0009`, `0025`, `0026`, `0038`). Aggregation happens in `services/statistics.service.ts` over the four pure modules under `modules/stats/`/`modules/game/`, not a single dedicated view — see `decisions/api.md` for why.
+The caller's career-wide stat overview. Read-only, backed by `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts` (migrations `0009`, `0025`, `0026`, `0039`). Aggregation happens in `services/statistics.service.ts` over the four pure modules under `modules/stats/`/`modules/game/`, not a single dedicated view — see `decisions/api.md` for why.
 
 **Auth:** standard protected route class — JWT-verified, player resolved by middleware. No path parameter, no query parameter, no request body.
 
