@@ -1,4 +1,5 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
+import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import type {
   CheckoutVisitDarts,
   DartFact,
@@ -8,17 +9,19 @@ import type {
 
 export type { CheckoutVisitDarts };
 
-const SINGLE_OR_TREBLE: ReadonlySet<DartZoneKey> = new Set([
+/** The rings a finishing dart can land in; a hit here is an attempt whatever it scored. */
+const RING_ZONES: ReadonlySet<DartZoneKey> = new Set([
+  "DOUBLE",
+  "INNER_BULL",
+  "OUTER_BULL",
+]);
+
+/** Everything that lands in a numbered sector rather than a finishing ring. */
+const SECTOR_ZONES: ReadonlySet<DartZoneKey> = new Set([
   "SINGLE",
   "INNER_SINGLE",
   "OUTER_SINGLE",
   "TREBLE",
-]);
-
-const DOUBLE_OR_BULL: ReadonlySet<DartZoneKey> = new Set([
-  "DOUBLE",
-  "INNER_BULL",
-  "OUTER_BULL",
 ]);
 
 /**
@@ -45,22 +48,34 @@ function isBoardAdjacentOrSame(a: number, b: number): boolean {
 
 /**
  * One dart's classification against the remaining score it was thrown at.
- * `remaining === 50` treats the inner bull as "the required double" and the
- * outer bull as its own near-miss zone; every other eligible remaining
- * treats `remaining / 2` as the required double's segment number.
+ *
+ * Order matters. A dart that busts the visit is always an attempt, because
+ * no one lays up into a bust -- so the bust test runs before the rules that
+ * let a legal sector hit off as a deliberate reroute. At `remaining === 50`
+ * the inner bull is the required finish, the outer bull is its own near
+ * miss, and the inner single band (which nobody aims at) is a missed bull;
+ * the outer single band and the trebles there are ordinary setup shots. The
+ * unbanded `SINGLE` key that keypad capture writes can never prove which
+ * band it was, so it stays excluded at 50.
  */
 export function classifyDart(remaining: number, dart: DartFact): DartOutcome {
   if (!isDirectlyFinishable(remaining)) return "NOT_ATTEMPT";
 
-  if (DOUBLE_OR_BULL.has(dart.hitZoneKey)) {
-    return dart.score === remaining ? "HIT" : "MISS";
+  const endedOnDouble =
+    dart.hitZoneKey === "DOUBLE" || dart.hitZoneKey === "INNER_BULL";
+  if (endedOnDouble && dart.score === remaining) return "HIT";
+  if (RING_ZONES.has(dart.hitZoneKey)) return "MISS";
+  if (dart.hitZoneKey === "MISS") return "MISS";
+
+  const { busted } = resolveCheckoutAttempt(remaining, dart.score, false);
+  if (busted) return "MISS";
+
+  if (remaining === 50) {
+    return dart.hitZoneKey === "INNER_SINGLE" ? "MISS" : "NOT_ATTEMPT";
   }
 
-  if (remaining === 50) return "NOT_ATTEMPT";
-
-  if (SINGLE_OR_TREBLE.has(dart.hitZoneKey) && dart.hitTargetNumber !== null) {
-    const requiredSegment = remaining / 2;
-    return isBoardAdjacentOrSame(dart.hitTargetNumber, requiredSegment)
+  if (SECTOR_ZONES.has(dart.hitZoneKey) && dart.hitTargetNumber !== null) {
+    return isBoardAdjacentOrSame(dart.hitTargetNumber, remaining / 2)
       ? "MISS"
       : "NOT_ATTEMPT";
   }
@@ -70,9 +85,9 @@ export function classifyDart(remaining: number, dart: DartFact): DartOutcome {
 
 /**
  * Classifies every dart across `visits` as a checkout-attempt hit, miss, or
- * not an attempt at all (a deliberate lay-up/reroute, or an unprovable
- * bounce-out) -- see `docs/superpowers/specs/2026-09-05-double-out-checkout-accuracy-design.md`
- * for the full rule and worked examples.
+ * not an attempt at all (a deliberate lay-up/reroute) -- see
+ * `docs/superpowers/specs/2026-09-19-x01-checkout-percentage-design.md` for
+ * the full rule and its ten reference darts.
  */
 export function classifyDoubleAttempts(visits: readonly CheckoutVisitDarts[]): {
   hits: number;

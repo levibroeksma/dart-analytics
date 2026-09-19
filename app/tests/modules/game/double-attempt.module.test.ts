@@ -94,9 +94,81 @@ describe("classifyDoubleAttempts", () => {
     expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 0 });
   });
 
-  it("does not count a coordinate-less bounce-out miss as an attempt", () => {
+  it("counts a bounce-out or off-board dart thrown at a double as a miss", () => {
     const visits = [{ startingRemaining: 40, darts: [dart(null, "MISS", 0)] }];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 1 });
+  });
+
+  it("counts a dart that busts by overshooting as a miss (32 left, treble 20)", () => {
+    const visits = [{ startingRemaining: 32, darts: [dart(20, "TREBLE", 60)] }];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 1 });
+  });
+
+  it("counts a dart that busts by leaving exactly 1 as a miss (20 left, single 19)", () => {
+    const visits = [{ startingRemaining: 20, darts: [dart(19, "SINGLE", 19)] }];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 1 });
+  });
+
+  it("counts a dart that reaches zero off a single as a miss (20 left, single 20)", () => {
+    const visits = [
+      { startingRemaining: 20, darts: [dart(20, "INNER_SINGLE", 20)] },
+    ];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 1 });
+  });
+
+  it("counts an inner single at 50 remaining as a missed bull, whatever the number", () => {
+    const visits = [
+      { startingRemaining: 50, darts: [dart(18, "INNER_SINGLE", 18)] },
+      { startingRemaining: 50, darts: [dart(10, "INNER_SINGLE", 10)] },
+      { startingRemaining: 50, darts: [dart(12, "INNER_SINGLE", 12)] },
+    ];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 3 });
+  });
+
+  it("does not count an outer single or treble at 50 remaining as an attempt", () => {
+    const visits = [
+      { startingRemaining: 50, darts: [dart(18, "OUTER_SINGLE", 18)] },
+      { startingRemaining: 50, darts: [dart(10, "TREBLE", 30)] },
+    ];
     expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 0 });
+  });
+
+  it("counts a treble that busts from 50 as a miss, ahead of the 50-remaining sector rule", () => {
+    const visits = [{ startingRemaining: 50, darts: [dart(18, "TREBLE", 54)] }];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 1 });
+  });
+
+  it("does not count an unbanded keypad single at 50 remaining, whose band is unknowable", () => {
+    const visits = [{ startingRemaining: 50, darts: [dart(18, "SINGLE", 18)] }];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 0, misses: 0 });
+  });
+
+  it("scores the worked 101 example at one hit in four attempts", () => {
+    const visits = [
+      {
+        startingRemaining: 101,
+        darts: [
+          dart(20, "TREBLE", 60),
+          dart(9, "OUTER_SINGLE", 9),
+          dart(16, "OUTER_SINGLE", 16),
+        ],
+      },
+      {
+        startingRemaining: 16,
+        darts: [
+          dart(null, "MISS", 0),
+          dart(null, "MISS", 0),
+          dart(8, "DOUBLE", 16),
+        ],
+      },
+    ];
+    expect(classifyDoubleAttempts(visits)).toEqual({ hits: 1, misses: 3 });
+  });
+
+  it("counts the boundary remainders 2 and 40 and excludes 41", () => {
+    expect(classifyDart(2, dart(1, "DOUBLE", 2))).toBe("HIT");
+    expect(classifyDart(40, dart(20, "DOUBLE", 40))).toBe("HIT");
+    expect(classifyDart(41, dart(20, "TREBLE", 60))).toBe("NOT_ATTEMPT");
   });
 
   it("tracks remaining score across multiple darts in one visit", () => {
