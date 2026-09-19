@@ -15,7 +15,7 @@ export interface FormattedStatisticsOverview {
   scoringAverageExcludingDoubles: string;
   bestLegDarts: string;
   averageDartsPerLeg: string;
-  doubleAccuracy: string;
+  checkoutPercentage: string;
   highestCheckoutValue: string;
   highestCheckoutHint: string;
 }

@@ -25,7 +25,7 @@ const SAMPLE = {
   scoringAverageExcludingDoubles: 48.1,
   bestLegDarts: 15,
   averageDartsPerLeg: 18.5,
-  doubleAccuracy: 0.4,
+  checkoutPercentage: 0.4,
   highestCheckout: { value: 100, timesHit: 2 },
 };
 

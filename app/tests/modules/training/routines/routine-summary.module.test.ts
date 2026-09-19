@@ -128,12 +128,12 @@ describe("summariseDoublePattern", () => {
 });
 
 describe("summariseFinishing", () => {
-  it("reports the target reached and TUOD's own double accuracy", () => {
+  it("reports the target reached and TUOD's own checkout percentage", () => {
     const seat: TuodSeatResult = {
       participantRef: "pt1",
       sideKey: "A",
       target: 47,
-      doubleAccuracy: "31.25%",
+      checkoutPercentage: "31.25%",
     };
 
     expect(summariseFinishing(seat)).toEqual({
@@ -141,21 +141,21 @@ describe("summariseFinishing", () => {
       label: "Finishing",
       rows: [
         { label: "Target reached", value: "47" },
-        { label: "Double accuracy", value: "31.25%" },
+        { label: "Checkout %", value: "31.25%" },
       ],
     });
   });
 
-  it("falls back to an em dash when the session recorded no double accuracy", () => {
+  it("falls back to an em dash when the session recorded no checkout percentage", () => {
     const seat: TuodSeatResult = {
       participantRef: "pt1",
       sideKey: "A",
       target: 41,
-      doubleAccuracy: null,
+      checkoutPercentage: null,
     };
 
     expect(summariseFinishing(seat).rows[1]).toEqual({
-      label: "Double accuracy",
+      label: "Checkout %",
       value: "—",
     });
   });

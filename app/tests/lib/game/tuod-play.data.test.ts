@@ -21,7 +21,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // X01 checkout-percentage Task 2: tuodCheckoutVisits() moves out of this
 // file into the shared modules/game/checkout-visits.module.ts, byte for
 // byte -- statsFor() now imports it instead of defining it locally.
-// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test, which exercises it directly) still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
@@ -784,7 +784,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 51,
-            doubleAccuracy: null,
+            checkoutPercentage: null,
           },
         ],
       });
@@ -818,7 +818,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 60,
-            doubleAccuracy: null,
+            checkoutPercentage: null,
           },
         ],
       });
@@ -885,7 +885,7 @@ describe("tuodPlay", () => {
             participantRef: "participant-1",
             sideKey: "A",
             target: 51,
-            doubleAccuracy: null,
+            checkoutPercentage: null,
           },
         ],
       };
@@ -1455,7 +1455,7 @@ describe("recordDart (board input)", () => {
 
     expect(component.finished).toBe(true);
     const [seat] = component.resultsSnapshot!.seats;
-    expect(seat.doubleAccuracy).toBe("0.00%");
+    expect(seat.checkoutPercentage).toBe("0.00%");
   });
 });
 
@@ -1571,13 +1571,13 @@ describe("session completion — 1v1", () => {
         participantRef: "participant-1",
         sideKey: "A",
         target: 40,
-        doubleAccuracy: null,
+        checkoutPercentage: null,
       },
       {
         participantRef: "participant-2",
         sideKey: "B",
         target: 40,
-        doubleAccuracy: null,
+        checkoutPercentage: null,
       },
     ]);
     expect(component.resultsTitle.call(component)).toBe("Tie — same target!");
@@ -1615,13 +1615,13 @@ describe("session completion — 1v1", () => {
         participantRef: "participant-1",
         sideKey: "A",
         target: 51,
-        doubleAccuracy: null,
+        checkoutPercentage: null,
       },
       {
         participantRef: "participant-2",
         sideKey: "B",
         target: 40,
-        doubleAccuracy: null,
+        checkoutPercentage: null,
       },
     ]);
     expect(component.resultsTitle.call(component)).toBe(

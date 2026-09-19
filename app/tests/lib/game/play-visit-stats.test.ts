@@ -5,6 +5,7 @@ import {
   perVisitAverageDisplay,
   threeDartAverageDisplay,
   accuracyDisplay,
+  checkoutPercentageDisplay,
   firstNineAverageDisplay,
   highestVisitScore,
   visitScoreBandCounts,
@@ -380,5 +381,19 @@ describe("dartsLeftForSeat", () => {
 
   it("honours a non-default visit budget", () => {
     expect(dartsLeftForSeat([OPEN], "p1", 6)).toBe(4);
+  });
+});
+
+describe("checkoutPercentageDisplay", () => {
+  it("dashes when no dart was ever thrown at a double", () => {
+    expect(checkoutPercentageDisplay(0, 0)).toBe("—");
+  });
+
+  it("formats a real rate to two decimals", () => {
+    expect(checkoutPercentageDisplay(1, 4)).toBe("25.00%");
+  });
+
+  it("reports a genuine zero as zero, not a dash", () => {
+    expect(checkoutPercentageDisplay(0, 3)).toBe("0.00%");
   });
 });

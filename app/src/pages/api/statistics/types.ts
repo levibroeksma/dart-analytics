@@ -18,7 +18,7 @@ export const StatisticsOverviewResponse = z.object({
   scoringAverageExcludingDoubles: z.number(),
   bestLegDarts: z.number().int().nullable(),
   averageDartsPerLeg: z.number().nullable(),
-  doubleAccuracy: z.number().min(0).max(1).nullable(),
+  checkoutPercentage: z.number().min(0).max(1).nullable(),
   highestCheckout: z
     .object({ value: z.number().int(), timesHit: z.number().int() })
     .nullable(),

@@ -27,7 +27,10 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
-import { accuracyDisplay, dartsThrownCount } from "@lib/game/play-visit-stats";
+import {
+  checkoutPercentageDisplay,
+  dartsThrownCount,
+} from "@lib/game/play-visit-stats";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -304,7 +307,7 @@ function statsFor(
     (turn) => turn.participantRef === seat.participantRef,
   );
   const total = seatTurns.reduce((sum, turn) => sum + turn.totalScore, 0);
-  const doubleAccuracy = (() => {
+  const checkoutPercentage = (() => {
     if (inputModeKey !== "VISUAL_BOARD") return null;
     const { hits, misses } = classifyDoubleAttempts(
       oneTwentyOneCheckoutVisits(
@@ -315,7 +318,7 @@ function statsFor(
         seat.participantRef,
       ),
     );
-    return accuracyDisplay(hits, hits + misses);
+    return checkoutPercentageDisplay(hits, hits + misses);
   })();
   return {
     participantRef: seat.participantRef,
@@ -323,7 +326,7 @@ function statsFor(
     target: seat.currentTarget,
     visits: seatTurns.length,
     average: seatTurns.length === 0 ? 0 : total / seatTurns.length,
-    doubleAccuracy,
+    checkoutPercentage,
   };
 }
 

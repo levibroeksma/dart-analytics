@@ -50,7 +50,7 @@ describe("getStatisticsOverview", () => {
       scoringAverageExcludingDoubles: 0,
       bestLegDarts: null,
       averageDartsPerLeg: null,
-      doubleAccuracy: null,
+      checkoutPercentage: null,
       highestCheckout: null,
     });
   });
@@ -92,11 +92,11 @@ describe("getStatisticsOverview", () => {
     expect(result.favoriteGameTypeKey).toBe("501");
     expect(result.oneEightiesCount).toBe(1);
     expect(result.bestLegDarts).toBe(9);
-    expect(result.doubleAccuracy).toBeNull();
+    expect(result.checkoutPercentage).toBeNull();
     expect(result.highestCheckout).toBeNull();
   });
 
-  it("computes doubleAccuracy from a folded X01 checkout dart", async () => {
+  it("computes checkoutPercentage from a folded X01 checkout dart", async () => {
     vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
     vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([]);
@@ -132,7 +132,7 @@ describe("getStatisticsOverview", () => {
 
     const result = await getStatisticsOverview(playerId);
 
-    expect(result.doubleAccuracy).toBe(1);
+    expect(result.checkoutPercentage).toBe(1);
     expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
   });
 
@@ -152,9 +152,9 @@ describe("getStatisticsOverview", () => {
    *         visit 2 (remaining 22, D11 for 22)  -> exact -> HIT
    * hits = 3 (501 visit 2, TUOD visit 1, 121 visit 2)
    * misses = 2 (501 visit 1, 121 visit 1 dart 3)
-   * doubleAccuracy = 3 / (3 + 2) = 0.6
+   * checkoutPercentage = 3 / (3 + 2) = 0.6
    */
-  it("folds career doubleAccuracy across 501, TUOD and 121 in one pass", async () => {
+  it("folds career checkoutPercentage across 501, TUOD and 121 in one pass", async () => {
     vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
     vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([]);
@@ -320,6 +320,6 @@ describe("getStatisticsOverview", () => {
 
     const result = await getStatisticsOverview(playerId);
 
-    expect(result.doubleAccuracy).toBe(0.6);
+    expect(result.checkoutPercentage).toBe(0.6);
   });
 });

@@ -20,7 +20,7 @@ describe("StatisticsOverviewResponse", () => {
       scoringAverageExcludingDoubles: 0,
       bestLegDarts: null,
       averageDartsPerLeg: null,
-      doubleAccuracy: null,
+      checkoutPercentage: null,
       highestCheckout: null,
     });
     expect(result.success).toBe(true);
@@ -44,13 +44,13 @@ describe("StatisticsOverviewResponse", () => {
       scoringAverageExcludingDoubles: 48.1,
       bestLegDarts: 15,
       averageDartsPerLeg: 18.5,
-      doubleAccuracy: 0.4,
+      checkoutPercentage: 0.4,
       highestCheckout: { value: 100, timesHit: 2 },
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects a doubleAccuracy outside 0..1", () => {
+  it("rejects a checkoutPercentage outside 0..1", () => {
     const result = StatisticsOverviewResponse.safeParse({
       totalGamesPlayed: 0,
       totalPlayTimeSeconds: 0,
@@ -68,7 +68,7 @@ describe("StatisticsOverviewResponse", () => {
       scoringAverageExcludingDoubles: 0,
       bestLegDarts: null,
       averageDartsPerLeg: null,
-      doubleAccuracy: 1.5,
+      checkoutPercentage: 1.5,
       highestCheckout: null,
     });
     expect(result.success).toBe(false);

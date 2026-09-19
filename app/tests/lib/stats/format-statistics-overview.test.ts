@@ -19,7 +19,7 @@ const ZERO: StatisticsOverviewResponseData = {
   scoringAverageExcludingDoubles: 0,
   bestLegDarts: null,
   averageDartsPerLeg: null,
-  doubleAccuracy: null,
+  checkoutPercentage: null,
   highestCheckout: null,
 };
 
@@ -33,7 +33,7 @@ describe("formatStatisticsOverview", () => {
     expect(result.longestStreakHint).toBe("Longest: 0 days");
     expect(result.bestLegDarts).toBe("—");
     expect(result.averageDartsPerLeg).toBe("—");
-    expect(result.doubleAccuracy).toBe("—");
+    expect(result.checkoutPercentage).toBe("—");
     expect(result.highestCheckoutValue).toBe("—");
     expect(result.highestCheckoutHint).toBe("");
   });
@@ -56,7 +56,7 @@ describe("formatStatisticsOverview", () => {
       scoringAverageExcludingDoubles: 48.1,
       bestLegDarts: 15,
       averageDartsPerLeg: 18.5,
-      doubleAccuracy: 0.4,
+      checkoutPercentage: 0.4,
       highestCheckout: { value: 100, timesHit: 2 },
     };
     const result = formatStatisticsOverview(data);
@@ -76,7 +76,7 @@ describe("formatStatisticsOverview", () => {
     expect(result.scoringAverageExcludingDoubles).toBe("48.1");
     expect(result.bestLegDarts).toBe("15 darts");
     expect(result.averageDartsPerLeg).toBe("18.5");
-    expect(result.doubleAccuracy).toBe("40%");
+    expect(result.checkoutPercentage).toBe("40%");
     expect(result.highestCheckoutValue).toBe("100");
     expect(result.highestCheckoutHint).toBe("Hit 2×");
   });
