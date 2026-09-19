@@ -3,6 +3,7 @@ import {
   CreateRoutineRequest,
   MAX_ROUTINE_STEP_MINUTES,
   MAX_ROUTINE_STEPS,
+  MAX_ROUTINE_NAME_LENGTH,
 } from "@routes/routines/types";
 
 const step = {
@@ -11,10 +12,11 @@ const step = {
   durationValue: 10,
 };
 
-describe("MAX_ROUTINE_STEP_MINUTES / MAX_ROUTINE_STEPS", () => {
+describe("MAX_ROUTINE_STEP_MINUTES / MAX_ROUTINE_STEPS / MAX_ROUTINE_NAME_LENGTH", () => {
   it("names the bounds the schema enforces, so a consumer can import rather than restate them", () => {
     expect(MAX_ROUTINE_STEP_MINUTES).toBe(60);
     expect(MAX_ROUTINE_STEPS).toBe(12);
+    expect(MAX_ROUTINE_NAME_LENGTH).toBe(60);
   });
 });
 

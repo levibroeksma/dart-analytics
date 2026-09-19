@@ -6,6 +6,9 @@ export const MAX_ROUTINE_STEP_MINUTES = 60;
 /** Inclusive cap on the number of steps a routine may hold; the builder's own add-step limit mirrors this. */
 export const MAX_ROUTINE_STEPS = 12;
 
+/** Inclusive cap on a routine's trimmed name length; the builder's own name field mirrors this. */
+export const MAX_ROUTINE_NAME_LENGTH = 60;
+
 /** Phase 1 accepts MINUTES only (06-API/04-Endpoint-Contracts.md, D321). */
 export const RoutineStepInput = z.object({
   exerciseTemplateId: z.string().min(1),
@@ -14,7 +17,7 @@ export const RoutineStepInput = z.object({
 });
 
 export const CreateRoutineRequest = z.object({
-  name: z.string().trim().min(1).max(60),
+  name: z.string().trim().min(1).max(MAX_ROUTINE_NAME_LENGTH),
   description: z.string().trim().max(280).nullable().default(null),
   steps: z.array(RoutineStepInput).min(1).max(MAX_ROUTINE_STEPS),
 });

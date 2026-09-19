@@ -1,10 +1,12 @@
 ---
 /**
  * Builder body for create and edit. The page mounts `routineBuilder(mode)`;
- * this renders header inputs, the step list, the picker and the footer. The
- * name `maxlength` below is a literal, not a frontmatter import from
- * `routine-builder.data.ts` (browser-only — see `ExercisePicker.astro`'s
- * note on why that module must not load during SSR/prerendering).
+ * this renders header inputs, the step list, the picker and the footer.
+ * `maxNameLength` is bound from the factory's reactive state, not imported
+ * in frontmatter (see `ExercisePicker.astro`'s note on why). The issue
+ * list's `:key` is the array index, not the issue text: client
+ * (`durationIssues()`) and server (`serverIssues`) can report
+ * byte-identical strings once a save has failed and the user keeps editing.
  */
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
@@ -19,7 +21,7 @@ import ExercisePicker from "./ExercisePicker.astro";
     <Input
       name="routine-name"
       placeholder="Routine name"
-      maxlength="60"
+      :maxlength="maxNameLength"
       x-model="name"
     />
     <Input
@@ -70,8 +72,8 @@ import ExercisePicker from "./ExercisePicker.astro";
       x-cloak
     >
       <template
-        x-for="issue in [...durationIssues(), ...serverIssues]"
-        :key="issue"
+        x-for="(issue, index) in [...durationIssues(), ...serverIssues]"
+        :key="index"
       >
         <li x-text="issue"></li>
       </template>
@@ -81,6 +83,7 @@ import ExercisePicker from "./ExercisePicker.astro";
         title="Cancel"
         variant="secondary"
         grow
+        loadingExpr="false"
         @click="cancel()"
       />
       <Button

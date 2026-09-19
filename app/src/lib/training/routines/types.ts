@@ -186,6 +186,10 @@ export type RoutineBuilderContext = {
   steps: BuilderStep[];
   minMinutes: number;
   maxMinutes: number;
+  maxSteps: number;
+  stepMinMinutes: number;
+  stepMaxMinutes: number;
+  maxNameLength: number;
   navigate(path: string): void;
   init(this: RoutineBuilderContext): Promise<void>;
   loadExisting(this: RoutineBuilderContext): Promise<void>;
@@ -199,6 +203,7 @@ export type RoutineBuilderContext = {
   setMinutes(this: RoutineBuilderContext, index: number, value: number): void;
   durationResult(this: RoutineBuilderContext): RoutineDurationResult;
   totalMinutes(this: RoutineBuilderContext): number;
+  gameStepIssues(this: RoutineBuilderContext): string[];
   durationIssues(this: RoutineBuilderContext): string[];
   nameValid(this: RoutineBuilderContext): boolean;
   canSave(this: RoutineBuilderContext): boolean;
