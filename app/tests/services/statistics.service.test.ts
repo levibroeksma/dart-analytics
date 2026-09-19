@@ -322,4 +322,71 @@ describe("getStatisticsOverview", () => {
 
     expect(result.checkoutPercentage).toBe(0.6);
   });
+
+  /**
+   * Every ruleset config schema is `.strict()` with required fields, so a
+   * historical session whose stored snapshot has since drifted makes the
+   * codec throw. The whole overview is assembled in one pass, so that throw
+   * used to 500 `/api/statistics/overview` outright -- every card on
+   * `/statistics`, not just Checkout %. The drifted session now contributes
+   * nothing and the rest of the batch still folds.
+   */
+  it("skips a session whose stored configuration no longer validates instead of failing the overview", async () => {
+    vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
+    vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
+    vi.mocked(repo.findLegFacts).mockResolvedValue([]);
+    vi.mocked(repo.findX01CheckoutDarts).mockResolvedValue([
+      {
+        sessionId: "s-drifted",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        configuration: { starting_score: 501, seats: SEATS },
+        stageId: "stage-drifted",
+        stageSequence: 1,
+        stageTypeKey: "LEG",
+        parentStageId: null,
+        turnId: "turn-drifted",
+        turnSequence: 1,
+        turnTotalScore: 40,
+        turnCompletedAt: "2026-09-01T10:00:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
+      },
+      {
+        sessionId: "s-good",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        configuration: {
+          starting_score: 40,
+          legs_to_win: 1,
+          check_in: "STRAIGHT_IN",
+          check_out: "DOUBLE_OUT",
+          max_darts_per_turn: 3,
+          max_visit_score: 180,
+          seats: SEATS,
+        },
+        stageId: "stage-good",
+        stageSequence: 1,
+        stageTypeKey: "LEG",
+        parentStageId: null,
+        turnId: "turn-good",
+        turnSequence: 1,
+        turnTotalScore: 40,
+        turnCompletedAt: "2026-09-01T10:00:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
+      },
+    ]);
+
+    const result = await getStatisticsOverview(playerId);
+
+    expect(result.checkoutPercentage).toBe(1);
+    expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
+  });
 });

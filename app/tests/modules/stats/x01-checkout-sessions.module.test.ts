@@ -141,6 +141,31 @@ describe("checkoutVisitsFromRows", () => {
     expect(visits.map((visit) => visit.startingRemaining)).toEqual([501]);
   });
 
+  it("contributes no visits for a session whose stored configuration no longer validates", () => {
+    const visits = checkoutVisitsFromRows([
+      row({ configuration: { starting_score: 501, seats: SEATS } }),
+    ]);
+    expect(visits).toEqual([]);
+  });
+
+  it("contributes no visits for a session whose ruleset version is unknown", () => {
+    const visits = checkoutVisitsFromRows([
+      row({ rulesetVersionKey: "501_V99" }),
+    ]);
+    expect(visits).toEqual([]);
+  });
+
+  it("does not let one unparseable configuration suppress the rest of the batch", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        sessionId: "session-broken",
+        configuration: { starting_score: 501, seats: SEATS },
+      }),
+      row({}),
+    ]);
+    expect(visits.map((visit) => visit.startingRemaining)).toEqual([501]);
+  });
+
   it("orders a visit's darts by dart number, whatever order the rows arrive in", () => {
     const visits = checkoutVisitsFromRows([
       row({
