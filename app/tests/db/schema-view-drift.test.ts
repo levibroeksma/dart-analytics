@@ -36,11 +36,24 @@ function chainViewBodies(): Map<string, { body: string; from: string }> {
     .sort()) {
     const up = upSection(readFileSync(`${migrationsDir}/${name}`, "utf8"));
     for (const statement of up.split(";")) {
-      const match =
+      const createMatch =
         /(?:^|\n)\s*CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+(\w+)\s+AS([\s\S]*)$/i.exec(
           statement,
         );
-      if (match) bodies.set(match[1], { body: match[2], from: name });
+      if (createMatch) {
+        bodies.set(createMatch[1], { body: createMatch[2], from: name });
+        continue;
+      }
+      // A DROP VIEW not paired with a later CREATE (in this same
+      // statement stream or a later migration) means the view is
+      // retired for good -- e.g. 0038 drops v_double_out_checkout_darts
+      // without recreating it. Statements run in file order, and files
+      // run in chronological order, so processing drops inline keeps a
+      // drop-then-recreate (0036's own pattern) a no-op while a bare
+      // drop removes the view from the expected set.
+      const dropMatch =
+        /(?:^|\n)\s*DROP\s+VIEW(?:\s+IF\s+EXISTS)?\s+(\w+)/i.exec(statement);
+      if (dropMatch) bodies.delete(dropMatch[1]);
     }
   }
   return bodies;
@@ -70,6 +83,11 @@ function schemaViewBodies(): Map<string, string> {
  * precision`). The cost is that a drift which only regroups an existing
  * expression -- `a AND (b OR c)` becoming `(a AND b) OR c` -- reads as a
  * match here.
+ *
+ * Postgres also echoes `IN (...)` back as `= ANY (ARRAY[...])` (first seen
+ * with 0038's `gt.implementation_key IN ('501', 'TUOD', 'ONE_TWENTY_ONE')`),
+ * so that rewrite is undone before the parentheses come off, back into the
+ * `IN (...)` shape the migration source uses.
  */
 function normalize(sql: string): string {
   return sql
@@ -77,6 +95,7 @@ function normalize(sql: string): string {
       /::\s*[a-z_]+(\s+(?:precision|varying|with\s+time\s+zone|without\s+time\s+zone))?(\s*\[\])?/gi,
       "",
     )
+    .replace(/=\s*ANY\s*\(\s*ARRAY\s*\[([\s\S]*?)\]\s*\)/gi, "IN ($1)")
     .replace(/[()]/g, " ")
     .replace(/\s+,/g, ",")
     .replace(/\s+/g, " ")
