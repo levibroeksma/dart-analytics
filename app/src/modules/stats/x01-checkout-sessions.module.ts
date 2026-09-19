@@ -6,7 +6,7 @@ import {
   tuodCheckoutVisits,
 } from "@modules/game/checkout-visits.module";
 import type {
-  CheckoutVisitDarts,
+  CheckoutVisitTotals,
   EngineFacts,
   StageFact,
   TurnFact,
@@ -130,7 +130,7 @@ function snapshotOf(
  */
 function visitsForSession(
   rows: readonly X01CheckoutDartRow[],
-): CheckoutVisitDarts[] {
+): CheckoutVisitTotals[] {
   const first = rows[0];
   if (!first) return [];
   if (first.configuration === null) return [];
@@ -173,7 +173,7 @@ function visitsForSession(
  */
 export function checkoutVisitsFromRows(
   rows: readonly X01CheckoutDartRow[],
-): CheckoutVisitDarts[] {
+): CheckoutVisitTotals[] {
   const bySession = new Map<string, SessionRows>();
   for (const row of rows) {
     const bucket = bySession.get(row.sessionId) ?? { rows: [] };

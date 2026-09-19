@@ -61,6 +61,7 @@ describe("checkoutVisitsFromRows", () => {
     expect(visits).toEqual([
       {
         startingRemaining: 501,
+        countedTotal: 60,
         darts: [expect.objectContaining({ score: 60 })],
       },
     ]);

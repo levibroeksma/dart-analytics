@@ -71,6 +71,17 @@ describe("fiveOhOneCheckoutVisits", () => {
     ]);
   });
 
+  it("carries each visit's counted total, zero included, alongside its darts", () => {
+    const visits = fiveOhOneCheckoutVisits(
+      [
+        turn(1, 60, [dart(1, 20, "TREBLE", 60)]),
+        turn(2, 0, [dart(1, 20, "TREBLE", 60)]),
+      ],
+      501,
+    );
+    expect(visits.map((visit) => visit.countedTotal)).toEqual([60, 0]);
+  });
+
   it("restarts each leg at the starting score", () => {
     const legTwo: TurnFact = {
       ...turn(2, 60, [dart(1, 20, "TREBLE", 60)]),
@@ -163,6 +174,7 @@ describe("tuodCheckoutVisits", () => {
     expect(visits.map((visit) => visit.startingRemaining)).toEqual([
       40, 42, 40,
     ]);
+    expect(visits.map((visit) => visit.countedTotal)).toEqual([40, 0, 40]);
   });
 });
 
@@ -239,5 +251,6 @@ describe("oneTwentyOneCheckoutVisits", () => {
       "seat-1",
     );
     expect(visits[1].startingRemaining).toBe(visits[2].startingRemaining);
+    expect(visits[1].countedTotal).toBe(0);
   });
 });

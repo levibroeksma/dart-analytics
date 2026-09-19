@@ -8,7 +8,7 @@ import { foldOneTwentyOneState } from "./one-twenty-one.engine.module";
 import { foldTuodState } from "./tuod.engine.module";
 import { turnsBeforeVisit } from "./turn-log.module";
 import type {
-  CheckoutVisitDarts,
+  CheckoutVisitTotals,
   EngineFacts,
   StageFact,
   TurnFact,
@@ -31,7 +31,7 @@ type OneTwentyOneLadderConfig =
 export function fiveOhOneCheckoutVisits(
   seatTurns: readonly TurnFact[],
   startingScore: number,
-): CheckoutVisitDarts[] {
+): CheckoutVisitTotals[] {
   const remainingByStage = new Map<string, number>();
   return seatTurns.map((turn) => {
     const startingRemaining =
@@ -40,7 +40,11 @@ export function fiveOhOneCheckoutVisits(
       turn.stageClientKey,
       startingRemaining - turn.totalScore,
     );
-    return { startingRemaining, darts: turn.darts };
+    return {
+      startingRemaining,
+      countedTotal: turn.totalScore,
+      darts: turn.darts,
+    };
   });
 }
 
@@ -56,7 +60,7 @@ export function tuodCheckoutVisits(
   facts: EngineFacts,
   config: Seated<TuodSnapshot>,
   participantRef: string,
-): CheckoutVisitDarts[] {
+): CheckoutVisitTotals[] {
   return seatTurns.map((visit) => ({
     startingRemaining: foldTuodState(
       { stages: facts.stages, turns: turnsBeforeVisit(facts.turns, visit) },
@@ -64,6 +68,7 @@ export function tuodCheckoutVisits(
       false,
     ).seats.find((seat) => seat.participantRef === participantRef)!
       .currentTarget,
+    countedTotal: visit.totalScore,
     darts: visit.darts,
   }));
 }
@@ -81,7 +86,7 @@ export function oneTwentyOneCheckoutVisits(
   turns: readonly TurnFact[],
   config: OneTwentyOneLadderConfig,
   participantRef: string,
-): CheckoutVisitDarts[] {
+): CheckoutVisitTotals[] {
   return seatTurns.map((visit) => ({
     startingRemaining: foldOneTwentyOneState(
       { stages: [...stages], turns: turnsBeforeVisit(turns, visit) },
@@ -89,6 +94,7 @@ export function oneTwentyOneCheckoutVisits(
       false,
     ).seats.find((seat) => seat.participantRef === participantRef)!
       .remainingInAttempt,
+    countedTotal: visit.totalScore,
     darts: visit.darts,
   }));
 }
