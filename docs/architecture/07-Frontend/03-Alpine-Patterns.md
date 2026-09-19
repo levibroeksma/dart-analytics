@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, data components, persist
-updated: 2026-08-30
+updated: 2026-09-19
 -->
 
 # Frontend Alpine Patterns
@@ -155,6 +155,8 @@ Use **shorthand** for binds and listeners. Keep structural/behavioral directives
 **Keep long form (no shorthand):** `x-data`, `x-show`, `x-text`, `x-model`, `x-cloak`, `x-for`, `x-if`, `x-transition`, `x-effect`.
 
 **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak`.
+
+**`x-for` keys must be unique.** `:key` may never be the rendered value itself — Alpine keeps one node per key, so a repeated value silently drops items: a 152 checkout hint keyed by chip label rendered `T20 D16`, losing the second `T20` (issue #248). Key by an identity field, or by the loop index when the list has none.
 
 ### Astro exception
 

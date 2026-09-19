@@ -97,8 +97,8 @@ const className = cn("flex flex-col gap-1 items-center min-h-0", classNameProp);
             x-cloak
           >
             <template
-              x-for={`part in (${checkoutExpr}).split(' ').filter(Boolean)`}
-              {...{ ":key": "part" }}
+              x-for={`(part, index) in (${checkoutExpr}).split(' ').filter(Boolean)`}
+              {...{ ":key": "index" }}
             >
               <Badge
                 variant="accent"
