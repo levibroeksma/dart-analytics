@@ -27,100 +27,56 @@ function fakeSelect(rows: unknown[]) {
 }
 
 describe("findRoutineTemplateSteps", () => {
-  const stepRows = [
-    {
+  it("filters by routine id and (system OR own) and returns the routine name", async () => {
+    const { db, statements } = renderingDb([]);
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    await findRoutineTemplateSteps(db, "rt-1", "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"routine_id" = $1');
+    expect(sql).toMatch(/"is_system_template" = \$2 or .*"player_id" = \$3/);
+    expect(statements[0].params).toEqual(["rt-1", true, "p1"]);
+  });
+
+  it("returns undefined when the routine has no visible rows", async () => {
+    const { db } = renderingDb([]);
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    expect(await findRoutineTemplateSteps(db, "rt-1", "p1")).toBeUndefined();
+  });
+
+  /**
+   * `renderingDb` runs the real pg-proxy query builder (see its own doc
+   * comment), which maps each row positionally against the `.select({...})`
+   * field order — not by key name — so the seeded row is a tuple in that
+   * order, not a snake_case-keyed object.
+   */
+  it("shapes rows into { routineTemplateId, routineName, steps }", async () => {
+    const { db } = renderingDb([
+      [
+        "rt-1",
+        "Mine",
+        1,
+        "WARM_UP",
+        "WARM_UP_V1",
+        null,
+        "MINUTES",
+        10,
+        {},
+        null,
+      ],
+    ]);
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    const result = await findRoutineTemplateSteps(db, "rt-1", "p1");
+    expect(result).toMatchObject({
       routineTemplateId: "rt-1",
+      routineName: "Mine",
+    });
+    expect(result?.steps[0]).toMatchObject({
       sequenceNumber: 1,
       exerciseTypeKey: "WARM_UP",
-      exerciseRulesetVersionKey: "WARM_UP_V1",
-      gameTypeKey: null,
-      durationTypeKey: "MINUTES",
-      durationValue: 10,
-      defaultConfiguration: {
-        phases: [{ name: "Upper", targets: [5], weight: 1 }],
-      },
-      stepConfiguration: null,
-    },
-    {
-      routineTemplateId: "rt-1",
-      sequenceNumber: 4,
-      exerciseTypeKey: "GAME",
-      exerciseRulesetVersionKey: null,
-      gameTypeKey: "TUOD",
-      durationTypeKey: "MINUTES",
-      durationValue: 10,
-      defaultConfiguration: null,
-      stepConfiguration: { starting_target: 41 },
-    },
-  ];
-
-  it("returns undefined when no system routine matches the name", async () => {
-    const db = { select: vi.fn(() => fakeSelect([])) } as any;
-    const { findRoutineTemplateSteps } =
-      await import("@repositories/training-session.repository");
-    const result = await findRoutineTemplateSteps(db, "Unknown Routine");
-    expect(result).toBeUndefined();
-  });
-
-  it("returns the routine id and its resolved steps in sequence order", async () => {
-    const db = { select: vi.fn(() => fakeSelect(stepRows)) } as any;
-    const { findRoutineTemplateSteps } =
-      await import("@repositories/training-session.repository");
-    const result = await findRoutineTemplateSteps(db, "Balanced Training");
-    expect(result?.routineTemplateId).toBe("rt-1");
-    expect(result?.steps).toHaveLength(2);
-    expect(result?.steps[1].gameTypeKey).toBe("TUOD");
-  });
-
-  /**
-   * The routine id is the view's own column, so the read is one query against
-   * `v_routine_execution` — the read model `06-API/00-Overview.md` designates
-   * for routines — instead of two against the template tables it bypassed
-   * (issue #344). A stepless routine therefore reads as no routine at all.
-   */
-  it("reads the whole routine through v_routine_execution in one query", async () => {
-    const chain = fakeSelect(stepRows);
-    const db = { select: vi.fn(() => chain) } as any;
-    const { findRoutineTemplateSteps } =
-      await import("@repositories/training-session.repository");
-    await findRoutineTemplateSteps(db, "Balanced Training");
-
-    const { vRoutineExecution } = await import("@db/schema");
-    expect(db.select).toHaveBeenCalledTimes(1);
-    expect(chain.from.mock.calls[0]![0]).toBe(vRoutineExecution);
-    expect(chain.innerJoin).not.toHaveBeenCalled();
-    expect(chain.leftJoin).not.toHaveBeenCalled();
-  });
-
-  /**
-   * The step's exercise ruleset version comes from the view column the
-   * template's own pin feeds (migration `0035`/`0036`), never from a join on
-   * exercise type — that was unambiguous only while exactly one version
-   * existed per type, and fanned the read out the moment a second was seeded
-   * (issue #338).
-   */
-  it("carries the template's pinned ruleset version key per step", async () => {
-    const db = { select: vi.fn(() => fakeSelect(stepRows)) } as any;
-    const { findRoutineTemplateSteps } =
-      await import("@repositories/training-session.repository");
-    const result = await findRoutineTemplateSteps(db, "Balanced Training");
-
-    expect(result?.steps.map((step) => step.exerciseRulesetVersionKey)).toEqual(
-      ["WARM_UP_V1", null],
-    );
-  });
-
-  it("filters to the named system routine", async () => {
-    const chain = fakeSelect(stepRows);
-    const db = { select: vi.fn(() => chain) } as any;
-    const { findRoutineTemplateSteps } =
-      await import("@repositories/training-session.repository");
-    await findRoutineTemplateSteps(db, "Balanced Training");
-
-    expect(predicateColumns(chain.where.mock.calls[0]![0])).toEqual([
-      "routine_name",
-      "is_system_template",
-    ]);
+    });
   });
 });
 

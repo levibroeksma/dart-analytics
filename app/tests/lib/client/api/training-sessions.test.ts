@@ -20,13 +20,12 @@ describe("startTraining", () => {
       requestId: "r1",
       data: {
         activityId: "act-1",
+        routineTemplateId: "rt-1",
         routineName: "Balanced Training",
         steps: [],
       },
     });
-    const result = await startTraining({
-      routineTemplateName: "Balanced Training",
-    });
+    const result = await startTraining({ routineTemplateId: "rt-1" });
     expect(result.activityId).toBe("act-1");
   });
 
@@ -41,7 +40,7 @@ describe("startTraining", () => {
       },
     });
     await expect(
-      startTraining({ routineTemplateName: "Unknown Routine" }),
+      startTraining({ routineTemplateId: "unknown-rt" }),
     ).rejects.toBeInstanceOf(SessionApiError);
   });
 });

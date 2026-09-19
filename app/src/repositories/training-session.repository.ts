@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
@@ -15,26 +15,26 @@ type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
   : never;
 
 /**
- * Reads a system routine's ordered steps through `v_routine_execution` — the
- * read model `06-API/00-Overview.md` designates for routines. It carried none
- * of the columns a step resolves from until migration `0036`, so this read was
- * a second, divergent definition of "a routine's steps" against the raw
- * template tables (issue #344).
- *
- * A routine with no steps reads as no routine at all: the view is built from
- * `routine_steps`, so a stepless template produces no rows. `startTraining`
- * answers `VALIDATION_FAILED` rather than opening an activity with an empty
- * step list, which is the better of the two answers.
+ * A routine's ordered steps through `v_routine_execution`, visible when the
+ * routine is a system routine or the caller's own (D321). A stepless routine
+ * reads as no routine; `startTraining` answers `VALIDATION_FAILED`.
  */
 export async function findRoutineTemplateSteps(
   db: Db,
-  routineTemplateName: string,
+  routineTemplateId: string,
+  playerId: string,
 ): Promise<
-  { routineTemplateId: string; steps: RoutineStepTemplateRow[] } | undefined
+  | {
+      routineTemplateId: string;
+      routineName: string;
+      steps: RoutineStepTemplateRow[];
+    }
+  | undefined
 > {
   const rows = await db
     .select({
       routineTemplateId: vRoutineExecution.routineId,
+      routineName: vRoutineExecution.routineName,
       sequenceNumber: vRoutineExecution.sequenceNumber,
       exerciseTypeKey: vRoutineExecution.exerciseTypeKey,
       exerciseRulesetVersionKey: vRoutineExecution.exerciseRulesetVersionKey,
@@ -47,19 +47,23 @@ export async function findRoutineTemplateSteps(
     .from(vRoutineExecution)
     .where(
       and(
-        eq(vRoutineExecution.routineName, routineTemplateName),
-        eq(vRoutineExecution.isSystemTemplate, true),
+        eq(vRoutineExecution.routineId, routineTemplateId),
+        or(
+          eq(vRoutineExecution.isSystemTemplate, true),
+          eq(vRoutineExecution.playerId, playerId),
+        ),
       ),
     )
     .orderBy(vRoutineExecution.sequenceNumber);
 
-  const routineTemplateId = rows[0]?.routineTemplateId;
-  if (!routineTemplateId) return undefined;
+  const first = rows[0];
+  if (!first) return undefined;
 
   return {
-    routineTemplateId,
+    routineTemplateId: first.routineTemplateId as string,
+    routineName: first.routineName as string,
     steps: rows.map(
-      ({ routineTemplateId: _routineId, ...step }) => step,
+      ({ routineTemplateId: _id, routineName: _name, ...step }) => step,
     ) as RoutineStepTemplateRow[],
   };
 }

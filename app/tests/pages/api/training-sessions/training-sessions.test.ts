@@ -23,6 +23,7 @@ describe("POST /api/training-sessions", () => {
       ok: true,
       data: {
         activityId: "act-1",
+        routineTemplateId: "rt-1",
         routineName: "Balanced Training",
         steps: [],
       },
@@ -30,13 +31,10 @@ describe("POST /api/training-sessions", () => {
     const { POST } = await import("@pages/api/training-sessions/index");
     const response = await POST({
       locals: { auth: { playerId: "p1" }, requestId: "req-1" },
-      request: request({ routineTemplateName: "Balanced Training" }),
+      request: request({ routineTemplateId: "rt-1" }),
     } as any);
     expect(response.status).toBe(201);
-    expect(service.startTraining).toHaveBeenCalledWith(
-      "p1",
-      "Balanced Training",
-    );
+    expect(service.startTraining).toHaveBeenCalledWith("p1", "rt-1");
   });
 
   it("returns a VALIDATION_FAILED envelope when the body is malformed", async () => {

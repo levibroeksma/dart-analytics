@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const result = await startTraining(
     auth.playerId!,
-    parsed.data.routineTemplateName,
+    parsed.data.routineTemplateId,
   );
   if (!result.ok) return fail(result.code, locals.requestId, result.details);
   return ok(result.data, locals.requestId, 201);

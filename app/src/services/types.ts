@@ -45,6 +45,7 @@ export type TrainingStepResolved = {
 
 export type StartTrainingResult = {
   activityId: string;
+  routineTemplateId: string;
   routineName: string;
   steps: TrainingStepResolved[];
 };
