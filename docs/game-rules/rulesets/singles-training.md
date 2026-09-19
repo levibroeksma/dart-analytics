@@ -42,7 +42,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 
 | Setting    | V1 preset                                                       | On config screen (V1) |
 | ---------- | --------------------------------------------------------------- | --------------------- |
-| Players    | 1 seat; a guest or DartBot seat on V1 only                      | Editable on V1        |
+| Players    | 1 seat, plus an optional guest or DartBot seat (every version)  | Editable              |
 | Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
 | Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
@@ -89,9 +89,10 @@ failed mandatory hit under Hard/Extreme.
 **1v1:** both seats play their full order and neither is cut short; the match
 ends once both are done, and the higher training-point total wins, with equal
 totals a tie and no tiebreak. Under Hard/Extreme a failed mandatory hit instead
-ends the match immediately and the other seat wins, whatever the points. 1v1 is
-a V1-only ruleset — a V2 or V3 session (Hard/Extreme, or Accuracy) seats one
-player.
+ends the match immediately and the other seat wins, whatever the points. Every
+new session is V3, 1v1 included, so Hard/Extreme and Accuracy both apply to a
+guest or DartBot seat (2026-09-19, D329); V1 and V2 sessions still resume and
+replay under their own rules.
 
 ### Result
 

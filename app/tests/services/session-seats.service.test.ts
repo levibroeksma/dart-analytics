@@ -123,6 +123,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "SHANGHAI_V2",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
+    "SINGLES_V3",
     "DOUBLES_TRAINING_V1",
   ])("accepts exactly 2 seats for %s", (rulesetVersionKey) => {
     expect(rejectSeatRequest(twoPlayers, rulesetVersionKey)).toBeNull();
@@ -137,6 +138,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "SHANGHAI_V2",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
+    "SINGLES_V3",
     "DOUBLES_TRAINING_V1",
   ])("rejects a 3rd seat for %s", (rulesetVersionKey) => {
     expect(rejectSeatRequest(threePlayers, rulesetVersionKey)).toContain(
@@ -181,6 +183,10 @@ describe("rejectSeatRequest with a DARTBOT seat", () => {
 
   it("accepts a DARTBOT seat for Shanghai V2, now that it's wired (D259)", () => {
     expect(rejectSeatRequest([player, bot], "SHANGHAI_V2")).toBeNull();
+  });
+
+  it("accepts a DARTBOT seat for Singles Training V3, now that it's wired (#290)", () => {
+    expect(rejectSeatRequest([player, bot], "SINGLES_V3")).toBeNull();
   });
 
   it("counts a DARTBOT seat toward the ruleset's own SEAT_CAPS entry", () => {
