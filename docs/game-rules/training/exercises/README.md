@@ -2,7 +2,7 @@
 
 This folder holds the raw rules of **exercise types** — the reusable units a
 routine step configures (`WARM_UP`, `SWITCHING`, `DOUBLE_PATTERN`, `GAME`, …),
-in the `templates/EXERCISE_TEMPLATE.md` shape.
+in the `docs/game-rules/templates/EXERCISE_TEMPLATE.md` shape.
 
 An exercise type binds to an `ExerciseEngine` and is reused across routines
 with different configuration (`docs/architecture/09-Training/01-Routines.md`
