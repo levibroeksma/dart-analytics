@@ -153,3 +153,33 @@ export interface PlayerProfileInput {
   dartsDescription: string | null;
   dartsWeightGrams: number | null;
 }
+
+/** One `v_routine_execution` row — a step of a routine the caller may see. */
+export interface RoutineExecutionRow {
+  routineId: string;
+  routineName: string;
+  routineDescription: string | null;
+  isSystemTemplate: boolean;
+  playerId: string | null;
+  sequenceNumber: number;
+  exerciseTemplateId: string;
+  exerciseName: string;
+  exerciseDescription: string | null;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  durationTypeKey: string;
+  durationValue: number;
+  defaultConfiguration: unknown;
+  stepConfiguration: unknown;
+}
+
+/** One `v_exercise_template_catalog` row. */
+export interface ExerciseTemplateCatalogRow {
+  exerciseTemplateId: string;
+  name: string;
+  description: string | null;
+  exerciseTypeKey: string;
+  gameTypeKey: string | null;
+  hasDefaultConfiguration: boolean;
+}
