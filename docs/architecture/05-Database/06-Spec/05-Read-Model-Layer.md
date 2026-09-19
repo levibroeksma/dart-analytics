@@ -220,7 +220,7 @@ Lists the system exercise templates a player may compose a custom routine from �
 
 ## Design Rationale
 
-The view is deliberately broad: it does not filter out a template whose `has_default_configuration` is FALSE (a GAME template, whose configuration comes from its game session, not a routine step) — narrowing to only the templates a routine step can actually use is planned as the service layer's job (Task 4's `listExerciseTemplates`, planned to filter on `hasDefaultConfiguration`), not the view's. Keeping the exclusion in the service, not the view, keeps the view a plain projection and leaves room for a future consumer that wants the unfiltered catalog. <!-- 2026-09-19 -->
+The view is deliberately broad: it does not filter out a template whose `has_default_configuration` is FALSE (a GAME template, whose configuration comes from its game session, not a routine step) — narrowing to only the templates a routine step can actually use is the service layer's job (`listExerciseTemplates` in `app/src/services/routine.service.ts`, which filters on `hasDefaultConfiguration`), not the view's. Keeping the exclusion in the service, not the view, keeps the view a plain projection and leaves room for a future consumer that wants the unfiltered catalog. <!-- 2026-09-19 -->
 
 ---
 
