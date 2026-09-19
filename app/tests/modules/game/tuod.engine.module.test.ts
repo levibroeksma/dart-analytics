@@ -86,6 +86,7 @@ describe("initialTuodState", () => {
           participantRef: SEATS[0].participantRef,
           sideKey: SEATS[0].sideKey,
           currentTarget: 41,
+          remainingInAttempt: 41,
           attempts: 0,
           successes: 0,
           failures: 0,
@@ -306,6 +307,7 @@ describe("TuodEngine.state — derived by folding facts", () => {
           participantRef: SEATS[0].participantRef,
           sideKey: SEATS[0].sideKey,
           currentTarget: 59,
+          remainingInAttempt: 59,
           attempts: 4,
           successes: 2,
           failures: 2,
@@ -1095,5 +1097,54 @@ describe("TuodEngine — turnsBeforeVisit wiring (F41)", () => {
     const state = engine.record(TREBLE_20);
     expect(state.seats[0].currentTarget).toBe(49);
     expect(state.seats[0].failures).toBe(1);
+  });
+});
+
+describe("TuodEngine.state — live in-visit remaining (#202)", () => {
+  it("starts an attempt with remainingInAttempt on the ladder target", () => {
+    const engine = tuodEngineFactory.create(config());
+
+    expect(engine.state().seats[0].remainingInAttempt).toBe(41);
+  });
+
+  it("subtracts each board dart while the visit is still open", () => {
+    const engine = tuodEngineFactory.create(config());
+
+    const state = engine.record(SINGLE_1);
+
+    expect(state.seats[0].currentTarget).toBe(41);
+    expect(state.seats[0].remainingInAttempt).toBe(40);
+  });
+
+  it("resets to the climbed target once the visit checks out", () => {
+    const engine = tuodEngineFactory.create(config());
+    engine.record(SINGLE_1);
+
+    const state = engine.record(DOUBLE_20);
+
+    expect(state.seats[0].currentTarget).toBe(51);
+    expect(state.seats[0].remainingInAttempt).toBe(51);
+  });
+
+  it("resets to the dropped target once the visit busts", () => {
+    const engine = tuodEngineFactory.create(boardConfig());
+
+    const state = engine.record(TREBLE_20);
+
+    expect(state.seats[0].currentTarget).toBe(39);
+    expect(state.seats[0].remainingInAttempt).toBe(39);
+  });
+
+  it("leaves a keypad-only session's remaining on the ladder target", () => {
+    const engine = tuodEngineFactory.create(config());
+
+    const state = playAttempts(engine, [MISS]);
+
+    expect(state.seats[0].currentTarget).toBe(40);
+    expect(state.seats[0].remainingInAttempt).toBe(40);
+  });
+
+  it("starts every fresh session's seat on its own starting target", () => {
+    expect(initialTuodState(config()).seats[0].remainingInAttempt).toBe(41);
   });
 });

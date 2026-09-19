@@ -22,7 +22,7 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
   <template x-if="(state()?.seats.length ?? 1) < 2">
     <SinglePlayerDisplay
       isTarget={true}
-      target="currentTargetLabel()"
+      target="remainingInAttempt()"
       class="max-h-2/5 h-full"
     >
       <div
@@ -37,6 +37,10 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         >
         </p>
         <dl class="w-full space-y-1">
+          <StatRow
+            label="Target"
+            value="currentTargetLabel()"
+          />
           <StatRow
             label="Attempts"
             value="$store.game.turns.length"
@@ -64,14 +68,14 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         nameExpr: "$store.game.seats[0]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
+        scoreExpr: "remainingInAttemptFor(state()?.seats[0]?.participantRef)",
         checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
+        scoreExpr: "remainingInAttemptFor(state()?.seats[1]?.participantRef)",
         checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
       }}
       isTarget={true}
@@ -81,6 +85,10 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         slot="progressA"
         class="w-full space-y-1"
       >
+        <StatRow
+          label="Target"
+          value="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
+        />
         <StatRow
           label="Attempts"
           value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[0]?.participantRef).length"
@@ -94,6 +102,10 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         slot="progressB"
         class="w-full space-y-1"
       >
+        <StatRow
+          label="Target"
+          value="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
+        />
         <StatRow
           label="Attempts"
           value="$store.game.turns.filter((t) => t.participantRef === state()?.seats[1]?.participantRef).length"

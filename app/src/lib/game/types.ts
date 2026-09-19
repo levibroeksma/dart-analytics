@@ -429,6 +429,8 @@ export type TuodPlayContext = PlayLifecycleContext<
   state(this: TuodPlayContext): TuodState | null;
   currentTargetLabelFor(this: TuodPlayContext, seatRef: string): string;
   currentTargetLabel(this: TuodPlayContext): string;
+  remainingInAttemptFor(this: TuodPlayContext, seatRef: string): number;
+  remainingInAttempt(this: TuodPlayContext): number;
   checkoutHintFor(this: TuodPlayContext, seatRef: string): string;
   checkoutHint(this: TuodPlayContext): string;
   remainingLabel(this: TuodPlayContext): string;

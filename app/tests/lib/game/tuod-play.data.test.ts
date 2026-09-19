@@ -1844,3 +1844,79 @@ describe("tuodPlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 });
+
+describe("tuodPlay — live in-visit remaining (#202)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
+    ]);
+  });
+
+  async function boardPlay() {
+    const store = gameStub({
+      configSnapshot: rounds(10),
+      inputModeKey: "VISUAL_BOARD",
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+    return component;
+  }
+
+  it("reads the ladder target before the first dart of a visit", async () => {
+    const component = await boardPlay();
+
+    expect(component.remainingInAttempt.call(component)).toBe(41);
+  });
+
+  it("drops the moment a dart lands, while the ladder target holds", async () => {
+    const component = await boardPlay();
+
+    await component.recordDart.call(component, SINGLE_1);
+
+    expect(component.remainingInAttempt.call(component)).toBe(40);
+    expect(component.currentTargetLabel.call(component)).toBe("41");
+  });
+
+  it("returns to the ladder target once the visit closes", async () => {
+    const component = await boardPlay();
+    await component.recordDart.call(component, SINGLE_1);
+
+    await component.recordDart.call(component, DOUBLE_20);
+
+    expect(component.remainingInAttempt.call(component)).toBe(51);
+    expect(component.currentTargetLabel.call(component)).toBe("51");
+  });
+
+  it("remainingInAttemptFor reads the named seat, not the active one", async () => {
+    const component = await boardPlay();
+    await component.recordDart.call(component, SINGLE_1);
+
+    expect(
+      component.remainingInAttemptFor.call(component, "participant-1"),
+    ).toBe(40);
+  });
+
+  it("re-routes the checkout hint off the live remaining", async () => {
+    const component = await boardPlay();
+    expect(component.checkoutHint.call(component)).toBe("9 D16");
+
+    await component.recordDart.call(component, SINGLE_1);
+
+    expect(component.checkoutHint.call(component)).toBe("D20");
+  });
+
+  it("returns to the dropped target when the early-bust rule closes the visit", async () => {
+    const component = await boardPlay();
+    await component.recordDart.call(component, SINGLE_1);
+
+    await component.recordDart.call(component, SINGLE_1);
+
+    expect(component.remainingInAttempt.call(component)).toBe(40);
+    expect(component.currentTargetLabel.call(component)).toBe("40");
+  });
+});
