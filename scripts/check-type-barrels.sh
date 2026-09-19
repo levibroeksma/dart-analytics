@@ -284,11 +284,20 @@ while IFS= read -r barrel; do
       echo "FAIL: $barrel is never raised — its parent folder has no $base.ts. Create $parent_barrel containing: export * from \"./$child/$base\";" >&2
       FAIL=1
       RAISE_HITS=$((RAISE_HITS + 1))
-    elif ! strip_comments "$parent_barrel" | grep -qF "export * from \"./$child/$base\"" \
-      && ! strip_comments "$parent_barrel" | grep -qF "export * from './$child/$base'"; then
-      echo "FAIL: $barrel is never raised — add to $parent_barrel: export * from \"./$child/$base\";" >&2
-      FAIL=1
-      RAISE_HITS=$((RAISE_HITS + 1))
+    else
+      # Captured once so awk runs to completion before any matching happens —
+      # a grep -q piped straight onto strip_comments would close the pipe on
+      # its first match and leave awk writing into nothing (EPIPE noise on a
+      # large barrel like lib/game/types.ts, harmless but stderr-dirtying).
+      parent_content=$(strip_comments "$parent_barrel")
+      case "$parent_content" in
+        *"export * from \"./$child/$base\""* | *"export * from './$child/$base'"*) ;;
+        *)
+          echo "FAIL: $barrel is never raised — add to $parent_barrel: export * from \"./$child/$base\";" >&2
+          FAIL=1
+          RAISE_HITS=$((RAISE_HITS + 1))
+          ;;
+      esac
     fi
   fi
 
