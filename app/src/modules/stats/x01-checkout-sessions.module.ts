@@ -32,28 +32,48 @@ function stagesOf(rows: readonly X01CheckoutDartRow[]): StageFact[] {
   return [...byId.values()].sort((a, b) => a.sequence - b.sequence);
 }
 
+/** A rebuilt turn alongside the stage sequence its own `sequence` is relative to. */
+type StagedTurn = {
+  stageSequence: number;
+  turn: TurnFact;
+};
+
 /**
- * Rebuilds one session's turns, each carrying its own darts in dart order.
- * `totalScore` is the counted total the engine wrote, so a busted visit
- * arrives here as the zero it was recorded as.
+ * Rebuilds one session's turns in play order, each carrying its own darts in
+ * dart order. `totalScore` is the counted total the engine wrote, so a busted
+ * visit arrives here as the zero it was recorded as.
+ *
+ * Ordered by `(stageSequence, turnSequence)`, never by `turnSequence` alone:
+ * `turns.sequence_number` restarts at 1 in every stage (both
+ * `one-twenty-one.engine.module.ts` and `five-oh-one.engine.module.ts` write
+ * `turnCountIn(stage) + 1`), so sorting on it alone interleaves the rounds of
+ * a 121 session or the legs of a 501 one. `oneTwentyOneCheckoutVisits` and
+ * `tuodCheckoutVisits` slice the log by array index (`turnsBeforeVisit`), so
+ * an interleaved log folds every visit over a turn set holding future turns
+ * and missing past ones. The sort is done here rather than left to the
+ * repository's `ORDER BY` so this module is correct for any row order; the
+ * SQL order is pinned by `statistics.repository.test.ts` as well.
  */
 function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
-  const byId = new Map<string, TurnFact>();
+  const byId = new Map<string, StagedTurn>();
   for (const row of rows) {
-    let turn = byId.get(row.turnId);
-    if (!turn) {
-      turn = {
-        clientKey: row.turnId,
-        stageClientKey: row.stageId,
-        participantRef: row.participantId,
-        sequence: row.turnSequence,
-        completedAt: row.turnCompletedAt,
-        totalScore: row.turnTotalScore,
-        darts: [],
+    let staged = byId.get(row.turnId);
+    if (!staged) {
+      staged = {
+        stageSequence: row.stageSequence,
+        turn: {
+          clientKey: row.turnId,
+          stageClientKey: row.stageId,
+          participantRef: row.participantId,
+          sequence: row.turnSequence,
+          completedAt: row.turnCompletedAt,
+          totalScore: row.turnTotalScore,
+          darts: [],
+        },
       };
-      byId.set(row.turnId, turn);
+      byId.set(row.turnId, staged);
     }
-    turn.darts.push({
+    staged.turn.darts.push({
       sequence: row.dartNumber,
       intendedTargetNumber: null,
       intendedZoneKey: null,
@@ -64,7 +84,15 @@ function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
       locationY: null,
     });
   }
-  return [...byId.values()].sort((a, b) => a.sequence - b.sequence);
+  for (const staged of byId.values()) {
+    staged.turn.darts.sort((a, b) => a.sequence - b.sequence);
+  }
+  return [...byId.values()]
+    .sort(
+      (a, b) =>
+        a.stageSequence - b.stageSequence || a.turn.sequence - b.turn.sequence,
+    )
+    .map((staged) => staged.turn);
 }
 
 /**
