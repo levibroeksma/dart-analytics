@@ -379,7 +379,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
-`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail — neither of which is built yet. Its consumer today is `POST /api/training-sessions`, which resolves a system routine's ordered steps through it (D299, issue #344). <!-- 2026-09-17 --> The view projects no `player_id` or `description` today, so the planned "system routines + caller's own" list cannot be read through it as-is; Phase 1 recreates it with both columns before the reads are built (D321). <!-- 2026-09-18 --> The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
+`v_routine_execution` is step-level; it backs both the routine list and the single-routine execution detail — neither of which is built yet. Its consumer today is `POST /api/training-sessions`, which resolves a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> The view projects no `player_id` or `description` today, so the planned "system routines + caller's own" list cannot be read through it as-is; Phase 1 recreates it with both columns before the reads are built (D321). <!-- 2026-09-18 --> The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -400,7 +400,7 @@ a frozen target, the same approach D299 took for the read side.
 | `POST /api/routines` | `CreateRoutineRequest` | `RoutineExecution` | creates under caller's `player_id` |
 | `PUT /api/routines/:routineId` | `UpdateRoutineRequest` | `RoutineExecution` | owner only |
 | `DELETE /api/routines/:routineId` | — | `204` | owner only, never a system routine |
-| `POST /api/training-sessions` (change, D321) | `StartTrainingRequest` gains `routineTemplateId`, replacing `routineTemplateName` | unchanged | system, or caller-owned routine |
+| `POST /api/training-sessions` (change, D321) | `StartTrainingRequest` gains `routineTemplateId`, replacing `routineTemplateName` | `StartTrainingResponse` gains `routineTemplateId` | system, or caller-owned routine |
 
 `PUT` replaces `name`/`description`/the full ordered `steps[]` — no partial-reorder
 patch. `sequence_number` is assigned server-side from array position and is
