@@ -27,7 +27,8 @@
 -- Scoped to the session's owning participant, mirroring
 -- v_dart_analytics / v_dart_locations (migration 0023). The
 -- configuration join is LEFT and cannot fan out:
--- uq_exercise_configuration_session makes
+-- uq_exercise_configurations_exercise_session (renamed by 0037
+-- from uq_exercise_configuration_session) makes
 -- exercise_configurations at most one row per session.
 -- ============================================================
 
