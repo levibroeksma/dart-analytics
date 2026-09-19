@@ -54,10 +54,10 @@ export function formatStatisticsOverview(
       data.averageDartsPerLeg === null
         ? "—"
         : data.averageDartsPerLeg.toFixed(1),
-    doubleAccuracy:
-      data.doubleAccuracy === null
+    checkoutPercentage:
+      data.checkoutPercentage === null
         ? "—"
-        : `${Math.round(data.doubleAccuracy * 100)}%`,
+        : `${Math.round(data.checkoutPercentage * 100)}%`,
     highestCheckoutValue:
       data.highestCheckout === null ? "—" : String(data.highestCheckout.value),
     highestCheckoutHint:

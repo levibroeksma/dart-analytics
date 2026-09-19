@@ -65,7 +65,7 @@ export async function getStatisticsOverview(
     ),
     bestLegDarts: bestLegDarts(legs),
     averageDartsPerLeg: averageDartsPerLeg(legs),
-    doubleAccuracy: hits + misses === 0 ? null : hits / (hits + misses),
+    checkoutPercentage: hits + misses === 0 ? null : hits / (hits + misses),
     highestCheckout: highestCheckout(checkoutVisits),
   };
 }

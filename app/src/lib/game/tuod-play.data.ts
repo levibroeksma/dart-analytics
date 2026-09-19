@@ -27,7 +27,10 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
-import { accuracyDisplay, dartsLeftForSeat } from "@lib/game/play-visit-stats";
+import {
+  checkoutPercentageDisplay,
+  dartsLeftForSeat,
+} from "@lib/game/play-visit-stats";
 import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
 import {
   formatRemaining,
@@ -145,18 +148,18 @@ function statsFor(
   const seatTurns = facts.turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
   );
-  const doubleAccuracy = (() => {
+  const checkoutPercentage = (() => {
     if (inputModeKey !== "VISUAL_BOARD") return null;
     const { hits, misses } = classifyDoubleAttempts(
       tuodCheckoutVisits(seatTurns, facts, config, seat.participantRef),
     );
-    return accuracyDisplay(hits, hits + misses);
+    return checkoutPercentageDisplay(hits, hits + misses);
   })();
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     target: seat.currentTarget,
-    doubleAccuracy,
+    checkoutPercentage,
   };
 }
 

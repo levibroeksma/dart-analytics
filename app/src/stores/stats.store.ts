@@ -28,7 +28,7 @@ export function statsStore() {
     scoringAverageExcludingDoubles: "",
     bestLegDarts: "",
     averageDartsPerLeg: "",
-    doubleAccuracy: "",
+    checkoutPercentage: "",
     highestCheckoutValue: "",
     highestCheckoutHint: "",
     loading: false,
@@ -62,7 +62,7 @@ export function statsStore() {
           formatted.scoringAverageExcludingDoubles;
         this.bestLegDarts = formatted.bestLegDarts;
         this.averageDartsPerLeg = formatted.averageDartsPerLeg;
-        this.doubleAccuracy = formatted.doubleAccuracy;
+        this.checkoutPercentage = formatted.checkoutPercentage;
         this.highestCheckoutValue = formatted.highestCheckoutValue;
         this.highestCheckoutHint = formatted.highestCheckoutHint;
       } catch (cause) {

@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // X01 checkout-percentage Task 2: oneTwentyOneCheckoutVisits() moves out of
 // this file into the shared modules/game/checkout-visits.module.ts, byte
 // for byte -- statsFor() now imports it instead of defining it locally.
-// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test) still hold unchanged.
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import {
@@ -333,7 +333,7 @@ describe("oneTwentyOnePlay", () => {
       expect(play.$store.game.turns[0].darts).toHaveLength(1);
     });
 
-    it("computes a VISUAL_BOARD double accuracy from a missed checkout attempt", async () => {
+    it("dashes the checkout rate when a VISUAL_BOARD sequence never produces a genuine checkout attempt", async () => {
       vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
       vi.mocked(sessionsApi.completeSession).mockResolvedValue({
         sessionId: "session-1",
@@ -344,10 +344,17 @@ describe("oneTwentyOnePlay", () => {
       const play = createPlay();
       play.engine = oneTwentyOneEngineFactory.create(config) as any;
 
-      // Starting target 121 (odd -- not directly finishable). Two scoring
-      // darts bring the remaining to 40 (directly finishable on D20); the
-      // third hits inner single 20 -- same segment as the required double,
-      // so it's classified as a missed checkout attempt.
+      // VISUAL_BOARD scoring is derived from location, not the caller's
+      // `hitTargetNumber`/`hitZoneKey` -- both of these darts land at
+      // (0, -102), so both score T20 regardless of the 13/14 stated here.
+      // Starting target 121 (odd) is never directly finishable, so the
+      // first T20 (121 -> 61, still odd) is not an attempt; the second T20
+      // busts the visit (61 -> 1) without ever reaching a finishable
+      // remaining, so it is not an attempt either. The bust resets the
+      // seat back to 121 for a fresh visit, and the third dart (inner
+      // single 20, remaining 121) is once again not directly finishable.
+      // No dart in the sequence is ever a genuine checkout attempt, so the
+      // rate has nothing to report.
       await play.recordDart.call(play, {
         hitTargetNumber: 13,
         hitZoneKey: "TREBLE",
@@ -371,7 +378,7 @@ describe("oneTwentyOnePlay", () => {
       await play.uploadAndCompleteSession();
 
       const [seat] = play.resultsSnapshot!.seats;
-      expect(seat.doubleAccuracy).toBe("0.00%");
+      expect(seat.checkoutPercentage).toBe("—");
     });
   });
 
@@ -829,7 +836,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
               target: 130,
               visits: 5,
               average: 40,
-              doubleAccuracy: null,
+              checkoutPercentage: null,
             },
           ],
         },
@@ -865,7 +872,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
               target: 170,
               visits: 5,
               average: 40,
-              doubleAccuracy: null,
+              checkoutPercentage: null,
             },
           ],
         },
@@ -1011,7 +1018,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
           target: 121,
           visits: 1,
           average: 100,
-          doubleAccuracy: null,
+          checkoutPercentage: null,
         },
         {
           participantRef: "participant-2",
@@ -1019,7 +1026,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
           target: 121,
           visits: 1,
           average: 80,
-          doubleAccuracy: null,
+          checkoutPercentage: null,
         },
       ]);
     });

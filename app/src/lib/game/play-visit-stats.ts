@@ -98,6 +98,21 @@ export function accuracyDisplay(hits: number, darts: number): string {
 }
 
 /**
+ * A checkout rate for display: an em dash when no dart was ever thrown at a
+ * double, since a rate over no attempts is nothing to report rather than a
+ * failed one. `accuracyDisplay`'s `0.00%` stays as it is -- Bob's 27 and
+ * Doubles Training count every dart as an attempt, so zero attempts there
+ * means zero darts thrown, which genuinely is 0%.
+ */
+export function checkoutPercentageDisplay(
+  hits: number,
+  attempts: number,
+): string {
+  if (attempts === 0) return "—";
+  return accuracyDisplay(hits, attempts);
+}
+
+/**
  * Average of the first 3 completed visits' totals, one-decimal display
  * string — the classic "first 9" darts stat. Fewer than 3 completed visits
  * averages over however many exist; "0.0" before any visit completes, same

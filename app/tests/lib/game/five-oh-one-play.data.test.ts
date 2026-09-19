@@ -18,7 +18,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // X01 checkout-percentage Task 2: fiveOhOneCheckoutVisits() moves out of
 // this file into the shared modules/game/checkout-visits.module.ts, byte
 // for byte -- statsFor() now imports it instead of defining it locally.
-// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test, which exercises it directly) still hold unchanged.
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
@@ -747,7 +747,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "A",
           legsWon: 0,
           threeDartAverage: "80.0",
-          doubleAccuracy: null,
+          checkoutPercentage: null,
           sixtyPlus: 1,
           hundredPlus: 1,
           oneTwentyPlus: 0,
@@ -760,7 +760,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "B",
           legsWon: 0,
           threeDartAverage: "40.0",
-          doubleAccuracy: null,
+          checkoutPercentage: null,
           sixtyPlus: 0,
           hundredPlus: 0,
           oneTwentyPlus: 0,
@@ -798,7 +798,7 @@ describe("uploadAndCompleteSession", () => {
           sideKey: "A",
           legsWon: 1,
           threeDartAverage: "250.5",
-          doubleAccuracy: null,
+          checkoutPercentage: null,
           sixtyPlus: 0,
           hundredPlus: 0,
           oneTwentyPlus: 0,
@@ -888,8 +888,8 @@ describe("uploadAndCompleteSession", () => {
     expect(seatA.legsWon).toBe(1);
     expect(seatB.participantRef).toBe("participant-2");
     expect(seatB.legsWon).toBe(0);
-    expect(seatA.doubleAccuracy).toBeNull();
-    expect(seatB.doubleAccuracy).toBeNull();
+    expect(seatA.checkoutPercentage).toBeNull();
+    expect(seatB.checkoutPercentage).toBeNull();
     expect(seatA.bestLeg).toBe("12");
     expect(seatB.bestLeg).toBe("—");
     expect(play.resultsTitle.call(play)).toBe("Levi wins the match!");
@@ -954,7 +954,7 @@ describe("uploadAndCompleteSession", () => {
     const [seatA] = play.resultsSnapshot!.seats;
     expect(seatA.legsWon).toBe(2);
     // 2 hits (both D20 checkouts), 1 miss (the busted TREBLE_20) -> 2/3.
-    expect(seatA.doubleAccuracy).toBe("66.67%");
+    expect(seatA.checkoutPercentage).toBe("66.67%");
   });
 
   it("returns the single-seat shape for a solo session", async () => {

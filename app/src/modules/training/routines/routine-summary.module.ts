@@ -68,7 +68,7 @@ export function summariseDoublePattern(
 
 /**
  * Reuses TUOD's own results snapshot rather than recomputing it;
- * `doubleAccuracy` is null whenever the session was not played on the
+ * `checkoutPercentage` is null whenever the session was not played on the
  * visual board.
  */
 export function summariseFinishing(seat: TuodSeatResult): RoutineStepSummary {
@@ -77,7 +77,7 @@ export function summariseFinishing(seat: TuodSeatResult): RoutineStepSummary {
     label: "Finishing",
     rows: [
       { label: "Target reached", value: String(seat.target) },
-      { label: "Double accuracy", value: seat.doubleAccuracy ?? NO_VALUE },
+      { label: "Checkout %", value: seat.checkoutPercentage ?? NO_VALUE },
     ],
   };
 }

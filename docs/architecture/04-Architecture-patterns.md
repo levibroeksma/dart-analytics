@@ -2,12 +2,18 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-09-05
+updated: 2026-09-19
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.9.2 (Pattern 18: `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts`'s private checkout-visit builders move into one shared `checkout-visits.module.ts` 2026-09-19; prior 1.9.1: Pattern 18: `double-attempt.module.ts`'s checkout-attempt classifier now counts a bounce-out/off-board dart and any bust-causing dart as a miss rather than excluding it, and treats the inner single band at 50 remaining as a missed bull 2026-09-19; prior 1.9.0: Pattern 18: all 9 rulesets' results snapshots now uniformly carry `seats: XSeatResult[]`, closing the gap the single-opponent-seat design's touch list left open 2026-08-30; prior 1.8.3: Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242; prior 1.8.2: Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
+> **Version:** 1.9.3 (Pattern 20: 501/TUOD/121 route their checkout rate
+> through a second helper, `checkoutPercentageDisplay()`, that dashes a
+> zero-attempt denominator instead of reporting `"0.00%"`; the result
+> field these three rulesets expose is renamed `checkoutPercentage`
+> throughout the stack, surfacing as `Checkout %` in the modals, the
+> routine summary and `/statistics` 2026-09-19; prior 1.9.2: Pattern 18:
+> `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts`'s private checkout-visit builders move into one shared `checkout-visits.module.ts` 2026-09-19; prior 1.9.1: Pattern 18: `double-attempt.module.ts`'s checkout-attempt classifier now counts a bounce-out/off-board dart and any bust-causing dart as a miss rather than excluding it, and treats the inner single band at 50 remaining as a missed bull 2026-09-19; prior 1.9.0: Pattern 18: all 9 rulesets' results snapshots now uniformly carry `seats: XSeatResult[]`, closing the gap the single-opponent-seat design's touch list left open 2026-08-30; prior 1.8.3: Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242; prior 1.8.2: Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241; prior 1.8.1 Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240; prior 1.8.0 Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27; 1.7.0 Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27; 1.6.1 Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26; 1.6.0 Pattern 19: shared reveal-then-clear preview 2026-08-26; 1.5.0 Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21; 1.4.1 Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26; prior 1.4.0 Pattern 18 game engine contract 2026-07-26; 1.3.0 Pattern 17 frontend layering 2026-07-14)
 >
 > This document defines the approved architectural patterns used throughout the project.
 >
@@ -940,6 +946,15 @@ result-modal .astro (renders the string directly)
   helper.
 - Result-modal `.astro` components render the field's string value
   directly; they never reformat or re-round it.
+- 501, TUOD and 121 report their checkout rate through a second helper
+  instead, `checkoutPercentageDisplay(hits, attempts)`: same two-decimal
+  math as `accuracyDisplay`, but an em dash when `attempts === 0`. A
+  checkout rate over no attempts is missing data, not a proven zero —
+  unlike the dart-counted denominators above, where zero darts thrown
+  genuinely is `"0.00%"`. `accuracyDisplay` itself is unchanged; the
+  divergence lives entirely in the new helper. The field this exposes is
+  named `checkoutPercentage` end to end — seat result, career DTO, store
+  and UI label (`Checkout %`) alike (2026-09-19).
 
 ## Rule
 

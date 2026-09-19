@@ -26,7 +26,7 @@ import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
-  accuracyDisplay,
+  checkoutPercentageDisplay,
   dartsLeftForSeat,
   dartsThrownCount,
   previousScoreDisplay,
@@ -175,7 +175,7 @@ function bestLegFor(
  * One seat's own results stats, replayed from its own completed visits in
  * `turns`. `legsWon` is read off `state().sides` by the caller — never
  * counted from `turns` directly (a stage exists per leg *played*, not per
- * leg *won*). `doubleAccuracy` is `null` outside VISUAL_BOARD capture,
+ * leg *won*). `checkoutPercentage` is `null` outside VISUAL_BOARD capture,
  * since QUICK_SCORE carries no dart rows to classify.
  */
 function statsFor(
@@ -190,19 +190,19 @@ function statsFor(
   const seatTurns = turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
   );
-  const doubleAccuracy = (() => {
+  const checkoutPercentage = (() => {
     if (inputModeKey !== "VISUAL_BOARD") return null;
     const { hits, misses } = classifyDoubleAttempts(
       fiveOhOneCheckoutVisits(seatTurns, startingScore),
     );
-    return accuracyDisplay(hits, hits + misses);
+    return checkoutPercentageDisplay(hits, hits + misses);
   })();
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     legsWon,
     threeDartAverage: threeDartAverageDisplay(seatTurns, maxDartsPerTurn),
-    doubleAccuracy,
+    checkoutPercentage,
     ...visitScoreBandCounts(seatTurns),
     bestLeg: bestLegFor(seat.participantRef, legResults),
   };

@@ -390,7 +390,7 @@ export type TuodSeatResult = {
   participantRef: string;
   sideKey: string;
   target: number;
-  doubleAccuracy: string | null;
+  checkoutPercentage: string | null;
 };
 
 /** `winningSideKey` is score-compare (highest target) resolved by the
@@ -658,13 +658,13 @@ export type SinglesTrainingSetupContext = PresetSetupContext & {
 /** One seat's own results stats, replayed from its own completed visits in
  * `turns`. `legsWon` comes from `state().sides`, never counted from
  * `turns` directly — a stage exists per leg *played*, not per leg *won*.
- * `doubleAccuracy` is `null` for a QUICK_SCORE session (checkout accuracy
+ * `checkoutPercentage` is `null` for a QUICK_SCORE session (Checkout %
  * cannot be computed without per-dart data,
  * `05-Database/06-Spec/04-Runtime-Layer.md`); for VISUAL_BOARD it classifies
  * every dart against the double its remaining score needed
- * (`modules/game/double-attempt.module.ts`), formatted by `accuracyDisplay`
- * (Pattern 20). Score-band counts are exclusive (D238/D242, Pattern 21) — a
- * visit increments exactly one of
+ * (`modules/game/double-attempt.module.ts`), formatted by
+ * `checkoutPercentageDisplay` (Pattern 20). Score-band counts are exclusive
+ * (D238/D242, Pattern 21) — a visit increments exactly one of
  * `sixtyPlus`/`hundredPlus`/`oneTwentyPlus`/`oneFortyPlus`/`oneEighties`,
  * never more than one. */
 export type FiveOhOneSeatResult = {
@@ -672,7 +672,7 @@ export type FiveOhOneSeatResult = {
   sideKey: string;
   legsWon: number;
   threeDartAverage: string;
-  doubleAccuracy: string | null;
+  checkoutPercentage: string | null;
   sixtyPlus: number;
   hundredPlus: number;
   oneTwentyPlus: number;
@@ -758,7 +758,7 @@ export type OneTwentyOneSeatResult = {
   target: number;
   visits: number;
   average: number;
-  doubleAccuracy: string | null;
+  checkoutPercentage: string | null;
 };
 
 /** `attempt` is 1-indexed: which attempt at the winning target succeeded —

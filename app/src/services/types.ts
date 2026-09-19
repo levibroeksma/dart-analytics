@@ -97,7 +97,7 @@ export type StatisticsOverview = {
   scoringAverageExcludingDoubles: number;
   bestLegDarts: number | null;
   averageDartsPerLeg: number | null;
-  doubleAccuracy: number | null;
+  checkoutPercentage: number | null;
   highestCheckout: { value: number; timesHit: number } | null;
 };
 
