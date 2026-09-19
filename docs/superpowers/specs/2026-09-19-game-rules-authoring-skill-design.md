@@ -48,6 +48,10 @@ it never replaces the spec that brainstorming writes.
 | D-f | `_drafts/` subfolders are exempt from the gate |
 | D-g | One skill, four reference files |
 | D-h | A rules file is **permanent** — the standing register of deferred scope |
+| D-i | The doc carries a one-line `Current version:` header field — the only as-built fact it holds |
+| D-j | Post-V1 scope takes an explicit number (`V2`, `V3`, …) once it is being built; `V2+` stays the unscheduled bucket |
+| D-k | The gate enforces `Features` ↔ `Glossary` agreement for named variants |
+| D-l | An amendment that changes an **already-shipped** rule is blocked until a `decisions/**` block exists |
 
 ### D-h supersedes today's README
 
@@ -94,7 +98,8 @@ The `Version` column takes exactly one of:
 | Value | Meaning |
 | --- | --- |
 | `V1` | Ships in the first playable version |
-| `V2+` | Planned for a later version; reason required |
+| `V2`, `V3`, … | Scheduled for that specific later version — it is being built; reason required |
+| `V2+` | Wanted, not scheduled; reason required |
 | `Deferred` | Postponed on a named blocker; reason required and must name the blocker |
 | `Dropped` | Decided against; reason required |
 
@@ -107,6 +112,27 @@ Lowercase `v1` normalises to `V1`. The feature table gains a third column:
 ```
 
 `Reason` is empty for `V1` rows and **required** for every other value.
+
+`V2+` → `V2` is the promotion that happens when a deferred idea is picked up.
+The bucket keeps the backlog honest; the number says what is next.
+
+### The `Current version:` header field
+
+Every rules file carries one line under its title:
+
+```
+Current version: V1 (shipped 2026-08-14)
+```
+
+or, before anything ships:
+
+```
+Current version: none (V1 in design)
+```
+
+This is the **only** as-built fact in the document (D-b holds at row level:
+no per-feature shipped status). Amend mode cannot work without it — see below.
+The gate asserts the line exists and parses.
 
 ---
 
@@ -173,7 +199,15 @@ references/trivia.md
 Mirrors `graph-lookup`'s `references/` pattern: the shared procedure loads
 always, one shape file loads on demand.
 
-**Procedure in `SKILL.md`:**
+**Two modes.** Step 0 of the procedure: does a rules file already exist for
+this subject?
+
+- No → **author mode**, below.
+- Yes → **amend mode**, the following section. Never re-run author mode over
+  an existing file; the root `CLAUDE.md` rule is targeted edits, never
+  regeneration.
+
+**Author-mode procedure in `SKILL.md`:**
 
 1. Identify the shape (game / exercise / routine / trivia) → load that
    reference file and copy that template.
@@ -195,6 +229,62 @@ spec; this skill owns the rules document that the spec is designed from.
 
 ---
 
+## Amend mode
+
+The case: V1 is designed or shipped, and a mode, variant, setting or format
+turns up that the original pass never considered. The file must absorb it
+without drifting from its own style.
+
+**Procedure:**
+
+1. **Read the whole file first.** Its heading set, its Glossary terminology,
+   its table columns and its existing `Reason` phrasing are the style contract.
+   Match them; do not impose the template's wording over the file's own.
+2. **Read `Current version:`.** This decides what the amendment may be:
+   - `none (V1 in design)` → the new mode is a candidate for V1. Run the V1
+     cut test on it like any other feature.
+   - `V1 (shipped …)` or later → **the new mode cannot be V1.** V1 is
+     history. It takes `V2` (being built now) or `V2+` (wanted, unscheduled).
+     The cut test is not re-run on shipped scope; re-opening V1 is a
+     retrospective edit, which D-h's "permanent register" exists to prevent.
+3. **Classify the amendment:**
+   - **Additive** — a new mode, variant, setting or format alongside what
+     exists. Proceeds as below.
+   - **Changes a shipped rule** — different behaviour for something already
+     built. **Stop.** Per D-l this is an architecture decision, not a notes
+     edit: it needs a block in `decisions/game-engine.md` (or the domain
+     `DECISIONS.md` routes to). The doc edit lands in the same PR, citing the
+     decision id. Never silently rewrite a rule the engine already implements.
+4. **Place it in every slot at once.** A named mode touches:
+
+   | Slot | What lands |
+   | --- | --- |
+   | `Features` | one row: name, version, reason |
+   | `Later versions (V2+)` §Variants | the plain-language definition |
+   | `Glossary` | the term, its version, one-line meaning |
+   | `Config & presets` | a row **only if** it is a setting the player picks |
+
+   A mode present in `Features` but absent from `Glossary` is a defect — the
+   gate fails it (D-k).
+5. **Resolve what it answers.** If the amendment settles an entry under
+   `## Open questions`, strike it in place using the file's existing
+   convention — `~~question~~ **Resolved:** …` — rather than deleting it.
+   `501.md` already does this; the skill codifies it instead of leaving it to
+   taste.
+6. **Re-check `Capture`** (games and exercises). A new mode that changes what
+   a dart means, what a stage is, or what gets derived invalidates the
+   existing `Capture` answers. If it does, `Capture` is amended in the same
+   pass — a mode whose state shape cannot be persisted is not a valid
+   amendment at any version.
+7. **Bump `Current version:`** only when a version actually ships — that is
+   the implementation PR's job, not the amendment's.
+8. Run `bash scripts/check-game-rules.sh`.
+
+**Diff discipline:** the amendment adds rows and entries. It does not
+reformat tables, reorder features, reword untouched rows, or regenerate the
+file. A rules-file diff that touches lines unrelated to the new mode is
+wrong.
+
 ## Gate — `scripts/check-game-rules.sh`
 
 Blocking. Scans `docs/game-rules/{rulesets,training/exercises,training/routines,training/trivia}/*.md`,
@@ -208,6 +298,15 @@ Assertions:
 3. Every `Version` cell is one of `V1`, `V2+`, `Deferred`, `Dropped`.
 4. Every non-`V1` row has a non-empty `Reason`.
 5. `Capture` present for games and exercises; absent for trivia.
+6. A `Current version:` line exists and parses (`none (V1 in design)`, or
+   `V<n> (shipped YYYY-MM-DD)`).
+7. **Features ↔ Glossary agreement (D-k):** every `Features` row whose name is
+   marked as a named variant has a matching `Glossary` term, and every
+   `Glossary` term appears in `Features`. Marking convention: the variant's
+   name is **bold** in both tables — the existing rulesets already bold
+   Glossary terms, so this codifies what is there rather than inventing a
+   marker. Unbolded rows (plain capability lines like "Single player") are
+   not cross-checked.
 
 Headings must exist but need not be filled — an unfinished note either carries
 the heading with `TBD` beneath it, or lives in `_drafts/`.
@@ -251,3 +350,7 @@ same backfill.
   that the engine's problem?
 - Does the routine template name exercises by filename or by exercise-type
   constant (`SWITCHING`), and does the gate resolve that reference?
+- Backfill must add `Current version:` to all 11 rulesets — is the shipped
+  date taken from the engine's design spec, or the merge date of its PR?
+- Does the bold-marker convention for Features ↔ Glossary hold across the 11
+  existing files, or does the backfill have to introduce it?
