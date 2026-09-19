@@ -28,11 +28,8 @@ import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import { accuracyDisplay, dartsThrownCount } from "@lib/game/play-visit-stats";
-import {
-  classifyDoubleAttempts,
-  type CheckoutVisitDarts,
-} from "@modules/game/double-attempt.module";
-import { turnsBeforeVisit } from "@modules/game/turn-log.module";
+import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
+import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
@@ -295,32 +292,6 @@ function canReplay(
 type OneTwentyOneConfig = NonNullable<
   OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
 >;
-
-/**
- * One seat's checkout visits, each carrying the remaining score it opened
- * against -- folded via `foldOneTwentyOneState` over every turn strictly
- * before it, mirroring `OneTwentyOneEngine`'s own (private) `seatBeforeVisit`.
- * `timerExpired` is always `false` here: every visit folded this way is
- * already closed, and a closed visit's own `remainingInAttempt` never
- * depends on the live timer flag.
- */
-function oneTwentyOneCheckoutVisits(
-  seatTurns: readonly TurnFact[],
-  stages: StageFact[],
-  turns: readonly TurnFact[],
-  config: OneTwentyOneConfig,
-  participantRef: string,
-): CheckoutVisitDarts[] {
-  return seatTurns.map((visit) => ({
-    startingRemaining: foldOneTwentyOneState(
-      { stages, turns: turnsBeforeVisit(turns, visit) },
-      config,
-      false,
-    ).seats.find((seat) => seat.participantRef === participantRef)!
-      .remainingInAttempt,
-    darts: visit.darts,
-  }));
-}
 
 function statsFor(
   seat: OneTwentyOneSeatState,

@@ -34,11 +34,8 @@ import {
   maybeResumeCountdown,
   startCountdown,
 } from "@lib/game/play-countdown";
-import {
-  classifyDoubleAttempts,
-  type CheckoutVisitDarts,
-} from "@modules/game/double-attempt.module";
-import { turnsBeforeVisit } from "@modules/game/turn-log.module";
+import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
+import { tuodCheckoutVisits } from "@modules/game/checkout-visits.module";
 import type {
   DartbotSeat,
   RulesetVersionKey,
@@ -137,30 +134,6 @@ function throwBotQuickScoreDart(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.currentTarget;
   return throwOneDart(remaining, botSeat, dartIndex);
-}
-
-/**
- * One seat's checkout visits, each carrying the target it opened against --
- * folded via `foldTuodState` over every turn strictly before it, mirroring
- * `TuodEngine`'s own (private) `targetBeforeVisit`. `timerExpired` is always
- * `false` here: every visit folded this way is already closed, and a closed
- * visit's own `currentTarget` never depends on the live timer flag.
- */
-function tuodCheckoutVisits(
-  seatTurns: readonly TurnFact[],
-  facts: EngineFacts,
-  config: Seated<TuodSnapshot>,
-  participantRef: string,
-): CheckoutVisitDarts[] {
-  return seatTurns.map((visit) => ({
-    startingRemaining: foldTuodState(
-      { stages: facts.stages, turns: turnsBeforeVisit(facts.turns, visit) },
-      config,
-      false,
-    ).seats.find((seat) => seat.participantRef === participantRef)!
-      .currentTarget,
-    darts: visit.darts,
-  }));
 }
 
 function statsFor(
