@@ -14,12 +14,12 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
 ---
 
 <GameLayout
-  title="Balanced Training — Play"
+  title="Routine — Play"
   gameTitleExpr="$store.trainingSession.headerLabel"
 >
   <div
     class="flex flex-col flex-1 min-h-0 p-3"
-    x-data="balancedTrainingPlay()"
+    x-data="routinePlay()"
     @confirm-exit.window="abandonAndExit()"
   >
     <ErrorAlert />

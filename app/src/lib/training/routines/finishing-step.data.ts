@@ -8,7 +8,7 @@ import type { TuodPlayContext } from "@lib/types";
  * uploadAndCompleteSession() still uploads facts and marks the
  * exercise_sessions row COMPLETED exactly as a standalone TUOD game does;
  * onStepComplete is the routine's own advance-or-finish call
- * (balanced-training-play.data.ts's completeCurrentStep). abandonAndExit is
+ * (routine-play.data.ts's completeCurrentStep). abandonAndExit is
  * replaced outright rather than delegating to the original (which redirects
  * to `/games`) so leaving mid-Finishing lands back on `/training` and also
  * abandons the routine itself via onAbandon.

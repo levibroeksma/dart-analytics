@@ -21,6 +21,7 @@ import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { finishingStep } from "./finishing-step.data";
+import { routineIdFromLocation } from "./routine-route";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
 import { activeSessionConflict } from "./step-session-conflict";
@@ -40,20 +41,16 @@ import type {
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { StartTrainingStepResponseData } from "@client/api/types";
-import type {
-  BalancedTrainingPlayContext,
-  TrainingStepResolved,
-} from "./types";
+import type { RoutinePlayContext, TrainingStepResolved } from "./types";
 
-const ROUTINE_NAME = "Balanced Training";
 const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
 
-let self: BalancedTrainingPlayContext;
+let self: RoutinePlayContext;
 
 async function advanceAfterStepCompletion(
-  ctx: BalancedTrainingPlayContext,
+  ctx: RoutinePlayContext,
   sessionId: string,
   training: TrainingEngine,
 ): Promise<void> {
@@ -79,7 +76,7 @@ async function advanceAfterStepCompletion(
   await ctx.startCurrentStep();
 }
 
-export function balancedTrainingPlay() {
+export function routinePlay() {
   return {
     loading: false,
     error: "",
@@ -117,12 +114,12 @@ export function balancedTrainingPlay() {
     ),
 
     activeDartEngine(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
     ): SwitchingEngine | DoublePatternEngine | null {
       return this.switchingEngine ?? this.doublePatternEngine ?? null;
     },
 
-    visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[] {
+    visitMarkers(this: RoutinePlayContext): BoardMarker[] {
       return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
     },
 
@@ -132,7 +129,7 @@ export function balancedTrainingPlay() {
      * is needed; Double Pattern additionally requires the double, since
      * nothing else scores under `DOUBLE_PATTERN_V1`.
      */
-    previewSegments(this: BalancedTrainingPlayContext): PreviewSegment[] {
+    previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
       const requireDouble = this.doublePatternEngine !== null;
       return playPreviewSegments(turns, null, (dart) =>
@@ -143,14 +140,18 @@ export function balancedTrainingPlay() {
       );
     },
 
-    async init(this: BalancedTrainingPlayContext) {
+    async init(this: RoutinePlayContext) {
       self = this;
       this.loading = true;
       this.error = "";
+      const routineTemplateId = routineIdFromLocation();
+      if (!routineTemplateId) {
+        this.error = "No routine selected.";
+        this.loading = false;
+        return;
+      }
       try {
-        const result = await startTraining({
-          routineTemplateName: ROUTINE_NAME,
-        });
+        const result = await startTraining({ routineTemplateId });
         this.activityId = result.activityId;
         this.steps = result.steps;
         this.training = trainingEngine.create({
@@ -174,16 +175,14 @@ export function balancedTrainingPlay() {
       }
     },
 
-    currentStep(
-      this: BalancedTrainingPlayContext,
-    ): TrainingStepResolved | null {
+    currentStep(this: RoutinePlayContext): TrainingStepResolved | null {
       if (!this.training) return null;
       const stepIndex = this.training.state().stepIndex;
       return this.steps[stepIndex] ?? null;
     },
 
     buildWarmUpEngine(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       configuration: Record<string, unknown>,
     ) {
       const factory = getExerciseEngineFactory("WARM_UP_V1");
@@ -195,7 +194,7 @@ export function balancedTrainingPlay() {
     },
 
     buildSwitchingEngine(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       configuration: Record<string, unknown>,
     ) {
       const factory = getDartExerciseEngineFactory("SWITCHING_V1");
@@ -205,7 +204,7 @@ export function balancedTrainingPlay() {
     },
 
     buildDoublePatternEngine(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       configuration: Record<string, unknown>,
     ) {
       const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
@@ -215,7 +214,7 @@ export function balancedTrainingPlay() {
     },
 
     startFinishingStep(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       result: StartTrainingStepResponseData,
     ) {
       self.$store.game.reset();
@@ -253,7 +252,7 @@ export function balancedTrainingPlay() {
      * held in `blockingSession` for the modal rather than thrown — every
      * other failure still reaches the caller's own handling.
      */
-    async startCurrentStep(this: BalancedTrainingPlayContext) {
+    async startCurrentStep(this: RoutinePlayContext) {
       const step = this.currentStep();
       if (!this.activityId || !step) return;
       let result: StartTrainingStepResponseData;
@@ -274,7 +273,7 @@ export function balancedTrainingPlay() {
      * clock and the header the routine store drives.
      */
     openStep(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       result: StartTrainingStepResponseData,
       durationSeconds: number,
     ) {
@@ -307,7 +306,7 @@ export function balancedTrainingPlay() {
      * When the blocking game started, for the modal's own copy. Empty when
      * the server named no start time, so the sentence reads without it.
      */
-    blockingStartedLabel(this: BalancedTrainingPlayContext): string {
+    blockingStartedLabel(this: RoutinePlayContext): string {
       const startedAt = this.blockingSession?.startedAt;
       if (!startedAt) return "";
       const started = new Date(startedAt);
@@ -327,7 +326,7 @@ export function balancedTrainingPlay() {
      * A retry that hits the conflict again re-arms the modal on whatever
      * session the server now names.
      */
-    async resolveBlockingSession(this: BalancedTrainingPlayContext) {
+    async resolveBlockingSession(this: RoutinePlayContext) {
       const blocking = this.blockingSession;
       if (!blocking || this.resolvingBlockingSession) return;
       this.resolvingBlockingSession = true;
@@ -355,7 +354,7 @@ export function balancedTrainingPlay() {
      * whichever step runs first and stopped only when the last one ends.
      * Idempotent — each step calls it, the first call wins.
      */
-    startSessionClock(this: BalancedTrainingPlayContext) {
+    startSessionClock(this: RoutinePlayContext) {
       if (this.sessionClock) return;
       this.$store.trainingSession.startSession();
       this.sessionClock = new SessionClock({
@@ -366,12 +365,12 @@ export function balancedTrainingPlay() {
       this.sessionClock.start();
     },
 
-    stopSessionClock(this: BalancedTrainingPlayContext) {
+    stopSessionClock(this: RoutinePlayContext) {
       this.sessionClock?.stop();
       this.sessionClock = null;
     },
 
-    confirmWarmUpReady(this: BalancedTrainingPlayContext) {
+    confirmWarmUpReady(this: RoutinePlayContext) {
       if (!this.warmUpConfiguration || this.warmUpReady) return;
       this.warmUpReady = true;
       this.startWarmUpTimer(this.warmUpConfiguration);
@@ -384,7 +383,7 @@ export function balancedTrainingPlay() {
      * alone can never satisfy browser autoplay policy.
      */
     startWarmUpTimer(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       configuration: Record<string, unknown>,
     ) {
       this.warmUpElapsedSeconds = 0;
@@ -409,13 +408,13 @@ export function balancedTrainingPlay() {
       this.startSessionClock();
     },
 
-    formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string {
+    formattedWarmUpElapsed(this: RoutinePlayContext): string {
       const minutes = Math.floor(this.warmUpElapsedSeconds / 60);
       const seconds = this.warmUpElapsedSeconds % 60;
       return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     },
 
-    warmUpHighlightPath(this: BalancedTrainingPlayContext): string {
+    warmUpHighlightPath(this: RoutinePlayContext): string {
       return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
     },
 
@@ -425,7 +424,7 @@ export function balancedTrainingPlay() {
      * against it. The engines stay clockless (D264): expiry reaches them
      * as `expireTimer()`.
      */
-    startStepTimer(this: BalancedTrainingPlayContext, durationSeconds: number) {
+    startStepTimer(this: RoutinePlayContext, durationSeconds: number) {
       this.stepRemainingSeconds = durationSeconds;
       this.stepTimer = new SegmentTimer({
         segmentDurationsSeconds: [durationSeconds],
@@ -443,7 +442,7 @@ export function balancedTrainingPlay() {
       this.startSessionClock();
     },
 
-    formattedStepRemaining(this: BalancedTrainingPlayContext): string {
+    formattedStepRemaining(this: RoutinePlayContext): string {
       const remaining = Math.max(0, this.stepRemainingSeconds);
       const minutes = Math.floor(remaining / 60);
       const seconds = remaining % 60;
@@ -451,7 +450,7 @@ export function balancedTrainingPlay() {
     },
 
     recordSwitchingDart(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       observation: DartObservation,
     ) {
       if (!this.switchingEngine) return;
@@ -459,40 +458,40 @@ export function balancedTrainingPlay() {
     },
 
     recordDoublePatternDart(
-      this: BalancedTrainingPlayContext,
+      this: RoutinePlayContext,
       observation: DartObservation,
     ) {
       if (!this.doublePatternEngine) return;
       this.doublePatternEngine.record(observation);
     },
 
-    switchingPoints(this: BalancedTrainingPlayContext): number {
+    switchingPoints(this: RoutinePlayContext): number {
       return this.switchingEngine?.state().totalPoints ?? 0;
     },
 
-    switchingTargetLabel(this: BalancedTrainingPlayContext): string {
+    switchingTargetLabel(this: RoutinePlayContext): string {
       const target = this.switchingEngine?.state().currentTargetNumber;
       return target === undefined ? "" : String(target);
     },
 
-    doublePatternPoints(this: BalancedTrainingPlayContext): number {
+    doublePatternPoints(this: RoutinePlayContext): number {
       return this.doublePatternEngine?.state().totalPoints ?? 0;
     },
 
-    doublePatternLabel(this: BalancedTrainingPlayContext): string {
+    doublePatternLabel(this: RoutinePlayContext): string {
       const double = this.doublePatternEngine?.state().currentDoubleNumber;
       return double === undefined ? "" : `D${double}`;
     },
 
-    dartsThrown(this: BalancedTrainingPlayContext): number {
+    dartsThrown(this: RoutinePlayContext): number {
       return this.activeDartEngine()?.state().dartsThrown ?? 0;
     },
 
-    undoVisit(this: BalancedTrainingPlayContext) {
+    undoVisit(this: RoutinePlayContext) {
       this.activeDartEngine()?.undo();
     },
 
-    async uploadCurrentStepFacts(this: BalancedTrainingPlayContext) {
+    async uploadCurrentStepFacts(this: RoutinePlayContext) {
       const engine = this.activeDartEngine() ?? this.warmUpEngine;
       if (!engine || !this.currentSessionId || !this.currentParticipantRef) {
         return;
@@ -512,7 +511,7 @@ export function balancedTrainingPlay() {
      * lines later, and nothing re-reads them afterwards. Warm-Up throws no
      * darts, so it contributes nothing.
      */
-    captureStepSummary(this: BalancedTrainingPlayContext) {
+    captureStepSummary(this: RoutinePlayContext) {
       if (this.switchingEngine) {
         this.stepSummaries.push(
           summariseSwitching(
@@ -538,7 +537,7 @@ export function balancedTrainingPlay() {
      * own visibility so a failed call leaves the player looking at their
      * results with a retry, rather than at a dead screen.
      */
-    async completeRoutine(this: BalancedTrainingPlayContext) {
+    async completeRoutine(this: RoutinePlayContext) {
       if (!this.activityId) return;
       this.completionStatus = "saving";
       this.completionError = "";
@@ -552,12 +551,12 @@ export function balancedTrainingPlay() {
       }
     },
 
-    dismissSummary(this: BalancedTrainingPlayContext) {
+    dismissSummary(this: RoutinePlayContext) {
       this.$store.trainingSession.reset();
       globalThis.location.href = "/training";
     },
 
-    async completeCurrentStep(this: BalancedTrainingPlayContext) {
+    async completeCurrentStep(this: RoutinePlayContext) {
       if (!this.currentSessionId || !this.training || !this.activityId) {
         return;
       }
@@ -589,7 +588,7 @@ export function balancedTrainingPlay() {
      * so it abandons the current step's session directly and never touches
      * `$store.game`.
      */
-    async abandonAndExit(this: BalancedTrainingPlayContext) {
+    async abandonAndExit(this: RoutinePlayContext) {
       if (this.finishing) {
         if (this.stepTimer) {
           this.stepTimer.stop();

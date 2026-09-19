@@ -232,7 +232,7 @@ describe("Finishing step over the real TUOD store", () => {
 
     await component.confirmFinish();
 
-    // `balanced-training-play.data.ts`'s captureStepSummary reads
+    // `routine-play.data.ts`'s captureStepSummary reads
     // `finishing.resultsSnapshot?.seats[0]` and pushes nothing when it is
     // null — a summary with no Finishing rows is the visible symptom.
     const seat = component.resultsSnapshot?.seats[0];

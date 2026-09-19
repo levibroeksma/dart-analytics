@@ -5,6 +5,8 @@ import type { SessionClock } from "@modules/ui/session-clock.module";
 import type {
   StartTrainingResponseData,
   StartTrainingStepResponseData,
+  RoutineSummaryData,
+  RoutineExecutionData,
 } from "@client/api/types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
@@ -22,7 +24,7 @@ export type BlockingSession = {
   startedAt: string | null;
 };
 
-export type BalancedTrainingPlayContext = {
+export type RoutinePlayContext = {
   loading: boolean;
   error: string;
   activityId: string | null;
@@ -56,73 +58,99 @@ export type BalancedTrainingPlayContext = {
     };
     trainingSession: TrainingSessionStoreContext;
   };
-  init(this: BalancedTrainingPlayContext): Promise<void>;
-  currentStep(this: BalancedTrainingPlayContext): TrainingStepResolved | null;
+  init(this: RoutinePlayContext): Promise<void>;
+  currentStep(this: RoutinePlayContext): TrainingStepResolved | null;
   buildWarmUpEngine(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     configuration: Record<string, unknown>,
   ): void;
   buildSwitchingEngine(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     configuration: Record<string, unknown>,
   ): void;
   buildDoublePatternEngine(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     configuration: Record<string, unknown>,
   ): void;
   startFinishingStep(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     result: StartTrainingStepResponseData,
   ): void;
-  startCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
+  startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     result: StartTrainingStepResponseData,
     durationSeconds: number,
   ): void;
-  resolveBlockingSession(this: BalancedTrainingPlayContext): Promise<void>;
-  blockingStartedLabel(this: BalancedTrainingPlayContext): string;
-  startSessionClock(this: BalancedTrainingPlayContext): void;
-  stopSessionClock(this: BalancedTrainingPlayContext): void;
-  confirmWarmUpReady(this: BalancedTrainingPlayContext): void;
+  resolveBlockingSession(this: RoutinePlayContext): Promise<void>;
+  blockingStartedLabel(this: RoutinePlayContext): string;
+  startSessionClock(this: RoutinePlayContext): void;
+  stopSessionClock(this: RoutinePlayContext): void;
+  confirmWarmUpReady(this: RoutinePlayContext): void;
   startWarmUpTimer(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     configuration: Record<string, unknown>,
   ): void;
-  formattedWarmUpElapsed(this: BalancedTrainingPlayContext): string;
-  warmUpHighlightPath(this: BalancedTrainingPlayContext): string;
-  startStepTimer(
-    this: BalancedTrainingPlayContext,
-    durationSeconds: number,
-  ): void;
-  formattedStepRemaining(this: BalancedTrainingPlayContext): string;
-  switchingPoints(this: BalancedTrainingPlayContext): number;
-  switchingTargetLabel(this: BalancedTrainingPlayContext): string;
-  doublePatternPoints(this: BalancedTrainingPlayContext): number;
-  doublePatternLabel(this: BalancedTrainingPlayContext): string;
-  dartsThrown(this: BalancedTrainingPlayContext): number;
+  formattedWarmUpElapsed(this: RoutinePlayContext): string;
+  warmUpHighlightPath(this: RoutinePlayContext): string;
+  startStepTimer(this: RoutinePlayContext, durationSeconds: number): void;
+  formattedStepRemaining(this: RoutinePlayContext): string;
+  switchingPoints(this: RoutinePlayContext): number;
+  switchingTargetLabel(this: RoutinePlayContext): string;
+  doublePatternPoints(this: RoutinePlayContext): number;
+  doublePatternLabel(this: RoutinePlayContext): string;
+  dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
   ): SwitchingEngine | DoublePatternEngine | null;
-  visitMarkers(this: BalancedTrainingPlayContext): BoardMarker[];
-  previewSegments(this: BalancedTrainingPlayContext): PreviewSegment[];
+  visitMarkers(this: RoutinePlayContext): BoardMarker[];
+  previewSegments(this: RoutinePlayContext): PreviewSegment[];
   recordSwitchingDart(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
   recordDoublePatternDart(
-    this: BalancedTrainingPlayContext,
+    this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
-  undoVisit(this: BalancedTrainingPlayContext): void;
-  uploadCurrentStepFacts(this: BalancedTrainingPlayContext): Promise<void>;
-  completeCurrentStep(this: BalancedTrainingPlayContext): Promise<void>;
-  captureStepSummary(this: BalancedTrainingPlayContext): void;
-  completeRoutine(this: BalancedTrainingPlayContext): Promise<void>;
-  dismissSummary(this: BalancedTrainingPlayContext): void;
-  abandonAndExit(this: BalancedTrainingPlayContext): Promise<void>;
+  undoVisit(this: RoutinePlayContext): void;
+  uploadCurrentStepFacts(this: RoutinePlayContext): Promise<void>;
+  completeCurrentStep(this: RoutinePlayContext): Promise<void>;
+  captureStepSummary(this: RoutinePlayContext): void;
+  completeRoutine(this: RoutinePlayContext): Promise<void>;
+  dismissSummary(this: RoutinePlayContext): void;
+  abandonAndExit(this: RoutinePlayContext): Promise<void>;
 };
 
 export type TrainingSessionStoreContext = ReturnType<
   typeof trainingSessionStore
 >;
+
+export type TrainingIndexContext = {
+  loading: boolean;
+  error: string;
+  routines: RoutineSummaryData[];
+  init(this: TrainingIndexContext): Promise<void>;
+  durationLabel(routine: RoutineSummaryData): string;
+  detailHref(routine: RoutineSummaryData): string;
+};
+
+export type RoutineDetailContext = {
+  loading: boolean;
+  error: string;
+  routine: RoutineExecutionData | null;
+  deleting: boolean;
+  deleteBusy: boolean;
+  starting: boolean;
+  navigate(path: string): void;
+  init(this: RoutineDetailContext): Promise<void>;
+  durationLabel(this: RoutineDetailContext): string;
+  stepDuration(step: RoutineExecutionData["steps"][number]): string;
+  canEdit(this: RoutineDetailContext): boolean;
+  playPath(this: RoutineDetailContext): string;
+  editPath(this: RoutineDetailContext): string;
+  start(this: RoutineDetailContext): void;
+  requestDelete(this: RoutineDetailContext): void;
+  cancelDelete(this: RoutineDetailContext): void;
+  confirmDelete(this: RoutineDetailContext): Promise<void>;
+};
