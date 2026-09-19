@@ -1193,9 +1193,12 @@ export const vRoutineExecution = pgView("v_routine_execution", {
   routineId: uuid("routine_id"),
   routineName: text("routine_name"),
   isSystemTemplate: boolean("is_system_template"),
+  playerId: uuid("player_id"),
+  routineDescription: text("routine_description"),
   sequenceNumber: integer("sequence_number"),
   exerciseTemplateId: uuid("exercise_template_id"),
   exerciseName: text("exercise_name"),
+  exerciseDescription: text("exercise_description"),
   exerciseTypeKey: text("exercise_type_key"),
   exerciseRulesetVersionKey: text("exercise_ruleset_version_key"),
   gameTypeKey: text("game_type_key"),
@@ -1204,7 +1207,18 @@ export const vRoutineExecution = pgView("v_routine_execution", {
   defaultConfiguration: jsonb("default_configuration"),
   stepConfiguration: jsonb("step_configuration"),
 }).as(
-  sql`SELECT rt.id AS routine_id, rt.name AS routine_name, rt.is_system_template, rs.sequence_number, et.id AS exercise_template_id, et.name AS exercise_name, ext.implementation_key AS exercise_type_key, erv.implementation_key AS exercise_ruleset_version_key, gt.implementation_key AS game_type_key, rs.duration_value, dt.implementation_key AS duration_type_key, et.default_configuration, rs.configuration AS step_configuration FROM routine_templates rt JOIN routine_steps rs ON rs.routine_template_id = rt.id JOIN exercise_templates et ON et.id = rs.exercise_template_id JOIN exercise_types ext ON ext.id = et.exercise_type_id JOIN duration_types dt ON dt.id = rs.duration_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN exercise_ruleset_versions erv ON erv.id = et.exercise_ruleset_version_id`,
+  sql`SELECT rt.id AS routine_id, rt.name AS routine_name, rt.is_system_template, rt.player_id, rt.description AS routine_description, rs.sequence_number, et.id AS exercise_template_id, et.name AS exercise_name, et.description AS exercise_description, ext.implementation_key AS exercise_type_key, erv.implementation_key AS exercise_ruleset_version_key, gt.implementation_key AS game_type_key, rs.duration_value, dt.implementation_key AS duration_type_key, et.default_configuration, rs.configuration AS step_configuration FROM routine_templates rt JOIN routine_steps rs ON rs.routine_template_id = rt.id JOIN exercise_templates et ON et.id = rs.exercise_template_id JOIN exercise_types ext ON ext.id = et.exercise_type_id JOIN duration_types dt ON dt.id = rs.duration_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN exercise_ruleset_versions erv ON erv.id = et.exercise_ruleset_version_id`,
+);
+
+export const vExerciseTemplateCatalog = pgView("v_exercise_template_catalog", {
+  exerciseTemplateId: uuid("exercise_template_id"),
+  name: text(),
+  description: text(),
+  exerciseTypeKey: text("exercise_type_key"),
+  gameTypeKey: text("game_type_key"),
+  hasDefaultConfiguration: boolean("has_default_configuration"),
+}).as(
+  sql`SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, et.default_configuration IS NOT NULL AS has_default_configuration FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id WHERE et.is_system_template AND ext.is_published`,
 );
 
 export const vDartAnalytics = pgView("v_dart_analytics", {

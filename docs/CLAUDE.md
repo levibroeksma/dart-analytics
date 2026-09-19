@@ -30,7 +30,7 @@ Scope: all documentation under `docs/` (foundation docs, database handbook, API/
 
 ## Consistency Checks Before Finish
 
-- No contradiction between architecture docs and the migration/seed chain (migrations `0001`–`0037`, seeds `0001`–`0019`).
+- No contradiction between architecture docs and the migration/seed chain (migrations `0001`–`0038`, seeds `0001`–`0020`).
 - ID ownership consistent: Worker/API generates UUIDv7 for runtime entities.
 - CQRS-lite intact: writes to runtime tables, reads from `v_*` views.
 - Context Maintenance protocol (root `CLAUDE.md`) completed — ISO dates, map registration, checker pass.

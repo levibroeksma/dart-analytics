@@ -68,7 +68,7 @@ When documents conflict, higher wins; correct the lower one:
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
 7. `03-Engineering-Workflow.md`
-8. SQL migrations `0001`–`0037` and seeds
+8. SQL migrations `0001`–`0038` and seeds
 9. Application code in `app/`
 
 If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.

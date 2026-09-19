@@ -899,6 +899,25 @@ Matches the convention `activity_configurations` (`0030`), `exercise_types` and 
 
 ---
 
+## 0038_custom_routines.sql
+
+Purpose:
+
+Make player-authored routines representable and bounded (D305, D306, D321). <!-- 2026-09-19 -->
+
+Contains:
+
+- `chk_routine_templates_player_ownership`: a system routine has no owner, a user routine always has one
+- `fn_routine_templates_duration_bounds()` plus two deferred constraint triggers, `trg_routine_steps_duration_bounds` (on `routine_steps`) and `trg_routine_templates_duration_bounds` (on `routine_templates`, catching a user routine created with zero steps): the sum of a user routine's `MINUTES` steps must be 30-60, checked once at commit; system routines are exempt, so the seeded 5-minute Warm-Up stays valid
+- `v_routine_execution` recreated (the `0036` shape) with `player_id`, `routine_description` and `exercise_description`
+- `v_exercise_template_catalog`: the system exercise templates a routine step can be built from, with `has_default_configuration` marking one the builder must not offer
+
+The trigger function reads only `NEW.routine_template_id` (or `OLD` on a step delete/update); an `UPDATE` moving a step to a different routine would check only the destination routine's total, but the service never issues one — a step replacement is delete + insert. `database/seeds/0020_finishing_default_configuration.sql` backfills the Finishing (TUOD) template's `default_configuration` from Balanced Training's own step override, so a user step referencing it does not resolve to `{}`. `database/verification/0038_custom_routine_checks.sql` (10 checks) proves the CHECK, both triggers and both views against a live database.
+
+Never edits `0004`/`0011`/`0036`.
+
+---
+
 # Schema Changes
 
 
