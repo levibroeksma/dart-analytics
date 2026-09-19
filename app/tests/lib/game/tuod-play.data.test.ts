@@ -61,6 +61,7 @@ import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type {
+  DartFact,
   EngineFacts,
   StageFact,
   TuodAttemptInput,
@@ -97,6 +98,19 @@ function turnFact(
     completedAt: "2026-08-20T10:00:00.000Z",
     totalScore,
     darts: [],
+  };
+}
+
+function dartFact(sequence: number, score: number): DartFact {
+  return {
+    sequence,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: score === 0 ? null : score,
+    hitZoneKey: score === 0 ? "MISS" : "INNER_SINGLE",
+    score,
+    locationX: null,
+    locationY: null,
   };
 }
 
@@ -1733,6 +1747,39 @@ describe("tuodPlay — checkoutHint", () => {
     expect(component.checkoutHintFor.call(component, "participant-1")).toBe(
       "9 D16",
     );
+  });
+
+  it("shows a route the darts left can actually throw, not the longer curated one (#291)", () => {
+    const ctx = tuodPlay() as unknown as {
+      $store: {
+        game: {
+          configSnapshot: Seated<TuodSnapshot>;
+          stages: StageFact[];
+          turns: TurnFact[];
+          timerExpired: boolean;
+        };
+      };
+      engine: null;
+      checkoutHintFor: (seatRef: string) => string;
+    };
+    ctx.engine = null;
+    ctx.$store = {
+      game: {
+        configSnapshot: rounds(10),
+        stages: [BLOCK],
+        turns: [
+          turnFact("t1", 1, 41),
+          {
+            ...turnFact("t2", 2, 0),
+            completedAt: null,
+            darts: [dartFact(1, 1), dartFact(2, 0)],
+          },
+        ],
+        timerExpired: false,
+      },
+    };
+
+    expect(ctx.checkoutHintFor("participant-1")).toBe("BULL");
   });
 
   it("is empty when checkout hints are disabled", async () => {
