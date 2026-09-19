@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Confirmed after #297: balancedTrainingPlay's engine imports now resolve
+// Confirmed after #297: routinePlay's engine imports now resolve
 // under @modules/training/exercises/ and @lib/training/exercises/ (moved
 // from @modules/exercise/ and @lib/exercise/); import specifiers only, so
 // this file's assertions are unaffected.
@@ -23,23 +23,32 @@ vi.mock("@lib/game/play-lifecycle", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@lib/game/play-lifecycle")>()),
   playAbandonAndExit: vi.fn(),
 }));
+// This file's `location` mock below is a bare `{ href: "" }` object (needed
+// so the many `globalThis.location.href` write-assertions stay observable —
+// real jsdom Location silently no-ops a `.href` assignment instead of
+// updating it), which is not a parseable URL. routineIdFromLocation() is
+// mocked directly rather than driven through that `href` so every existing
+// test keeps a routine id without disturbing those assertions.
+vi.mock("@lib/training/routines/routine-route", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@lib/training/routines/routine-route")
+  >()),
+  routineIdFromLocation: vi.fn(() => "rt-1"),
+}));
 
 import * as trainingApi from "@client/api/training-sessions";
-import { balancedTrainingPlay } from "@lib/training/routines/balanced-training-play.data";
+import { routinePlay } from "@lib/training/routines/routine-play.data";
+import { routineIdFromLocation } from "@lib/training/routines/routine-route";
 import { trainingSessionStore } from "@stores/training-session.store";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";
 import { playAudioCue } from "@modules/ui/audio-cue.module";
 import { foldTuodState } from "@modules/game/tuod.engine.module";
-import type {
-  BalancedTrainingPlayContext,
-  Seated,
-  TuodSnapshot,
-} from "@lib/types";
+import type { RoutinePlayContext, Seated, TuodSnapshot } from "@lib/types";
 
-function makeStore(): BalancedTrainingPlayContext {
+function makeStore(): RoutinePlayContext {
   return {
-    ...balancedTrainingPlay(),
+    ...routinePlay(),
     $store: {
       game: { loading: false, reset: vi.fn(), startSession: vi.fn() },
       trainingSession: trainingSessionStore(),
@@ -61,7 +70,7 @@ const STEPS = [
   },
 ];
 
-describe("balancedTrainingPlay", () => {
+describe("routinePlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -102,13 +111,25 @@ describe("balancedTrainingPlay", () => {
   it("init() starts the routine and builds the training engine from the returned steps", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
     const store = makeStore();
     await store.init();
+    expect(trainingApi.startTraining).toHaveBeenCalledWith({
+      routineTemplateId: "rt-1",
+    });
     expect(store.activityId).toBe("act-1");
     expect(store.currentStep()?.exerciseTypeKey).toBe("WARM_UP");
+  });
+
+  it("reports an error and does not start when the URL names no routine", async () => {
+    vi.mocked(routineIdFromLocation).mockReturnValueOnce(null);
+    const store = makeStore();
+    await store.init();
+    expect(trainingApi.startTraining).not.toHaveBeenCalled();
+    expect(store.error).toContain("No routine");
   });
 
   it("init() names the API error code and request id when the routine cannot be opened", async () => {
@@ -140,6 +161,7 @@ describe("balancedTrainingPlay", () => {
   it("startCurrentStep() calls startTrainingStep with the current sequenceNumber and builds the Warm-Up engine", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -159,6 +181,7 @@ describe("balancedTrainingPlay", () => {
   it("startCurrentStep() for WARM_UP does not start the timer until confirmWarmUpReady() runs", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -181,6 +204,7 @@ describe("balancedTrainingPlay", () => {
   it("confirmWarmUpReady() unlocks the timer's audio synchronously, before any tick fires", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -207,6 +231,7 @@ describe("balancedTrainingPlay", () => {
   it("the Warm-Up timer advances the engine through its phase and completes the step at the end", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -237,6 +262,7 @@ describe("balancedTrainingPlay", () => {
   it("formattedWarmUpElapsed() reports mm:ss as the timer ticks", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -274,6 +300,7 @@ describe("balancedTrainingPlay", () => {
     };
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [STEPS[0], nextStep] as never,
     });
@@ -313,6 +340,7 @@ describe("balancedTrainingPlay", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -349,6 +377,7 @@ describe("balancedTrainingPlay", () => {
   it("the routine clock starts with the Warm-Up and reports the running step in the header", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -384,6 +413,7 @@ describe("balancedTrainingPlay", () => {
     };
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [STEPS[0], nextStep] as never,
     });
@@ -430,6 +460,7 @@ describe("balancedTrainingPlay", () => {
     };
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [STEPS[0], nextStep] as never,
     });
@@ -469,6 +500,7 @@ describe("balancedTrainingPlay", () => {
   it("stops the routine clock and marks the header complete once the last step completes", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -501,6 +533,7 @@ describe("balancedTrainingPlay", () => {
   it("surfaces an error instead of freezing on the Warm-Up screen when advancing to the next step fails", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -561,7 +594,7 @@ function stubAudioContext(): void {
   );
 }
 
-describe("balancedTrainingPlay — Switching", () => {
+describe("routinePlay — Switching", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -581,6 +614,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("startCurrentStep() for SWITCHING builds the dart engine and starts the countdown", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -599,6 +633,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("recordSwitchingDart() folds the dart into the engine", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -622,6 +657,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("startCurrentStep() for SWITCHING starts a countdown that ticks stepRemainingSeconds", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -641,6 +677,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("formattedStepRemaining() renders m:ss", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -661,6 +698,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("completeCurrentStep() stops the step timer", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -687,6 +725,7 @@ describe("balancedTrainingPlay — Switching", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -710,6 +749,7 @@ describe("balancedTrainingPlay — Switching", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -740,6 +780,7 @@ describe("balancedTrainingPlay — Switching", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -772,6 +813,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("switchingPoints() and switchingTargetLabel() read the engine's derived state", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -799,6 +841,7 @@ describe("balancedTrainingPlay — Switching", () => {
   it("previewSegments() marks an on-target dart hit and an off-target dart miss", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -844,7 +887,7 @@ const DOUBLE_PATTERN_STEP = {
   configuration: { patterns: [[20, 10, 5]] },
 };
 
-describe("balancedTrainingPlay — Double Pattern", () => {
+describe("routinePlay — Double Pattern", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -864,6 +907,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
   it("startCurrentStep() for DOUBLE_PATTERN builds the dart engine and starts the countdown", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP] as never,
     });
@@ -883,6 +927,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
   it("visitMarkers() reads from doublePatternEngine when that is the active step", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP] as never,
     });
@@ -907,6 +952,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
   it("doublePatternPoints() and doublePatternLabel() read the engine's derived state", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP] as never,
     });
@@ -934,6 +980,7 @@ describe("balancedTrainingPlay — Double Pattern", () => {
   it("previewSegments() counts only the double as a hit", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP] as never,
     });
@@ -981,7 +1028,7 @@ const GAME_STEP = {
   },
 };
 
-describe("balancedTrainingPlay — Finishing", () => {
+describe("routinePlay — Finishing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -1002,6 +1049,7 @@ describe("balancedTrainingPlay — Finishing", () => {
     vi.mocked(sessionApi.completeSession).mockReset();
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP, GAME_STEP] as never,
     });
@@ -1070,6 +1118,7 @@ describe("balancedTrainingPlay — Finishing", () => {
     });
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1113,6 +1162,7 @@ describe("balancedTrainingPlay — Finishing", () => {
     );
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1146,6 +1196,7 @@ describe("balancedTrainingPlay — Finishing", () => {
     });
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1171,6 +1222,7 @@ describe("balancedTrainingPlay — Finishing", () => {
     vi.mocked(sessionApi.completeSession).mockReset();
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [DOUBLE_PATTERN_STEP, GAME_STEP] as never,
     });
@@ -1205,6 +1257,7 @@ describe("balancedTrainingPlay — Finishing", () => {
   it("startCurrentStep() for GAME populates the global game store and builds finishingStep", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1234,6 +1287,7 @@ describe("balancedTrainingPlay — Finishing", () => {
   it("hands TUOD a camelCase snapshot seated on the step's own participant, so the play screen can derive its state", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1275,6 +1329,7 @@ describe("balancedTrainingPlay — Finishing", () => {
   it("the seated snapshot folds into a live TUOD state instead of throwing", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1306,7 +1361,7 @@ describe("balancedTrainingPlay — Finishing", () => {
   });
 });
 
-describe("balancedTrainingPlay — abandonAndExit", () => {
+describe("routinePlay — abandonAndExit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -1325,6 +1380,7 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -1358,6 +1414,7 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -1383,6 +1440,7 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
   it("is a no-op re-entrant call while a previous abandon is already in flight", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });
@@ -1405,6 +1463,7 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
   it("during the GAME step: delegates to playAbandonAndExit on the finishing controller, redirecting to /training and abandoning the routine", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [GAME_STEP] as never,
     });
@@ -1438,7 +1497,7 @@ describe("balancedTrainingPlay — abandonAndExit", () => {
   });
 });
 
-describe("balancedTrainingPlay — routine summary", () => {
+describe("routinePlay — routine summary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -1455,9 +1514,10 @@ describe("balancedTrainingPlay — routine summary", () => {
     vi.unstubAllGlobals();
   });
 
-  async function runSwitchingRoutine(): Promise<BalancedTrainingPlayContext> {
+  async function runSwitchingRoutine(): Promise<RoutinePlayContext> {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: [SWITCHING_STEP] as never,
     });
@@ -1527,6 +1587,7 @@ describe("balancedTrainingPlay — routine summary", () => {
   it("captures nothing for the Warm-Up", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
+      routineTemplateId: "rt-1",
       routineName: "Balanced Training",
       steps: STEPS as never,
     });

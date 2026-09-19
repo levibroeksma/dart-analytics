@@ -26,7 +26,7 @@ function read(relativePath: string): string {
 
 const standalonePage = read("../../../src/pages/games/tuod/play/index.astro");
 const routinePage = read(
-  "../../../src/pages/training/balanced-training/play/index.astro",
+  "../../../src/pages/training/routines/play/index.astro",
 );
 
 /**
