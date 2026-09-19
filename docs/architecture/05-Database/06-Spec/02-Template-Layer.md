@@ -273,7 +273,7 @@ ceiling only (`09-Training/01-Routines.md` §7). The same migration adds
 system routine never does — `configuration_templates` already had its own
 equivalent), and recreates `v_routine_execution` with `player_id`,
 `routine_description` and `exercise_description` so owner-scoped routine
-reads stay view-backed (D321, D324). See
+reads stay view-backed (D321, D336). See
 `docs/superpowers/specs/2026-09-18-custom-routine-builder-design.md` §3.
 
 ---

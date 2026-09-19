@@ -7,7 +7,7 @@ updated: 2026-09-19
 
 # Frontend Overview
 
-> **Version:** 0.3.7 (routine builder paragraph restated present tense — move-up/move-down reorder shipped, `@alpinejs/sort` declined for now, D333, 2026-09-19); prior 0.3.6 (Visual Board Input section corrected: all 9 rulesets support it, marker clearing described as the reveal-then-clear timer, 2026-08-26); prior 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
+> **Version:** 0.3.7 (routine builder paragraph restated present tense — move-up/move-down reorder shipped, `@alpinejs/sort` declined for now, D337, 2026-09-19); prior 0.3.6 (Visual Board Input section corrected: all 9 rulesets support it, marker clearing described as the reveal-then-clear timer, 2026-08-26); prior 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >
@@ -29,10 +29,10 @@ Structural patterns (folders, Alpine, modules) live in the handbook chapters bel
 
 A player-authored routine builder ships as Phase 1 of
 `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
-(migration `0038`, D324), against the `/api/routines` write contract in
+(migration `0038`, D336), against the `/api/routines` write contract in
 `06-API/04-Endpoint-Contracts.md`. `RoutineBuilder.astro`/`RoutineStepRow.astro`
 reorder a step list by move-up/move-down buttons, not drag — `@alpinejs/sort`
-was considered and declined for now (D333); it stays a deferred option, not
+was considered and declined for now (D337); it stays a deferred option, not
 added to `app/package.json`. <!-- 2026-09-19 -->
 
 ---

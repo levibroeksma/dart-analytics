@@ -381,12 +381,12 @@ user-authored routines preserves that without a special case. See D305 and
 `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
 §3.2-3.3 for the design; the enforcement mechanism — deferred constraint
 triggers on both `routine_steps` and `routine_templates` — is
-`database/migrations/0038_custom_routines.sql` (D324). The routine builder
+`database/migrations/0038_custom_routines.sql` (D336). The routine builder
 (`app/src/lib/training/routines/routine-builder.data.ts`,
 `app/src/modules/training/routines/routine-duration.module.ts`) and
 `routine.service.ts` pre-check the same floor client- and server-side before
 the trigger gets the final word at commit; migration `0038` is committed but
-applied to no database (D324), so today only the pre-checks run in practice.
+applied to no database (D336), so today only the pre-checks run in practice.
 <!-- 2026-09-19 -->
 
 ---
@@ -888,7 +888,7 @@ owner-aware `v_routine_execution`; the CRUD API (`GET`/`POST /api/routines`,
 `GET`/`PUT`/`DELETE /api/routines/:routineId`, `GET /api/exercise-templates`)
 and the builder UI (`/training/routines/{new,detail,edit,play}`,
 `RoutineBuilder.astro`) are both built. See D305/D306, refined by D321, for
-the duration-bound and endpoint-contract decisions, and D324 for the
+the duration-bound and endpoint-contract decisions, and D336 for the
 migration itself — committed but applied to no database. <!-- 2026-09-19 -->
 
 ---

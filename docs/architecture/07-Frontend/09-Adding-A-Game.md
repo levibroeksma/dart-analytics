@@ -113,7 +113,7 @@ Check `08-Component-Inventory.md` before hand-rolling markup — `SetupShell`,
 
 New schema means a new numbered migration; migrations (`0001`–`0038` is the
 full chain) are never edited once applied — `0038` itself is committed
-unapplied and is the chain head (D324, 2026-09-19). Full procedure:
+unapplied and is the chain head (D336, 2026-09-19). Full procedure:
 `05-Database/10-Database-Agent-Guide.md` §"Add a new game type".
 
 ## Two shapes to reuse, and who opts out
