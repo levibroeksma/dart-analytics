@@ -2,12 +2,12 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-17
+updated: 2026-09-19
 -->
 
 # Database View Strategy
 
-> **Version:** 1.4.0
+> **Version:** 1.5.0
 >
 > This document defines the strategy and rules for PostgreSQL views.
 >
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0036)
+# Implemented Views (migrations 0009–0038)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -146,7 +146,8 @@ The name should describe the returned data, not the underlying tables.
 | `v_session_overview` | API Read Model | History list |
 | `v_game_replay` | Replay | Chronological reconstruction |
 | `v_dart_analytics` | Analytics | Intention-complete dart dataset, scoped to the session's owning participant (2026-08-21) |
-| `v_routine_execution` | API Read Model | Ordered routine steps, carrying everything a step resolves from since `0036` (2026-09-17) |
+| `v_routine_execution` | API Read Model | Ordered routine steps, carrying everything a step resolves from since `0036`; `player_id`, `routine_description` and `exercise_description` since `0038`, so an owner-scoped routine read stays view-backed (2026-09-19) |
+| `v_exercise_template_catalog` | API Read Model | System exercise templates a routine step can be built from, with `has_default_configuration` marking one the builder must not offer (`0038`, 2026-09-19) |
 | `v_configuration_presets` | API Read Model | Preset discovery for game setup (2026-07-13) |
 | `v_dart_locations` | Analytics | Dart landing coordinates + derived radius/angle for `VISUAL_BOARD` capture; miss margin lives outside SQL (2026-08-05); scoped to the session's owning participant (2026-08-21) |
 | `v_player_settings` | API Read Model | Player default capture/input mode as `*_key`s; absent row means the service defaults apply (2026-08-08) |

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/template-layer
 read-when: adding/changing exercise/routine/configuration templates
-updated: 2026-09-18
+updated: 2026-09-19
 -->
 
 # Database Specification — Chapter 2: Template Layer
@@ -261,15 +261,19 @@ Resolution merges `exercise_templates.default_configuration` with this column to
 **Resolved Training Configuration** (§18) copied into `activity_configurations` at Training start.
 This is the seam §21 adaptive resolution occupies later, with no further schema change.
 
-**Planned (unbuilt):** a deferred constraint trigger will enforce a 30-60
-minute total-duration bound on a routine's steps when its parent
-`routine_templates.is_system_template = FALSE` (D305). System routines stay
-governed by the existing ≤60 minute ceiling only (`09-Training/01-Routines.md` §7).
-The same migration adds the ownership `CHECK` `routine_templates` lacks and
-`configuration_templates` has (a user routine always carries a `player_id`, a
-system routine never does), and recreates `v_routine_execution` with
-`player_id` and `description` so owner-scoped routine reads stay view-backed
-(D321, 2026-09-18). See
+**Built (migration `0038`, 2026-09-19):** a deferred constraint trigger
+(`trg_routine_steps_duration_bounds` on `routine_steps`,
+`trg_routine_templates_duration_bounds` on `routine_templates` for the
+zero-step case) enforces a 30-60 minute total-duration bound on a routine's
+`MINUTES` steps when its parent `routine_templates.is_system_template =
+FALSE` (D305). System routines stay governed by the existing ≤60 minute
+ceiling only (`09-Training/01-Routines.md` §7). The same migration adds
+`chk_routine_templates_player_ownership`, the ownership `CHECK`
+`routine_templates` lacked (a user routine always carries a `player_id`, a
+system routine never does — `configuration_templates` already had its own
+equivalent), and recreates `v_routine_execution` with `player_id`,
+`routine_description` and `exercise_description` so owner-scoped routine
+reads stay view-backed (D321, D324). See
 `docs/superpowers/specs/2026-09-18-custom-routine-builder-design.md` §3.
 
 ---

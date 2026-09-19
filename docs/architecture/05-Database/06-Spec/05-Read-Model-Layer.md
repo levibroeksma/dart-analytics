@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-09-17
+updated: 2026-09-19
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -190,11 +190,37 @@ Shows the ordered exercises of a routine for execution.
 
 ## Exposes
 
-Routine identity and name, `is_system_template`, step sequence, exercise identity and name, exercise type key, exercise ruleset version key, game type key, duration value and duration type key, plus the two configuration snapshots a step resolves from: the template's `default_configuration` and the step's own `step_configuration`. Every lookup is exposed as a `*_key`; no internal lookup ids are exposed. <!-- 2026-07-12 --> `game_type_key` is NULL for a non-game exercise step — `exercise_templates.game_type_id` is nullable from migration `0028`, and `0033` stops the join dropping such a step from the routine entirely. <!-- 2026-09-16 --> `exercise_ruleset_version_key` is the mirror case: NULL for a GAME step, which pins a game ruleset version on its session instead (D295). The six columns after `duration_type_key` were added by migration `0036` (D298). <!-- 2026-09-17 -->
+Routine identity and name, `is_system_template`, the routine's owner (`player_id`, NULL for a system routine) and `routine_description`, step sequence, exercise identity, name and `exercise_description`, exercise type key, exercise ruleset version key, game type key, duration value and duration type key, plus the two configuration snapshots a step resolves from: the template's `default_configuration` and the step's own `step_configuration`. Every lookup is exposed as a `*_key`; no internal lookup ids are exposed. <!-- 2026-07-12 --> `game_type_key` is NULL for a non-game exercise step — `exercise_templates.game_type_id` is nullable from migration `0028`, and `0033` stops the join dropping such a step from the routine entirely. <!-- 2026-09-16 --> `exercise_ruleset_version_key` is the mirror case: NULL for a GAME step, which pins a game ruleset version on its session instead (D295). The six columns after `duration_type_key` were added by migration `0036` (D298). `player_id`, `routine_description` and `exercise_description` were added by migration `0038` (D324), so an owner-scoped "system + own" routine list stays view-backed instead of joining `routine_templates` directly. <!-- 2026-09-19 -->
 
 ## Design Rationale
 
 The frontend renders and executes a routine from this single view without touching template tables. `findRoutineTemplateSteps` (`repositories/training-session.repository.ts`) does the same from migration `0036` on; until then it re-implemented the read against the template tables, because the view exposed none of the exercise type, ruleset version or configuration snapshots a step resolves from (issue #344, D299). A routine with no steps produces no rows here, so a stepless template reads as no routine at all. <!-- 2026-09-17 -->
+
+---
+
+# v_exercise_template_catalog
+
+## Category
+
+API Read Model
+
+## Purpose
+
+Lists the system exercise templates a player may compose a custom routine from — the routine builder's picker read (D306, D321). <!-- 2026-09-19 -->
+
+## Sources
+
+- exercise_templates
+- exercise_types
+- game_types (LEFT JOIN)
+
+## Exposes
+
+`exercise_template_id`, `name`, `description`, exercise type key, game type key, and `has_default_configuration` — a derived boolean (`default_configuration IS NOT NULL`), not a stored column. Filtered to `is_system_template` and the exercise type's `is_published`; a user-owned template never appears, and neither does a template of an unpublished exercise type. <!-- 2026-09-19 -->
+
+## Design Rationale
+
+The view is deliberately broad: it does not filter out a template whose `has_default_configuration` is FALSE (a GAME template, whose configuration comes from its game session, not a routine step) — narrowing to only the templates a routine step can actually use is the service layer's job (`listExerciseTemplates` filters on `hasDefaultConfiguration`), not the view's. Keeping the exclusion in the service, not the view, keeps the view a plain projection and leaves room for a future consumer that wants the unfiltered catalog. <!-- 2026-09-19 -->
 
 ---
 
