@@ -147,6 +147,13 @@ function snapshotOf(
  * check stays separate from it: "the session never stored one" and "the one
  * it stored no longer validates" are different facts about the data, and
  * only the second is a drift to be noticed.
+ *
+ * The first row's `participantId` is taken as *the* participant, which is
+ * sound for two reasons neither of which is visible from this module:
+ * `session-seats.service.ts` allows exactly one `PLAYER` seat per session,
+ * and `v_x01_checkout_darts` filters `p.player_id = es.player_id`, so every
+ * row a session contributes here belongs to its owner. Do not "fix" this
+ * into a per-participant grouping without changing one of those two first.
  */
 function visitsForSession(
   rows: readonly X01CheckoutDartRow[],

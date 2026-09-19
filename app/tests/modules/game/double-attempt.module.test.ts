@@ -171,12 +171,16 @@ describe("classifyDoubleAttempts", () => {
     expect(classifyDart(41, dart(20, "TREBLE", 60))).toBe("NOT_ATTEMPT");
   });
 
-  it("counts reference dart #2 (40 left, S20, same bed under the double wire) as a miss", () => {
-    expect(classifyDart(40, dart(20, "SINGLE", 20))).toBe("MISS");
+  // Banded zone keys, not the unbanded SINGLE: VISUAL_BOARD capture resolves
+  // every dart's band from its coordinates, so a band is always known by the
+  // time the classifier sees it. "Under the double wire" is the outer band;
+  // #3 uses the inner band so both are covered.
+  it("counts reference dart #2 (40 left, outer S20, same bed under the double wire) as a miss", () => {
+    expect(classifyDart(40, dart(20, "OUTER_SINGLE", 20))).toBe("MISS");
   });
 
-  it("counts reference dart #3 (40 left, S5, a segment bordering 20 only by wraparound) as a miss", () => {
-    expect(classifyDart(40, dart(5, "SINGLE", 5))).toBe("MISS");
+  it("counts reference dart #3 (40 left, inner S5, a segment bordering 20 only by wraparound) as a miss", () => {
+    expect(classifyDart(40, dart(5, "INNER_SINGLE", 5))).toBe("MISS");
   });
 
   it("counts reference dart #5 (40 left, T20 for 60, busts) as a miss", () => {

@@ -76,9 +76,17 @@ describe("formatStatisticsOverview", () => {
     expect(result.scoringAverageExcludingDoubles).toBe("48.1");
     expect(result.bestLegDarts).toBe("15 darts");
     expect(result.averageDartsPerLeg).toBe("18.5");
-    expect(result.checkoutPercentage).toBe("40%");
+    expect(result.checkoutPercentage).toBe("40.00%");
     expect(result.highestCheckoutValue).toBe("100");
     expect(result.highestCheckoutHint).toBe("Hit 2×");
+  });
+
+  it("renders Checkout % to two decimals, the same precision the result modals use", () => {
+    const result = formatStatisticsOverview({
+      ...ZERO,
+      checkoutPercentage: 1 / 3,
+    });
+    expect(result.checkoutPercentage).toBe("33.33%");
   });
 
   it("falls back to a dash for an unrecognized game type key", () => {
