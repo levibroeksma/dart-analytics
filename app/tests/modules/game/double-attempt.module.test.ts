@@ -171,6 +171,26 @@ describe("classifyDoubleAttempts", () => {
     expect(classifyDart(41, dart(20, "TREBLE", 60))).toBe("NOT_ATTEMPT");
   });
 
+  it("counts reference dart #2 (40 left, S20, same bed under the double wire) as a miss", () => {
+    expect(classifyDart(40, dart(20, "SINGLE", 20))).toBe("MISS");
+  });
+
+  it("counts reference dart #3 (40 left, S5, a segment bordering 20 only by wraparound) as a miss", () => {
+    expect(classifyDart(40, dart(5, "SINGLE", 5))).toBe("MISS");
+  });
+
+  it("counts reference dart #5 (40 left, T20 for 60, busts) as a miss", () => {
+    expect(classifyDart(40, dart(20, "TREBLE", 60))).toBe("MISS");
+  });
+
+  it("counts reference dart #8 (36 left, D8 for 16, the wrong double) as a miss", () => {
+    expect(classifyDart(36, dart(8, "DOUBLE", 16))).toBe("MISS");
+  });
+
+  it("excludes reference dart #10 (60 left, D20 for 40) as not one-dart finishable", () => {
+    expect(classifyDart(60, dart(20, "DOUBLE", 40))).toBe("NOT_ATTEMPT");
+  });
+
   it("tracks remaining score across multiple darts in one visit", () => {
     // 40 left: dart 1 hits inner single 20 (miss, same segment as D20),
     // remaining now 20; dart 2 hits D10 -> checks out (hit).
