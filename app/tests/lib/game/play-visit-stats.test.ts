@@ -55,6 +55,34 @@ describe("dartsThrownCount", () => {
     ];
     expect(dartsThrownCount(turns, 3)).toBe(4);
   });
+
+  it("counts a completed visit's own darts when it resolved early", () => {
+    const checkoutOnTwo = {
+      totalScore: 80,
+      completedAt: "2026-08-09T00:00:00.000Z",
+      darts: [{}, {}],
+    };
+    expect(dartsThrownCount([checkoutOnTwo], 3)).toBe(2);
+  });
+
+  it("mixes board visits of differing lengths with the open visit", () => {
+    const boardVisit = (dartCount: number) => ({
+      totalScore: 60,
+      completedAt: "2026-08-09T00:00:00.000Z",
+      darts: Array.from({ length: dartCount }, () => ({})),
+    });
+    const turns = [
+      boardVisit(3),
+      boardVisit(1),
+      { totalScore: 20, completedAt: null, darts: [{}] },
+    ];
+    expect(dartsThrownCount(turns, 3)).toBe(5);
+  });
+
+  it("still charges maxDartsPerTurn to a completed visit carrying no darts", () => {
+    const turns = [done(60), { totalScore: 45, darts: [] }];
+    expect(dartsThrownCount(turns, 3)).toBe(6);
+  });
 });
 
 describe("perVisitAverageDisplay", () => {

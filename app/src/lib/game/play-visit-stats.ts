@@ -33,20 +33,28 @@ export function previousScoreDisplay(turns: VisitLike[]): string {
 }
 
 /**
- * Darts thrown for display: `maxDartsPerTurn` for every resolved visit, plus
- * the darts actually thrown so far in the visit still open. Under quick score
- * no visit is ever open and every turn counts a full `maxDartsPerTurn`, which
- * is the original rule — the count only becomes finer-grained when the session
- * captures darts individually and the number is genuinely known.
+ * Darts thrown for display: each resolved visit's own dart rows when it has
+ * any, `maxDartsPerTurn` when it has none, plus the darts actually thrown so
+ * far in the visit still open. A board visit that resolves early — a checkout
+ * or a bust confirmed on its first or second dart — really did cost fewer than
+ * `maxDartsPerTurn`, so charging it the full visit overstates the leg. A
+ * quick-score turn carries no darts of its own and still counts a full
+ * `maxDartsPerTurn`, which is the original rule: the count only becomes
+ * finer-grained when the session captures darts individually and the number is
+ * genuinely known. The open visit is counted by its darts alone — it has not
+ * resolved, so the fallback must not apply to it.
  */
 export function dartsThrownCount(
   turns: VisitLike[],
   maxDartsPerTurn: number,
 ): number {
   const open = openVisit(turns);
-  return (
-    completedVisits(turns).length * maxDartsPerTurn + (open?.darts?.length ?? 0)
+  const completed = completedVisits(turns).reduce(
+    (sum, turn) =>
+      sum + (turn.darts?.length ? turn.darts.length : maxDartsPerTurn),
+    0,
   );
+  return completed + (open?.darts?.length ?? 0);
 }
 
 /**
