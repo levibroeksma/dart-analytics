@@ -1,32 +1,34 @@
 # Around the Clock
 
+Current version: V1 (shipped 2026-08-15)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                                      | Version |
-| ------------------------------------------------------------ | ------- |
-| Single player                                                | v1      |
-| Multiplayer (1v1)                                            | V1      |
-| Config screen (presets shown)                                | v1      |
-| Sequence low → high (1…20, then bull)                        | v1      |
-| Sequence high → low                                          | TBD     |
-| Other directions / paths                                     | TBD     |
-| Any segment counts (single/double/treble of the number)      | v1      |
-| Doubles-only path                                            | TBD     |
-| Trebles-only path                                            | TBD     |
-| Bull once (single or double bull)                            | v1      |
-| Easy: advance on any hit in the visit                        | v1      |
-| Intermediate: at least 1 dart on target per visit            | TBD     |
-| Hard: at least 2 of 3 darts on target                        | TBD     |
-| Pro: all 3 darts on target                                   | TBD     |
-| Fail / lose the game on missed visit (harder modes)          | TBD     |
-| Track turns to completion                                    | v1      |
-| Track hit ratio                                              | v1      |
-| Track what was hit per target (S/D/T)                        | v1      |
-| Visit = up to 3 darts                                        | v1      |
-| Standard dartboard scoring (assumed)                         | v1      |
-| Entry type per dart (e.g. target = 1, d1=miss, d2=s1, d3=s2) | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Config screen (presets shown) | V1 | All | |
+| Clock path: low → high (1…20, then bull) | V1 | All | |
+| Clock path: high → low | V2+ | All | Wanted, unscheduled: `AroundTheClockConfig` is an empty `.strict()` object, so the path is fixed and a direction toggle is a schema change |
+| Other directions / paths | V2+ | All | Wanted, unscheduled: same fixed-path schema gap as high → low, and no path other than 1…20 + bull has been defined |
+| Any segment counts (single/double/treble of the number) | V1 | All | |
+| Doubles-only / trebles-only path | V2+ | All | Wanted, unscheduled: a segment lock is a second fixed rule the empty config cannot express |
+| Bull once (single or double bull) | V1 | All | |
+| Easy: advance on any hit in the visit | V1 | All | |
+| Intermediate: at least 1 dart on target per visit | V2+ | All | Wanted, unscheduled: no difficulty key exists, and the fail behaviour for the harder modes is still an open question below |
+| Hard: at least 2 of 3 darts on target | V2+ | All | Wanted, unscheduled: same missing difficulty key and same open fail behaviour |
+| Pro: all 3 darts on target | V2+ | All | Wanted, unscheduled: same missing difficulty key and same open fail behaviour |
+| Fail / lose the game on missed visit (harder modes) | V2+ | All | Wanted, unscheduled: depends on Intermediate/Hard/Pro, and the open question below is exactly which fail behaviour it takes |
+| Track turns to completion | V1 | All | |
+| Track hit ratio | V1 | All | |
+| Track what was hit per target (S/D/T) | V1 | All | |
+| Visit = up to 3 darts | V1 | All | |
+| Standard dartboard scoring (assumed) | V1 | All | |
+| Entry type per dart (e.g. target = 1, d1=miss, d2=s1, d3=s2) | V1 | All | |
 
 ## Identity
 
@@ -38,19 +40,19 @@ Traditional pub game that also works as training: hit every segment “around”
 - **Session (V1):** complete one full clock. Optional later modes can fail the player for missing a visit’s hit requirement.
 - **1v1:** both seats finish their own circuit; fewest darts wins (score-compare, ties possible). <!-- 2026-08-22 -->
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets. In V1 most values are visible but locked; later versions unlock harder modes and path variants.
 
 | Setting      | V1 preset                                             | On config screen (V1) |
 | ------------ | ----------------------------------------------------- | --------------------- |
-| Players      | Single player                                         | Shown, locked         |
+| Players      | 1 seat, or 2 (you + one guest)                        | Editable              |
 | Path         | Low → high (1…20, bull)                               | Shown, locked         |
 | Segment rule | Any (single, double, or treble of the current number) | Shown, locked         |
 | Bull         | Hit once (single or double bull)                      | Shown, locked         |
 | Difficulty   | Easy — any hit on the current target advances         | Shown, locked         |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -70,7 +72,26 @@ The run ends when the bull has been hit once after 1–20 are cleared.
 
 N/A — there is no X01-style bust. Harder modes (later) can fail a visit or the whole game instead.
 
-## Later versions (V2+)
+### Ends when
+
+The circuit is complete: 1 through 20 cleared in order, then the bull hit once.
+The bull hit ends the visit and the session immediately — the remaining darts of
+that visit are not thrown. Nothing else bounds a session: no clock, no visit
+budget.
+
+**Single:** the one seat plays until its own circuit is complete.
+
+**1v1:** each seat runs its own circuit, and neither is cut short — the match
+ends once both are complete. Fewest darts wins; equal darts is a tie, with no
+tiebreak.
+
+### Result
+
+Darts thrown to complete the circuit, the hit ratio, and what was hit on each
+target (single / double / treble). In 1v1, the winning seat beside both seats'
+dart counts, or a tie.
+
+## Later versions
 
 ### Variants
 
@@ -97,7 +118,28 @@ N/A — there is no X01-style bust. Harder modes (later) can fail a visit or the
 | **Clock path**                       | V1       | Ordered list of targets (default 1…20, bull).                     |
 | **Any segment**                      | V1       | Single, double, or treble of the current number counts.           |
 | **Doubles-only / trebles-only**      | V2+      | Only that ring of the current number counts.                      |
-| **Easy / Intermediate / Hard / Pro** | V1 / V2+ | How many darts of a visit must hit before advancing (or failing). |
+| **Easy**                             | V1       | Any dart of the visit that hits the current target advances it.   |
+| **Intermediate**                     | V2+      | At least 1 dart of the visit must hit the current target.         |
+| **Hard**                             | V2+      | At least 2 of the visit's 3 darts must hit the current target.    |
+| **Pro**                              | V2+      | All 3 darts of the visit must hit the current target.             |
+
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — every dart thrown is
+  recorded. Also implemented: ANALYTICS + VISUAL_BOARD, the same darts with real
+  landing coordinates.
+- **One dart's fact:** intended = **nothing stored** — both the target number and
+  the ring are null. Any ring of the current number advances the clock, so all
+  three are valid intentional outcomes and recording one would fabricate an
+  intent the player never held; the intended target is recoverable from the
+  circuit position instead. Hit = whatever landed; `score` = the **board** score
+  of that dart (S1 = 1, T20 = 60, inner bull = 50, miss = 0).
+- **Stage type:** one `EXERCISE_BLOCK` per seat for the whole circuit — stage
+  ownership is `PER_SEAT`, so a 1v1 match holds one block per seat, never a
+  shared one. No stage opens per target.
+- **Derived, never stored:** the current target, turns to completion, the hit
+  ratio, and the per-target hit type — all folded from the dart facts against
+  the fixed 1…20 + bull path.
 
 ## Open questions
 

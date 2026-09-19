@@ -4,15 +4,16 @@
 # Shape is inferred from the folder. README.md and anything under a _drafts/
 # directory are skipped.
 #
-# Runs warn-only by default while the existing 11 rulesets are backfilled
-# (GitHub #464, #465). Set GAME_RULES_GATE=block to fail on findings; the
-# backfill PR flips the default.
+# Blocking by default: any finding fails the run. Set GAME_RULES_GATE=warn to
+# print findings without failing, which is useful mid-edit but is not what CI
+# runs. The default was warn until the #464/#465 backfill landed all 12 files
+# on the contract (D323).
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-MODE="${GAME_RULES_GATE:-warn}"
+MODE="${GAME_RULES_GATE:-block}"
 FINDINGS=0
 
 note() {
@@ -249,6 +250,6 @@ if [ "$MODE" = "block" ]; then
   exit 1
 fi
 
-echo "check-game-rules: WARN — not failing while the backfill is open (#464, #465)."
-echo "                  Set GAME_RULES_GATE=block to enforce."
+echo "check-game-rules: WARN — not failing (GAME_RULES_GATE=warn)."
+echo "                  Unset it to enforce; block is the default."
 exit 0

@@ -1,25 +1,28 @@
 # Cricket
 
+Current version: none (V1 in design)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                     | Version |
-| ------------------------------------------- | ------- |
-| Single player (practice / vs bot later)     | v1      |
-| Multiplayer (2+ players)                    | TBD     |
-| Config screen (presets shown)               | v1      |
-| Objectives: 20–15 + bull                    | v1      |
-| 3 marks to close a number / bull            | v1      |
-| Single = 1 mark, double = 2, treble = 3     | v1      |
-| Bull: outer = 1 mark, inner = 2 marks       | v1      |
-| Points on closed-but-opponent-open numbers  | v1      |
-| Dead number when all players have closed it | v1      |
-| Win: all closed + score ≥ opponent(s)       | v1      |
-| Cut-throat variant                          | TBD     |
-| No Doubles/Triples categories (see Tactics) | TBD     |
-| Visit = up to 3 darts                       | v1      |
-| Standard dartboard scoring (assumed)        | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player (practice / vs bot later) | V1 | Single | |
+| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: Cricket has no engine, no `game_types` row and no seeded ruleset version, so nothing seats an opponent yet |
+| Config screen (presets shown) | V1 | All | |
+| Objectives: 20–15 + bull (Classic Cricket) | V1 | All | |
+| Close: 3 marks on a number or the bull | V1 | All | |
+| Single = 1 mark, double = 2, treble = 3 | V1 | All | |
+| Bull: outer = 1 mark, inner = 2 marks | V1 | All | |
+| Own / score on: points on closed-but-opponent-open numbers | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — with one seat there is no opponent for a number to stay open against |
+| Dead number when all players have closed it | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, for the same reason as Own / score on |
+| Win: all closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; the solo practice win condition is still an open question below |
+| Cut-throat variant | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
+| No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
+| Visit = up to 3 darts | V1 | All | |
+| Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
 
@@ -31,17 +34,17 @@ Standard (American) **Cricket**: close **20–15** and the **bull**, and score p
 - Hold a **point total ≥ every opponent** when you finish closing.
 - **Session (V1):** one game under these rules (multiplayer is the natural form; single-player may be practice-only until opponents/bots exist).
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets.
 
 | Setting    | V1 preset                                                   | On config screen (V1) |
 | ---------- | ----------------------------------------------------------- | --------------------- |
-| Players    | 2 (when multiplayer available); else single-player practice | Shown, locked         |
+| Players    | 1 seat, solo practice; a second seat follows with Multiplayer | Shown, locked         |
 | Objectives | 20–15 + Bull                                                | Shown, locked         |
 | Variant    | Classic (highest score wins with all closed)                | Shown, locked         |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -71,7 +74,23 @@ First player to close **all** objectives with a score **≥** every opponent win
 
 N/A in the X01 sense.
 
-## Later versions (V2+)
+### Ends when
+
+**Single:** all seven objectives — 20, 19, 18, 17, 16, 15 and the bull — are
+closed. Nothing else bounds a run: no clock, no visit budget. What a solo run
+counts as a *win* rather than merely a completed run is still an open question
+below.
+
+Once Multiplayer ships, the session instead ends when one player is closed out
+with a point total at least equal to every opponent's.
+
+### Result
+
+Darts thrown, and per objective the marks it took to close. Points appear
+alongside them once Multiplayer ships and a number can be open against an
+opponent.
+
+## Later versions
 
 ### Variants
 
@@ -96,6 +115,26 @@ N/A in the X01 sense.
 | **Dead**            | V1      | Closed by all players → no further scoring.                   |
 | **Classic Cricket** | V1      | 20–15 + bull only (no separate D/T categories).               |
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
+
+## Capture
+
+Cricket is unbuilt; this is the capture shape its V1 is designed for, not an
+as-built description.
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — a mark is read off
+  the dart's number and ring, so the visit total alone cannot express it and
+  QUICK_SCORE cannot carry this game.
+- **One dart's fact:** intended = **nothing stored** — both the target number
+  and the ring are null. A visit has no single required target: any of the seven
+  objectives is a legitimate aim, and the player may switch mid-visit, so any
+  stored intent would be invented. Hit = whatever landed; `score` = the
+  **board** score of that dart (S20 = 20, T20 = 60, outer bull = 25, miss = 0) —
+  never the marks it produced and never the Cricket points it scored.
+- **Stage type:** one `EXERCISE_BLOCK` for the whole game. No stage opens per
+  objective; the objectives are all live at once.
+- **Derived, never stored:** marks per objective, which objectives are closed or
+  dead, and the point total — all folded from the dart facts against the fixed
+  20–15 + bull objective set.
 
 ## Open questions
 

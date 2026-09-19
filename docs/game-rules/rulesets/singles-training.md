@@ -1,27 +1,30 @@
 # Singles Training
 
+Current version: V3 (shipped 2026-09-12)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                       | Version |
-| --------------------------------------------- | ------- |
-| Single player                                 | v1      |
-| Multiplayer (1v1)                             | V1      |
-| Online multiplayer                            | TBD     |
-| Config screen (presets shown)                 | v1      |
-| Order: low → high (1…20, bull)                | v1      |
-| Order: high → low (bull…1)                    | v1      |
-| Order: randomized (each target once)          | v1      |
-| Points: S=1, D=2, T=3 per dart on target      | v1      |
-| Easy: score whatever you hit (misses allowed) | v1      |
-| Hard: at least 1 dart must hit the target     | V2      |
-| Extreme: at least 2 darts must hit            | V2      |
-| Accuracy mode: only outer single / either bull ring scores | V3      |
-| Professional: all 3 darts must hit            | TBD     |
-| Visit = 3 darts per target                    | v1      |
-| Track score / hit quality                     | v1      |
-| Standard dartboard layout (assumed)           | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Online multiplayer | V2+ | 1v1 | Wanted, unscheduled: every seat is local to one device — a remote seat needs a whole networked session layer that does not exist |
+| Config screen (presets shown) | V1 | All | |
+| Order: Low → high (1…20, bull) | V1 | All | |
+| Order: High → low (bull…1) | V1 | All | |
+| Order: Random (each target once) | V1 | All | |
+| Training points: S=1, D=2, T=3 per dart on target | V1 | All | |
+| Easy: score whatever you hit (misses allowed) | V1 | All | |
+| Hard: at least 1 dart must hit the target | V2 | All | Shipped as `SinglesV2Config.difficulty = HARD`: V1 had no bust condition at all, so nothing made a visit cost anything |
+| Extreme: at least 2 darts must hit | V2 | All | Shipped as `SinglesV2Config.difficulty = EXTREME`, alongside Hard and for the same reason |
+| Accuracy mode: only outer single / either bull ring scores | V3 | All | Shipped as `SinglesV3Config`: it needs coordinate capture to tell an outer single from an inner one, which only arrived with ANALYTICS + VISUAL_BOARD |
+| Professional: all 3 darts must hit | V2+ | All | Wanted, unscheduled: `SinglesV3Config.difficulty` admits `EASY`/`HARD`/`EXTREME` only, so a fourth level is a new ruleset version |
+| Visit = 3 darts per target | V1 | All | |
+| Track score / hit quality | V1 | All | |
+| Standard dartboard layout (assumed) | V1 | All | |
 
 ## Identity
 
@@ -33,19 +36,19 @@ Section training: one target at a time, three darts each, scoring by ring qualit
 - **Session (V1):** complete the full order (all numbers and bull once) and total the points.
 - **1v1:** highest total training points wins; ties possible, no tiebreak in this version.
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets. In V1 most values are visible but locked; order is the one editable knob.
 
 | Setting    | V1 preset                                                       | On config screen (V1) |
 | ---------- | --------------------------------------------------------------- | --------------------- |
-| Players    | Single player                                                   | Shown, locked         |
+| Players    | 1 seat; a guest or DartBot seat on V1 only                      | Editable on V1        |
 | Order      | Low → high, high → low, or randomized — player's choice         | Editable              |
 | Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 | Scoring    | Standard (default) or Accuracy — editable from V3 onward         | Editable (V3+)         |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -73,9 +76,31 @@ Session ends when every target in the order has been visited once.
 
 N/A.
 
-## Later versions (V2+)
+### Ends when
 
-### Hard / Extreme difficulty (V2 — implemented)
+Every target in the order has been visited once — all 21, the numbers 1–20 and
+the bull. Nothing else bounds a run: no clock, no visit budget. From V2, a Hard
+or Extreme run can also end early, the moment a visit fails its mandatory-hit
+requirement.
+
+**Single:** the one seat plays its own order to the end, or ends early on a
+failed mandatory hit under Hard/Extreme.
+
+**1v1:** both seats play their full order and neither is cut short; the match
+ends once both are done, and the higher training-point total wins, with equal
+totals a tie and no tiebreak. Under Hard/Extreme a failed mandatory hit instead
+ends the match immediately and the other seat wins, whatever the points. 1v1 is
+a V1-only ruleset — a V2 or V3 session (Hard/Extreme, or Accuracy) seats one
+player.
+
+### Result
+
+The total training points, with hit quality per target. In 1v1, the winning seat
+beside both seats' totals, or a tie.
+
+## Later versions
+
+### Hard / Extreme difficulty
 
 A difficulty toggle, **Easy** (default), **Hard**, or **Extreme**, editable on the config screen alongside order:
 
@@ -85,7 +110,7 @@ A difficulty toggle, **Easy** (default), **Hard**, or **Extreme**, editable on t
 
 Available under both Recreational and Analytical capture modes, same as V1.
 
-### Accuracy mode (V3 — implemented)
+### Accuracy mode
 
 A scoring-mode toggle, **Standard** (default, identical to V1/V2's ring-quality scoring) or **Accuracy**, editable on the config screen alongside order and difficulty:
 

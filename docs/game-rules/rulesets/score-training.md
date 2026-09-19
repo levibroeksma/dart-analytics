@@ -1,26 +1,29 @@
 # Score Training
 
+Current version: V1 (shipped 2026-07-16)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                | Version         |
-| -------------------------------------- | --------------- |
-| Single player                          | v1              |
-| Multiplayer (1v1)                      | V1              |
-| Config screen (mode + duration)        | v1              |
-| Fixed number of visits (N turns)       | v1 (default 10) |
-| N editable (1–100)                     | v1              |
-| Timed session (minutes)                | v1 (default 5)  |
-| Minutes editable (3–30)                | v1              |
-| Score as high as possible (face value) | v1              |
-| All board segments count               | v1              |
-| Bulls count (25 / 50)                  | v1              |
-| Visit = 3 darts                        | v1              |
-| Track total score                      | v1              |
-| Track 3-dart average                   | v1              |
-| Target score / challenge goal          | v1              |
-| Standard dartboard scoring (assumed)   | v1              |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Config screen (Mode + duration) | V1 | All | |
+| Fixed number of visits (N turns, default 10) | V1 | All | |
+| N editable (1–100) | V1 | All | |
+| Timed session (minutes, default 5) | V1 | All | |
+| Minutes editable (3–30) | V1 | All | |
+| Score as high as possible (face value) | V1 | All | |
+| All board segments count | V1 | All | |
+| Bulls count (25 / 50) | V1 | All | |
+| Visit = 3 darts | V1 | All | |
+| Track total score | V1 | All | |
+| Track 3-dart average | V1 | All | |
+| Target score / challenge goal | V2+ | All | Wanted, unscheduled: `ScoreTrainingConfig` carries only `duration_type`, `duration_value`, `max_darts_per_turn` and `max_visit_score` — there is no goal field, and a goal also needs a pass/fail result the session has no notion of |
+| Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
 
@@ -33,19 +36,19 @@ Simple scoring practice: throw for **N** visits and pile up as many points as yo
 - **Session (V1), Timed mode:** score for **M** minutes; total at time-up is the result.
 - **1v1:** ROUNDS mode only. Both seats play the full round budget; highest total score wins (score-compare, ties possible). <!-- 2026-08-22 -->
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session config. Setup radios select the **mode** (Rounds / Timed), not preset names.
 
 | Setting    | Preset / default                         | On config screen     |
 | ---------- | ----------------------------------------- | --------------------- |
-| Players    | Single player                             | Shown, locked          |
+| Players    | 1 seat, or 2 (guest or DartBot), Rounds mode only | Editable       |
 | Mode       | Rounds or Timed                           | Radios                 |
 | Visits (N) | Default **10** (min **1**, max **100**)   | Editable when Rounds   |
 | Minutes    | Default **5** (min **3**, max **30**)     | Editable when Timed    |
 | Scoring    | Full board, standard values               | Shown, locked          |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -63,7 +66,26 @@ Rounds mode: session ends after visit N. Timed mode: session ends when the clock
 
 N/A.
 
-## Later versions (V2+)
+### Ends when
+
+Whichever bound the chosen mode sets, and nothing else:
+
+- **Rounds mode** — after visit **N** (1–100, default 10).
+- **Timed mode** — when the **M**-minute clock reaches 0 (3–30, default 5); the
+  visit in progress finishes first.
+
+**Single:** the one seat plays its own budget out.
+
+**1v1:** Rounds mode only. Both seats play the full round budget and neither is
+cut short; the match ends once both are done. Highest total wins; equal totals
+is a tie, with no tiebreak. A DartBot seat counts as the opponent seat.
+
+### Result
+
+The total score and the 3-dart average, with visits played. In 1v1, the winning
+seat beside both seats' totals, or a tie.
+
+## Later versions
 
 ### Variants
 

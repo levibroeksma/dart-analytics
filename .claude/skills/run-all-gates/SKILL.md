@@ -32,11 +32,11 @@ bash scripts/check-game-rules.sh
 shape's template contract — required sections, the `Version`/`Applies to`
 vocabulary, the `Current version:` and `Entry points:` header fields, and
 Glossary → Features agreement. Shape is inferred from the folder;
-`README.md` and anything under a `_drafts/` directory are skipped. It runs
-**warn-only** by default while the existing 11 rulesets are backfilled
-(GitHub #464, #465): findings are printed, the exit code stays 0. Set
-`GAME_RULES_GATE=block` to enforce, which the backfill PR makes the default.
-(2026-09-19, D322)
+`README.md` and anything under a `_drafts/` directory are skipped. It is
+**blocking**: any finding fails the run. `GAME_RULES_GATE=warn` prints the
+findings and exits 0, which is useful mid-edit but is not what CI runs — the
+default was warn only until the #464/#465 backfill landed all 12 files on the
+contract. (2026-09-19, D322; blocking 2026-09-19, D323)
 
 `check-worktree-location.sh` fails when a worktree inside the repo root sits anywhere but `.worktrees/`, or when the retired `.claude/worktrees/` directory exists. A checkout *beside* the repo is out of scope — it is a separate working copy, not a task worktree. It also prints a non-fatal `WARN` for a `.worktrees/` worktree whose branch is already merged into `origin/main`: the prune signal D312 asked for, left advisory because worktrees are shared across concurrent sessions and another session's landed branch must not fail your commit. In CI there are no task worktrees, so it passes vacuously.
 

@@ -1,26 +1,29 @@
 # Bob's 27
 
+Current version: V1 (shipped 2026-08-12)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                         | Version |
-| ----------------------------------------------- | ------- |
-| Single player                                   | v1      |
-| Multiplayer vs guest                            | V1      |
-| Vs DartBot                                      | TBD     |
-| Config screen (presets shown)                   | v1      |
-| Start score 27                                  | v1      |
-| Path D1…D20 then bull                           | v1      |
-| 3 darts per double                              | v1      |
-| Hit: add double’s value to score                | v1      |
-| Three misses: subtract 1× double’s value        | v1      |
-| Miss = anything except the double               | v1      |
-| Traditional: ≤0 is game over                    | v1      |
-| Traditional: win if score > 0 after bull visit  | v1      |
-| Easy / beginner: cannot die (negative allowed)  | TBD     |
-| Easy: ends after bull visit regardless of score | TBD     |
-| Standard dartboard (assumed)                    | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer vs guest | V1 | 1v1 | |
+| Vs DartBot | V1 | 1v1 | |
+| Config screen (presets shown) | V1 | All | |
+| Start score 27 | V1 | All | |
+| Path D1…D20 then bull | V1 | All | |
+| 3 darts per double | V1 | All | |
+| Hit: add double’s value to score | V1 | All | |
+| Full miss visit: subtract 1× double’s value | V1 | All | |
+| Miss = anything except the double | V1 | All | |
+| Traditional: ≤0 is game over | V1 | All | |
+| Traditional: win if score > 0 after bull visit | V1 | All | |
+| Easy / beginner: cannot die (negative allowed) | V2+ | All | Wanted, unscheduled: `Bobs27Config` carries only `start_score`, `bull_hit_value` and `miss_penalty_multiplier` — no mode key, so a death-free run is a schema change plus an engine branch |
+| Easy: ends after bull visit regardless of score | V2+ | All | Wanted, unscheduled: the other half of the Easy mode above, and blocked on the same missing mode key |
+| Standard dartboard (assumed) | V1 | All | |
 
 ## Identity
 
@@ -32,18 +35,18 @@ Popular doubles training game with a running score. Start at **27**, throw three
 - **Session (V1):** one full traditional run (D1…D20, bull).
 - **1v1:** first to bust loses; the other seat wins (elimination). <!-- 2026-08-22 -->
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets.
 
 | Setting     | V1 preset       | On config screen (V1) |
 | ----------- | --------------- | --------------------- |
-| Players     | Single player   | Shown, locked         |
+| Players     | 1 seat, or 2 (guest or DartBot) | Editable |
 | Mode        | Traditional     | Shown, locked         |
 | Start score | 27              | Shown, locked         |
 | Path        | D1 → D20 → bull | Shown, locked         |
 
-## How to play (V1) — Traditional
+## How to play — Traditional
 
 ### Visit
 
@@ -81,7 +84,23 @@ After each visit, advance to the next double (1 → 2 → … → 20 → bull).
 
 N/A as X01 bust; going to ≤0 ends the traditional game.
 
-## Later versions (V2+)
+### Ends when
+
+The path is finished — three darts at the bull, after D1 through D20 — or the
+score reaches **0 or below**, whichever comes first. Nothing else bounds a run.
+
+**Single:** the one seat plays its own path; dying ends the run as a loss,
+surviving the bull visit with a positive score ends it as a win.
+
+**1v1:** elimination — the first seat to reach 0 or below loses and the match
+ends there, the other seat wins. A DartBot seat counts as the opponent seat.
+
+### Result
+
+The final score, the win or loss, and per target: hits and full-miss visits. In
+1v1, the winning seat beside both seats' final scores.
+
+## Later versions
 
 ### Variants — Easy / beginner
 
@@ -89,8 +108,8 @@ Player **cannot die**; score may go negative. Run still ends when the bull visit
 
 ### Match structure / other
 
-- **V3-style:** optional multiplayer against a guest (easy and traditional)
-- **V4-style:** optional vs DartBot (easy and traditional)
+- Guest and DartBot opponents both shipped under V1 (traditional only); the
+  same seats under Easy follow whenever Easy ships.
 
 ## Glossary
 

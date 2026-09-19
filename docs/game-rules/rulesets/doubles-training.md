@@ -1,26 +1,29 @@
 # Doubles Training
 
+Current version: V1 (shipped 2026-08-13)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                                      | Version |
-| ------------------------------------------------------------ | ------- |
-| Single player                                                | v1      |
-| Multiplayer (1v1)                                            | V1      |
-| Config screen (presets shown)                                | v1      |
-| Easy mode (advance after visit even on miss)                 | v1      |
-| Hard mode (stay until hit)                                   | TBD     |
-| Challenge mode (miss all 3 → step back; D1 miss → game over) | TBD     |
-| Order: low → high (ending on bull)                           | v1      |
-| Order: high → low (bull leads)                                | v1      |
-| Order: randomized                                            | v1      |
-| 3 darts per double                                           | v1      |
-| Hit ends visit early                                         | v1      |
-| Track overall hit/miss ratio                                 | v1      |
-| Track per-target hit/miss ratio                              | v1      |
-| Track which dart hit (1st / 2nd / 3rd)                       | v1      |
-| Standard dartboard (assumed)                                 | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Config screen (presets shown) | V1 | All | |
+| Easy mode (advance after visit even on miss) | V1 | All | |
+| Hard mode (stay until hit) | V2+ | All | Wanted, unscheduled: `DoublesTrainingConfig.mode` admits only `EASY`, so a second mode is a schema change plus an engine branch |
+| Challenge mode (miss all 3 → step back; D1 miss → game over) | V2+ | All | Wanted, unscheduled: same single-value `mode` enum as Hard mode, and it adds a step-back rule the engine has no notion of |
+| Order: Low → high (ending on bull) | V1 | All | |
+| Order: High → low (bull leads) | V1 | All | |
+| Order: Random (all 21 targets shuffled) | V1 | All | |
+| 3 darts per double | V1 | All | |
+| Hit ends visit early | V1 | All | |
+| Track overall hit/miss ratio | V1 | All | |
+| Track per-target hit/miss ratio | V1 | All | |
+| Track which dart hit (1st / 2nd / 3rd) | V1 | All | |
+| Standard dartboard (assumed) | V1 | All | |
 
 ## Identity
 
@@ -32,17 +35,17 @@ Doubles practice: work through each double (and bull) with three darts per targe
 - **Session (V1 easy):** visit every double once in order (1…20, then bull), whether or not you hit.
 - **1v1:** most doubles hit across all 21 targets wins; ties possible, no tiebreak in this version.
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets.
 
 | Setting | V1 preset                   | On config screen (V1) |
 | ------- | --------------------------- | --------------------- |
-| Players | Single player               | Shown, locked         |
+| Players | 1 seat, or 2 (guest or DartBot) | Editable          |
 | Mode    | Easy                        | Shown, locked         |
 | Order   | Low → high, high → low, or randomized — player's choice | Editable |
 
-## How to play (V1) — Easy mode
+## How to play — Easy mode
 
 ### Visit
 
@@ -70,7 +73,25 @@ Session ends after the bull visit.
 
 N/A.
 
-## Later versions (V2+)
+### Ends when
+
+The path is complete: all 21 targets — the 20 doubles and the bull — visited
+once, in whichever order was chosen at setup. Nothing else bounds a run: no
+clock, no visit budget, and under Easy a miss never repeats a target.
+
+**Single:** the one seat plays its own path to the end.
+
+**1v1:** each seat plays its own full path and neither is cut short; the match
+ends once both are done. Most doubles hit wins; equal counts is a tie, with no
+tiebreak. A DartBot seat counts as the opponent seat.
+
+### Result
+
+Doubles hit out of 21, the overall hit/miss ratio, the per-target ratio, and
+which dart of each visit scored the hit. In 1v1, the winning seat beside both
+seats' hit counts, or a tie.
+
+## Later versions
 
 ### Variants — Hard mode
 
