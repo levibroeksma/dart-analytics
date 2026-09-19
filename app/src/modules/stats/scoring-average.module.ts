@@ -1,9 +1,21 @@
 import { classifyDart } from "@modules/game/double-attempt.module";
-import type { CheckoutVisitDarts } from "@modules/types";
+import type { CheckoutVisitTotals } from "@modules/types";
 import { effectiveDartsForVisit } from "./visit-stats.module";
 import type { PlayerVisitFactRow } from "./types";
 
-function attemptDartsTotals(visits: readonly CheckoutVisitDarts[]): {
+/**
+ * How much of the career total, and how many of the career darts, belong to
+ * double-out attempts rather than scoring.
+ *
+ * The score side reads the visit's *counted* total, not its darts. A visit
+ * whose engine recorded 0 -- a busted 501 or 121 visit, or any failed TUOD
+ * attempt -- contributed nothing to the numerator this is subtracted from,
+ * which is built out of `turns.total_score`, while its darts kept their real
+ * board scores. Subtracting such a dart would charge the player points no
+ * total ever held. The dart still leaves the denominator: it was thrown, and
+ * it was not a scoring dart.
+ */
+function attemptDartsTotals(visits: readonly CheckoutVisitTotals[]): {
   score: number;
   count: number;
 } {
@@ -13,7 +25,7 @@ function attemptDartsTotals(visits: readonly CheckoutVisitDarts[]): {
     let remaining = visit.startingRemaining;
     for (const dart of visit.darts) {
       if (classifyDart(remaining, dart) !== "NOT_ATTEMPT") {
-        score += dart.score;
+        if (visit.countedTotal !== 0) score += dart.score;
         count += 1;
       }
       remaining -= dart.score;
@@ -30,7 +42,7 @@ function attemptDartsTotals(visits: readonly CheckoutVisitDarts[]): {
  */
 export function scoringAverageExcludingDoubles(
   visitRows: readonly PlayerVisitFactRow[],
-  doubleOutVisits: readonly CheckoutVisitDarts[] = [],
+  doubleOutVisits: readonly CheckoutVisitTotals[] = [],
 ): number {
   const totalScore = visitRows.reduce((sum, row) => sum + row.totalScore, 0);
   const totalDarts = visitRows.reduce(

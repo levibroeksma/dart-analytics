@@ -408,6 +408,20 @@ export type CheckoutVisitDarts = {
   darts: readonly DartFact[];
 };
 
+/**
+ * A checkout visit plus the counted total its engine recorded for it --
+ * `turns.total_score`, which is 0 for a busted 501/121 visit and for every
+ * failed TUOD attempt, while the visit's darts keep their real board scores.
+ *
+ * Separate from `CheckoutVisitDarts` because only a reader that subtracts
+ * darts from a total built out of `turns.total_score` needs it
+ * (`scoring-average.module.ts`); the classifier and the highest-checkout
+ * reader work off the darts alone and should not have to supply it.
+ */
+export type CheckoutVisitTotals = CheckoutVisitDarts & {
+  countedTotal: number;
+};
+
 /** The largest successful checkout finish, and how many times it was hit. */
 export type HighestCheckout = {
   value: number;
