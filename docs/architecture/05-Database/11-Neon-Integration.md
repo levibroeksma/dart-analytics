@@ -7,6 +7,8 @@ updated: 2026-09-17
 
 # Neon Integration Guide
 
+> **Version:** 1.3.0 (`db:drift` guards the shared `dev` branch against an unlanded branch's migration, D333, 2026-09-19)
+>
 > **Version:** 1.2.0 (CI applies production migrations behind a Neon-branch rehearsal, D288, 2026-09-17)
 >
 > **Version:** 1.1.0 (per-branch trusted origins required by the same-origin auth proxy, D172, 2026-07-29)
@@ -135,6 +137,29 @@ Execution runs from `app/` via `package.json` scripts using `DATABASE_URL`.
 
 Provision a fresh branch: `npm run db:migrate && npm run db:seed`.
 Validate changes: `npm run validate:app` (sole definition: `app/CLAUDE.md`). <!-- 2026-07-14 -->
+
+---
+
+## Schema Drift on the Shared `dev` Branch
+
+`dev` is one database shared by every task branch, while migrations live per git branch. Working a branch that adds a migration and running `npm run db:migrate` applies it to `dev` for everyone — and switching back to `main` does not undo it. `dev` then carries schema no committed migration describes, until that branch lands.
+
+`dbmate status` does not report this. It enumerates the files under `database/migrations/` and prints each one's applied flag, so a `schema_migrations` row with no matching file produces no output at all and the summary still reads `Pending: 0`. On 2026-09-19 `dev` held migration `0038` from the never-pushed branch `fix/x01-checkout-percentage` — `v_double_out_checkout_darts` dropped, `v_x01_checkout_darts` created — while `db:status` reported `Applied: 37 / Pending: 0` (issue #503).
+
+`npm run db:drift` (`app/scripts/check-migration-drift.ts`) is the check that sees it, and `validate:app` runs it between `db:migrate` and `db:introspect`:
+
+| Comparison | Catches |
+| --- | --- |
+| `schema_migrations` → files | A migration applied from a branch this checkout does not have — the #503 case, invisible to `dbmate status` |
+| files → `schema_migrations` | A migration never applied (`dbmate status` reports this one too) |
+| live `v_*` views → the chain | A view created outside the migration chain, or left behind by a rollback |
+| the chain → live `v_*` views | A view the chain creates that the database does not have; every read through it resolves to nothing |
+
+The expected view set is replayed from each migration's `migrate:up` region in order — never `migrate:down`, which describes a schema deliberately not current. View *bodies* are out of scope: `app/tests/db/schema-view-drift.test.ts` compares bodies in `schema.ts` to the migrations, and nothing compares live bodies to either.
+
+Position in the chain is the point. `db:introspect` regenerates `app/src/db/schema.ts` from whatever `dev` happens to be, and the unit suite mocks the query builder, so a committed schema missing a view the repositories read stays green. Stopping before introspect is what keeps that state out of the repo.
+
+Resolving a finding: roll the foreign migration back (`npx dbmate --migrations-dir ../database/migrations rollback` with that branch's file present in the tree), or land the branch. Never write a new migration to reconcile `dev` — that encodes another branch's unlanded work as chain history. (2026-09-19, D333)
 
 See also [`../../../database/README.md`](../../../database/README.md).
 

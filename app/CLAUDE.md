@@ -8,6 +8,8 @@ Local setup: `app/.env.example`, `app/README.md`. Neon local env: `npm run env:d
 
 `db:status`/`db:migrate`/`db:seed` target `.env` (dbmate's own default env-file loading; no shell export needed). Against `.env.production`, use `db:status:prod`/`db:migrate:prod`/`db:seed:prod` instead — there is no flag on the dev scripts that switches file. (2026-09-12)
 
+`db:status` is not proof the database matches `database/migrations/` — dbmate enumerates the migration _files_ and reports each one's applied flag, so a `schema_migrations` row with no file is invisible to it and it still prints `Pending: 0`. `npm run db:drift` is what proves it: applied versions against the files in both directions, plus live `v_*` views against the ones the chain's `migrate:up` regions leave behind. It runs inside `validate:app` between `db:migrate` and `db:introspect`, so a drifted database cannot be introspected into `app/src/db/schema.ts`. (2026-09-19, D333, #503)
+
 When starting the dev server, use background mode:
 
 ```
@@ -74,7 +76,7 @@ Run for `app/` changes before claiming completion — full procedure and mid-tas
 npm run validate:app
 ```
 
-Done means every step of that chain exits zero, the fallow gate included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
+Done means every step of that chain exits zero, the drift and fallow gates included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
 
 A source edit with no test edit is not a completed task: `scripts/check-test-coverage.sh` fails any change set that touches a runtime `.ts` file under `app/src/` or `app/scripts/` without also touching a test that imports it. Type-only edits, pure re-export barrels and `drizzle-kit` output are exempt, derived rather than listed. There is no per-file silencer — if a changed file has no covering test, write one. (D224, 2026-08-21)
 

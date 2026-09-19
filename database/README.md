@@ -34,10 +34,13 @@ npm run db:status
 npm run db:migrate     # expected to STOP at 0020 — see below
 npm run db:seed        # 0007 fills the capability table
 npm run db:migrate     # 0020 and 0021 now apply
+npm run db:drift        # applied versions + live views vs this chain
 npm run db:introspect
 bash ../scripts/fallow-gate.sh
 astro check
 ```
+
+`db:drift` exists because `db:status` cannot see an applied migration whose file is absent from this checkout: dbmate enumerates the files, so a `schema_migrations` row from a branch you are not on prints nothing and the summary still reads `Pending: 0`. Introspecting that database rewrites `app/src/db/schema.ts` to the wrong shape. (2026-09-19, D333, #503)
 
 `0020` adds a composite foreign key from `exercise_sessions` to `ruleset_version_capabilities` and requires seed `0007` to have already run — applying `0020` before `0007` (or against a populated database whose sessions use a combination `0007` does not declare) fails on constraint validation.
 
