@@ -113,7 +113,7 @@ The public list is **extensible** (marketing pages later). When adding a public 
 | `/` | Home |
 | `/games` | Gameplay and session flows |
 | `/profile` | Player profile |
-| `/training` | Training routines — `/training`, `/training/quick-subtract`, and the data-driven `/training/routines/new`, `/training/routines/detail`, `/training/routines/edit`, `/training/routines/play` (routine id via `?routine=` query string, not a dynamic route segment); all six `prerender = true`, same shell + client auth gate as `/games`. The static `/training/balanced-training` and its `/play` page were retired 2026-09-18 in favour of the routine-id-keyed routes <!-- 2026-09-17; corrected 2026-09-19 --> |
+| `/training` | Training routines — `/training`, `/training/quick-subtract`, and the data-driven `/training/routines/new`, `/training/routines/detail`, `/training/routines/edit`, `/training/routines/play` (routine id via `?routine=` query string, not a dynamic route segment); all six `prerender = true`, same shell + client auth gate as `/games`. The static `/training/balanced-training` and its `/play` page were retired 2026-09-19 in favour of the routine-id-keyed routes <!-- 2026-09-17; corrected 2026-09-19 --> |
 | `/statistics` | Shipped — the shell fetches `GET /api/statistics/overview` client-side after paint, via `stats.store.ts`. D63 deferred this endpoint post-v1; D258 is where it landed, composed from four views in the service layer <!-- 2026-09-17 --> |
 
 **Rule:** every new HTML route must be classified **public** or **protected** in this document and reflected in `middleware.ts`.

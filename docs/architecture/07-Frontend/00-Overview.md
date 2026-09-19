@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/integration
 read-when: frontend API integration and state ownership
-updated: 2026-09-17
+updated: 2026-09-19
 -->
 
 # Frontend Overview
 
-> **Version:** 0.3.6 (Visual Board Input section corrected: all 9 rulesets support it, marker clearing described as the reveal-then-clear timer, 2026-08-26); prior 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
+> **Version:** 0.3.7 (routine builder paragraph restated present tense — move-up/move-down reorder shipped, `@alpinejs/sort` declined for now, D333, 2026-09-19); prior 0.3.6 (Visual Board Input section corrected: all 9 rulesets support it, marker clearing described as the reveal-then-clear timer, 2026-08-26); prior 0.3.5 (treble ring width corrected 10mm→8mm to match the regulation fix in `board-geometry.module.ts`, 2026-08-11); 0.3.4 (Score Training recovery/hard-gate alignment, 2026-07-17)
 >
 > This document defines how the Astro frontend in `app/` integrates with the Worker API layer.
 >

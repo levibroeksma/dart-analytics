@@ -879,7 +879,7 @@ Duration
 
 rather than creating a new engine.
 
-**Status (shipped 2026-09-18, migration `0038`):** Phase 1 of
+**Status (shipped 2026-09-19, migration `0038`):** Phase 1 of
 `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
 is built. The ownership columns this section anticipates
 (`routine_templates.player_id`, `is_system_template`, migration `0004`) are
