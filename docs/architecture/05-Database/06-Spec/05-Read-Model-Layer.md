@@ -39,7 +39,7 @@ Views are divided into three categories (defined in `05-Views/00-Overview.md`):
 2. **Replay Views** — deterministic gameplay reconstruction
 3. **Analytics Views** — derived performance insights
 
-Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Migration `0024` adds `v_double_out_checkout_darts`, scoped to 501 `VISUAL_BOARD` sessions only. <!-- 2026-09-05 --> Migrations `0025`/`0026` add `v_player_visit_facts` and `v_player_leg_facts` for career-wide statistics — full detail in `05-Views/01-General-Views.md`, not repeated here. <!-- 2026-09-06 --> Migration `0033` turns every join onto a lookup that `0028`/`0029` made nullable into a `LEFT JOIN`, so a session with no game bound to it appears with NULL keys instead of being dropped from the read model; the `*_key`/`*_name` columns those joins feed are nullable from `0033` onward. <!-- 2026-09-16 --> Migration `0036` recreates `v_double_out_checkout_darts` and `v_routine_execution` so each carries the columns its consumer reads, ending the two raw-table reads that went around them (D298). <!-- 2026-09-17 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
+Migration `0009` delivers the initial five views. Migration `0013` normalizes their column names to the read-model standard in `01-Naming-Conventions.md`. Migration `0016` rebuilds `v_game_replay` and `v_session_overview` and adds `v_configuration_presets`. <!-- 2026-07-13 --> Migration `0018` adds `v_dart_locations`. <!-- 2026-08-05 --> Migration `0021` adds `v_player_settings`. <!-- 2026-08-08 --> Migration `0022` adds `v_player_profile`. <!-- 2026-08-15 --> Migration `0023` scopes `v_dart_analytics` and `v_dart_locations` to the session's owning participant; `v_game_replay` is deliberately left unfiltered, because it exists to replay a session as it was played, every participant included. <!-- 2026-08-21 --> Migration `0024` adds `v_double_out_checkout_darts`, scoped to 501 `VISUAL_BOARD` sessions only. <!-- 2026-09-05 --> Migrations `0025`/`0026` add `v_player_visit_facts` and `v_player_leg_facts` for career-wide statistics — full detail in `05-Views/01-General-Views.md`, not repeated here. <!-- 2026-09-06 --> Migration `0033` turns every join onto a lookup that `0028`/`0029` made nullable into a `LEFT JOIN`, so a session with no game bound to it appears with NULL keys instead of being dropped from the read model; the `*_key`/`*_name` columns those joins feed are nullable from `0033` onward. <!-- 2026-09-16 --> Migration `0036` recreates `v_double_out_checkout_darts` and `v_routine_execution` so each carries the columns its consumer reads, ending the two raw-table reads that went around them (D298). <!-- 2026-09-17 --> Migration `0038` drops `v_double_out_checkout_darts` and replaces it with `v_x01_checkout_darts`, widened to 501/TUOD/121 `VISUAL_BOARD` sessions and projecting no running total, since `05-Views.md` forbids TUOD's/121's ladder-fold game-engine logic in SQL -- the read layer folds remaining-before-dart in the app instead, through the same builder the live result modals use. <!-- 2026-09-19 --> Future analytics views are described under Future Expansion. <!-- 2026-07-12 -->
 
 ---
 
@@ -276,7 +276,7 @@ Both derived columns are `NUMERIC`, not `double precision`. `MOD()` has no `doub
 
 ---
 
-# v_double_out_checkout_darts
+# v_x01_checkout_darts
 
 ## Category
 
@@ -284,19 +284,21 @@ Analytics View
 
 ## Purpose
 
-Raw per-dart facts for 501 `VISUAL_BOARD` sessions, plus each dart's running score within its leg, for reproducing dart-level double-attempt accuracy outside the live in-session read. <!-- 2026-09-05 -->
+Per-dart facts, stage tree, counted turn total and configuration snapshot for the three X01 ladders (501, TUOD, 121) under `VISUAL_BOARD` capture, for reproducing dart-level checkout accuracy outside the live in-session read. Migration `0038` replaces `v_double_out_checkout_darts` (migrations `0024`/`0036`) with this view. <!-- 2026-09-19 -->
 
 ## Sources
 
-- darts → turns → exercise_stages → exercise_sessions → participants, game_types, input_modes
+- darts → turns → exercise_stages → exercise_sessions → participants, game_types, ruleset_versions, input_modes
+- exercise_configurations (LEFT JOIN)
+- dart_zones (hit, LEFT JOIN)
 
 ## Exposes
 
-Session id, player id, stage id, turn sequence, dart number, hit target + hit zone key, score, `prior_scored_in_stage` (the running SUM of that seat's earlier dart scores within the same leg), and `starting_score` — the session's configured starting score, read out of the `exercise_configurations` JSONB snapshot by migration `0036` (D298), NULL when the session stored none. Scoped to `game_type_key = '501'`, `input_mode_key = 'VISUAL_BOARD'`, and the session's OWNING player (mirrors migration `0023`). Its `game_types`/`input_modes` joins stay INNER deliberately: those two filters already exclude every session with no game bound to it, so migration `0033` left this view untouched. <!-- 2026-09-16 -->
+Session id, player id, game type key, ruleset version key, the session's configuration snapshot, stage id + sequence + stage type key + parent stage id (for stage-tree reconstruction), turn id + sequence + counted `turn_total_score` + `completed_at`, participant id, dart number, hit target + hit zone key, score. Scoped to `game_type_key IN ('501', 'TUOD', 'ONE_TWENTY_ONE')`, `input_mode_key = 'VISUAL_BOARD'`, and the session's OWNING player (mirrors migration `0023`).
 
 ## Design Rationale
 
-Scoped to 501 only: TUOD/121's "remaining before a dart" depends on their ladder fold (`finishBonus`/`missPenalty` escalation), which is game-engine logic and does not belong in a view (`05-Views.md`). `prior_scored_in_stage` is plain arithmetic (a running sum), not the true remaining score; `starting_score - prior_scored_in_stage` is. Migration `0024` deliberately left `starting_score` out to keep the view free of JSONB parsing, and the read layer selected `exercise_configurations` itself — the one raw-table dependency in a read path documented as view-backed (issue #342). `0025` had already overtaken that rule by projecting `max_darts_per_turn` the same way on `v_player_visit_facts`, so `0036` follows `0025` and the read layer takes both columns from the view, then runs them through `classifyDoubleAttempts` (`app/src/modules/game/double-attempt.module.ts`) — the same classifier the live in-session stat uses, never reimplemented in SQL.
+`v_double_out_checkout_darts` projected `prior_scored_in_stage` as a windowed `SUM(d.score)` over raw dart rows — plain arithmetic, not the leg's counted score. A busted visit stores `turns.total_score = 0` while its darts keep their real board scores (that divergence is deliberate; it is what makes bust rate computable), so a running `SUM(d.score)` overstates the leg's counted total the moment a bust occurs, sliding every later dart in that leg onto a remaining the player was never on — that is the one sentence for why the running total left SQL. This view therefore projects no running total at all: only facts (the stage tree, the counted turn total, and each dart), which the application read layer folds into remaining-before-dart through `checkout-visits.module.ts` — the same builder the live result modals use — before running them through `classifyDoubleAttempts` (`app/src/modules/game/double-attempt.module.ts`). Folding out of SQL is also what let TUOD and 121 join this view at all: their remaining depends on a ladder fold (`finishBonus`/`missPenalty` escalation), which is game-engine logic and does not belong in a view (`05-Views.md`) — the reason `v_double_out_checkout_darts` stayed 501-only.
 
 ---
 

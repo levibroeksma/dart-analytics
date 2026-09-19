@@ -921,7 +921,7 @@ describe("uploadAndCompleteSession", () => {
     expect(seatB.bestLeg).toBe("—");
   });
 
-  it("computes a VISUAL_BOARD double accuracy from a missed and two made checkout attempts", async () => {
+  it("computes a VISUAL_BOARD checkout percentage from a missed and two made checkout attempts", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
     ]);
