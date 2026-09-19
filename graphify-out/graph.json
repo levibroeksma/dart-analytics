@@ -86166,7 +86166,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "scripts/check-type-barrels.sh",
-      "source_location": "L287",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -86178,7 +86178,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "scripts/check-type-barrels.sh",
-      "source_location": "L344",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -224167,5 +224167,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "af9e30eb160f70f6962b9a1840f5548edaefe42d"
+  "built_at_commit": "8d4b56475727ebed06be877fa3654923952b712d"
 }
