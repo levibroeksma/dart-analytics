@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@client/api/routines", () => ({ listRoutines: vi.fn() }));
 import { listRoutines } from "@client/api/routines";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
+import type { TrainingIndexContext } from "@lib/types";
 
 const SYS = {
   routineId: "s",
@@ -29,7 +30,7 @@ describe("trainingIndex", () => {
       items: [SYS, OWN],
       nextCursor: null,
     });
-    const data = trainingIndex();
+    const data: TrainingIndexContext = trainingIndex();
     await data.init();
     expect(data.loading).toBe(false);
     expect(data.routines).toEqual([SYS, OWN]);
@@ -39,7 +40,7 @@ describe("trainingIndex", () => {
 
   it("surfaces a load failure as error text", async () => {
     vi.mocked(listRoutines).mockRejectedValue(new Error("boom"));
-    const data = trainingIndex();
+    const data: TrainingIndexContext = trainingIndex();
     await data.init();
     expect(data.error).toContain("Could not load");
   });
