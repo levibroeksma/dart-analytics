@@ -318,6 +318,72 @@ describe("createRoutine", () => {
       details: { reason: "routine duration out of bounds" },
     });
   });
+
+  it("maps a check_violation wrapped one level deep, on cause, the shape drizzle actually throws", async () => {
+    const pgError = Object.assign(new Error("bound"), {
+      code: "23514",
+      constraint: "trg_routine_templates_duration_bounds",
+    });
+    const wrapped = Object.assign(
+      new Error('Failed query: insert into "routine_templates" ...\nparams: '),
+      { cause: pgError },
+    );
+    vi.mocked(withTransaction).mockRejectedValueOnce(wrapped);
+    const result = await createRoutine("p1", VALID);
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routine duration out of bounds" },
+    });
+  });
+
+  it("maps a check_violation nested more than one wrapper deep", async () => {
+    const pgError = Object.assign(new Error("bound"), {
+      code: "23514",
+      constraint: "trg_routine_templates_duration_bounds",
+    });
+    const wrapped = Object.assign(new Error("Failed query"), {
+      cause: Object.assign(new Error("transaction failed"), {
+        cause: pgError,
+      }),
+    });
+    vi.mocked(withTransaction).mockRejectedValueOnce(wrapped);
+    const result = await createRoutine("p1", VALID);
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routine duration out of bounds" },
+    });
+  });
+
+  it("rethrows an unrelated wrapped SQLSTATE instead of classifying it as a duration violation", async () => {
+    const wrapped = Object.assign(new Error("Failed query"), {
+      cause: Object.assign(
+        new Error("null value in column violates not-null"),
+        { code: "23502" },
+      ),
+    });
+    vi.mocked(withTransaction).mockRejectedValueOnce(wrapped);
+    await expect(createRoutine("p1", VALID)).rejects.toBe(wrapped);
+  });
+
+  it("rethrows a check_violation on an unrelated constraint instead of classifying it as a duration violation", async () => {
+    const wrapped = Object.assign(new Error("Failed query"), {
+      cause: Object.assign(new Error("bound"), {
+        code: "23514",
+        constraint: "some_other_check",
+      }),
+    });
+    vi.mocked(withTransaction).mockRejectedValueOnce(wrapped);
+    await expect(createRoutine("p1", VALID)).rejects.toBe(wrapped);
+  });
+
+  it("terminates on a self-referencing cause chain and rethrows rather than hanging", async () => {
+    const looping = new Error("loop") as Error & { cause?: unknown };
+    looping.cause = looping;
+    vi.mocked(withTransaction).mockRejectedValueOnce(looping);
+    await expect(createRoutine("p1", VALID)).rejects.toBe(looping);
+  });
 });
 
 describe("replaceRoutine", () => {
@@ -348,6 +414,10 @@ describe("replaceRoutine", () => {
     vi.mocked(repo.updateRoutineTemplateRecord).mockResolvedValue(true);
     const result = await replaceRoutine("p1", "rt-own", VALID);
     expect(result.ok).toBe(true);
+    expect(repo.updateRoutineTemplateRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ routineId: "rt-own", playerId: "p1" }),
+    );
     const order = [
       vi.mocked(repo.updateRoutineTemplateRecord).mock.invocationCallOrder[0],
       vi.mocked(repo.deleteRoutineStepRecords).mock.invocationCallOrder[0],
@@ -368,6 +438,10 @@ describe("replaceRoutine", () => {
       code: "NOT_FOUND",
       details: { routineId: "rt-own" },
     });
+    expect(repo.updateRoutineTemplateRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ routineId: "rt-own", playerId: "p1" }),
+    );
     expect(repo.deleteRoutineStepRecords).not.toHaveBeenCalled();
     expect(repo.insertRoutineStepRecords).not.toHaveBeenCalled();
   });
