@@ -44,6 +44,16 @@ export type RoutineDurationResult =
   { ok: true; totalMinutes: number } | { ok: false; issues: string[] };
 
 /**
+ * Options for `validateRoutineDuration` (`routine-duration.module.ts`).
+ */
+export type RoutineDurationOptions = {
+  /** Inclusive floor on the MINUTES total; 0 disables it. */
+  minMinutes?: number;
+  /** Inclusive cap on the MINUTES total; defaults to MAX_ROUTINE_MINUTES. */
+  maxMinutes?: number;
+};
+
+/**
  * One line of a routine summary card. `value` is already formatted for
  * display — the modal renders rows through `x-for` and formats nothing.
  */
