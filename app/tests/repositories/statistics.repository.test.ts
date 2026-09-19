@@ -96,7 +96,7 @@ function fakeOrderedQuery(rows: unknown[]) {
 
 /**
  * `findDoubleOutVisits` (and the `v_double_out_checkout_darts` view it read)
- * is gone — migration `0038` replaced it with `v_x01_checkout_darts`, a
+ * is gone — migration `0039` replaced it with `v_x01_checkout_darts`, a
  * facts-only view with no `SUM(d.score)` running total to get wrong on a
  * bust. Its grouping-and-subtraction guarantee has no equivalent to
  * re-point at: that computation now lives in `checkoutVisitsFromRows`

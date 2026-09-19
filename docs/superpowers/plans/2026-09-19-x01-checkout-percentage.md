@@ -523,8 +523,8 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ### Task 3: The `v_x01_checkout_darts` view
 
 **Files:**
-- Create: `database/migrations/0038_x01_checkout_darts_view.sql`
-- Create: `database/verification/0038_x01_checkout_darts_view_checks.sql`
+- Create: `database/migrations/0039_x01_checkout_darts_view.sql`
+- Create: `database/verification/0039_x01_checkout_darts_view_checks.sql`
 - Modify (generated, do not hand-edit): `app/src/db/schema.ts` via `npm run db:introspect`
 
 **Interfaces:**
@@ -532,7 +532,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: Write the migration**
 
-Create `database/migrations/0038_x01_checkout_darts_view.sql`:
+Create `database/migrations/0039_x01_checkout_darts_view.sql`:
 
 ```sql
 -- ============================================================
@@ -641,7 +641,7 @@ Before running it, confirm the two column/key names this migration assumes again
 
 - [ ] **Step 2: Write the verification file**
 
-Copy `database/verification/0024_double_out_checkout_darts_view_checks.sql` to `database/verification/0038_x01_checkout_darts_view_checks.sql` and adapt it: keep the `BEGIN; … ROLLBACK;` envelope, the `verification_results` temp table, the resolve-lookups-by-`implementation_key` rule, and the fixture-insert style; bump every hardcoded UUID from the `…0000-0000-7000-8000-0000000024xx` block to a `…0000-0000-7000-8000-0000000038xx` block so the two files can run in the same database; and add a TUOD and a 121 session to the fixture alongside the existing 501 one. It must assert:
+Copy `database/verification/0024_double_out_checkout_darts_view_checks.sql` to `database/verification/0039_x01_checkout_darts_view_checks.sql` and adapt it: keep the `BEGIN; … ROLLBACK;` envelope, the `verification_results` temp table, the resolve-lookups-by-`implementation_key` rule, and the fixture-insert style; bump every hardcoded UUID from the `…0000-0000-7000-8000-0000000024xx` block to a `…0000-0000-7000-8000-0000000039xx` block so the two files can run in the same database; and add a TUOD and a 121 session to the fixture alongside the existing 501 one. It must assert:
 
 1. `v_x01_checkout_darts` exists and `v_double_out_checkout_darts` does not.
 2. The view exposes every column listed in this task's Interfaces block.
@@ -659,14 +659,14 @@ npm run db:migrate
 npm run db:introspect
 npm run db:verify
 ```
-Expected: `0038` applied, introspection regenerates `src/db/schema.ts` with the new view, `db:verify` passes.
+Expected: `0039` applied, introspection regenerates `src/db/schema.ts` with the new view, `db:verify` passes.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 cd /Users/levi.broeksma/Dev/dart-analytics
 npm --prefix app run format
-git add database/migrations/0038_x01_checkout_darts_view.sql database/verification/0038_x01_checkout_darts_view_checks.sql app/src/db/schema.ts database/schema.sql
+git add database/migrations/0039_x01_checkout_darts_view.sql database/verification/0039_x01_checkout_darts_view_checks.sql app/src/db/schema.ts database/schema.sql
 git commit -m "feat(db): v_x01_checkout_darts exposes facts only for all three X01 ladders
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"

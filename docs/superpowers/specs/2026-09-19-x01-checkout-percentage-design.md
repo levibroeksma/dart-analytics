@@ -96,7 +96,7 @@ These are the agreed verdicts and become the module's test cases verbatim. All 5
 
 The classifier is only as good as the remaining handed to it, so the derivation gets exactly one definition, in the application layer.
 
-**New migration `0038`** replaces `v_double_out_checkout_darts` with **`v_x01_checkout_darts`**: all three ladders (`501`, `TUOD`, `ONE_TWENTY_ONE`), `VISUAL_BOARD` only, scoped to the session's owning participant like `v_dart_analytics` and `v_dart_locations`. It exposes **facts only** — `session_id`, `player_id`, `game_type_key`, `ruleset_version_key`, `stage_id`, `turn_sequence`, `turn_total_score`, `dart_number`, `hit_target_number`, `hit_zone_key`, `score`, `starting_score`, and the session's configuration snapshot. No running-total arithmetic in SQL at all, so no second definition of "remaining" exists to drift from the engines'.
+**New migration `0039`** replaces `v_double_out_checkout_darts` with **`v_x01_checkout_darts`**: all three ladders (`501`, `TUOD`, `ONE_TWENTY_ONE`), `VISUAL_BOARD` only, scoped to the session's owning participant like `v_dart_analytics` and `v_dart_locations`. It exposes **facts only** — `session_id`, `player_id`, `game_type_key`, `ruleset_version_key`, `stage_id`, `turn_sequence`, `turn_total_score`, `dart_number`, `hit_target_number`, `hit_zone_key`, `score`, `starting_score`, and the session's configuration snapshot. No running-total arithmetic in SQL at all, so no second definition of "remaining" exists to drift from the engines'.
 
 **New module `modules/game/checkout-visits.module.ts`** holds the three per-game visit builders that today live inside `five-oh-one-play.data.ts`, `tuod-play.data.ts` and `one-twenty-one-play.data.ts`, moved with their behaviour unchanged:
 
@@ -127,7 +127,7 @@ TDD per `app/CLAUDE.md`: a failing test first, full suite each run, `npm run val
 - `double-attempt.module.test.ts` — the ten reference darts as ten named cases, `7b`, the 101 worked example asserting 25%, the amended 50-rule (inner vs outer single, treble, bust from 50), and boundaries: remaining 2, 40, 41, odd, leaves-1 bust, leaves-0-off-a-double bust.
 - `checkout-visits.module.test.ts` — the extracted builders, with a **bust regression case per game**: a leg containing a busted visit must yield the same visit-start remaining as the unbusted equivalent. This is the test that would have caught the career bug.
 - `statistics.service.test.ts` — career checkout % equals the sum of the per-session numbers over a fixture spanning 501, TUOD and 121, including a bust.
-- `database/verification/0038_*.sql` — shape, the three game types, the `VISUAL_BOARD` filter, owning-participant scope; mirrors `0024`'s existing verification.
+- `database/verification/0039_*.sql` — shape, the three game types, the `VISUAL_BOARD` filter, owning-participant scope; mirrors `0024`'s existing verification.
 - The three `*-play.data.ts` suites updated for the renamed field. The `.astro` modals are markup, exempt from unit tests (D101), verified visually with the `run` skill.
 
 ---
@@ -147,7 +147,7 @@ One branch off `main`, each step green before the next:
 
 1. Classifier rewrite plus its tests — no consumers touched, provable in isolation.
 2. Extract `checkout-visits.module.ts`; repoint the three modals. Per-game numbers correct from here.
-3. Migration `0038` plus verification.
+3. Migration `0039` plus verification.
 4. Repoint `statistics.service.ts` / `statistics.repository.ts` at the new view and the shared builder. Career number now agrees with the modals.
 5. Labels, the `—` handling, docs, decisions, full `validate:app`.
 

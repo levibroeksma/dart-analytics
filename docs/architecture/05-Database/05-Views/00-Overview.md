@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0038)
+# Implemented Views (migrations 0009–0039)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -163,7 +163,7 @@ with a NULL `game_type_key` rather than vanishing. The same applies to the
 other lookups `0028`/`0029` made nullable (`ruleset_versions`, `capture_modes`,
 `input_modes`). The two exceptions are `v_configuration_presets` — whose
 `configuration_templates.game_type_id` is still NOT NULL — and
-`v_x01_checkout_darts` (migration `0038`, replacing `v_double_out_checkout_darts`),
+`v_x01_checkout_darts` (migration `0039`, replacing `v_double_out_checkout_darts`),
 which restricts itself to 501/TUOD/121 `VISUAL_BOARD` sessions in its own WHERE
 clause. <!-- 2026-09-16; view renamed and widened 2026-09-19 -->
 

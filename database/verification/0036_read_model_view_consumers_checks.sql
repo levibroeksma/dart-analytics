@@ -16,12 +16,12 @@
 -- statistics would over-count with no error anywhere.
 --
 -- 0036's own two checkout-darts column checks are gone with the
--- view they named: migration 0038 dropped
+-- view they named: migration 0039 dropped
 -- v_double_out_checkout_darts outright, and its replacement
 -- v_x01_checkout_darts deliberately exposes neither
 -- starting_score nor prior_scored_in_stage. That view's column
 -- set has its own assertion in
--- 0038_x01_checkout_darts_view_checks.sql. The two checks below
+-- 0039_x01_checkout_darts_view_checks.sql. The two checks below
 -- are not about a column set: they are the non-fan-out guarantee
 -- and the each-row-carries-its-own-session's-snapshot guarantee,
 -- both of which the new view inherits unchanged along with the

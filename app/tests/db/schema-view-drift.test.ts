@@ -46,7 +46,7 @@ function chainViewBodies(): Map<string, { body: string; from: string }> {
       }
       // A DROP VIEW not paired with a later CREATE (in this same
       // statement stream or a later migration) means the view is
-      // retired for good -- e.g. 0038 drops v_double_out_checkout_darts
+      // retired for good -- e.g. 0039 drops v_double_out_checkout_darts
       // without recreating it. Statements run in file order, and files
       // run in chronological order, so processing drops inline keeps a
       // drop-then-recreate (0036's own pattern) a no-op while a bare
@@ -85,7 +85,7 @@ function schemaViewBodies(): Map<string, string> {
  * match here.
  *
  * Postgres also echoes `IN (...)` back as `= ANY (ARRAY[...])` (first seen
- * with 0038's `gt.implementation_key IN ('501', 'TUOD', 'ONE_TWENTY_ONE')`),
+ * with 0039's `gt.implementation_key IN ('501', 'TUOD', 'ONE_TWENTY_ONE')`),
  * so that rewrite is undone before the parentheses come off, back into the
  * `IN (...)` shape the migration source uses.
  */
