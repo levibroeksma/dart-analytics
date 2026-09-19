@@ -95,4 +95,38 @@ describe("checkoutVisitsFromRows", () => {
     ]);
     expect(visits.map((visit) => visit.startingRemaining)).toEqual([501, 501]);
   });
+
+  it("contributes no visits for a 501 session with no stored configuration", () => {
+    const visits = checkoutVisitsFromRows([row({ configuration: null })]);
+    expect(visits).toEqual([]);
+  });
+
+  it("contributes no visits for a TUOD session with no stored configuration", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        sessionId: "session-tuod",
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        configuration: null,
+        stageId: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+      }),
+    ]);
+    expect(visits).toEqual([]);
+  });
+
+  it("does not let a null-config session suppress its neighbours in the same batch", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        sessionId: "session-null",
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        configuration: null,
+        stageId: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+      }),
+      row({}),
+    ]);
+    expect(visits.map((visit) => visit.startingRemaining)).toEqual([501]);
+  });
 });

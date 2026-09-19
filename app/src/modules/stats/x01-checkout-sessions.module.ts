@@ -89,11 +89,23 @@ function snapshotOf(
   };
 }
 
+/**
+ * A session `v_x01_checkout_darts` left-joins `exercise_configurations` and
+ * never filters a miss, so a real session can carry no stored snapshot at
+ * all. Without it there is no starting score for 501 and no ladder
+ * configuration for TUOD or 121 -- nothing to replay, only something to
+ * invent -- so such a session contributes no checkout visits rather than
+ * guessing at a default. This is the same outcome the view it replaces
+ * produced by accident (a starting score read as 0 makes every remaining
+ * non-finishable, so `classifyDart` never counted a hit or a miss either);
+ * this just says so directly instead of relying on that arithmetic coincidence.
+ */
 function visitsForSession(
   rows: readonly X01CheckoutDartRow[],
 ): CheckoutVisitDarts[] {
   const first = rows[0];
   if (!first) return [];
+  if (first.configuration === null) return [];
 
   const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
   const participantRef = first.participantId;
