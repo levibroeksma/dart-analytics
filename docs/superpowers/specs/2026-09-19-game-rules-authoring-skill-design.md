@@ -52,6 +52,9 @@ it never replaces the spec that brainstorming writes.
 | D-j | Post-V1 scope takes an explicit number (`V2`, `V3`, …) once it is being built; `V2+` stays the unscheduled bucket |
 | D-k | The gate enforces `Features` ↔ `Glossary` agreement for named variants |
 | D-l | An amendment that changes an **already-shipped** rule is blocked until a `decisions/**` block exists |
+| D-m | A training-only rule never becomes a training-aware branch in a game ruleset; a test routes it to a game variant or to its own exercise type |
+| D-n | `Features` gains an `Applies to` column (`All` / `Single` / `1v1` / `2+`); seat-conditional statements carry the same token |
+| D-o | The skill writes only what it verified in a named file; unverifiable → halt and ask |
 
 ### D-h supersedes today's README
 
@@ -108,10 +111,11 @@ The `Version` column takes exactly one of:
 Lowercase `v1` normalises to `V1`. The feature table gains a third column:
 
 ```
-| Feature | Version | Reason |
+| Feature | Version | Applies to | Reason |
 ```
 
 `Reason` is empty for `V1` rows and **required** for every other value.
+`Applies to` is covered under "Player-count applicability" below.
 
 `V2+` → `V2` is the promotion that happens when a deferred idea is picked up.
 The bucket keeps the backlog honest; the number says what is next.
@@ -135,6 +139,92 @@ no per-feature shipped status). Amend mode cannot work without it — see below.
 The gate asserts the line exists and parses.
 
 ---
+
+## Player-count applicability
+
+Seat-conditional rules already exist and already contradict themselves.
+`121`, `around-the-clock`, `bobs-27` and `doubles-training` each carry a
+`- **1v1:** …` bullet under `## Objective`; `501` uses a prose paragraph
+instead. In those same four files `Features` says `Multiplayer (1v1) | V1`
+while `Config & presets` says `Players | Single player | Shown, locked`.
+Nothing catches that, because applicability is prose.
+
+**The `Applies to` column** takes one of `All`, `Single`, `1v1`, `2+`. Any
+rule statement elsewhere in the document that holds only at some player
+counts is prefixed with the same token:
+
+```
+**1v1:** first to check out 170 wins; the match ends immediately.
+```
+
+The skill's rule: a feature whose `Applies to` is not `All` **must** have at
+least one token-prefixed statement in the body, and a token used in the body
+must appear in `Features`. The gate checks both directions. This is what would
+have caught the four-file contradiction.
+
+`Config & presets` is checked against the column too: a file declaring any
+feature at `1v1` or `2+` cannot also present `Players` as locked to single
+player.
+
+## Exercise-scoped modes
+
+The case: a game is used as a routine step and wants different scoring there
+than it has standalone.
+
+**It cannot be a mode the game engine owns.** `09-Training/01-Routines.md` §2
+states a `GameEngine` must remain independent of the exercise system, and §10
+that the game engine does not know it is being used by an exercise. A
+`if (insideRoutine)` branch in a game ruleset violates both, and no amount of
+convenience in the rules document makes it legal downstream.
+
+**The routing test** (D-m), applied by the skill:
+
+> Would a player choose this mode in a standalone session, for its own sake?
+
+- **Yes** → it is an ordinary **game variant**. It lands in the game's
+  ruleset like any other variant, selectable by anyone. The routine reaches it
+  through exercise configuration (`game: { type, … }`, §11) and the engine
+  never learns why it was chosen. Preferred — no new doc, no duplication.
+- **No — it only makes sense inside a training block** → it is its own
+  **exercise type** under `training/exercises/`, wrapping the game. The
+  exercise doc owns the override; the game's ruleset is not touched.
+- **Neither fits** → the rule genuinely needs the engine to behave differently
+  by context. That is an architecture change, not a rules edit: it requires a
+  `decisions/game-engine.md` block before any doc edit, per D-l.
+
+The skill records the verdict and its reason in the amended file, so the next
+amendment does not re-litigate it.
+
+**`Capture` is re-checked in every case.** §13 notes an exercise engine need
+not produce a conventional score, so a scoring override can invalidate the
+game's existing `Capture` answers — most often "what `score` holds", which
+must stay the dart's **board** score and never a game- or exercise-specific
+point value (root `CLAUDE.md`).
+
+## Verification rule
+
+D-o, binding on both modes and stated at the top of `SKILL.md`:
+
+> Write only what you verified in a named file. Never infer, never assume,
+> never carry a rule over from a similar game.
+
+Concretely, the skill must **not** assume:
+
+- that a rule holds because a sibling ruleset states it;
+- that a feature shipped because the file lists it as `V1` — `Current
+  version:` is the only source, and the engine's presence in `app/` confirms
+  it;
+- that an engine supports a mode because the rules document describes it;
+- that a player count is supported because `Features` claims it — the `Config
+  & presets` row and the engine are the check;
+- that an `Open question` is still open, or still closed.
+
+Every rule the skill writes or amends cites where it was confirmed — the file
+and the line, or the architecture section. When a claim cannot be confirmed:
+**halt.** State what could not be verified, where it was looked for, and ask.
+Do not write the claim, do not mark it unverified, do not downgrade it to an
+open question and move on. An unverified rule in a rules document is worse
+than a missing one, because the next reader cannot tell which it is.
 
 ## Templates
 
@@ -250,6 +340,12 @@ without drifting from its own style.
 3. **Classify the amendment:**
    - **Additive** — a new mode, variant, setting or format alongside what
      exists. Proceeds as below.
+   - **Training-only** — the mode exists only when the game runs as a routine
+     step. Run the routing test in "Exercise-scoped modes" before writing
+     anything; the answer decides which file is even being amended.
+   - **Seat-conditional** — the mode applies only at some player counts. It
+     needs an `Applies to` value and a token-prefixed statement, per
+     "Player-count applicability".
    - **Changes a shipped rule** — different behaviour for something already
      built. **Stop.** Per D-l this is an architecture decision, not a notes
      edit: it needs a block in `decisions/game-engine.md` (or the domain
@@ -259,7 +355,7 @@ without drifting from its own style.
 
    | Slot | What lands |
    | --- | --- |
-   | `Features` | one row: name, version, reason |
+   | `Features` | one row: name, version, applies-to, reason |
    | `Later versions (V2+)` §Variants | the plain-language definition |
    | `Glossary` | the term, its version, one-line meaning |
    | `Config & presets` | a row **only if** it is a setting the player picks |
@@ -300,7 +396,12 @@ Assertions:
 5. `Capture` present for games and exercises; absent for trivia.
 6. A `Current version:` line exists and parses (`none (V1 in design)`, or
    `V<n> (shipped YYYY-MM-DD)`).
-7. **Features ↔ Glossary agreement (D-k):** every `Features` row whose name is
+7. **`Applies to` (D-n):** every `Features` row carries one of `All`,
+   `Single`, `1v1`, `2+`. A non-`All` value requires at least one
+   token-prefixed statement in the body; a body token not present in
+   `Features` fails. A file with any `1v1`/`2+` feature must not present
+   `Players` as locked to single player in `Config & presets`.
+8. **Features ↔ Glossary agreement (D-k):** every `Features` row whose name is
    marked as a named variant has a matching `Glossary` term, and every
    `Glossary` term appears in `Features`. Marking convention: the variant's
    name is **bold** in both tables — the existing rulesets already bold
@@ -354,3 +455,7 @@ same backfill.
   date taken from the engine's design spec, or the merge date of its PR?
 - Does the bold-marker convention for Features ↔ Glossary hold across the 11
   existing files, or does the backfill have to introduce it?
+- Is `2+` enough, or do `2v2` and free-for-all need distinct tokens once 501's
+  `sideKey` folding is used for real teams?
+- Where does an exercise type record that it wraps a game — a named field in
+  `EXERCISE_TEMPLATE.md`, or prose? The gate can only cross-check a field.
