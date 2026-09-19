@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-09-09
+updated: 2026-09-19
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.3 (2026-09-09 — Tailwind v4 container queries; prior 0.2.2 was Tailwind v4 utility syntax, 2026-07-31)
+> **Version:** 0.2.5 (2026-09-19 — no `height` beside `flex-1`; the 40% scoreboard band; prior 0.2.3 was Tailwind v4 container queries, 2026-09-09)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -112,6 +112,10 @@ When a parent uses `font-mono` or `uppercase`, reset children that should not in
 | Shell width | `max-w-lg` on layout content columns and bottom nav |
 
 Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical space.
+
+Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `flex-1` sets `flex-basis: 0%`, which supplies the flex item's main size, so its own `height` is never consulted in a column flex container — the declaration is inert, not a fallback. Size such an item with `min-h-*` / `max-h-*`, which do still clamp it (D326).
+
+**Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SplitScoreboard.astro` always applies it, and `SinglePlayerDisplay.astro` applies it unless the caller passes `pinnedHeight={false}`, which only `SplitScoreboardHalf.astro` does (its card is nested inside the band, not the band itself). A play screen passes no height class of its own (D327).
 
 ---
 

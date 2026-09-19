@@ -10,6 +10,7 @@
  * @param {boolean} [isTarget] Passed through to both halves
  * @param {string} [legsToWinExpr] Passed through to both halves, for the dot pager
  * @param {string} [class] Extra classes on the outer grid
+ * @remarks Occupies the play screen's standard 40% scoreboard band, the same as an unnested `SinglePlayerDisplay` — callers pass no height class.
  */
 interface SeatDisplay {
   nameExpr: string;
@@ -44,7 +45,7 @@ import { cn } from "@client/cn";
 
 // Styles
 const className = cn(
-  "grid grid-cols-2 divide-x divide-border flex-1 min-h-0 rounded-lg",
+  "grid grid-cols-2 divide-x divide-border flex-1 min-h-2/5 max-h-2/5 rounded-lg",
   classNameProp,
 );
 ---

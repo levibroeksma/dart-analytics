@@ -22,7 +22,6 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     <SinglePlayerDisplay
       isTarget={true}
       target="currentTargetLabel()"
-      class="min-h-2/5 max-h-2/5 h-full"
     >
       <div
         slot="progress"
@@ -57,7 +56,6 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
         scoreExpr: "hitCountFor(state()?.seats[1]?.participantRef)",
       }}
       isTarget={true}
-      class="h-2/5"
     >
       <dl
         slot="progressA"
