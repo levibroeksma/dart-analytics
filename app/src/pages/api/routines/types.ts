@@ -1,16 +1,22 @@
 import { z } from "zod";
 
+/** Single step's inclusive minute ceiling; a step can never outrun the routine-wide cap. */
+export const MAX_ROUTINE_STEP_MINUTES = 60;
+
+/** Inclusive cap on the number of steps a routine may hold; the builder's own add-step limit mirrors this. */
+export const MAX_ROUTINE_STEPS = 12;
+
 /** Phase 1 accepts MINUTES only (06-API/04-Endpoint-Contracts.md, D321). */
 export const RoutineStepInput = z.object({
   exerciseTemplateId: z.string().min(1),
   durationTypeKey: z.literal("MINUTES"),
-  durationValue: z.number().int().min(1).max(60),
+  durationValue: z.number().int().min(1).max(MAX_ROUTINE_STEP_MINUTES),
 });
 
 export const CreateRoutineRequest = z.object({
   name: z.string().trim().min(1).max(60),
   description: z.string().trim().max(280).nullable().default(null),
-  steps: z.array(RoutineStepInput).min(1).max(12),
+  steps: z.array(RoutineStepInput).min(1).max(MAX_ROUTINE_STEPS),
 });
 export type CreateRoutineRequestInput = z.infer<typeof CreateRoutineRequest>;
 

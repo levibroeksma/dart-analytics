@@ -1,0 +1,16 @@
+---
+export const prerender = true;
+
+import AppLayout from "@layouts/AppLayout.astro";
+import RoutineBuilder from "@components/layout/training/routines/RoutineBuilder.astro";
+---
+
+<AppLayout title="Edit routine">
+  <div
+    class="p-4 space-y-4"
+    x-data="routineBuilder('edit')"
+  >
+    <h1 class="text-xl font-semibold text-foreground">Edit routine</h1>
+    <RoutineBuilder />
+  </div>
+</AppLayout>

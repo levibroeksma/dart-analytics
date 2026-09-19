@@ -5,6 +5,7 @@ import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data
 import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
+import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 
 describe("registerRouteData", () => {
   it("registers quickSubtractPlay as an Alpine data factory", () => {
@@ -29,5 +30,11 @@ describe("registerRouteData", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("trainingIndex", trainingIndex);
+  });
+
+  it("registers routineBuilder as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("routineBuilder", routineBuilder);
   });
 });

@@ -1,11 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { CreateRoutineRequest } from "@routes/routines/types";
+import {
+  CreateRoutineRequest,
+  MAX_ROUTINE_STEP_MINUTES,
+  MAX_ROUTINE_STEPS,
+} from "@routes/routines/types";
 
 const step = {
   exerciseTemplateId: "et-1",
   durationTypeKey: "MINUTES",
   durationValue: 10,
 };
+
+describe("MAX_ROUTINE_STEP_MINUTES / MAX_ROUTINE_STEPS", () => {
+  it("names the bounds the schema enforces, so a consumer can import rather than restate them", () => {
+    expect(MAX_ROUTINE_STEP_MINUTES).toBe(60);
+    expect(MAX_ROUTINE_STEPS).toBe(12);
+  });
+});
 
 describe("CreateRoutineRequest", () => {
   it("accepts a trimmed name, null description and MINUTES steps", () => {

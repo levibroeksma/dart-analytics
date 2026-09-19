@@ -1,0 +1,42 @@
+---
+/**
+ * The exercise catalog as tappable tiles; tapping appends a step
+ * (`routineBuilder().addStep`). Reads `catalog`/`steps` from the parent
+ * scope. Hand-rolled per `components/CLAUDE.md`'s "multi-part custom
+ * control a shared primitive cannot express as-is" exemption (precedent:
+ * `AppModeForm.astro`): each tile needs its own dynamic name/description
+ * text and a per-clone disabled state, and `Button.astro` offers neither a
+ * default slot nor an Alpine-bindable label to carry either.
+ *
+ * The step cap below is a plain Alpine-expression literal, not a frontmatter
+ * import of `MAX_BUILDER_STEPS`: `routine-builder.data.ts` is browser-only
+ * (`globalThis.location`, `fetch` via `@client/api/*`), and an `.astro`
+ * frontmatter import runs the module during SSR/prerendering instead.
+ */
+---
+
+<section class="space-y-2">
+  <h2 class="text-sm font-semibold text-foreground">Add an exercise</h2>
+  <div class="grid grid-cols-2 gap-2">
+    <template
+      x-for="entry in catalog"
+      :key="entry.exerciseTemplateId"
+    >
+      <button
+        type="button"
+        class="rounded-lg border border-dashed border-accent px-3 py-2.5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="steps.length >= 12"
+        @click="addStep(entry)"
+      >
+        <span
+          class="block text-sm font-semibold text-foreground"
+          x-text="entry.name"
+        ></span>
+        <span
+          class="block text-xs text-muted-foreground"
+          x-text="entry.description ?? ''"
+        ></span>
+      </button>
+    </template>
+  </div>
+</section>
