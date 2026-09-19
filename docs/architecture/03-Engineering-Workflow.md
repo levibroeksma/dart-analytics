@@ -197,7 +197,7 @@ Validation includes:
 - replay verification
 - API verification
 - SQL verification
-- stale type validation (`npx fallow`) for `app/` changes
+- stale type validation (`bash scripts/fallow-gate.sh`, the `npx fallow` wrapper) for `app/` changes
 - performance considerations
 
 Validation should confirm that the implementation satisfies the original requirements.

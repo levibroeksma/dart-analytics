@@ -167,7 +167,7 @@ Before implementing a change, determine whether it affects architecture, databas
 
 Changes affecting architecture must update the corresponding documentation before implementation begins.
 
-For `app/` implementation validation, include `npx fallow` in the standard verification sequence to catch stale types/usages before completion.
+For `app/` implementation validation, include `bash scripts/fallow-gate.sh` — the `npx fallow` wrapper — in the standard verification sequence to catch stale types/usages before completion.
 
 ---
 

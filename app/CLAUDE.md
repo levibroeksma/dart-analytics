@@ -74,7 +74,7 @@ Run for `app/` changes before claiming completion — full procedure and mid-tas
 npm run validate:app
 ```
 
-Done means every step of that chain exits zero, `npx fallow` included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
+Done means every step of that chain exits zero, the fallow gate included, and the type gate reports **0 errors, 0 warnings, 0 hints** — hint-level diagnostics fail the build (`--minimumFailingSeverity hint`).
 
 A source edit with no test edit is not a completed task: `scripts/check-test-coverage.sh` fails any change set that touches a runtime `.ts` file under `app/src/` or `app/scripts/` without also touching a test that imports it. Type-only edits, pure re-export barrels and `drizzle-kit` output are exempt, derived rather than listed. There is no per-file silencer — if a changed file has no covering test, write one. (D224, 2026-08-21)
 

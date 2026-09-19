@@ -30,7 +30,7 @@ The checkbox list is inlined here so every PR prefills it.
      - scripts/check-context-map.sh (docs/context changes)
      - scripts/check-astro-class-composition.sh (Astro class:list / cn() gate)
      - tests
-     - npx fallow (app/ changes — stale type validation)
+     - scripts/fallow-gate.sh (app/ changes — stale type validation; wraps npx fallow)
      - replay / API / SQL verification where applicable -->
 
 ## Architecture checklist
