@@ -112,9 +112,9 @@ describe("read-model views admit non-game exercise sessions", () => {
   /**
    * The two deliberate exceptions. `v_configuration_presets` reads
    * `configuration_templates.game_type_id`, which is still NOT NULL, and
-   * `v_double_out_checkout_darts` restricts itself to 501 VISUAL_BOARD in its
-   * own WHERE clause -- a non-game session can never satisfy either filter, so
-   * relaxing its joins would change nothing.
+   * `v_x01_checkout_darts` restricts itself to 501/TUOD/ONE_TWENTY_ONE
+   * VISUAL_BOARD sessions in its own WHERE clause -- a non-game session can
+   * never satisfy either filter, so relaxing its joins would change nothing.
    */
   it("leaves the two deliberately game-only views inner-joined", () => {
     expect(
@@ -123,8 +123,13 @@ describe("read-model views admit non-game exercise sessions", () => {
         "game_types",
       ),
     ).toBe(1);
-    const checkoutDarts = views.get("v_double_out_checkout_darts")!.sql;
+    const checkoutDarts = views.get("v_x01_checkout_darts")!.sql;
     expect(innerJoinedLookups(checkoutDarts, "game_types")).toBe(1);
-    expect(checkoutDarts).toMatch(/gt\.implementation_key\s*=\s*'501'/i);
+    expect(checkoutDarts).toMatch(
+      /gt\.implementation_key\s+IN\s*\(\s*'501'\s*,\s*'TUOD'\s*,\s*'ONE_TWENTY_ONE'\s*\)/i,
+    );
+    expect(checkoutDarts).toMatch(
+      /im\.implementation_key\s*=\s*'VISUAL_BOARD'/i,
+    );
   });
 });
