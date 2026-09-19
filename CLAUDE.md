@@ -43,6 +43,7 @@ Where a plugin skill and this repo disagree, load both — the plugin skill for 
 | `superpowers:test-driven-development` | `app/CLAUDE.md` §Test-Driven Development | the repo's red→green→refactor procedure and `npm test` commands (D99) |
 | `superpowers:verification-before-completion` | `run-all-gates` skill | which command actually proves a claim here |
 | `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `capturing-discovered-work` skill | incidental findings become GitHub issues; they are never fixed in the same pass |
+| `superpowers:brainstorming` | `authoring-game-rules` skill | for a game, exercise, routine or trivia tool, the rules document is authored first and is brainstorming's *input* — this skill owns the V1 cut test and the defer list, brainstorming still owns the spec (D322) |
 
 `superpowers:brainstorming` and `superpowers:using-git-worktrees` run as written, unmodified — see the commit and worktree invariants below, which were aligned to them rather than the reverse. (2026-09-18, D312)
 
@@ -120,6 +121,6 @@ Decisions are append-only and domain-scoped: never edit or delete an existing bl
 | Something noticed but not fixed | GitHub issue, `discovered-work` label — see `.claude/skills/capturing-discovered-work/SKILL.md` |
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
 | Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |
-| Raw, pre-spec game/routine/trivia rule notes (non-canonical) | `docs/game-rules/README.md` |
+| Pre-spec game/exercise/routine/trivia rule notes (non-canonical, permanent) | `docs/game-rules/README.md`; authored via the `authoring-game-rules` skill |
 
 ---
