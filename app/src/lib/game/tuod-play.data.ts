@@ -53,7 +53,6 @@ import type {
   TuodAttemptInput,
   TuodSeatState,
   TuodState,
-  TurnFact,
 } from "@modules/types";
 import type {
   BoardMarker,
