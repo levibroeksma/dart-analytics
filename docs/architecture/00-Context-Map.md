@@ -25,7 +25,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
-| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~7.7k |
+| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~12.1k |
 | New view / analytics query | `05-Database/05-Views/00-Overview.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5.8k |
 | New general (career-wide) stat view | `05-Database/05-Views/01-General-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~4.1k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~2.2k |
@@ -43,7 +43,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~8.6k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Actual per-task total varies with domain (router + testing.md, the smallest, runs ~2.3k; router + game-engine.md, the largest, runs ~5.8k) — the single figure in the last column below prices only the router + the one example file named above. | ~8.5k |
-| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0037`; never patch applied files | ~5.1k |
+| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0037`; never patch applied files | ~9.4k |
 | Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~11.4k |
 | New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~17.1k |
 | Authoring or amending game / exercise / routine / trivia rules | `authoring-game-rules` skill (its own `references/` file for the shape), the matching `docs/game-rules/templates/` template, and the existing rules file if there is one; `09-Training/01-Routines.md` for exercise and routine shapes | ~7.1k |
