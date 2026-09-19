@@ -313,79 +313,7 @@ describe("singlesTrainingSetup", () => {
       );
     });
 
-    it("omits scoring_mode from the overrides once a guest is added — SinglesConfig (V1) is strict", async () => {
-      const setup = createSetup({
-        presets: [STANDARD_PRESET],
-        scoringMode: "ACCURACY",
-      });
-      setup.newGuestName = "Guest 1";
-      setup.addGuest();
-      expect(setup.scoringMode).toBe("STANDARD");
-
-      vi.mocked(sessionsApi.createSession).mockResolvedValue({
-        sessionId: "new-session-id",
-        participants: [
-          {
-            ref: "participant-1",
-            displayName: "Player",
-            participantTypeKey: "PLAYER",
-          },
-          {
-            ref: "participant-2",
-            displayName: "Guest 1",
-            participantTypeKey: "GUEST",
-          },
-        ],
-      } as any);
-      vi.stubGlobal("location", { href: "" });
-
-      await setup.start();
-
-      const call = vi.mocked(sessionsApi.createSession).mock.calls[0][0] as {
-        rulesetVersionKey: string;
-        config: { overrides: Record<string, unknown> };
-      };
-      expect(call.rulesetVersionKey).toBe("SINGLES_V1");
-      expect(call.config.overrides).not.toHaveProperty("scoring_mode");
-    });
-
-    it("omits scoring_mode from the overrides once a DartBot is seated", async () => {
-      const setup = createSetup({
-        presets: [STANDARD_PRESET],
-        scoringMode: "ACCURACY",
-      });
-      setup.addBot();
-      expect(setup.scoringMode).toBe("STANDARD");
-
-      vi.mocked(sessionsApi.createSession).mockResolvedValue({
-        sessionId: "new-session-id",
-        participants: [
-          {
-            ref: "participant-1",
-            displayName: "Player",
-            participantTypeKey: "PLAYER",
-          },
-          {
-            ref: "bot-1",
-            displayName: "DartBot",
-            participantTypeKey: "DARTBOT",
-            dartbot: { level: 8, seed: 1, levelSource: "MANUAL" },
-          },
-        ],
-      } as any);
-      vi.stubGlobal("location", { href: "" });
-
-      await setup.start();
-
-      const call = vi.mocked(sessionsApi.createSession).mock.calls[0][0] as {
-        rulesetVersionKey: string;
-        config: { overrides: Record<string, unknown> };
-      };
-      expect(call.rulesetVersionKey).toBe("SINGLES_V1");
-      expect(call.config.overrides).not.toHaveProperty("scoring_mode");
-    });
-
-    it("resolves SINGLES_V1 and forces difficulty back to EASY once a guest is added", async () => {
+    it("keeps the selected difficulty and scoring mode once a guest is added", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
         difficulty: "HARD",
@@ -393,7 +321,8 @@ describe("singlesTrainingSetup", () => {
       });
       setup.newGuestName = "Guest 1";
       setup.addGuest();
-      expect(setup.difficulty).toBe("EASY");
+      expect(setup.difficulty).toBe("HARD");
+      expect(setup.scoringMode).toBe("ACCURACY");
 
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -416,23 +345,27 @@ describe("singlesTrainingSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SINGLES_V1",
+          rulesetVersionKey: "SINGLES_V3",
           config: expect.objectContaining({
-            overrides: expect.objectContaining({ difficulty: "EASY" }),
+            overrides: expect.objectContaining({
+              difficulty: "HARD",
+              scoring_mode: "ACCURACY",
+            }),
           }),
         }),
       );
     });
 
-    it("resolves SINGLES_V1 and forces difficulty back to EASY once a DartBot is seated", async () => {
+    it("keeps the selected difficulty and scoring mode once a DartBot is seated", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
-        difficulty: "HARD",
+        difficulty: "EXTREME",
         scoringMode: "ACCURACY",
       });
       setup.addBot();
       expect(setup.bot).toEqual({ level: 8 });
-      expect(setup.difficulty).toBe("EASY");
+      expect(setup.difficulty).toBe("EXTREME");
+      expect(setup.scoringMode).toBe("ACCURACY");
 
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -456,9 +389,12 @@ describe("singlesTrainingSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SINGLES_V1",
+          rulesetVersionKey: "SINGLES_V3",
           config: expect.objectContaining({
-            overrides: expect.objectContaining({ difficulty: "EASY" }),
+            overrides: expect.objectContaining({
+              difficulty: "EXTREME",
+              scoring_mode: "ACCURACY",
+            }),
           }),
         }),
       );
