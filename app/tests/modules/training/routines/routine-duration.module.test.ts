@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   MAX_ROUTINE_MINUTES,
+  MIN_USER_ROUTINE_MINUTES,
   validateRoutineDuration,
 } from "@modules/training/routines/routine-duration.module";
 
@@ -69,5 +70,43 @@ describe("validateRoutineDuration", () => {
       ok: true,
       totalMinutes: 5,
     });
+  });
+
+  it("exports the user-routine floor", () => {
+    expect(MIN_USER_ROUTINE_MINUTES).toBe(30);
+  });
+
+  it("rejects a routine under the floor when one is given", () => {
+    const result = validateRoutineDuration([minutes(1, 29)], {
+      minMinutes: MIN_USER_ROUTINE_MINUTES,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.issues.join(" ")).toContain("minimum is 30");
+  });
+
+  it("accepts exactly the floor and exactly the cap under the floor option", () => {
+    expect(
+      validateRoutineDuration([minutes(1, 30)], { minMinutes: 30 }),
+    ).toEqual({ ok: true, totalMinutes: 30 });
+    expect(
+      validateRoutineDuration([minutes(1, 60)], { minMinutes: 30 }),
+    ).toEqual({ ok: true, totalMinutes: 60 });
+  });
+
+  it("rejects over the cap under the floor option", () => {
+    expect(
+      validateRoutineDuration([minutes(1, 61)], { minMinutes: 30 }).ok,
+    ).toBe(false);
+  });
+
+  it("counts ROUNDS as zero against the floor too", () => {
+    const result = validateRoutineDuration(
+      [{ sequenceNumber: 1, durationTypeKey: "ROUNDS", durationValue: 40 }],
+      { minMinutes: 30 },
+    );
+
+    expect(result.ok).toBe(false);
   });
 });
