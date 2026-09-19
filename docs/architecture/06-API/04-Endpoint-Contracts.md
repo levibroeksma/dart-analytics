@@ -7,7 +7,7 @@ updated: 2026-09-19
 
 # API Endpoint Contracts
 
-> **Version:** 1.7.0 (custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.8.0 (`StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -319,11 +319,11 @@ Missing/unknown `gameType` → `422 VALIDATION_FAILED`.
 
 ## Statistics Overview — `GET /api/statistics/overview`
 
-The caller's career-wide stat overview. Read-only, backed by `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_double_out_checkout_darts` (migrations `0009`, `0025`, `0026`, `0024`). Aggregation happens in `services/statistics.service.ts` over the four pure modules under `modules/stats/`/`modules/game/`, not a single dedicated view — see `decisions/api.md` for why.
+The caller's career-wide stat overview. Read-only, backed by `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts` (migrations `0009`, `0025`, `0026`, `0038`). Aggregation happens in `services/statistics.service.ts` over the four pure modules under `modules/stats/`/`modules/game/`, not a single dedicated view — see `decisions/api.md` for why.
 
 **Auth:** standard protected route class — JWT-verified, player resolved by middleware. No path parameter, no query parameter, no request body.
 
-Every response field is always present. `null` means "not enough data to compute" (e.g. no completed sessions, no legs with complete dart capture) — never "field not implemented." `doubleAccuracy` and `highestCheckout` are computed from whatever `v_double_out_checkout_darts` currently returns (501+`VISUAL_BOARD` only, as of this writing) and will widen automatically, with no contract change, once that view's game-type filter is extended. The session's `starting_score` is one of those columns from migration `0036` on, so the read no longer selects `exercise_configurations` itself (D298, issue #342). <!-- 2026-09-17 -->
+Every response field is always present. `null` means "not enough data to compute" (e.g. no completed sessions, no legs with complete dart capture) — never "field not implemented." `checkoutPercentage` and `highestCheckout` are computed from whatever `v_x01_checkout_darts` currently returns (501/TUOD/121 under `VISUAL_BOARD`, as of this writing) and will widen automatically, with no contract change, once that view's game-type filter is extended. `checkoutPercentage` is a 0–1 ratio of hits over every dart thrown at a double across the caller's whole X01 history, `null` when no dart was ever thrown at one (D256, `decisions/game-engine.md`). The session's `starting_score` is one of those columns from migration `0036` on, so the read no longer selects `exercise_configurations` itself (D298, issue #342). <!-- 2026-09-17; renamed and widened to TUOD/121, 2026-09-19 -->
 
 Success → `200` with the standard `ok()` envelope carrying `StatisticsOverviewResponse`. No new error codes — only the standard protected-route failures (`401`, `403 PLAYER_NOT_PROVISIONED`, `500`/`503` from the API error boundary).
 
@@ -345,7 +345,7 @@ const StatisticsOverviewResponse = z.object({
   scoringAverageExcludingDoubles: z.number(),
   bestLegDarts: z.number().int().nullable(),
   averageDartsPerLeg: z.number().nullable(),
-  doubleAccuracy: z.number().min(0).max(1).nullable(),
+  checkoutPercentage: z.number().min(0).max(1).nullable(), // ratio of darts thrown at a double that hit; null when none were thrown
   highestCheckout: z
     .object({ value: z.number().int(), timesHit: z.number().int() })
     .nullable(),
@@ -375,7 +375,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
-| `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_double_out_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
+| `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_x01_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 

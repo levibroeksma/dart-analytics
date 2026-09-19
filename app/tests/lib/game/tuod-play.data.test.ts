@@ -1424,7 +1424,7 @@ describe("recordDart (board input)", () => {
     expect(store.turns[1].darts).toHaveLength(1);
   });
 
-  it("computes a VISUAL_BOARD double accuracy from a missed checkout attempt", async () => {
+  it("computes a VISUAL_BOARD checkout percentage from a missed checkout attempt", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValueOnce([
       { ...ACTIVE_SESSION, inputModeKey: "VISUAL_BOARD" },
     ]);
