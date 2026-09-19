@@ -1,8 +1,10 @@
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
+import {
+  checkoutPathFor,
+  checkoutPathWithin,
+} from "@modules/game/checkout-path.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
@@ -329,7 +331,7 @@ export function tuodPlay() {
 
     /**
      * The finish route for what the seat still has left in the open attempt,
-     * blank when no route fits the darts it has left. Reads
+     * blank when no route fits the darts it has left (#291). Reads
      * `remainingInAttempt`, not `currentTarget`, so the hint tracks the
      * score the player is actually throwing at (#202) — mirrors
      * `one-twenty-one-play.data.ts`'s own `checkoutHint`.
@@ -342,8 +344,7 @@ export function tuodPlay() {
         seatRef,
         this.$store.game.configSnapshot?.maxDartsPerTurn ?? DARTS_PER_VISIT,
       );
-      if (!isCheckoutReachable(remaining, dartsLeft)) return "";
-      return checkoutPathFor(remaining)!.join(" ");
+      return checkoutPathWithin(remaining, dartsLeft)?.join(" ") ?? "";
     },
 
     checkoutHint(this: TuodPlayContext): string {

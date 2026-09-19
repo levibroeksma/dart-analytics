@@ -2,8 +2,10 @@ import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
+import {
+  checkoutPathFor,
+  checkoutPathWithin,
+} from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import { fetchActiveSessions } from "@client/api/sessions";
@@ -478,13 +480,15 @@ export function oneTwentyOnePlay() {
       return this.visitsThisAttemptFor(state.activeParticipantRef);
     },
 
+    /**
+     * The finish route for what is left in the open attempt, blank when no
+     * route fits the darts the visit has left (#291).
+     */
     checkoutHint(this: OneTwentyOnePlayContext): string {
       if (this.$store.checkoutHints?.enabled === false) return "";
       const remaining = this.remainingInAttempt();
       const dartsLeft = dartsLeftInOpenVisit(this.$store.game.turns);
-      return isCheckoutReachable(remaining, dartsLeft)
-        ? checkoutPathFor(remaining)!.join(" ")
-        : "";
+      return checkoutPathWithin(remaining, dartsLeft)?.join(" ") ?? "";
     },
 
     dartsThrownThisSession(this: OneTwentyOnePlayContext): number {

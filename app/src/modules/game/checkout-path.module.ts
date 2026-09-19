@@ -194,3 +194,69 @@ export function checkoutPathFor(
   if (!Number.isInteger(remainingScore)) return null;
   return CHECKOUT_PATHS[remainingScore] ?? null;
 }
+
+/** Every legal dart label, ordered by how a player would sooner throw it. */
+const DART_OPTIONS: readonly {
+  readonly label: string;
+  readonly value: number;
+}[] = [
+  ...Array.from({ length: 20 }, (_, index) => ({
+    label: `T${20 - index}`,
+    value: 3 * (20 - index),
+  })),
+  { label: "BULL", value: 50 },
+  { label: "25", value: 25 },
+  ...Array.from({ length: 20 }, (_, index) => ({
+    label: String(20 - index),
+    value: 20 - index,
+  })),
+  ...Array.from({ length: 20 }, (_, index) => ({
+    label: `D${20 - index}`,
+    value: 2 * (20 - index),
+  })),
+];
+
+/** The label of the one dart that finishes `remainingScore`, or `null`. */
+function finishingDart(remainingScore: number): string | null {
+  if (remainingScore === 50) return "BULL";
+  if (remainingScore >= 2 && remainingScore <= 40 && remainingScore % 2 === 0) {
+    return `D${remainingScore / 2}`;
+  }
+  return null;
+}
+
+/** The shortest double-out route for `remainingScore` within `dartsAvailable` darts, or `null`. */
+function shortestRoute(
+  remainingScore: number,
+  dartsAvailable: number,
+): readonly string[] | null {
+  if (dartsAvailable < 1 || remainingScore < 2) return null;
+  const finish = finishingDart(remainingScore);
+  if (finish) return [finish];
+  for (let darts = 2; darts <= dartsAvailable; darts++) {
+    for (const option of DART_OPTIONS) {
+      const rest = shortestRoute(remainingScore - option.value, darts - 1);
+      if (rest && rest.length === darts - 1) return [option.label, ...rest];
+    }
+  }
+  return null;
+}
+
+/**
+ * A double-out route for `remainingScore` that fits `dartsAvailable` darts —
+ * the conventional chart route whenever it fits, otherwise the shortest true
+ * route, which is what the darts left in a visit can actually throw (#291).
+ * `null` when no route of any length fits: a bogey number, 1, 0, above 170,
+ * a non-integer, or simply too few darts left.
+ */
+export function checkoutPathWithin(
+  remainingScore: number,
+  dartsAvailable: number,
+): readonly string[] | null {
+  const conventional = checkoutPathFor(remainingScore);
+  if (conventional && conventional.length <= dartsAvailable) {
+    return conventional;
+  }
+  if (conventional === null) return null;
+  return shortestRoute(remainingScore, Math.min(dartsAvailable, 3));
+}

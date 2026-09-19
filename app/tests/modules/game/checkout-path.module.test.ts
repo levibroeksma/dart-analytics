@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import {
+  checkoutPathFor,
+  checkoutPathWithin,
+} from "@modules/game/checkout-path.module";
+import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 
 describe("checkoutPathFor", () => {
   it("returns the highest possible finish for 170", () => {
@@ -96,6 +100,66 @@ describe("checkoutPathFor — table-wide invariants", () => {
   for (const bogey of BOGEY_NUMBERS) {
     it(`returns null for bogey/unreachable number ${bogey}`, () => {
       expect(checkoutPathFor(bogey)).toBeNull();
+    });
+  }
+});
+
+describe("checkoutPathWithin", () => {
+  it("returns the curated route when it fits the darts left", () => {
+    expect(checkoutPathWithin(121, 3)).toEqual(["T20", "T11", "D14"]);
+    expect(checkoutPathWithin(100, 2)).toEqual(["T20", "D20"]);
+    expect(checkoutPathWithin(40, 1)).toEqual(["D20"]);
+  });
+
+  it("substitutes a shorter true route when the curated one is too long (#291)", () => {
+    expect(checkoutPathWithin(50, 1)).toEqual(["BULL"]);
+    expect(checkoutPathWithin(101, 2)).toEqual(["T17", "BULL"]);
+    expect(checkoutPathWithin(104, 2)).toEqual(["T18", "BULL"]);
+    expect(checkoutPathWithin(107, 2)).toEqual(["T19", "BULL"]);
+    expect(checkoutPathWithin(110, 2)).toEqual(["T20", "BULL"]);
+  });
+
+  it("returns null when no route of any kind fits the darts left", () => {
+    expect(checkoutPathWithin(121, 2)).toBeNull();
+    expect(checkoutPathWithin(50, 0)).toBeNull();
+    expect(checkoutPathWithin(3, 1)).toBeNull();
+  });
+
+  it("returns null for bogey numbers, 1, 0 and out-of-range scores", () => {
+    for (const bogey of BOGEY_NUMBERS) {
+      expect(checkoutPathWithin(bogey, 3)).toBeNull();
+    }
+    expect(checkoutPathWithin(0, 3)).toBeNull();
+    expect(checkoutPathWithin(171, 3)).toBeNull();
+    expect(checkoutPathWithin(40.5, 3)).toBeNull();
+    expect(checkoutPathWithin(-5, 3)).toBeNull();
+  });
+});
+
+describe("checkoutPathWithin — table-wide invariants", () => {
+  for (let score = 2; score <= 170; score++) {
+    if (BOGEY_NUMBERS.includes(score)) continue;
+
+    for (const dartsLeft of [1, 2, 3]) {
+      const route = checkoutPathWithin(score, dartsLeft);
+      if (route === null) continue;
+
+      it(`route for ${score} with ${dartsLeft} dart(s) fits, sums and doubles out`, () => {
+        expect(route.length).toBeLessThanOrEqual(dartsLeft);
+        expect(route.reduce((total, dart) => total + dartValue(dart), 0)).toBe(
+          score,
+        );
+        const lastDart = route[route.length - 1];
+        expect(lastDart === "BULL" || lastDart.startsWith("D")).toBe(true);
+      });
+    }
+
+    it(`offers a route for ${score} whenever one is truly reachable`, () => {
+      for (const dartsLeft of [1, 2, 3]) {
+        expect(checkoutPathWithin(score, dartsLeft) !== null).toBe(
+          isCheckoutReachable(score, dartsLeft),
+        );
+      }
     });
   }
 });

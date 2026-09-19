@@ -420,7 +420,7 @@ describe("oneTwentyOnePlay", () => {
       expect(play.checkoutHint.call(play)).toBe("D20");
     });
 
-    it("still recognizes 50 as reachable with the last dart of the visit, via true reachability rather than the display chart's own route length (#247)", async () => {
+    it("shows a route the last dart of the visit can actually throw, not the longer curated one (#291)", async () => {
       const play = createPlay();
       play.engine = oneTwentyOneEngineFactory.create(config) as any;
       play.engine!.record({ scoreAttempted: 71 });
@@ -439,13 +439,7 @@ describe("oneTwentyOnePlay", () => {
         locationY: null,
       });
 
-      // checkoutHint's own reachability check (isCheckoutReachable) is now
-      // true reachability, so 50 with 1 dart left is correctly recognized as
-      // reachable (BULL) rather than wrongly blanked out. The text shown is
-      // still checkoutPathFor's curated "10 D20" route, which is longer than
-      // the single dart actually left — a known, separately tracked display
-      // mismatch (FINDINGS.md F70), not a validation bug.
-      expect(play.checkoutHint.call(play)).toBe("10 D20");
+      expect(play.checkoutHint.call(play)).toBe("BULL");
     });
 
     it("is empty when checkout hints are disabled, even with a valid route", () => {
