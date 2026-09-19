@@ -149,4 +149,40 @@ describe("findX01CheckoutDarts", () => {
     expect(query.from).toHaveBeenCalledWith(vX01CheckoutDarts);
     expect(query.orderBy).toHaveBeenCalledTimes(1);
   });
+
+  /**
+   * The SQL order is load-bearing, not cosmetic: `checkoutVisitsFromRows`
+   * groups by session and folds each session's ladder in the order the rows
+   * arrive, and 121/TUOD slice that log by array index.
+   *
+   * Columns are compared by `uniqueName` (`<view>_<column>_unique`), which
+   * names both the view and the column, and is read off the schema objects
+   * themselves rather than hardcoded -- so a rename in `schema.ts` flows
+   * through and a column from some other table could never satisfy it. Two
+   * things rule out the more obvious forms: a Drizzle view proxy mints a
+   * fresh column object on every property access, so
+   * `vX01CheckoutDarts.sessionId !== vX01CheckoutDarts.sessionId` and `toBe`
+   * can never hold; and a column is a cyclic object graph that makes
+   * `toEqual`/`toHaveBeenCalledWith` blow the stack.
+   */
+  it("orders by session, stage sequence, turn sequence and dart number, in that order", async () => {
+    const query = fakeOrderedQuery([]);
+    const db = { select: vi.fn(() => query) } as any;
+    const { vX01CheckoutDarts } = await import("@db/schema");
+    const { findX01CheckoutDarts } =
+      await import("@repositories/statistics.repository");
+
+    await findX01CheckoutDarts(db, "p1");
+
+    const identityOf = (column: unknown): string | undefined =>
+      (column as { uniqueName?: string }).uniqueName;
+    const ordered = query.orderBy.mock.calls[0].map(identityOf);
+
+    expect(ordered).toEqual([
+      identityOf(vX01CheckoutDarts.sessionId),
+      identityOf(vX01CheckoutDarts.stageSequence),
+      identityOf(vX01CheckoutDarts.turnSequence),
+      identityOf(vX01CheckoutDarts.dartNumber),
+    ]);
+  });
 });
