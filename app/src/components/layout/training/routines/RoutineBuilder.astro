@@ -1,0 +1,96 @@
+---
+/**
+ * Builder body for create and edit. The page mounts `routineBuilder(mode)`;
+ * this renders header inputs, the step list, the picker and the footer. The
+ * name `maxlength` below is a literal, not a frontmatter import from
+ * `routine-builder.data.ts` (browser-only — see `ExercisePicker.astro`'s
+ * note on why that module must not load during SSR/prerendering).
+ */
+import Input from "@components/forms/Input.astro";
+import Button from "@components/forms/Button.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import RoutineStepRow from "./RoutineStepRow.astro";
+import ExercisePicker from "./ExercisePicker.astro";
+---
+
+<div class="space-y-6">
+  <ErrorAlert />
+  <div class="space-y-2">
+    <Input
+      name="routine-name"
+      placeholder="Routine name"
+      maxlength="60"
+      x-model="name"
+    />
+    <Input
+      name="routine-description"
+      placeholder="Description (optional)"
+      maxlength="280"
+      x-model="description"
+    />
+  </div>
+
+  <section class="space-y-2">
+    <h2 class="text-sm font-semibold text-foreground">Steps</h2>
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="steps.length === 0"
+      x-cloak
+    >
+      No steps yet — add an exercise below.
+    </p>
+    <ol class="space-y-2">
+      <template
+        x-for="(step, index) in steps"
+        :key="index"
+      >
+        <RoutineStepRow />
+      </template>
+    </ol>
+  </section>
+
+  <ExercisePicker />
+
+  <footer class="space-y-2">
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-muted-foreground">Total</span>
+      <span
+        class="font-semibold text-foreground"
+        x-text="`${totalMinutes()} min`"
+      ></span>
+    </div>
+    <p
+      class="text-xs text-muted-foreground"
+      x-text="`A routine runs between ${minMinutes} and ${maxMinutes} minutes.`"
+    >
+    </p>
+    <ul
+      class="text-xs text-error"
+      x-show="durationIssues().length > 0 || serverIssues.length > 0"
+      x-cloak
+    >
+      <template
+        x-for="issue in [...durationIssues(), ...serverIssues]"
+        :key="issue"
+      >
+        <li x-text="issue"></li>
+      </template>
+    </ul>
+    <div class="flex gap-2">
+      <Button
+        title="Cancel"
+        variant="secondary"
+        grow
+        @click="cancel()"
+      />
+      <Button
+        title="Save"
+        variant="primary"
+        grow
+        :disabled="!canSave()"
+        loadingExpr="saving"
+        @click="save()"
+      />
+    </div>
+  </footer>
+</div>

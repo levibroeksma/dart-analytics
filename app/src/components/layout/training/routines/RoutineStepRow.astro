@@ -1,0 +1,64 @@
+---
+/**
+ * One builder step: position, exercise name, minutes input, move/remove.
+ * Reads `step`/`index` from the enclosing `x-for` and the builder's helpers.
+ * Only `chevron-down.svg` and `cross.svg` exist under `app/src/icons/` for
+ * this purpose — "move up" is `chevron-down` rotated 180deg, "move down" is
+ * `chevron-down` unrotated, "remove" is `cross`. The minute bounds below are
+ * plain literals, not a frontmatter import from `routine-builder.data.ts`
+ * (browser-only — see `ExercisePicker.astro`'s note on why that module must
+ * not load during SSR/prerendering).
+ */
+import Input from "@components/forms/Input.astro";
+import IconBtn from "@components/forms/IconBtn.astro";
+import ChevronDownIcon from "@icons/chevron-down.svg";
+import CrossIcon from "@icons/cross.svg";
+---
+
+<li class="flex items-center gap-2 rounded-md border border-border p-2">
+  <span
+    class="w-6 text-sm font-semibold text-accent"
+    x-text="index + 1"
+  ></span>
+  <span
+    class="flex-1 text-sm text-foreground"
+    x-text="step.name"
+  ></span>
+  <Input
+    type="number"
+    class="w-16 text-center"
+    min="1"
+    max="60"
+    inputmode="numeric"
+    :value="step.durationValue"
+    @change="setMinutes(index, $event.target.valueAsNumber)"
+    aria-label="Minutes"
+  />
+  <span class="text-xs text-muted-foreground">min</span>
+  <IconBtn
+    variant="ghost"
+    class="p-1.5"
+    ariaLabel="Move up"
+    :disabled="index === 0"
+    @click="moveUp(index)"
+  >
+    <ChevronDownIcon class="rotate-180" />
+  </IconBtn>
+  <IconBtn
+    variant="ghost"
+    class="p-1.5"
+    ariaLabel="Move down"
+    :disabled="index === steps.length - 1"
+    @click="moveDown(index)"
+  >
+    <ChevronDownIcon />
+  </IconBtn>
+  <IconBtn
+    variant="ghost"
+    class="p-1.5"
+    ariaLabel="Remove step"
+    @click="removeStep(index)"
+  >
+    <CrossIcon />
+  </IconBtn>
+</li>

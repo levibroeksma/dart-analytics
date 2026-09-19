@@ -1,5 +1,9 @@
 import type { TrainingEngine, ExerciseEngine } from "@modules/interfaces";
-import type { WarmUpState, RoutineStepSummary } from "@modules/types";
+import type {
+  WarmUpState,
+  RoutineStepSummary,
+  RoutineDurationResult,
+} from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { SessionClock } from "@modules/ui/session-clock.module";
 import type {
@@ -7,6 +11,7 @@ import type {
   StartTrainingStepResponseData,
   RoutineSummaryData,
   RoutineExecutionData,
+  ExerciseTemplateCatalogEntryData,
 } from "@client/api/types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
@@ -153,4 +158,59 @@ export type RoutineDetailContext = {
   requestDelete(this: RoutineDetailContext): void;
   cancelDelete(this: RoutineDetailContext): void;
   confirmDelete(this: RoutineDetailContext): Promise<void>;
+};
+
+/** One row of `routineBuilder()`'s ordered step list. */
+export type BuilderStep = {
+  exerciseTemplateId: string;
+  name: string;
+  exerciseTypeKey: string;
+  durationValue: number;
+};
+
+/**
+ * Hand-written rather than `ReturnType<typeof routineBuilder>`: every method
+ * below already types its own `this` as `RoutineBuilderContext`, so deriving
+ * the type from the factory's return value is circular (ts(2456)).
+ */
+export type RoutineBuilderContext = {
+  mode: "create" | "edit";
+  routineId: string | null;
+  loading: boolean;
+  saving: boolean;
+  error: string;
+  serverIssues: string[];
+  name: string;
+  description: string;
+  catalog: ExerciseTemplateCatalogEntryData[];
+  steps: BuilderStep[];
+  minMinutes: number;
+  maxMinutes: number;
+  navigate(path: string): void;
+  init(this: RoutineBuilderContext): Promise<void>;
+  loadExisting(this: RoutineBuilderContext): Promise<void>;
+  addStep(
+    this: RoutineBuilderContext,
+    entry: ExerciseTemplateCatalogEntryData,
+  ): void;
+  removeStep(this: RoutineBuilderContext, index: number): void;
+  moveUp(this: RoutineBuilderContext, index: number): void;
+  moveDown(this: RoutineBuilderContext, index: number): void;
+  setMinutes(this: RoutineBuilderContext, index: number, value: number): void;
+  durationResult(this: RoutineBuilderContext): RoutineDurationResult;
+  totalMinutes(this: RoutineBuilderContext): number;
+  durationIssues(this: RoutineBuilderContext): string[];
+  nameValid(this: RoutineBuilderContext): boolean;
+  canSave(this: RoutineBuilderContext): boolean;
+  payload(this: RoutineBuilderContext): {
+    name: string;
+    description: string | null;
+    steps: {
+      exerciseTemplateId: string;
+      durationTypeKey: "MINUTES";
+      durationValue: number;
+    }[];
+  };
+  save(this: RoutineBuilderContext): Promise<void>;
+  cancel(this: RoutineBuilderContext): void;
 };
