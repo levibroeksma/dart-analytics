@@ -19,10 +19,7 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      target="currentTargetLabel()"
-      class="min-h-2/5 max-h-2/5 h-full"
-    >
+    <SinglePlayerDisplay target="currentTargetLabel()">
       <div
         slot="progress"
         class="mt-2 flex w-full flex-col items-center gap-2 px-4"
@@ -56,7 +53,6 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
       }}
       isTarget={true}
-      class="h-2/5"
     >
       <dl
         slot="progressA"

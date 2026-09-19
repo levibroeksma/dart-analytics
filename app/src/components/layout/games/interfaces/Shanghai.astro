@@ -22,7 +22,6 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     <SinglePlayerDisplay
       isTarget={false}
       score="currentScore()"
-      class="min-h-2/5 max-h-2/5 h-full"
     >
       <div
         slot="progress"
@@ -57,7 +56,6 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         scoreExpr: "currentScoreFor(state()?.seats[1]?.participantRef)",
       }}
       isTarget={false}
-      class="h-2/5"
     >
       <dl
         slot="progressA"
