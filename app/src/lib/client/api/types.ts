@@ -46,4 +46,13 @@ export {
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
   type AbandonTrainingResponseData,
+  CreateRoutineRequest,
+  type CreateRoutineRequestInput,
+  UpdateRoutineRequest,
+  type UpdateRoutineRequestInput,
+  type RoutineExecutionData,
+  // fallow-ignore-next-line unused-type -- RoutineListData's items[] element type; kept for a future browser consumer of the routine list
+  type RoutineSummaryData,
+  type RoutineListData,
+  type ExerciseTemplateCatalogEntryData,
 } from "@routes/types";

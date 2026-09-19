@@ -50,6 +50,9 @@ async function attempt<T>(
   } catch {
     return serviceUnavailable();
   }
+  if (response.status === 204) {
+    return { ok: true, data: null as T, requestId: "" };
+  }
   let body: unknown;
   try {
     body = await response.json();

@@ -103,4 +103,15 @@ describe("apiRequest", () => {
     expect(result.ok).toBe(false);
     vi.unstubAllGlobals();
   });
+
+  it("treats a 204 as a success envelope with null data", async () => {
+    vi.mocked(getAccessToken).mockResolvedValue("test-jwt");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 204 })),
+    );
+    const result = await apiRequest("/api/routines/x", { method: "DELETE" });
+    expect(result).toMatchObject({ ok: true, data: null });
+    vi.unstubAllGlobals();
+  });
 });
