@@ -99,3 +99,49 @@ export type StatisticsOverview = {
   doubleAccuracy: number | null;
   highestCheckout: { value: number; timesHit: number } | null;
 };
+
+export type RoutineStep = {
+  sequenceNumber: number;
+  exerciseTemplateId: string;
+  exerciseName: string;
+  exerciseDescription: string | null;
+  exerciseTypeKey: string;
+  gameTypeKey: string | null;
+  durationValue: number;
+  durationTypeKey: string;
+};
+
+export type RoutineExecution = {
+  routineId: string;
+  routineName: string;
+  description: string | null;
+  isSystemTemplate: boolean;
+  steps: RoutineStep[];
+};
+
+export type RoutineSummary = {
+  routineId: string;
+  routineName: string;
+  description: string | null;
+  isSystemTemplate: boolean;
+  stepCount: number;
+  totalMinutes: number;
+};
+
+export type ExerciseTemplateCatalogEntry = {
+  exerciseTemplateId: string;
+  name: string;
+  description: string | null;
+  exerciseTypeKey: string;
+  gameTypeKey: string | null;
+};
+
+export type RoutineWriteInput = {
+  name: string;
+  description: string | null;
+  steps: {
+    exerciseTemplateId: string;
+    durationTypeKey: "MINUTES";
+    durationValue: number;
+  }[];
+};
