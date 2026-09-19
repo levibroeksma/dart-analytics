@@ -27,6 +27,11 @@ function formatDays(days: number): string {
  * Turns the raw statistics overview DTO into display-ready strings for
  * StatCard. Every field is computed once per load — nothing here needs to
  * re-run reactively, so the store just copies these strings onto itself.
+ *
+ * `checkoutPercentage` arrives as a 0–1 ratio and renders to two decimals,
+ * matching `checkoutPercentageDisplay` → `accuracyDisplay` in the three X01
+ * result modals: one stat under one label, so one format. No other field
+ * here renders a percentage, so nothing else is affected.
  */
 export function formatStatisticsOverview(
   data: StatisticsOverviewResponseData,
@@ -57,7 +62,7 @@ export function formatStatisticsOverview(
     checkoutPercentage:
       data.checkoutPercentage === null
         ? "—"
-        : `${Math.round(data.checkoutPercentage * 100)}%`,
+        : `${(data.checkoutPercentage * 100).toFixed(2)}%`,
     highestCheckoutValue:
       data.highestCheckout === null ? "—" : String(data.highestCheckout.value),
     highestCheckoutHint:
