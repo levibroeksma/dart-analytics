@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0037)
+├── migrations/     # ordered schema migrations (0001–0038)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -67,6 +67,7 @@ astro check
 17. `seeds/0017_balanced_training_routine.sql`
 18. `seeds/0018_singles_training_v3_game_engine_reference.sql`
 19. `seeds/0019_exercise_template_ruleset_versions.sql`
+20. `seeds/0020_finishing_default_configuration.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -112,6 +113,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0035_exercise_template_ruleset_version_checks.sql` | migration `0035` + seed `0019`: the pin column and its composite FK exist, a ruleset version of another exercise type is rejected and the template's own is accepted, an unpinned template is still allowed, RESTRICT blocks deleting a pinned version, all three non-game system templates were backfilled to their own v1, the GAME template stays unpinned, anti-vacuity guard (11 checks) |
 | `verification/0036_read_model_view_consumers_checks.sql` | migration `0036`: `v_double_out_checkout_darts` exposes `starting_score` and keeps its nine pre-`0036` columns, `uq_exercise_configuration_session` still makes the new LEFT JOIN non-fanning, every row's `starting_score` matches the session snapshot, `v_routine_execution` exposes the nine columns `findRoutineTemplateSteps` reads and returns all four Balanced Training steps (three of them non-game) with no fan-out, every non-game step carries its template's pinned ruleset version, anti-vacuity guard (10 checks) |
 | `verification/0037_exercise_configuration_constraint_naming_checks.sql` | migration `0037`: `uq_exercise_configurations_exercise_session` and `fk_exercise_configurations_exercise_session` both exist on `exercise_configurations.exercise_session_id`, neither pre-rename name (`uq_exercise_configuration_session`, `fk_exercise_configuration_session`) survives, anti-vacuity guard (4 checks) |
+| `verification/0038_custom_routine_checks.sql` | migration `0038` + seed `0020`: `chk_routine_templates_player_ownership` rejects an ownerless user routine, `trg_routine_templates_duration_bounds`/`trg_routine_steps_duration_bounds` refuse a user routine outside 30-60 MINUTES and a stepless user routine, the seeded system Warm-Up routine stays valid under the trigger, deleting a user routine does not trip the bound on its cascaded steps, `v_routine_execution` exposes `player_id`/`routine_description`/`exercise_description`, `v_exercise_template_catalog` lists the four system templates all with defaults after seed `0020` (10 checks) |
 
 ## References
 
