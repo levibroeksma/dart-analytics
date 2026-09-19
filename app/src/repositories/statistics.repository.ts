@@ -1,17 +1,16 @@
 import { eq } from "drizzle-orm";
 import {
-  vDoubleOutCheckoutDarts,
   vPlayerLegFacts,
   vPlayerVisitFacts,
   vSessionOverview,
+  vX01CheckoutDarts,
 } from "@db/schema";
 import type { getDb } from "@db/client";
 import type {
-  CheckoutVisitDarts,
-  DartFact,
   PlayerLegFactRow,
   PlayerSessionSummaryRow,
   PlayerVisitFactRow,
+  X01CheckoutDartRow,
 } from "@modules/types";
 
 type Db = ReturnType<typeof getDb>;
@@ -81,68 +80,43 @@ export async function findLegFacts(
   })) as PlayerLegFactRow[];
 }
 
-type MutableCheckoutVisit = { startingRemaining: number; darts: DartFact[] };
-
 /**
- * Reshapes `v_double_out_checkout_darts`' flat per-dart rows into
- * `CheckoutVisitDarts[]` (one entry per turn), the shape
- * `double-attempt.module.ts` classifies. `startingRemaining` for a turn is
- * the session's configured `starting_score` minus that turn's first dart's
- * `prior_scored_in_stage` (0 when null, meaning the stage's very first dart).
- * Both come from the view: until migration `0036` exposed `starting_score`,
- * this read selected `exercise_configurations` directly, the one raw-table
- * dependency in a read path documented as view-backed (issue #342). A session
- * that stored no configuration snapshot reads NULL, treated as 0 as before.
+ * Reads every X01 checkout dart the player owns through
+ * `v_x01_checkout_darts`, ordered so a session's rows arrive in stage, turn
+ * and dart order -- the order `checkoutVisitsFromRows` folds them in.
  */
-export async function findDoubleOutVisits(
+export async function findX01CheckoutDarts(
   db: Db,
   playerId: string,
-): Promise<CheckoutVisitDarts[]> {
+): Promise<X01CheckoutDartRow[]> {
   const rows = await db
     .select({
-      sessionId: vDoubleOutCheckoutDarts.sessionId,
-      stageId: vDoubleOutCheckoutDarts.stageId,
-      turnSequence: vDoubleOutCheckoutDarts.turnSequence,
-      dartNumber: vDoubleOutCheckoutDarts.dartNumber,
-      hitTargetNumber: vDoubleOutCheckoutDarts.hitTargetNumber,
-      hitZoneKey: vDoubleOutCheckoutDarts.hitZoneKey,
-      score: vDoubleOutCheckoutDarts.score,
-      priorScoredInStage: vDoubleOutCheckoutDarts.priorScoredInStage,
-      startingScore: vDoubleOutCheckoutDarts.startingScore,
+      sessionId: vX01CheckoutDarts.sessionId,
+      gameTypeKey: vX01CheckoutDarts.gameTypeKey,
+      rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
+      configuration: vX01CheckoutDarts.configuration,
+      stageId: vX01CheckoutDarts.stageId,
+      stageSequence: vX01CheckoutDarts.stageSequence,
+      stageTypeKey: vX01CheckoutDarts.stageTypeKey,
+      parentStageId: vX01CheckoutDarts.parentStageId,
+      turnId: vX01CheckoutDarts.turnId,
+      turnSequence: vX01CheckoutDarts.turnSequence,
+      turnTotalScore: vX01CheckoutDarts.turnTotalScore,
+      turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
+      participantId: vX01CheckoutDarts.participantId,
+      dartNumber: vX01CheckoutDarts.dartNumber,
+      hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
+      hitZoneKey: vX01CheckoutDarts.hitZoneKey,
+      score: vX01CheckoutDarts.score,
     })
-    .from(vDoubleOutCheckoutDarts)
-    .where(eq(vDoubleOutCheckoutDarts.playerId, playerId))
+    .from(vX01CheckoutDarts)
+    .where(eq(vX01CheckoutDarts.playerId, playerId))
     .orderBy(
-      vDoubleOutCheckoutDarts.stageId,
-      vDoubleOutCheckoutDarts.turnSequence,
-      vDoubleOutCheckoutDarts.dartNumber,
+      vX01CheckoutDarts.sessionId,
+      vX01CheckoutDarts.stageSequence,
+      vX01CheckoutDarts.turnSequence,
+      vX01CheckoutDarts.dartNumber,
     );
 
-  if (rows.length === 0) return [];
-
-  const visitsByKey = new Map<string, MutableCheckoutVisit>();
-  for (const row of rows) {
-    const key = `${row.stageId}:${row.turnSequence}`;
-    let visit = visitsByKey.get(key);
-    if (!visit) {
-      visit = {
-        startingRemaining:
-          (row.startingScore ?? 0) - (row.priorScoredInStage ?? 0),
-        darts: [],
-      };
-      visitsByKey.set(key, visit);
-    }
-    visit.darts.push({
-      sequence: row.dartNumber as number,
-      intendedTargetNumber: null,
-      intendedZoneKey: null,
-      hitTargetNumber: row.hitTargetNumber,
-      hitZoneKey: row.hitZoneKey as DartFact["hitZoneKey"],
-      score: row.score as number,
-      locationX: null,
-      locationY: null,
-    });
-  }
-
-  return Array.from(visitsByKey.values());
+  return rows as X01CheckoutDartRow[];
 }

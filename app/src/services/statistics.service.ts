@@ -13,6 +13,7 @@ import {
   bestLegDarts,
 } from "@modules/stats/leg-stats.module";
 import { scoringAverageExcludingDoubles } from "@modules/stats/scoring-average.module";
+import { checkoutVisitsFromRows } from "@modules/stats/x01-checkout-sessions.module";
 import {
   firstNineCareerAverage,
   highestGameAverage,
@@ -21,10 +22,10 @@ import {
   totalDartsThrown,
 } from "@modules/stats/visit-stats.module";
 import {
-  findDoubleOutVisits,
   findLegFacts,
   findSessionSummaries,
   findVisitFacts,
+  findX01CheckoutDarts,
 } from "@repositories/statistics.repository";
 import type { StatisticsOverview } from "./types";
 
@@ -33,15 +34,16 @@ export async function getStatisticsOverview(
   playerId: string,
 ): Promise<StatisticsOverview> {
   const db = getDb();
-  const [sessions, visits, legs, doubleOutVisits] = await Promise.all([
+  const [sessions, visits, legs, checkoutDarts] = await Promise.all([
     findSessionSummaries(db, playerId),
     findVisitFacts(db, playerId),
     findLegFacts(db, playerId),
-    findDoubleOutVisits(db, playerId),
+    findX01CheckoutDarts(db, playerId),
   ]);
 
   const bands = scoreBandCounts(visits);
-  const { hits, misses } = classifyDoubleAttempts(doubleOutVisits);
+  const checkoutVisits = checkoutVisitsFromRows(checkoutDarts);
+  const { hits, misses } = classifyDoubleAttempts(checkoutVisits);
 
   return {
     totalGamesPlayed: totalGamesPlayed(sessions),
@@ -59,11 +61,11 @@ export async function getStatisticsOverview(
     firstNineCareerAverage: firstNineCareerAverage(visits),
     scoringAverageExcludingDoubles: scoringAverageExcludingDoubles(
       visits,
-      doubleOutVisits,
+      checkoutVisits,
     ),
     bestLegDarts: bestLegDarts(legs),
     averageDartsPerLeg: averageDartsPerLeg(legs),
     doubleAccuracy: hits + misses === 0 ? null : hits / (hits + misses),
-    highestCheckout: highestCheckout(doubleOutVisits),
+    highestCheckout: highestCheckout(checkoutVisits),
   };
 }
