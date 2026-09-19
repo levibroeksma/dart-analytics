@@ -9,16 +9,20 @@ import {
 } from "@routes/training-sessions/types";
 
 describe("StartTrainingRequest", () => {
-  it("accepts a routineTemplateName", () => {
+  it("accepts a routineTemplateId", () => {
     expect(
-      StartTrainingRequest.safeParse({
-        routineTemplateName: "Balanced Training",
-      }).success,
+      StartTrainingRequest.safeParse({ routineTemplateId: "rt-1" }).success,
     ).toBe(true);
   });
 
-  it("rejects a missing routineTemplateName", () => {
+  it("rejects a missing routineTemplateId", () => {
     expect(StartTrainingRequest.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects the retired routineTemplateName key", () => {
+    expect(
+      StartTrainingRequest.safeParse({ routineTemplateName: "x" }).success,
+    ).toBe(false);
   });
 });
 
@@ -27,6 +31,7 @@ describe("StartTrainingResponse", () => {
     expect(
       StartTrainingResponse.safeParse({
         activityId: "act-1",
+        routineTemplateId: "rt-1",
         routineName: "Balanced Training",
         steps: [
           {
@@ -46,6 +51,7 @@ describe("StartTrainingResponse", () => {
     expect(
       StartTrainingResponse.safeParse({
         activityId: "act-1",
+        routineTemplateId: "rt-1",
         routineName: "Balanced Training",
         steps: [
           {

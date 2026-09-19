@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const StartTrainingRequest = z.object({
-  routineTemplateName: z.string(),
+  routineTemplateId: z.string().min(1),
 });
 export type StartTrainingRequestInput = z.infer<typeof StartTrainingRequest>;
 
@@ -16,6 +16,7 @@ const TrainingStepResolved = z.object({
 
 export const StartTrainingResponse = z.object({
   activityId: z.string(),
+  routineTemplateId: z.string(),
   routineName: z.string(),
   steps: z.array(TrainingStepResolved),
 });

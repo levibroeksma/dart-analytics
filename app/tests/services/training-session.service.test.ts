@@ -43,6 +43,7 @@ import {
 
 const RESOLVED = {
   routineTemplateId: "rt-1",
+  routineName: "Balanced Training",
   steps: [
     {
       sequenceNumber: 1,
@@ -63,8 +64,16 @@ const RESOLVED = {
       gameTypeKey: "TUOD",
       durationTypeKey: "MINUTES",
       durationValue: 10,
-      defaultConfiguration: null,
-      stepConfiguration: { starting_target: 41 },
+      // The Finishing template's own default_configuration (seed `0020`).
+      defaultConfiguration: {
+        starting_target: 41,
+        finish_bonus: 10,
+        miss_penalty: 1,
+        duration_type: "MINUTES",
+        duration_value: 10,
+        max_darts_per_turn: 3,
+      },
+      stepConfiguration: null,
     },
   ],
 };
@@ -72,16 +81,21 @@ const RESOLVED = {
 describe("startTraining", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns VALIDATION_FAILED when the routine name has no system template", async () => {
+  it("returns VALIDATION_FAILED when the routineTemplateId has no visible routine", async () => {
     vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
       undefined,
     );
-    const result = await startTraining("p1", "Unknown Routine");
+    const result = await startTraining("p1", "rt-1");
     expect(result).toEqual({
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "unknown routineTemplateName" },
+      details: { reason: "unknown routineTemplateId" },
     });
+    expect(trainingRepo.findRoutineTemplateSteps).toHaveBeenCalledWith(
+      expect.anything(),
+      "rt-1",
+      "p1",
+    );
   });
 
   it("resolves steps, injects stepDurationSeconds for WARM_UP, and creates the activity", async () => {
@@ -89,7 +103,7 @@ describe("startTraining", () => {
       RESOLVED as any,
     );
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.activityId).toBe("generated-id");
@@ -105,11 +119,25 @@ describe("startTraining", () => {
     expect(result.data.steps[1]).toMatchObject({
       exerciseTypeKey: "GAME",
       gameTypeKey: "TUOD",
-      configuration: { starting_target: 41 },
+      configuration: {
+        starting_target: 41,
+        duration_type: "MINUTES",
+        duration_value: 10,
+      },
     });
+    expect(result.data.routineTemplateId).toBe("rt-1");
     expect(trainingRepo.insertTrainingActivity).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ activityId: "generated-id", playerId: "p1" }),
+    );
+    expect(trainingRepo.insertTrainingActivity).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        configuration: expect.objectContaining({
+          routineTemplateId: "rt-1",
+          routineName: "Balanced Training",
+        }),
+      }),
     );
   });
 
@@ -125,7 +153,7 @@ describe("startTraining", () => {
       "act-old",
     ]);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(true);
     expect(trainingRepo.abandonActiveTrainingActivities).toHaveBeenCalledWith(
@@ -147,7 +175,7 @@ describe("startTraining", () => {
       async (_db: unknown, key: string) => (key === "ACTIVE" ? 1 : undefined),
     );
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result).toEqual({
       ok: false,
@@ -172,7 +200,7 @@ describe("startTraining", () => {
     } as any);
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -196,7 +224,7 @@ describe("startTraining", () => {
     } as any);
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -215,7 +243,7 @@ describe("startTraining", () => {
     } as any);
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -237,7 +265,7 @@ describe("startTraining", () => {
     } as any);
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -257,7 +285,7 @@ describe("startTraining", () => {
     );
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
 
-    const result = await startTraining("p1", "Balanced Training");
+    const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -266,19 +294,38 @@ describe("startTraining", () => {
     });
   });
 
-  it("accepts a GAME step whatever its configuration holds", async () => {
+  it("injects the step's minutes into a GAME step's duration keys", async () => {
     vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
-      routineTemplateId: "rt-1",
+      ...RESOLVED,
+      steps: [{ ...RESOLVED.steps[1], durationValue: 15 }],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    const result = await startTraining("p1", "rt-1");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.steps[0].configuration).toMatchObject({
+      duration_type: "MINUTES",
+      duration_value: 15,
+    });
+  });
+
+  it("refuses a GAME step whose merged configuration fails its ruleset (issue #392)", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      ...RESOLVED,
       steps: [
-        { ...RESOLVED.steps[1], stepConfiguration: { not_a_tuod_key: true } },
+        { ...RESOLVED.steps[1], defaultConfiguration: { starting_target: 41 } },
       ],
     } as any);
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
-
-    const result = await startTraining("p1", "Balanced Training");
-
-    expect(result.ok).toBe(true);
-    expect(trainingRepo.insertTrainingActivity).toHaveBeenCalled();
+    const result = await startTraining("p1", "rt-1");
+    expect(result).toMatchObject({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: {
+        reason: "invalid step configuration",
+        steps: [{ sequenceNumber: 4 }],
+      },
+    });
   });
 });
 

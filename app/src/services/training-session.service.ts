@@ -24,6 +24,7 @@ import {
 import type { RoutineStepTemplateRow } from "@repositories/interfaces";
 import { isActiveSessionConflict } from "./session.service";
 import { getExerciseRulesetValidator } from "./exercise-rulesets/registry";
+import { getRulesetValidator } from "./rulesets/registry";
 import type {
   ServiceResult,
   StartTrainingResult,
@@ -40,6 +41,15 @@ const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
  * the one step kind `stepConfigurationIssues` has no validator to apply.
  */
 const GAME_EXERCISE_TYPE_KEY = "GAME";
+
+/**
+ * The capture/input mode pair a routine's GAME step validates and injects
+ * under. Phase 1 always runs a GAME step under ANALYTICS/VISUAL_BOARD — the
+ * only pair the routine player screen drives; Phase 2 will vary it with the
+ * step's own capture setting.
+ */
+const ROUTINE_CAPTURE_MODE_KEY = "ANALYTICS";
+const ROUTINE_INPUT_MODE_KEY = "VISUAL_BOARD";
 
 function durationSecondsFor(
   durationTypeKey: string,
@@ -63,9 +73,24 @@ function mergedConfiguration(
 }
 
 /**
- * The step's configuration issues, or undefined when it validates. A GAME step
- * is skipped: its configuration belongs to a game ruleset, validated on the
- * game path.
+ * TUOD reads its timed length from `duration_type`/`duration_value`; a
+ * routine step's own minutes win over the template default (D321 §3.5).
+ */
+function injectGameStepDuration(
+  row: RoutineStepTemplateRow,
+  configuration: Record<string, unknown>,
+): void {
+  if (row.gameTypeKey !== FINISHING_GAME_TYPE_KEY) return;
+  if (row.durationTypeKey !== "MINUTES") return;
+  configuration.duration_type = "MINUTES";
+  configuration.duration_value = row.durationValue;
+}
+
+/**
+ * The step's configuration issues, or undefined when it validates. A GAME
+ * step validates against the finishing ruleset (`TUOD_V1`) under the routine
+ * capture pair (issue #392); Phase 2 generalises the pinned key to the
+ * step's own game type.
  *
  * A non-game step that resolves no validator is itself an issue. That is the
  * assertion migration `0035` deliberately left out of the schema: a template
@@ -75,8 +100,19 @@ function mergedConfiguration(
 function stepConfigurationIssues(
   row: RoutineStepTemplateRow,
   configuration: Record<string, unknown>,
-): string[] | undefined {
-  if (row.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY) return undefined;
+): unknown[] | undefined {
+  if (row.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY) {
+    const validator = getRulesetValidator(FINISHING_RULESET_VERSION_KEY);
+    if (!validator) {
+      return [`no ruleset validator for ${FINISHING_RULESET_VERSION_KEY}`];
+    }
+    const result = validator.validateConfig({
+      config: configuration,
+      captureModeKey: ROUTINE_CAPTURE_MODE_KEY,
+      inputModeKey: ROUTINE_INPUT_MODE_KEY,
+    });
+    return result.valid ? undefined : (result.issues as unknown[]);
+  }
 
   const validator = row.exerciseRulesetVersionKey
     ? getExerciseRulesetValidator(row.exerciseRulesetVersionKey)
@@ -115,15 +151,19 @@ function resolveStep(
 
 export async function startTraining(
   playerId: string,
-  routineTemplateName: string,
+  routineTemplateId: string,
 ): Promise<ServiceResult<StartTrainingResult>> {
   const db = getDb();
-  const resolved = await findRoutineTemplateSteps(db, routineTemplateName);
+  const resolved = await findRoutineTemplateSteps(
+    db,
+    routineTemplateId,
+    playerId,
+  );
   if (!resolved) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "unknown routineTemplateName" },
+      details: { reason: "unknown routineTemplateId" },
     };
   }
 
@@ -138,9 +178,10 @@ export async function startTraining(
   }
 
   const steps: TrainingStepResolved[] = [];
-  const invalid: { sequenceNumber: number; issues: string[] }[] = [];
+  const invalid: { sequenceNumber: number; issues: unknown[] }[] = [];
   for (const row of resolved.steps) {
     const configuration = mergedConfiguration(row);
+    injectGameStepDuration(row, configuration);
     const issues = stepConfigurationIssues(row, configuration);
     if (issues) invalid.push({ sequenceNumber: row.sequenceNumber, issues });
     steps.push(resolveStep(row, configuration));
@@ -161,13 +202,22 @@ export async function startTraining(
       playerId,
       activeStatusId,
       configurationId: generateId(),
-      configuration: { routineName: routineTemplateName, steps },
+      configuration: {
+        routineTemplateId: resolved.routineTemplateId,
+        routineName: resolved.routineName,
+        steps,
+      },
     });
   });
 
   return {
     ok: true,
-    data: { activityId, routineName: routineTemplateName, steps },
+    data: {
+      activityId,
+      routineTemplateId: resolved.routineTemplateId,
+      routineName: resolved.routineName,
+      steps,
+    },
   };
 }
 
