@@ -368,10 +368,10 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/sessions/:sessionId` | `v_session_overview` | `SessionOverview` | 2026-07-12 |
 | `GET /api/sessions/:sessionId/replay` | `v_game_replay` | `ReplayEntry[]` | 2026-07-12 |
 | `GET /api/sessions/:sessionId/darts` | `v_dart_analytics` | `DartAnalytics[]` | 2026-07-12 |
-| `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10; shipped 2026-09-18 |
-| `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12; shipped 2026-09-18 |
+| `GET /api/routines` | `v_routine_execution` | `ListResult<RoutineSummary>` | 2026-07-10; shipped 2026-09-19 |
+| `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12; shipped 2026-09-19 |
 | `GET /api/routines/:routineId/execution` (dropped 2026-09-18, D321 — same shape as the row above; never built) | — | — | 2026-07-12 |
-| `GET /api/exercise-templates` | `v_exercise_template_catalog` | `ExerciseTemplateCatalogEntry[]` | 2026-09-17; shipped 2026-09-18 |
+| `GET /api/exercise-templates` | `v_exercise_template_catalog` | `ExerciseTemplateCatalogEntry[]` | 2026-09-17; shipped 2026-09-19 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -379,7 +379,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
 
-`v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-18 (migration `0038`, D324). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D324. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
+`v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D324). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D324. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -392,9 +392,10 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 ## Custom Routine Write Contracts
 
 Per D306 and `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
-§3.4, refined by D321. Shipped 2026-09-18 (`app/src/pages/api/routines/`,
-`app/src/services/routine.service.ts`), the same builder migration `0038`
-(D324) backs on the database side — committed unapplied, per D324.
+§3.4, refined by D321. Shipped 2026-09-19 (`app/src/pages/api/routines/`,
+`app/src/services/routine.service.ts`). The database side these routes write
+through — migration `0038`'s ownership `CHECK` and duration-bound trigger —
+is committed but applied to no database (D324).
 
 | Endpoint | Body | Response | Ownership |
 | -------- | ---- | -------- | --------- |
@@ -484,7 +485,7 @@ const RoutineExecution = z.object({         // GET /routines/:id → RoutineExec
   steps: z.array(RoutineStep),
 });
 
-const ExerciseTemplateCatalogEntry = z.object({ // v_exercise_template_catalog — GET /exercise-templates (D321, shipped 2026-09-18)
+const ExerciseTemplateCatalogEntry = z.object({ // v_exercise_template_catalog — GET /exercise-templates (D321, shipped 2026-09-19)
   exerciseTemplateId: z.string(), name: z.string(), description: z.string().nullable(),
   exerciseTypeKey: z.string(), gameTypeKey: z.string().nullable(),
 });
@@ -506,7 +507,7 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
 
 Every lookup key a read DTO projects is nullable exactly when its view column is. Since migration `0033` the read model LEFT JOINs the lookups a training exercise session leaves NULL, so `gameTypeKey`/`gameTypeName`/`captureModeKey`/`inputModeKey`/`rulesetVersionKey` arrive as `null` for such a session rather than the session vanishing from the response. <!-- 2026-09-16 -->
 
-All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me` return `PlayerProfileResponse` (defined under Player Profile). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview). `POST`/`PUT /api/routines` return the updated `RoutineExecution`; `CreateRoutineRequest`/`UpdateRoutineRequest` (D306, shipped 2026-09-18) are the request DTOs.
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me` return `PlayerProfileResponse` (defined under Player Profile). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview). `POST`/`PUT /api/routines` return the updated `RoutineExecution`; `CreateRoutineRequest`/`UpdateRoutineRequest` (D306, shipped 2026-09-19) are the request DTOs.
 
 ---
 

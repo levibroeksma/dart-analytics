@@ -2,12 +2,12 @@
 status: canonical
 scope: database/agent-rules
 read-when: before any SQL, migration, seed, or view work
-updated: 2026-09-16
+updated: 2026-09-19
 -->
 
 # Database Agent Guide
 
-> **Version:** 1.3.0 (new-game-type checklist covers schema/validator/engine registration, 2026-07-26)
+> **Version:** 1.4.0 (the `0038` migration is this chain's first trigger: `trg_`/`fn_` naming added to the migration checklist, and the "docs do not assume database triggers" line in Non-Negotiable Rule 1 corrected — it no longer holds now that one exists, D334, 2026-09-19; prior 1.3.0 new-game-type checklist covers schema/validator/engine registration, 2026-07-26)
 >
 > Condensed operating rules for AI agents (and developers) touching PostgreSQL in this project.
 >
@@ -44,7 +44,7 @@ If SQL contradicts `06-Database-Specification.md`, SQL is wrong unless a recorde
 - Store facts. Derive statistics in views only.
 - Never persist averages, percentages, or other derivable values without measured justification.
 - Completed gameplay is immutable. Corrections = new records, never UPDATE on historical rows.
-- This immutability is enforced by the application layer; the docs do not assume database triggers for workflow enforcement.
+- This immutability is enforced by the application layer, not a trigger. The chain's one trigger (`0038`, see §6 below) is a cross-row duration-bound check, not workflow/immutability enforcement — do not read its existence as license to add a lifecycle-enforcing trigger. (2026-09-19)
 
 ## 2. Hybrid identifiers
 
@@ -96,6 +96,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 - **Never modify an applied migration** — create a migration with the next unused number instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
 - No `BEGIN`/`COMMIT` in migrations (dbmate wraps each section in a transaction); seeds keep explicit `BEGIN`/`COMMIT`
+- Trigger with `trg_` prefix, its function with `fn_` prefix — `0038` is this chain's only trigger (`trg_routine_steps_duration_bounds`/`trg_routine_templates_duration_bounds`, both backed by one `fn_routine_templates_duration_bounds()`), so treat this as the convention going forward, not a survey of existing usage. D310 covers `chk_`/`fk_`/`uq_` constraint naming only — it does not name triggers or functions. (2026-09-19, D334)
 
 ## 7. Controlled sets = lookup tables
 
@@ -144,6 +145,7 @@ Answer these questions:
 [ ] FK constraints with fk_ prefix
 [ ] CHECK constraints with chk_ prefix
 [ ] Unique constraints with uq_ prefix
+[ ] Trigger with trg_ prefix, its function with fn_ prefix (0038 precedent)
 [ ] Indexes only with documented query pattern (idx_ prefix)
 [ ] No seed data in migration file
 [ ] 06-Database-Specification.md updated if entities change
