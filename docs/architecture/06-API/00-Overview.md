@@ -87,7 +87,7 @@ Deferred (post-v1):
 - `GET /api/statistics/trends`
 - `GET /api/statistics/checkouts`
 
-`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_double_out_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 -->
+`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 -->
 
 ### Players
 
@@ -168,7 +168,7 @@ Reads are view-backed and player-scoped.
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
-| `GET /api/statistics/overview`           | `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, `v_double_out_checkout_darts` |
+| `GET /api/statistics/overview`           | `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, `v_x01_checkout_darts` |
 
 Policy:
 
@@ -177,7 +177,7 @@ Policy:
 - `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
 - `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
 - the `/api/routines*` and `/api/exercise-templates` rows shipped 2026-09-19 (D306, refined by D321), backed by migration `0038` (committed but applied to no database, D336) and `app/src/services/routine.service.ts`. `v_routine_execution`'s other consumer is `POST /api/training-sessions`, which resolves a system routine's — or, since D321, the caller's own — ordered steps through it; until migration `0036` gave the view the columns a step resolves from, that read went around it against the template tables, leaving the designated read model with no consumer at all (D298/D299, issue #344) <!-- 2026-09-17; corrected 2026-09-19, D321 -->
-- `GET /api/statistics/overview` is view-backed end to end: `starting_score` came from `exercise_configurations` directly until `0036` exposed it on `v_double_out_checkout_darts` (D298, issue #342) <!-- 2026-09-17 -->
+- `GET /api/statistics/overview` is view-backed end to end: `v_x01_checkout_darts` (`0038`) replaced `v_double_out_checkout_darts` and its `SUM(d.score)` running total — wrong after a bust, which zeroes `turns.total_score` but keeps the darts' real board scores — with facts only; it projects the session's whole `configuration` snapshot rather than a single `starting_score` column, and the read layer decodes that snapshot and folds it through the same checkout-visit builders the live result modals use (D298 lineage, issue #342) <!-- 2026-09-19 -->
 
 > **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08; `GET`/`PATCH /api/players/me` were added 2026-08-15. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
 

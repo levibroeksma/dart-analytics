@@ -1,3 +1,5 @@
+import type { DartFact } from "@modules/types";
+
 /**
  * Fields `career-summary.module.ts` needs from a `v_session_overview` row.
  * `gameTypeKey` is NULL for a training exercise session, which has no game
@@ -42,4 +44,31 @@ export type PlayerLegFactRow = {
   gameTypeKey: string | null;
   stageId: string;
   totalDartsInLeg: number;
+};
+
+/**
+ * One row of `v_x01_checkout_darts`: a single dart, carrying enough of its
+ * session, stage and turn to rebuild the fact log the checkout-visit builders
+ * fold. `configuration` is the session's stored snapshot -- snake_case
+ * ruleset fields plus a camelCase `seats` array, exactly as
+ * `session.service.ts` writes it.
+ */
+export type X01CheckoutDartRow = {
+  sessionId: string;
+  gameTypeKey: string;
+  rulesetVersionKey: string;
+  configuration: Record<string, unknown> | null;
+  stageId: string;
+  stageSequence: number;
+  stageTypeKey: string;
+  parentStageId: string | null;
+  turnId: string;
+  turnSequence: number;
+  turnTotalScore: number;
+  turnCompletedAt: string | null;
+  participantId: string;
+  dartNumber: number;
+  hitTargetNumber: number | null;
+  hitZoneKey: DartFact["hitZoneKey"];
+  score: number;
 };

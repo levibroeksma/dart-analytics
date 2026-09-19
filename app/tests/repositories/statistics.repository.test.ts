@@ -86,7 +86,7 @@ describe("findLegFacts", () => {
   });
 });
 
-function fakeDoubleOutQuery(rows: unknown[]) {
+function fakeOrderedQuery(rows: unknown[]) {
   return {
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
@@ -94,131 +94,59 @@ function fakeDoubleOutQuery(rows: unknown[]) {
   };
 }
 
-describe("findDoubleOutVisits", () => {
-  it("returns an empty array when the player has no double-out darts", async () => {
-    const db = { select: vi.fn(() => fakeDoubleOutQuery([])) } as any;
-    const { findDoubleOutVisits } =
+/**
+ * `findDoubleOutVisits` (and the `v_double_out_checkout_darts` view it read)
+ * is gone — migration `0038` replaced it with `v_x01_checkout_darts`, a
+ * facts-only view with no `SUM(d.score)` running total to get wrong on a
+ * bust. Its grouping-and-subtraction guarantee has no equivalent to
+ * re-point at: that computation now lives in `checkoutVisitsFromRows`
+ * (`app/tests/modules/stats/x01-checkout-sessions.module.test.ts`), folded
+ * from `turns.total_score` rather than a running dart-score sum. This
+ * describe block replaces the deleted one rather than repointing its
+ * assertions at a different input.
+ */
+describe("findX01CheckoutDarts", () => {
+  it("returns an empty array when the player has no X01 checkout darts", async () => {
+    const db = { select: vi.fn(() => fakeOrderedQuery([])) } as any;
+    const { findX01CheckoutDarts } =
       await import("@repositories/statistics.repository");
 
-    const result = await findDoubleOutVisits(db, "p1");
+    const result = await findX01CheckoutDarts(db, "p1");
 
     expect(result).toEqual([]);
     expect(db.select).toHaveBeenCalledTimes(1);
   });
 
-  it("groups darts by turn and computes startingRemaining from the view's starting_score", async () => {
-    const dartRows = [
-      {
-        sessionId: "s1",
-        stageId: "stage-1",
-        turnSequence: 1,
-        dartNumber: 1,
-        hitTargetNumber: 20,
-        hitZoneKey: "TREBLE",
-        score: 60,
-        priorScoredInStage: null,
-        startingScore: 501,
-      },
-      {
-        sessionId: "s1",
-        stageId: "stage-1",
-        turnSequence: 1,
-        dartNumber: 2,
-        hitTargetNumber: 20,
-        hitZoneKey: "TREBLE",
-        score: 60,
-        priorScoredInStage: 60,
-        startingScore: 501,
-      },
-      {
-        sessionId: "s1",
-        stageId: "stage-1",
-        turnSequence: 2,
-        dartNumber: 1,
-        hitTargetNumber: 20,
-        hitZoneKey: "DOUBLE",
-        score: 40,
-        priorScoredInStage: 120,
-        startingScore: 501,
-      },
-    ];
-    const db = { select: vi.fn(() => fakeDoubleOutQuery(dartRows)) } as any;
-    const { findDoubleOutVisits } =
+  it("reads every column from v_x01_checkout_darts, ordered for the fold", async () => {
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: { starting_score: 501 },
+      stageId: "stage-1",
+      stageSequence: 1,
+      stageTypeKey: "LEG",
+      parentStageId: null,
+      turnId: "turn-1",
+      turnSequence: 1,
+      turnTotalScore: 60,
+      turnCompletedAt: "2026-09-19T10:00:00.000Z",
+      participantId: "participant-1",
+      dartNumber: 1,
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+    };
+    const query = fakeOrderedQuery([row]);
+    const db = { select: vi.fn(() => query) } as any;
+    const { vX01CheckoutDarts } = await import("@db/schema");
+    const { findX01CheckoutDarts } =
       await import("@repositories/statistics.repository");
 
-    const result = await findDoubleOutVisits(db, "p1");
+    const result = await findX01CheckoutDarts(db, "p1");
 
-    expect(result).toEqual([
-      {
-        startingRemaining: 501,
-        darts: [
-          {
-            sequence: 1,
-            intendedTargetNumber: null,
-            intendedZoneKey: null,
-            hitTargetNumber: 20,
-            hitZoneKey: "TREBLE",
-            score: 60,
-            locationX: null,
-            locationY: null,
-          },
-          {
-            sequence: 2,
-            intendedTargetNumber: null,
-            intendedZoneKey: null,
-            hitTargetNumber: 20,
-            hitZoneKey: "TREBLE",
-            score: 60,
-            locationX: null,
-            locationY: null,
-          },
-        ],
-      },
-      {
-        startingRemaining: 381,
-        darts: [
-          {
-            sequence: 1,
-            intendedTargetNumber: null,
-            intendedZoneKey: null,
-            hitTargetNumber: 20,
-            hitZoneKey: "DOUBLE",
-            score: 40,
-            locationX: null,
-            locationY: null,
-          },
-        ],
-      },
-    ]);
-    expect(db.select).toHaveBeenCalledTimes(1);
-  });
-
-  /**
-   * `starting_score` arrives from the view rather than a second select against
-   * `exercise_configurations` (migration `0036`, issue #342). A session that
-   * stored no configuration snapshot projects NULL, which reads as 0 — the
-   * same fallback the two-query version applied to a missing config row.
-   */
-  it("treats a NULL starting_score as 0 rather than NaN", async () => {
-    const dartRows = [
-      {
-        sessionId: "s1",
-        stageId: "stage-1",
-        turnSequence: 1,
-        dartNumber: 1,
-        hitTargetNumber: 20,
-        hitZoneKey: "TREBLE",
-        score: 60,
-        priorScoredInStage: 60,
-        startingScore: null,
-      },
-    ];
-    const db = { select: vi.fn(() => fakeDoubleOutQuery(dartRows)) } as any;
-    const { findDoubleOutVisits } =
-      await import("@repositories/statistics.repository");
-
-    const result = await findDoubleOutVisits(db, "p1");
-
-    expect(result[0]?.startingRemaining).toBe(-60);
+    expect(result).toEqual([row]);
+    expect(query.from).toHaveBeenCalledWith(vX01CheckoutDarts);
+    expect(query.orderBy).toHaveBeenCalledTimes(1);
   });
 });

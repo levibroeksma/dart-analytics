@@ -5,13 +5,22 @@ vi.mock("@repositories/statistics.repository", () => ({
   findSessionSummaries: vi.fn(),
   findVisitFacts: vi.fn(),
   findLegFacts: vi.fn(),
-  findDoubleOutVisits: vi.fn(),
+  findX01CheckoutDarts: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
 import { getStatisticsOverview } from "@services/statistics.service";
 
 const playerId = "0198f200-0000-7000-8000-000000000001";
+
+const SEATS = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "HOME",
+    participantTypeKey: "PLAYER",
+  },
+];
 
 describe("getStatisticsOverview", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -20,7 +29,7 @@ describe("getStatisticsOverview", () => {
     vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
     vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([]);
-    vi.mocked(repo.findDoubleOutVisits).mockResolvedValue([]);
+    vi.mocked(repo.findX01CheckoutDarts).mockResolvedValue([]);
 
     const result = await getStatisticsOverview(playerId);
 
@@ -75,7 +84,7 @@ describe("getStatisticsOverview", () => {
         totalDartsInLeg: 9,
       },
     ]);
-    vi.mocked(repo.findDoubleOutVisits).mockResolvedValue([]);
+    vi.mocked(repo.findX01CheckoutDarts).mockResolvedValue([]);
 
     const result = await getStatisticsOverview(playerId);
 
@@ -87,25 +96,37 @@ describe("getStatisticsOverview", () => {
     expect(result.highestCheckout).toBeNull();
   });
 
-  it("computes doubleAccuracy from classified double-out visits", async () => {
+  it("computes doubleAccuracy from a folded X01 checkout dart", async () => {
     vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
     vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([]);
-    vi.mocked(repo.findDoubleOutVisits).mockResolvedValue([
+    vi.mocked(repo.findX01CheckoutDarts).mockResolvedValue([
       {
-        startingRemaining: 40,
-        darts: [
-          {
-            sequence: 1,
-            intendedTargetNumber: null,
-            intendedZoneKey: null,
-            hitTargetNumber: 20,
-            hitZoneKey: "DOUBLE",
-            score: 40,
-            locationX: null,
-            locationY: null,
-          },
-        ],
+        sessionId: "s1",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        configuration: {
+          starting_score: 40,
+          legs_to_win: 1,
+          check_in: "STRAIGHT_IN",
+          check_out: "DOUBLE_OUT",
+          max_darts_per_turn: 3,
+          max_visit_score: 180,
+          seats: SEATS,
+        },
+        stageId: "stage-1",
+        stageSequence: 1,
+        stageTypeKey: "LEG",
+        parentStageId: null,
+        turnId: "turn-1",
+        turnSequence: 1,
+        turnTotalScore: 40,
+        turnCompletedAt: "2026-09-01T10:00:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
       },
     ]);
 
@@ -113,5 +134,192 @@ describe("getStatisticsOverview", () => {
 
     expect(result.doubleAccuracy).toBe(1);
     expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
+  });
+
+  /**
+   * One career fold spanning all three X01 ladders in a single fixture:
+   * a 501 leg whose first visit busts (real dart score 60, recorded total 0)
+   * before the second visit checks out the SAME remaining on a double, a
+   * TUOD attempt that checks out its starting target directly, and a 121
+   * attempt whose first visit misses a reachable remaining (an explicit
+   * board MISS) before its second visit checks it out.
+   *
+   * Hand-computed attempts, walking `classifyDart` visit by visit:
+   *   501:  visit 1 (remaining 40, T20 for 60)  -> bust  -> MISS
+   *         visit 2 (remaining 40, D20 for 40)  -> exact -> HIT
+   *   TUOD: visit 1 (target 40, D20 for 40)     -> exact -> HIT
+   *   121:  visit 1, dart 3 (remaining 22 after T19+T14, board MISS) -> MISS
+   *         visit 2 (remaining 22, D11 for 22)  -> exact -> HIT
+   * hits = 3 (501 visit 2, TUOD visit 1, 121 visit 2)
+   * misses = 2 (501 visit 1, 121 visit 1 dart 3)
+   * doubleAccuracy = 3 / (3 + 2) = 0.6
+   */
+  it("folds career doubleAccuracy across 501, TUOD and 121 in one pass", async () => {
+    vi.mocked(repo.findSessionSummaries).mockResolvedValue([]);
+    vi.mocked(repo.findVisitFacts).mockResolvedValue([]);
+    vi.mocked(repo.findLegFacts).mockResolvedValue([]);
+    vi.mocked(repo.findX01CheckoutDarts).mockResolvedValue([
+      {
+        sessionId: "s-501",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        configuration: {
+          starting_score: 40,
+          legs_to_win: 1,
+          check_in: "STRAIGHT_IN",
+          check_out: "DOUBLE_OUT",
+          max_darts_per_turn: 3,
+          max_visit_score: 180,
+          seats: SEATS,
+        },
+        stageId: "leg-1",
+        stageSequence: 1,
+        stageTypeKey: "LEG",
+        parentStageId: null,
+        turnId: "t1",
+        turnSequence: 1,
+        turnTotalScore: 0,
+        turnCompletedAt: "2026-09-19T10:00:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+      },
+      {
+        sessionId: "s-501",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        configuration: {
+          starting_score: 40,
+          legs_to_win: 1,
+          check_in: "STRAIGHT_IN",
+          check_out: "DOUBLE_OUT",
+          max_darts_per_turn: 3,
+          max_visit_score: 180,
+          seats: SEATS,
+        },
+        stageId: "leg-1",
+        stageSequence: 1,
+        stageTypeKey: "LEG",
+        parentStageId: null,
+        turnId: "t2",
+        turnSequence: 2,
+        turnTotalScore: 40,
+        turnCompletedAt: "2026-09-19T10:01:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
+      },
+      {
+        sessionId: "s-tuod",
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        configuration: {
+          starting_target: 40,
+          finish_bonus: 10,
+          miss_penalty: 10,
+          duration_type: "ROUNDS",
+          duration_value: 5,
+          max_darts_per_turn: 3,
+          seats: SEATS,
+        },
+        stageId: "block-1",
+        stageSequence: 1,
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentStageId: null,
+        turnId: "u1",
+        turnSequence: 1,
+        turnTotalScore: 40,
+        turnCompletedAt: "2026-09-19T10:02:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
+      },
+      {
+        sessionId: "s-121",
+        gameTypeKey: "ONE_TWENTY_ONE",
+        rulesetVersionKey: "121_V1",
+        configuration: { seats: SEATS },
+        stageId: "round-1",
+        stageSequence: 1,
+        stageTypeKey: "ROUND",
+        parentStageId: null,
+        turnId: "v1",
+        turnSequence: 1,
+        turnTotalScore: 99,
+        turnCompletedAt: "2026-09-19T10:03:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 19,
+        hitZoneKey: "TREBLE",
+        score: 57,
+      },
+      {
+        sessionId: "s-121",
+        gameTypeKey: "ONE_TWENTY_ONE",
+        rulesetVersionKey: "121_V1",
+        configuration: { seats: SEATS },
+        stageId: "round-1",
+        stageSequence: 1,
+        stageTypeKey: "ROUND",
+        parentStageId: null,
+        turnId: "v1",
+        turnSequence: 1,
+        turnTotalScore: 99,
+        turnCompletedAt: "2026-09-19T10:03:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 2,
+        hitTargetNumber: 14,
+        hitZoneKey: "TREBLE",
+        score: 42,
+      },
+      {
+        sessionId: "s-121",
+        gameTypeKey: "ONE_TWENTY_ONE",
+        rulesetVersionKey: "121_V1",
+        configuration: { seats: SEATS },
+        stageId: "round-1",
+        stageSequence: 1,
+        stageTypeKey: "ROUND",
+        parentStageId: null,
+        turnId: "v1",
+        turnSequence: 1,
+        turnTotalScore: 99,
+        turnCompletedAt: "2026-09-19T10:03:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 3,
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        score: 0,
+      },
+      {
+        sessionId: "s-121",
+        gameTypeKey: "ONE_TWENTY_ONE",
+        rulesetVersionKey: "121_V1",
+        configuration: { seats: SEATS },
+        stageId: "round-1",
+        stageSequence: 1,
+        stageTypeKey: "ROUND",
+        parentStageId: null,
+        turnId: "v2",
+        turnSequence: 2,
+        turnTotalScore: 22,
+        turnCompletedAt: "2026-09-19T10:04:00.000Z",
+        participantId: "participant-1",
+        dartNumber: 1,
+        hitTargetNumber: 11,
+        hitZoneKey: "DOUBLE",
+        score: 22,
+      },
+    ]);
+
+    const result = await getStatisticsOverview(playerId);
+
+    expect(result.doubleAccuracy).toBe(0.6);
   });
 });
