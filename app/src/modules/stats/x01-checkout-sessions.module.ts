@@ -100,21 +100,35 @@ function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
  * snapshot its engine folds. `seats` is stored alongside the ruleset's own
  * snake_case fields and is already camelCase, so it is lifted out before the
  * codec runs and put back afterwards.
+ *
+ * `null` when the snapshot cannot be decoded at all: every ruleset schema is
+ * `.strict()` with required fields (and TUOD's carries a `superRefine`), and
+ * an unrecognised `ruleset_version_key` has no schema to parse against, so a
+ * historical session whose stored snapshot has since drifted makes
+ * `toSnapshot` throw. That throw is contained here rather than left to
+ * propagate: `getStatisticsOverview` folds every X01 session in one batch, so
+ * one undecodable snapshot would otherwise 500 the whole
+ * `/api/statistics/overview` response -- every card on `/statistics`, not
+ * just Checkout %.
  */
 function snapshotOf(
   rulesetVersionKey: string,
   configuration: Record<string, unknown> | null,
-): Record<string, unknown> & { seats: readonly SeatFact[] } {
+): (Record<string, unknown> & { seats: readonly SeatFact[] }) | null {
   const { seats = [], ...wire } = (configuration ?? {}) as {
     seats?: readonly SeatFact[];
   } & Record<string, unknown>;
-  return {
-    ...(toSnapshot(rulesetVersionKey as RulesetVersionKey, wire) as Record<
-      string,
-      unknown
-    >),
-    seats,
-  };
+  try {
+    return {
+      ...(toSnapshot(rulesetVersionKey as RulesetVersionKey, wire) as Record<
+        string,
+        unknown
+      >),
+      seats,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -127,6 +141,12 @@ function snapshotOf(
  * produced by accident (a starting score read as 0 makes every remaining
  * non-finishable, so `classifyDart` never counted a hit or a miss either);
  * this just says so directly instead of relying on that arithmetic coincidence.
+ *
+ * A snapshot that exists but no longer decodes is the same kind of session
+ * and gets the same answer -- see `snapshotOf`. The `configuration === null`
+ * check stays separate from it: "the session never stored one" and "the one
+ * it stored no longer validates" are different facts about the data, and
+ * only the second is a drift to be noticed.
  */
 function visitsForSession(
   rows: readonly X01CheckoutDartRow[],
@@ -135,12 +155,14 @@ function visitsForSession(
   if (!first) return [];
   if (first.configuration === null) return [];
 
+  const config = snapshotOf(first.rulesetVersionKey, first.configuration);
+  if (config === null) return [];
+
   const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
   const participantRef = first.participantId;
   const seatTurns = facts.turns.filter(
     (turn) => turn.participantRef === participantRef,
   );
-  const config = snapshotOf(first.rulesetVersionKey, first.configuration);
 
   if (first.gameTypeKey === "501") {
     return fiveOhOneCheckoutVisits(
