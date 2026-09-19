@@ -27,7 +27,7 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
-import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import { accuracyDisplay, dartsLeftForSeat } from "@lib/game/play-visit-stats";
 import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
 import {
   formatRemaining,
@@ -208,24 +208,6 @@ function computeStats(
       statsFor(seat, facts, config, inputModeKey),
     ),
   };
-}
-
-/**
- * Darts `seatRef` still has in its own open attempt — the full visit budget
- * whenever the trailing turn is closed, belongs to another seat, or does not
- * exist, which covers every QUICK_SCORE turn (a whole attempt lands in one
- * call and never leaves a visit open).
- */
-function dartsLeftForSeat(
-  turns: readonly TurnFact[],
-  seatRef: string,
-  maxDartsPerTurn: number,
-): number {
-  const last = turns.at(-1);
-  if (!last || last.completedAt !== null || last.participantRef !== seatRef) {
-    return maxDartsPerTurn;
-  }
-  return maxDartsPerTurn - last.darts.length;
 }
 
 /** Whether `submitVisit` may record an attempt right now. */

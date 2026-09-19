@@ -154,3 +154,21 @@ export function visitScoreBandCounts(turns: VisitLike[]): {
   }
   return counts;
 }
+
+/**
+ * Darts `seatRef` still has in its own open visit — the full `maxDartsPerTurn`
+ * budget whenever the trailing visit is closed, belongs to another seat, or
+ * does not exist, which covers every quick-score visit (a whole visit lands in
+ * one call and never leaves one open).
+ */
+export function dartsLeftForSeat(
+  turns: readonly (VisitLike & { participantRef?: string })[],
+  seatRef: string,
+  maxDartsPerTurn: number,
+): number {
+  const last = turns.at(-1);
+  if (!last || last.completedAt !== null || last.participantRef !== seatRef) {
+    return maxDartsPerTurn;
+  }
+  return maxDartsPerTurn - (last.darts?.length ?? 0);
+}

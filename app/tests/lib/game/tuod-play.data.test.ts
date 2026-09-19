@@ -1782,6 +1782,50 @@ describe("tuodPlay — checkoutHint", () => {
     expect(ctx.checkoutHintFor("participant-1")).toBe("BULL");
   });
 
+  it("reads the full visit budget for a seat whose open visit belongs to the other seat", () => {
+    const ctx = tuodPlay() as unknown as {
+      $store: {
+        game: {
+          configSnapshot: Seated<TuodSnapshot>;
+          stages: StageFact[];
+          turns: TurnFact[];
+          timerExpired: boolean;
+        };
+      };
+      engine: null;
+      checkoutHintFor: (seatRef: string) => string;
+    };
+    ctx.engine = null;
+    ctx.$store = {
+      game: {
+        configSnapshot: {
+          ...rounds(10),
+          seats: [
+            ...SEATS,
+            {
+              participantRef: "participant-2",
+              displayName: "Guest",
+              sideKey: "B",
+              participantTypeKey: "GUEST",
+            },
+          ],
+        },
+        stages: [BLOCK],
+        turns: [
+          {
+            ...turnFact("t1", 1, 0),
+            participantRef: "participant-2",
+            completedAt: null,
+            darts: [dartFact(1, 0), dartFact(2, 0)],
+          },
+        ],
+        timerExpired: false,
+      },
+    };
+
+    expect(ctx.checkoutHintFor("participant-1")).toBe("9 D16");
+  });
+
   it("is empty when checkout hints are disabled", async () => {
     const store = gameStub({ configSnapshot: rounds(3) });
     const component = {

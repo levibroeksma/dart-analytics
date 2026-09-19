@@ -9,6 +9,7 @@ import {
   highestVisitScore,
   visitScoreBandCounts,
   completedVisitsTotal,
+  dartsLeftForSeat,
 } from "@lib/game/play-visit-stats";
 
 describe("previousScoreDisplay", () => {
@@ -337,5 +338,47 @@ describe("visitScoreBandCounts", () => {
       oneFortyPlus: 0,
       oneEighties: 0,
     });
+  });
+});
+
+describe("dartsLeftForSeat", () => {
+  const OPEN = {
+    totalScore: 0,
+    completedAt: null,
+    participantRef: "p1",
+    darts: [{}, {}],
+  };
+
+  it("returns the full budget when there are no turns at all", () => {
+    expect(dartsLeftForSeat([], "p1", 3)).toBe(3);
+  });
+
+  it("returns the full budget when the trailing visit is already closed", () => {
+    expect(
+      dartsLeftForSeat(
+        [
+          {
+            totalScore: 60,
+            completedAt: "2026-09-19T10:00:00.000Z",
+            participantRef: "p1",
+            darts: [{}, {}, {}],
+          },
+        ],
+        "p1",
+        3,
+      ),
+    ).toBe(3);
+  });
+
+  it("returns the full budget when the open visit belongs to another seat", () => {
+    expect(dartsLeftForSeat([OPEN], "p2", 3)).toBe(3);
+  });
+
+  it("subtracts the open visit's own darts for the seat throwing it", () => {
+    expect(dartsLeftForSeat([OPEN], "p1", 3)).toBe(1);
+  });
+
+  it("honours a non-default visit budget", () => {
+    expect(dartsLeftForSeat([OPEN], "p1", 6)).toBe(4);
   });
 });
