@@ -285,11 +285,15 @@ export type TuodInput = TuodAttemptInput | DartObservation;
 
 /**
  * One seat's ladder in a Ten Up One Down session. `currentTarget`,
- * `attempts`, `successes` and `failures` are folded from the fact log on
- * every read — the ladder position is never accumulated.
+ * `remainingInAttempt`, `attempts`, `successes` and `failures` are folded
+ * from the fact log on every read — the ladder position is never
+ * accumulated. `remainingInAttempt` is the live countdown inside the open
+ * attempt, equal to `currentTarget` whenever no attempt is open, exactly
+ * like `OneTwentyOneSeatState.remainingInAttempt`.
  */
 export type TuodSeatState = SeatState & {
   currentTarget: number;
+  remainingInAttempt: number;
   attempts: number;
   successes: number;
   failures: number;

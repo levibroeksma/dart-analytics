@@ -2,6 +2,7 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
@@ -207,6 +208,24 @@ function computeStats(
   };
 }
 
+/**
+ * Darts `seatRef` still has in its own open attempt — the full visit budget
+ * whenever the trailing turn is closed, belongs to another seat, or does not
+ * exist, which covers every QUICK_SCORE turn (a whole attempt lands in one
+ * call and never leaves a visit open).
+ */
+function dartsLeftForSeat(
+  turns: readonly TurnFact[],
+  seatRef: string,
+  maxDartsPerTurn: number,
+): number {
+  const last = turns.at(-1);
+  if (!last || last.completedAt !== null || last.participantRef !== seatRef) {
+    return maxDartsPerTurn;
+  }
+  return maxDartsPerTurn - last.darts.length;
+}
+
 /** Whether `submitVisit` may record an attempt right now. */
 function canSubmitVisit(context: TuodPlayContext): boolean {
   return (
@@ -295,13 +314,36 @@ export function tuodPlay() {
       return this.currentTargetLabelFor(state.activeParticipantRef);
     },
 
-    checkoutHintFor(this: TuodPlayContext, seatRef: string): string {
-      if (this.$store.checkoutHints?.enabled === false) return "";
+    remainingInAttemptFor(this: TuodPlayContext, seatRef: string): number {
       const seat = this.state()?.seats.find(
         (candidate) => candidate.participantRef === seatRef,
       );
-      const path = seat ? checkoutPathFor(seat.currentTarget) : null;
-      return path ? path.join(" ") : "";
+      return seat?.remainingInAttempt ?? 0;
+    },
+
+    remainingInAttempt(this: TuodPlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.remainingInAttemptFor(state.activeParticipantRef);
+    },
+
+    /**
+     * The finish route for what the seat still has left in the open attempt,
+     * blank when no route fits the darts it has left. Reads
+     * `remainingInAttempt`, not `currentTarget`, so the hint tracks the
+     * score the player is actually throwing at (#202) — mirrors
+     * `one-twenty-one-play.data.ts`'s own `checkoutHint`.
+     */
+    checkoutHintFor(this: TuodPlayContext, seatRef: string): string {
+      if (this.$store.checkoutHints?.enabled === false) return "";
+      const remaining = this.remainingInAttemptFor(seatRef);
+      const dartsLeft = dartsLeftForSeat(
+        this.$store.game.turns,
+        seatRef,
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? DARTS_PER_VISIT,
+      );
+      if (!isCheckoutReachable(remaining, dartsLeft)) return "";
+      return checkoutPathFor(remaining)!.join(" ");
     },
 
     checkoutHint(this: TuodPlayContext): string {

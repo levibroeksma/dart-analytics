@@ -134,6 +134,7 @@ function initialSeatState(config: TuodSnapshot, seat: SeatFact): TuodSeatState {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     currentTarget: config.startingTarget,
+    remainingInAttempt: config.startingTarget,
     attempts: 0,
     successes: 0,
     failures: 0,
@@ -154,24 +155,22 @@ export function initialTuodState(config: Seated<TuodSnapshot>): TuodState {
 /**
  * Pure reducer: folds one resolved attempt onto one seat's `TuodSeatState`. A
  * success moves the next target up by `finishBonus`; a failure moves it down
- * by `missPenalty`, floored at the double-out minimum.
+ * by `missPenalty`, floored at the double-out minimum. `remainingInAttempt`
+ * resets to the new target: the attempt this closes is over, and the next
+ * one starts on the ladder, never on a carried-over remainder.
  */
 export function applyTuodAttempt(
   config: TuodSnapshot,
   state: TuodSeatState,
   succeeded: boolean,
 ): TuodSeatState {
+  const currentTarget = succeeded
+    ? Math.min(MAX_FINISHABLE_TARGET, state.currentTarget + config.finishBonus)
+    : Math.max(MIN_FINISHABLE_TARGET, state.currentTarget - config.missPenalty);
   return {
     ...state,
-    currentTarget: succeeded
-      ? Math.min(
-          MAX_FINISHABLE_TARGET,
-          state.currentTarget + config.finishBonus,
-        )
-      : Math.max(
-          MIN_FINISHABLE_TARGET,
-          state.currentTarget - config.missPenalty,
-        ),
+    currentTarget,
+    remainingInAttempt: currentTarget,
     attempts: state.attempts + 1,
     successes: succeeded ? state.successes + 1 : state.successes,
     failures: succeeded ? state.failures : state.failures + 1,
@@ -192,12 +191,21 @@ export function applyTuodAttempt(
  * A solo (1-seat) session's own `status`
  * always reads `IN_PROGRESS` here — solo completion is read off
  * `TuodEngine.isComplete()` instead, never off this field.
+ *
+ * Only closed turns move the ladder; the open turn, if any, overlays a live
+ * subtraction onto its own seat's `remainingInAttempt` and nothing else, so
+ * a board session sees the score fall dart by dart while `currentTarget`
+ * holds until the attempt resolves (#202). The subtraction reads the open
+ * turn's darts rather than its `totalScore`, which TUOD leaves at 0 until
+ * `settleVisit` decides whether the attempt scored at all.
  */
 export function foldTuodState(
   facts: EngineFacts,
   config: Seated<TuodSnapshot>,
   timerExpired: boolean,
 ): TuodState {
+  const open = openVisit(facts.turns);
+
   const seats = config.seats.map((seat) => {
     let state = initialSeatState(config, seat);
     const seatTurns = facts.turns.filter(
@@ -207,6 +215,12 @@ export function foldTuodState(
     );
     for (const turn of seatTurns) {
       state = applyTuodAttempt(config, state, turn.totalScore > 0);
+    }
+    if (open && open.participantRef === seat.participantRef) {
+      return {
+        ...state,
+        remainingInAttempt: state.currentTarget - sumDartScores(open.darts),
+      };
     }
     return state;
   });
