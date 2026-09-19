@@ -71,6 +71,15 @@ describe("routineBuilder (create)", () => {
     expect(b.canSave()).toBe(false);
   });
 
+  it("publishes the step-count and minute bounds as reactive context fields", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.maxSteps).toBe(12);
+    expect(b.stepMinMinutes).toBe(1);
+    expect(b.stepMaxMinutes).toBe(60);
+    expect(b.maxNameLength).toBe(60);
+  });
+
   it("adds a step with the 5-minute default and tracks the total", async () => {
     const b: RoutineBuilderContext = routineBuilder("create");
     await b.init();
@@ -127,6 +136,16 @@ describe("routineBuilder (create)", () => {
     expect(b.durationIssues().join(" ")).toContain("minimum is 30");
   });
 
+  it("pre-checks a GAME step's 3..30 minute bound and blocks save outside it", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.addStep(CATALOG[1]);
+    b.setMinutes(0, 40);
+    b.name = "Mine";
+    expect(b.canSave()).toBe(false);
+    expect(b.durationIssues().join(" ")).toContain("between 3 and 30 minutes");
+  });
+
   it("POSTs on save and navigates to the new detail page", async () => {
     vi.mocked(api.createRoutine).mockResolvedValue({
       ...ROUTINE,
@@ -172,6 +191,67 @@ describe("routineBuilder (create)", () => {
     ]);
     expect(b.saving).toBe(false);
   });
+
+  it("formats a GAME-bound VALIDATION_FAILED envelope's step/min/max instead of a bare reason", async () => {
+    vi.mocked(api.createRoutine).mockRejectedValue(
+      new SessionApiError("VALIDATION_FAILED", "bad", "r", {
+        reason: "game step minutes out of bounds",
+        step: 2,
+        min: 3,
+        max: 30,
+      }),
+    );
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.name = "Mine";
+    b.addStep(CATALOG[0]);
+    b.setMinutes(0, 30);
+    await b.save();
+    expect(b.serverIssues).toEqual([
+      "game step minutes out of bounds (step 2, allowed 3–30 minutes)",
+    ]);
+  });
+
+  it("a failed save clears on retry instead of permanently disabling Save", async () => {
+    vi.mocked(api.createRoutine).mockRejectedValueOnce(
+      new Error("network blip"),
+    );
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.name = "Mine";
+    b.addStep(CATALOG[0]);
+    b.setMinutes(0, 30);
+    await b.save();
+    expect(b.error).toContain("Could not save");
+    expect(b.canSave()).toBe(true);
+
+    vi.mocked(api.createRoutine).mockResolvedValue({
+      ...ROUTINE,
+      routineId: "new",
+    });
+    const nav = vi.fn();
+    b.navigate = nav;
+    await b.save();
+    expect(b.error).toBe("");
+    expect(nav).toHaveBeenCalledWith("/training/routines/detail?routine=new");
+  });
+
+  it("clears stale server issues as soon as the user edits a step", async () => {
+    vi.mocked(api.createRoutine).mockRejectedValue(
+      new SessionApiError("VALIDATION_FAILED", "bad", "r", {
+        issues: ["stale"],
+      }),
+    );
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.name = "Mine";
+    b.addStep(CATALOG[0]);
+    b.setMinutes(0, 30);
+    await b.save();
+    expect(b.serverIssues).toEqual(["stale"]);
+    b.setMinutes(0, 35);
+    expect(b.serverIssues).toEqual([]);
+  });
 });
 
 describe("routineBuilder (edit)", () => {
@@ -212,5 +292,13 @@ describe("routineBuilder (edit)", () => {
     await b.init();
     expect(b.error).toContain("cannot be edited");
     expect(b.canSave()).toBe(false);
+  });
+
+  it("reports a routine-specific error, not the catalog error, when loading the existing routine fails", async () => {
+    vi.mocked(api.getRoutine).mockRejectedValue(new Error("network"));
+    const b: RoutineBuilderContext = routineBuilder("edit");
+    await b.init();
+    expect(b.error).toBe("Could not load this routine.");
+    expect(b.catalog).toEqual(CATALOG);
   });
 });

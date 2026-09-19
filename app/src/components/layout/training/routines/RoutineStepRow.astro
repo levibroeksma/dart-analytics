@@ -1,13 +1,14 @@
 ---
 /**
  * One builder step: position, exercise name, minutes input, move/remove.
- * Reads `step`/`index` from the enclosing `x-for` and the builder's helpers.
+ * Reads `step`/`index` from the enclosing `x-for` and the builder's helpers,
+ * including its `stepMinMinutes`/`stepMaxMinutes` reactive bounds (bound via
+ * `:min`/`:max` — see `ExercisePicker.astro`'s note on why a bound crosses
+ * this boundary as a directive-string read, never a frontmatter import, of
+ * the browser-only `routine-builder.data.ts`).
  * Only `chevron-down.svg` and `cross.svg` exist under `app/src/icons/` for
  * this purpose — "move up" is `chevron-down` rotated 180deg, "move down" is
- * `chevron-down` unrotated, "remove" is `cross`. The minute bounds below are
- * plain literals, not a frontmatter import from `routine-builder.data.ts`
- * (browser-only — see `ExercisePicker.astro`'s note on why that module must
- * not load during SSR/prerendering).
+ * `chevron-down` unrotated, "remove" is `cross`.
  */
 import Input from "@components/forms/Input.astro";
 import IconBtn from "@components/forms/IconBtn.astro";
@@ -27,8 +28,8 @@ import CrossIcon from "@icons/cross.svg";
   <Input
     type="number"
     class="w-16 text-center"
-    min="1"
-    max="60"
+    :min="stepMinMinutes"
+    :max="stepMaxMinutes"
     inputmode="numeric"
     :value="step.durationValue"
     @change="setMinutes(index, $event.target.valueAsNumber)"
