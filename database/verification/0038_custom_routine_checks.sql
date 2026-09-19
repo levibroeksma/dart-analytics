@@ -122,6 +122,10 @@ SELECT '7', 'system Warm-Up routine (5 min) still exists under the trigger',
 FROM routine_templates WHERE id = '0199c000-0000-7000-8000-000000000001' AND is_system_template;
 
 -- 8. deleting a user routine cascades its steps without tripping the trigger
+--    Catches OTHERS, not just check_violation: the failure this case is here to
+--    find is the trigger reading an unassigned NEW on DELETE, which raises
+--    42804 (not 23514). A narrower handler lets that escape and aborts the
+--    whole script instead of recording a FAIL.
 DO $$
 BEGIN
     SET CONSTRAINTS trg_routine_steps_duration_bounds DEFERRED;
@@ -129,8 +133,8 @@ BEGIN
         DELETE FROM routine_templates WHERE id = '01999400-0000-7000-8000-0000000000f4';
         SET CONSTRAINTS trg_routine_steps_duration_bounds IMMEDIATE;
         INSERT INTO verification_results VALUES ('8', 'deleting a user routine does not trip the bound on its cascaded steps', 'PASS', NULL);
-    EXCEPTION WHEN check_violation THEN
-        INSERT INTO verification_results VALUES ('8', 'deleting a user routine does not trip the bound on its cascaded steps', 'FAIL', SQLERRM);
+    EXCEPTION WHEN OTHERS THEN
+        INSERT INTO verification_results VALUES ('8', 'deleting a user routine does not trip the bound on its cascaded steps', 'FAIL', format('%s: %s', SQLSTATE, SQLERRM));
     END;
 END $$;
 

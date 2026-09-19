@@ -21,8 +21,8 @@ import type { ExerciseTemplateCatalogEntryData } from "@client/api/types";
 import type { BuilderStep, RoutineBuilderContext } from "./types";
 
 /** Mirrors the server's per-routine step cap (`pages/api/routines/types.ts`). */
-export const MAX_BUILDER_STEPS = MAX_ROUTINE_STEPS;
-export const DEFAULT_STEP_MINUTES = 5;
+const MAX_BUILDER_STEPS = MAX_ROUTINE_STEPS;
+const DEFAULT_STEP_MINUTES = 5;
 const MIN_STEP_MINUTES = 1;
 /** Mirrors the server's per-step minute ceiling (`pages/api/routines/types.ts`). */
 const MAX_STEP_MINUTES = MAX_ROUTINE_STEP_MINUTES;

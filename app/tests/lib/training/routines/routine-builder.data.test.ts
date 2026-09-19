@@ -8,6 +8,7 @@ vi.mock("@client/api/routines", () => ({
 }));
 import * as api from "@client/api/routines";
 import { SessionApiError } from "@client/api/sessions";
+import * as builderModule from "@lib/training/routines/routine-builder.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import type { RoutineBuilderContext } from "@lib/types";
 
@@ -69,6 +70,14 @@ describe("routineBuilder (create)", () => {
     expect(b.steps).toEqual([]);
     expect(b.totalMinutes()).toBe(0);
     expect(b.canSave()).toBe(false);
+  });
+
+  it("exports only the factory -- the caps reach Alpine as context fields, never as module exports", () => {
+    // MAX_BUILDER_STEPS/DEFAULT_STEP_MINUTES are module-local on purpose: the
+    // `.astro` templates read `maxSteps` off the reactive context (the module
+    // is browser-only and cannot be imported from frontmatter), so an export
+    // here has no consumer and fails `npx fallow`'s stale-usage gate.
+    expect(Object.keys(builderModule)).toEqual(["routineBuilder"]);
   });
 
   it("publishes the step-count and minute bounds as reactive context fields", async () => {

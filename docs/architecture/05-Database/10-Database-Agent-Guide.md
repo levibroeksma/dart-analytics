@@ -7,7 +7,7 @@ updated: 2026-09-19
 
 # Database Agent Guide
 
-> **Version:** 1.4.0 (the `0038` migration is this chain's first trigger: `trg_`/`fn_` naming added to the migration checklist, and the "docs do not assume database triggers" line in Non-Negotiable Rule 1 corrected — it no longer holds now that one exists, D334, 2026-09-19; prior 1.3.0 new-game-type checklist covers schema/validator/engine registration, 2026-07-26)
+> **Version:** 1.5.0 (row triggers select `NEW`/`OLD` by `TG_OP`, never by `COALESCE` — `0038`'s own function got this wrong, D335, 2026-09-19; prior 1.4.0: the `0038` migration is this chain's first trigger: `trg_`/`fn_` naming added to the migration checklist, and the "docs do not assume database triggers" line in Non-Negotiable Rule 1 corrected — it no longer holds now that one exists, D334, 2026-09-19; prior 1.3.0 new-game-type checklist covers schema/validator/engine registration, 2026-07-26)
 >
 > Condensed operating rules for AI agents (and developers) touching PostgreSQL in this project.
 >
@@ -97,6 +97,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 - Before first deployment only: in-place correction of unapplied migrations is permitted
 - No `BEGIN`/`COMMIT` in migrations (dbmate wraps each section in a transaction); seeds keep explicit `BEGIN`/`COMMIT`
 - Trigger with `trg_` prefix, its function with `fn_` prefix — `0038` is this chain's only trigger (`trg_routine_steps_duration_bounds`/`trg_routine_templates_duration_bounds`, both backed by one `fn_routine_templates_duration_bounds()`), so treat this as the convention going forward, not a survey of existing usage. D310 covers `chk_`/`fk_`/`uq_` constraint naming only — it does not name triggers or functions. (2026-09-19, D334)
+- A row trigger that handles more than one `TG_OP` selects `NEW` or `OLD` per operation — `NEW` is unassigned on `DELETE` and `OLD` on `INSERT`, so `COALESCE(NEW.col, OLD.col)` raises `42804` instead of falling through to the assigned record. (2026-09-19, D335)
 
 ## 7. Controlled sets = lookup tables
 

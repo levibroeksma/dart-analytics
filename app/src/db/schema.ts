@@ -403,6 +403,10 @@ export const routineTemplates = pgTable(
       foreignColumns: [players.id],
       name: "fk_routine_templates_player",
     }).onDelete("cascade"),
+    check(
+      "chk_routine_templates_player_ownership",
+      sql`(is_system_template AND (player_id IS NULL)) OR ((NOT is_system_template) AND (player_id IS NOT NULL))`,
+    ),
   ],
 );
 

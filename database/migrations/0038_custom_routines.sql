@@ -39,35 +39,51 @@ ALTER TABLE routine_templates
 CREATE FUNCTION fn_routine_templates_duration_bounds() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
+    v_routine_template_ids UUID[];
     v_routine_template_id UUID;
     v_is_system BOOLEAN;
     v_total INTEGER;
 BEGIN
+    -- NEW is unassigned on DELETE and OLD is unassigned on INSERT: reading the
+    -- wrong one raises 42804 before COALESCE could ever pick the other, so the
+    -- row to read is chosen by TG_OP, never guessed. A step moved between
+    -- routines leaves both parents to re-check.
     IF TG_TABLE_NAME = 'routine_steps' THEN
-        v_routine_template_id := COALESCE(NEW.routine_template_id, OLD.routine_template_id);
+        IF TG_OP = 'DELETE' THEN
+            v_routine_template_ids := ARRAY[OLD.routine_template_id];
+        ELSIF TG_OP = 'UPDATE'
+            AND NEW.routine_template_id IS DISTINCT FROM OLD.routine_template_id THEN
+            v_routine_template_ids := ARRAY[NEW.routine_template_id, OLD.routine_template_id];
+        ELSE
+            v_routine_template_ids := ARRAY[NEW.routine_template_id];
+        END IF;
+    ELSIF TG_OP = 'DELETE' THEN
+        v_routine_template_ids := ARRAY[OLD.id];
     ELSE
-        v_routine_template_id := NEW.id;
+        v_routine_template_ids := ARRAY[NEW.id];
     END IF;
 
-    SELECT is_system_template INTO v_is_system
-    FROM routine_templates
-    WHERE id = v_routine_template_id;
-    IF NOT FOUND OR v_is_system THEN
-        RETURN NULL;
-    END IF;
+    FOREACH v_routine_template_id IN ARRAY v_routine_template_ids LOOP
+        -- No parent row means the routine was deleted in this same transaction
+        -- and its steps cascaded: there is nothing left to bound.
+        SELECT is_system_template INTO v_is_system
+        FROM routine_templates
+        WHERE id = v_routine_template_id;
+        CONTINUE WHEN NOT FOUND OR v_is_system;
 
-    SELECT COALESCE(SUM(rs.duration_value), 0) INTO v_total
-    FROM routine_steps rs
-        JOIN duration_types dt ON dt.id = rs.duration_type_id
-    WHERE rs.routine_template_id = v_routine_template_id
-        AND dt.implementation_key = 'MINUTES';
+        SELECT COALESCE(SUM(rs.duration_value), 0) INTO v_total
+        FROM routine_steps rs
+            JOIN duration_types dt ON dt.id = rs.duration_type_id
+        WHERE rs.routine_template_id = v_routine_template_id
+            AND dt.implementation_key = 'MINUTES';
 
-    IF v_total < 30 OR v_total > 60 THEN
-        RAISE EXCEPTION 'user routine % is % minutes; the bound is 30-60', v_routine_template_id, v_total
-            USING ERRCODE = 'check_violation',
-                  CONSTRAINT = 'trg_routine_templates_duration_bounds',
-                  TABLE = 'routine_templates';
-    END IF;
+        IF v_total < 30 OR v_total > 60 THEN
+            RAISE EXCEPTION 'user routine % is % minutes; the bound is 30-60', v_routine_template_id, v_total
+                USING ERRCODE = 'check_violation',
+                      CONSTRAINT = 'trg_routine_templates_duration_bounds',
+                      TABLE = 'routine_templates';
+        END IF;
+    END LOOP;
     RETURN NULL;
 END;
 $$;
