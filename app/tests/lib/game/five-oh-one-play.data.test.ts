@@ -42,6 +42,7 @@ import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module"
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
 import type { FiveOhOnePlayContext } from "@lib/types";
 import type {
+  DartFact,
   DartObservation,
   EngineFacts,
   StageFact,
@@ -109,6 +110,19 @@ function turnFact(
  * turn worth more than 180 is not a reachable game state and the engine
  * rejects it on rehydrate.
  */
+function dartFact(sequence: number, score: number): DartFact {
+  return {
+    sequence,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: score === 0 ? null : score,
+    hitZoneKey: score === 0 ? "MISS" : "INNER_SINGLE",
+    score,
+    locationX: null,
+    locationY: null,
+  };
+}
+
 function turnsReaching(
   remaining: number,
   stageClientKey = "leg-1",
@@ -519,6 +533,34 @@ describe("checkoutHint", () => {
     expect(play.checkoutHint.call(play)).toBe("");
   });
 
+  it("shows a route the darts left in the open visit can throw, not the longer curated one (#498)", async () => {
+    const openVisit: TurnFact = {
+      ...turnFact("open", "leg-1", 99, 0),
+      completedAt: null,
+      darts: [dartFact(1, 0), dartFact(2, 0)],
+    };
+    const play = makePlay({
+      turns: [...turnsReaching(50), openVisit], // remaining 50, 1 dart left
+    });
+    await play.init.call(play);
+
+    expect(play.checkoutHint.call(play)).toBe("BULL");
+  });
+
+  it("goes blank when no route at all fits the darts left in the open visit (#498)", async () => {
+    const openVisit: TurnFact = {
+      ...turnFact("open", "leg-1", 99, 0),
+      completedAt: null,
+      darts: [dartFact(1, 0), dartFact(2, 0)],
+    };
+    const play = makePlay({
+      turns: [...turnsReaching(121), openVisit], // remaining 121, 1 dart left
+    });
+    await play.init.call(play);
+
+    expect(play.checkoutHint.call(play)).toBe("");
+  });
+
   it("is empty when checkout hints are disabled, even with a valid route", async () => {
     const play = makePlay({
       turns: turnsReaching(40), // remaining 40
@@ -624,6 +666,26 @@ describe("seat-parameterized getters — two-seat isolation", () => {
 
     expect(play.checkoutHintFor.call(play, "participant-1")).toBe("D20");
     expect(play.checkoutHintFor.call(play, SEAT_B)).toBe(""); // untouched, still 501 — not checkoutable
+  });
+
+  it("checkoutHintFor keeps the full-visit route for a seat with no open visit (#498)", async () => {
+    const openVisit: TurnFact = {
+      ...turnFact("open", "leg-1", 99, 0, "participant-1"),
+      completedAt: null,
+      darts: [dartFact(1, 0), dartFact(2, 0)],
+    };
+    const play = makePlay({
+      configSnapshot: twoSeatConfig(),
+      turns: [
+        ...turnsReaching(50),
+        turnFact("tb", "leg-1", 98, 451, SEAT_B),
+        openVisit,
+      ],
+    });
+    await play.init.call(play);
+
+    expect(play.checkoutHintFor.call(play, "participant-1")).toBe("BULL");
+    expect(play.checkoutHintFor.call(play, SEAT_B)).toBe("10 D20");
   });
 
   it("legsWonFor reads each seat's own side (0 legs won at the start of a fresh match)", async () => {

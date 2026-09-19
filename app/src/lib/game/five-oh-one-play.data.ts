@@ -2,7 +2,10 @@ import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
-import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import {
+  checkoutPathFor,
+  checkoutPathWithin,
+} from "@modules/game/checkout-path.module";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
@@ -24,6 +27,7 @@ import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module"
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   accuracyDisplay,
+  dartsLeftForSeat,
   dartsThrownCount,
   previousScoreDisplay,
   threeDartAverageDisplay,
@@ -373,16 +377,30 @@ export function fiveOhOnePlay() {
       return this.remainingScoreFor(state.activeParticipantRef);
     },
 
+    /**
+     * The finish route for the seat's remaining score, blank when no route
+     * fits the darts its open visit has left (#498). A seat with no open
+     * visit reads the full visit budget, so an idle seat still shows the
+     * conventional route.
+     */
     checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string {
       if (this.$store.checkoutHints?.enabled === false) return "";
-      const path = checkoutPathFor(this.remainingScoreFor(seatRef));
+      const dartsLeft = dartsLeftForSeat(
+        this.turnsInCurrentLeg(),
+        seatRef,
+        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3,
+      );
+      const path = checkoutPathWithin(
+        this.remainingScoreFor(seatRef),
+        dartsLeft,
+      );
       return path ? path.join(" ") : "";
     },
 
     checkoutHint(this: FiveOhOnePlayContext): string {
-      if (this.$store.checkoutHints?.enabled === false) return "";
-      const path = checkoutPathFor(this.remainingScore());
-      return path ? path.join(" ") : "";
+      const state = this.state();
+      if (!state) return "";
+      return this.checkoutHintFor(state.activeParticipantRef);
     },
 
     dartsThrownThisLegFor(this: FiveOhOnePlayContext, seatRef: string): number {
