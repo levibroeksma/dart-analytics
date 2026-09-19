@@ -93,11 +93,24 @@ evaluated in the page's own Alpine scope.
 | `UserIconDisplay.astro` | Avatar/initial badge | `name`, `nameExpr` |
 | `UserSection.astro` | Player row on the setup screen | `allowGuests` (501 only — renders `GuestSection` beside the owner icon) |
 
-## `components/layout/training/`
+## `components/layout/training/routines/`
+
+D308 split the flat `components/layout/training/` directory into three
+children (`routines/`, `exercises/`, `trivia/`); this inventory now follows
+that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `RoutineDetail.astro` | Routine-detail shell: title + duration pill, ordered step list, `Start` CTA wired to `routineStart()` (navigates to `playPath`; the routine itself starts on the play page) | `title`, `durationLabel`, `steps`, `playPath` (2026-09-11; Start wired 2026-09-12) |
+| `RoutineDetail.astro` | Routine-detail shell for a data-driven routine: title + duration pill, ordered step list, `Start` (wired to `routineDetail().start()`, navigates to the play route), and — for the caller's own routine only (`canEdit()`) — `Edit`/`Delete`, the latter behind a `ConfirmDialog` | none — reads `routineDetail()` from the parent scope (`routine-detail.data.ts`) (2026-09-11; rewritten data-driven, Edit/Delete added, 2026-09-18) |
+| `RoutineCard.astro` | One routine in the `/training` list; renders inside `x-for`, links to the detail route, shows a "mine" badge for a non-system routine | none — reads `routine` (`RoutineSummaryData`) and `trainingIndex()`'s `detailHref`/`durationLabel` from the parent scope (2026-09-18) |
+| `RoutineBuilder.astro` | Builder body for create and edit: name/description inputs, the ordered step list, `ExercisePicker`, duration total, and Cancel/Save | none — reads `routineBuilder(mode)` from the page's `x-data` (`routine-builder.data.ts`) (2026-09-18) |
+| `RoutineStepRow.astro` | One builder step: position, exercise name, minutes input (bound `:min`/`:max`), move-up/move-down (D333) and remove | reads `step`/`index` from the enclosing `x-for` plus the builder's helpers (2026-09-18) |
+| `ExercisePicker.astro` | Exercise catalog as tappable tiles; tapping appends a step, disabled once the builder is at its step cap | none — reads `catalog`/`steps`/`maxSteps` from the parent scope (2026-09-18) |
 | `RoutineSummaryModal.astro` | End-of-routine results overlay: one card per completed exercise (`stepSummaries`), total session time, `completeTraining` save status with Retry, and a `Done` button that resets the header store and leaves for `/training` | none — reads the play page's `x-data` scope (2026-09-14) |
+
+## `components/layout/training/exercises/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
 | `BlockedStepModal.astro` | Resolution overlay when an unfinished Ten Up One Down game blocks the routine's Finishing step: names that game and its start date, `Abandon & continue` (`resolveBlockingSession()`) or `Leave routine` (`abandonAndExit()`) | none — reads the play page's `x-data` scope (2026-09-16) |
 | `ExerciseBoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row for a non-game exercise session (Switching, Double Pattern) — mirrors `BoardInputPanel.astro` minus the `$store.game` gate, since an exercise session has no game store, is always `VISUAL_BOARD`, and has no clock (2026-09-12) | none (reads `board`, pointer handlers, `recordUnseen`, `visitMarkers`, `finished`, `undoVisit()` from the page scope) |

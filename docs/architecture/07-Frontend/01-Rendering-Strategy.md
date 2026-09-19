@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/rendering
 read-when: new routes, prerender vs SSR decisions
-updated: 2026-09-17
+updated: 2026-09-19
 -->
 
 # Frontend Rendering Strategy
 
-> **Version:** 0.3.0 (`/training` route class classified; `/statistics` restated as shipped, D258; issue #350, 2026-09-17; prior 0.2.0 same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
+> **Version:** 0.3.1 (`/training` protected-prefix row corrected to the shipped, data-driven routine routes — `/training/routines/{new,detail,edit,play}` — replacing the retired static `/training/balanced-training` pair, 2026-09-19; prior 0.3.0 `/training` route class classified; `/statistics` restated as shipped, D258; issue #350, 2026-09-17; prior 0.2.0 same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
 >
 > Prerender-default rendering on Cloudflare Workers.
 >
@@ -113,7 +113,7 @@ The public list is **extensible** (marketing pages later). When adding a public 
 | `/` | Home |
 | `/games` | Gameplay and session flows |
 | `/profile` | Player profile |
-| `/training` | Training routines — `/training`, `/training/quick-subtract`, `/training/balanced-training` and its `/play` page; all four `prerender = true`, same shell + client auth gate as `/games` <!-- 2026-09-17 --> |
+| `/training` | Training routines — `/training`, `/training/quick-subtract`, and the data-driven `/training/routines/new`, `/training/routines/detail`, `/training/routines/edit`, `/training/routines/play` (routine id via `?routine=` query string, not a dynamic route segment); all six `prerender = true`, same shell + client auth gate as `/games`. The static `/training/balanced-training` and its `/play` page were retired 2026-09-18 in favour of the routine-id-keyed routes <!-- 2026-09-17; corrected 2026-09-19 --> |
 | `/statistics` | Shipped — the shell fetches `GET /api/statistics/overview` client-side after paint, via `stats.store.ts`. D63 deferred this endpoint post-v1; D258 is where it landed, composed from four views in the service layer <!-- 2026-09-17 --> |
 
 **Rule:** every new HTML route must be classified **public** or **protected** in this document and reflected in `middleware.ts`.
