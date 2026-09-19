@@ -1,26 +1,30 @@
 # Ten Up One Down
 
+Current version: V1 (shipped 2026-08-20)
+Entry points: standalone, routine step
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                     | Version |
-| ------------------------------------------- | ------- |
-| Single player                               | v1      |
-| Multiplayer (1v1)                           | V1      |
-| Config screen (presets shown)               | v1      |
-| Start target 41                             | v1      |
-| One visit (3 darts) per attempt             | v1      |
-| Double out checkout                         | v1      |
-| Success: target +10                         | v1      |
-| Failure: target −1                          | v1      |
-| Floor at 2 (minimum finishable double-out target) | v1 |
-| Floor at start score (cannot drop below 41) | TBD     |
-| Bust within the visit                       | v1      |
-| Climb cap / end target                      | TBD     |
-| Alternate start score                       | TBD     |
-| Alternate step sizes (+10 / −1)             | TBD     |
-| Standard dartboard scoring (assumed)        | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Config screen (presets shown) | V1 | All | |
+| Start target 41 | V1 | All | |
+| Attempt = one visit (3 darts) | V1 | All | |
+| Double out checkout | V1 | All | |
+| Ten up: success → target +10 | V1 | All | |
+| One down: failure → target −1 | V1 | All | |
+| Floor at 2 (minimum finishable double-out target) | V1 | All | |
+| Floor at start score (cannot drop below 41) | V2+ | All | Wanted, unscheduled: `TuodConfig` models no ladder floor beyond the hard 2, and whether the ladder should stop at 41 is still an open question below |
+| Bust within the visit | V1 | All | |
+| Climb cap / end target | V2+ | All | Wanted, unscheduled: `TuodConfig` carries no cap key — the session is bounded by `duration_type`/`duration_value` and the ladder itself never wins |
+| Alternate start score | V2+ | All | Wanted, unscheduled: `TuodConfig.starting_target` exists, but both seeded presets fix it at 41 (`0002_default_templates.sql`) and no setup control offers another value |
+| Alternate step sizes (+10 / −1) | V2+ | All | Wanted, unscheduled: `finish_bonus` and `miss_penalty` exist for the same reason and are fixed at 10 and 1 by the same seeded presets |
+| Runs as a routine step (timed) | V1 | All | |
+| Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
 
@@ -32,13 +36,13 @@ Checkout ladder under pressure: start at **41**, try to finish in **one visit (3
 - **Session (V1):** keep climbing (+10) on success and slipping (−1) on failure until the player stops or hits a later end condition.
 - **1v1:** ROUNDS mode only. Both seats play the full round budget; highest target reached wins (score-compare, ties possible). <!-- 2026-08-22 --> The round count is player-configurable (1–100) rather than fixed at the 10-round preset. <!-- 2026-08-26 --> Solo play is configurable the same way: either mode's `duration_value` is player-typed (ROUNDS 1–100, MINUTES 3–30), not a locked preset pick. <!-- 2026-08-29 -->
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session config. Setup radios select the **mode** (Rounds / Time), not preset names.
 
 | Setting           | V1 default          | On config screen (V1) |
 | ----------------- | -------------------- | ---------------------- |
-| Players           | Single player        | Shown, locked          |
+| Players           | 1 seat, or 2 (guest or DartBot), Rounds mode only | Editable |
 | Start target      | 41                    | Shown, locked           |
 | Darts per attempt | 3 (one visit)         | Shown, locked           |
 | Out               | Double out            | Shown, locked           |
@@ -48,7 +52,7 @@ Before play, a **config screen** shows the session config. Setup radios select t
 | Rounds (N)        | Default **10** (min **1**, max **100**) | Editable when Rounds |
 | Minutes           | Default **10** (min **3**, max **30**)  | Editable when Time   |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -75,6 +79,29 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 **Early bust on an unfinishable remainder (V1, ANALYTICS + VISUAL_BOARD):** once only one dart remains in the visit, a remaining target that no double can reach can never be checked out, so the visit busts immediately instead of requiring the last dart to be thrown. Two shapes of remainder qualify: odd (and above 1) — every double scores an even number — and even but above **40** and not **50** — the highest double is D20 (40), and the only score above it a single dart can still finish on is the bull (50). This is TUOD-specific: 501 and 121 still require every dart in the visit to be thrown regardless of whether checkout remains mathematically possible. <!-- 2026-08-26; even-remainder-above-40 case added 2026-08-28 -->
 
+### Ends when
+
+The configured duration runs out, and nothing else — the ladder itself never
+wins:
+
+- **Rounds mode** — after **N** attempts (1–100, default 10).
+- **Time mode** — when the **M**-minute clock reaches 0 (3–30, default 10); the
+  attempt in progress finishes first.
+
+**Single:** the one seat plays its own budget out.
+
+**1v1:** Rounds mode only. Both seats play the full round budget and neither is
+cut short; the match ends once both are done. Highest target reached wins; equal
+targets is a tie, with no tiebreak. A DartBot seat counts as the opponent seat.
+
+As a routine step, none of this applies: the step inherits the duration the
+routine allocated it, and the routine's own summary replaces the result below.
+
+### Result
+
+The highest target reached, attempts made, successes and failures. In 1v1, the
+winning seat beside both seats' highest targets, or a tie.
+
 ## Capture
 
 - **Capture / input mode:** RECREATIONAL + QUICK_SCORE — one attempt per turn, **no dart rows**.
@@ -89,7 +116,7 @@ Same idea as X01: if the visit would go past 0, leave 1 under double out, or hit
 
 **Retired for ANALYTICS + VISUAL_BOARD sessions.** Every dart carries a real landing coordinate and score, so a bust and a plain miss are distinguishable by the pattern in the persisted darts: a bust's darts show an overshoot, a remaining score of exactly 1, or reaching 0 without the last dart in a double; a miss's three darts land short of the target with none of those patterns. No `v_*` view yet queries this distinction — the fact log supports it, and building the view is future work. <!-- 2026-08-20 -->
 
-## Later versions (V2+)
+## Later versions
 
 ### Variants
 

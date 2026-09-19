@@ -1,26 +1,29 @@
 # Shanghai
 
+Current version: V2 (shipped 2026-08-28)
+Entry points: standalone
+
 ## Features
 
-Use this table to declare what ships when. Edit the **Version** column (`V1`, `V2+`, `Deferred`, etc.).
+Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`.
 
-| Feature                                         | Version |
-| ----------------------------------------------- | ------- |
-| Single player                                   | v1      |
-| Multiplayer (1v1)                               | V1      |
-| Config screen (presets shown)                   | v1      |
-| Rounds 1–7                                      | TBD     |
-| Rounds 1–20                                     | v1      |
-| Other round ranges                              | TBD     |
-| Only active number scores                       | TBD     |
-| Single / double / treble of active number count | v1      |
-| Shanghai instant win (S+D+T in one visit)       | v1      |
-| Highest total wins if no Shanghai               | v1      |
-| Disable instant-win (score only)                | TBD     |
-| Visit = 3 darts per round                       | v1      |
-| Track per-round score                           | v1      |
-| Target Needed difficulty (Normal/Hard)          | V2      |
-| Standard dartboard scoring (assumed)            | v1      |
+| Feature | Version | Applies to | Reason |
+| --- | --- | --- | --- |
+| Single player | V1 | Single | |
+| Multiplayer (1v1) | V1 | 1v1 | |
+| Config screen (presets shown) | V1 | All | |
+| Rounds 1–7 | V2+ | All | Wanted, unscheduled: the shipped range is fixed at 1–20 (`ShanghaiConfig` is an empty `.strict()` object; seed `0008`), so a shorter range is a schema change |
+| Rounds 1–20 | V1 | All | |
+| Other round ranges | V2+ | All | Wanted, unscheduled: same fixed-range gap as Rounds 1–7 |
+| Only active number scores | Dropped | All | Not a separate feature: only the Active number has ever scored — it is the V1 rule (see Progress / scoring), not an option that could be turned off |
+| Active number: single / double / treble count | V1 | All | |
+| Shanghai instant win (S+D+T in one visit) | V1 | All | |
+| Highest total wins if no Shanghai | V1 | All | |
+| Disable instant-win (score only) | V2+ | All | Wanted, unscheduled: no config key expresses it — `ShanghaiV2Config` carries `difficulty` and nothing else |
+| Visit = 3 darts per round | V1 | All | |
+| Track per-round score | V1 | All | |
+| Target Needed difficulty (Normal/Hard) | V2 | All | Shipped as `ShanghaiV2Config.difficulty`: V1 scoring left a round with no target hit indistinguishable from a cautious one, so there was nothing to punish aimless rounds |
+| Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
 
@@ -29,21 +32,21 @@ Round-by-round target game: each round has one **active number** (1, then 2, the
 ## Objective
 
 - **Round:** with three darts, score as much as possible on the active number only.
-- **Session (V1):** complete the round range (default **1–7**). Highest cumulative score wins, unless someone hits a **Shanghai** for an instant win.
+- **Session (V1):** complete the round range (fixed at **1–20**). Highest cumulative score wins, unless someone hits a **Shanghai** for an instant win.
 - **1v1:** a Shanghai ends the match immediately for whoever hits it; otherwise both seats play all 20 rounds and the higher score wins (ties possible). <!-- 2026-08-22 -->
 
-## Config & presets (V1)
+## Config & presets
 
 Before play, a **config screen** shows the session presets.
 
 | Setting              | V1 preset                              | On config screen (V1) |
 | -------------------- | -------------------------------------- | --------------------- |
-| Players              | Single player                          | Shown, locked         |
-| Rounds               | **1–7**                                | Shown, locked         |
+| Players              | 1 seat, or 2 (guest or DartBot)        | Editable              |
+| Rounds               | **1–20**                               | Shown, locked         |
 | Shanghai instant win | On                                     | Shown, locked         |
 | Scoring              | Only active number (S/D/T face values) | Shown, locked         |
 
-## How to play (V1)
+## How to play
 
 ### Visit
 
@@ -71,9 +74,27 @@ If no Shanghai occurs, after the last round the **highest total** wins (solo: pe
 
 N/A.
 
-## Later versions (V2+)
+### Ends when
 
-### Target Needed (V2 — implemented)
+The last round of the range is played out — round 20, the range being fixed at
+1–20 — or a **Shanghai** lands, which ends it immediately. Nothing else bounds a
+session: no clock, no visit budget.
+
+**Single:** the one seat plays all 20 rounds, or ends early on a Shanghai.
+
+**1v1:** a Shanghai ends the match immediately for whoever hits it, and the
+other seat gets no further rounds. Otherwise both seats play all 20 rounds and
+the higher total wins; equal totals is a tie, with no tiebreak. A DartBot seat
+counts as the opponent seat.
+
+### Result
+
+The total score, the per-round scores, and whether the session ended on a
+Shanghai. In 1v1, the winning seat beside both seats' totals, or a tie.
+
+## Later versions
+
+### Target Needed
 
 A difficulty toggle, **Normal** (default) or **Hard**:
 
@@ -98,8 +119,32 @@ Available under both Recreational and Analytical capture modes, same as V1.
 | ----------------- | ------- | ---------------------------------------------------------------------------------------- |
 | **Active number** | V1      | The only scoring segment for the current round.                                          |
 | **Shanghai**      | V1      | Single + double + treble of the active number in one visit → instant win (when enabled). |
+| **Normal**        | V2      | Target Needed off: a round with no target hit simply scores 0.                            |
+| **Hard**          | V2      | Target Needed on: a round with no target hit halves the running total (round-half-up).    |
+
+## Capture
+
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — every dart thrown is
+  recorded. Also implemented: ANALYTICS + VISUAL_BOARD, the same darts with real
+  landing coordinates.
+- **One dart's fact:** intended = **nothing stored** — both the target number
+  and the ring are null. Single, double and treble of the round's number are all
+  legitimate aims (and all three in one visit is the Shanghai), so recording one
+  ring would fabricate an intent the player never held; the round's number is
+  recoverable from the visit index instead. Hit = whatever landed; `score` = the
+  **board** score of that dart (S7 = 7, T7 = 21, miss or wrong number = that
+  dart's own board score, which the game then ignores) — never the round's
+  Shanghai points.
+- **Stage type:** one `EXERCISE_BLOCK` per seat for the whole session — stage
+  ownership is `PER_SEAT`, so a 1v1 match holds one block per seat. A round is a
+  turn inside that block, not a stage of its own.
+- **Derived, never stored:** the running total, the per-round scores, whether a
+  visit was a Shanghai, and the Hard-mode halving — all folded from the dart
+  facts against the round's own number.
 
 ## Open questions
 
-- Default round length for product (7 vs 20).
+- ~~Default round length for product (7 vs 20).~~ **Resolved:** 20 — the shipped
+  ruleset fixes the range at 1–20 with nothing configurable (`ShanghaiConfig` is
+  an empty `.strict()` object; seed `0008`).
 - Multiplayer tie if two Shanghais in the same round (usually first in order).
