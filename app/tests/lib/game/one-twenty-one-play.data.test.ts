@@ -11,6 +11,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // F27 Task 4: playAgain() now delegates to play-lifecycle.ts's shared
 // runPlayAgain; resetForReplay is deleted. Confirmed these assertions
 // still hold unchanged.
+// X01 checkout-percentage Task 2: oneTwentyOneCheckoutVisits() moves out of
+// this file into the shared modules/game/checkout-visits.module.ts, byte
+// for byte -- statsFor() now imports it instead of defining it locally.
+// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// test) still hold unchanged.
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import {
   oneTwentyOneEngineFactory,

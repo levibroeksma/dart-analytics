@@ -18,6 +18,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // (both extracted to keep their functions' complexity under fallow's
 // threshold once the timerPaused guard was added). Confirmed these
 // assertions still hold unchanged.
+// X01 checkout-percentage Task 2: tuodCheckoutVisits() moves out of this
+// file into the shared modules/game/checkout-visits.module.ts, byte for
+// byte -- statsFor() now imports it instead of defining it locally.
+// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// test, which exercises it directly) still hold unchanged.
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),

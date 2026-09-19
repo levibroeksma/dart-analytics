@@ -33,10 +33,8 @@ import {
   threeDartAverageDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import {
-  classifyDoubleAttempts,
-  type CheckoutVisitDarts,
-} from "@modules/game/double-attempt.module";
+import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
+import { fiveOhOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
@@ -171,28 +169,6 @@ function bestLegFor(
     .filter((result) => result.participantRef === participantRef)
     .map((result) => result.darts);
   return darts.length > 0 ? String(Math.min(...darts)) : "—";
-}
-
-/**
- * One seat's checkout visits, each carrying the remaining score it opened
- * against -- `startingScore` at the start of a leg, or the running total of
- * that seat's own earlier visits in the same leg subtracted from it, since
- * a leg's remaining score never carries across a leg boundary.
- */
-function fiveOhOneCheckoutVisits(
-  seatTurns: readonly TurnFact[],
-  startingScore: number,
-): CheckoutVisitDarts[] {
-  const remainingByStage = new Map<string, number>();
-  return seatTurns.map((turn) => {
-    const startingRemaining =
-      remainingByStage.get(turn.stageClientKey) ?? startingScore;
-    remainingByStage.set(
-      turn.stageClientKey,
-      startingRemaining - turn.totalScore,
-    );
-    return { startingRemaining, darts: turn.darts };
-  });
 }
 
 /**

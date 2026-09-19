@@ -15,6 +15,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // runPlayAgain, with a resetLocalState callback closing over `this` for
 // this file's own extra fields. Confirmed these assertions still hold
 // unchanged.
+// X01 checkout-percentage Task 2: fiveOhOneCheckoutVisits() moves out of
+// this file into the shared modules/game/checkout-visits.module.ts, byte
+// for byte -- statsFor() now imports it instead of defining it locally.
+// Confirmed these assertions (including the VISUAL_BOARD doubleAccuracy
+// test, which exercises it directly) still hold unchanged.
 
 // `init()` calls `fetchActiveSessions()` directly, and `reconcileActiveSession`
 // (real, unmocked) calls `completeSession` internally on a mismatch — both
