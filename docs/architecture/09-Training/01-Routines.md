@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-17
+updated: 2026-09-19
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -365,7 +365,7 @@ Training Plan
 
 Such a concept is intentionally outside the current scope.
 
-### User-Created Routine Floor (planned, unbuilt)
+### User-Created Routine Floor (shipped, migration `0038`)
 
 A player-authored routine additionally satisfies a floor:
 
@@ -379,8 +379,15 @@ does not apply to system routines — the seeded "Warm-Up" routine
 both standalone and as a step inside Balanced Training. Scoping the floor to
 user-authored routines preserves that without a special case. See D305 and
 `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
-§3.2-3.3 for the enforcement mechanism (a deferred constraint trigger on
-`routine_steps`, not yet migrated).
+§3.2-3.3 for the design; the enforcement mechanism — deferred constraint
+triggers on both `routine_steps` and `routine_templates` — is
+`database/migrations/0038_custom_routines.sql` (D324). The routine builder
+(`app/src/lib/training/routines/routine-builder.data.ts`,
+`app/src/modules/training/routines/routine-duration.module.ts`) and
+`routine.service.ts` pre-check the same floor client- and server-side before
+the trigger gets the final word at commit; migration `0038` is committed but
+applied to no database (D324), so today only the pre-checks run in practice.
+<!-- 2026-09-19 -->
 
 ---
 
@@ -872,12 +879,17 @@ Duration
 
 rather than creating a new engine.
 
-**Status (2026-09-17):** sequenced as Phase 1 of
-`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`.
-The ownership columns this section anticipates already exist
-(`routine_templates.player_id`, `is_system_template`, migration `0004`); the
-CRUD API and builder UI do not. See D305/D306 for the duration-bound and
-endpoint-contract decisions the roadmap fixed ahead of implementation.
+**Status (shipped 2026-09-18, migration `0038`):** Phase 1 of
+`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
+is built. The ownership columns this section anticipates
+(`routine_templates.player_id`, `is_system_template`, migration `0004`) are
+now enforced by `chk_routine_templates_player_ownership` and read through the
+owner-aware `v_routine_execution`; the CRUD API (`GET`/`POST /api/routines`,
+`GET`/`PUT`/`DELETE /api/routines/:routineId`, `GET /api/exercise-templates`)
+and the builder UI (`/training/routines/{new,detail,edit,play}`,
+`RoutineBuilder.astro`) are both built. See D305/D306, refined by D321, for
+the duration-bound and endpoint-contract decisions, and D324 for the
+migration itself — committed but applied to no database. <!-- 2026-09-19 -->
 
 ---
 
