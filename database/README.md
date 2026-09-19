@@ -35,7 +35,7 @@ npm run db:migrate     # expected to STOP at 0020 — see below
 npm run db:seed        # 0007 fills the capability table
 npm run db:migrate     # 0020 and 0021 now apply
 npm run db:introspect
-npx fallow
+bash ../scripts/fallow-gate.sh
 astro check
 ```
 

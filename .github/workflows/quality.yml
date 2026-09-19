@@ -80,7 +80,7 @@ jobs:
       - name: Type gate
         run: npm run check
       - name: Stale-usage gate
-        run: npx fallow
+        run: bash ../scripts/fallow-gate.sh
       - name: Unit tests
         run: npm test
       - name: Check for deprecated neonConfig.fetchConnectionCache

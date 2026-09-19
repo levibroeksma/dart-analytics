@@ -92,7 +92,7 @@ Run this before closing an `app/` task:
 npm run db:status
 npm run db:migrate
 drizzle-kit introspect
-npx fallow
+bash ../scripts/fallow-gate.sh
 astro check
 ```
 

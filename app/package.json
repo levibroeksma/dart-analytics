@@ -35,7 +35,7 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && npx fallow && npm test && npm run check && bash ../scripts/refresh-graph.sh",
+    "validate:app": "npm run db:status && npm run db:migrate && npm run db:introspect && bash ../scripts/fallow-gate.sh && npm test && npm run check && bash ../scripts/refresh-graph.sh",
     "prepare": "cd .. && husky"
   },
   "lint-staged": {
