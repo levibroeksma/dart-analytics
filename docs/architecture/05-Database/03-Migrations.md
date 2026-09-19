@@ -2,12 +2,12 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-09-16
+updated: 2026-09-19
 -->
 
 # Database Migration Strategy
 
-> **Version:** 1.7.0
+> **Version:** 1.8.0
 >
 > This document defines the migration strategy and operating principles for evolving the PostgreSQL database.
 >
@@ -113,7 +113,22 @@ database/
 │   ├── 0019_ruleset_version_capabilities.sql
 │   ├── 0020_session_capability_fk.sql
 │   ├── 0021_player_settings_read_model.sql
-│   └── 0022_player_profile_read_model.sql
+│   ├── 0022_player_profile_read_model.sql
+│   ├── 0023_owner_scoped_dart_views.sql
+│   ├── 0024_double_out_checkout_darts_view.sql
+│   ├── 0025_player_visit_facts_view.sql
+│   ├── 0026_player_leg_facts_view.sql
+│   ├── 0027_exercise_type_reference.sql
+│   ├── 0028_template_exercise_types.sql
+│   ├── 0029_session_exercise_generalization.sql
+│   ├── 0030_activity_configurations.sql
+│   ├── 0031_session_exercise_type_not_null.sql
+│   ├── 0032_exercise_template_type_not_null.sql
+│   ├── 0033_read_model_non_game_sessions.sql
+│   ├── 0034_single_active_exercise_sessions.sql
+│   ├── 0035_exercise_template_ruleset_version.sql
+│   ├── 0036_read_model_view_consumers.sql
+│   └── 0037_exercise_configuration_constraint_naming.sql
 │
 └── seeds/
     ├── 0001_reference_data.sql
@@ -608,6 +623,180 @@ Never edits `0009`/`0013`/`0014`/`0018`.
 
 ---
 
+## 0024_double_out_checkout_darts_view.sql
+
+Purpose:
+
+Expose the per-dart facts a double-attempt accuracy read needs, outside the live in-session read. <!-- 2026-09-05 -->
+
+Contains:
+
+- new `v_double_out_checkout_darts` (`session_id`, `player_id`, `stage_id`, `turn_sequence`, `dart_number`, `hit_target_number`, `hit_zone_key`, `score`, `prior_scored_in_stage`)
+
+`prior_scored_in_stage` is a running `SUM(d.score)` window over `(stage_id, participant_id)`, ordered by `(turn_sequence, dart_number)`, excluding the current row — not the remaining score itself. Remaining resets per `LEG` to the session's `starting_score`, which lives in `exercise_configurations`' JSONB snapshot, so the application read layer adds it. `0036` later reverses that split and projects `starting_score` on the view.
+
+Scoped to 501 `VISUAL_BOARD` only. TUOD and 121's remaining-before-a-dart depends on a ladder fold (finish bonus / miss penalty escalation), which is engine logic and forbidden in a view by `05-Views/00-Overview.md`.
+
+Owner-scoped the same way as `0023`: `JOIN participants p` with `p.player_id = es.player_id`.
+
+Never edits `0009`/`0013`/`0014`/`0018`/`0023`.
+
+---
+
+## 0025_player_visit_facts_view.sql
+
+Purpose:
+
+Expose one row per completed turn, every game type and capture mode, for career-wide turn-level statistics. <!-- 2026-09-06 -->
+
+Contains:
+
+- new `v_player_visit_facts` (`session_id`, `player_id`, `game_type_key`, `stage_id`, `stage_type_key`, `turn_sequence`, `total_score`, `completed_at`, `dart_count`, `configured_max_darts_per_turn`)
+
+`dart_count` is the real `COUNT(d.id)` for the turn — `0` for a `QUICK_SCORE` turn, where no dart rows are ever written. `configured_max_darts_per_turn` is `(ec.configuration ->> 'max_darts_per_turn')::int`, exposed as a raw fact so the read layer picks its own approximation rather than the view guessing. This is the precedent `0036` cites when it adds `starting_score` to `0024`'s view.
+
+Only completed turns (`t.completed_at IS NOT NULL`): an open visit carries a running total, not a result.
+
+Owner-scoped like `0023`/`0024`.
+
+Never edits `0009`/`0013`/`0014`/`0018`/`0023`/`0024`.
+
+---
+
+## 0026_player_leg_facts_view.sql
+
+Purpose:
+
+Expose total real darts thrown per leg, for leg-level statistics that must not approximate. <!-- 2026-09-06 -->
+
+Contains:
+
+- new `v_player_leg_facts` (`session_id`, `player_id`, `game_type_key`, `stage_id`, `total_darts_in_leg`)
+
+A leg appears only when every one of the owning participant's completed turns in it has at least one real dart row (`HAVING bool_and(lt.dart_count > 0)`). A `QUICK_SCORE` leg's real per-turn dart count is unknown — a checkout or bust can resolve on any dart — so the view narrows the population rather than reporting a count that looks exact and isn't. Same precedent as `v_dart_analytics`' "both intended target and zone present" filter.
+
+`LEG` is the only stage type here; X01 games (501/121/TUOD) are the only game types that create one.
+
+Never edits `0009`/`0013`/`0014`/`0018`/`0023`/`0024`/`0025`.
+
+---
+
+## 0027_exercise_type_reference.sql
+
+Purpose:
+
+Introduce the exercise-type catalog and its ruleset versions, so `GAME` becomes one exercise type among many rather than a layer above them. <!-- 2026-09-10 -->
+
+Contains:
+
+- new `exercise_types` (`id`, `implementation_key`, `name`, `description`, `is_published`, `created_at`, `updated_at`) with `uq_exercise_types_implementation_key`
+- new `exercise_ruleset_versions` (`id`, `exercise_type_id`, `implementation_key`, `version_number`, `description`, `created_at`) with `uq_exercise_ruleset_versions_implementation_key` and `fk_exercise_ruleset_versions_type` (`ON DELETE RESTRICT`)
+
+UUID primary keys, not SMALLINT: this is a growing catalog, structurally identical to `game_types` — each new exercise type ships its own ruleset, engine and configuration schema.
+
+`exercise_ruleset_versions` is a separate table rather than a discriminator on `ruleset_versions` because a game-backed exercise holds an exercise ruleset and a game ruleset at the same time, and one column cannot carry both.
+
+Both tables ship empty; `seeds/0014_exercise_types.sql` fills them.
+
+---
+
+## 0028_template_exercise_types.sql
+
+Purpose:
+
+Let the template layer describe a non-game exercise, and let a routine step carry its own configuration. <!-- 2026-09-10 -->
+
+Contains:
+
+- `exercise_templates.exercise_type_id` (`UUID`, nullable here) and `exercise_templates.default_configuration` (`JSONB`)
+- `exercise_templates.game_type_id` relaxed to nullable, its `RESTRICT` foreign key kept
+- `fk_exercise_templates_exercise_type` (`ON DELETE RESTRICT`)
+- `routine_steps.configuration` (`JSONB`) — the Routine Exercise Configuration of `09-Training/01-Routines.md`
+
+Duration stays in its own `routine_steps` columns rather than moving into the JSONB, because it is structural and queried.
+
+**Apply order — `seeds/0014` must run before `0032`:** `routine_steps` was empty in production, but `exercise_templates` was not (`seeds/0002` ships four rows). `exercise_type_id` is therefore nullable here and promoted to `NOT NULL` by `0032`, the same three-step shape `0019`/`0020` and `0029`/`0031` use:
+
+```
+db:migrate   # through 0031
+db:seed      # 0014 backfills every existing template to GAME
+db:migrate   # 0032
+```
+
+---
+
+## 0029_session_exercise_generalization.sql
+
+Purpose:
+
+Let an exercise session record a non-game exercise. <!-- 2026-09-10 -->
+
+Contains:
+
+- `exercise_sessions.exercise_type_id`, `exercise_ruleset_version_id` (both `UUID`, nullable here) and `routine_step_sequence_number` (`INTEGER`)
+- `game_type_id`, `ruleset_version_id`, `capture_mode_id`, `input_mode_id` all relaxed to nullable
+- `fk_exercise_sessions_exercise_type` / `fk_exercise_sessions_exercise_ruleset_version`, both `ON DELETE RESTRICT`
+- `chk_exercise_sessions_game_pair` — `(game_type_id IS NULL) = (ruleset_version_id IS NULL)`
+- `chk_exercise_sessions_capture_pair` — `(capture_mode_id IS NULL) = (input_mode_id IS NULL)`
+
+The two CHECKs are independent: a game binding is all-or-nothing, and dart capture is all-or-nothing and independent of it, because `SWITCHING` takes dart observations with no game engine. Neither names a specific exercise type — a literal id in DDL would need revisiting for every new type, so type-to-column consistency is a service-layer rule.
+
+`fk_sessions_capability` (`0020`) is deliberately left in place: it is `MATCH SIMPLE`, so a row with NULL in any of its three columns satisfies it trivially.
+
+`routine_step_sequence_number` indexes into `activity_configurations` (`0030`) and carries no foreign key, because a runtime row may not reference a template.
+
+`exercise_type_id` is promoted to `NOT NULL` by `0031` after `seeds/0014` backfills: `db:migrate` (through `0030`) → `db:seed` → `db:migrate` (`0031`).
+
+Relaxing these four columns to nullable is what left the read model's INNER JOINs deleting whole rows, fixed later by `0033`, and what silently disabled `uq_sessions_single_active`, fixed later by `0034`.
+
+---
+
+## 0030_activity_configurations.sql
+
+Purpose:
+
+Record which routine a training actually ran. <!-- 2026-09-10 -->
+
+Contains:
+
+- new `activity_configurations` (`id`, `activity_id`, `configuration` JSONB, `created_at`) with `uq_activity_configurations_activity` and `fk_activity_configurations_activity` (`ON DELETE CASCADE`)
+
+The Resolved Training Configuration: routine name plus its ordered, resolved step list, snapshotted at training start. A snapshot, not a foreign key, because no runtime table may reference a template — editing or deleting a routine can never alter historical training. Mirrors `exercise_configurations` one level up.
+
+`0037` later renames `exercise_configurations`' two constraints onto the naming convention this table already follows.
+
+---
+
+## 0031_session_exercise_type_not_null.sql
+
+Purpose:
+
+Promote `exercise_sessions.exercise_type_id` to `NOT NULL`. <!-- 2026-09-10 -->
+
+Contains:
+
+- `ALTER TABLE exercise_sessions ALTER COLUMN exercise_type_id SET NOT NULL`
+
+**Prerequisite — `seeds/0014` must have run first.** Seeds run after migrations in the standard flow, which is why this is separated from `0029`. Applying it against a database with an unbackfilled row fails on constraint validation.
+
+---
+
+## 0032_exercise_template_type_not_null.sql
+
+Purpose:
+
+Promote `exercise_templates.exercise_type_id` to `NOT NULL`. <!-- 2026-09-11 -->
+
+Contains:
+
+- `ALTER TABLE exercise_templates ALTER COLUMN exercise_type_id SET NOT NULL`
+
+**Prerequisite — `seeds/0014` must have run first**, for the same reason as `0031`; this is the promotion half of `0028`.
+
+`0036` relies on this column being `NOT NULL` when it INNER JOINs `exercise_types` in `v_routine_execution`.
+
+---
+
 ## 0033_read_model_non_game_sessions.sql
 
 Purpose:
@@ -626,6 +815,72 @@ Contains:
 `v_configuration_presets` and `v_double_out_checkout_darts` are deliberately untouched: `configuration_templates.game_type_id` is still `NOT NULL`, and `v_double_out_checkout_darts` filters to 501 `VISUAL_BOARD` in its own WHERE clause, which no non-game session can satisfy. `v_game_replay` has no `game_types` join at all.
 
 Never edits `0013`/`0016`/`0023`/`0025`/`0026`.
+
+---
+
+## 0034_single_active_exercise_sessions.sql
+
+Purpose:
+
+Make `uq_sessions_single_active` cover non-game sessions. <!-- 2026-09-17 -->
+
+Contains:
+
+- a backfill closing rows that already violate the new index — newest `started_at` per key kept, the rest set to `ABANDONED` with `completed_at = NOW()`
+- rewritten `uq_sessions_single_active`: unique on `(player_id, COALESCE(game_type_id, exercise_type_id))` where `completed_at IS NULL`
+
+`0011`'s index keyed on `(player_id, game_type_id)`, and `0029` made `game_type_id` nullable. Postgres treats every NULL as distinct, so from `0029` onward the index stopped constraining `WARM_UP`, `SWITCHING` and `DOUBLE_PATTERN` sessions at all: a retried step start inserted a second ACTIVE row with no database-level signal (issue #310).
+
+A game session keys on its game type exactly as before; a non-game session keys on its exercise type. Both columns are `UUID`, so the expression is type-stable and no literal id appears in DDL (`0029`'s rule).
+
+The backfill is not reversed by `migrate:down` — a status transition is a fact, and `0011`'s index is satisfied by the closed rows either way.
+
+Never edits `0011`/`0029`.
+
+---
+
+## 0035_exercise_template_ruleset_version.sql
+
+Purpose:
+
+Let an exercise template pin the exercise ruleset version it was written against. <!-- 2026-09-17 -->
+
+Contains:
+
+- `uq_exercise_ruleset_versions_type_id` — `UNIQUE (exercise_type_id, id)`, a referenceable target only; the pair is already unique by way of the primary key
+- `exercise_templates.exercise_ruleset_version_id` (`UUID`, nullable, and staying so)
+- `fk_exercise_templates_ruleset_version` — composite FK on `(exercise_type_id, exercise_ruleset_version_id)`, `ON DELETE RESTRICT`
+
+`findRoutineTemplateSteps` joined `exercise_ruleset_versions` on `exercise_type_id` alone, with no version predicate (issue #338) — unambiguous only by accident, since exactly one version exists per type today. A second seeded version of any type would fan the join out: duplicated steps in a routine, and a session pinned to whichever version row order surfaced. Not an error, just wrong.
+
+The version belongs on `exercise_templates`, not `routine_steps`: `default_configuration` and the ruleset version defining its shape must agree, and both are the template's.
+
+The composite FK is the same shape as `fk_sessions_capability` (`0020`) and stops a template pinning a version of a different exercise type.
+
+The column stays nullable because a `GAME` template pins a game ruleset version on its session and has no exercise ruleset at all; `MATCH SIMPLE` skips validation when either column is NULL. "A non-game template must pin a version" is enforced in `startTraining`, not by a CHECK that would hardcode game-backed ⇔ no-exercise-ruleset into the schema.
+
+No prerequisite to apply — existing rows take NULL. `seeds/0019_exercise_template_ruleset_versions.sql` backfills the system templates and must run before a routine using them can start.
+
+---
+
+## 0036_read_model_view_consumers.sql
+
+Purpose:
+
+Make two read-model views serve the reads that actually run, so the application stops going around them. <!-- 2026-09-17 -->
+
+Contains:
+
+- rewritten `v_double_out_checkout_darts`: adds `starting_score` — `(ec.configuration ->> 'starting_score')::int` over a `LEFT JOIN exercise_configurations`
+- rewritten `v_routine_execution`: adds `is_system_template`, `exercise_type_key`, `exercise_ruleset_version_key`, `default_configuration`, `step_configuration`
+
+The statistics read needed `starting_score` to turn `prior_scored_in_stage` into remaining-before-dart, and no view exposed it, so `findStartingScores` selected `exercise_configurations.configuration` directly — against the view-backed read contract (issue #342). `0024` justified leaving it out to keep the view "a plain arithmetic projection, never a JSONB-parsing one"; `0025` overtook that one migration later by projecting `max_darts_per_turn`. This follows `0025`. The join cannot fan out — the unique constraint on `exercise_configurations.exercise_session_id` (`uq_exercise_configuration_session` at the time, renamed by `0037`) allows at most one row per session — and a session with no configuration yields NULL, which the read layer treats as `0`.
+
+`v_routine_execution` had zero consumers: `training-session.repository.ts` re-implemented the same read against the base tables, because the view exposed none of the columns a step resolves from (issue #344). `0033` had fixed that view's `game_types` join, but nothing consumed the result. `exercise_types` is INNER JOINed (`exercise_type_id` is `NOT NULL` since `0032`); `exercise_ruleset_versions` is LEFT JOINed on `0035`'s pin, since a `GAME` template pins none.
+
+Both views are dropped and recreated rather than `CREATE OR REPLACE`d, because column order changes. Neither drops an existing column, so no consumer breaks.
+
+Never edits `0024`/`0033`.
 
 ---
 
