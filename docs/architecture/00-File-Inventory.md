@@ -237,7 +237,7 @@ Registered for discoverability, not as reading material — the contract lives i
 
 ## Weekly training schedules (2026-09-20)
 
-Registered for discoverability, not as reading material — the domain model lives in `05-Database/06-Spec/02-Template-Layer.md` (`training_schedules`/`training_schedule_days`), the migration in `05-Database/03-Migrations.md` `## 0041`, the API contract in `06-API/04-Endpoint-Contracts.md` §Training Schedules, and the rationale in D342/D343 (`decisions/database.md`, `decisions/api.md`). Frontend (Task 4 of the implementation plan) is not built yet and carries no row here.
+Registered for discoverability, not as reading material — the domain model lives in `05-Database/06-Spec/02-Template-Layer.md` (`training_schedules`/`training_schedule_days`), the migration in `05-Database/03-Migrations.md` `## 0041`, the API contract in `06-API/04-Endpoint-Contracts.md` §Training Schedules, the frontend routes/components in `09-Training/01-Routines.md` §7 and `07-Frontend/08-Component-Inventory.md`, and the rationale in D342/D343 (`decisions/database.md`, `decisions/api.md`). Frontend (Task 4 of the implementation plan) is now built too.
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
@@ -251,6 +251,16 @@ Registered for discoverability, not as reading material — the domain model liv
 | `app/src/pages/api/schedules/[scheduleId]/activate.ts` | `POST /api/schedules/:scheduleId/activate` (2026-09-20) | canonical |
 | `app/src/pages/api/schedules/[scheduleId]/deactivate.ts` | `POST /api/schedules/:scheduleId/deactivate` (2026-09-20) | canonical |
 | `app/src/lib/client/api/schedules.ts` | Browser client: `listSchedules`/`getSchedule`/`getActiveSchedule`/`createSchedule`/`updateSchedule`/`activateSchedule`/`deactivateSchedule`/`deleteSchedule`, following the sibling API clients' `unwrap`/`SessionApiError` shape (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/types.ts` | `ScheduleDayEntry`, `TodayCardContext`, `SchedulesIndexContext`, `ScheduleEditorRow`/`ScheduleEditorContext` — the three data factories' Alpine context shapes (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/today.ts` | `isoWeekday(date)` (JS `getDay()` 0..6 → ISO 1..7, Sunday = 7); `weekdayNames(locale?)` Monday..Sunday via `Intl.DateTimeFormat` pinned to a fixed UTC Monday; `todayEntry(schedule, date)` — the matching `ScheduleDayEntry` or `null` (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/schedule-route.ts` | `scheduleIdFromLocation()` (reads `?schedule=` from `window.location`), `scheduleEditPath(scheduleId)` (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/today-card.data.ts` | `todayCard()` — loads `getActiveSchedule`; `entry()`/`isRestDay()`/`startPath()` via `today.ts` and `routinePlayPath` (`routine-route.ts`); `start()` navigates (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/schedules-index.data.ts` | `schedulesIndex()` — loads `listSchedules`; `activate`/`deactivate` call the client then `refresh()`; `editHref` via `scheduleEditPath` (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/schedule-editor.data.ts` | `scheduleEditor(mode)` — seven `restRows()` Monday..Sunday (`routineTemplateId: string \| null`); loads `GET /api/routines` for the picker and, in edit mode, the existing schedule; `payload()` drops any falsy `routineTemplateId` (rest); `formatServerIssues` renders a `VALIDATION_FAILED` `{ reason, dayOfWeek? }` as one line (2026-09-20) | canonical |
+| `app/src/components/layout/training/schedules/TodayCard.astro`, `ScheduleEditor.astro`, `ScheduleDayRow.astro` | The three schedule components — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-20) | canonical |
+| `app/src/pages/training/schedules/index.astro` | `/training/schedules` — own schedules list, active badge, Activate/Deactivate, `New schedule` `GameCard` (2026-09-20) | canonical |
+| `app/src/pages/training/schedules/new/index.astro` | `/training/schedules/new` — mounts `scheduleEditor('create')` around `ScheduleEditor` (2026-09-20) | canonical |
+| `app/src/pages/training/schedules/edit/index.astro` | `/training/schedules/edit?schedule=<id>` — mounts `scheduleEditor('edit')` around `ScheduleEditor` (2026-09-20) | canonical |
 
 ## Cross-cutting mechanical guards (2026-07-28)
 

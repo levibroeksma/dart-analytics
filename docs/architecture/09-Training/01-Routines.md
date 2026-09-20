@@ -389,6 +389,16 @@ the trigger gets the final word at commit; migration `0038` is committed but
 applied to no database (D336), so today only the pre-checks run in practice.
 <!-- 2026-09-19 -->
 
+### Schedule vs. Training Plan (shipped, migration `0041`)
+
+A weekly **schedule** (`training_schedules`/`training_schedule_days`,
+migration `0041`) is not the multi-block "Training Plan" this section
+reserves above — it assigns one existing, unmodified ≤60-minute routine (or
+rest) to each ISO weekday. A schedule composes across a week; it never
+extends a single training block past its 60-minute ceiling, and a scheduled
+day is still exactly one routine. See `05-Database/06-Spec/02-Template-Layer.md`
+and D342. <!-- 2026-09-20 -->
+
 ---
 
 # 8. Training Orchestration
