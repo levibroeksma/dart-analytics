@@ -5,6 +5,8 @@ import WarmUpPanel from "@components/layout/training/exercises/WarmUpPanel.astro
 import SwitchingPanel from "@components/layout/training/exercises/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/exercises/DoublePatternPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
+import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
+import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -24,29 +26,25 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
   >
     <ErrorAlert />
 
-    <template
-      x-if="!loading && currentStep()?.exerciseTypeKey === 'WARM_UP' && warmUpEngine"
-    >
+    <template x-if="!loading && adapter?.panel === 'warm-up' && warmUpEngine">
       <WarmUpPanel />
     </template>
 
     <template
-      x-if="!loading && currentStep()?.exerciseTypeKey === 'SWITCHING' && switchingEngine"
+      x-if="!loading && adapter?.panel === 'switching' && switchingEngine"
     >
       <SwitchingPanel />
     </template>
 
     <template
-      x-if="!loading && currentStep()?.exerciseTypeKey === 'DOUBLE_PATTERN' && doublePatternEngine"
+      x-if="!loading && adapter?.panel === 'double-pattern' && doublePatternEngine"
     >
       <DoublePatternPanel />
     </template>
 
-    <template
-      x-if="!loading && currentStep()?.exerciseTypeKey === 'GAME' && finishing"
-    >
+    <template x-if="!loading && adapter?.panel === 'tuod' && game">
       <div
-        x-data="finishing"
+        x-data="game"
         class="flex min-h-0 flex-1 flex-col"
       >
         <TenUpOneDown
@@ -56,8 +54,8 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
         {
           /* TUOD's own confirm gates, same wiring as `games/tuod/play`. The
           store raises these instead of recording: a session-ending dart sets
-          `showFinishConfirm` and waits, so without the dialog the Finishing
-          step can never finish and the routine hangs. */
+          `showFinishConfirm` and waits, so without the dialog the step can
+          never finish and the routine hangs. */
         }
         <div
           x-show="showDoubleConfirm"
@@ -100,6 +98,113 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
           class="p-4 text-center"
         >
           <p class="text-foreground">Saving your finishing session…</p>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="!loading && adapter?.panel === 'score-training' && game">
+      <div
+        x-data="game"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <ScoreTraining
+          x-show="!finished"
+          x-cloak
+        />
+        {
+          /* Score Training's own confirm gate, same wiring as
+          `games/score-training/play`. */
+        }
+        <div
+          x-show="showFinishConfirm"
+          x-cloak
+        >
+          <ConfirmDialog
+            titleId="routine-finish-confirm-title"
+            title="Finish session?"
+            description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
+            confirmLabel="Confirm"
+            onCancel="cancelFinish()"
+            onConfirm="confirmFinish()"
+            dismissible={false}
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus === 'failed'"
+          x-cloak
+          class="p-4"
+        >
+          <ErrorAlert
+            textExpr="completionError"
+            alwaysVisible
+          />
+          <Button
+            class="mt-2"
+            @click="uploadAndCompleteSession()"
+            title="Retry"
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus !== 'failed'"
+          x-cloak
+          class="p-4 text-center"
+        >
+          <p class="text-foreground">Saving your scoring session…</p>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="!loading && adapter?.panel === 'one-twenty-one' && game">
+      <div
+        x-data="game"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <OneTwentyOne
+          x-show="!finished"
+          x-cloak
+        />
+        {/* 121's own confirm gates, same wiring as `games/121/play`. */}
+        <div
+          x-show="showDoubleConfirm"
+          x-cloak
+        >
+          <CheckoutConfirm />
+        </div>
+        <div
+          x-show="showSessionFinishConfirm"
+          x-cloak
+        >
+          <ConfirmDialog
+            titleId="routine-session-finish-confirm-title"
+            title="Check out 170?"
+            description="This checkout wins the session. Confirm to save and finish, or cancel to reconsider."
+            cancelLabel="Cancel"
+            onCancel="cancelSessionFinish()"
+            onConfirm="confirmSessionFinish()"
+            dismissible={false}
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus === 'failed'"
+          x-cloak
+          class="p-4"
+        >
+          <ErrorAlert
+            textExpr="completionError"
+            alwaysVisible
+          />
+          <Button
+            class="mt-2"
+            @click="uploadAndCompleteSession()"
+            title="Retry"
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus !== 'failed'"
+          x-cloak
+          class="p-4 text-center"
+        >
+          <p class="text-foreground">Saving your 121 session…</p>
         </div>
       </div>
     </template>

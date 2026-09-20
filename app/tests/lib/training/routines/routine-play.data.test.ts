@@ -38,6 +38,7 @@ vi.mock("@lib/training/routines/routine-route", async (importOriginal) => ({
 
 import * as trainingApi from "@client/api/training-sessions";
 import { routinePlay } from "@lib/training/routines/routine-play.data";
+import { warmUpAdapter } from "@lib/training/routines/adapters/warm-up.adapter";
 import { routineIdFromLocation } from "@lib/training/routines/routine-route";
 import { trainingSessionStore } from "@stores/training-session.store";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
@@ -178,6 +179,36 @@ describe("routinePlay", () => {
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
   });
 
+  it("surfaces an unsupported-step error instead of opening a step whose adapter key resolves to nothing", async () => {
+    const unsupportedStep = {
+      sequenceNumber: 1,
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      gameTypeKey: "FIVE_OH_ONE",
+      gameRulesetVersionKey: "FIVE_OH_ONE_V1",
+      durationSeconds: 600,
+      configuration: {},
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [unsupportedStep] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "GAME",
+      configuration: unsupportedStep.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+      gameTypeKey: "FIVE_OH_ONE",
+      rulesetVersionKey: "FIVE_OH_ONE_V1",
+    });
+    const store = makeStore();
+    await store.init();
+    expect(store.error).toBe("This step kind is not supported on this device.");
+    expect(store.adapter).toBeNull();
+  });
+
   it("startCurrentStep() for WARM_UP does not start the timer until confirmWarmUpReady() runs", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
@@ -221,9 +252,13 @@ describe("routinePlay", () => {
     expect(unlockSpy).toHaveBeenCalledOnce();
   });
 
-  it("buildWarmUpEngine() builds the Warm-Up engine directly from a configuration object", () => {
+  it("the Warm-Up adapter builds the Warm-Up engine directly from a start-step response", () => {
     const store = makeStore();
-    store.buildWarmUpEngine(STEPS[0].configuration);
+    warmUpAdapter.open(
+      store,
+      { configuration: STEPS[0].configuration } as never,
+      0,
+    );
     expect(store.warmUpEngine).not.toBeNull();
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
   });
@@ -282,7 +317,11 @@ describe("routinePlay", () => {
   it("warmUpHighlightPath() reflects the current phase's targets and is empty once there is no engine", () => {
     const store = makeStore();
     expect(store.warmUpHighlightPath()).toBe("");
-    store.buildWarmUpEngine(STEPS[0].configuration);
+    warmUpAdapter.open(
+      store,
+      { configuration: STEPS[0].configuration } as never,
+      0,
+    );
     expect(store.warmUpHighlightPath()).not.toBe("");
   });
 
@@ -1017,6 +1056,7 @@ const GAME_STEP = {
   exerciseTypeKey: "GAME",
   exerciseRulesetVersionKey: null,
   gameTypeKey: "TUOD",
+  gameRulesetVersionKey: "TUOD_V1",
   durationSeconds: 600,
   configuration: {
     starting_target: 41,
@@ -1150,7 +1190,7 @@ describe("routinePlay — Finishing", () => {
     expect(store.blockingSession).toBeNull();
     expect(store.blockingError).toBe("");
     expect(store.currentSessionId).toBe("s-finishing");
-    expect(store.finishing).not.toBeNull();
+    expect(store.game).not.toBeNull();
   });
 
   it("resolveBlockingSession() keeps the choice open with an error when the abandon fails", async () => {
@@ -1254,7 +1294,7 @@ describe("routinePlay — Finishing", () => {
     );
   });
 
-  it("startCurrentStep() for GAME populates the global game store and builds finishingStep", async () => {
+  it("startCurrentStep() for GAME populates the global game store and builds the game step", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineTemplateId: "rt-1",
@@ -1281,7 +1321,7 @@ describe("routinePlay — Finishing", () => {
         sessionId: "s1",
       }),
     );
-    expect(store.finishing).not.toBeNull();
+    expect(store.game).not.toBeNull();
   });
 
   it("hands TUOD a camelCase snapshot seated on the step's own participant, so the play screen can derive its state", async () => {
@@ -1460,7 +1500,7 @@ describe("routinePlay — abandonAndExit", () => {
     expect(sessionApi.completeSession).not.toHaveBeenCalled();
   });
 
-  it("during the GAME step: delegates to playAbandonAndExit on the finishing controller, redirecting to /training and abandoning the routine", async () => {
+  it("during the GAME step: delegates to playAbandonAndExit on the game controller, redirecting to /training and abandoning the routine", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
       routineTemplateId: "rt-1",
@@ -1487,7 +1527,7 @@ describe("routinePlay — abandonAndExit", () => {
     await store.abandonAndExit();
 
     expect(playAbandonAndExit).toHaveBeenCalledWith(
-      store.finishing,
+      store.game,
       expect.any(Function),
       "/training",
     );

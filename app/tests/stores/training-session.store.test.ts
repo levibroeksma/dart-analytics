@@ -13,20 +13,20 @@ describe("trainingSessionStore", () => {
   it("renders the routine clock beside the running step", () => {
     const store = trainingSessionStore();
 
-    store.setStep("WARM_UP");
+    store.setStep("warm up");
     store.tick(38);
 
     expect(store.headerLabel).toBe("00:38 - warm up");
   });
 
-  it("names every exercise the routine can run", () => {
+  it("names whatever step label it is given", () => {
     const store = trainingSessionStore();
-    const labels = (
-      ["WARM_UP", "SWITCHING", "DOUBLE_PATTERN", "GAME"] as const
-    ).map((key) => {
-      store.setStep(key);
-      return store.stepLabel;
-    });
+    const labels = ["warm up", "switching", "doubles", "finishing"].map(
+      (label) => {
+        store.setStep(label);
+        return store.stepLabel;
+      },
+    );
 
     expect(labels).toEqual(["warm up", "switching", "doubles", "finishing"]);
   });
@@ -34,7 +34,7 @@ describe("trainingSessionStore", () => {
   it("keeps counting past an hour's worth of minutes", () => {
     const store = trainingSessionStore();
 
-    store.setStep("GAME");
+    store.setStep("finishing");
     store.tick(25 * 60 + 39);
 
     expect(store.headerLabel).toBe("25:39 - finishing");
@@ -53,7 +53,7 @@ describe("trainingSessionStore", () => {
   it("reset() clears the clock and the step", () => {
     const store = trainingSessionStore();
     store.startSession();
-    store.setStep("SWITCHING");
+    store.setStep("switching");
     store.tick(90);
 
     store.reset();
@@ -66,7 +66,7 @@ describe("trainingSessionStore", () => {
   it("markComplete() freezes the elapsed time and relabels the header", () => {
     const store = trainingSessionStore();
     store.startSession();
-    store.setStep("GAME");
+    store.setStep("finishing");
     store.tick(1934);
 
     store.markComplete();
@@ -78,7 +78,7 @@ describe("trainingSessionStore", () => {
   it("reset() clears a completed session's header", () => {
     const store = trainingSessionStore();
     store.startSession();
-    store.setStep("GAME");
+    store.setStep("finishing");
     store.tick(1934);
     store.markComplete();
 

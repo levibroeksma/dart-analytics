@@ -2,14 +2,20 @@ import { describe, it, expect } from "vitest";
 import {
   summariseSwitching,
   summariseDoublePattern,
-  summariseFinishing,
+  summariseTuod,
+  summariseScoreTraining,
+  summariseOneTwentyOne,
 } from "@modules/training/routines/routine-summary.module";
 import type {
   EngineFacts,
   SwitchingState,
   DoublePatternState,
 } from "@modules/types";
-import type { TuodSeatResult } from "@lib/types";
+import type {
+  TuodSeatResult,
+  ScoreTrainingSeatResult,
+  OneTwentyOneSeatResult,
+} from "@lib/types";
 
 function dart(
   sequence: number,
@@ -127,7 +133,7 @@ describe("summariseDoublePattern", () => {
   });
 });
 
-describe("summariseFinishing", () => {
+describe("summariseTuod", () => {
   it("reports the target reached and TUOD's own checkout percentage", () => {
     const seat: TuodSeatResult = {
       participantRef: "pt1",
@@ -136,8 +142,8 @@ describe("summariseFinishing", () => {
       checkoutPercentage: "31.25%",
     };
 
-    expect(summariseFinishing(seat)).toEqual({
-      stepKey: "GAME",
+    expect(summariseTuod(seat)).toEqual({
+      stepKey: "GAME:TUOD_V1",
       label: "Finishing",
       rows: [
         { label: "Target reached", value: "47" },
@@ -154,7 +160,71 @@ describe("summariseFinishing", () => {
       checkoutPercentage: null,
     };
 
-    expect(summariseFinishing(seat).rows[1]).toEqual({
+    expect(summariseTuod(seat).rows[1]).toEqual({
+      label: "Checkout %",
+      value: "—",
+    });
+  });
+});
+
+describe("summariseScoreTraining", () => {
+  it("reports points and the three-dart average from Score Training's own results seat", () => {
+    const seat: ScoreTrainingSeatResult = {
+      participantRef: "pt1",
+      sideKey: "A",
+      total: 312,
+      threeDartAverage: "52.00",
+      firstNineAverage: "48.00",
+      highestScore: 60,
+      hundredPlus: 0,
+      oneTwentyPlus: 0,
+      oneFortyPlus: 0,
+      oneEighties: 0,
+    };
+
+    expect(summariseScoreTraining(seat)).toEqual({
+      stepKey: "GAME:SCORE_TRAINING_V1",
+      label: "Scoring",
+      rows: [
+        { label: "Points", value: "312" },
+        { label: "Average", value: "52.00" },
+      ],
+    });
+  });
+});
+
+describe("summariseOneTwentyOne", () => {
+  it("reports the target reached and 121's own checkout percentage", () => {
+    const seat: OneTwentyOneSeatResult = {
+      participantRef: "pt1",
+      sideKey: "A",
+      target: 105,
+      visits: 6,
+      average: 17.5,
+      checkoutPercentage: "20.00%",
+    };
+
+    expect(summariseOneTwentyOne(seat)).toEqual({
+      stepKey: "GAME:121_V2",
+      label: "121",
+      rows: [
+        { label: "Target reached", value: "105" },
+        { label: "Checkout %", value: "20.00%" },
+      ],
+    });
+  });
+
+  it("falls back to an em dash when the session recorded no checkout percentage", () => {
+    const seat: OneTwentyOneSeatResult = {
+      participantRef: "pt1",
+      sideKey: "A",
+      target: 105,
+      visits: 6,
+      average: 17.5,
+      checkoutPercentage: null,
+    };
+
+    expect(summariseOneTwentyOne(seat).rows[1]).toEqual({
       label: "Checkout %",
       value: "—",
     });

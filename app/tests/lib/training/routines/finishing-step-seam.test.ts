@@ -35,7 +35,8 @@ import {
   completeSession,
   fetchActiveSessions,
 } from "@client/api/sessions";
-import { finishingStep } from "@lib/training/routines/finishing-step.data";
+import { gameStep } from "@lib/training/routines/game-step.data";
+import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type { DartObservation, EngineFacts, StageFact } from "@modules/types";
 
@@ -154,7 +155,7 @@ async function startFinishingStep(): Promise<Harness> {
   const onStepComplete = vi.fn().mockResolvedValue(undefined);
   const onAbandon = vi.fn().mockResolvedValue(undefined);
   const component = {
-    ...finishingStep(onStepComplete, onAbandon),
+    ...gameStep(tuodPlay, onStepComplete, onAbandon),
     $store: { game: store, settings: settingsStub() },
   } as unknown as TuodPlayContext;
   await component.init();

@@ -4,17 +4,19 @@ import { describe, expect, it } from "vitest";
 
 /**
  * The routine's Finishing step mounts the whole TUOD play store
- * (`finishing-step.data.ts` wraps `tuodPlay()`), so it inherits that store's
- * confirm gates: `recordDart`/`submitVisit` refuse to record and raise
- * `showFinishConfirm` / `showDoubleConfirm` instead, and only the dialog
- * those flags render can call `confirmFinish()` / `confirmDouble()` back.
+ * (`game-step.data.ts`'s `gameStep()` wraps `tuodPlay()`), so it inherits
+ * that store's confirm gates: `recordDart`/`submitVisit` refuse to record
+ * and raise `showFinishConfirm` / `showDoubleConfirm` instead, and only the
+ * dialog those flags render can call `confirmFinish()` / `confirmDouble()`
+ * back.
  *
- * `games/tuod/play` renders both dialogs; the routine page rendered neither,
- * so the session-ending dart raised `showFinishConfirm` against nothing:
- * `finished` never turned true, the darts were never uploaded, the step never
- * completed, and the routine hung on a live header clock with abandon as the
- * only exit. This suite pins the two pages to the same gate list — a gate
- * TUOD can enter must be answerable from inside the routine too.
+ * `games/tuod/play` renders both dialogs; the routine page once rendered
+ * neither, so the session-ending dart raised `showFinishConfirm` against
+ * nothing: `finished` never turned true, the darts were never uploaded, the
+ * step never completed, and the routine hung on a live header clock with
+ * abandon as the only exit. This suite pins the two pages to the same gate
+ * list — a gate TUOD can enter must be answerable from inside the routine
+ * too.
  */
 
 function read(relativePath: string): string {
@@ -30,24 +32,45 @@ const routinePage = read(
 );
 
 /**
- * The markup under `x-data="finishing"`. Only that subtree sees the TUOD
- * store, so a dialog placed anywhere else on the routine page cannot reach
- * `confirmFinish()` — hence the scoped extraction rather than a whole-file
- * match.
+ * Every `x-data="game"` subtree in the routine page — one per routine-
+ * eligible game (TUOD, Score Training, 121) — since only markup inside one
+ * of those subtrees can reach that game's own store methods.
  */
-function finishingScope(source: string): string {
-  const start = source.indexOf('x-data="finishing"');
-  if (start === -1) throw new Error('x-data="finishing" not found');
-  const openTag = source.lastIndexOf("<div", start);
-  const tagPattern = /<div\b|<\/div>/g;
-  tagPattern.lastIndex = openTag;
-  let depth = 0;
-  let match: RegExpExecArray | null;
-  while ((match = tagPattern.exec(source))) {
-    depth += match[0] === "</div>" ? -1 : 1;
-    if (depth === 0) return source.slice(openTag, tagPattern.lastIndex);
+function gameScopes(source: string): string[] {
+  const marker = 'x-data="game"';
+  const scopes: string[] = [];
+  let searchFrom = 0;
+  for (;;) {
+    const start = source.indexOf(marker, searchFrom);
+    if (start === -1) return scopes;
+    const openTag = source.lastIndexOf("<div", start);
+    const tagPattern = /<div\b|<\/div>/g;
+    tagPattern.lastIndex = openTag;
+    let depth = 0;
+    let match: RegExpExecArray | null;
+    let closed = false;
+    while ((match = tagPattern.exec(source))) {
+      depth += match[0] === "</div>" ? -1 : 1;
+      if (depth === 0) {
+        scopes.push(source.slice(openTag, tagPattern.lastIndex));
+        searchFrom = tagPattern.lastIndex;
+        closed = true;
+        break;
+      }
+    }
+    if (!closed) throw new Error('unterminated x-data="game" element');
   }
-  throw new Error('unterminated x-data="finishing" element');
+}
+
+/** The one `x-data="game"` subtree that mounts TUOD's own interface. */
+function tuodScope(source: string): string {
+  const scope = gameScopes(source).find((candidate) =>
+    candidate.includes("<TenUpOneDown"),
+  );
+  if (!scope) {
+    throw new Error('x-data="game" scope containing TenUpOneDown not found');
+  }
+  return scope;
 }
 
 /**
@@ -68,14 +91,14 @@ describe("Balanced Training's Finishing step", () => {
       expect(standalonePage).toContain(flag);
       expect(standalonePage).toContain(dialog);
 
-      const scope = finishingScope(routinePage);
+      const scope = tuodScope(routinePage);
       expect(scope).toContain(flag);
       expect(scope).toContain(dialog);
     },
   );
 
   it("hands its finish dialog the store's own confirm and cancel", () => {
-    const scope = finishingScope(routinePage);
+    const scope = tuodScope(routinePage);
 
     expect(scope).toContain('onConfirm="confirmFinish()"');
     expect(scope).toContain('onCancel="cancelFinish()"');
