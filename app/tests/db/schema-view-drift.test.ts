@@ -88,6 +88,12 @@ function schemaViewBodies(): Map<string, string> {
  * with 0039's `gt.implementation_key IN ('501', 'TUOD', 'ONE_TWENTY_ONE')`),
  * so that rewrite is undone before the parentheses come off, back into the
  * `IN (...)` shape the migration source uses.
+ *
+ * Last, Postgres disambiguates an alias reused across a CTE and its outer
+ * query by suffixing the inner one (`v_player_leg_facts` writes `st`/`es` in
+ * both halves; the echo reads `st_1`/`es_1`), so that suffix comes off too.
+ * No identifier anywhere in the chain ends in `_<digits>`, so nothing else
+ * matches the shape.
  */
 function normalize(sql: string): string {
   return sql
@@ -96,6 +102,7 @@ function normalize(sql: string): string {
       "",
     )
     .replace(/=\s*ANY\s*\(\s*ARRAY\s*\[([\s\S]*?)\]\s*\)/gi, "IN ($1)")
+    .replace(/\b([a-z_][a-z0-9_]*?)_\d+\b/gi, "$1")
     .replace(/[()]/g, " ")
     .replace(/\s+,/g, ",")
     .replace(/\s+/g, " ")

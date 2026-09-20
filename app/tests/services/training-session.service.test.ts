@@ -586,6 +586,31 @@ describe("startTrainingStep", () => {
     expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();
   });
 
+  it("fails a GAME step with INTERNAL_ERROR when reference data is missing", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue(undefined);
+    vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
+      gameTypeId: "gt-score",
+      rulesetVersionId: "rv-score-1",
+    });
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+
+    const result = await startTrainingStep("p1", "act-1", 4);
+
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+    expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();
+  });
+
   it("returns SESSION_ALREADY_ACTIVE when the Score Training insert hits the unique-active conflict", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
       SNAPSHOT as any,

@@ -32,6 +32,7 @@ import {
   routineGameStepHook,
 } from "./routines/game-step";
 import type {
+  RoutineGameStepHook,
   ServiceResult,
   StartTrainingResult,
   StartTrainingStepResult,
@@ -258,10 +259,27 @@ type StepStartContext = {
   }[];
 };
 
-async function startGameStep(
-  ctx: StepStartContext,
-): Promise<ServiceResult<StartTrainingStepResult>> {
-  const { db, playerId, activityId, sequenceNumber, step } = ctx;
+type GameStepStart = {
+  hook: RoutineGameStepHook;
+  gameTypeKey: string;
+  exerciseTypeId: string;
+  gameTypeId: string;
+  rulesetVersionId: string;
+  captureModeId: number;
+  inputModeId: number;
+};
+
+/**
+ * Everything a GAME step's session row is written from, resolved in one pass:
+ * the hook the step's pinned ruleset version maps to, and the reference-data
+ * ids the insert takes. A step whose ruleset resolves no hook, or that names
+ * no game at all, is not routine-eligible and fails here rather than at the
+ * insert.
+ */
+async function resolveGameStepStart(
+  db: Db,
+  step: TrainingStepResolved,
+): Promise<ServiceResult<GameStepStart>> {
   const hook = routineGameStepHook(step.gameRulesetVersionKey ?? null);
   if (!hook || !step.gameTypeKey) {
     return {
@@ -270,7 +288,7 @@ async function startGameStep(
       details: { reason: GAME_NOT_ROUTINE_ELIGIBLE },
     };
   }
-  const exerciseTypeId = await findExerciseTypeId(db, "GAME");
+  const exerciseTypeId = await findExerciseTypeId(db, GAME_EXERCISE_TYPE_KEY);
   const gameLookup = await findGameTypeAndRuleset(
     db,
     step.gameTypeKey,
@@ -285,6 +303,27 @@ async function startGameStep(
       details: { reason: "reference data missing" },
     };
   }
+  return {
+    ok: true,
+    data: {
+      hook,
+      gameTypeKey: step.gameTypeKey,
+      exerciseTypeId,
+      gameTypeId: gameLookup.gameTypeId,
+      rulesetVersionId: gameLookup.rulesetVersionId,
+      captureModeId,
+      inputModeId,
+    },
+  };
+}
+
+async function startGameStep(
+  ctx: StepStartContext,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const { db, playerId, activityId, sequenceNumber, step } = ctx;
+  const resolved = await resolveGameStepStart(db, step);
+  if (!resolved.ok) return resolved;
+  const { hook, gameTypeKey, ...refs } = resolved.data;
   try {
     await withTransaction((tx) =>
       insertExerciseSessionRecord(tx, {
@@ -293,28 +332,28 @@ async function startGameStep(
         configurationId: generateId(),
         participants: ctx.participants,
         playerId,
-        gameTypeId: gameLookup.gameTypeId,
-        rulesetVersionId: gameLookup.rulesetVersionId,
-        captureModeId,
-        inputModeId,
+        gameTypeId: refs.gameTypeId,
+        rulesetVersionId: refs.rulesetVersionId,
+        captureModeId: refs.captureModeId,
+        inputModeId: refs.inputModeId,
         activeStatusId: ctx.activeStatusId,
-        exerciseTypeId,
+        exerciseTypeId: refs.exerciseTypeId,
         routineStepSequenceNumber: sequenceNumber,
         configuration: step.configuration,
       }),
     );
   } catch (error) {
     if (!isActiveSessionConflict(error)) throw error;
-    return resolveActiveSessionConflict(db, playerId, gameLookup.gameTypeId);
+    return resolveActiveSessionConflict(db, playerId, refs.gameTypeId);
   }
   return {
     ok: true,
     data: {
       sessionId: ctx.sessionId,
-      exerciseTypeKey: "GAME",
+      exerciseTypeKey: GAME_EXERCISE_TYPE_KEY,
       configuration: step.configuration,
       participant: { ref: ctx.participantId, displayName: ctx.displayName },
-      gameTypeKey: step.gameTypeKey,
+      gameTypeKey,
       rulesetVersionKey: hook.rulesetVersionKey,
       captureModeKey: ROUTINE_CAPTURE_MODE_KEY,
       inputModeKey: ROUTINE_INPUT_MODE_KEY,
