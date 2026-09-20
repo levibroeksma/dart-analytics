@@ -133,13 +133,13 @@ the **template**, then copied onto the session's configuration snapshot at Train
 other template value — it is never itself resolved on the session. The foreign key is composite over
 `(game_type_id, game_ruleset_version_id)`, referencing a new `uq_ruleset_versions_game_type_id`
 unique pair on `ruleset_versions`, the same composite-FK shape `exercise_ruleset_version_id` uses
-above — a template cannot pin another game's ruleset version. The pair CHECK
-(`chk_exercise_templates_game_ruleset_pair`: `(game_type_id IS NULL) = (game_ruleset_version_id IS
-NULL)`) is added `NOT VALID`, because seed `0021`'s Finishing backfill runs after the migration
-(deploy order, issue #378) — it enforces the pair on every INSERT/UPDATE from the moment `0040`
-applies, but does not re-check the Finishing row the migration itself leaves half-paired until a
-follow-up `VALIDATE CONSTRAINT` migration runs once `0021` has applied everywhere. See `03-Migrations.md`
-`## 0040` and D339. <!-- 2026-09-20 -->
+above — a template cannot pin another game's ruleset version. The CHECK
+(`chk_exercise_templates_game_ruleset_pair`: `game_ruleset_version_id IS NULL OR game_type_id IS NOT
+NULL`) runs one way only: a pin names its game, while a `GAME` template that pins nothing stays
+legal. That asymmetry is deliberate — only a game with a native timed mode can be a routine step
+(D340), so `seeds/0002`'s `501 Match` and `Singles Accuracy` carry a `game_type_id` and no version
+permanently. `routineGameStepHook`, not this constraint, is what refuses an unpinned game when a
+routine tries to start one. See `03-Migrations.md` `## 0040` and D339. <!-- 2026-09-20 -->
 
 ---
 

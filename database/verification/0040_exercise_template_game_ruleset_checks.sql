@@ -5,14 +5,11 @@
 -- 0021 can only claim locally (D193): exercise_templates pins a
 -- game ruleset version through a composite foreign key that
 -- refuses a ruleset version belonging to a different game, the
--- pair CHECK rejects a half-paired new row even though it is
--- NOT VALID, seed 0021 backfilled Finishing to TUOD_V1, both
--- routine views expose game_ruleset_version_key, and seed 0022's
--- two new templates are present and valid pairs.
---
--- Check 8 asserts on seed 0022 (Score Training (timed), 121
--- (timed)), which is a later task in this plan -- it FAILs until
--- that seed lands.
+-- CHECK rejects a pin that names no game while still accepting a
+-- GAME template that pins nothing at all, seed 0021 backfilled
+-- Finishing to TUOD_V1, both routine views expose
+-- game_ruleset_version_key, and seed 0022's two new templates are
+-- present and correctly pinned.
 --
 -- Builds its own fixture and ends in ROLLBACK, so it leaves
 -- nothing behind and composes with the other verification
@@ -64,18 +61,33 @@ BEGIN
     END;
 END $$;
 
--- 4 half-pair rejected by the CHECK on a NEW row (NOT VALID still checks inserts)
+-- 4 a version with no game type is rejected; the reverse is allowed
 DO $$
 BEGIN
     BEGIN
         INSERT INTO exercise_templates (id, exercise_type_id, exercise_ruleset_version_id, game_type_id, game_ruleset_version_id, name, description, default_configuration, is_system_template, created_at, updated_at)
         VALUES ('01999500-0000-7000-8000-0000000000a2',
                 (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'), NULL,
+                NULL, (SELECT id FROM ruleset_versions WHERE implementation_key = 'TUOD_V1'),
+                'Unnamed game', 'Fixture.', '{}'::jsonb, FALSE, now(), now());
+        INSERT INTO verification_results VALUES ('4', 'a ruleset version pinned with no game type is rejected', 'FAIL', 'insert succeeded');
+    EXCEPTION WHEN check_violation OR foreign_key_violation THEN
+        INSERT INTO verification_results VALUES ('4', 'a ruleset version pinned with no game type is rejected', 'PASS', NULL);
+    END;
+END $$;
+
+-- 4b a GAME template that pins nothing is accepted (seed 0002's 501 Match shape)
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO exercise_templates (id, exercise_type_id, exercise_ruleset_version_id, game_type_id, game_ruleset_version_id, name, description, default_configuration, is_system_template, created_at, updated_at)
+        VALUES ('01999500-0000-7000-8000-0000000000a3',
+                (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'), NULL,
                 (SELECT id FROM game_types WHERE implementation_key = 'TUOD'), NULL,
-                'Half pair', 'Fixture.', '{}'::jsonb, FALSE, now(), now());
-        INSERT INTO verification_results VALUES ('4', 'a game template with no game ruleset version is rejected', 'FAIL', 'insert succeeded');
+                'Unpinned game', 'Fixture.', '{}'::jsonb, FALSE, now(), now());
+        INSERT INTO verification_results VALUES ('4b', 'a GAME template pinning no ruleset version is accepted', 'PASS', NULL);
     EXCEPTION WHEN check_violation THEN
-        INSERT INTO verification_results VALUES ('4', 'a game template with no game ruleset version is rejected', 'PASS', NULL);
+        INSERT INTO verification_results VALUES ('4b', 'a GAME template pinning no ruleset version is accepted', 'FAIL', 'the CHECK rejected it');
     END;
 END $$;
 
@@ -86,12 +98,22 @@ SELECT '5', 'seed 0021 pinned Finishing to TUOD_V1',
 FROM exercise_templates et JOIN ruleset_versions rv ON rv.id = et.game_ruleset_version_id
 WHERE et.id = '0199b000-0000-7000-8000-000000000004' AND rv.implementation_key = 'TUOD_V1';
 
--- 6 every system GAME template carries a pin (what VALIDATE CONSTRAINT will later prove)
+-- 6 no template anywhere pins a version without naming its game
 INSERT INTO verification_results
-SELECT '6', 'no system GAME template is left half-paired',
-    CASE WHEN count(*) = 0 THEN 'PASS' ELSE 'FAIL' END, format('%s half-paired row(s)', count(*))
+SELECT '6', 'no template pins a ruleset version with no game type',
+    CASE WHEN count(*) = 0 THEN 'PASS' ELSE 'FAIL' END, format('%s orphaned pin(s)', count(*))
 FROM exercise_templates
-WHERE is_system_template AND (game_type_id IS NULL) <> (game_ruleset_version_id IS NULL);
+WHERE game_ruleset_version_id IS NOT NULL AND game_type_id IS NULL;
+
+-- 6b every routine-eligible system GAME template does carry its pin
+INSERT INTO verification_results
+SELECT '6b', 'Finishing, Score Training (timed) and 121 (timed) each pin a ruleset version',
+    CASE WHEN count(*) = 3 THEN 'PASS' ELSE 'FAIL' END, format('%s of 3 pinned', count(*))
+FROM exercise_templates
+WHERE id IN ('0199b000-0000-7000-8000-000000000004',
+             '0199b000-0000-7000-8000-000000000005',
+             '0199b000-0000-7000-8000-000000000006')
+    AND game_ruleset_version_id IS NOT NULL;
 
 -- 7 views expose game_ruleset_version_key
 INSERT INTO verification_results

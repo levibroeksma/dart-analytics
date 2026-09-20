@@ -929,12 +929,12 @@ Contains:
 - `uq_ruleset_versions_game_type_id` — `UNIQUE (game_type_id, id)`, a referenceable target only; the pair is already unique by way of the primary key
 - `exercise_templates.game_ruleset_version_id` (`UUID`, nullable, and staying so)
 - `fk_exercise_templates_game_ruleset_version` — composite FK on `(game_type_id, game_ruleset_version_id)`, `ON DELETE RESTRICT`
-- `chk_exercise_templates_game_ruleset_pair` — `(game_type_id IS NULL) = (game_ruleset_version_id IS NULL)`, added `NOT VALID`
+- `chk_exercise_templates_game_ruleset_pair` — `game_ruleset_version_id IS NULL OR game_type_id IS NOT NULL`: a pin names its game, and a GAME template that pins nothing stays legal
 - `v_routine_execution` and `v_exercise_template_catalog` recreated (the `0038` shape) with `game_ruleset_version_key` (LEFT JOIN, additive)
 
 Until this migration, `startGameStep` hardcoded TUOD/`TUOD_V1`, so a second GAME template could not be seeded at all (issue #378's deploy-order constraint is exactly what motivated seeding the first one, Finishing, through a backfill rather than a literal column default). The foreign key is composite, mirroring `0035`'s exercise-ruleset pin, so a template cannot pin another game's ruleset version.
 
-The pair CHECK is `NOT VALID` for the same deploy-order reason `0020`'s capability FK is staged in three steps: the deploy runs every migration before any seed (issue #378), so at the moment this migration applies, the Finishing template still carries `game_type_id` with no version — `seed/0021`'s backfill `UPDATE` runs after it, not before. `NOT VALID` enforces the pair on every INSERT and UPDATE from this migration onward — seed `0021`'s backfill included — while leaving the Finishing row's pre-existing half-paired state unchecked until a later `VALIDATE CONSTRAINT` migration, filed as a follow-up issue rather than written here (D339).
+The CHECK runs one way only — a pin names its game; a game need not carry a pin — and is added validated, needing no `NOT VALID` staging. A both-or-neither pair would be wrong rather than merely inconvenient: `seeds/0002` inserts `501 Match`, `Singles Accuracy` and the rest with a `game_type_id` and no version, because only a game with a native timed mode is routine-eligible at all (D340), and those templates are permanent. `NOT VALID` would not have saved it either — it grandfathers rows already present, and a seed run against a fresh database INSERTs these rows rather than inheriting them, which is exactly how the deploy rehearsal caught it. What refuses an unpinned game at routine time is `routineGameStepHook`, not this constraint (D339).
 
 Both views are dropped and recreated rather than `CREATE OR REPLACE`d, matching `0036`/`0038`'s precedent for a column-order change. Neither drops an existing column, so no consumer breaks.
 

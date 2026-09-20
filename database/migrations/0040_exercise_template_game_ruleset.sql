@@ -12,13 +12,15 @@
 -- game's ruleset; ruleset_versions gets the referenceable pair
 -- (game_type_id, id), already unique by way of the primary key.
 --
--- The pair CHECK (both NULL or both set) is added NOT VALID: the
--- deploy runs every migration before any seed (issue #378), so at
--- this point the Finishing template still carries game_type_id
--- with no version. NOT VALID enforces the pair on every INSERT
--- and UPDATE from now on — seed 0021's backfill UPDATE included —
--- and leaves existing rows to a later VALIDATE CONSTRAINT once
--- 0021 has run everywhere (tracked as a follow-up issue).
+-- The CHECK runs one way only: a pinned version requires a game
+-- type, never the reverse. A GAME template with no pin is ordinary
+-- and permanent — seed 0002's 501 Match, Singles Accuracy and the
+-- rest carry a game_type_id and pin nothing, because only a game
+-- with a native timed mode is routine-eligible at all. The reverse
+-- direction would reject them on every fresh database, and no
+-- amount of NOT VALID helps: seeds INSERT those rows rather than
+-- inherit them. What refuses an unpinned game at routine time is
+-- routineGameStepHook, not this constraint.
 --
 -- Both routine views are recreated to expose
 -- game_ruleset_version_key (LEFT JOIN, additive).
@@ -39,9 +41,9 @@ ALTER TABLE exercise_templates
 
 ALTER TABLE exercise_templates
     ADD CONSTRAINT chk_exercise_templates_game_ruleset_pair
-    CHECK ((game_type_id IS NULL) = (game_ruleset_version_id IS NULL)) NOT VALID;
+    CHECK (game_ruleset_version_id IS NULL OR game_type_id IS NOT NULL);
 
-COMMENT ON COLUMN exercise_templates.game_ruleset_version_id IS 'Game ruleset version a GAME template''s default_configuration was written against (0040). NULL for a non-game template; paired with game_type_id by chk_exercise_templates_game_ruleset_pair.';
+COMMENT ON COLUMN exercise_templates.game_ruleset_version_id IS 'Game ruleset version a GAME template''s default_configuration was written against (0040). NULL for a non-game template, and NULL for a GAME template whose game has no native timed mode and so cannot be a routine step; chk_exercise_templates_game_ruleset_pair only requires game_type_id alongside a non-NULL version.';
 
 DROP VIEW IF EXISTS v_routine_execution;
 CREATE VIEW v_routine_execution AS
