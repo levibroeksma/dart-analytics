@@ -11,6 +11,7 @@ import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
 } from "./interfaces";
+import { viewRows } from "./view-rows";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -65,7 +66,7 @@ export async function findRoutineExecutionRows(
       asc(vRoutineExecution.routineId),
       asc(vRoutineExecution.sequenceNumber),
     );
-  return rows as RoutineExecutionRow[];
+  return viewRows<RoutineExecutionRow>(rows);
 }
 
 /** Every published system exercise template — narrowed by the caller, not here. */
@@ -84,7 +85,7 @@ export async function findExerciseTemplateCatalog(
     })
     .from(vExerciseTemplateCatalog)
     .orderBy(asc(vExerciseTemplateCatalog.name));
-  return rows as ExerciseTemplateCatalogRow[];
+  return viewRows<ExerciseTemplateCatalogRow>(rows);
 }
 
 export async function findDurationTypeId(

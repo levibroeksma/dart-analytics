@@ -33,6 +33,20 @@ describe("findPlayerProfile", () => {
     expect(fromCalls).toEqual([vPlayerProfile]);
   });
 
+  it("returns the driver's own row object, not a copy of it", async () => {
+    const row = {
+      displayName: "The Power",
+      dartsDescription: null,
+      dartsWeightGrams: null,
+    };
+    const { chain } = fakeSelect([row]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findPlayerProfile } =
+      await import("@repositories/player.repository");
+
+    expect(await findPlayerProfile(db, "p1")).toBe(row);
+  });
+
   it("throws when no row is found", async () => {
     const { chain } = fakeSelect([]);
     const db = { select: vi.fn(() => chain) } as any;

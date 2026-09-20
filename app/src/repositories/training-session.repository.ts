@@ -7,6 +7,7 @@ import {
   vRoutineExecution,
 } from "@db/schema";
 import type { RoutineStepTemplateRow } from "./interfaces";
+import { viewRows } from "./view-rows";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -57,15 +58,18 @@ export async function findRoutineTemplateSteps(
     )
     .orderBy(vRoutineExecution.sequenceNumber);
 
-  const first = rows[0];
+  const steps = viewRows<
+    RoutineStepTemplateRow & { routineTemplateId: string; routineName: string }
+  >(rows);
+  const first = steps[0];
   if (!first) return undefined;
 
   return {
-    routineTemplateId: first.routineTemplateId as string,
-    routineName: first.routineName as string,
-    steps: rows.map(
+    routineTemplateId: first.routineTemplateId,
+    routineName: first.routineName,
+    steps: steps.map(
       ({ routineTemplateId: _id, routineName: _name, ...step }) => step,
-    ) as RoutineStepTemplateRow[],
+    ),
   };
 }
 

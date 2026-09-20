@@ -6,6 +6,7 @@ import type {
   PlayerProfileRow,
   ProvisionedPlayer,
 } from "./interfaces";
+import { viewRow } from "./view-rows";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -76,7 +77,7 @@ export async function findPlayerProfile(
     throw new Error(`no v_player_profile row for player ${playerId}`);
   }
 
-  return row as PlayerProfileRow;
+  return viewRow<PlayerProfileRow>(row);
 }
 
 /**

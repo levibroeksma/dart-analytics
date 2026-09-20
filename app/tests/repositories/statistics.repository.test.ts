@@ -151,6 +151,45 @@ describe("findX01CheckoutDarts", () => {
   });
 
   /**
+   * `configuration` and `hit_zone_key` are the two columns the repository
+   * narrows on their own, because a jsonb's shape and a lookup key's union
+   * are claims SQL cannot state. The snapshot must arrive by reference: it
+   * is the largest column on the largest of the four statistics reads, and
+   * a narrowing that deep-copied it would cost that on every request.
+   */
+  it("narrows configuration and hitZoneKey without copying the stored snapshot", async () => {
+    const configuration = { starting_score: 501, seats: [{ sideKey: "A" }] };
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration,
+      stageId: "stage-1",
+      stageSequence: 1,
+      stageTypeKey: "LEG",
+      parentStageId: null,
+      turnId: "turn-1",
+      turnSequence: 1,
+      turnTotalScore: 32,
+      turnCompletedAt: "2026-09-19T10:00:00.000Z",
+      participantId: "participant-1",
+      dartNumber: 3,
+      hitTargetNumber: 16,
+      hitZoneKey: "DOUBLE",
+      score: 32,
+    };
+    const db = { select: vi.fn(() => fakeOrderedQuery([row])) } as any;
+    const { findX01CheckoutDarts } =
+      await import("@repositories/statistics.repository");
+
+    const result = await findX01CheckoutDarts(db, "p1");
+
+    expect(result[0]?.configuration).toBe(configuration);
+    expect(result[0]?.hitZoneKey).toBe("DOUBLE");
+    expect(result[0]).toEqual(row);
+  });
+
+  /**
    * The SQL order is load-bearing, not cosmetic: `checkoutVisitsFromRows`
    * groups by session and folds each session's ladder in the order the rows
    * arrive, and 121/TUOD slice that log by array index.

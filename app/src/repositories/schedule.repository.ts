@@ -7,6 +7,7 @@ import {
   vTrainingSchedules,
 } from "@db/schema";
 import type { TrainingScheduleDayRow, TrainingScheduleRow } from "./interfaces";
+import { viewRows } from "./view-rows";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -42,7 +43,7 @@ export async function findScheduleRows(
         : scope,
     )
     .orderBy(asc(vTrainingSchedules.name), asc(vTrainingSchedules.scheduleId));
-  return rows as TrainingScheduleRow[];
+  return viewRows<TrainingScheduleRow>(rows);
 }
 
 /** The caller's own schedule days, optionally narrowed to one schedule, weekday order. */
@@ -70,7 +71,7 @@ export async function findScheduleDayRows(
         : scope,
     )
     .orderBy(asc(vTrainingScheduleDays.dayOfWeek));
-  return rows as TrainingScheduleDayRow[];
+  return viewRows<TrainingScheduleDayRow>(rows);
 }
 
 /**
@@ -83,15 +84,17 @@ export async function findScheduleIdsUsingRoutine(
   playerId: string,
   routineTemplateId: string,
 ): Promise<string[]> {
-  const rows = (await db
-    .select({ scheduleId: vTrainingScheduleDays.scheduleId })
-    .from(vTrainingScheduleDays)
-    .where(
-      and(
-        eq(vTrainingScheduleDays.routineTemplateId, routineTemplateId),
-        eq(vTrainingScheduleDays.playerId, playerId),
+  const rows = viewRows<{ scheduleId: string }>(
+    await db
+      .select({ scheduleId: vTrainingScheduleDays.scheduleId })
+      .from(vTrainingScheduleDays)
+      .where(
+        and(
+          eq(vTrainingScheduleDays.routineTemplateId, routineTemplateId),
+          eq(vTrainingScheduleDays.playerId, playerId),
+        ),
       ),
-    )) as { scheduleId: string }[];
+  );
   return [...new Set(rows.map((row) => row.scheduleId))];
 }
 
