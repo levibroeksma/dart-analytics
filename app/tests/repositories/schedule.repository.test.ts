@@ -43,6 +43,28 @@ describe("findScheduleRows", () => {
     expect(sql).toMatch(/"schedule_id" = \$1 and .*"player_id" = \$2/);
     expect(statements[0].params).toEqual(["sch-1", "p1"]);
   });
+
+  it("returns dayCount as the number the view's ::int cast produces", async () => {
+    const db = {
+      select: vi.fn(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockResolvedValue([
+          {
+            scheduleId: "sch-1",
+            playerId: "p1",
+            name: "Mine",
+            isActive: true,
+            updatedAt: "2026-09-20T00:00:00.000Z",
+            dayCount: 3,
+          },
+        ]),
+      })),
+    } as any;
+    const [row] = await findScheduleRows(db, "p1");
+    expect(row.dayCount).toBe(3);
+    expect(typeof row.dayCount).toBe("number");
+  });
 });
 
 describe("findScheduleDayRows", () => {

@@ -1,24 +1,94 @@
 import {
   pgTable,
-  varchar,
-  unique,
+  uniqueIndex,
+  foreignKey,
   check,
-  smallint,
+  uuid,
   text,
+  boolean,
   timestamp,
   index,
-  uuid,
-  boolean,
-  foreignKey,
+  unique,
+  smallint,
+  varchar,
   integer,
   jsonb,
-  uniqueIndex,
   numeric,
   primaryKey,
   pgView,
   bigint,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const trainingSchedules = pgTable(
+  "training_schedules",
+  {
+    id: uuid().primaryKey().notNull(),
+    playerId: uuid("player_id").notNull(),
+    name: text().notNull(),
+    isActive: boolean("is_active").default(false).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_training_schedules_player_active")
+      .using("btree", table.playerId.asc().nullsLast().op("uuid_ops"))
+      .where(sql`is_active`),
+    foreignKey({
+      columns: [table.playerId],
+      foreignColumns: [players.id],
+      name: "fk_training_schedules_player",
+    }).onDelete("cascade"),
+    check(
+      "chk_training_schedules_name_not_empty",
+      sql`length(TRIM(BOTH FROM name)) > 0`,
+    ),
+  ],
+);
+
+export const trainingScheduleDays = pgTable(
+  "training_schedule_days",
+  {
+    id: uuid().primaryKey().notNull(),
+    trainingScheduleId: uuid("training_schedule_id").notNull(),
+    dayOfWeek: smallint("day_of_week").notNull(),
+    routineTemplateId: uuid("routine_template_id").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    index("idx_training_schedule_days_routine_template").using(
+      "btree",
+      table.routineTemplateId.asc().nullsLast().op("uuid_ops"),
+    ),
+    foreignKey({
+      columns: [table.trainingScheduleId],
+      foreignColumns: [trainingSchedules.id],
+      name: "fk_training_schedule_days_training_schedule",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.routineTemplateId],
+      foreignColumns: [routineTemplates.id],
+      name: "fk_training_schedule_days_routine_template",
+    }).onDelete("restrict"),
+    unique("uq_training_schedule_days_training_schedule_day_of_week").on(
+      table.trainingScheduleId,
+      table.dayOfWeek,
+    ),
+    check(
+      "chk_training_schedule_days_day_of_week",
+      sql`(day_of_week >= 1) AND (day_of_week <= 7)`,
+    ),
+  ],
+);
 
 export const schemaMigrations = pgTable("schema_migrations", {
   version: varchar().primaryKey().notNull(),
@@ -1142,6 +1212,30 @@ export const vExerciseTemplateCatalog = pgView("v_exercise_template_catalog", {
   hasDefaultConfiguration: boolean("has_default_configuration"),
 }).as(
   sql`SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, grv.implementation_key AS game_ruleset_version_key, et.default_configuration IS NOT NULL AS has_default_configuration FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN ruleset_versions grv ON grv.id = et.game_ruleset_version_id WHERE et.is_system_template AND ext.is_published`,
+);
+
+export const vTrainingSchedules = pgView("v_training_schedules", {
+  scheduleId: uuid("schedule_id"),
+  playerId: uuid("player_id"),
+  name: text(),
+  isActive: boolean("is_active"),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
+  dayCount: integer("day_count"),
+}).as(
+  sql`SELECT id AS schedule_id, player_id, name, is_active, updated_at, (( SELECT count(*) AS count FROM training_schedule_days d WHERE d.training_schedule_id = ts.id))::integer AS day_count FROM training_schedules ts`,
+);
+
+export const vTrainingScheduleDays = pgView("v_training_schedule_days", {
+  scheduleId: uuid("schedule_id"),
+  playerId: uuid("player_id"),
+  scheduleName: text("schedule_name"),
+  isActive: boolean("is_active"),
+  dayOfWeek: smallint("day_of_week"),
+  routineTemplateId: uuid("routine_template_id"),
+  routineName: text("routine_name"),
+  routineMinutes: integer("routine_minutes"),
+}).as(
+  sql`SELECT ts.id AS schedule_id, ts.player_id, ts.name AS schedule_name, ts.is_active, d.day_of_week, rt.id AS routine_template_id, rt.name AS routine_name, COALESCE(( SELECT sum(rs.duration_value) AS sum FROM routine_steps rs JOIN duration_types dt ON dt.id = rs.duration_type_id WHERE rs.routine_template_id = rt.id AND dt.implementation_key = 'MINUTES'::text), 0::bigint)::integer AS routine_minutes FROM training_schedule_days d JOIN training_schedules ts ON ts.id = d.training_schedule_id JOIN routine_templates rt ON rt.id = d.routine_template_id`,
 );
 
 export const vConfigurationPresets = pgView("v_configuration_presets", {

@@ -1,4 +1,5 @@
-import { apiRequest, unwrapOrThrow } from "./client";
+import { apiRequest } from "./client";
+import { unwrapOrThrow } from "./unwrap";
 import {
   CreateRoutineRequest,
   UpdateRoutineRequest,

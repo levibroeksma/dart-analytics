@@ -83,7 +83,7 @@ export async function findScheduleIdsUsingRoutine(
   playerId: string,
   routineTemplateId: string,
 ): Promise<string[]> {
-  const rows = await db
+  const rows = (await db
     .select({ scheduleId: vTrainingScheduleDays.scheduleId })
     .from(vTrainingScheduleDays)
     .where(
@@ -91,7 +91,7 @@ export async function findScheduleIdsUsingRoutine(
         eq(vTrainingScheduleDays.routineTemplateId, routineTemplateId),
         eq(vTrainingScheduleDays.playerId, playerId),
       ),
-    );
+    )) as { scheduleId: string }[];
   return [...new Set(rows.map((row) => row.scheduleId))];
 }
 

@@ -120,4 +120,30 @@ describe("client routines api", () => {
     });
     await expect(listRoutines()).rejects.toBeInstanceOf(SessionApiError);
   });
+
+  it("throws SessionApiError on a write's failure envelope too", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r",
+      error: {
+        code: "VALIDATION_FAILED",
+        message: "bad",
+        retryable: false,
+        details: { issues: ["x"] },
+      },
+    });
+    await expect(
+      createRoutine({
+        name: "A",
+        description: null,
+        steps: [
+          {
+            exerciseTemplateId: "e",
+            durationTypeKey: "MINUTES",
+            durationValue: 30,
+          },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(SessionApiError);
+  });
 });
