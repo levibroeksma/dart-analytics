@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@client/api/client", () => ({ apiRequest: vi.fn() }));
+vi.mock("@client/api/client", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  apiRequest: vi.fn(),
+}));
 import { apiRequest } from "@client/api/client";
 import {
   listRoutines,

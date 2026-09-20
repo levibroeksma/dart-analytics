@@ -5,7 +5,8 @@ vi.mock("@client/auth/client", () => ({
 }));
 
 import { getAccessToken } from "@client/auth/client";
-import { apiRequest } from "@client/api/client";
+import { apiRequest, unwrapOrThrow } from "@client/api/client";
+import { SessionApiError } from "@client/api/sessions";
 
 describe("apiRequest", () => {
   beforeEach(() => {
@@ -113,5 +114,46 @@ describe("apiRequest", () => {
     const result = await apiRequest("/api/routines/x", { method: "DELETE" });
     expect(result).toMatchObject({ ok: true, data: null });
     vi.unstubAllGlobals();
+  });
+});
+
+describe("unwrapOrThrow", () => {
+  it("returns the data of a success envelope", () => {
+    expect(unwrapOrThrow({ ok: true, data: { x: 1 }, requestId: "r" })).toEqual(
+      { x: 1 },
+    );
+  });
+
+  it("throws a SessionApiError carrying code, requestId and details on a failure envelope", () => {
+    expect(() =>
+      unwrapOrThrow({
+        ok: false,
+        requestId: "r",
+        error: {
+          code: "VALIDATION_FAILED",
+          message: "bad",
+          retryable: false,
+          details: { issues: ["x"] },
+        },
+      }),
+    ).toThrowError(SessionApiError);
+    try {
+      unwrapOrThrow({
+        ok: false,
+        requestId: "r",
+        error: {
+          code: "VALIDATION_FAILED",
+          message: "bad",
+          retryable: false,
+          details: { issues: ["x"] },
+        },
+      });
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: "VALIDATION_FAILED",
+        requestId: "r",
+        details: { issues: ["x"] },
+      });
+    }
   });
 });
