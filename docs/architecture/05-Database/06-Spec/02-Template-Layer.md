@@ -2,7 +2,7 @@
 status: canonical
 scope: database/template-layer
 read-when: adding/changing exercise/routine/configuration templates
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # Database Specification — Chapter 2: Template Layer
@@ -77,6 +77,7 @@ UUIDv7
 - exercise_type_id
 - exercise_ruleset_version_id (nullable — NULL when the exercise type is `GAME`) <!-- 2026-09-17 -->
 - game_type_id (nullable — NULL unless the exercise type is `GAME`)
+- game_ruleset_version_id (nullable — NULL unless the exercise type is `GAME`; migration `0040`) <!-- 2026-09-20 -->
 - name
 - description
 - default_configuration (JSONB, nullable)
@@ -90,6 +91,7 @@ References:
 
 - game_types (RESTRICT on delete)
 - exercise_ruleset_versions, on the composite pair (exercise_type_id, exercise_ruleset_version_id) (RESTRICT on delete) <!-- 2026-09-17 -->
+- ruleset_versions, on the composite pair (game_type_id, game_ruleset_version_id) (RESTRICT on delete; migration `0040`) <!-- 2026-09-20 -->
 
 Referenced by:
 
@@ -115,13 +117,29 @@ against, so a routine step resolves one version rather than every version of its
 (migration 0035, seed 0019). The foreign key is composite over
 (exercise_type_id, exercise_ruleset_version_id), which makes a template pinned to another exercise
 type's ruleset unrepresentable. It is nullable and stays so: a `GAME` template pins a game ruleset
-version on its session instead. "A non-game template must pin a version" is asserted in
-`startTraining`, which refuses to open an activity whose step resolves no validator, rather than by
-a CHECK that would hardcode game-backed ⇔ no-exercise-ruleset into the schema. <!-- 2026-09-17 -->
+version on itself instead, through `game_ruleset_version_id` below. "A non-game template must pin a
+version" is asserted in `startTraining`, which refuses to open an activity whose step resolves no
+validator, rather than by a CHECK that would hardcode game-backed ⇔ no-exercise-ruleset into the
+schema. <!-- 2026-09-17 -->
 
 The version belongs here rather than on `routine_steps`: `default_configuration` and the ruleset
 version defining its shape are both the template's, and a per-step override would let one step's
 configuration diverge from its own template's. <!-- 2026-09-17 -->
+
+`game_ruleset_version_id` is the game-side mirror of `exercise_ruleset_version_id`: it pins the game
+ruleset version a `GAME` template's `default_configuration` was written against (migration `0040`,
+2026-09-20), replacing a hardcoded TUOD/`TUOD_V1` assumption in `startGameStep`. The pin is made on
+the **template**, then copied onto the session's configuration snapshot at Training start like every
+other template value — it is never itself resolved on the session. The foreign key is composite over
+`(game_type_id, game_ruleset_version_id)`, referencing a new `uq_ruleset_versions_game_type_id`
+unique pair on `ruleset_versions`, the same composite-FK shape `exercise_ruleset_version_id` uses
+above — a template cannot pin another game's ruleset version. The pair CHECK
+(`chk_exercise_templates_game_ruleset_pair`: `(game_type_id IS NULL) = (game_ruleset_version_id IS
+NULL)`) is added `NOT VALID`, because seed `0021`'s Finishing backfill runs after the migration
+(deploy order, issue #378) — it enforces the pair on every INSERT/UPDATE from the moment `0040`
+applies, but does not re-check the Finishing row the migration itself leaves half-paired until a
+follow-up `VALIDATE CONSTRAINT` migration runs once `0021` has applied everywhere. See `03-Migrations.md`
+`## 0040` and D339. <!-- 2026-09-20 -->
 
 ---
 
