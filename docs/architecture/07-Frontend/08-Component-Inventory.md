@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # Component Inventory
@@ -120,3 +120,11 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `QuickSubtract.astro` | Quick Subtract's whole play surface: idle setup (Fixed Count/Timer toggle, count/minutes input), running state (score display, correct/incorrect `StatRow`s, `ScoreInput` keypad), and a finished overlay with session stats and Play again/Back to Trivia | none — reads the page's `x-data` scope (`status`, `correctAnswers`, `incorrectAnswers`, `attempts`, `startCount()`/`startTimer()`/`submit()`/`exit()`/`reset()`) (2026-09-19) |
+
+## `components/layout/training/schedules/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `TodayCard.astro` | `/training`'s Today card: active schedule's routine for today (or rest), `Start`, link to Schedules; whole card `x-show="schedule"`, hidden with no active schedule | none — reads `todayCard()` from the parent scope (2026-09-20) |
+| `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
+| `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
