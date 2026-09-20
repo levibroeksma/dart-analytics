@@ -18,8 +18,12 @@ vi.mock("@repositories/routine.repository", () => ({
   deleteRoutineStepRecords: vi.fn(),
   deleteRoutineTemplateRecord: vi.fn(),
 }));
+vi.mock("@repositories/schedule.repository", () => ({
+  findScheduleIdsUsingRoutine: vi.fn(),
+}));
 
 import * as repo from "@repositories/routine.repository";
+import * as scheduleRepo from "@repositories/schedule.repository";
 import { GAME_NOT_ROUTINE_ELIGIBLE } from "@services/routines/game-step";
 import { withTransaction } from "@db/client";
 import {
@@ -525,5 +529,41 @@ describe("deleteRoutine", () => {
       "rt-own",
       "p1",
     );
+  });
+
+  it("maps a scheduled-routine RESTRICT violation to VALIDATION_FAILED with scheduleIds", async () => {
+    vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([
+      row({ routineId: "rt-own", isSystemTemplate: false, playerId: "p1" }),
+    ] as never);
+    const err = Object.assign(new Error("restrict"), {
+      code: "23503",
+      constraint: "fk_training_schedule_days_routine_template",
+    });
+    vi.mocked(repo.deleteRoutineTemplateRecord).mockRejectedValue(err);
+    vi.mocked(scheduleRepo.findScheduleIdsUsingRoutine).mockResolvedValue([
+      "sch-1",
+      "sch-2",
+    ]);
+    const result = await deleteRoutine("p1", "rt-own");
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routine in use", scheduleIds: ["sch-1", "sch-2"] },
+    });
+    expect(scheduleRepo.findScheduleIdsUsingRoutine).toHaveBeenCalledWith(
+      expect.anything(),
+      "p1",
+      "rt-own",
+    );
+  });
+
+  it("rethrows an unrelated error from deleteRoutineTemplateRecord", async () => {
+    vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([
+      row({ routineId: "rt-own", isSystemTemplate: false, playerId: "p1" }),
+    ] as never);
+    const err = new Error("boom");
+    vi.mocked(repo.deleteRoutineTemplateRecord).mockRejectedValue(err);
+    await expect(deleteRoutine("p1", "rt-own")).rejects.toBe(err);
+    expect(scheduleRepo.findScheduleIdsUsingRoutine).not.toHaveBeenCalled();
   });
 });

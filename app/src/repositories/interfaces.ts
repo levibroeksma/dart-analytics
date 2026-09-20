@@ -186,3 +186,25 @@ export interface ExerciseTemplateCatalogRow {
   gameRulesetVersionKey: string | null;
   hasDefaultConfiguration: boolean;
 }
+
+/** One `v_training_schedules` row — a schedule with its day count. */
+export interface TrainingScheduleRow {
+  scheduleId: string;
+  playerId: string;
+  name: string;
+  isActive: boolean;
+  updatedAt: string;
+  dayCount: number;
+}
+
+/** One `v_training_schedule_days` row — a single (schedule, weekday) assignment. */
+export interface TrainingScheduleDayRow {
+  scheduleId: string;
+  playerId: string;
+  scheduleName: string;
+  isActive: boolean;
+  dayOfWeek: number;
+  routineTemplateId: string;
+  routineName: string;
+  routineMinutes: number;
+}

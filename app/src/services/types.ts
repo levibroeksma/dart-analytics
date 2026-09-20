@@ -150,3 +150,30 @@ export type RoutineWriteInput = {
     durationValue: number;
   }[];
 };
+
+/** One weekday's assignment within a schedule; a weekday absent from `days` is rest. */
+export type ScheduleDay = {
+  dayOfWeek: number;
+  routineId: string;
+  routineName: string;
+  routineMinutes: number;
+};
+
+export type Schedule = {
+  scheduleId: string;
+  name: string;
+  isActive: boolean;
+  days: ScheduleDay[];
+};
+
+export type ScheduleSummary = {
+  scheduleId: string;
+  name: string;
+  isActive: boolean;
+  dayCount: number;
+};
+
+export type ScheduleWriteInput = {
+  name: string;
+  days: { dayOfWeek: number; routineTemplateId: string }[];
+};
