@@ -1,6 +1,5 @@
 import { generateId } from "@lib/id";
 import { getDb, withTransaction } from "@db/client";
-import { tuodDurationBounds } from "@lib/game/tuod-duration";
 import {
   MIN_USER_ROUTINE_MINUTES,
   validateRoutineDuration,
@@ -19,6 +18,7 @@ import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
 } from "@repositories/interfaces";
+import { routineGameStepHook } from "./routines/game-step";
 import type {
   ExerciseTemplateCatalogEntry,
   RoutineExecution,
@@ -59,6 +59,7 @@ function groupRoutineRows(rows: RoutineExecutionRow[]): RoutineExecution[] {
       exerciseDescription: row.exerciseDescription,
       exerciseTypeKey: row.exerciseTypeKey,
       gameTypeKey: row.gameTypeKey,
+      gameRulesetVersionKey: row.gameRulesetVersionKey,
       durationValue: row.durationValue,
       durationTypeKey: row.durationTypeKey,
     });
@@ -134,7 +135,6 @@ function writeIssues(
   const byId = new Map(
     offerable(catalog).map((row) => [row.exerciseTemplateId, row]),
   );
-  const gameBounds = tuodDurationBounds("MINUTES");
   for (const [index, step] of input.steps.entries()) {
     const template = byId.get(step.exerciseTemplateId);
     if (!template) {
@@ -144,21 +144,32 @@ function writeIssues(
         details: { reason: "unknown exerciseTemplateId", step: index + 1 },
       };
     }
-    if (
-      template.exerciseTypeKey === "GAME" &&
-      (step.durationValue < gameBounds.min ||
-        step.durationValue > gameBounds.max)
-    ) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: {
-          reason: "game step minutes out of bounds",
-          step: index + 1,
-          min: gameBounds.min,
-          max: gameBounds.max,
-        },
-      };
+    if (template.exerciseTypeKey === "GAME") {
+      const hook = routineGameStepHook(template.gameRulesetVersionKey);
+      if (!hook) {
+        return {
+          ok: false,
+          code: "VALIDATION_FAILED",
+          details: {
+            reason: "game not routine-eligible",
+            step: index + 1,
+          },
+        };
+      }
+      if (
+        step.durationValue < hook.minuteBounds.min ||
+        step.durationValue > hook.minuteBounds.max
+      ) {
+        return {
+          ok: false,
+          code: "VALIDATION_FAILED",
+          details: {
+            reason: "game step minutes out of bounds",
+            step: index + 1,
+            ...hook.minuteBounds,
+          },
+        };
+      }
     }
   }
   const duration = validateRoutineDuration(

@@ -9,6 +9,7 @@ describe("ExerciseTemplateCatalogEntry", () => {
       description: null,
       exerciseTypeKey: "GAME",
       gameTypeKey: "TUOD",
+      gameRulesetVersionKey: "TUOD_V1",
     });
     expect(parsed.success).toBe(true);
   });

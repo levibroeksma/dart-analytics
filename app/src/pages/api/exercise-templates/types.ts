@@ -6,6 +6,7 @@ export const ExerciseTemplateCatalogEntry = z.object({
   description: z.string().nullable(),
   exerciseTypeKey: z.string(),
   gameTypeKey: z.string().nullable(),
+  gameRulesetVersionKey: z.string().nullable(),
 });
 export type ExerciseTemplateCatalogEntryData = z.infer<
   typeof ExerciseTemplateCatalogEntry

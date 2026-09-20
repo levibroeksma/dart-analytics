@@ -4,6 +4,7 @@ import {
   MAX_ROUTINE_STEP_MINUTES,
   MAX_ROUTINE_STEPS,
   MAX_ROUTINE_NAME_LENGTH,
+  RoutineStep,
 } from "@routes/routines/types";
 
 const step = {
@@ -85,5 +86,51 @@ describe("CreateRoutineRequest", () => {
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
     expect(parsed.data.steps[0]).not.toHaveProperty("sequenceNumber");
+  });
+});
+
+describe("RoutineStep", () => {
+  it("accepts a GAME step's pinned game ruleset version key", () => {
+    const parsed = RoutineStep.safeParse({
+      sequenceNumber: 4,
+      exerciseTemplateId: "et-fin",
+      exerciseName: "Finishing",
+      exerciseDescription: null,
+      exerciseTypeKey: "GAME",
+      gameTypeKey: "TUOD",
+      gameRulesetVersionKey: "TUOD_V1",
+      durationValue: 10,
+      durationTypeKey: "MINUTES",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accepts a non-game step with a null game ruleset version key", () => {
+    const parsed = RoutineStep.safeParse({
+      sequenceNumber: 1,
+      exerciseTemplateId: "et-warm",
+      exerciseName: "Warm-Up",
+      exerciseDescription: null,
+      exerciseTypeKey: "WARM_UP",
+      gameTypeKey: null,
+      gameRulesetVersionKey: null,
+      durationValue: 10,
+      durationTypeKey: "MINUTES",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a row missing gameRulesetVersionKey", () => {
+    const parsed = RoutineStep.safeParse({
+      sequenceNumber: 1,
+      exerciseTemplateId: "et-warm",
+      exerciseName: "Warm-Up",
+      exerciseDescription: null,
+      exerciseTypeKey: "WARM_UP",
+      gameTypeKey: null,
+      durationValue: 10,
+      durationTypeKey: "MINUTES",
+    });
+    expect(parsed.success).toBe(false);
   });
 });

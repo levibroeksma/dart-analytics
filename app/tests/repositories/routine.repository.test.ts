@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderingDb, onlyStatement } from "./render-sql";
 import {
   findRoutineExecutionRows,
@@ -10,6 +10,15 @@ import {
   insertRoutineTemplateRecord,
   insertRoutineStepRecords,
 } from "@repositories/routine.repository";
+
+function fakeSelect(rows: unknown[]) {
+  const chain = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockResolvedValue(rows),
+  };
+  return chain;
+}
 
 describe("findRoutineExecutionRows", () => {
   it("reads v_routine_execution scoped to system rows or the caller's own", async () => {
@@ -30,6 +39,20 @@ describe("findRoutineExecutionRows", () => {
     expect(onlyStatement(statements)).toContain('"routine_id" = $1');
     expect(statements[0].params).toEqual(["rt-9", true, "p1"]);
   });
+
+  /**
+   * `gameRulesetVersionKey` is what `routineGameStepHook` keys eligibility on
+   * (`training-session.service.ts`, `routine.service.ts`), so a routine step
+   * that never reads it back from the view would always resolve as
+   * ineligible regardless of the template.
+   */
+  it("selects gameRulesetVersionKey from v_routine_execution", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    await findRoutineExecutionRows(db, "p1");
+    expect(Object.keys(db.select.mock.calls[0]![0])).toContain(
+      "gameRulesetVersionKey",
+    );
+  });
 });
 
 describe("findExerciseTemplateCatalog", () => {
@@ -39,6 +62,14 @@ describe("findExerciseTemplateCatalog", () => {
     const sql = onlyStatement(statements);
     expect(sql).toContain('"v_exercise_template_catalog"');
     expect(sql).toMatch(/order by .*"name"/);
+  });
+
+  it("selects gameRulesetVersionKey from v_exercise_template_catalog", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    await findExerciseTemplateCatalog(db);
+    expect(Object.keys(db.select.mock.calls[0]![0])).toContain(
+      "gameRulesetVersionKey",
+    );
   });
 });
 

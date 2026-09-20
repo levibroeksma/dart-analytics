@@ -39,6 +39,7 @@ export async function findRoutineTemplateSteps(
       exerciseTypeKey: vRoutineExecution.exerciseTypeKey,
       exerciseRulesetVersionKey: vRoutineExecution.exerciseRulesetVersionKey,
       gameTypeKey: vRoutineExecution.gameTypeKey,
+      gameRulesetVersionKey: vRoutineExecution.gameRulesetVersionKey,
       durationTypeKey: vRoutineExecution.durationTypeKey,
       durationValue: vRoutineExecution.durationValue,
       defaultConfiguration: vRoutineExecution.defaultConfiguration,

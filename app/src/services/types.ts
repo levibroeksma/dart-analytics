@@ -2,6 +2,7 @@ import type { ErrorCode } from "@server/types";
 
 export * from "./exercise-rulesets/types";
 export * from "./rulesets/types";
+export * from "./routines/types";
 
 export type ServiceResult<T> =
   | { ok: true; data: T }
@@ -39,6 +40,7 @@ export type TrainingStepResolved = {
   exerciseTypeKey: "WARM_UP" | "SWITCHING" | "DOUBLE_PATTERN" | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
   durationSeconds: number;
   configuration: Record<string, unknown>;
 };
@@ -108,6 +110,7 @@ export type RoutineStep = {
   exerciseDescription: string | null;
   exerciseTypeKey: string;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
   durationValue: number;
   durationTypeKey: string;
 };
@@ -135,6 +138,7 @@ export type ExerciseTemplateCatalogEntry = {
   description: string | null;
   exerciseTypeKey: string;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
 };
 
 export type RoutineWriteInput = {
