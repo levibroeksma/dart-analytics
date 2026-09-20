@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide decision ledger routing
 read-when: "why was X decided?" before touching any history — routes to the domain file, doesn't hold the decisions itself
-updated: 2026-08-15
+updated: 2026-09-20
 -->
 
 # Architectural Decision Ledger
@@ -34,7 +34,7 @@ Each domain file's own front-matter carries the same `load-when` list plus `depe
 
 > Unbuilt things defer here. Broken things go to a GitHub issue (`discovered-work` label, `capturing-discovered-work` skill).
 
-ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12; raw notes: `docs/game-rules/routines/`) · multi-session activities (2026-07-12) · guest-adding UI for the other 8 setup screens beyond 501 (2026-08-21; 501 shipped, D225) · `board_segments` lookup (P37) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · configuration-preset CRUD (2026-07-13) · per-dart thrown_at timestamp (2026-07-13) · 501 capture mode — DETAILED_DARTS, or a schema revision adding an attempted-score / void-visit fact, so a bust stops being indistinguishable from a scoreless visit and bust rate + true checkout attempts become computable (2026-07-26) · named, swappable weekly training schedules linking routines to days of week, incl. the active-schedule-resolution mechanism (`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md` §5) · copy-on-share custom routines, incl. recipient identification (same spec §6)
+ROUTINE_RUN entity / routine-run write path (P25, 2026-07-12; raw notes: `docs/game-rules/routines/`) · multi-session activities (2026-07-12) · guest-adding UI for the other 8 setup screens beyond 501 (2026-08-21; 501 shipped, D225) · `board_segments` lookup (P37) · event sourcing (P37) · zero-downtime migrations (P50) · PostgreSQL RLS (post-v1) · statistics endpoints overview/trends/checkouts + `v_statistics_overview` view (post-v1, 2026-07-12) · JSONB config key vocabulary review against game engines. · configuration-preset CRUD (2026-07-13) · per-dart thrown_at timestamp (2026-07-13) · 501 capture mode — DETAILED_DARTS, or a schema revision adding an attempted-score / void-visit fact, so a bust stops being indistinguishable from a scoreless visit and bust rate + true checkout attempts become computable (2026-07-26) · copy-on-share custom routines, incl. recipient identification (`docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md` §6) · schedule adherence — "did the player train on the scheduled day", derivable from `activities.started_at` once a schedule's history is kept rather than overwritten on edit (`docs/superpowers/specs/2026-09-18-weekly-training-schedules-design.md` §9)
 
 ## Facts vs. decisions
 

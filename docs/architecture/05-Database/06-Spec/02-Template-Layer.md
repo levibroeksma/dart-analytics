@@ -377,6 +377,131 @@ Consequences:
 
 ---
 
+# training_schedules
+
+## Purpose
+
+A player's named, swappable weekly schedule: which routine (or rest) runs on
+each ISO weekday. Several schedules may exist per player; at most one is
+active. Migration `0041`.
+
+## Ownership
+
+Owned by the player (`player_id`, `ON DELETE CASCADE`). No system schedules —
+unlike `routine_templates`, there is no `is_system_template` split here.
+
+## Lifecycle
+
+Mutable. Template-layer: never referenced by runtime tables. Editing or
+deleting a schedule can never alter historical gameplay, because nothing in
+`activities`/`exercise_sessions` points back at one.
+
+## Primary Key
+
+UUIDv7
+
+## Key Columns
+
+- id
+- player_id
+- name
+- is_active (`BOOLEAN NOT NULL DEFAULT FALSE`)
+- created_at
+- updated_at
+
+## Relationships
+
+References:
+
+- players (CASCADE on delete)
+
+Referenced by:
+
+- training_schedule_days (CASCADE on delete)
+
+## Design Rationale
+
+`uq_training_schedules_player_active`, a partial unique index on `player_id`
+`WHERE is_active`, is what enforces "at most one active schedule per player" —
+no pointer column on `players`. Activating a schedule is therefore two
+statements in one transaction: clear every one of the caller's schedules,
+then set the target, ordered so the partial index never trips mid-write.
+
+# training_schedule_days
+
+## Purpose
+
+One row per (schedule, ISO weekday) naming the routine trained that day. A
+weekday with no row is a rest day — there is exactly one representation of
+rest, not two (a `NULL` routine and a missing row would both have meant it).
+
+## Ownership
+
+Owned by the parent schedule (`training_schedule_id`, `ON DELETE CASCADE`).
+
+## Lifecycle
+
+Mutable; a schedule's days are replaced as a set (delete-then-insert) on
+every write, never patched row by row.
+
+## Primary Key
+
+UUIDv7
+
+## Key Columns
+
+- id
+- training_schedule_id
+- day_of_week (`SMALLINT NOT NULL`, `CHECK (day_of_week BETWEEN 1 AND 7)`, ISO: 1 = Monday … 7 = Sunday)
+- routine_template_id
+- created_at
+
+## Relationships
+
+References:
+
+- training_schedules (CASCADE on delete)
+- routine_templates (**RESTRICT** on delete)
+
+## Design Rationale
+
+`day_of_week` is a `SMALLINT` with a `CHECK`, not a lookup table — a
+deliberate exception to Pattern 12 (lookup tables for domain-controlled sets
+that grow or need names). The ISO weekday is a universal constant with
+nothing to name or grow, so a `weekdays` table would add a join with no
+benefit over the CHECK. See D342.
+
+`uq_training_schedule_days_training_schedule_day_of_week` (`training_schedule_id`,
+`day_of_week`) stops a schedule naming two routines for the same weekday.
+
+The `routine_template_id` foreign key is `ON DELETE RESTRICT`, not `SET
+NULL`: deleting a routine still assigned to some weekday fails loudly rather
+than silently turning that day into rest. `app/src/services/routine.service.ts`'s
+`deleteRoutine` catches the `23503` on `fk_training_schedule_days_routine_template`
+and maps it to `VALIDATION_FAILED { reason: "routine in use", scheduleIds }`,
+naming every one of the caller's own schedules still assigning it
+(`findScheduleIdsUsingRoutine`, read through `v_training_schedule_days`). See
+D342.
+
+Ownership of the routine is *not* re-checked by this table — a foreign
+routine id would still FK-resolve. `app/src/services/schedule.service.ts`
+asserts every `routine_template_id` is system or caller-owned (via
+`getRoutine`) before writing; the read views below are filtered by
+`player_id` so a foreign routine never reads back through a schedule that
+isn't its owner's.
+
+## Views
+
+`v_training_schedules` (schedule_id, player_id, name, is_active, updated_at,
+day_count) and `v_training_schedule_days` (schedule_id, player_id,
+schedule_name, is_active, day_of_week, routine_template_id, routine_name,
+routine_minutes — the routine's `MINUTES` step total) are the read models —
+see `05-Views/00-Overview.md`. A schedule with no days still lists, because
+`v_training_schedules` is a plain projection over `training_schedules`, not a
+join that would drop it.
+
+---
+
 
 # Template Layer Summary
 
