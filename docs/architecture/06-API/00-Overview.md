@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # API Overview
 
-> **Version:** 1.10.0 (custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.11.0 (weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -71,6 +71,17 @@ Resource-first REST by domain.
 - `POST /api/routines`, `PUT /api/routines/:routineId`, `DELETE /api/routines/:routineId`
 
 All six shipped 2026-09-19 (D306, refined by D321) against `v_routine_execution`/`v_exercise_template_catalog`, backed by migration `0038` (D336; applied 2026-09-19). `GET /api/routines/:routineId/execution` was listed here until 2026-09-18; it duplicated the detail route's shape and was dropped unbuilt (D321). <!-- 2026-09-19 -->
+
+### Training Schedules
+
+- `GET /api/schedules`
+- `GET /api/schedules/active`
+- `GET /api/schedules/:scheduleId`
+- `POST /api/schedules`, `PUT /api/schedules/:scheduleId`, `DELETE /api/schedules/:scheduleId`
+- `POST /api/schedules/:scheduleId/activate`
+- `POST /api/schedules/:scheduleId/deactivate`
+
+Shipped 2026-09-20 (D342, refined by D343) against `v_training_schedules`/`v_training_schedule_days`, backed by migration `0041`. There is no `/today` route: "today" is resolved client-side (D343) — `players` carries no timezone column and the API sets no cookie a server could read one from. `GET /api/schedules/active` is a convenience read returning the active `Schedule | null` in one call, so the `/training` Today card does not need the list. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-09-20 -->
 
 ### Configuration Templates
 
@@ -165,6 +176,9 @@ Reads are view-backed and player-scoped.
 | `GET /api/routines/:routineId`           | `v_routine_execution` |
 | `GET /api/exercise-templates`            | `v_exercise_template_catalog` |
 | `POST /api/training-sessions`            | `v_routine_execution` (resolves the routine's steps) |
+| `GET /api/schedules`                     | `v_training_schedules` |
+| `GET /api/schedules/active`              | `v_training_schedules`, `v_training_schedule_days` |
+| `GET /api/schedules/:scheduleId`         | `v_training_schedules`, `v_training_schedule_days` |
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
@@ -177,6 +191,7 @@ Policy:
 - `GET /api/sessions/:sessionId/darts` is analytics-only: `v_dart_analytics` includes only darts with complete intention data, so it returns an empty array for recreational sessions <!-- 2026-07-12 -->
 - `GET /api/routines` projects `v_routine_execution` to one summary row per routine; the routine detail endpoints return the full ordered step set <!-- 2026-07-12 -->
 - the `/api/routines*` and `/api/exercise-templates` rows shipped 2026-09-19 (D306, refined by D321), backed by migration `0038` (D336; applied 2026-09-19) and `app/src/services/routine.service.ts`. `v_routine_execution`'s other consumer is `POST /api/training-sessions`, which resolves a system routine's — or, since D321, the caller's own — ordered steps through it; until migration `0036` gave the view the columns a step resolves from, that read went around it against the template tables, leaving the designated read model with no consumer at all (D298/D299, issue #344) <!-- 2026-09-17; corrected 2026-09-19, D321 -->
+- the `/api/schedules*` rows shipped 2026-09-20 (D342, refined by D343), backed by migration `0041` and `app/src/services/schedule.service.ts`. `GET /api/schedules` reads only `v_training_schedules` (list rows already carry `dayCount`); `GET /api/schedules/active` and `GET /api/schedules/:scheduleId` additionally read `v_training_schedule_days` to populate `days[]`, sorted by `dayOfWeek` in the service <!-- 2026-09-20 -->
 - `GET /api/statistics/overview` is view-backed end to end: `v_x01_checkout_darts` (`0039`) replaced `v_double_out_checkout_darts` and its `SUM(d.score)` running total — wrong after a bust, which zeroes `turns.total_score` but keeps the darts' real board scores — with facts only; it projects the session's whole `configuration` snapshot rather than a single `starting_score` column, and the read layer decodes that snapshot and folds it through the same checkout-visit builders the live result modals use (D298 lineage, issue #342) <!-- 2026-09-19 -->
 - `v_x01_checkout_darts` LEFT JOINs `exercise_configurations`, so a session can legitimately carry a NULL `configuration`; the read layer skips such a session (it contributes no checkout visits) rather than substituting a default or reconstructing a snapshot, and every other session in the same batch still folds normally — there is no starting score or ladder configuration to replay it from, so skipping is the only honest option <!-- 2026-09-19 -->
 
