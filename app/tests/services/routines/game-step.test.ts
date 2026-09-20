@@ -45,8 +45,12 @@ describe("routine game steps", () => {
     expect(ott).toEqual({ duration_type: "MINUTES", duration_value: 12 });
   });
 
-  it("bounds come from each game's own duration helper", () => {
+  it("bounds come from each game's own duration helper, and agree across all three (the routine builder's GAME-step hint is one literal, '3-30 min', for all of them)", () => {
     expect(ROUTINE_GAME_STEPS.TUOD_V1.minuteBounds).toEqual({
+      min: 3,
+      max: 30,
+    });
+    expect(ROUTINE_GAME_STEPS.SCORE_TRAINING_V1.minuteBounds).toEqual({
       min: 3,
       max: 30,
     });
