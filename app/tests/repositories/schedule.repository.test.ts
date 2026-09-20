@@ -29,6 +29,13 @@ describe("findScheduleRows", () => {
     expect(statements[0].params).toEqual(["p1"]);
   });
 
+  it("orders by name, then schedule id, so list order never reshuffles", async () => {
+    const { db, statements } = renderingDb([]);
+    await findScheduleRows(db, "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/order by .*"name".*,.*"schedule_id"/);
+  });
+
   it("adds the schedule id predicate when one is given", async () => {
     const { db, statements } = renderingDb([]);
     await findScheduleRows(db, "p1", "sch-1");
@@ -146,22 +153,39 @@ describe("writes", () => {
     expect(statements[0].sql).toContain('delete from "training_schedule_days"');
   });
 
-  it("setActiveSchedule renders two statements in order: clear siblings, then set the target", async () => {
+  it("setActiveSchedule renders three statements in order: own the target, clear siblings, then set it", async () => {
     const { db, statements } = renderingDb([{ id: "sch-1" }]);
     const activated = await setActiveSchedule(db, {
       playerId: "p1",
       scheduleId: "sch-1",
     });
     expect(activated).toBe(true);
-    expect(statements).toHaveLength(2);
-    expect(statements[0].sql).toContain('update "training_schedules"');
-    expect(statements[0].sql).not.toMatch(/"id" = /);
-    expect(statements[0].params).toEqual(expect.arrayContaining([false, "p1"]));
+    expect(statements).toHaveLength(3);
+    expect(statements[0].sql).toContain("select");
+    expect(statements[0].sql).toContain('"training_schedules"');
+    expect(statements[0].sql).toMatch(/"id" = \$\d+ and .*"player_id" = \$\d+/);
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining(["sch-1", "p1"]),
+    );
     expect(statements[1].sql).toContain('update "training_schedules"');
-    expect(statements[1].sql).toMatch(/"id" = \$\d+ and .*"player_id" = \$\d+/);
-    expect(statements[1].params).toEqual(
+    expect(statements[1].sql).not.toMatch(/"id" = /);
+    expect(statements[1].params).toEqual(expect.arrayContaining([false, "p1"]));
+    expect(statements[2].sql).toContain('update "training_schedules"');
+    expect(statements[2].sql).toMatch(/"id" = \$\d+ and .*"player_id" = \$\d+/);
+    expect(statements[2].params).toEqual(
       expect.arrayContaining([true, "sch-1", "p1"]),
     );
+  });
+
+  it("setActiveSchedule writes nothing when the schedule is not the caller's", async () => {
+    const { db, statements } = renderingDb([]);
+    const activated = await setActiveSchedule(db, {
+      playerId: "p1",
+      scheduleId: "not-mine",
+    });
+    expect(activated).toBe(false);
+    expect(statements).toHaveLength(1);
+    expect(statements[0].sql).not.toContain("update");
   });
 
   it("clearActiveSchedule deactivates the caller's own schedule", async () => {

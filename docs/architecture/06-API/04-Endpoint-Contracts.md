@@ -7,7 +7,7 @@ updated: 2026-09-20
 
 # API Endpoint Contracts
 
-> **Version:** 1.9.0 (weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.9.0 (weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -452,6 +452,10 @@ Read-only, backed by `v_training_schedules`, player-scoped. Returns every schedu
 caller owns, each with its `dayCount` (view column) — a schedule with no days still lists,
 since the view never joins onto `training_schedule_days` to produce its row.
 
+Ordered by `name`, then `scheduleId` to break a tie. The view carries no order of its
+own, and activating rewrites `updated_at` on every row the player owns, so without an
+explicit order the list was free to reshuffle between two reads.
+
 Success → `200` with the standard `ok()` envelope carrying `ListResult<ScheduleSummary>`.
 
 ### `GET /api/schedules/active`
@@ -499,12 +503,20 @@ partial-day patch. Same validation as `POST` (duplicate weekday, unknown
 
 ### `POST /api/schedules/:scheduleId/activate`
 
-One transaction: `UPDATE … SET is_active = FALSE WHERE player_id = ?` runs before
+One transaction. Ownership is read first — `SELECT id FROM training_schedules WHERE
+id = ? AND player_id = ?` — and a miss returns before anything is written. Only then does
+`UPDATE … SET is_active = FALSE WHERE player_id = ?` run, before
 `SET is_active = TRUE WHERE id = ? AND player_id = ?`, ordered so
 `uq_training_schedules_player_active` (the partial unique index, D342) never trips
 clearing every sibling before setting the target.
 
-- Foreign or unknown `scheduleId` → `404 NOT_FOUND`.
+The ownership read is what makes the `404` below inert. Inferring it from the second
+update's `RETURNING` instead left the clear committed, so activating an unknown or
+foreign id answered `404` *and* silently deactivated the schedule the player really had
+active.
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND`, and no schedule of the caller's
+  changes state.
 - Success → `200` with the standard `ok()` envelope carrying the now-active `Schedule`.
 
 ### `POST /api/schedules/:scheduleId/deactivate`
