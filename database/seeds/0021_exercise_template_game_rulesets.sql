@@ -1,5 +1,5 @@
 -- database/seeds/0021_exercise_template_game_rulesets.sql
--- Backfills exercise_templates.game_ruleset_version_id (migration 0039)
+-- Backfills exercise_templates.game_ruleset_version_id (migration 0040)
 -- for the Finishing system template: TUOD_V1. UPDATE in place (0019
 -- shape), idempotent, resolved by implementation_key.
 BEGIN;

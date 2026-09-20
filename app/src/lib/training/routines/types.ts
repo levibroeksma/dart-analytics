@@ -25,8 +25,6 @@ export * from "./adapters/types";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
-export type TrainingStepKey = TrainingStepResolved["exerciseTypeKey"];
-
 export type BlockingSession = {
   sessionId: string;
   startedAt: string | null;

@@ -20,6 +20,7 @@ vi.mock("@repositories/routine.repository", () => ({
 }));
 
 import * as repo from "@repositories/routine.repository";
+import { GAME_NOT_ROUTINE_ELIGIBLE } from "@services/routines/game-step";
 import { withTransaction } from "@db/client";
 import {
   listRoutines,
@@ -317,7 +318,7 @@ describe("createRoutine", () => {
     expect(result).toEqual({
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "game not routine-eligible", step: 2 },
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE, step: 2 },
     });
   });
 

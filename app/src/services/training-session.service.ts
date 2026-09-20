@@ -26,6 +26,7 @@ import { isActiveSessionConflict } from "./session.service";
 import { getExerciseRulesetValidator } from "./exercise-rulesets/registry";
 import { getRulesetValidator } from "./rulesets/registry";
 import {
+  GAME_NOT_ROUTINE_ELIGIBLE,
   ROUTINE_CAPTURE_MODE_KEY,
   ROUTINE_INPUT_MODE_KEY,
   routineGameStepHook,
@@ -43,8 +44,6 @@ import type {
  * the one step kind `stepConfigurationIssues` has no validator to apply.
  */
 const GAME_EXERCISE_TYPE_KEY = "GAME";
-
-const GAME_NOT_ROUTINE_ELIGIBLE = "game not routine-eligible";
 
 function durationSecondsFor(
   durationTypeKey: string,

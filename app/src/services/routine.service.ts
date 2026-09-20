@@ -18,7 +18,10 @@ import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
 } from "@repositories/interfaces";
-import { routineGameStepHook } from "./routines/game-step";
+import {
+  GAME_NOT_ROUTINE_ELIGIBLE,
+  routineGameStepHook,
+} from "./routines/game-step";
 import type {
   ExerciseTemplateCatalogEntry,
   RoutineExecution,
@@ -151,7 +154,7 @@ function writeIssues(
           ok: false,
           code: "VALIDATION_FAILED",
           details: {
-            reason: "game not routine-eligible",
+            reason: GAME_NOT_ROUTINE_ELIGIBLE,
             step: index + 1,
           },
         };

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  GAME_NOT_ROUTINE_ELIGIBLE,
   ROUTINE_GAME_STEPS,
   routineGameStepHook,
 } from "@services/routines/game-step";
@@ -63,5 +64,9 @@ describe("routine game steps", () => {
   it("an unknown or null key is not eligible", () => {
     expect(routineGameStepHook("501_V1")).toBeUndefined();
     expect(routineGameStepHook(null)).toBeUndefined();
+  });
+
+  it("names one refusal reason for both callers to report", () => {
+    expect(GAME_NOT_ROUTINE_ELIGIBLE).toBe("game not routine-eligible");
   });
 });

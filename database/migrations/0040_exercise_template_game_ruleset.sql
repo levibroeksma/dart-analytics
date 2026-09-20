@@ -91,6 +91,19 @@ COMMENT ON VIEW v_exercise_template_catalog IS 'System exercise templates a play
 
 -- migrate:down
 DROP VIEW IF EXISTS v_exercise_template_catalog;
+CREATE VIEW v_exercise_template_catalog AS
+SELECT et.id AS exercise_template_id,
+    et.name,
+    et.description,
+    ext.implementation_key AS exercise_type_key,
+    gt.implementation_key  AS game_type_key,
+    et.default_configuration IS NOT NULL AS has_default_configuration
+FROM exercise_templates et
+    JOIN exercise_types ext ON ext.id = et.exercise_type_id
+    LEFT JOIN game_types gt ON gt.id = et.game_type_id
+WHERE et.is_system_template
+    AND ext.is_published;
+COMMENT ON VIEW v_exercise_template_catalog IS 'System exercise templates a player may compose a routine from. has_default_configuration = FALSE marks a template the service must not offer: its step would resolve to an empty configuration.';
 
 DROP VIEW IF EXISTS v_routine_execution;
 CREATE VIEW v_routine_execution AS

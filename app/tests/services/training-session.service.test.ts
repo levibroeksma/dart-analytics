@@ -34,6 +34,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
 
 import * as trainingRepo from "@repositories/training-session.repository";
 import * as sessionRepo from "@repositories/session.repository";
+import { GAME_NOT_ROUTINE_ELIGIBLE } from "@services/routines/game-step";
 import {
   startTraining,
   startTrainingStep,
@@ -328,7 +329,7 @@ describe("startTraining", () => {
       ok: false,
       code: "VALIDATION_FAILED",
       details: {
-        reason: "game not routine-eligible",
+        reason: GAME_NOT_ROUTINE_ELIGIBLE,
         steps: [{ sequenceNumber: 4 }],
       },
     });
@@ -579,7 +580,7 @@ describe("startTrainingStep", () => {
     expect(result).toEqual({
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "game not routine-eligible" },
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE },
     });
     expect(sessionRepo.findGameTypeAndRuleset).not.toHaveBeenCalled();
     expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();

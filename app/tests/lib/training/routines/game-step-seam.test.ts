@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
  * The Finishing step over the REAL `tuodPlay()` store — the seam issue #370
- * names. `finishing-step.data.test.ts` mocks `tuodPlay` wholesale, which pins
+ * names. `game-step.data.test.ts` mocks `tuodPlay` wholesale, which pins
  * the wrapper's own contract but never executes the path the step actually
  * takes to completion: `recordDart` -> `wouldComplete()` -> `showFinishConfirm`
  * -> `confirmFinish()` -> `uploadAndCompleteSession()` -> the routine's

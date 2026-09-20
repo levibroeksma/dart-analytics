@@ -73,7 +73,7 @@ Rationale and the bounded scope: **D303** (`decisions/testing.md`).
 So the step has two test files, deliberately:
 
 - `app/tests/lib/training/routines/game-step.data.test.ts` — `vi.mock`s the wrapped play factory. Cheap, independent of the underlying game's rules, pins advance-on-success / hold-on-failure / exit-to-`/training`.
-- `app/tests/lib/training/routines/finishing-step-seam.test.ts` — kept its pre-rename name; still exercises `gameStep(tuodPlay, …)` specifically — the **real** store and engine, with only `@client/api/sessions` and `SegmentTimer` mocked. Drives `recordDart` → `showFinishConfirm` → `confirmFinish` → the routine's advance.
+- `app/tests/lib/training/routines/game-step-seam.test.ts` — exercises `gameStep(tuodPlay, …)` specifically — the **real** store and engine, with only `@client/api/sessions` and `SegmentTimer` mocked. Drives `recordDart` → `showFinishConfirm` → `confirmFinish` → the routine's advance.
 
 The module-scope `vi.mock` of `tuodPlay` is why these cannot share a file.
 

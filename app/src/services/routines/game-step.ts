@@ -7,6 +7,13 @@ import type { RoutineGameStepHook } from "./types";
 export const ROUTINE_CAPTURE_MODE_KEY = "ANALYTICS";
 export const ROUTINE_INPUT_MODE_KEY = "VISUAL_BOARD";
 
+/**
+ * The `VALIDATION_FAILED` reason a step whose ruleset resolves no hook fails
+ * with, shared by the builder's write check and the start-of-routine check so
+ * one refusal reads the same from both (01-Routines.md §11).
+ */
+export const GAME_NOT_ROUTINE_ELIGIBLE = "game not routine-eligible";
+
 function minutesInto(config: Record<string, unknown>, minutes: number): void {
   config.duration_type = "MINUTES";
   config.duration_value = minutes;

@@ -5,7 +5,7 @@
  * to `/training`. Mocking `tuodPlay` keeps these three cases independent of
  * TUOD's rules, but it also means the seam between the store and the routine
  * — `recordDart` -> `showFinishConfirm` -> `confirmFinish` -> the advance —
- * runs in no test here. `finishing-step-seam.test.ts` covers that path
+ * runs in no test here. `game-step-seam.test.ts` covers that path
  * against the real store (issue #370).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
