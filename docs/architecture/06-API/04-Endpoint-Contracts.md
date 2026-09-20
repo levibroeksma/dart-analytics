@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.8.0 (`StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.9.0 (weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -372,6 +372,9 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12; shipped 2026-09-19 |
 | `GET /api/routines/:routineId/execution` (dropped 2026-09-18, D321 — same shape as the row above; never built) | — | — | 2026-07-12 |
 | `GET /api/exercise-templates` | `v_exercise_template_catalog` | `ExerciseTemplateCatalogEntry[]` | 2026-09-17; shipped 2026-09-19 |
+| `GET /api/schedules` | `v_training_schedules` | `ListResult<ScheduleSummary>` | 2026-09-20 |
+| `GET /api/schedules/active` | `v_training_schedules` + `v_training_schedule_days` | `Schedule \| null` | 2026-09-20 |
+| `GET /api/schedules/:scheduleId` | `v_training_schedules` + `v_training_schedule_days` | `Schedule` | 2026-09-20 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -421,6 +424,142 @@ that `GET /api/exercise-templates` filters out for having no
 missed case: a distinct reason for "exists but not offerable" would let a
 write confirm the existence of a system template the read side never exposes
 (`app/src/services/routine.service.ts`'s `writeIssues`, 2026-09-19).
+
+---
+
+## Training Schedules — `/api/schedules`
+
+Per D342/D343 and `docs/superpowers/specs/2026-09-18-weekly-training-schedules-design.md`
+§4/§5. Shipped 2026-09-20 (`app/src/pages/api/schedules/`,
+`app/src/services/schedule.service.ts`) against `v_training_schedules`/
+`v_training_schedule_days` (migration `0041`, D342).
+
+**Auth:** standard protected route class — JWT-verified, player resolved by middleware.
+Every route is player-scoped through the service; no player id travels in any path.
+
+**"Today" is resolved client-side, not by a route here (D343).** `players` carries no
+timezone column and the API sets no cookie a server could read one from, so the contract
+has no `/today` endpoint. The client computes `new Date().getDay()` mapped to ISO
+(Sunday = 7) and indexes the active schedule's `days[]` (`isoWeekday`/`todayEntry`,
+`lib/training/schedules/today.ts`). `GET /api/schedules/active` exists only to save that
+lookup its own round trip: one call returns the active `Schedule | null` for the
+`/training` Today card, instead of the client fetching the list and finding the active row
+itself.
+
+### `GET /api/schedules`
+
+Read-only, backed by `v_training_schedules`, player-scoped. Returns every schedule the
+caller owns, each with its `dayCount` (view column) — a schedule with no days still lists,
+since the view never joins onto `training_schedule_days` to produce its row.
+
+Success → `200` with the standard `ok()` envelope carrying `ListResult<ScheduleSummary>`.
+
+### `GET /api/schedules/active`
+
+Read-only, backed by `v_training_schedules` + `v_training_schedule_days`. Returns the
+caller's active schedule (`Schedule`, `days[]` populated and sorted by `dayOfWeek`), or
+`null` when none is active — never `404`.
+
+Success → `200` with the standard `ok()` envelope carrying `Schedule | null`.
+
+### `GET /api/schedules/:scheduleId`
+
+Read-only, backed by `v_training_schedules` + `v_training_schedule_days`.
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND` (existence is not leaked).
+- Success → `200` with the standard `ok()` envelope carrying `Schedule`.
+
+### `POST /api/schedules`
+
+Creates a schedule inactive — a fresh schedule is never auto-activated.
+
+- A weekday repeated in `days[]` → `422 VALIDATION_FAILED`,
+  `details = { reason: "duplicate dayOfWeek", dayOfWeek }`.
+- A `routineTemplateId` that does not resolve as system or caller-owned (via `getRoutine`,
+  `app/src/services/routine.service.ts`) → `422 VALIDATION_FAILED`,
+  `details = { reason: "unknown routineTemplateId", dayOfWeek }`.
+- A malformed body → `422 VALIDATION_FAILED` from the shared request-parsing helper.
+- Success → `201` with the standard `ok()` envelope carrying the created `Schedule`.
+
+### `PUT /api/schedules/:scheduleId`
+
+Full replace of `name` and `days[]` — delete-then-insert the days in one transaction, no
+partial-day patch. Same validation as `POST` (duplicate weekday, unknown
+`routineTemplateId`).
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND`.
+- Success → `200` with the standard `ok()` envelope carrying the updated `Schedule`.
+
+### `DELETE /api/schedules/:scheduleId`
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND`.
+- Success → `204`, no envelope body — there is no body to carry a `requestId` in, the
+  header still does — matching `DELETE /api/routines/:routineId`'s convention. Days
+  cascade; deleting the active schedule leaves the player with none active.
+
+### `POST /api/schedules/:scheduleId/activate`
+
+One transaction: `UPDATE … SET is_active = FALSE WHERE player_id = ?` runs before
+`SET is_active = TRUE WHERE id = ? AND player_id = ?`, ordered so
+`uq_training_schedules_player_active` (the partial unique index, D342) never trips
+clearing every sibling before setting the target.
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND`.
+- Success → `200` with the standard `ok()` envelope carrying the now-active `Schedule`.
+
+### `POST /api/schedules/:scheduleId/deactivate`
+
+Leaves the player with no active schedule — deactivating is not the same as activating
+another schedule.
+
+- Foreign or unknown `scheduleId` → `404 NOT_FOUND`.
+- Success → `200` with the standard `ok()` envelope carrying the now-inactive `Schedule`.
+
+### Routine deletion when scheduled
+
+`DELETE /api/routines/:routineId` (Custom Routine Write Contracts, above) gains one more
+rejection once a routine is scheduled anywhere:
+`fk_training_schedule_days_routine_template` (`ON DELETE RESTRICT`, migration `0041`)
+blocks the delete, and `deleteRoutine` (`app/src/services/routine.service.ts`) catches the
+`23503` — via the shared `matchesConstraintError` helper (`services/db-errors.ts`) — and
+answers `422 VALIDATION_FAILED`, `details = { reason: "routine in use", scheduleIds }`;
+`scheduleIds` is read back through `findScheduleIdsUsingRoutine` (`v_training_schedule_days`,
+player-scoped). No silent `SET NULL`: a training day never turns into rest without the
+caller being told (D342).
+
+No new error codes are introduced anywhere in this section; `NOT_FOUND` and
+`VALIDATION_FAILED` are reused from the registry in `03-Shared-Conventions.md`.
+
+```typescript
+// design sketch — mirrors app/src/pages/api/schedules/types.ts exactly
+const ScheduleDayInput = z.object({
+  dayOfWeek: z.number().int().min(1).max(7),   // ISO weekday, 1 = Monday … 7 = Sunday
+  routineTemplateId: z.string().min(1),
+});
+const CreateScheduleRequest = z.object({
+  name: z.string().trim().min(1).max(60),      // MAX_SCHEDULE_NAME_LENGTH
+  days: z.array(ScheduleDayInput).max(7),      // a weekday absent from days[] is rest
+});
+type CreateScheduleRequest = z.infer<typeof CreateScheduleRequest>;
+const UpdateScheduleRequest = CreateScheduleRequest;  // PUT body — full replace, same shape
+
+const ScheduleDay = z.object({                // one entry per weekday present in days[]
+  dayOfWeek: z.number().int(),
+  routineId: z.string(), routineName: z.string(), routineMinutes: z.number().int(),
+});
+const ScheduleResponse = z.object({           // GET (detail/active)/POST/PUT/activate/deactivate → Schedule
+  scheduleId: z.string(), name: z.string(), isActive: z.boolean(),
+  days: z.array(ScheduleDay),                 // sorted by dayOfWeek
+});
+type Schedule = z.infer<typeof ScheduleResponse>;
+
+const ScheduleSummary = z.object({            // GET /schedules list row
+  scheduleId: z.string(), name: z.string(), isActive: z.boolean(), dayCount: z.number().int(),
+});
+const ScheduleListResponse = z.object({       // GET /schedules → ListResult<ScheduleSummary>
+  items: z.array(ScheduleSummary), nextCursor: z.null(),
+});
+```
 
 ---
 
@@ -507,7 +646,7 @@ const BatchWriteResponse = z.object({       // POST /sessions/:id/events/batch �
 
 Every lookup key a read DTO projects is nullable exactly when its view column is. Since migration `0033` the read model LEFT JOINs the lookups a training exercise session leaves NULL, so `gameTypeKey`/`gameTypeName`/`captureModeKey`/`inputModeKey`/`rulesetVersionKey` arrive as `null` for such a session rather than the session vanishing from the response. <!-- 2026-09-16 -->
 
-All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me` return `PlayerProfileResponse` (defined under Player Profile). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview). `POST`/`PUT /api/routines` return the updated `RoutineExecution`; `CreateRoutineRequest`/`UpdateRoutineRequest` (D306, shipped 2026-09-19) are the request DTOs.
+All read DTOs are flat and close to 1:1 with their view, except `RoutineExecution`, which groups the step-level `v_routine_execution` rows into a routine with an ordered `steps[]`. `PATCH /api/sessions/:sessionId` returns the updated `SessionOverview`. `POST /api/players/provision` returns `ProvisionPlayerResponse` (defined under Player Provisioning). `POST /api/sessions` returns `CreateSessionResponse` (defined under Session Creation). `GET`/`PATCH /api/players/me` return `PlayerProfileResponse` (defined under Player Profile). `GET`/`PATCH /api/players/me/settings` return `PlayerSettingsResponse` (defined under Player Settings). `GET /api/statistics/overview` returns `StatisticsOverviewResponse` (defined under Statistics Overview). `POST`/`PUT /api/routines` return the updated `RoutineExecution`; `CreateRoutineRequest`/`UpdateRoutineRequest` (D306, shipped 2026-09-19) are the request DTOs. `GET /api/schedules/active`, `GET /api/schedules/:scheduleId`, `POST /api/schedules`, `PUT`/activate/deactivate `/api/schedules/:scheduleId` all return `Schedule`; `GET /api/schedules` returns `ListResult<ScheduleSummary>` (all defined under Training Schedules, D342/D343, shipped 2026-09-20).
 
 ---
 
