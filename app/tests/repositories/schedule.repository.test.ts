@@ -67,6 +67,30 @@ describe("findScheduleRows", () => {
   });
 });
 
+describe("findScheduleRows narrowing", () => {
+  it("returns the driver's own rows array, not a copy of it", async () => {
+    const rows = [
+      {
+        scheduleId: "sch-1",
+        playerId: "p1",
+        name: "Weeknights",
+        isActive: true,
+        updatedAt: "2026-09-20T10:00:00.000Z",
+        dayCount: 3,
+      },
+    ];
+    const db = {
+      select: vi.fn(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockResolvedValue(rows),
+      })),
+    } as any;
+
+    expect(await findScheduleRows(db, "p1")).toBe(rows);
+  });
+});
+
 describe("findScheduleDayRows", () => {
   it("reads v_training_schedule_days filtered by player_id, ordered by day_of_week", async () => {
     const { db, statements } = renderingDb([]);

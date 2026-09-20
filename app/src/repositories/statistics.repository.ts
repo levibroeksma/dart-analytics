@@ -12,6 +12,7 @@ import type {
   PlayerVisitFactRow,
   X01CheckoutDartRow,
 } from "@modules/types";
+import { viewRows } from "./view-rows";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -30,7 +31,7 @@ export async function findSessionSummaries(
     .from(vSessionOverview)
     .where(eq(vSessionOverview.playerId, playerId));
 
-  return rows as PlayerSessionSummaryRow[];
+  return viewRows<PlayerSessionSummaryRow>(rows);
 }
 
 /** Reads every completed turn through `v_player_visit_facts`. */
@@ -52,7 +53,7 @@ export async function findVisitFacts(
     .from(vPlayerVisitFacts)
     .where(eq(vPlayerVisitFacts.playerId, playerId));
 
-  return rows as PlayerVisitFactRow[];
+  return viewRows<PlayerVisitFactRow>(rows);
 }
 
 /**
@@ -74,16 +75,25 @@ export async function findLegFacts(
     .from(vPlayerLegFacts)
     .where(eq(vPlayerLegFacts.playerId, playerId));
 
-  return rows.map((row) => ({
-    ...row,
-    totalDartsInLeg: Number(row.totalDartsInLeg),
-  })) as PlayerLegFactRow[];
+  return viewRows<PlayerLegFactRow>(
+    rows.map((row) => ({
+      ...row,
+      totalDartsInLeg: Number(row.totalDartsInLeg),
+    })),
+  );
 }
 
 /**
  * Reads every X01 checkout dart the player owns through
  * `v_x01_checkout_darts`, ordered so a session's rows arrive in stage, turn
  * and dart order -- the order `checkoutVisitsFromRows` folds them in.
+ *
+ * Two columns carry a claim SQL cannot state, so each is asserted on its own
+ * rather than folded into one assertion over the row. `configuration` is the
+ * session's stored jsonb snapshot, which Drizzle types `unknown` because
+ * Postgres says nothing about a jsonb's shape. `hit_zone_key` is
+ * `dart_zones.implementation_key`, a seeded lookup whose values are the
+ * `DartFact` union -- text to Postgres, which has no way to say so.
  */
 export async function findX01CheckoutDarts(
   db: Db,
@@ -118,5 +128,11 @@ export async function findX01CheckoutDarts(
       vX01CheckoutDarts.dartNumber,
     );
 
-  return rows as X01CheckoutDartRow[];
+  return viewRows<X01CheckoutDartRow>(
+    rows.map((row) => ({
+      ...row,
+      configuration: row.configuration as Record<string, unknown> | null,
+      hitZoneKey: row.hitZoneKey as X01CheckoutDartRow["hitZoneKey"] | null,
+    })),
+  );
 }

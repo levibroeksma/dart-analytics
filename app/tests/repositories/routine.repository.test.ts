@@ -55,6 +55,15 @@ describe("findRoutineExecutionRows", () => {
   });
 });
 
+describe("findRoutineExecutionRows narrowing", () => {
+  it("returns the driver's own rows array, not a copy of it", async () => {
+    const rows = [{ routineId: "rt-1" }];
+    const db = { select: vi.fn(() => fakeSelect(rows)) } as any;
+
+    expect(await findRoutineExecutionRows(db, "p1")).toBe(rows);
+  });
+});
+
 describe("findExerciseTemplateCatalog", () => {
   it("reads v_exercise_template_catalog ordered by name", async () => {
     const { db, statements } = renderingDb([]);

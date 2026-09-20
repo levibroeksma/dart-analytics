@@ -127,6 +127,26 @@ describe("findRoutineTemplateSteps", () => {
     expect(result?.steps[1]).not.toHaveProperty("routineName");
   });
 
+  it("keeps every step column, nulls included, once the header fields are stripped", async () => {
+    const chain = fakeSelect(stepRows);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+
+    const result = await findRoutineTemplateSteps(db, "rt-1", "p1");
+
+    expect(result?.steps[1]).toEqual({
+      sequenceNumber: 4,
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      gameTypeKey: "TUOD",
+      durationTypeKey: "MINUTES",
+      durationValue: 10,
+      defaultConfiguration: null,
+      stepConfiguration: { starting_target: 41 },
+    });
+  });
+
   /**
    * The routine id is the view's own column, so the read is one query against
    * `v_routine_execution` — the read model `06-API/00-Overview.md` designates
