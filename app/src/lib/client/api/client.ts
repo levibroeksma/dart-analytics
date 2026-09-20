@@ -1,4 +1,5 @@
 import { getAccessToken } from "@client/auth/client";
+import { SessionApiError } from "./sessions";
 import type { ApiFailure, ApiResult } from "./types";
 
 const UNAUTHORIZED: ApiFailure = {
@@ -92,4 +93,17 @@ export async function apiRequest<T>(
     result = await attempt<T>(path, init, headers);
   }
   return result;
+}
+
+/** Returns a success envelope's data, or throws it as a `SessionApiError`. Shared by every `client/api/*` module past one call site. */
+export function unwrapOrThrow<T>(result: ApiResult<T>): T {
+  if (!result.ok) {
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
+  }
+  return result.data;
 }

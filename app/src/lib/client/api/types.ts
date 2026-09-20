@@ -54,4 +54,11 @@ export {
   type RoutineSummaryData,
   type RoutineListData,
   type ExerciseTemplateCatalogEntryData,
+  CreateScheduleRequest,
+  type CreateScheduleRequestInput,
+  UpdateScheduleRequest,
+  type UpdateScheduleRequestInput,
+  type ScheduleData,
+  type ScheduleSummaryData,
+  type ScheduleListData,
 } from "@routes/types";

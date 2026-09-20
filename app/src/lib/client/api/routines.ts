@@ -1,5 +1,4 @@
-import { apiRequest } from "./client";
-import { SessionApiError } from "./sessions";
+import { apiRequest, unwrapOrThrow } from "./client";
 import {
   CreateRoutineRequest,
   UpdateRoutineRequest,
@@ -9,22 +8,9 @@ import {
   type RoutineListData,
   type ExerciseTemplateCatalogEntryData,
 } from "./types";
-import type { ApiResult } from "./types";
-
-function unwrap<T>(result: ApiResult<T>): T {
-  if (!result.ok) {
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  }
-  return result.data;
-}
 
 export async function listRoutines(): Promise<RoutineListData> {
-  return unwrap(
+  return unwrapOrThrow(
     await apiRequest<RoutineListData>("/api/routines", { method: "GET" }),
   );
 }
@@ -32,7 +18,7 @@ export async function listRoutines(): Promise<RoutineListData> {
 export async function getRoutine(
   routineId: string,
 ): Promise<RoutineExecutionData> {
-  return unwrap(
+  return unwrapOrThrow(
     await apiRequest<RoutineExecutionData>(
       `/api/routines/${encodeURIComponent(routineId)}`,
       { method: "GET" },
@@ -44,7 +30,7 @@ export async function createRoutine(
   body: CreateRoutineRequestInput,
 ): Promise<RoutineExecutionData> {
   const payload = CreateRoutineRequest.parse(body);
-  return unwrap(
+  return unwrapOrThrow(
     await apiRequest<RoutineExecutionData>("/api/routines", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -57,7 +43,7 @@ export async function updateRoutine(
   body: UpdateRoutineRequestInput,
 ): Promise<RoutineExecutionData> {
   const payload = UpdateRoutineRequest.parse(body);
-  return unwrap(
+  return unwrapOrThrow(
     await apiRequest<RoutineExecutionData>(
       `/api/routines/${encodeURIComponent(routineId)}`,
       { method: "PUT", body: JSON.stringify(payload) },
@@ -66,7 +52,7 @@ export async function updateRoutine(
 }
 
 export async function deleteRoutine(routineId: string): Promise<void> {
-  unwrap(
+  unwrapOrThrow(
     await apiRequest<null>(`/api/routines/${encodeURIComponent(routineId)}`, {
       method: "DELETE",
     }),
@@ -76,7 +62,7 @@ export async function deleteRoutine(routineId: string): Promise<void> {
 export async function listExerciseTemplates(): Promise<
   ExerciseTemplateCatalogEntryData[]
 > {
-  return unwrap(
+  return unwrapOrThrow(
     await apiRequest<ExerciseTemplateCatalogEntryData[]>(
       "/api/exercise-templates",
       { method: "GET" },
