@@ -493,7 +493,8 @@ isn't its owner's.
 ## Views
 
 `v_training_schedules` (schedule_id, player_id, name, is_active, updated_at,
-day_count) and `v_training_schedule_days` (schedule_id, player_id,
+day_count — `count(*)::int`, cast so the count arrives as a number, D344) and
+`v_training_schedule_days` (schedule_id, player_id,
 schedule_name, is_active, day_of_week, routine_template_id, routine_name,
 routine_minutes — the routine's `MINUTES` step total) are the read models —
 see `05-Views/00-Overview.md`. A schedule with no days still lists, because

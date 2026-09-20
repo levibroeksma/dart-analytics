@@ -131,4 +131,23 @@ describe("client schedules api", () => {
     });
     await expect(listSchedules()).rejects.toBeInstanceOf(SessionApiError);
   });
+
+  it("throws SessionApiError on a write's failure envelope too", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r",
+      error: {
+        code: "VALIDATION_FAILED",
+        message: "routine in use",
+        retryable: false,
+        details: { scheduleIds: ["s1"] },
+      },
+    });
+    await expect(
+      createSchedule({ name: "Mine", days: DAYS }),
+    ).rejects.toBeInstanceOf(SessionApiError);
+    await expect(activateSchedule("s1")).rejects.toBeInstanceOf(
+      SessionApiError,
+    );
+  });
 });

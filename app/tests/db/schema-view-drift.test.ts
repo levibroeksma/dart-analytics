@@ -89,19 +89,44 @@ function schemaViewBodies(): Map<string, string> {
  * so that rewrite is undone before the parentheses come off, back into the
  * `IN (...)` shape the migration source uses.
  *
- * Last, Postgres disambiguates an alias reused across a CTE and its outer
- * query by suffixing the inner one (`v_player_leg_facts` writes `st`/`es` in
- * both halves; the echo reads `st_1`/`es_1`), so that suffix comes off too.
- * No identifier anywhere in the chain ends in `_<digits>`, so nothing else
+ * Postgres disambiguates an alias reused across a CTE and its outer query by
+ * suffixing the inner one (`v_player_leg_facts` writes `st`/`es` in both
+ * halves; the echo reads `st_1`/`es_1`), so that suffix comes off too. No
+ * identifier anywhere in the chain ends in `_<digits>`, so nothing else
  * matches the shape.
+ *
+ * Last, Postgres names an aggregate subquery's output column after the
+ * function when the source does not (`count(*)` echoes as `count(*) AS
+ * count`, `sum(rs.duration_value)` as `... AS sum`, both from 0041), so an
+ * alias that only restates its own aggregate comes off.
  */
+/**
+ * Postgres drops a column reference's qualifier when a single relation is in
+ * scope -- 0041's `ts.id AS schedule_id` echoes back as `id AS schedule_id`
+ * -- so a body that joins nothing has its outermost relation's alias stripped
+ * from both sides. A body with a JOIN keeps every qualifier, which is where
+ * "this column now comes from the wrong table" drift lives.
+ */
+function dropSoleRelationQualifier(sql: string): string {
+  if (/\bJOIN\b/i.test(sql)) return sql;
+  const relations = [
+    ...sql.matchAll(
+      /\bFROM\s+\w+\s+(?!WHERE|GROUP|ORDER|HAVING|LIMIT|UNION|ON|AS)(\w+)\b/gi,
+    ),
+  ];
+  const outermost = relations.at(-1)?.[1];
+  if (!outermost) return sql;
+  return sql.replace(new RegExp(`\\b${outermost}\\.`, "g"), "");
+}
+
 function normalize(sql: string): string {
-  return sql
+  return dropSoleRelationQualifier(sql)
     .replace(
       /::\s*[a-z_]+(\s+(?:precision|varying|with\s+time\s+zone|without\s+time\s+zone))?(\s*\[\])?/gi,
       "",
     )
     .replace(/=\s*ANY\s*\(\s*ARRAY\s*\[([\s\S]*?)\]\s*\)/gi, "IN ($1)")
+    .replace(/\b(count|sum|avg|min|max)(\s*\([^()]*\))\s+AS\s+\1\b/gi, "$1$2")
     .replace(/\b([a-z_][a-z0-9_]*?)_\d+\b/gi, "$1")
     .replace(/[()]/g, " ")
     .replace(/\s+,/g, ",")

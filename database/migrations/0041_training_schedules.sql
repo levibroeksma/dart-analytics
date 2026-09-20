@@ -55,7 +55,7 @@ SELECT ts.id AS schedule_id,
     ts.name,
     ts.is_active,
     ts.updated_at,
-    (SELECT count(*) FROM training_schedule_days d WHERE d.training_schedule_id = ts.id) AS day_count
+    (SELECT count(*) FROM training_schedule_days d WHERE d.training_schedule_id = ts.id)::int AS day_count
 FROM training_schedules ts;
 COMMENT ON VIEW v_training_schedules IS 'One row per schedule with its day count; filter by player_id.';
 
