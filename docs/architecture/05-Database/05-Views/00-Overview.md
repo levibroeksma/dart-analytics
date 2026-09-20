@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0040)
+# Implemented Views (migrations 0009–0041)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -155,6 +155,8 @@ The name should describe the returned data, not the underlying tables.
 | `v_x01_checkout_darts` | Analytics | Per-dart facts + stage tree + counted turn total + configuration snapshot for 501/TUOD/121 `VISUAL_BOARD` checkout accuracy, owning player only; remaining-before-dart is folded in the app, never in SQL (2026-09-19) |
 | `v_player_visit_facts` | Analytics | One row per completed turn, every game type/capture mode, for career-wide turn-level statistics (2026-09-06) |
 | `v_player_leg_facts` | Analytics | One row per complete-capture LEG stage, for best-leg/darts-per-leg style statistics (2026-09-06) |
+| `v_training_schedules` | API Read Model | One row per weekly training schedule with its day count, filtered by `player_id`; a schedule with no days still lists (2026-09-20) |
+| `v_training_schedule_days` | API Read Model | One row per (schedule, weekday) with the routine's name and `MINUTES` total, filtered by `player_id`; a missing weekday is a rest day, not a row (2026-09-20) |
 
 Every view above that reaches `exercise_sessions.game_type_id` or
 `exercise_templates.game_type_id` joins `game_types` with a `LEFT JOIN` from

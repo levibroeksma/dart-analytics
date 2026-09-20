@@ -942,6 +942,29 @@ Never edits `0004`/`0011`/`0035`/`0036`/`0038`.
 
 ---
 
+## 0041_training_schedules.sql
+
+Purpose:
+
+Named, swappable weekly schedules: one routine (or rest) per ISO weekday, at most one active schedule per player. <!-- 2026-09-20 -->
+
+Contains:
+
+- new `training_schedules` (`id`, `player_id`, `name`, `is_active`, `created_at`, `updated_at`) with `chk_training_schedules_name_not_empty` and `fk_training_schedules_player` (`ON DELETE CASCADE`)
+- `uq_training_schedules_player_active` — partial unique index on `player_id` `WHERE is_active`, the "one active schedule per player" guard
+- new `training_schedule_days` (`id`, `training_schedule_id`, `day_of_week`, `routine_template_id`, `created_at`) with `fk_training_schedule_days_training_schedule` (`ON DELETE CASCADE`), `fk_training_schedule_days_routine_template` (`ON DELETE RESTRICT`), `chk_training_schedule_days_day_of_week` (`BETWEEN 1 AND 7`) and `uq_training_schedule_days_training_schedule_day_of_week`
+- new `v_training_schedules` (schedule_id, player_id, name, is_active, updated_at, day_count) and `v_training_schedule_days` (schedule_id, player_id, schedule_name, is_active, day_of_week, routine_template_id, routine_name, routine_minutes)
+
+Both tables are Template-layer: mutable, owned, never referenced by runtime tables. Rest is the absence of a row, not a `NULL` routine — one representation. `day_of_week` is a `SMALLINT` with a `CHECK`, a deliberate exception to Pattern 12 (lookup tables): the ISO weekday is a universal constant with nothing to name or grow (D342). The routine foreign key is `RESTRICT` so deleting a scheduled routine fails loudly; `app/src/services/routine.service.ts`'s `deleteRoutine` maps the `23503` on `fk_training_schedule_days_routine_template` to `VALIDATION_FAILED { reason: "routine in use", scheduleIds }` rather than a silent `SET NULL` turning a training day into rest unnoticed (D342). "One active per player" is a partial unique index, no pointer column on `players`.
+
+`v_training_schedule_days.routine_minutes` sums the routine's `MINUTES` steps the same way `v_routine_execution` resolves duration — plain arithmetic over stored facts, no engine logic in the view.
+
+Never executed against a live database here — no `DATABASE_URL` reaches this environment (D193); `database/verification/0041_training_schedule_checks.sql` is what proves the constraints, cascade and RESTRICT behaviour once a human runs it.
+
+Never edits `0004`/`0011`/`0038`/`0040`.
+
+---
+
 # Schema Changes
 
 
