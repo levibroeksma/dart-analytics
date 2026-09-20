@@ -1,2 +1,3 @@
 export * from "./exercises/types";
 export * from "./routines/types";
+export * from "./schedules/types";

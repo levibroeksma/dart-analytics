@@ -1,0 +1,63 @@
+---
+/**
+ * Editor body for create and edit. The page mounts `scheduleEditor(mode)`;
+ * this renders the name input, the seven weekday rows, and Save/Cancel.
+ */
+import Input from "@components/forms/Input.astro";
+import Button from "@components/forms/Button.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import ScheduleDayRow from "./ScheduleDayRow.astro";
+---
+
+<div class="space-y-6">
+  <ErrorAlert />
+  <Input
+    name="schedule-name"
+    placeholder="Schedule name"
+    :maxlength="maxNameLength"
+    x-model="name"
+  />
+
+  <section class="space-y-2">
+    <h2 class="text-sm font-semibold text-foreground">Week</h2>
+    <ol class="space-y-2">
+      <template
+        x-for="(row, index) in rows"
+        :key="row.dayOfWeek"
+      >
+        <ScheduleDayRow />
+      </template>
+    </ol>
+  </section>
+
+  <ul
+    class="text-xs text-error"
+    x-show="serverIssues.length > 0"
+    x-cloak
+  >
+    <template
+      x-for="(issue, index) in serverIssues"
+      :key="index"
+    >
+      <li x-text="issue"></li>
+    </template>
+  </ul>
+
+  <div class="flex gap-2">
+    <Button
+      title="Cancel"
+      variant="secondary"
+      grow
+      loadingExpr="false"
+      @click="cancel()"
+    />
+    <Button
+      title="Save"
+      variant="primary"
+      grow
+      :disabled="!canSave()"
+      loadingExpr="saving"
+      @click="save()"
+    />
+  </div>
+</div>
