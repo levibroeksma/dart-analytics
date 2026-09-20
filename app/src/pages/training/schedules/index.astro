@@ -1,0 +1,71 @@
+---
+export const prerender = true;
+
+import AppLayout from "@layouts/AppLayout.astro";
+import CardWrapper from "@components/ui/CardWrapper.astro";
+import Badge from "@components/ui/Badge.astro";
+import Button from "@components/forms/Button.astro";
+import GameCard from "@components/layout/games/GameCard.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<AppLayout title="Schedules">
+  <div
+    class="p-4 space-y-4"
+    x-data="schedulesIndex()"
+  >
+    <h1 class="text-xl font-semibold text-foreground">Schedules</h1>
+    <ErrorAlert />
+    <template
+      x-for="schedule in schedules"
+      :key="schedule.scheduleId"
+    >
+      <CardWrapper class="flex-row justify-between items-center gap-4 glass">
+        <div class="flex flex-col gap-0.5">
+          <div class="flex items-center gap-2">
+            <a
+              class="font-semibold text-base text-accent no-underline"
+              :href="editHref(schedule)"
+              x-text="schedule.name"
+            ></a>
+            <Badge
+              class="text-xs"
+              x-show="schedule.isActive"
+              x-cloak
+            >
+              active
+            </Badge>
+          </div>
+          <p
+            class="text-xs text-muted-foreground"
+            x-text="`${schedule.dayCount} day(s) scheduled`"
+          >
+          </p>
+        </div>
+        <Button
+          title="Activate"
+          variant="secondary"
+          x-show="!schedule.isActive"
+          x-cloak
+          :disabled="busyId === schedule.scheduleId"
+          loadingExpr="busyId === schedule.scheduleId"
+          @click="activate(schedule)"
+        />
+        <Button
+          title="Deactivate"
+          variant="secondary"
+          x-show="schedule.isActive"
+          x-cloak
+          :disabled="busyId === schedule.scheduleId"
+          loadingExpr="busyId === schedule.scheduleId"
+          @click="deactivate(schedule)"
+        />
+      </CardWrapper>
+    </template>
+    <GameCard
+      href="/training/schedules/new"
+      title="New schedule"
+      caption="Assign a routine — or rest — to each day of the week"
+    />
+  </div>
+</AppLayout>
