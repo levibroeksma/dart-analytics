@@ -76,6 +76,7 @@ export interface RoutineStepTemplateRow {
   exerciseTypeKey: string;
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
   durationTypeKey: string;
   durationValue: number;
   defaultConfiguration: unknown;
@@ -168,6 +169,7 @@ export interface RoutineExecutionRow {
   exerciseTypeKey: string;
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
   durationTypeKey: string;
   durationValue: number;
   defaultConfiguration: unknown;
@@ -181,5 +183,6 @@ export interface ExerciseTemplateCatalogRow {
   description: string | null;
   exerciseTypeKey: string;
   gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
   hasDefaultConfiguration: boolean;
 }

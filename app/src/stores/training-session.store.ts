@@ -1,17 +1,3 @@
-import type { TrainingStepKey } from "@lib/types";
-
-/**
- * How each exercise names itself in the session header. Deliberately short
- * and lowercase — the header renders it uppercased beside the clock, where
- * the routine's own title carries no information during play.
- */
-const STEP_LABELS: Record<TrainingStepKey, string> = {
-  WARM_UP: "warm up",
-  SWITCHING: "switching",
-  DOUBLE_PATTERN: "doubles",
-  GAME: "finishing",
-};
-
 const COMPLETE_LABEL = "complete";
 
 function formatElapsed(totalSeconds: number): string {
@@ -34,12 +20,12 @@ export function trainingSessionStore() {
   return {
     active: false,
     elapsedSeconds: 0,
-    stepKey: null as TrainingStepKey | null,
+    stepKey: null as string | null,
     complete: false,
 
     get stepLabel(): string {
       if (this.complete) return COMPLETE_LABEL;
-      return this.stepKey ? STEP_LABELS[this.stepKey] : "";
+      return this.stepKey ?? "";
     },
 
     get headerLabel(): string {
@@ -53,8 +39,8 @@ export function trainingSessionStore() {
       this.elapsedSeconds = 0;
     },
 
-    setStep(stepKey: TrainingStepKey) {
-      this.stepKey = stepKey;
+    setStep(stepLabel: string) {
+      this.stepKey = stepLabel;
     },
 
     markComplete() {

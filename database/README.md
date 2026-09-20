@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-09-12
+updated: 2026-09-20
 -->
 
 # Database SQL Artifacts
@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0039)
+├── migrations/     # ordered schema migrations (0001–0040)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -68,6 +68,8 @@ astro check
 18. `seeds/0018_singles_training_v3_game_engine_reference.sql`
 19. `seeds/0019_exercise_template_ruleset_versions.sql`
 20. `seeds/0020_finishing_default_configuration.sql`
+21. `seeds/0021_exercise_template_game_rulesets.sql`
+22. `seeds/0022_routine_game_templates.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -114,6 +116,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0037_exercise_configuration_constraint_naming_checks.sql` | migration `0037`: `uq_exercise_configurations_exercise_session` and `fk_exercise_configurations_exercise_session` both exist on `exercise_configurations.exercise_session_id`, neither pre-rename name (`uq_exercise_configuration_session`, `fk_exercise_configuration_session`) survives, anti-vacuity guard (4 checks) |
 | `verification/0038_custom_routine_checks.sql` | migration `0038` + seed `0020`: `chk_routine_templates_player_ownership` rejects an ownerless user routine, `trg_routine_templates_duration_bounds`/`trg_routine_steps_duration_bounds` refuse a user routine outside 30-60 MINUTES and a stepless user routine, the seeded system Warm-Up routine stays valid under the trigger, deleting a user routine does not trip the bound on its cascaded steps, `v_routine_execution` exposes `player_id`/`routine_description`/`exercise_description`, `v_exercise_template_catalog` lists the four `0199b000-*` routine-composable templates all with defaults after seed `0020` and still surfaces a template with none (11 checks) |
 | `verification/0039_x01_checkout_darts_view_checks.sql` | migration `0039`: `v_x01_checkout_darts` exists and `v_double_out_checkout_darts` does not, the view exposes every documented column, only 501/TUOD/ONE_TWENTY_ONE game types and only VISUAL_BOARD sessions appear, every row's participant belongs to the session's owning player, anti-vacuity guard (9 checks) |
+| `verification/0040_exercise_template_game_ruleset_checks.sql` | migration `0040` + seeds `0021`/`0022`: the pin column and its composite FK exist, a ruleset version of another game is rejected, a pin naming no game is rejected while a GAME template pinning nothing is accepted, seed `0021` backfilled Finishing to `TUOD_V1`, the three routine-eligible templates each pin a version, both routine views expose `game_ruleset_version_key`, seed `0022`'s two templates are present (10 checks) |
 
 ## References
 

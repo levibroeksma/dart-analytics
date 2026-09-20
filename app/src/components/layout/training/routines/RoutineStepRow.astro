@@ -6,6 +6,14 @@
  * `:min`/`:max` — see `ExercisePicker.astro`'s note on why a bound crosses
  * this boundary as a directive-string read, never a frontmatter import, of
  * the browser-only `routine-builder.data.ts`).
+ * A GAME step (`step.exerciseTypeKey === 'GAME'`) additionally shows a
+ * "3–30 min" hint: every routine-eligible ruleset's own MINUTES bound
+ * (`ROUTINE_GAME_STEPS` in `app/src/services/routines/game-step.ts`) is
+ * 3–30, so one literal covers TUOD, Score Training and 121 alike. This is
+ * UI hint text only, static and not derived from `stepMinMinutes`/
+ * `stepMaxMinutes` (the builder-wide 1–60 bounds the `:min`/`:max` above
+ * bind to) — the authoritative bound is the server's per-step check in
+ * `routine.service.ts`.
  * Only `chevron-down.svg` and `cross.svg` exist under `app/src/icons/` for
  * this purpose — "move up" is `chevron-down` rotated 180deg, "move down" is
  * `chevron-down` unrotated, "remove" is `cross`.
@@ -21,10 +29,19 @@ import CrossIcon from "@icons/cross.svg";
     class="w-6 text-sm font-semibold text-accent"
     x-text="index + 1"
   ></span>
-  <span
-    class="flex-1 text-sm text-foreground"
-    x-text="step.name"
-  ></span>
+  <span class="flex-1 min-w-0">
+    <span
+      class="block text-sm text-foreground"
+      x-text="step.name"
+    ></span>
+    <span
+      class="block text-xs text-muted-foreground"
+      x-show="step.exerciseTypeKey === 'GAME'"
+      x-cloak
+    >
+      3–30 min
+    </span>
+  </span>
   <Input
     type="number"
     class="w-16 text-center"

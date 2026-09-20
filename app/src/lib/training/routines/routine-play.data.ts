@@ -6,44 +6,36 @@ import {
 } from "@client/api/training-sessions";
 import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/routines/training.module";
-import { getExerciseEngineFactory } from "@modules/training/exercises/engine.registry";
 import { resolveWarmUpPhaseDurations } from "@modules/training/exercises/warm-up.engine.module";
 import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
 import { playAudioCue } from "@modules/ui/audio-cue.module";
-import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
-import { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
-import { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
 import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
-import { finishingStep } from "./finishing-step.data";
+import {
+  stepAdapterKey,
+  resolveStepAdapter,
+} from "./adapters/step-adapter.registry";
 import { routineIdFromLocation } from "./routine-route";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
 import { activeSessionConflict } from "./step-session-conflict";
-import {
-  summariseSwitching,
-  summariseDoublePattern,
-  summariseFinishing,
-} from "@modules/training/routines/routine-summary.module";
-import type { ExerciseEngine, TrainingEngine } from "@modules/interfaces";
-import type { WarmUpState } from "@modules/types";
-import type {
-  WarmUpEngineInput,
-  SwitchingConfigData,
-  DoublePatternConfigData,
-  TuodPlayContext,
-} from "@lib/types";
+import type { TrainingEngine } from "@modules/interfaces";
 import type { DartObservation } from "@modules/types";
-import type { BoardMarker, PreviewSegment } from "@lib/types";
+import type {
+  BoardMarker,
+  PreviewSegment,
+  WarmUpEngineInput,
+} from "@lib/types";
 import type { StartTrainingStepResponseData } from "@client/api/types";
+import type { StepAdapter } from "@lib/interfaces";
 import type { RoutinePlayContext, TrainingStepResolved } from "./types";
+import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
+import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 
-const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
 
@@ -55,16 +47,14 @@ async function advanceAfterStepCompletion(
   training: TrainingEngine,
 ): Promise<void> {
   await ctx.uploadCurrentStepFacts();
-  if (ctx.currentStep()?.exerciseTypeKey !== "GAME") {
+  if (!ctx.adapter?.completesOwnSession) {
     await completeSession(sessionId, "COMPLETED");
   }
   ctx.captureStepSummary();
   ctx.currentSessionId = null;
   ctx.currentParticipantRef = null;
-  ctx.warmUpEngine = null;
-  ctx.switchingEngine = null;
-  ctx.doublePatternEngine = null;
-  ctx.finishing = null;
+  ctx.adapter?.close(ctx);
+  ctx.adapter = null;
   const state = training.completeStep();
   if (state.status === "COMPLETE") {
     ctx.stopSessionClock();
@@ -94,7 +84,8 @@ export function routinePlay() {
     warmUpElapsedSeconds: 0,
     warmUpReady: false,
     warmUpConfiguration: null,
-    finishing: null,
+    adapter: null as StepAdapter | null,
+    game: null,
     sessionClock: null,
     blockingSession: null,
     blockingError: "",
@@ -181,71 +172,6 @@ export function routinePlay() {
       return this.steps[stepIndex] ?? null;
     },
 
-    buildWarmUpEngine(
-      this: RoutinePlayContext,
-      configuration: Record<string, unknown>,
-    ) {
-      const factory = getExerciseEngineFactory("WARM_UP_V1");
-      this.warmUpEngine = factory
-        ? (factory.create(
-            configuration as WarmUpEngineInput,
-          ) as ExerciseEngine<WarmUpState>)
-        : null;
-    },
-
-    buildSwitchingEngine(
-      this: RoutinePlayContext,
-      configuration: Record<string, unknown>,
-    ) {
-      const factory = getDartExerciseEngineFactory("SWITCHING_V1");
-      const created = factory?.create(configuration as SwitchingConfigData);
-      this.switchingEngine =
-        created instanceof SwitchingEngine ? created : null;
-    },
-
-    buildDoublePatternEngine(
-      this: RoutinePlayContext,
-      configuration: Record<string, unknown>,
-    ) {
-      const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
-      const created = factory?.create(configuration as DoublePatternConfigData);
-      this.doublePatternEngine =
-        created instanceof DoublePatternEngine ? created : null;
-    },
-
-    startFinishingStep(
-      this: RoutinePlayContext,
-      result: StartTrainingStepResponseData,
-    ) {
-      self.$store.game.reset();
-      self.$store.game.startSession({
-        gameTypeKey: result.gameTypeKey,
-        rulesetVersionKey: result.rulesetVersionKey,
-        sessionId: result.sessionId,
-        templateRef: null,
-        configSnapshot: {
-          ...toSnapshot(FINISHING_RULESET_VERSION_KEY, result.configuration),
-          seats: [
-            {
-              participantRef: result.participant.ref,
-              displayName: result.participant.displayName,
-              sideKey: "A",
-              participantTypeKey: "PLAYER",
-            },
-          ],
-        },
-        captureModeKey: result.captureModeKey,
-        inputModeKey: result.inputModeKey,
-      });
-      this.startSessionClock();
-      this.finishing = finishingStep(
-        () => this.completeCurrentStep(),
-        async () => {
-          if (this.activityId) await abandonTraining(this.activityId);
-        },
-      );
-    },
-
     /**
      * Starts the step the engine is on. An already-active game is the one
      * failure the player can resolve without leaving the routine, so it is
@@ -270,36 +196,29 @@ export function routinePlay() {
 
     /**
      * Binds a started step's server session to the screen: its engine, its
-     * clock and the header the routine store drives.
+     * clock and the header the routine store drives. Which engine/clock/
+     * header depends entirely on `stepAdapterKey()`'s resolved adapter — this
+     * method itself no longer branches on the step kind.
      */
     openStep(
       this: RoutinePlayContext,
       result: StartTrainingStepResponseData,
       durationSeconds: number,
     ) {
+      const step = this.currentStep();
+      const adapter = step ? resolveStepAdapter(stepAdapterKey(step)) : null;
+      if (!step || !adapter) {
+        this.error = "This step kind is not supported on this device.";
+        return;
+      }
       this.currentSessionId = result.sessionId;
       this.currentParticipantRef = result.participant.ref;
       if (this.$store.trainingSession.active) {
         playAudioCue(STEP_CHANGE_CUE_HZ, STEP_CHANGE_CUE_SECONDS);
       }
-      this.$store.trainingSession.setStep(result.exerciseTypeKey);
-
-      if (result.exerciseTypeKey === "WARM_UP") {
-        this.buildWarmUpEngine(result.configuration);
-        this.warmUpReady = false;
-        this.warmUpConfiguration = result.configuration;
-      }
-      if (result.exerciseTypeKey === "SWITCHING") {
-        this.buildSwitchingEngine(result.configuration);
-        this.startStepTimer(durationSeconds);
-      }
-      if (result.exerciseTypeKey === "DOUBLE_PATTERN") {
-        this.buildDoublePatternEngine(result.configuration);
-        this.startStepTimer(durationSeconds);
-      }
-      if (result.exerciseTypeKey === "GAME") {
-        this.startFinishingStep(result);
-      }
+      this.adapter = adapter;
+      this.$store.trainingSession.setStep(adapter.headerLabel);
+      adapter.open(this, result, durationSeconds);
     },
 
     /**
@@ -492,12 +411,12 @@ export function routinePlay() {
     },
 
     async uploadCurrentStepFacts(this: RoutinePlayContext) {
-      const engine = this.activeDartEngine() ?? this.warmUpEngine;
-      if (!engine || !this.currentSessionId || !this.currentParticipantRef) {
+      const facts = this.adapter?.facts(this);
+      if (!facts || !this.currentSessionId || !this.currentParticipantRef) {
         return;
       }
       const resolved = resolveSoloParticipantRef(
-        engine.facts(),
+        facts,
         this.currentParticipantRef,
       );
       const batch = buildEventsBatch(resolved);
@@ -506,30 +425,14 @@ export function routinePlay() {
     },
 
     /**
-     * Snapshots the step that just finished while its engine is still in
-     * memory — `advanceAfterStepCompletion` clears every engine field a few
-     * lines later, and nothing re-reads them afterwards. Warm-Up throws no
-     * darts, so it contributes nothing.
+     * Snapshots the step that just finished while its engine/game store is
+     * still in memory — `advanceAfterStepCompletion` closes the adapter a
+     * few lines later, and nothing re-reads it afterwards. Warm-Up's own
+     * adapter always returns `null`, since it throws no darts.
      */
     captureStepSummary(this: RoutinePlayContext) {
-      if (this.switchingEngine) {
-        this.stepSummaries.push(
-          summariseSwitching(
-            this.switchingEngine.state(),
-            this.switchingEngine.facts(),
-          ),
-        );
-        return;
-      }
-      if (this.doublePatternEngine) {
-        this.stepSummaries.push(
-          summariseDoublePattern(this.doublePatternEngine.state()),
-        );
-        return;
-      }
-      const seat = (this.finishing as unknown as TuodPlayContext | null)
-        ?.resultsSnapshot?.seats[0];
-      if (seat) this.stepSummaries.push(summariseFinishing(seat));
+      const summary = this.adapter?.summarise(this);
+      if (summary) this.stepSummaries.push(summary);
     },
 
     /**
@@ -580,23 +483,23 @@ export function routinePlay() {
     },
 
     /**
-     * The Finishing step's TenUpOneDown carries its own engine and facts on
-     * `$store.game` (via `startFinishingStep`), so its wrapped
-     * `abandonAndExit` (`finishing-step.data.ts`) already uploads any
-     * partial darts, marks that session ABANDONED, abandons the routine,
-     * and redirects to `/training`. Every earlier step has no `GameEngine`,
-     * so it abandons the current step's session directly and never touches
+     * A GAME step's own game store carries its engine and facts on
+     * `$store.game` (via the adapter's `open`), so its wrapped
+     * `abandonAndExit` (`game-step.data.ts`) already uploads any partial
+     * darts, marks that session ABANDONED, abandons the routine, and
+     * redirects to `/training`. Every earlier step has no `GameEngine`, so
+     * it abandons the current step's session directly and never touches
      * `$store.game`.
      */
     async abandonAndExit(this: RoutinePlayContext) {
-      if (this.finishing) {
+      if (this.game) {
         if (this.stepTimer) {
           this.stepTimer.stop();
           this.stepTimer = null;
         }
         this.stopSessionClock();
         this.$store.trainingSession.reset();
-        return (this.finishing as unknown as TuodPlayContext).abandonAndExit();
+        return this.game.abandonAndExit();
       }
       if (this.$store.game.loading) return;
       this.$store.game.loading = true;

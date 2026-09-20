@@ -34,6 +34,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
 
 import * as trainingRepo from "@repositories/training-session.repository";
 import * as sessionRepo from "@repositories/session.repository";
+import { GAME_NOT_ROUTINE_ELIGIBLE } from "@services/routines/game-step";
 import {
   startTraining,
   startTrainingStep,
@@ -50,6 +51,7 @@ const RESOLVED = {
       exerciseTypeKey: "WARM_UP",
       exerciseRulesetVersionKey: "WARM_UP_V1",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationTypeKey: "MINUTES",
       durationValue: 10,
       defaultConfiguration: {
@@ -62,6 +64,7 @@ const RESOLVED = {
       exerciseTypeKey: "GAME",
       exerciseRulesetVersionKey: null,
       gameTypeKey: "TUOD",
+      gameRulesetVersionKey: "TUOD_V1",
       durationTypeKey: "MINUTES",
       durationValue: 10,
       // The Finishing template's own default_configuration (seed `0020`).
@@ -309,6 +312,57 @@ describe("startTraining", () => {
     });
   });
 
+  it("refuses a GAME step whose ruleset is not routine-eligible", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      ...RESOLVED,
+      steps: [
+        {
+          ...RESOLVED.steps[1],
+          gameTypeKey: "501",
+          gameRulesetVersionKey: "501_V1",
+          defaultConfiguration: {},
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    expect(await startTraining("p1", "rt-1")).toMatchObject({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: {
+        reason: GAME_NOT_ROUTINE_ELIGIBLE,
+        steps: [{ sequenceNumber: 4 }],
+      },
+    });
+  });
+
+  it("validates a Score Training step with its own ruleset", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      ...RESOLVED,
+      steps: [
+        {
+          ...RESOLVED.steps[1],
+          gameTypeKey: "SCORE_TRAINING",
+          gameRulesetVersionKey: "SCORE_TRAINING_V1",
+          defaultConfiguration: {
+            duration_type: "MINUTES",
+            duration_value: 10,
+            max_darts_per_turn: 3,
+            max_visit_score: 180,
+          },
+          durationValue: 8,
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    const result = await startTraining("p1", "rt-1");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.steps[0]).toMatchObject({
+      gameRulesetVersionKey: "SCORE_TRAINING_V1",
+      configuration: { duration_value: 8 },
+    });
+  });
+
   it("refuses a GAME step whose merged configuration fails its ruleset (issue #392)", async () => {
     vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
       ...RESOLVED,
@@ -337,6 +391,7 @@ const SNAPSHOT = {
       exerciseTypeKey: "WARM_UP",
       exerciseRulesetVersionKey: "WARM_UP_V1",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationSeconds: 600,
       configuration: { stepDurationSeconds: 600, phases: [] },
     },
@@ -345,6 +400,7 @@ const SNAPSHOT = {
       exerciseTypeKey: "SWITCHING",
       exerciseRulesetVersionKey: "SWITCHING_V1",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationSeconds: 300,
       configuration: { targets: [20, 19, 18] },
     },
@@ -352,7 +408,8 @@ const SNAPSHOT = {
       sequenceNumber: 4,
       exerciseTypeKey: "GAME",
       exerciseRulesetVersionKey: null,
-      gameTypeKey: "TUOD",
+      gameTypeKey: "SCORE_TRAINING",
+      gameRulesetVersionKey: "SCORE_TRAINING_V1",
       durationSeconds: 600,
       configuration: { starting_target: 41 },
     },
@@ -473,15 +530,15 @@ describe("startTrainingStep", () => {
     );
   });
 
-  it("inserts a GAME exercise session for Finishing, resolving TUOD_V1", async () => {
+  it("inserts a GAME exercise session for Score Training, resolving SCORE_TRAINING_V1", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
       SNAPSHOT as any,
     );
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
     vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-game");
     vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
-      gameTypeId: "gt-tuod",
-      rulesetVersionId: "rv-tuod-1",
+      gameTypeId: "gt-score",
+      rulesetVersionId: "rv-score-1",
     });
     vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
     vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);
@@ -494,24 +551,75 @@ describe("startTrainingStep", () => {
     const result = await startTrainingStep("p1", "act-1", 4);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.data.gameTypeKey).toBe("TUOD");
-    expect(result.data.rulesetVersionKey).toBe("TUOD_V1");
+    expect(result.data.gameTypeKey).toBe("SCORE_TRAINING");
+    expect(result.data.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
     expect(sessionRepo.findGameTypeAndRuleset).toHaveBeenCalledWith(
       expect.anything(),
-      "TUOD",
-      "TUOD_V1",
+      "SCORE_TRAINING",
+      "SCORE_TRAINING_V1",
     );
   });
 
-  it("returns SESSION_ALREADY_ACTIVE when the Finishing insert hits the unique-active conflict", async () => {
+  it("refuses a GAME step whose snapshot ruleset is not routine-eligible, before any lookup", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
+      ...SNAPSHOT,
+      steps: [
+        {
+          ...SNAPSHOT.steps[2],
+          gameTypeKey: "501",
+          gameRulesetVersionKey: "501_V1",
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+
+    const result = await startTrainingStep("p1", "act-1", 4);
+
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE },
+    });
+    expect(sessionRepo.findGameTypeAndRuleset).not.toHaveBeenCalled();
+    expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();
+  });
+
+  it("fails a GAME step with INTERNAL_ERROR when reference data is missing", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue(undefined);
+    vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
+      gameTypeId: "gt-score",
+      rulesetVersionId: "rv-score-1",
+    });
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+
+    const result = await startTrainingStep("p1", "act-1", 4);
+
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+    expect(sessionRepo.insertExerciseSessionRecord).not.toHaveBeenCalled();
+  });
+
+  it("returns SESSION_ALREADY_ACTIVE when the Score Training insert hits the unique-active conflict", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
       SNAPSHOT as any,
     );
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
     vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-game");
     vi.mocked(sessionRepo.findGameTypeAndRuleset).mockResolvedValue({
-      gameTypeId: "gt-tuod",
-      rulesetVersionId: "rv-tuod-1",
+      gameTypeId: "gt-score",
+      rulesetVersionId: "rv-score-1",
     });
     vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(1);
     vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(1);

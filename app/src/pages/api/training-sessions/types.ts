@@ -10,6 +10,7 @@ const TrainingStepResolved = z.object({
   exerciseTypeKey: z.enum(["WARM_UP", "SWITCHING", "DOUBLE_PATTERN", "GAME"]),
   exerciseRulesetVersionKey: z.string().nullable(),
   gameTypeKey: z.string().nullable(),
+  gameRulesetVersionKey: z.string().nullable(),
   durationSeconds: z.number().int(),
   configuration: z.record(z.unknown()),
 });

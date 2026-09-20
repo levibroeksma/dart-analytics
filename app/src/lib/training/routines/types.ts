@@ -17,16 +17,32 @@ import type { SwitchingEngine } from "@modules/training/exercises/switching.engi
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
-import type { finishingStep } from "./finishing-step.data";
+import type { gameStep } from "./game-step.data";
+import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
 
-export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
+export * from "./adapters/types";
 
-export type TrainingStepKey = TrainingStepResolved["exerciseTypeKey"];
+export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
 export type BlockingSession = {
   sessionId: string;
   startedAt: string | null;
+};
+
+/**
+ * What `gameStep()` needs from whichever game's own play store it wraps —
+ * the record → mirror → complete cycle's completion status, the countdown
+ * (some games run no timer), and the two lifecycle methods it overrides.
+ * Deliberately narrower than `PlayLifecycleContext`: `gameStep` is generic
+ * over every routine-eligible game, and this is the only shape all three
+ * (TUOD, Score Training, 121) actually share at the type level.
+ */
+export type GameStepPlayContext = {
+  completionStatus: string;
+  timer?: { stop(): void } | null;
+  uploadAndCompleteSession(): Promise<void>;
+  abandonAndExit(): Promise<void>;
 };
 
 export type RoutinePlayContext = {
@@ -46,7 +62,8 @@ export type RoutinePlayContext = {
   warmUpElapsedSeconds: number;
   warmUpReady: boolean;
   warmUpConfiguration: Record<string, unknown> | null;
-  finishing: ReturnType<typeof finishingStep> | null;
+  adapter: StepAdapter | null;
+  game: ReturnType<typeof gameStep> | null;
   sessionClock: SessionClock | null;
   blockingSession: BlockingSession | null;
   blockingError: string;
@@ -65,22 +82,6 @@ export type RoutinePlayContext = {
   };
   init(this: RoutinePlayContext): Promise<void>;
   currentStep(this: RoutinePlayContext): TrainingStepResolved | null;
-  buildWarmUpEngine(
-    this: RoutinePlayContext,
-    configuration: Record<string, unknown>,
-  ): void;
-  buildSwitchingEngine(
-    this: RoutinePlayContext,
-    configuration: Record<string, unknown>,
-  ): void;
-  buildDoublePatternEngine(
-    this: RoutinePlayContext,
-    configuration: Record<string, unknown>,
-  ): void;
-  startFinishingStep(
-    this: RoutinePlayContext,
-    result: StartTrainingStepResponseData,
-  ): void;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
     this: RoutinePlayContext,

@@ -20,6 +20,7 @@ vi.mock("@repositories/routine.repository", () => ({
 }));
 
 import * as repo from "@repositories/routine.repository";
+import { GAME_NOT_ROUTINE_ELIGIBLE } from "@services/routines/game-step";
 import { withTransaction } from "@db/client";
 import {
   listRoutines,
@@ -37,6 +38,7 @@ const CATALOG = [
     description: null,
     exerciseTypeKey: "WARM_UP",
     gameTypeKey: null,
+    gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
   },
   {
@@ -45,6 +47,7 @@ const CATALOG = [
     description: null,
     exerciseTypeKey: "SWITCHING",
     gameTypeKey: null,
+    gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
   },
   {
@@ -53,6 +56,16 @@ const CATALOG = [
     description: null,
     exerciseTypeKey: "GAME",
     gameTypeKey: "TUOD",
+    gameRulesetVersionKey: "TUOD_V1",
+    hasDefaultConfiguration: true,
+  },
+  {
+    exerciseTemplateId: "et-score",
+    name: "Score Training",
+    description: null,
+    exerciseTypeKey: "GAME",
+    gameTypeKey: "SCORE_TRAINING",
+    gameRulesetVersionKey: "SCORE_TRAINING_V1",
     hasDefaultConfiguration: true,
   },
   {
@@ -61,6 +74,7 @@ const CATALOG = [
     description: null,
     exerciseTypeKey: "SWITCHING",
     gameTypeKey: null,
+    gameRulesetVersionKey: null,
     hasDefaultConfiguration: false,
   },
 ];
@@ -79,6 +93,7 @@ function row(over: Partial<Record<string, unknown>>) {
     exerciseTypeKey: "WARM_UP",
     exerciseRulesetVersionKey: "WARM_UP_V1",
     gameTypeKey: null,
+    gameRulesetVersionKey: null,
     durationTypeKey: "MINUTES",
     durationValue: 10,
     defaultConfiguration: {},
@@ -184,6 +199,7 @@ describe("getRoutine", () => {
       exerciseDescription: "loosen",
       exerciseTypeKey: "WARM_UP",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationValue: 10,
       durationTypeKey: "MINUTES",
     });
@@ -199,6 +215,7 @@ describe("listExerciseTemplates", () => {
       "et-warm",
       "et-sw",
       "et-fin",
+      "et-score",
     ]);
     expect(result.data[0]).not.toHaveProperty("hasDefaultConfiguration");
   });
@@ -267,6 +284,41 @@ describe("createRoutine", () => {
         min: 3,
         max: 30,
       },
+    });
+  });
+
+  it("rejects a GAME step whose ruleset is not routine-eligible", async () => {
+    vi.mocked(repo.findExerciseTemplateCatalog).mockResolvedValue([
+      ...CATALOG,
+      {
+        exerciseTemplateId: "et-501",
+        name: "501",
+        description: null,
+        exerciseTypeKey: "GAME",
+        gameTypeKey: "501",
+        gameRulesetVersionKey: "501_V1",
+        hasDefaultConfiguration: true,
+      },
+    ]);
+    const result = await createRoutine("p1", {
+      ...VALID,
+      steps: [
+        {
+          exerciseTemplateId: "et-sw",
+          durationTypeKey: "MINUTES",
+          durationValue: 28,
+        },
+        {
+          exerciseTemplateId: "et-501",
+          durationTypeKey: "MINUTES",
+          durationValue: 10,
+        },
+      ],
+    });
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE, step: 2 },
     });
   });
 

@@ -19,6 +19,7 @@ const CATALOG = [
     description: "d",
     exerciseTypeKey: "WARM_UP",
     gameTypeKey: null,
+    gameRulesetVersionKey: null,
   },
   {
     exerciseTemplateId: "et-f",
@@ -26,6 +27,7 @@ const CATALOG = [
     description: "d",
     exerciseTypeKey: "GAME",
     gameTypeKey: "TUOD",
+    gameRulesetVersionKey: "TUOD_V1",
   },
 ];
 const ROUTINE = {
@@ -41,6 +43,7 @@ const ROUTINE = {
       exerciseDescription: "d",
       exerciseTypeKey: "WARM_UP",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationValue: 20,
       durationTypeKey: "MINUTES",
     },
@@ -51,6 +54,7 @@ const ROUTINE = {
       exerciseDescription: "d",
       exerciseTypeKey: "GAME",
       gameTypeKey: "TUOD",
+      gameRulesetVersionKey: "TUOD_V1",
       durationValue: 10,
       durationTypeKey: "MINUTES",
     },

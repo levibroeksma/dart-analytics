@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # Database Migration Strategy
@@ -915,6 +915,30 @@ Contains:
 The trigger function picks the row it reads by `TG_OP`, never by `COALESCE(NEW, OLD)`: `NEW` is *unassigned* on a `DELETE`, so reading it raises `42804` before `COALESCE` could fall through to `OLD` (D335). A `routine_steps` `DELETE` reads `OLD.routine_template_id`, an `INSERT` reads `NEW.routine_template_id`, and an `UPDATE` that moves a step to a different routine re-checks both parents; on `routine_templates` the row is `NEW.id`. A routine deleted in the same transaction as its steps leaves no parent row to find, and the function returns before summing. <!-- 2026-09-19 --> `database/seeds/0020_finishing_default_configuration.sql` backfills the Finishing (TUOD) template's `default_configuration` from Balanced Training's own step override, so a user step referencing it does not resolve to `{}`. `database/verification/0038_custom_routine_checks.sql` (11 checks) is what proves the CHECK, both triggers and both views land, once a human runs it against a live database.
 
 Never edits `0004`/`0011`/`0036`.
+
+---
+
+## 0040_exercise_template_game_ruleset.sql
+
+Purpose:
+
+Let a GAME exercise template pin the game ruleset version its `default_configuration` was written against — the game-side mirror of `0035`. <!-- 2026-09-20 -->
+
+Contains:
+
+- `uq_ruleset_versions_game_type_id` — `UNIQUE (game_type_id, id)`, a referenceable target only; the pair is already unique by way of the primary key
+- `exercise_templates.game_ruleset_version_id` (`UUID`, nullable, and staying so)
+- `fk_exercise_templates_game_ruleset_version` — composite FK on `(game_type_id, game_ruleset_version_id)`, `ON DELETE RESTRICT`
+- `chk_exercise_templates_game_ruleset_pair` — `game_ruleset_version_id IS NULL OR game_type_id IS NOT NULL`: a pin names its game, and a GAME template that pins nothing stays legal
+- `v_routine_execution` and `v_exercise_template_catalog` recreated (the `0038` shape) with `game_ruleset_version_key` (LEFT JOIN, additive)
+
+Until this migration, `startGameStep` hardcoded TUOD/`TUOD_V1`, so a second GAME template could not be seeded at all (issue #378's deploy-order constraint is exactly what motivated seeding the first one, Finishing, through a backfill rather than a literal column default). The foreign key is composite, mirroring `0035`'s exercise-ruleset pin, so a template cannot pin another game's ruleset version.
+
+The CHECK runs one way only — a pin names its game; a game need not carry a pin — and is added validated, needing no `NOT VALID` staging. A both-or-neither pair would be wrong rather than merely inconvenient: `seeds/0002` inserts `501 Match`, `Singles Accuracy` and the rest with a `game_type_id` and no version, because only a game with a native timed mode is routine-eligible at all (D340), and those templates are permanent. `NOT VALID` would not have saved it either — it grandfathers rows already present, and a seed run against a fresh database INSERTs these rows rather than inheriting them, which is exactly how the deploy rehearsal caught it. What refuses an unpinned game at routine time is `routineGameStepHook`, not this constraint (D339).
+
+Both views are dropped and recreated rather than `CREATE OR REPLACE`d, matching `0036`/`0038`'s precedent for a column-order change. Neither drops an existing column, so no consumer breaks.
+
+Never edits `0004`/`0011`/`0035`/`0036`/`0038`.
 
 ---
 

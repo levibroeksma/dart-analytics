@@ -121,6 +121,10 @@ describe("updatePlayerProfile", () => {
 /**
  * Rendered-statement coverage for the two write paths — the mocked builders
  * above never render SQL, so a malformed statement passes them (issue #397).
+ *
+ * Column order follows `players`' declaration order in `schema.ts`, which is
+ * the live table's column order: `darts_description`/`darts_weight_grams`
+ * were added after `created_at`/`updated_at` and sort last.
  */
 describe("player.repository rendered SQL", () => {
   it("renders the provisioning upsert with its xmax created-flag", async () => {
@@ -129,7 +133,7 @@ describe("player.repository rendered SQL", () => {
       await import("@repositories/player.repository");
     await upsertPlayerByAuthUserId(db, "u1", "p1", "Levi");
     expect(onlyStatement(statements)).toBe(
-      'insert into "players" ("id", "auth_user_id", "display_name", "darts_description", "darts_weight_grams", "created_at", "updated_at") values ($1, $2, $3, default, default, $4, $5) on conflict ("auth_user_id") do update set "updated_at" = $6 returning "id", "auth_user_id", xmax::text',
+      'insert into "players" ("id", "auth_user_id", "display_name", "created_at", "updated_at", "darts_description", "darts_weight_grams") values ($1, $2, $3, $4, $5, default, default) on conflict ("auth_user_id") do update set "updated_at" = $6 returning "id", "auth_user_id", xmax::text',
     );
   });
 
@@ -143,7 +147,7 @@ describe("player.repository rendered SQL", () => {
       dartsWeightGrams: 24,
     } as never);
     expect(onlyStatement(statements)).toBe(
-      'update "players" set "display_name" = $1, "darts_description" = $2, "darts_weight_grams" = $3, "updated_at" = $4 where "players"."id" = $5 returning "display_name", "darts_description", "darts_weight_grams"',
+      'update "players" set "display_name" = $1, "updated_at" = $2, "darts_description" = $3, "darts_weight_grams" = $4 where "players"."id" = $5 returning "display_name", "darts_description", "darts_weight_grams"',
     );
   });
 });

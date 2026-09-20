@@ -21,6 +21,7 @@ const ROUTINE = {
       exerciseDescription: "x",
       exerciseTypeKey: "SWITCHING",
       gameTypeKey: null,
+      gameRulesetVersionKey: null,
       durationValue: 30,
       durationTypeKey: "MINUTES",
     },

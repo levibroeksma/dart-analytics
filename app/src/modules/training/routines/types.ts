@@ -64,11 +64,14 @@ export type RoutineStatRow = {
 
 /**
  * One completed exercise's contribution to the routine summary. Warm-Up
- * throws no darts and produces none, which is why the key is narrower than
- * `TrainingStepKey`.
+ * throws no darts and produces none, which is why no adapter ever pushes one
+ * for it. `stepKey` is a plain string — `StepAdapterKey`-compatible
+ * (`"SWITCHING"`, `"DOUBLE_PATTERN"`, `"GAME:<rulesetVersionKey>"`) — rather
+ * than importing that type from `lib/training/routines/adapters/`, which
+ * would invert the `lib` → `modules` dependency direction.
  */
 export type RoutineStepSummary = {
-  stepKey: "SWITCHING" | "DOUBLE_PATTERN" | "GAME";
+  stepKey: string;
   label: string;
   rows: RoutineStatRow[];
 };

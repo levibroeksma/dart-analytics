@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-09-17
+updated: 2026-09-20
 -->
 
 # Frontend Modules And OOP
 
-> **Version:** 0.3.0 (exercise, training and stats module families added to the OOP boundary table, issue #347, 2026-09-17; prior 0.2.2 derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
+> **Version:** 0.4.0 (`lib/training/routines/adapters/*.adapter.ts` registry pattern added to the OOP boundary table, 2026-09-20; prior 0.3.0 exercise, training and stats module families added, issue #347, 2026-09-17; prior 0.2.2 derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >
@@ -32,6 +32,7 @@ This document defines where object-oriented code belongs in the frontend, how po
 | `modules/training/routines/*.module.ts` | Prefer functions | Routine orchestration — duration validation, per-step summaries, and the `trainingEngine` object literal. No classes today; under `modules/` because the routine family is a unit |
 | `modules/stats/*.module.ts` | Prefer functions | Pure statistics aggregation over view rows; the application judgment D258 keeps out of SQL. Class-free by preference, under `modules/` because the aggregation family is a unit, not because it is stateful |
 | `modules/training/trivia/*.module.ts` | **Yes** | Non-`GameEngine` OOP tool — ephemeral client practice, no persistence, outside the game-wiring pipeline (see "Non-Game Client Tools" below). Class-based, so it lives under `modules/` per the OOP boundary even though Quick Subtract is a single route — narrower than `07-Frontend/02-Folder-Structure.md`'s "2+ routes" folder warrant, which governs plain-function code (`docs/architecture/09-Training/02-Trivia.md`'s Checkout Trivia has none, so it colocates fully in `lib/training/trivia/` instead) |
+| `lib/training/routines/adapters/*.adapter.ts` | **No** | `StepAdapter` registry (2026-09-20): one plain object literal per routine step kind, keyed by `StepAdapterKey` in the `STEP_ADAPTERS` map, resolved by `resolveStepAdapter`/`stepAdapterKey`; `routine-play.data.ts` holds one `adapter` field and delegates every per-kind question (`open`/`facts`/`completesOwnSession`/`summarise`/`close`) to it instead of branching inline. Lives under `lib/`, not `modules/`, specifically because a GAME adapter's `open` wraps a play factory (`tuodPlay`, `scoreTrainingPlay`, `oneTwentyOnePlay`) that imports `@client/api` — forbidden for anything under `modules/` |
 | `stores/`, `*.data.ts` | **No** | Object factories |
 | `components/ui/*.astro` | **No** | Markup + Alpine wiring |
 

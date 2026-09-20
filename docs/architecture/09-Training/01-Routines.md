@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-19
+updated: 2026-09-20
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -557,7 +557,15 @@ Game Ruleset
 
 The exercise remains responsible for the exercise lifecycle and duration, while the game engine remains responsible for game mechanics.
 
-The exact delegation boundary between `ExerciseEngine` and `GameEngine` should be specified when the first game-backed exercise is implemented.
+**Delegation boundary (implemented, migration `0040`; 2026-09-20):** a GAME step's own duration *is* the game's native timed-mode clock — not a separate step timer running alongside it — so the step's `ExerciseEngine` layer never wraps or races the `GameEngine`'s own expiry; the game ends the way its standalone timer would, and that end is the step's end. The server resolves this per step from a small eligibility table (`ROUTINE_GAME_STEPS`, `app/src/services/routines/game-step.ts`), keyed by the game ruleset version the step's template pins (`exercise_templates.game_ruleset_version_id`, §7's Template Layer chapter); the client mirrors it with its own adapter table (`STEP_ADAPTERS`, `app/src/lib/training/routines/adapters/step-adapter.registry.ts`, `07-Frontend/04-Modules-And-OOP.md`). The two tables are hand-mirrored, never a shared import — the client may never import server code — and are kept in agreement only by `step-adapter.registry.test.ts`, not by the type system.
+
+A game is routine-eligible only when all of the following hold at once:
+
+- it has a native timed mode, so a step's minutes translate into that mode's own duration keys rather than a bolt-on clock;
+- its ruleset version declares both `ANALYTICS` and `VISUAL_BOARD` in `RULESET_CAPABILITIES` (§13);
+- the ruleset version key is listed in **both** `ROUTINE_GAME_STEPS` (server) and `STEP_ADAPTERS` (client).
+
+Currently eligible: `TUOD_V1`, `SCORE_TRAINING_V1`, `121_V2`. `121_V1` (TARGET-only, no timed mode) is not eligible. A template pins exactly one eligible ruleset version; the pin is copied onto the session's configuration snapshot at Training start, the same as every other template value (§18) — it is never resolved independently on the session.
 
 ---
 
@@ -781,6 +789,8 @@ game:
 ```
 
 The exercise engine orchestrates the exercise while delegating game mechanics to the 501 `GameEngine`.
+
+**Implemented (seed `0022`; 2026-09-20):** three GAME templates are seeded, each pinning one routine-eligible ruleset version (§11) — Finishing, pinned to `TUOD_V1` (seed `0021`); Score Training (timed), pinned to `SCORE_TRAINING_V1`; and 121 (timed), pinned to game type `ONE_TWENTY_ONE`'s `121_V2`. See §11 for the eligibility rule these three satisfy and `05-Database/06-Spec/02-Template-Layer.md` for the schema.
 
 ---
 
@@ -1099,6 +1109,8 @@ Existing routines must remain unaffected.
 Adding a new game should continue to follow the existing GameEngine architecture.
 
 A game-backed exercise should compose the existing game engine rather than duplicating its mechanics.
+
+A new game does not automatically become a routine step: §11's eligibility rule — native timed mode, `ANALYTICS`+`VISUAL_BOARD` capabilities, and an entry in both `ROUTINE_GAME_STEPS` and `STEP_ADAPTERS` — is what a game must additionally satisfy, and both tables are a deliberate manual step, not something the game-wiring pipeline (`07-Frontend/09-Adding-A-Game.md`) does for it. <!-- 2026-09-20 -->
 
 ---
 

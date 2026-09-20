@@ -164,6 +164,39 @@ describe("findRoutineTemplateSteps", () => {
       ["WARM_UP_V1", null],
     );
   });
+
+  /**
+   * `gameRulesetVersionKey` is what `routineGameStepHook` keys eligibility on
+   * (`training-session.service.ts`), so a step that never reads it back from
+   * the view would always resolve as ineligible regardless of the template.
+   */
+  it("selects gameRulesetVersionKey from v_routine_execution", async () => {
+    const chain = fakeSelect(stepRows);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    await findRoutineTemplateSteps(db, "rt-1", "p1");
+
+    expect(Object.keys(db.select.mock.calls[0]![0])).toContain(
+      "gameRulesetVersionKey",
+    );
+  });
+
+  it("carries a GAME step's game ruleset version key onto its row", async () => {
+    const rowsWithGameRuleset = stepRows.map((row) => ({
+      ...row,
+      gameRulesetVersionKey: row.gameTypeKey === "TUOD" ? "TUOD_V1" : null,
+    }));
+    const db = { select: vi.fn(() => fakeSelect(rowsWithGameRuleset)) } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    const result = await findRoutineTemplateSteps(db, "rt-1", "p1");
+
+    expect(result?.steps.map((step) => step.gameRulesetVersionKey)).toEqual([
+      null,
+      "TUOD_V1",
+    ]);
+  });
 });
 
 const insertedValuesByTable = new Map<unknown, unknown>();

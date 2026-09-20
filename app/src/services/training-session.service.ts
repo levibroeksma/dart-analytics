@@ -25,15 +25,19 @@ import type { RoutineStepTemplateRow } from "@repositories/interfaces";
 import { isActiveSessionConflict } from "./session.service";
 import { getExerciseRulesetValidator } from "./exercise-rulesets/registry";
 import { getRulesetValidator } from "./rulesets/registry";
+import {
+  GAME_NOT_ROUTINE_ELIGIBLE,
+  ROUTINE_CAPTURE_MODE_KEY,
+  ROUTINE_INPUT_MODE_KEY,
+  routineGameStepHook,
+} from "./routines/game-step";
 import type {
+  RoutineGameStepHook,
   ServiceResult,
   StartTrainingResult,
   StartTrainingStepResult,
   TrainingStepResolved,
 } from "./types";
-
-const FINISHING_GAME_TYPE_KEY = "TUOD";
-const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
 
 /**
  * The exercise type whose steps run a game engine. Such a step pins a game
@@ -41,15 +45,6 @@ const FINISHING_RULESET_VERSION_KEY = "TUOD_V1";
  * the one step kind `stepConfigurationIssues` has no validator to apply.
  */
 const GAME_EXERCISE_TYPE_KEY = "GAME";
-
-/**
- * The capture/input mode pair a routine's GAME step validates and injects
- * under. Phase 1 always runs a GAME step under ANALYTICS/VISUAL_BOARD — the
- * only pair the routine player screen drives; Phase 2 will vary it with the
- * step's own capture setting.
- */
-const ROUTINE_CAPTURE_MODE_KEY = "ANALYTICS";
-const ROUTINE_INPUT_MODE_KEY = "VISUAL_BOARD";
 
 function durationSecondsFor(
   durationTypeKey: string,
@@ -73,24 +68,26 @@ function mergedConfiguration(
 }
 
 /**
- * TUOD reads its timed length from `duration_type`/`duration_value`; a
- * routine step's own minutes win over the template default (D321 §3.5).
+ * A GAME step reads its timed length from `duration_type`/`duration_value`,
+ * each ruleset's own way; a routine step's own minutes win over the template
+ * default (D321 §3.5).
  */
 function injectGameStepDuration(
   row: RoutineStepTemplateRow,
   configuration: Record<string, unknown>,
 ): void {
-  if (row.gameTypeKey !== FINISHING_GAME_TYPE_KEY) return;
   if (row.durationTypeKey !== "MINUTES") return;
-  configuration.duration_type = "MINUTES";
-  configuration.duration_value = row.durationValue;
+  routineGameStepHook(row.gameRulesetVersionKey)?.applyStepDuration(
+    configuration,
+    row.durationValue,
+  );
 }
 
 /**
  * The step's configuration issues, or undefined when it validates. A GAME
- * step validates against the finishing ruleset (`TUOD_V1`) under the routine
- * capture pair (issue #392); Phase 2 generalises the pinned key to the
- * step's own game type.
+ * step validates against its own pinned, routine-eligible ruleset under the
+ * routine capture pair (issue #392); a ruleset with no timed mode is not
+ * eligible at all, whatever the template says.
  *
  * A non-game step that resolves no validator is itself an issue. That is the
  * assertion migration `0035` deliberately left out of the schema: a template
@@ -102,9 +99,11 @@ function stepConfigurationIssues(
   configuration: Record<string, unknown>,
 ): unknown[] | undefined {
   if (row.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY) {
-    const validator = getRulesetValidator(FINISHING_RULESET_VERSION_KEY);
+    const hook = routineGameStepHook(row.gameRulesetVersionKey);
+    if (!hook) return [GAME_NOT_ROUTINE_ELIGIBLE];
+    const validator = getRulesetValidator(hook.rulesetVersionKey);
     if (!validator) {
-      return [`no ruleset validator for ${FINISHING_RULESET_VERSION_KEY}`];
+      return [`no ruleset validator for ${hook.rulesetVersionKey}`];
     }
     const result = validator.validateConfig({
       config: configuration,
@@ -144,9 +143,28 @@ function resolveStep(
       row.exerciseTypeKey as TrainingStepResolved["exerciseTypeKey"],
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     gameTypeKey: row.gameTypeKey,
+    gameRulesetVersionKey: row.gameRulesetVersionKey,
     durationSeconds,
     configuration,
   };
+}
+
+/**
+ * `"game not routine-eligible"` only when every collected step failed for
+ * that single reason — a batch mixing it with any other issue still reads as
+ * ordinary invalid configuration.
+ */
+function invalidReason(
+  invalid: { sequenceNumber: number; issues: unknown[] }[],
+): string {
+  const allIneligible = invalid.every(
+    (entry) =>
+      entry.issues.length === 1 &&
+      entry.issues[0] === GAME_NOT_ROUTINE_ELIGIBLE,
+  );
+  return allIneligible
+    ? GAME_NOT_ROUTINE_ELIGIBLE
+    : "invalid step configuration";
 }
 
 export async function startTraining(
@@ -190,7 +208,7 @@ export async function startTraining(
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "invalid step configuration", steps: invalid },
+      details: { reason: invalidReason(invalid), steps: invalid },
     };
   }
 
@@ -241,18 +259,43 @@ type StepStartContext = {
   }[];
 };
 
-async function startGameStep(
-  ctx: StepStartContext,
-): Promise<ServiceResult<StartTrainingStepResult>> {
-  const { db, playerId, activityId, sequenceNumber, step } = ctx;
-  const exerciseTypeId = await findExerciseTypeId(db, "GAME");
+type GameStepStart = {
+  hook: RoutineGameStepHook;
+  gameTypeKey: string;
+  exerciseTypeId: string;
+  gameTypeId: string;
+  rulesetVersionId: string;
+  captureModeId: number;
+  inputModeId: number;
+};
+
+/**
+ * Everything a GAME step's session row is written from, resolved in one pass:
+ * the hook the step's pinned ruleset version maps to, and the reference-data
+ * ids the insert takes. A step whose ruleset resolves no hook, or that names
+ * no game at all, is not routine-eligible and fails here rather than at the
+ * insert.
+ */
+async function resolveGameStepStart(
+  db: Db,
+  step: TrainingStepResolved,
+): Promise<ServiceResult<GameStepStart>> {
+  const hook = routineGameStepHook(step.gameRulesetVersionKey ?? null);
+  if (!hook || !step.gameTypeKey) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE },
+    };
+  }
+  const exerciseTypeId = await findExerciseTypeId(db, GAME_EXERCISE_TYPE_KEY);
   const gameLookup = await findGameTypeAndRuleset(
     db,
-    FINISHING_GAME_TYPE_KEY,
-    FINISHING_RULESET_VERSION_KEY,
+    step.gameTypeKey,
+    hook.rulesetVersionKey,
   );
-  const captureModeId = await findCaptureModeId(db, "ANALYTICS");
-  const inputModeId = await findInputModeId(db, "VISUAL_BOARD");
+  const captureModeId = await findCaptureModeId(db, ROUTINE_CAPTURE_MODE_KEY);
+  const inputModeId = await findInputModeId(db, ROUTINE_INPUT_MODE_KEY);
   if (!exerciseTypeId || !gameLookup || !captureModeId || !inputModeId) {
     return {
       ok: false,
@@ -260,6 +303,27 @@ async function startGameStep(
       details: { reason: "reference data missing" },
     };
   }
+  return {
+    ok: true,
+    data: {
+      hook,
+      gameTypeKey: step.gameTypeKey,
+      exerciseTypeId,
+      gameTypeId: gameLookup.gameTypeId,
+      rulesetVersionId: gameLookup.rulesetVersionId,
+      captureModeId,
+      inputModeId,
+    },
+  };
+}
+
+async function startGameStep(
+  ctx: StepStartContext,
+): Promise<ServiceResult<StartTrainingStepResult>> {
+  const { db, playerId, activityId, sequenceNumber, step } = ctx;
+  const resolved = await resolveGameStepStart(db, step);
+  if (!resolved.ok) return resolved;
+  const { hook, gameTypeKey, ...refs } = resolved.data;
   try {
     await withTransaction((tx) =>
       insertExerciseSessionRecord(tx, {
@@ -268,31 +332,31 @@ async function startGameStep(
         configurationId: generateId(),
         participants: ctx.participants,
         playerId,
-        gameTypeId: gameLookup.gameTypeId,
-        rulesetVersionId: gameLookup.rulesetVersionId,
-        captureModeId,
-        inputModeId,
+        gameTypeId: refs.gameTypeId,
+        rulesetVersionId: refs.rulesetVersionId,
+        captureModeId: refs.captureModeId,
+        inputModeId: refs.inputModeId,
         activeStatusId: ctx.activeStatusId,
-        exerciseTypeId,
+        exerciseTypeId: refs.exerciseTypeId,
         routineStepSequenceNumber: sequenceNumber,
         configuration: step.configuration,
       }),
     );
   } catch (error) {
     if (!isActiveSessionConflict(error)) throw error;
-    return resolveActiveSessionConflict(db, playerId, gameLookup.gameTypeId);
+    return resolveActiveSessionConflict(db, playerId, refs.gameTypeId);
   }
   return {
     ok: true,
     data: {
       sessionId: ctx.sessionId,
-      exerciseTypeKey: "GAME",
+      exerciseTypeKey: GAME_EXERCISE_TYPE_KEY,
       configuration: step.configuration,
       participant: { ref: ctx.participantId, displayName: ctx.displayName },
-      gameTypeKey: FINISHING_GAME_TYPE_KEY,
-      rulesetVersionKey: FINISHING_RULESET_VERSION_KEY,
-      captureModeKey: "ANALYTICS",
-      inputModeKey: "VISUAL_BOARD",
+      gameTypeKey,
+      rulesetVersionKey: hook.rulesetVersionKey,
+      captureModeKey: ROUTINE_CAPTURE_MODE_KEY,
+      inputModeKey: ROUTINE_INPUT_MODE_KEY,
     },
   };
 }

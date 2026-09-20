@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
  * The Finishing step over the REAL `tuodPlay()` store — the seam issue #370
- * names. `finishing-step.data.test.ts` mocks `tuodPlay` wholesale, which pins
+ * names. `game-step.data.test.ts` mocks `tuodPlay` wholesale, which pins
  * the wrapper's own contract but never executes the path the step actually
  * takes to completion: `recordDart` -> `wouldComplete()` -> `showFinishConfirm`
  * -> `confirmFinish()` -> `uploadAndCompleteSession()` -> the routine's
@@ -35,7 +35,8 @@ import {
   completeSession,
   fetchActiveSessions,
 } from "@client/api/sessions";
-import { finishingStep } from "@lib/training/routines/finishing-step.data";
+import { gameStep } from "@lib/training/routines/game-step.data";
+import { tuodPlay } from "@lib/game/tuod-play.data";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type { DartObservation, EngineFacts, StageFact } from "@modules/types";
 
@@ -154,7 +155,7 @@ async function startFinishingStep(): Promise<Harness> {
   const onStepComplete = vi.fn().mockResolvedValue(undefined);
   const onAbandon = vi.fn().mockResolvedValue(undefined);
   const component = {
-    ...finishingStep(onStepComplete, onAbandon),
+    ...gameStep(tuodPlay, onStepComplete, onAbandon),
     $store: { game: store, settings: settingsStub() },
   } as unknown as TuodPlayContext;
   await component.init();

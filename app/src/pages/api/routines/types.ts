@@ -33,6 +33,7 @@ export const RoutineStep = z.object({
   exerciseDescription: z.string().nullable(),
   exerciseTypeKey: z.string(),
   gameTypeKey: z.string().nullable(),
+  gameRulesetVersionKey: z.string().nullable(),
   durationValue: z.number().int(),
   durationTypeKey: z.string(),
 });

@@ -6,7 +6,11 @@ import type {
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
-import type { TuodSeatResult } from "@lib/types";
+import type {
+  TuodSeatResult,
+  ScoreTrainingSeatResult,
+  OneTwentyOneSeatResult,
+} from "@lib/types";
 
 const NO_VALUE = "—";
 
@@ -71,10 +75,46 @@ export function summariseDoublePattern(
  * `checkoutPercentage` is null whenever the session was not played on the
  * visual board.
  */
-export function summariseFinishing(seat: TuodSeatResult): RoutineStepSummary {
+export function summariseTuod(seat: TuodSeatResult): RoutineStepSummary {
   return {
-    stepKey: "GAME",
+    stepKey: "GAME:TUOD_V1",
     label: "Finishing",
+    rows: [
+      { label: "Target reached", value: String(seat.target) },
+      { label: "Checkout %", value: seat.checkoutPercentage ?? NO_VALUE },
+    ],
+  };
+}
+
+/**
+ * Reuses Score Training's own results snapshot. `ScoreTrainingSeatResult`
+ * carries no per-visit dart count (only `total`/`threeDartAverage`/etc.), so
+ * — unlike Switching/Double Pattern — this summary has no "Darts" row.
+ */
+export function summariseScoreTraining(
+  seat: ScoreTrainingSeatResult,
+): RoutineStepSummary {
+  return {
+    stepKey: "GAME:SCORE_TRAINING_V1",
+    label: "Scoring",
+    rows: [
+      { label: "Points", value: String(seat.total) },
+      { label: "Average", value: seat.threeDartAverage },
+    ],
+  };
+}
+
+/**
+ * Reuses 121's own results snapshot rather than recomputing it;
+ * `checkoutPercentage` is null whenever the session was not played on the
+ * visual board.
+ */
+export function summariseOneTwentyOne(
+  seat: OneTwentyOneSeatResult,
+): RoutineStepSummary {
+  return {
+    stepKey: "GAME:121_V2",
+    label: "121",
     rows: [
       { label: "Target reached", value: String(seat.target) },
       { label: "Checkout %", value: seat.checkoutPercentage ?? NO_VALUE },
