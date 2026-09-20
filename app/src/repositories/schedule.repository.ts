@@ -1,0 +1,209 @@
+import { and, asc, eq } from "drizzle-orm";
+import { getDb, withTransaction } from "@db/client";
+import {
+  trainingScheduleDays,
+  trainingSchedules,
+  vTrainingScheduleDays,
+  vTrainingSchedules,
+} from "@db/schema";
+import type { TrainingScheduleDayRow, TrainingScheduleRow } from "./interfaces";
+
+type Db = ReturnType<typeof getDb>;
+
+type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
+  ? T
+  : never;
+
+/** The caller's own schedules, optionally narrowed to one. */
+export async function findScheduleRows(
+  db: Db,
+  playerId: string,
+  scheduleId?: string,
+): Promise<TrainingScheduleRow[]> {
+  const scope = eq(vTrainingSchedules.playerId, playerId);
+  const rows = await db
+    .select({
+      scheduleId: vTrainingSchedules.scheduleId,
+      playerId: vTrainingSchedules.playerId,
+      name: vTrainingSchedules.name,
+      isActive: vTrainingSchedules.isActive,
+      updatedAt: vTrainingSchedules.updatedAt,
+      dayCount: vTrainingSchedules.dayCount,
+    })
+    .from(vTrainingSchedules)
+    .where(
+      scheduleId
+        ? and(eq(vTrainingSchedules.scheduleId, scheduleId), scope)
+        : scope,
+    );
+  return rows as TrainingScheduleRow[];
+}
+
+/** The caller's own schedule days, optionally narrowed to one schedule, weekday order. */
+export async function findScheduleDayRows(
+  db: Db,
+  playerId: string,
+  scheduleId?: string,
+): Promise<TrainingScheduleDayRow[]> {
+  const scope = eq(vTrainingScheduleDays.playerId, playerId);
+  const rows = await db
+    .select({
+      scheduleId: vTrainingScheduleDays.scheduleId,
+      playerId: vTrainingScheduleDays.playerId,
+      scheduleName: vTrainingScheduleDays.scheduleName,
+      isActive: vTrainingScheduleDays.isActive,
+      dayOfWeek: vTrainingScheduleDays.dayOfWeek,
+      routineTemplateId: vTrainingScheduleDays.routineTemplateId,
+      routineName: vTrainingScheduleDays.routineName,
+      routineMinutes: vTrainingScheduleDays.routineMinutes,
+    })
+    .from(vTrainingScheduleDays)
+    .where(
+      scheduleId
+        ? and(eq(vTrainingScheduleDays.scheduleId, scheduleId), scope)
+        : scope,
+    )
+    .orderBy(asc(vTrainingScheduleDays.dayOfWeek));
+  return rows as TrainingScheduleDayRow[];
+}
+
+/**
+ * Schedule ids of the caller's own schedules that still assign this routine
+ * to some weekday — the `scheduleIds` detail `deleteRoutine`'s RESTRICT
+ * mapping reports (`routine.service.ts`).
+ */
+export async function findScheduleIdsUsingRoutine(
+  db: Db,
+  playerId: string,
+  routineTemplateId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ scheduleId: vTrainingScheduleDays.scheduleId })
+    .from(vTrainingScheduleDays)
+    .where(
+      and(
+        eq(vTrainingScheduleDays.routineTemplateId, routineTemplateId),
+        eq(vTrainingScheduleDays.playerId, playerId),
+      ),
+    );
+  return [...new Set(rows.map((row) => row.scheduleId))];
+}
+
+export async function insertScheduleRecord(
+  tx: Tx,
+  input: { scheduleId: string; playerId: string; name: string },
+): Promise<void> {
+  const now = new Date().toISOString();
+  await tx.insert(trainingSchedules).values({
+    id: input.scheduleId,
+    playerId: input.playerId,
+    name: input.name,
+    isActive: false,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+/** True when the caller's own schedule was updated. */
+export async function updateScheduleRecord(
+  tx: Tx,
+  input: { scheduleId: string; playerId: string; name: string },
+): Promise<boolean> {
+  const rows = await tx
+    .update(trainingSchedules)
+    .set({ name: input.name, updatedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(trainingSchedules.id, input.scheduleId),
+        eq(trainingSchedules.playerId, input.playerId),
+      ),
+    )
+    .returning({ id: trainingSchedules.id });
+  return rows.length === 1;
+}
+
+/** Full replace: every existing day of the schedule is dropped, then the given set is inserted. */
+export async function replaceScheduleDayRecords(
+  tx: Tx,
+  input: {
+    scheduleId: string;
+    days: { id: string; dayOfWeek: number; routineTemplateId: string }[];
+  },
+): Promise<void> {
+  await tx
+    .delete(trainingScheduleDays)
+    .where(eq(trainingScheduleDays.trainingScheduleId, input.scheduleId));
+  if (input.days.length === 0) return;
+  const now = new Date().toISOString();
+  await tx.insert(trainingScheduleDays).values(
+    input.days.map((day) => ({
+      id: day.id,
+      trainingScheduleId: input.scheduleId,
+      dayOfWeek: day.dayOfWeek,
+      routineTemplateId: day.routineTemplateId,
+      createdAt: now,
+    })),
+  );
+}
+
+/**
+ * Clears every one of the caller's schedules before setting the target,
+ * ordered so the partial unique index (`uq_training_schedules_player_active`)
+ * never trips. True when the target schedule was the caller's own.
+ */
+export async function setActiveSchedule(
+  tx: Tx,
+  input: { playerId: string; scheduleId: string },
+): Promise<boolean> {
+  await tx
+    .update(trainingSchedules)
+    .set({ isActive: false, updatedAt: new Date().toISOString() })
+    .where(eq(trainingSchedules.playerId, input.playerId));
+  const rows = await tx
+    .update(trainingSchedules)
+    .set({ isActive: true, updatedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(trainingSchedules.id, input.scheduleId),
+        eq(trainingSchedules.playerId, input.playerId),
+      ),
+    )
+    .returning({ id: trainingSchedules.id });
+  return rows.length === 1;
+}
+
+/** True when the caller's own schedule was deactivated. */
+export async function clearActiveSchedule(
+  db: Db,
+  input: { playerId: string; scheduleId: string },
+): Promise<boolean> {
+  const rows = await db
+    .update(trainingSchedules)
+    .set({ isActive: false, updatedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(trainingSchedules.id, input.scheduleId),
+        eq(trainingSchedules.playerId, input.playerId),
+      ),
+    )
+    .returning({ id: trainingSchedules.id });
+  return rows.length === 1;
+}
+
+/** Days cascade (`fk_training_schedule_days_training_schedule`). True when a row was deleted. */
+export async function deleteScheduleRecord(
+  db: Db,
+  scheduleId: string,
+  playerId: string,
+): Promise<boolean> {
+  const rows = await db
+    .delete(trainingSchedules)
+    .where(
+      and(
+        eq(trainingSchedules.id, scheduleId),
+        eq(trainingSchedules.playerId, playerId),
+      ),
+    )
+    .returning({ id: trainingSchedules.id });
+  return rows.length === 1;
+}

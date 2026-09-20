@@ -14,10 +14,12 @@ import {
   insertRoutineTemplateRecord,
   updateRoutineTemplateRecord,
 } from "@repositories/routine.repository";
+import { findScheduleIdsUsingRoutine } from "@repositories/schedule.repository";
 import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
 } from "@repositories/interfaces";
+import { matchesConstraintError } from "./db-errors";
 import {
   GAME_NOT_ROUTINE_ELIGIBLE,
   routineGameStepHook,
@@ -32,7 +34,7 @@ import type {
 
 const USER_STEP_DURATION_TYPE_KEY = "MINUTES";
 const DURATION_BOUND_TRIGGER = "trg_routine_templates_duration_bounds";
-const MAX_CAUSE_DEPTH = 8;
+const SCHEDULE_ROUTINE_FK = "fk_training_schedule_days_routine_template";
 
 const SYSTEM_READ_ONLY: ServiceResult<never> = {
   ok: false,
@@ -195,25 +197,18 @@ function writeIssues(
 
 /** The `0038` deferred trigger surfaces at commit, after every pre-check. */
 function isRoutineDurationViolation(error: unknown): boolean {
-  let current: unknown = error;
-  for (let depth = 0; depth < MAX_CAUSE_DEPTH && current; depth++) {
-    const e = current as {
-      code?: string;
-      constraint?: string;
-      message?: string;
-      cause?: unknown;
-    };
-    if (
-      e.code === "23514" &&
-      (e.constraint === DURATION_BOUND_TRIGGER ||
-        (e.message?.includes(DURATION_BOUND_TRIGGER) ?? false))
-    ) {
-      return true;
-    }
-    if (e.cause === current) return false;
-    current = e.cause;
-  }
-  return false;
+  return matchesConstraintError(error, {
+    code: "23514",
+    constraint: DURATION_BOUND_TRIGGER,
+  });
+}
+
+/** A schedule day (`0041`) still assigns this routine to a weekday. */
+function isScheduledRoutineViolation(error: unknown): boolean {
+  return matchesConstraintError(error, {
+    code: "23503",
+    constraint: SCHEDULE_ROUTINE_FK,
+  });
 }
 
 type Tx = Parameters<Parameters<typeof withTransaction>[0]>[0];
@@ -346,6 +341,9 @@ export async function replaceRoutine(
 /**
  * Completed trainings keep their snapshot in `activity_configurations` and
  * never reference the template (Pattern 4), so a delete touches no history.
+ * A routine still assigned to a weekday in some schedule hits the `0041`
+ * `RESTRICT` FK instead; that surfaces as `VALIDATION_FAILED` naming the
+ * schedules in the way, rather than a silent rest day.
  */
 export async function deleteRoutine(
   playerId: string,
@@ -353,10 +351,24 @@ export async function deleteRoutine(
 ): Promise<ServiceResult<null>> {
   const blocked = await ownWritable(playerId, routineId);
   if (blocked) return blocked;
-  const deleted = await deleteRoutineTemplateRecord(
-    getDb(),
-    routineId,
-    playerId,
-  );
-  return deleted ? { ok: true, data: null } : notFound(routineId);
+  try {
+    const deleted = await deleteRoutineTemplateRecord(
+      getDb(),
+      routineId,
+      playerId,
+    );
+    return deleted ? { ok: true, data: null } : notFound(routineId);
+  } catch (error) {
+    if (!isScheduledRoutineViolation(error)) throw error;
+    const scheduleIds = await findScheduleIdsUsingRoutine(
+      getDb(),
+      playerId,
+      routineId,
+    );
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routine in use", scheduleIds },
+    };
+  }
 }
