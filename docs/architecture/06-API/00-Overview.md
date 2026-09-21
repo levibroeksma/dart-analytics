@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-20
+updated: 2026-09-21
 -->
 
 # API Overview
 
-> **Version:** 1.11.0 (weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.12.0 (session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -257,7 +257,7 @@ Policy:
 - PostgreSQL RLS is deferred from v1 and may be introduced later as defense-in-depth.
 - JWT middleware verification contract (v1): required claims are `sub` and `exp`.
 - Statistics scope: `overview` shipped 2026-09-06, composing 4 views in the service layer (no dedicated aggregate view); `trends` and `checkouts` remain deferred post-v1 and must be view-backed when built. <!-- 2026-07-12; overview shipped 2026-09-06 -->
-- Session participants (v1): a session has a single server-derived `PLAYER` participant; guest/DartBot play is deferred post-v1. <!-- 2026-07-12 -->
+- Session participants (v1): a session admits 1-4 seats via an optional ordered `participants[]` input (array order is seat order); exactly one `PLAYER` seat is required, server-derived. `GUEST` and `DARTBOT` seats are implemented, capped per ruleset by `SEAT_CAPS`; guest/DartBot play is no longer deferred (D350, supersedes D61). <!-- 2026-07-12; restated as shipped 2026-09-21 -->
 - Activity grouping (v1): activities are server-managed. A standalone game session gets one activity; a training routine's activity spans every step session started under it. Multi-session activities and routine-run writes shipped with Balanced Training and are no longer deferred (D301, supersedes D64). <!-- 2026-07-12; restated as shipped 2026-09-17 -->
 - Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
 - Freeze semantics: the route surface and behavioral semantics are frozen; documents may take doc-only version bumps without violating the freeze. <!-- 2026-07-13 -->
