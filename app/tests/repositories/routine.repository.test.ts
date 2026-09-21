@@ -191,6 +191,18 @@ describe("writes", () => {
     );
   });
 
+  it("deleteRoutineTemplateRecord scopes the delete to the caller's non-system routine", async () => {
+    const { db, statements } = renderingDb([{ id: "rt-1" }]);
+    const deleted = await deleteRoutineTemplateRecord(db, "rt-1", "p1");
+    const sql = onlyStatement(statements);
+    expect(deleted).toBe(true);
+    expect(sql).toContain('delete from "routine_templates"');
+    expect(sql).toMatch(
+      /"id" = \$\d+ and .*"player_id" = \$\d+ and .*"is_system_template" = \$\d+/,
+    );
+    expect(statements[0].params).toEqual(["rt-1", "p1", false]);
+  });
+
   it("insertRoutineStepRecords numbers steps from array position", async () => {
     const { db, statements } = renderingDb([]);
     await insertRoutineStepRecords(db, {
