@@ -139,6 +139,10 @@ export type TrainingIndexContext = {
   showModal: boolean;
   routines: RoutineSummaryData[];
   init(this: TrainingIndexContext): Promise<void>;
+  /** The seeded default routines. */
+  systemRoutines(this: TrainingIndexContext): RoutineSummaryData[];
+  /** The user's own saved routines. */
+  personalRoutines(this: TrainingIndexContext): RoutineSummaryData[];
   durationLabel(routine: RoutineSummaryData): string;
   detailHref(routine: RoutineSummaryData): string;
 };

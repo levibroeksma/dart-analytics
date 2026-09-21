@@ -24,14 +24,6 @@ import Badge from "@components/ui/Badge.astro";
           class="text-xs"
           x-text="durationLabel(routine)"
         />
-        <Badge
-          variant="neutral"
-          class="text-xs"
-          x-show="!routine.isSystemTemplate"
-          x-cloak
-        >
-          mine
-        </Badge>
       </div>
       <p
         class="text-xs text-muted-foreground"

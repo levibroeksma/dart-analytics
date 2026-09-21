@@ -38,6 +38,27 @@ describe("trainingIndex", () => {
     expect(data.detailHref(OWN)).toBe("/training/routines/detail?routine=o");
   });
 
+  it("splits loaded routines into default and personal lists", async () => {
+    vi.mocked(listRoutines).mockResolvedValue({
+      items: [SYS, OWN],
+      nextCursor: null,
+    });
+    const data: TrainingIndexContext = trainingIndex();
+    await data.init();
+    expect(data.systemRoutines()).toEqual([SYS]);
+    expect(data.personalRoutines()).toEqual([OWN]);
+  });
+
+  it("reports no personal routines when only system templates load", async () => {
+    vi.mocked(listRoutines).mockResolvedValue({
+      items: [SYS],
+      nextCursor: null,
+    });
+    const data: TrainingIndexContext = trainingIndex();
+    await data.init();
+    expect(data.personalRoutines()).toEqual([]);
+  });
+
   it("starts with the routine-form modal closed", () => {
     const data: TrainingIndexContext = trainingIndex();
     expect(data.showModal).toBe(false);

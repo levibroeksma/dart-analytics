@@ -23,6 +23,14 @@ export function trainingIndex() {
       }
     },
 
+    systemRoutines(this: TrainingIndexContext): RoutineSummaryData[] {
+      return this.routines.filter((routine) => routine.isSystemTemplate);
+    },
+
+    personalRoutines(this: TrainingIndexContext): RoutineSummaryData[] {
+      return this.routines.filter((routine) => !routine.isSystemTemplate);
+    },
+
     durationLabel(routine: RoutineSummaryData): string {
       return `${routine.totalMinutes} min`;
     },
