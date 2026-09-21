@@ -6,33 +6,86 @@ import GameCard from "@components/layout/games/GameCard.astro";
 import RoutineCard from "@components/layout/training/routines/RoutineCard.astro";
 import TodayCard from "@components/layout/training/schedules/TodayCard.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+import CardWrapper from "@components/ui/CardWrapper.astro";
 ---
 
 <AppLayout title="Training">
   <div
-    class="p-4 space-y-4"
+    class="p-4 space-y-8"
     x-data="trainingIndex()"
   >
-    <h1 class="text-xl font-semibold text-foreground">Training</h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-semibold text-foreground">Training</h1>
+      <button
+        class="text-4xl text-accent glass size-12 aspect-square rounded-full"
+        @click="showModal = true"
+      >
+        +
+      </button>
+    </div>
     <div x-data="todayCard()">
       <TodayCard />
     </div>
     <ErrorAlert />
-    <template
-      x-for="routine in routines"
-      :key="routine.routineId"
+    <CardWrapper
+      color="sky"
+      class="flex flex-col gap-4"
     >
-      <RoutineCard />
-    </template>
-    <GameCard
+      <div>
+        <h2 class="text-sm font-semibold text-foreground">Routines</h2>
+        <p class="text-xs text-muted-foreground">
+          Practice your routines, so you can perform them quickly and
+          accurately.
+        </p>
+      </div>
+      <template
+        x-for="routine in routines"
+        :key="routine.routineId"
+      >
+        <RoutineCard />
+      </template>
+
+      <div
+        class="space-y-4"
+        x-show="!routines.length"
+        x-cloak
+        aria-hidden="true"
+      >
+        {
+          [0, 1, 2].map(() => (
+            <div class="card-wrapper glass flex flex-row items-center justify-between gap-3 rounded-2xl p-3.5 animate-pulse">
+              <div class="flex flex-col gap-2">
+                <div class="h-4 w-32 rounded bg-surface-raised" />
+                <div class="h-3 w-48 rounded bg-surface-raised" />
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </CardWrapper>
+    <!-- <GameCard
       href="/training/routines/new"
       title="New routine"
       caption="Compose your own 30–60 minute session from the exercise catalog"
-    />
-    <GameCard
-      href="/training/quick-subtract"
-      title="Quick Subtract"
-      caption="Drill checkout mental math against the clock or a target count"
-    />
+    /> -->
+    <CardWrapper
+      color="violet"
+      class="flex flex-col gap-4"
+    >
+      <div>
+        <h2 class="text-sm font-semibold text-foreground">Trivia</h2>
+        <p class="text-xs text-muted-foreground">
+          Practice checkout mental math, so you don't loose your rhythm in the
+          heat of the moment.
+        </p>
+      </div>
+      <GameCard
+        href="/training/quick-subtract"
+        title="Quick Subtract"
+        caption="Drill checkout mental math against the clock or a target count"
+      />
+    </CardWrapper>
+    
   </div>
 </AppLayout>
