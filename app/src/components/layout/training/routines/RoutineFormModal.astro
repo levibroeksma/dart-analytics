@@ -1,7 +1,8 @@
 ---
 /**
- * Routine builder inside `ExpandingModal` — the modal replacement for the
- * `/training/routines/new` and `/edit` pages. It mounts its own
+ * Routine builder inside `ExpandingModal` — the create flow itself (the
+ * `/training/routines/new` page is retired) and the modal form for `/edit`.
+ * It mounts its own
  * `routineBuilder(mode)` scope *around* the modal, not inside its slot, so
  * every close path — Cancel, the toggle, Escape — can reach `resetForm()`;
  * `edit` still reads its routine id from `?routine=` like the page does.

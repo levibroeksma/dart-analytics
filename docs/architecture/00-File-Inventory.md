@@ -221,7 +221,7 @@ Registered for discoverability, not as reading material — the contract lives i
 | `app/src/icons/grip.svg` | Six-dot drag grip, the `x-sort:handle` affordance on a routine builder step row (D351, 2026-09-21) | canonical |
 | `app/src/components/ui/ExpandingModal.astro` | Corner disclosure dialog primitive: 48px glass toggle expanding in place into a full-frame panel; contents held at the expanded size throughout the transition via `100cqw`/`100cqh` against the fixed layer, so nothing reflows while the panel grows; caller owns the open flag (2026-09-21) | canonical |
 | `app/src/components/layout/training/routines/RoutineFormModal.astro` | `RoutineBuilder` in an `ExpandingModal` with its own `routineBuilder(mode)` scope — the modal form used by `/training` in place of a create/edit page (2026-09-21) | canonical |
-| `app/src/pages/training/routines/new/index.astro`, `app/src/pages/training/routines/detail/index.astro`, `app/src/pages/training/routines/edit/index.astro`, `app/src/pages/training/routines/play/index.astro` | The four data-driven routine routes, all `prerender = true`, routine id via `?routine=` query string; replace the retired static `/training/balanced-training` pair (2026-09-19) | canonical |
+| `app/src/pages/training/routines/detail/index.astro`, `app/src/pages/training/routines/edit/index.astro`, `app/src/pages/training/routines/play/index.astro` | The three data-driven routine routes, all `prerender = true`, routine id via `?routine=` query string; replace the retired static `/training/balanced-training` pair (2026-09-19). The `new/` route was retired 2026-09-21 — creating a routine is `RoutineFormModal` on `/training` (D351's modal host), not a page |  canonical |
 
 ## Routine step-kind generalisation (2026-09-20)
 
