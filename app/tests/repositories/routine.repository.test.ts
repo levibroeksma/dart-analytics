@@ -53,6 +53,37 @@ describe("findRoutineExecutionRows", () => {
       "gameRulesetVersionKey",
     );
   });
+
+  it("throws instead of silently returning a null exerciseName column", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          {
+            routineId: "rt-1",
+            routineName: "Mine",
+            routineDescription: null,
+            isSystemTemplate: false,
+            playerId: "p1",
+            sequenceNumber: 1,
+            exerciseTemplateId: "et-1",
+            exerciseName: null,
+            exerciseDescription: null,
+            exerciseTypeKey: "WARM_UP",
+            exerciseRulesetVersionKey: "WARM_UP_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationTypeKey: "MINUTES",
+            durationValue: 10,
+            defaultConfiguration: null,
+            stepConfiguration: null,
+          },
+        ]),
+      ),
+    } as any;
+    await expect(findRoutineExecutionRows(db, "p1")).rejects.toThrow(
+      /exercise_name/,
+    );
+  });
 });
 
 describe("findExerciseTemplateCatalog", () => {
@@ -70,6 +101,25 @@ describe("findExerciseTemplateCatalog", () => {
     expect(Object.keys(db.select.mock.calls[0]![0])).toContain(
       "gameRulesetVersionKey",
     );
+  });
+
+  it("throws instead of silently returning a null name column", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          {
+            exerciseTemplateId: "et-1",
+            name: null,
+            description: null,
+            exerciseTypeKey: "WARM_UP",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            hasDefaultConfiguration: true,
+          },
+        ]),
+      ),
+    } as any;
+    await expect(findExerciseTemplateCatalog(db)).rejects.toThrow(/name/);
   });
 });
 
@@ -139,6 +189,18 @@ describe("writes", () => {
     expect(onlyStatement(statements)).toContain(
       'delete from "routine_templates"',
     );
+  });
+
+  it("deleteRoutineTemplateRecord scopes the delete to the caller's non-system routine", async () => {
+    const { db, statements } = renderingDb([{ id: "rt-1" }]);
+    const deleted = await deleteRoutineTemplateRecord(db, "rt-1", "p1");
+    const sql = onlyStatement(statements);
+    expect(deleted).toBe(true);
+    expect(sql).toContain('delete from "routine_templates"');
+    expect(sql).toMatch(
+      /"id" = \$\d+ and .*"player_id" = \$\d+ and .*"is_system_template" = \$\d+/,
+    );
+    expect(statements[0].params).toEqual(["rt-1", "p1", false]);
   });
 
   it("insertRoutineStepRecords numbers steps from array position", async () => {

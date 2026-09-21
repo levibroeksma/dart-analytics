@@ -65,6 +65,26 @@ describe("findScheduleRows", () => {
     expect(row.dayCount).toBe(3);
     expect(typeof row.dayCount).toBe("number");
   });
+
+  it("throws instead of silently returning a null name column", async () => {
+    const db = {
+      select: vi.fn(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockResolvedValue([
+          {
+            scheduleId: "sch-1",
+            playerId: "p1",
+            name: null,
+            isActive: true,
+            updatedAt: "2026-09-20T00:00:00.000Z",
+            dayCount: 3,
+          },
+        ]),
+      })),
+    } as any;
+    await expect(findScheduleRows(db, "p1")).rejects.toThrow(/name/);
+  });
 });
 
 describe("findScheduleDayRows", () => {
@@ -84,6 +104,28 @@ describe("findScheduleDayRows", () => {
     const sql = onlyStatement(statements);
     expect(sql).toMatch(/"schedule_id" = \$1 and .*"player_id" = \$2/);
     expect(statements[0].params).toEqual(["sch-1", "p1"]);
+  });
+
+  it("throws instead of silently returning a null routine name column", async () => {
+    const db = {
+      select: vi.fn(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockResolvedValue([
+          {
+            scheduleId: "sch-1",
+            playerId: "p1",
+            scheduleName: "Mine",
+            isActive: true,
+            dayOfWeek: 1,
+            routineTemplateId: "rt-1",
+            routineName: null,
+            routineMinutes: 20,
+          },
+        ]),
+      })),
+    } as any;
+    await expect(findScheduleDayRows(db, "p1")).rejects.toThrow(/routine_name/);
   });
 });
 

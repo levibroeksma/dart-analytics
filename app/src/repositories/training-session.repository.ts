@@ -6,6 +6,7 @@ import {
   exerciseSessions,
   vRoutineExecution,
 } from "@db/schema";
+import { nonNull } from "./row-helpers";
 import type { RoutineStepTemplateRow } from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
@@ -61,11 +62,19 @@ export async function findRoutineTemplateSteps(
   if (!first) return undefined;
 
   return {
-    routineTemplateId: first.routineTemplateId as string,
-    routineName: first.routineName as string,
-    steps: rows.map(
-      ({ routineTemplateId: _id, routineName: _name, ...step }) => step,
-    ) as RoutineStepTemplateRow[],
+    routineTemplateId: nonNull(first.routineTemplateId, "routine_id"),
+    routineName: nonNull(first.routineName, "routine_name"),
+    steps: rows.map((row) => ({
+      sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
+      exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+      exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+      gameTypeKey: row.gameTypeKey,
+      gameRulesetVersionKey: row.gameRulesetVersionKey,
+      durationTypeKey: nonNull(row.durationTypeKey, "duration_type_key"),
+      durationValue: nonNull(row.durationValue, "duration_value"),
+      defaultConfiguration: row.defaultConfiguration,
+      stepConfiguration: row.stepConfiguration,
+    })),
   };
 }
 

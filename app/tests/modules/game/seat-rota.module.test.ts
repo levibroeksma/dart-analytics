@@ -160,6 +160,13 @@ describe("activeSeat with one seat", () => {
   });
 });
 
+describe("activeSeat with no seats", () => {
+  it("throws for PER_SEAT rather than dividing by zero", () => {
+    const facts: EngineFacts = { stages: [leg(1)], turns: [] };
+    expect(() => activeSeat(facts, [], "PER_SEAT")).toThrow(/seat/i);
+  });
+});
+
 describe("activeSeat with a completion predicate", () => {
   const seatList = [
     {

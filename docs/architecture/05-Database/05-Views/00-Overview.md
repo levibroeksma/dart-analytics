@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-20
+updated: 2026-09-21
 -->
 
 # Database View Strategy
@@ -416,6 +416,19 @@ A `*_key`/`*_name` column is nullable whenever the column it projects is: an
 INNER JOIN onto a nullable FK silently deletes the row instead of returning a
 NULL label, which is the one failure mode a read model must never have.
 <!-- 2026-09-16 -->
+
+`drizzle-kit introspect` types **every** view column nullable, regardless of
+the view's own SQL — Postgres reports no `NOT NULL` on a view, so this holds
+even for a column that can never actually be NULL. A repository reading a
+view therefore narrows each column its row interface declares non-null with
+`nonNull(value, "column_name")` (`app/src/repositories/row-helpers.ts`),
+never a blanket `as <Interface>Row[]` over the whole select: the blanket form
+silences every column's nullability at once — including a genuine mismatch,
+which is how `day_count`'s `bigint`/`number` divergence (#538) went
+unnoticed — where the per-column form still leaves the compiler checking
+each field and throws at read time if a column the interface promises is
+actually NULL. A column the interface itself declares nullable is left as
+the raw select value, unwrapped. (2026-09-21, D348, #539)
 
 **Read-model column standard (migration `0013`):** expose implementation keys as `<concept>_key`, human labels as `<concept>_name` only where a screen renders the label, and **do not expose internal lookup `*_id` columns**. Keep only entity UUIDs a client must address later (`session_id`, `routine_id`, `exercise_template_id`, `player_id`). See `01-Naming-Conventions.md` §"View Column Key And Label Naming". <!-- 2026-07-12 -->
 

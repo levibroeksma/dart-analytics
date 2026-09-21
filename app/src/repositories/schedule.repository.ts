@@ -6,6 +6,7 @@ import {
   vTrainingScheduleDays,
   vTrainingSchedules,
 } from "@db/schema";
+import { nonNull } from "./row-helpers";
 import type { TrainingScheduleDayRow, TrainingScheduleRow } from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
@@ -42,7 +43,14 @@ export async function findScheduleRows(
         : scope,
     )
     .orderBy(asc(vTrainingSchedules.name), asc(vTrainingSchedules.scheduleId));
-  return rows as TrainingScheduleRow[];
+  return rows.map((row) => ({
+    scheduleId: nonNull(row.scheduleId, "schedule_id"),
+    playerId: nonNull(row.playerId, "player_id"),
+    name: nonNull(row.name, "name"),
+    isActive: nonNull(row.isActive, "is_active"),
+    updatedAt: nonNull(row.updatedAt, "updated_at"),
+    dayCount: nonNull(row.dayCount, "day_count"),
+  }));
 }
 
 /** The caller's own schedule days, optionally narrowed to one schedule, weekday order. */
@@ -70,7 +78,16 @@ export async function findScheduleDayRows(
         : scope,
     )
     .orderBy(asc(vTrainingScheduleDays.dayOfWeek));
-  return rows as TrainingScheduleDayRow[];
+  return rows.map((row) => ({
+    scheduleId: nonNull(row.scheduleId, "schedule_id"),
+    playerId: nonNull(row.playerId, "player_id"),
+    scheduleName: nonNull(row.scheduleName, "schedule_name"),
+    isActive: nonNull(row.isActive, "is_active"),
+    dayOfWeek: nonNull(row.dayOfWeek, "day_of_week"),
+    routineTemplateId: nonNull(row.routineTemplateId, "routine_template_id"),
+    routineName: nonNull(row.routineName, "routine_name"),
+    routineMinutes: nonNull(row.routineMinutes, "routine_minutes"),
+  }));
 }
 
 /**
