@@ -5,6 +5,7 @@ import {
   vSessionOverview,
   vX01CheckoutDarts,
 } from "@db/schema";
+import { nonNull } from "./row-helpers";
 import type { getDb } from "@db/client";
 import type {
   PlayerLegFactRow,
@@ -30,7 +31,12 @@ export async function findSessionSummaries(
     .from(vSessionOverview)
     .where(eq(vSessionOverview.playerId, playerId));
 
-  return rows as PlayerSessionSummaryRow[];
+  return rows.map((row) => ({
+    gameTypeKey: row.gameTypeKey,
+    statusKey: nonNull(row.statusKey, "status_key"),
+    startedAt: nonNull(row.startedAt, "started_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+  }));
 }
 
 /** Reads every completed turn through `v_player_visit_facts`. */
@@ -52,7 +58,16 @@ export async function findVisitFacts(
     .from(vPlayerVisitFacts)
     .where(eq(vPlayerVisitFacts.playerId, playerId));
 
-  return rows as PlayerVisitFactRow[];
+  return rows.map((row) => ({
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: row.gameTypeKey,
+    stageId: nonNull(row.stageId, "stage_id"),
+    stageTypeKey: nonNull(row.stageTypeKey, "stage_type_key"),
+    turnSequence: nonNull(row.turnSequence, "turn_sequence"),
+    totalScore: nonNull(row.totalScore, "total_score"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+    configuredMaxDartsPerTurn: row.configuredMaxDartsPerTurn,
+  }));
 }
 
 /**
@@ -75,9 +90,11 @@ export async function findLegFacts(
     .where(eq(vPlayerLegFacts.playerId, playerId));
 
   return rows.map((row) => ({
-    ...row,
-    totalDartsInLeg: Number(row.totalDartsInLeg),
-  })) as PlayerLegFactRow[];
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: row.gameTypeKey,
+    stageId: nonNull(row.stageId, "stage_id"),
+    totalDartsInLeg: Number(nonNull(row.totalDartsInLeg, "total_darts_in_leg")),
+  }));
 }
 
 /**

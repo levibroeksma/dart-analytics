@@ -31,6 +31,22 @@ describe("findSessionSummaries", () => {
     expect(result).toEqual([row]);
     expect(fromCalls).toEqual([vSessionOverview]);
   });
+
+  it("throws instead of silently returning a null statusKey column", async () => {
+    const { chain } = fakeSelect([
+      {
+        gameTypeKey: "501",
+        statusKey: null,
+        startedAt: "2026-09-01T10:00:00.000Z",
+        durationSeconds: 600,
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findSessionSummaries } =
+      await import("@repositories/statistics.repository");
+
+    await expect(findSessionSummaries(db, "p1")).rejects.toThrow(/status_key/);
+  });
 });
 
 describe("findVisitFacts", () => {
@@ -55,6 +71,26 @@ describe("findVisitFacts", () => {
 
     expect(result).toEqual([row]);
     expect(fromCalls).toEqual([vPlayerVisitFacts]);
+  });
+
+  it("throws instead of silently returning a null stageId column", async () => {
+    const { chain } = fakeSelect([
+      {
+        sessionId: "s1",
+        gameTypeKey: "501",
+        stageId: null,
+        stageTypeKey: "LEG",
+        turnSequence: 1,
+        totalScore: 60,
+        dartCount: 3,
+        configuredMaxDartsPerTurn: 3,
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findVisitFacts } =
+      await import("@repositories/statistics.repository");
+
+    await expect(findVisitFacts(db, "p1")).rejects.toThrow(/stage_id/);
   });
 });
 
@@ -83,6 +119,22 @@ describe("findLegFacts", () => {
       },
     ]);
     expect(fromCalls).toEqual([vPlayerLegFacts]);
+  });
+
+  it("throws instead of silently returning a null totalDartsInLeg column", async () => {
+    const { chain } = fakeSelect([
+      {
+        sessionId: "s1",
+        gameTypeKey: "501",
+        stageId: "stage-1",
+        totalDartsInLeg: null,
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findLegFacts } =
+      await import("@repositories/statistics.repository");
+
+    await expect(findLegFacts(db, "p1")).rejects.toThrow(/total_darts_in_leg/);
   });
 });
 
