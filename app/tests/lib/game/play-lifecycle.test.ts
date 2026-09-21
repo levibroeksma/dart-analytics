@@ -341,7 +341,11 @@ describe("playRetryReconciliation", () => {
 });
 
 function makeTimerStub(): SegmentTimer {
-  return { start: vi.fn(), stop: vi.fn() } as unknown as SegmentTimer;
+  return {
+    start: vi.fn(),
+    stop: vi.fn(),
+    unlockAudio: vi.fn(),
+  } as unknown as SegmentTimer;
 }
 
 describe("playToggleTimerPause", () => {
@@ -388,6 +392,21 @@ describe("playToggleTimerPause", () => {
 
     expect(timer.start).not.toHaveBeenCalled();
     expect(timer.stop).not.toHaveBeenCalled();
+  });
+
+  /**
+   * init()'s own auto-resume of a MINUTES timer has no preceding user
+   * gesture (#307) — the pause toggle is a genuine click, so it unlocks
+   * audio itself rather than assuming init() already did.
+   */
+  it("unlocks the timer's audio synchronously", async () => {
+    const timer = makeTimerStub();
+    const context = { ...makeContext(), timer };
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    playToggleTimerPause(context);
+
+    expect(timer.unlockAudio).toHaveBeenCalledTimes(1);
   });
 });
 

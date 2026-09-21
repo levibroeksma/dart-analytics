@@ -229,6 +229,7 @@ function startCountdown(
       engine.expireTimer();
     },
   });
+  timer.unlockAudio();
   timer.start();
   return timer;
 }
@@ -652,6 +653,7 @@ export function oneTwentyOnePlay() {
       this: OneTwentyOnePlayContext,
       observation: DartObservation,
     ) {
+      this.timer?.unlockAudio();
       if (
         !this.engine ||
         this.finished ||
@@ -690,6 +692,7 @@ export function oneTwentyOnePlay() {
      * `submitVisit`.
      */
     async submitVisit(this: OneTwentyOnePlayContext) {
+      this.timer?.unlockAudio();
       if (
         !this.engine ||
         this.finished ||

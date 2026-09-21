@@ -344,6 +344,7 @@ export function scoreTrainingPlay() {
      * its error.
      */
     async submitVisit(this: ScoreTrainingPlayContext) {
+      this.timer?.unlockAudio();
       if (
         !this.engine ||
         this.finished ||
@@ -404,6 +405,7 @@ export function scoreTrainingPlay() {
       this: ScoreTrainingPlayContext,
       observation: DartObservation,
     ) {
+      this.timer?.unlockAudio();
       if (
         !this.engine ||
         this.finished ||

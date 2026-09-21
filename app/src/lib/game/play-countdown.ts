@@ -40,6 +40,7 @@ export function startCountdown<
       engine.expireTimer();
     },
   });
+  timer.unlockAudio();
   timer.start();
   return timer;
 }

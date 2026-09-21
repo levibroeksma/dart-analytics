@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
+import { SegmentTimer } from "@modules/ui/segment-timer.module";
 
 describe("quickSubtractPlay", () => {
   beforeEach(() => {
@@ -59,6 +60,26 @@ describe("quickSubtractPlay", () => {
     ctx.startTimer(5);
     expect(ctx.status).toBe("running");
     expect(ctx.current).not.toBeNull();
+  });
+
+  /**
+   * `startCount`/`startTimer` are the click handlers themselves (#307) —
+   * unlike the MINUTES x01 games, whose timer starts from `init()` with no
+   * gesture of its own, this construction happens synchronously inside a
+   * real click, so unlocking here is a complete fix, not a best effort.
+   */
+  it("startCount() unlocks the timer's audio synchronously, before any tick fires", () => {
+    const unlockSpy = vi.spyOn(SegmentTimer.prototype, "unlockAudio");
+    const ctx = quickSubtractPlay();
+    ctx.startCount(5);
+    expect(unlockSpy).toHaveBeenCalledOnce();
+  });
+
+  it("startTimer() unlocks the timer's audio synchronously, before any tick fires", () => {
+    const unlockSpy = vi.spyOn(SegmentTimer.prototype, "unlockAudio");
+    const ctx = quickSubtractPlay();
+    ctx.startTimer(5);
+    expect(unlockSpy).toHaveBeenCalledOnce();
   });
 
   it("submit() records the answer, syncs stats, and clears the score input", () => {
