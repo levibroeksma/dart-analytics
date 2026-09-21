@@ -90,6 +90,7 @@ describe("findRoutineTemplateSteps", () => {
         "WARM_UP",
         "WARM_UP_V1",
         null,
+        null,
         "MINUTES",
         10,
         {},
@@ -102,6 +103,7 @@ describe("findRoutineTemplateSteps", () => {
         "GAME",
         null,
         "TUOD",
+        "TUOD_V1",
         "MINUTES",
         10,
         null,
@@ -196,6 +198,22 @@ describe("findRoutineTemplateSteps", () => {
       null,
       "TUOD_V1",
     ]);
+  });
+
+  it("throws instead of silently returning a null durationTypeKey column", async () => {
+    const rowsWithNullDurationType = stepRows.map((row) => ({
+      ...row,
+      durationTypeKey: null,
+    }));
+    const db = {
+      select: vi.fn(() => fakeSelect(rowsWithNullDurationType)),
+    } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+
+    await expect(findRoutineTemplateSteps(db, "rt-1", "p1")).rejects.toThrow(
+      /duration_type_key/,
+    );
   });
 });
 
