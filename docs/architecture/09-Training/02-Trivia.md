@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/trivia
 read-when: checkout quiz, trivia tools, standalone practice features
-updated: 2026-09-17
+updated: 2026-09-21
 -->
 
 # Checkout Trivia Architecture
@@ -147,8 +147,7 @@ Summary screen, per question — target, the darts entered (or "declared impossi
 Routes:
 
 ```
-app/src/pages/trivia/index.astro            # category landing — today lists one tool
-app/src/pages/trivia/checkouts/index.astro  # the quiz itself
+app/src/pages/training/checkout-trivia/index.astro  # the quiz itself — flat card, sibling of quick-subtract (D265)
 ```
 
 Sibling to `games/`, never under it — this is not a `game_types` game. No `pages/api/**` route and no `api/sessions/*` call: there is nothing to create or persist server-side.
