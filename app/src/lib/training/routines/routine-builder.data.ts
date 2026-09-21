@@ -66,7 +66,8 @@ function formatServerIssues(
 }
 
 /**
- * Builder state for `/training/routines/new` and `/edit`. Pre-validates with
+ * Builder state for the create modal on `/training` and the `/edit` page.
+ * Pre-validates with
  * the same module the service runs; the `0038` trigger is the guarantee behind
  * both. Lives in the page's `x-data`, not a store (`app/src/stores/CLAUDE.md`).
  */
