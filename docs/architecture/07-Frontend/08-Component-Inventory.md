@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-20
+updated: 2026-09-21
 -->
 
 # Component Inventory
@@ -29,6 +29,7 @@ evaluated in the page's own Alpine scope.
 | `CardWrapper.astro` | Bordered card, optionally a link | `href`, `title`, `description`, `color`, `external` |
 | `ConfirmDialog.astro` | Modal with cancel/confirm actions | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `confirmVariant`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
+| `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
@@ -101,6 +102,7 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
+| `RoutineFormModal.astro` | `RoutineBuilder` inside `ExpandingModal`; mounts its own `routineBuilder(mode)` scope, so the host page owns only the open flag. `edit` reads its routine id from `?routine=` exactly as the page does (2026-09-21) | `mode` (`create`/`edit`), `openExpr`, `onToggle`, `onClose`, `titleId` |
 | `RoutineDetail.astro` | Routine-detail shell for a data-driven routine: title + duration pill, ordered step list, `Start` (wired to `routineDetail().start()`, navigates to the play route), and — for the caller's own routine only (`canEdit()`) — `Edit`/`Delete`, the latter behind a `ConfirmDialog` | none — reads `routineDetail()` from the parent scope (`routine-detail.data.ts`) (2026-09-11; rewritten data-driven, Edit/Delete added, 2026-09-19) |
 | `RoutineCard.astro` | One routine in the `/training` list; renders inside `x-for`, links to the detail route, shows a "mine" badge for a non-system routine | none — reads `routine` (`RoutineSummaryData`) and `trainingIndex()`'s `detailHref`/`durationLabel` from the parent scope (2026-09-19) |
 | `RoutineBuilder.astro` | Builder body for create and edit: name/description inputs, the ordered step list, `ExercisePicker`, duration total, and Cancel/Save | none — reads `routineBuilder(mode)` from the page's `x-data` (`routine-builder.data.ts`) (2026-09-19) |

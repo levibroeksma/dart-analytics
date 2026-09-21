@@ -135,6 +135,8 @@ export type TrainingSessionStoreContext = ReturnType<
 export type TrainingIndexContext = {
   loading: boolean;
   error: string;
+  /** Open flag for the page's `RoutineFormModal`. */
+  showModal: boolean;
   routines: RoutineSummaryData[];
   init(this: TrainingIndexContext): Promise<void>;
   durationLabel(routine: RoutineSummaryData): string;

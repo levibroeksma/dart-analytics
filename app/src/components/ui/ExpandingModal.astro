@@ -1,0 +1,120 @@
+---
+/**
+ * Corner disclosure dialog: a 48px glass toggle that expands in place into a
+ * full panel, and collapses back into the toggle.
+ *
+ * The panel's own box animates between the two sizes, but its contents are
+ * laid out at the expanded size for the whole transition: the content frame
+ * is sized in container-query units against the fixed layer (`100cqw` /
+ * `100cqh`), not against the panel it lives in, so nothing reflows while the
+ * panel grows. The frame overhangs the panel's padding box by the `glass`
+ * border (1px per side); `overflow-hidden` clips it.
+ *
+ * Visibility is owned by the caller — `openExpr` is read, never written.
+ * @param {string} openExpr Alpine expression, true while the panel is open
+ * @param {string} onToggle Alpine expression run by the toggle
+ * @param {string} onClose Alpine expression run on Escape
+ * @param {string} title Heading, rendered only while open
+ * @param {string} titleId Stable unique heading id for this call site
+ * @param {string} [toggleLabelClosed="Open"] Accessible name while collapsed
+ * @param {string} [toggleLabelOpen="Close"] Accessible name while open
+ * @param {string} [class] Extra panel classes
+ */
+interface Props {
+  openExpr: string;
+  onToggle: string;
+  onClose: string;
+  title: string;
+  titleId: string;
+  toggleLabelClosed?: string;
+  toggleLabelOpen?: string;
+  class?: string;
+}
+
+// Props
+const {
+  openExpr,
+  onToggle,
+  onClose,
+  title,
+  titleId,
+  toggleLabelClosed = "Open",
+  toggleLabelOpen = "Close",
+  class: classNameProp,
+}: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Data
+const bodyId = `${titleId}-body`;
+
+// Styles
+const panelClass = cn(
+  "glass pointer-events-auto relative min-h-12 overflow-hidden rounded-3xl transition-all duration-250 ease-in",
+  classNameProp,
+);
+---
+
+<div
+  class="@container-[size] pointer-events-none fixed inset-0 z-50 mx-auto flex max-w-lg justify-end p-4 pt-[calc(env(safe-area-inset-top)+1rem)]"
+>
+  <div
+    class={panelClass}
+    x-cloak
+    x-bind:class={`${openExpr} ? 'size-full' : 'size-12'`}
+    x-on:keydown.escape.window={onClose}
+  >
+    <div
+      class="absolute top-0 right-0 flex h-[100cqh] w-[100cqw] flex-col items-end justify-start"
+    >
+      <div
+        class="flex w-full items-center justify-between"
+        x-bind:class={`${openExpr} ? 'pl-4' : ''`}
+      >
+        <h1
+          id={titleId}
+          class="shrink-0 text-xl font-semibold text-foreground"
+          x-show={openExpr}
+          x-cloak
+        >
+          {title}
+        </h1>
+        <div></div>
+        <Button
+          variant="ghost"
+          class="size-12 shrink-0 cursor-pointer rounded-full p-0 text-4xl text-foreground"
+          loadingExpr="false"
+          ariaLabel={toggleLabelClosed}
+          aria-controls={bodyId}
+          x-on:click={onToggle}
+          x-bind:aria-expanded={openExpr}
+          x-bind:aria-label={`${openExpr} ? '${toggleLabelOpen}' : '${toggleLabelClosed}'`}
+        >
+          <span
+            slot="iconBefore"
+            class="transition-rotate text-4xl duration-200 ease-in"
+            x-bind:class={`${openExpr} ? 'rotate-45' : ''`}
+          >
+            +
+          </span>
+        </Button>
+      </div>
+      <div
+        id={bodyId}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        class="w-full flex-1 space-y-4 overflow-y-auto p-4"
+        x-show={openExpr}
+        x-cloak
+        x-transition.delay.150ms
+      >
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,6 @@ export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 
 import RoutineBuilder from "@components/layout/training/routines/RoutineBuilder.astro";
-
 ---
 
 <AppLayout title="Home">
@@ -15,16 +14,23 @@ import RoutineBuilder from "@components/layout/training/routines/RoutineBuilder.
       class="glass rounded-3xl relative transition-all duration-250 ease-in min-h-12 flex justify-start items-end flex-col overflow-hidden"
       x-cloak
       :class="show === false ? 'size-12' : 'size-full'"
-      
     >
       <div
         class="flex w-full justify-between items-center"
         :class="show ? 'pl-4' : ''"
       >
-        
-        <h1 class="text-xl font-semibold text-foreground shrink-0" x-show="show" x-cloak>New routine</h1>
+        <h1
+          class="text-xl font-semibold text-foreground shrink-0"
+          x-show="show"
+          x-cloak
+        >
+          New routine
+        </h1>
         <div></div>
-        <div class="size-12 cursor-pointer flex justify-center items-center" @click="show = !show">
+        <div
+          class="size-12 cursor-pointer flex justify-center items-center"
+          @click="show = !show"
+        >
           <span
             class="text-4xl transition-rotate duration-200 ease-in"
             :class="show === true ? 'rotate-45' : ''"
@@ -40,11 +46,10 @@ import RoutineBuilder from "@components/layout/training/routines/RoutineBuilder.
         x-transition.delay.150ms
       >
         <div
-            class="shrink-0 space-y-4"
-            x-data="routineBuilder('create')"
+          class="shrink-0 space-y-4"
+          x-data="routineBuilder('create')"
         >
-            
-            <RoutineBuilder />
+          <RoutineBuilder />
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import TodayCard from "@components/layout/training/schedules/TodayCard.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 import CardWrapper from "@components/ui/CardWrapper.astro";
+import RoutineFormModal from "@components/layout/training/routines/RoutineFormModal.astro";
 ---
 
 <AppLayout title="Training">
@@ -15,14 +16,8 @@ import CardWrapper from "@components/ui/CardWrapper.astro";
     class="p-4 space-y-8"
     x-data="trainingIndex()"
   >
-    <div class="flex items-center justify-between">
+    <div class="flex h-12 items-center justify-between">
       <h1 class="text-xl font-semibold text-foreground">Training</h1>
-      <button
-        class="text-4xl text-accent glass size-12 aspect-square rounded-full"
-        @click="showModal = true"
-      >
-        +
-      </button>
     </div>
     <div x-data="todayCard()">
       <TodayCard />
@@ -64,11 +59,6 @@ import CardWrapper from "@components/ui/CardWrapper.astro";
         }
       </div>
     </CardWrapper>
-    <!-- <GameCard
-      href="/training/routines/new"
-      title="New routine"
-      caption="Compose your own 30–60 minute session from the exercise catalog"
-    /> -->
     <CardWrapper
       color="violet"
       class="flex flex-col gap-4"
@@ -86,6 +76,11 @@ import CardWrapper from "@components/ui/CardWrapper.astro";
         caption="Drill checkout mental math against the clock or a target count"
       />
     </CardWrapper>
-    
+    <RoutineFormModal
+      mode="create"
+      openExpr="showModal"
+      onToggle="showModal = !showModal"
+      onClose="showModal = false"
+    />
   </div>
 </AppLayout>

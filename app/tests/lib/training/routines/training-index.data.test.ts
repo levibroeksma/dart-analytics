@@ -38,6 +38,11 @@ describe("trainingIndex", () => {
     expect(data.detailHref(OWN)).toBe("/training/routines/detail?routine=o");
   });
 
+  it("starts with the routine-form modal closed", () => {
+    const data: TrainingIndexContext = trainingIndex();
+    expect(data.showModal).toBe(false);
+  });
+
   it("surfaces a load failure as error text", async () => {
     vi.mocked(listRoutines).mockRejectedValue(new Error("boom"));
     const data: TrainingIndexContext = trainingIndex();
