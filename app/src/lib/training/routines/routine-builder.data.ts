@@ -37,10 +37,8 @@ function clampMinutes(value: number): number {
   );
 }
 
-function swap(steps: BuilderStep[], a: number, b: number): BuilderStep[] {
-  const next = [...steps];
-  [next[a], next[b]] = [next[b], next[a]];
-  return next;
+function stepKey(): string {
+  return globalThis.crypto.randomUUID();
 }
 
 /**
@@ -131,6 +129,7 @@ export function routineBuilder(mode: "create" | "edit") {
       this.name = routine.routineName;
       this.description = routine.description ?? "";
       this.steps = routine.steps.map((step) => ({
+        key: stepKey(),
         exerciseTemplateId: step.exerciseTemplateId,
         name: step.exerciseName,
         exerciseTypeKey: step.exerciseTypeKey,
@@ -147,6 +146,7 @@ export function routineBuilder(mode: "create" | "edit") {
       this.steps = [
         ...this.steps,
         {
+          key: stepKey(),
           exerciseTemplateId: entry.exerciseTemplateId,
           name: entry.name,
           exerciseTypeKey: entry.exerciseTypeKey,
@@ -160,16 +160,15 @@ export function routineBuilder(mode: "create" | "edit") {
       this.steps = this.steps.filter((_, i) => i !== index);
     },
 
-    moveUp(this: RoutineBuilderContext, index: number) {
-      if (index <= 0) return;
+    moveStep(this: RoutineBuilderContext, key: string, position: number) {
+      const from = this.steps.findIndex((step) => step.key === key);
+      if (from === -1) return;
+      const to = Math.min(Math.max(position, 0), this.steps.length - 1);
+      if (to === from) return;
       this.serverIssues = [];
-      this.steps = swap(this.steps, index, index - 1);
-    },
-
-    moveDown(this: RoutineBuilderContext, index: number) {
-      if (index >= this.steps.length - 1) return;
-      this.serverIssues = [];
-      this.steps = swap(this.steps, index, index + 1);
+      const next = [...this.steps];
+      next.splice(to, 0, ...next.splice(from, 1));
+      this.steps = next;
     },
 
     setMinutes(this: RoutineBuilderContext, index: number, value: number) {

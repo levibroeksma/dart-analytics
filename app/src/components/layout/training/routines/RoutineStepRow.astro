@@ -1,11 +1,17 @@
 ---
 /**
- * One builder step: position, exercise name, minutes input, move/remove.
+ * One builder step: drag handle, exercise name, minutes input, remove.
  * Reads `step`/`index` from the enclosing `x-for` and the builder's helpers,
  * including its `stepMinMinutes`/`stepMaxMinutes` reactive bounds (bound via
  * `:min`/`:max` — see `ExercisePicker.astro`'s note on why a bound crosses
  * this boundary as a directive-string read, never a frontmatter import, of
  * the browser-only `routine-builder.data.ts`).
+ *
+ * Ordering is drag-only: `x-sort:item` publishes the step's draft key to the
+ * `x-sort` handler on the parent `<ol>`, and `x-sort:handle` confines the
+ * drag to the grip so the minutes input stays usable. The key is the step's
+ * own, not `index`, because a routine may hold the same exercise twice.
+ *
  * A GAME step (`step.exerciseTypeKey === 'GAME'`) additionally shows a
  * "3–30 min" hint: every routine-eligible ruleset's own MINUTES bound
  * (`ROUTINE_GAME_STEPS` in `app/src/services/routines/game-step.ts`) is
@@ -14,24 +20,27 @@
  * `stepMaxMinutes` (the builder-wide 1–60 bounds the `:min`/`:max` above
  * bind to) — the authoritative bound is the server's per-step check in
  * `routine.service.ts`.
- * Only `chevron-down.svg` and `cross.svg` exist under `app/src/icons/` for
- * this purpose — "move up" is `chevron-down` rotated 180deg, "move down" is
- * `chevron-down` unrotated, "remove" is `cross`.
  */
 import Input from "@components/forms/Input.astro";
 import IconBtn from "@components/forms/IconBtn.astro";
-import ChevronDownIcon from "@icons/chevron-down.svg";
+import GripIcon from "@icons/grip.svg";
 import CrossIcon from "@icons/cross.svg";
 ---
 
-<li class="flex items-center gap-2 rounded-md border border-border p-2">
+<li
+  class="flex items-center gap-2 rounded-md border border-border p-2"
+  x-sort:item="step.key"
+>
   <span
-    class="w-6 text-sm font-semibold text-accent"
-    x-text="index + 1"
-  ></span>
-  <span class="flex-1 min-w-0">
+    class="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+    x-sort:handle
+    aria-hidden="true"
+  >
+    <GripIcon />
+  </span>
+  <span class="min-w-0 flex-1">
     <span
-      class="block text-sm text-foreground"
+      class="block truncate text-sm text-foreground"
       x-text="step.name"
     ></span>
     <span
@@ -53,24 +62,6 @@ import CrossIcon from "@icons/cross.svg";
     aria-label="Minutes"
   />
   <span class="text-xs text-muted-foreground">min</span>
-  <IconBtn
-    variant="ghost"
-    class="p-1.5"
-    ariaLabel="Move up"
-    :disabled="index === 0"
-    @click="moveUp(index)"
-  >
-    <ChevronDownIcon class="rotate-180" />
-  </IconBtn>
-  <IconBtn
-    variant="ghost"
-    class="p-1.5"
-    ariaLabel="Move down"
-    :disabled="index === steps.length - 1"
-    @click="moveDown(index)"
-  >
-    <ChevronDownIcon />
-  </IconBtn>
   <IconBtn
     variant="ghost"
     class="p-1.5"
