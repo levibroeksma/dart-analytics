@@ -49,6 +49,9 @@ export function seatOf(turn: TurnFact, seats: readonly SeatFact[]): SeatFact {
  * share one fixed round budget and therefore never diverge. Every other
  * engine omits the argument entirely, and the default `() => false`
  * reproduces pure alternation exactly.
+ *
+ * @throws when `stageOwnership` is `PER_SEAT` and `seats` is empty — a
+ *   `% 0` there would otherwise produce `pool[NaN]` silently.
  */
 export function activeSeat(
   facts: EngineFacts,
@@ -62,6 +65,11 @@ export function activeSeat(
   }
 
   if (stageOwnership === "PER_SEAT") {
+    if (seats.length === 0) {
+      throw new Error(
+        "activeSeat: PER_SEAT stage ownership requires at least one seat.",
+      );
+    }
     const remaining = seats.filter((seat) => !isSeatComplete(seat));
     const pool = remaining.length > 0 ? remaining : seats;
     return pool[facts.turns.length % pool.length];
