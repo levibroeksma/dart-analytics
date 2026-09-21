@@ -29707,7 +29707,7 @@
       "node_kind": "heading",
       "norm_label": "explicitly deferred",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L182"
+      "source_location": "L181"
     },
     {
       "id": "docs_architecture_09_training_02_trivia_interface_and_input_flow",
@@ -29767,7 +29767,7 @@
       "node_kind": "heading",
       "norm_label": "related documents",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L193"
+      "source_location": "L192"
     },
     {
       "id": "docs_architecture_09_training_02_trivia_scope_and_status",
@@ -29791,7 +29791,7 @@
       "node_kind": "heading",
       "norm_label": "testing strategy",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L172"
+      "source_location": "L171"
     },
     {
       "id": "app_scripts_generate_app_icons",
@@ -219597,7 +219597,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L172",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -219619,7 +219619,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L182",
+      "source_location": "L181",
       "weight": 1.0
     },
     {
@@ -219630,7 +219630,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L193",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -234514,7 +234514,7 @@
       "confidence_score": 0.95,
       "context": "DartZoneKey",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L200",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -235846,7 +235846,7 @@
       "confidence_score": 0.95,
       "context": "GameEngine",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L168",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -240370,7 +240370,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathFor",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L168",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -240406,7 +240406,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathFor",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L199",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -240418,7 +240418,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathFor",
       "source_file": "docs/architecture/09-Training/02-Trivia.md",
-      "source_location": "L177",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -250209,5 +250209,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9ce02d845aa5e9934b2254446a09ce373b570acb"
+  "built_at_commit": "18bef0804e76520a1da8d90802166de604d3aa9b"
 }
