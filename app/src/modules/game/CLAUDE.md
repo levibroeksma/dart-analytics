@@ -1,12 +1,10 @@
----
-paths: ["**/*.engine.module.ts", "app/src/modules/game/**"]
----
+# Agent Rules — `app/src/modules/game/`
 
-# Game engines
+Scope: game engines (`*.engine.module.ts`) and the shared modules they compose. Global app rules and the validation procedure live in `app/CLAUDE.md`. Files under `app/src/modules/training/exercises/` share the `*.engine.module.ts` suffix but **not** this contract — see `app/src/modules/training/CLAUDE.md` (D264).
 
-Applies to `*.engine.module.ts` under `app/src/modules/game/`. Files under `app/src/modules/training/exercises/` share the suffix but **not** this contract — see `app/src/modules/training/CLAUDE.md` (D264).
+## Game engines
 
-Every `*.engine.module.ts` implements the `GameEngine` contract (`docs/architecture/04-Architecture-patterns.md` Pattern 18): constructed from a validated config snapshot bound to a `rulesetVersionKey`, owns its `EngineFacts` log, mints `clientKey`/`sequence`/`completedAt`/`participantRef`, rehydrates from persisted facts via `create(config, prior)`, and exposes a pure `wouldComplete(input)`.
+Every `*.engine.module.ts` here implements the `GameEngine` contract (`docs/architecture/04-Architecture-patterns.md` Pattern 18): constructed from a validated config snapshot bound to a `rulesetVersionKey`, owns its `EngineFacts` log, mints `clientKey`/`sequence`/`completedAt`/`participantRef`, rehydrates from persisted facts via `create(config, prior)`, and exposes a pure `wouldComplete(input)`.
 
 - Every engine declares a static `stageOwnership` (`SHARED` | `PER_SEAT`) so `modules/game/seat-rota.module.ts` can derive the active seat from the fact log. `record()` takes no seat — it applies to the derived active seat, and the active seat is never stored. (2026-08-21)
 - `undo()` is an exact inverse of `record()` over `facts()`, including any stage the record opened; undo depth is unbounded.
