@@ -99,6 +99,7 @@ describe("routineBuilder (create)", () => {
     b.addStep(CATALOG[0]);
     expect(b.steps).toEqual([
       {
+        key: expect.any(String),
         exerciseTemplateId: "et-w",
         name: "Warm-Up",
         exerciseTypeKey: "WARM_UP",
@@ -116,14 +117,29 @@ describe("routineBuilder (create)", () => {
     await b.init();
     b.addStep(CATALOG[0]);
     b.addStep(CATALOG[1]);
-    b.moveDown(0);
+    const [first, second] = b.steps.map((s) => s.key);
+    b.moveStep(first!, 1);
     expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-f", "et-w"]);
-    b.moveUp(1);
+    b.moveStep(first!, 0);
     expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-w", "et-f"]);
-    b.moveUp(0);
+    b.moveStep(second!, 5);
+    expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-w", "et-f"]);
+    b.moveStep("no-such-key", 0);
     expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-w", "et-f"]);
     b.removeStep(0);
     expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-f"]);
+  });
+
+  it("gives every step a distinct key, so duplicates of one exercise reorder independently", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.addStep(CATALOG[0]);
+    b.addStep(CATALOG[0]);
+    const keys = b.steps.map((s) => s.key);
+    expect(new Set(keys).size).toBe(2);
+    b.setMinutes(1, 9);
+    b.moveStep(keys[1]!, 0);
+    expect(b.steps.map((s) => s.durationValue)).toEqual([9, 5]);
   });
 
   it("caps at 12 steps and clamps minutes to 1..60", async () => {
@@ -342,14 +358,14 @@ describe("routineBuilder (edit)", () => {
     await b.init();
     const nav = vi.spyOn(b, "navigate");
     const savedName = b.name;
-    const savedSteps = [...b.steps];
+    const savedSteps = b.steps.map(({ key: _key, ...rest }) => rest);
     b.name = "Edited";
     b.addStep(CATALOG[0]!);
 
     await b.resetForm();
 
     expect(b.name).toBe(savedName);
-    expect(b.steps).toEqual(savedSteps);
+    expect(b.steps.map(({ key: _key, ...rest }) => rest)).toEqual(savedSteps);
     expect(nav).not.toHaveBeenCalled();
   });
 });

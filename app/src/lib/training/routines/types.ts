@@ -165,6 +165,8 @@ export type RoutineDetailContext = {
 
 /** One row of `routineBuilder()`'s ordered step list. */
 export type BuilderStep = {
+  /** Draft-local identity, so duplicate exercises stay distinct while sorting. */
+  key: string;
   exerciseTemplateId: string;
   name: string;
   exerciseTypeKey: string;
@@ -203,8 +205,7 @@ export type RoutineBuilderContext = {
     entry: ExerciseTemplateCatalogEntryData,
   ): void;
   removeStep(this: RoutineBuilderContext, index: number): void;
-  moveUp(this: RoutineBuilderContext, index: number): void;
-  moveDown(this: RoutineBuilderContext, index: number): void;
+  moveStep(this: RoutineBuilderContext, key: string, position: number): void;
   setMinutes(this: RoutineBuilderContext, index: number, value: number): void;
   durationResult(this: RoutineBuilderContext): RoutineDurationResult;
   totalMinutes(this: RoutineBuilderContext): number;

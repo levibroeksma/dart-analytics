@@ -7,6 +7,8 @@
  * list's `:key` is the array index, not the issue text: client
  * (`durationIssues()`) and server (`serverIssues`) can report
  * byte-identical strings once a save has failed and the user keeps editing.
+ * The step list's `:key` is the step's draft key, which `x-sort` needs to
+ * survive a drag: `index` would re-key every row on every reorder.
  *
  * `onCancel` defaults to the page flow's `cancel()` (navigate away); a modal
  * host passes an expression that resets the form and closes the panel.
@@ -54,10 +56,14 @@ import ExercisePicker from "./ExercisePicker.astro";
     >
       No steps yet — add an exercise below.
     </p>
-    <ol class="space-y-2">
+    <ol
+      class="space-y-2"
+      x-sort="moveStep($item, $position)"
+      x-sort:config="{ animation: 150 }"
+    >
       <template
         x-for="(step, index) in steps"
-        :key="index"
+        :key="step.key"
       >
         <RoutineStepRow />
       </template>
