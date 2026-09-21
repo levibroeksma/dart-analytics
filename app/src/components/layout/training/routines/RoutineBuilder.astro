@@ -15,7 +15,7 @@ import RoutineStepRow from "./RoutineStepRow.astro";
 import ExercisePicker from "./ExercisePicker.astro";
 ---
 
-<div class="space-y-6">
+<div class="space-y-6 shrink-0 flex flex-col">
   <ErrorAlert />
   <div class="space-y-2">
     <Input
@@ -53,7 +53,7 @@ import ExercisePicker from "./ExercisePicker.astro";
 
   <ExercisePicker />
 
-  <footer class="space-y-2">
+  <div class="space-y-2 ">
     <div class="flex items-center justify-between text-sm">
       <span class="text-muted-foreground">Total</span>
       <span
@@ -78,22 +78,22 @@ import ExercisePicker from "./ExercisePicker.astro";
         <li x-text="issue"></li>
       </template>
     </ul>
-    <div class="flex gap-2">
-      <Button
-        title="Cancel"
-        variant="secondary"
-        grow
-        loadingExpr="false"
-        @click="cancel()"
-      />
-      <Button
-        title="Save"
-        variant="primary"
-        grow
-        :disabled="!canSave()"
-        loadingExpr="saving"
-        @click="save()"
-      />
-    </div>
-  </footer>
+  </div>
+  <div class="flex gap-2">
+    <Button
+      title="Cancel"
+      variant="secondary"
+      grow
+      loadingExpr="false"
+      @click="cancel()"
+    />
+    <Button
+      title="Save"
+      variant="primary"
+      grow
+      :disabled="!canSave()"
+      loadingExpr="saving"
+      @click="save()"
+    />
+  </div>
 </div>

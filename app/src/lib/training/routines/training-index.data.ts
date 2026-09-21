@@ -7,6 +7,7 @@ export function trainingIndex() {
   return {
     loading: true,
     error: "",
+    showModal: false,
     routines: [] as RoutineSummaryData[],
 
     async init(this: TrainingIndexContext) {
