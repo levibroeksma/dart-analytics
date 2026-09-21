@@ -134,19 +134,20 @@ describe("findRoutineTemplateSteps", () => {
    * `v_routine_execution` — the read model `06-API/00-Overview.md` designates
    * for routines — instead of two against the template tables it bypassed
    * (issue #344). A stepless routine therefore reads as no routine at all.
+   *
+   * Rendered-SQL, not call-spy: a call-spy only proves no `.innerJoin`/
+   * `.leftJoin` builder call happened, so a join smuggled in through a raw
+   * `sql` fragment inside `.where(...)` would pass it unnoticed (issue #512).
    */
-  it("reads the whole routine through v_routine_execution in one query", async () => {
-    const chain = fakeSelect(stepRows);
-    const db = { select: vi.fn(() => chain) } as any;
+  it("reads the whole routine through v_routine_execution in one query with no join", async () => {
+    const { db, statements } = renderingDb([]);
     const { findRoutineTemplateSteps } =
       await import("@repositories/training-session.repository");
     await findRoutineTemplateSteps(db, "rt-1", "p1");
 
-    const { vRoutineExecution } = await import("@db/schema");
-    expect(db.select).toHaveBeenCalledTimes(1);
-    expect(chain.from.mock.calls[0]![0]).toBe(vRoutineExecution);
-    expect(chain.innerJoin).not.toHaveBeenCalled();
-    expect(chain.leftJoin).not.toHaveBeenCalled();
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('from "v_routine_execution"');
+    expect(sql).not.toMatch(/join/i);
   });
 
   /**
