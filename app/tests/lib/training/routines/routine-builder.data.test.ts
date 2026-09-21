@@ -314,4 +314,42 @@ describe("routineBuilder (edit)", () => {
     expect(b.error).toBe("Could not load this routine.");
     expect(b.catalog).toEqual(CATALOG);
   });
+
+  it("resetForm clears a create-mode draft without navigating", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    const nav = vi.spyOn(b, "navigate");
+    b.name = "Draft";
+    b.description = "notes";
+    b.addStep(CATALOG[0]!);
+    b.serverIssues = ["nope"];
+    b.error = "boom";
+
+    await b.resetForm();
+
+    expect(b.name).toBe("");
+    expect(b.description).toBe("");
+    expect(b.steps).toEqual([]);
+    expect(b.serverIssues).toEqual([]);
+    expect(b.error).toBe("");
+    expect(b.catalog).toEqual(CATALOG);
+    expect(nav).not.toHaveBeenCalled();
+  });
+
+  it("resetForm restores the saved routine in edit mode without navigating", async () => {
+    vi.mocked(api.getRoutine).mockResolvedValue(ROUTINE);
+    const b: RoutineBuilderContext = routineBuilder("edit");
+    await b.init();
+    const nav = vi.spyOn(b, "navigate");
+    const savedName = b.name;
+    const savedSteps = [...b.steps];
+    b.name = "Edited";
+    b.addStep(CATALOG[0]!);
+
+    await b.resetForm();
+
+    expect(b.name).toBe(savedName);
+    expect(b.steps).toEqual(savedSteps);
+    expect(nav).not.toHaveBeenCalled();
+  });
 });

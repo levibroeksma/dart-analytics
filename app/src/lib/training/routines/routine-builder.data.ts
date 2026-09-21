@@ -266,6 +266,22 @@ export function routineBuilder(mode: "create" | "edit") {
       }
     },
 
+    async resetForm(this: RoutineBuilderContext) {
+      this.error = "";
+      this.serverIssues = [];
+      if (this.mode === "edit" && this.routineId) {
+        try {
+          await this.loadExisting();
+        } catch {
+          this.error = "Could not load this routine.";
+        }
+        return;
+      }
+      this.name = "";
+      this.description = "";
+      this.steps = [];
+    },
+
     cancel(this: RoutineBuilderContext) {
       this.navigate(
         this.routineId ? routineDetailPath(this.routineId) : "/training",
