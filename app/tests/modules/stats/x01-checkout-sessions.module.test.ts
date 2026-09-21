@@ -166,6 +166,62 @@ describe("checkoutVisitsFromRows", () => {
     expect(visits.map((visit) => visit.startingRemaining)).toEqual([501]);
   });
 
+  it("contributes no visits for a 121 session whose stored configuration names no seats", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        sessionId: "session-121-noseats",
+        gameTypeKey: "ONE_TWENTY_ONE",
+        rulesetVersionKey: "121_V1",
+        configuration: {},
+        stageId: "round-1",
+        stageTypeKey: "ROUND",
+      }),
+    ]);
+    expect(visits).toEqual([]);
+  });
+
+  it("contributes no visits for a TUOD session whose stored configuration names no seats", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        sessionId: "session-tuod-noseats",
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+        configuration: {
+          starting_target: 121,
+          finish_bonus: 10,
+          miss_penalty: 10,
+          duration_type: "ROUNDS",
+          duration_value: 10,
+          max_darts_per_turn: 3,
+        },
+        stageId: "block-1",
+        stageTypeKey: "EXERCISE_BLOCK",
+      }),
+    ]);
+    expect(visits).toEqual([]);
+  });
+
+  it("still contributes visits for a 501 session whose stored configuration names no seats", () => {
+    const visits = checkoutVisitsFromRows([
+      row({
+        configuration: {
+          starting_score: 501,
+          legs_to_win: 1,
+          check_in: "STRAIGHT_IN",
+          check_out: "DOUBLE_OUT",
+          max_darts_per_turn: 3,
+        },
+      }),
+    ]);
+    expect(visits).toEqual([
+      {
+        startingRemaining: 501,
+        countedTotal: 60,
+        darts: [expect.objectContaining({ score: 60 })],
+      },
+    ]);
+  });
+
   it("orders a visit's darts by dart number, whatever order the rows arrive in", () => {
     const visits = checkoutVisitsFromRows([
       row({

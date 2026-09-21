@@ -148,6 +148,14 @@ function snapshotOf(
  * it stored no longer validates" are different facts about the data, and
  * only the second is a drift to be noticed.
  *
+ * A snapshot that decodes but names no seats is a third shape, and unlike
+ * the other two it does not apply to every game: `fiveOhOneCheckoutVisits`
+ * never reads `seats`, so a seatless 501 session replays exactly as before.
+ * 121 and TUOD fold their seat list to derive each visit's opening
+ * remaining/target, and an empty one is "nothing to replay" for them too --
+ * skip rather than fold. These are historical sessions that predate `seats`
+ * being stored in the snapshot at all.
+ *
  * The first row's `participantId` is taken as *the* participant, which is
  * sound for two reasons neither of which is visible from this module:
  * `session-seats.service.ts` allows exactly one `PLAYER` seat per session,
@@ -164,6 +172,7 @@ function visitsForSession(
 
   const config = snapshotOf(first.rulesetVersionKey, first.configuration);
   if (config === null) return [];
+  if (config.seats.length === 0 && first.gameTypeKey !== "501") return [];
 
   const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
   const participantRef = first.participantId;
