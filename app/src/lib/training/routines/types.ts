@@ -196,6 +196,8 @@ export type RoutineBuilderContext = {
   navigate(path: string): void;
   init(this: RoutineBuilderContext): Promise<void>;
   loadExisting(this: RoutineBuilderContext): Promise<void>;
+  /** Clears a create draft, or reloads the saved routine in edit mode. */
+  resetForm(this: RoutineBuilderContext): Promise<void>;
   addStep(
     this: RoutineBuilderContext,
     entry: ExerciseTemplateCatalogEntryData,

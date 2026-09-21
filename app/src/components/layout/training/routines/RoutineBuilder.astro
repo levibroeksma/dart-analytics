@@ -7,7 +7,18 @@
  * list's `:key` is the array index, not the issue text: client
  * (`durationIssues()`) and server (`serverIssues`) can report
  * byte-identical strings once a save has failed and the user keeps editing.
+ *
+ * `onCancel` defaults to the page flow's `cancel()` (navigate away); a modal
+ * host passes an expression that resets the form and closes the panel.
  */
+interface Props {
+  onCancel?: string;
+}
+
+// Props
+const { onCancel = "cancel()" }: Props = Astro.props;
+
+// Components
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -85,7 +96,7 @@ import ExercisePicker from "./ExercisePicker.astro";
       variant="secondary"
       grow
       loadingExpr="false"
-      @click="cancel()"
+      x-on:click={onCancel}
     />
     <Button
       title="Save"
