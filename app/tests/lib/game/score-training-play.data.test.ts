@@ -28,13 +28,19 @@ const segmentTimerInstances: Array<{
   options: Record<string, unknown>;
   start: ReturnType<typeof vi.fn>;
   stop: ReturnType<typeof vi.fn>;
+  unlockAudio: ReturnType<typeof vi.fn>;
 }> = [];
 
 vi.mock("@modules/ui/segment-timer.module", () => ({
   SegmentTimer: vi.fn().mockImplementation(function (
     options: Record<string, unknown>,
   ) {
-    const instance = { options, start: vi.fn(), stop: vi.fn() };
+    const instance = {
+      options,
+      start: vi.fn(),
+      stop: vi.fn(),
+      unlockAudio: vi.fn(),
+    };
     segmentTimerInstances.push(instance);
     return instance;
   }),
@@ -646,6 +652,46 @@ describe("scoreTrainingPlay", () => {
       expect(store.turns).toHaveLength(2);
       expect(component.finished).toBe(true);
       expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+    });
+
+    /**
+     * init()'s own auto-resume/auto-start has no preceding user gesture of
+     * its own (#307) — this is why `submitVisit()`/`recordDart()`, the
+     * genuine click/board-tap handlers, unlock audio themselves rather than
+     * relying on init() having done it.
+     */
+    it("submitVisit() unlocks the timer's audio synchronously", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      const instance = segmentTimerInstances[0];
+      instance.unlockAudio.mockClear();
+
+      component.scoreInput.setValue("40");
+      await component.submitVisit.call(component);
+
+      expect(instance.unlockAudio).toHaveBeenCalled();
+    });
+
+    it("recordDart() unlocks the timer's audio synchronously", async () => {
+      const store = gameStub({ configSnapshot: minutes(15) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: {
+          game: store,
+          settings: settingsStub({ inputModeKey: "VISUAL_BOARD" }),
+        },
+      };
+      await component.init.call(component);
+      const instance = segmentTimerInstances[0];
+      instance.unlockAudio.mockClear();
+
+      await component.recordDart.call(component, SINGLE_20);
+
+      expect(instance.unlockAudio).toHaveBeenCalled();
     });
 
     it("updates store.timerRemainingMs from onTick (seconds -> ms)", async () => {

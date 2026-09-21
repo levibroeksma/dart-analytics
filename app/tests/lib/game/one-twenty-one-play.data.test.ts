@@ -30,13 +30,19 @@ const segmentTimerInstances: Array<{
   options: Record<string, unknown>;
   start: ReturnType<typeof vi.fn>;
   stop: ReturnType<typeof vi.fn>;
+  unlockAudio: ReturnType<typeof vi.fn>;
 }> = [];
 
 vi.mock("@modules/ui/segment-timer.module", () => ({
   SegmentTimer: vi.fn().mockImplementation(function (
     options: Record<string, unknown>,
   ) {
-    const instance = { options, start: vi.fn(), stop: vi.fn() };
+    const instance = {
+      options,
+      start: vi.fn(),
+      stop: vi.fn(),
+      unlockAudio: vi.fn(),
+    };
     segmentTimerInstances.push(instance);
     return instance;
   }),
@@ -1119,6 +1125,43 @@ describe("oneTwentyOnePlay — pause/resume (121_V2 MINUTES)", () => {
     play.undoVisit();
 
     expect(store.game.turns).toHaveLength(1);
+  });
+
+  /**
+   * init()'s own auto-resume/auto-start has no preceding user gesture of
+   * its own (#307) — this is why `submitVisit()`/`recordDart()`, the
+   * genuine click/board-tap handlers, unlock audio themselves rather than
+   * relying on init() having done it.
+   */
+  it("submitVisit() unlocks the timer's audio synchronously", async () => {
+    const play = createPlay();
+    await play.init();
+    const instance = segmentTimerInstances[0];
+    instance.unlockAudio.mockClear();
+
+    play.scoreInput.setValue("40");
+    await play.submitVisit();
+
+    expect(instance.unlockAudio).toHaveBeenCalled();
+  });
+
+  it("recordDart() unlocks the timer's audio synchronously", async () => {
+    const play = createPlay();
+    await play.init();
+    play.engine = oneTwentyOneV2EngineFactory.create(
+      store.game.configSnapshot as any,
+    ) as any;
+    const instance = segmentTimerInstances[0];
+    instance.unlockAudio.mockClear();
+
+    await play.recordDart({
+      hitTargetNumber: 1,
+      hitZoneKey: "SINGLE",
+      locationX: 1,
+      locationY: 1,
+    });
+
+    expect(instance.unlockAudio).toHaveBeenCalled();
   });
 });
 

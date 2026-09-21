@@ -57,6 +57,7 @@ export function quickSubtractPlay() {
           this.syncFromGame();
         },
       });
+      timer.unlockAudio();
       game = new QuickSubtractGame({ mode: "count", count, timer });
       this.game = game;
       game.start();
@@ -74,6 +75,7 @@ export function quickSubtractPlay() {
           this.syncFromGame();
         },
       });
+      timer.unlockAudio();
       game = new QuickSubtractGame({ mode: "timer", timer });
       this.game = game;
       game.start();

@@ -408,6 +408,7 @@ export function tuodPlay() {
      * same way 501 skips it for a bogey number.
      */
     async submitVisit(this: TuodPlayContext): Promise<void> {
+      this.timer?.unlockAudio();
       if (!canSubmitVisit(this)) return;
 
       const score = Number(this.scoreInput.value);
@@ -551,6 +552,7 @@ export function tuodPlay() {
       this: TuodPlayContext,
       observation: DartObservation,
     ): Promise<void> {
+      this.timer?.unlockAudio();
       if (
         !this.engine ||
         this.finished ||

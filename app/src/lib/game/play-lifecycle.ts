@@ -149,6 +149,7 @@ export function playToggleTimerPause<
   },
 ): void {
   if (!context.timer || context.finished) return;
+  context.timer.unlockAudio();
   if (context.$store.game.timerPaused) {
     context.timer.start();
     context.$store.game.timerPaused = false;
