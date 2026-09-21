@@ -7,6 +7,7 @@ import {
   vExerciseTemplateCatalog,
   vRoutineExecution,
 } from "@db/schema";
+import { nonNull } from "./row-helpers";
 import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
@@ -65,7 +66,25 @@ export async function findRoutineExecutionRows(
       asc(vRoutineExecution.routineId),
       asc(vRoutineExecution.sequenceNumber),
     );
-  return rows as RoutineExecutionRow[];
+  return rows.map((row) => ({
+    routineId: nonNull(row.routineId, "routine_id"),
+    routineName: nonNull(row.routineName, "routine_name"),
+    routineDescription: row.routineDescription,
+    isSystemTemplate: nonNull(row.isSystemTemplate, "is_system_template"),
+    playerId: row.playerId,
+    sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
+    exerciseTemplateId: nonNull(row.exerciseTemplateId, "exercise_template_id"),
+    exerciseName: nonNull(row.exerciseName, "exercise_name"),
+    exerciseDescription: row.exerciseDescription,
+    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    gameTypeKey: row.gameTypeKey,
+    gameRulesetVersionKey: row.gameRulesetVersionKey,
+    durationTypeKey: nonNull(row.durationTypeKey, "duration_type_key"),
+    durationValue: nonNull(row.durationValue, "duration_value"),
+    defaultConfiguration: row.defaultConfiguration,
+    stepConfiguration: row.stepConfiguration,
+  }));
 }
 
 /** Every published system exercise template — narrowed by the caller, not here. */
@@ -84,7 +103,18 @@ export async function findExerciseTemplateCatalog(
     })
     .from(vExerciseTemplateCatalog)
     .orderBy(asc(vExerciseTemplateCatalog.name));
-  return rows as ExerciseTemplateCatalogRow[];
+  return rows.map((row) => ({
+    exerciseTemplateId: nonNull(row.exerciseTemplateId, "exercise_template_id"),
+    name: nonNull(row.name, "name"),
+    description: row.description,
+    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+    gameTypeKey: row.gameTypeKey,
+    gameRulesetVersionKey: row.gameRulesetVersionKey,
+    hasDefaultConfiguration: nonNull(
+      row.hasDefaultConfiguration,
+      "has_default_configuration",
+    ),
+  }));
 }
 
 export async function findDurationTypeId(
