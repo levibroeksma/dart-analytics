@@ -34,12 +34,14 @@ import ExercisePicker from "./ExercisePicker.astro";
       placeholder="Routine name"
       :maxlength="maxNameLength"
       x-model="name"
+      class="glass placeholder:text-muted-foreground"
     />
     <Input
       name="routine-description"
       placeholder="Description (optional)"
       maxlength="280"
       x-model="description"
+      class="glass placeholder:text-muted-foreground"
     />
   </div>
 
