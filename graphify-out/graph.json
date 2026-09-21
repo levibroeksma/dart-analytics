@@ -13701,7 +13701,7 @@
       "file_type": "code",
       "norm_label": "fakeupdate()",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L329"
+      "source_location": "L330"
     },
     {
       "id": "app_tests_repositories_training_session_repository_test_predicatecolumns",
@@ -47126,7 +47126,7 @@
       "file_type": "code",
       "norm_label": "insertedvaluesbytable",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L220"
+      "source_location": "L221"
     },
     {
       "id": "app_tests_services_rulesets_registry_test",
@@ -94480,7 +94480,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L252",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -94492,7 +94492,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L280",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -94504,7 +94504,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -94516,7 +94516,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L349",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -94528,7 +94528,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L403",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -98044,7 +98044,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L329",
+      "source_location": "L330",
       "weight": 1.0
     },
     {
@@ -100144,7 +100144,7 @@
       "context": "import",
       "deferred": true,
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L145",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -198818,7 +198818,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/tests/repositories/training-session.repository.test.ts",
-      "source_location": "L220",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -250209,5 +250209,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "78e645a1357b62aa94f24ec602bcb9d0d9359181"
+  "built_at_commit": "9ce02d845aa5e9934b2254446a09ce373b570acb"
 }
