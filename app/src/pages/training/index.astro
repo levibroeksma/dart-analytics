@@ -35,7 +35,7 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
         </p>
       </div>
       <template
-        x-for="routine in routines"
+        x-for="routine in systemRoutines()"
         :key="routine.routineId"
       >
         <RoutineCard />
@@ -58,6 +58,30 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
           ))
         }
       </div>
+    </CardWrapper>
+    <CardWrapper
+      color="fuchsia"
+      class="flex flex-col gap-4"
+    >
+      <div>
+        <h2 class="text-sm font-semibold text-foreground">Personal routines</h2>
+        <p class="text-xs text-muted-foreground">
+          The routines you built yourself, ready to run whenever you want them.
+        </p>
+      </div>
+      <template
+        x-for="routine in personalRoutines()"
+        :key="routine.routineId"
+      >
+        <RoutineCard />
+      </template>
+      <p
+        class="text-xs text-muted-foreground"
+        x-show="!loading && !personalRoutines().length"
+        x-cloak
+      >
+        No custom routines available
+      </p>
     </CardWrapper>
     <CardWrapper
       color="violet"
