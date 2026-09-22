@@ -165,6 +165,36 @@ describe("routineBuilder (create)", () => {
     expect(b.durationIssues().join(" ")).toContain("minimum is 30");
   });
 
+  it("does not flag a save attempt until save() is called", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.attemptedSave).toBe(false);
+    b.addStep(CATALOG[0]);
+    b.setMinutes(0, 10);
+    expect(b.attemptedSave).toBe(false);
+  });
+
+  it("flags a save attempt even when canSave() blocks the actual save", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.addStep(CATALOG[0]);
+    b.setMinutes(0, 10);
+    b.name = "Mine";
+    await b.save();
+    expect(b.attemptedSave).toBe(true);
+    expect(b.canSave()).toBe(false);
+    expect(api.createRoutine).not.toHaveBeenCalled();
+  });
+
+  it("resetForm clears a prior save attempt", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    await b.save();
+    expect(b.attemptedSave).toBe(true);
+    await b.resetForm();
+    expect(b.attemptedSave).toBe(false);
+  });
+
   it("pre-checks a GAME step's 3..30 minute bound and blocks save outside it", async () => {
     const b: RoutineBuilderContext = routineBuilder("create");
     await b.init();
