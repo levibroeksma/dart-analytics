@@ -1,4 +1,7 @@
-import type { ScheduleData } from "@client/api/types";
+import type {
+  ScheduleData,
+  TrainingCompletionListData,
+} from "@client/api/types";
 import type { ScheduleDayEntry } from "./types";
 
 /** JS `Date#getDay()` (0 Sunday..6 Saturday) mapped to ISO weekday (1 Monday..7 Sunday). */
@@ -33,4 +36,20 @@ export function todayEntry(
   if (!schedule) return null;
   const weekday = isoWeekday(date);
   return schedule.days.find((day) => day.dayOfWeek === weekday) ?? null;
+}
+
+/** Local midnight of `date`'s calendar day. */
+export function startOfLocalDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/** Whether any of `completions` ran `entry`'s routine; `false` without an entry. */
+export function isRoutineCompleted(
+  entry: ScheduleDayEntry | null,
+  completions: TrainingCompletionListData["items"],
+): boolean {
+  if (!entry) return false;
+  return completions.some(
+    (completion) => completion.routineTemplateId === entry.routineId,
+  );
 }

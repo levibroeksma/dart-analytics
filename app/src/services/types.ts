@@ -52,6 +52,14 @@ export type StartTrainingResult = {
   steps: TrainingStepResolved[];
 };
 
+/** A completed training and the routine it ran. */
+export type TrainingCompletion = {
+  activityId: string;
+  routineTemplateId: string;
+  routineName: string;
+  completedAt: string;
+};
+
 export type StartTrainingStepResult = {
   sessionId: string;
   exerciseTypeKey: TrainingStepResolved["exerciseTypeKey"];

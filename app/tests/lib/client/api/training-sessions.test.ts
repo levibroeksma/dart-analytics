@@ -8,6 +8,7 @@ import {
   startTrainingStep,
   completeTraining,
   abandonTraining,
+  listTrainingCompletions,
 } from "@client/api/training-sessions";
 import { SessionApiError } from "@client/api/sessions";
 
@@ -147,6 +148,38 @@ describe("abandonTraining", () => {
       error: { code: "NOT_FOUND", message: "not found", retryable: false },
     });
     await expect(abandonTraining("act-1")).rejects.toBeInstanceOf(
+      SessionApiError,
+    );
+  });
+});
+
+describe("listTrainingCompletions", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("GETs completions since the encoded instant and unwraps data", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: { items: [], nextCursor: null },
+    });
+    const since = "2026-09-22T00:00:00+02:00";
+    expect(await listTrainingCompletions(since)).toEqual({
+      items: [],
+      nextCursor: null,
+    });
+    expect(apiRequest).toHaveBeenCalledWith(
+      `/api/training-sessions/completed?since=${encodeURIComponent(since)}`,
+      { method: "GET" },
+    );
+  });
+
+  it("throws a SessionApiError on a failure envelope", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "VALIDATION_FAILED", message: "bad", retryable: false },
+    });
+    await expect(listTrainingCompletions("x")).rejects.toBeInstanceOf(
       SessionApiError,
     );
   });

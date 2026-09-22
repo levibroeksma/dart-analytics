@@ -8,6 +8,7 @@ import { SessionApiError } from "@client/api/sessions";
 import { MAX_SCHEDULE_NAME_LENGTH } from "@routes/schedules/types";
 import { scheduleIdFromLocation } from "./schedule-route";
 import { weekdayNames } from "./today";
+import { formatScheduleIssues } from "./schedule-issues";
 import type { RoutineSummaryData } from "@client/api/types";
 import type { ScheduleEditorContext, ScheduleEditorRow } from "./types";
 
@@ -19,26 +20,6 @@ function restRows(): ScheduleEditorRow[] {
     dayOfWeek: index + 1,
     routineTemplateId: null,
   }));
-}
-
-/**
- * Formats a schedule `VALIDATION_FAILED` envelope's `details` into a single
- * user-facing line. The service reports `{ reason, dayOfWeek? }` — a bare
- * duplicate-weekday check has no weekday to name, an unknown routine id does.
- */
-function formatServerIssues(
-  details: Record<string, unknown> | undefined,
-): string[] {
-  if (!details) return ["The schedule was not accepted."];
-  const reason =
-    typeof details.reason === "string"
-      ? details.reason
-      : "The schedule was not accepted.";
-  return [
-    typeof details.dayOfWeek === "number"
-      ? `${reason} (day ${details.dayOfWeek})`
-      : reason,
-  ];
 }
 
 /**
@@ -153,7 +134,7 @@ export function scheduleEditor(mode: "create" | "edit") {
           err instanceof SessionApiError &&
           err.code === "VALIDATION_FAILED"
         ) {
-          this.serverIssues = formatServerIssues(err.details);
+          this.serverIssues = formatScheduleIssues(err.details);
         } else {
           this.error =
             "Could not save this schedule. Check your connection and retry.";

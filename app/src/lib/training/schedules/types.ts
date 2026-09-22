@@ -2,6 +2,7 @@ import type {
   ScheduleData,
   ScheduleSummaryData,
   RoutineSummaryData,
+  TrainingCompletionListData,
 } from "@client/api/types";
 
 /** One entry of `ScheduleData["days"]` — a weekday's mapped routine. */
@@ -68,4 +69,53 @@ export type ScheduleEditorContext = {
   };
   save(this: ScheduleEditorContext): Promise<void>;
   cancel(this: ScheduleEditorContext): void;
+};
+
+export type MyScheduleFormContext = {
+  loading: boolean;
+  saving: boolean;
+  error: string;
+  serverIssues: string[];
+  scheduleId: string | null;
+  name: string;
+  rows: ScheduleEditorRow[];
+  routines: RoutineSummaryData[];
+  selectedIndex: number;
+  init(this: MyScheduleFormContext): Promise<void>;
+  applySchedule(
+    this: MyScheduleFormContext,
+    schedule: ScheduleData | null,
+  ): void;
+  resetForm(this: MyScheduleFormContext): Promise<void>;
+  dayInitial(index: number): string;
+  dayLabel(index: number): string;
+  selectedDayLabel(this: MyScheduleFormContext): string;
+  selectDay(this: MyScheduleFormContext, index: number): void;
+  hasRoutine(this: MyScheduleFormContext, index: number): boolean;
+  isRoutineSelected(
+    this: MyScheduleFormContext,
+    routine: RoutineSummaryData,
+  ): boolean;
+  toggleRoutine(this: MyScheduleFormContext, routine: RoutineSummaryData): void;
+  canSave(this: MyScheduleFormContext): boolean;
+  payload(this: MyScheduleFormContext): {
+    name: string;
+    days: { dayOfWeek: number; routineTemplateId: string }[];
+  };
+  save(this: MyScheduleFormContext): Promise<boolean>;
+};
+
+export type HomeWeekContext = {
+  loading: boolean;
+  schedule: ScheduleData | null;
+  completions: TrainingCompletionListData["items"];
+  today: number;
+  init(this: HomeWeekContext): Promise<void>;
+  isToday(this: HomeWeekContext, index: number): boolean;
+  hasRoutine(this: HomeWeekContext, index: number): boolean;
+  todayEntry(this: HomeWeekContext): ScheduleDayEntry | null;
+  doneToday(this: HomeWeekContext): boolean;
+  showStart(this: HomeWeekContext): boolean;
+  showDone(this: HomeWeekContext): boolean;
+  startHref(this: HomeWeekContext): string;
 };

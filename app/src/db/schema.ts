@@ -1383,3 +1383,16 @@ export const vPlayerLegFacts = pgView("v_player_leg_facts", {
 }).as(
   sql`WITH leg_turns AS ( SELECT t.id AS turn_id, t.exercise_stage_id, count(d.id) AS dart_count FROM turns t JOIN participants p ON p.id = t.participant_id JOIN exercise_stages st_1 ON st_1.id = t.exercise_stage_id JOIN exercise_sessions es_1 ON es_1.id = st_1.exercise_session_id LEFT JOIN darts d ON d.turn_id = t.id WHERE p.player_id = es_1.player_id AND t.completed_at IS NOT NULL GROUP BY t.id, t.exercise_stage_id ) SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, st.id AS stage_id, sum(lt.dart_count) AS total_darts_in_leg FROM leg_turns lt JOIN exercise_stages st ON st.id = lt.exercise_stage_id JOIN stage_types stype ON stype.id = st.stage_type_id JOIN exercise_sessions es ON es.id = st.exercise_session_id LEFT JOIN game_types gt ON gt.id = es.game_type_id WHERE stype.implementation_key = 'LEG'::text GROUP BY es.id, es.player_id, gt.implementation_key, st.id HAVING bool_and(lt.dart_count > 0)`,
 );
+
+export const vTrainingCompletions = pgView("v_training_completions", {
+  activityId: uuid("activity_id"),
+  playerId: uuid("player_id"),
+  routineTemplateId: text("routine_template_id"),
+  routineName: text("routine_name"),
+  completedAt: timestamp("completed_at", {
+    withTimezone: true,
+    mode: "string",
+  }),
+}).as(
+  sql`SELECT a.id AS activity_id, a.player_id, ac.configuration ->> 'routineTemplateId'::text AS routine_template_id, ac.configuration ->> 'routineName'::text AS routine_name, a.completed_at FROM activities a JOIN activity_configurations ac ON ac.activity_id = a.id JOIN game_statuses gs ON gs.id = a.status_id WHERE gs.implementation_key = 'COMPLETED'::text`,
+);

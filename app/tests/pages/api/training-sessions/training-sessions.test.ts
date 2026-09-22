@@ -5,6 +5,7 @@ vi.mock("@services/training-session.service", () => ({
   startTrainingStep: vi.fn(),
   completeTraining: vi.fn(),
   abandonTraining: vi.fn(),
+  listTrainingCompletions: vi.fn(),
 }));
 
 import * as service from "@services/training-session.service";
@@ -147,5 +148,38 @@ describe("PATCH /api/training-sessions/[activityId]/abandon", () => {
       params: { activityId: "act-1" },
     } as any);
     expect(response.status).toBe(409);
+  });
+});
+
+describe("GET /api/training-sessions/completed", () => {
+  const locals = { auth: { playerId: "p1" }, requestId: "req-1" };
+  const url = (query: string) =>
+    new URL(`https://example.test/api/training-sessions/completed${query}`);
+
+  it("delegates to listTrainingCompletions with the since instant", async () => {
+    vi.mocked(service.listTrainingCompletions).mockResolvedValue({
+      ok: true,
+      data: { items: [], nextCursor: null },
+    });
+    const { GET } = await import("@pages/api/training-sessions/completed");
+    const response = await GET({
+      locals,
+      url: url("?since=2026-09-22T00:00:00.000Z"),
+    } as any);
+    expect(response.status).toBe(200);
+    expect(service.listTrainingCompletions).toHaveBeenCalledWith(
+      "p1",
+      "2026-09-22T00:00:00.000Z",
+    );
+  });
+
+  it("returns 422 when since is missing or not an ISO instant", async () => {
+    vi.mocked(service.listTrainingCompletions).mockClear();
+    const { GET } = await import("@pages/api/training-sessions/completed");
+    for (const query of ["", "?since=yesterday"]) {
+      const response = await GET({ locals, url: url(query) } as any);
+      expect(response.status).toBe(422);
+    }
+    expect(service.listTrainingCompletions).not.toHaveBeenCalled();
   });
 });

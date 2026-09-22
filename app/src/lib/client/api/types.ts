@@ -46,6 +46,7 @@ export {
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
   type AbandonTrainingResponseData,
+  type TrainingCompletionListData,
   CreateRoutineRequest,
   type CreateRoutineRequestInput,
   UpdateRoutineRequest,

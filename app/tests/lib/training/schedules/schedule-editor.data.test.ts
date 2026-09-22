@@ -134,6 +134,17 @@ describe("scheduleEditor (create)", () => {
     expect(e.saving).toBe(false);
   });
 
+  it("falls back to a generic line when the envelope has no details", async () => {
+    vi.mocked(schedulesApi.createSchedule).mockRejectedValue(
+      new SessionApiError("VALIDATION_FAILED", "bad", "r"),
+    );
+    const e: ScheduleEditorContext = scheduleEditor("create");
+    await e.init();
+    e.name = "Week";
+    await e.save();
+    expect(e.serverIssues).toEqual(["The schedule was not accepted."]);
+  });
+
   it("names the offending weekday when the server reports it", async () => {
     vi.mocked(schedulesApi.createSchedule).mockRejectedValue(
       new SessionApiError("VALIDATION_FAILED", "bad", "r", {

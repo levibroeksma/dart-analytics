@@ -6,6 +6,8 @@ import {
   StartTrainingStepResponse,
   CompleteTrainingResponse,
   AbandonTrainingResponse,
+  TrainingCompletionsQuery,
+  TrainingCompletionListResponse,
 } from "@routes/training-sessions/types";
 
 describe("StartTrainingRequest", () => {
@@ -127,6 +129,41 @@ describe("AbandonTrainingResponse", () => {
       AbandonTrainingResponse.safeParse({
         activityId: "act-1",
         completedAt: "2026-09-13T12:00:00.000Z",
+      }).success,
+    ).toBe(true);
+  });
+});
+
+describe("TrainingCompletionsQuery", () => {
+  it("accepts an ISO instant with offset", () => {
+    expect(
+      TrainingCompletionsQuery.safeParse({
+        since: "2026-09-22T00:00:00+02:00",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a missing or non-ISO since", () => {
+    expect(TrainingCompletionsQuery.safeParse({}).success).toBe(false);
+    expect(TrainingCompletionsQuery.safeParse({ since: "today" }).success).toBe(
+      false,
+    );
+  });
+});
+
+describe("TrainingCompletionListResponse", () => {
+  it("accepts a list of completions", () => {
+    expect(
+      TrainingCompletionListResponse.safeParse({
+        items: [
+          {
+            activityId: "act-1",
+            routineTemplateId: "rt-1",
+            routineName: "Balanced Training",
+            completedAt: "2026-09-22T08:00:00.000Z",
+          },
+        ],
+        nextCursor: null,
       }).success,
     ).toBe(true);
   });

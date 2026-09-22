@@ -9,6 +9,8 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 import CardWrapper from "@components/ui/CardWrapper.astro";
 import RoutineFormModal from "@components/layout/training/routines/RoutineFormModal.astro";
+import ScheduleFormModal from "@components/layout/training/schedules/ScheduleFormModal.astro";
+import Button from "@components/forms/Button.astro";
 ---
 
 <AppLayout title="Training">
@@ -19,10 +21,32 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
     <div class="flex h-12 items-center justify-between">
       <h1 class="text-xl font-semibold text-foreground">Training</h1>
     </div>
-    <div x-data="todayCard()">
+    <div
+      x-data="todayCard()"
+      @schedule-saved.window="schedule = $event.detail"
+    >
       <TodayCard />
     </div>
     <ErrorAlert />
+    <CardWrapper
+      color="red"
+      class="flex-row items-center justify-between gap-4"
+    >
+      <div>
+        <h2 class="text-sm font-semibold text-foreground">My schedule</h2>
+        <p class="text-xs text-muted-foreground">
+          Plan your weekly routine to get your game to the next level. Don't
+          forget to build in some recovery!
+        </p>
+      </div>
+      <Button
+        title="Plan"
+        variant="secondary"
+        class="shrink-0"
+        loadingExpr="false"
+        @click="showScheduleModal = true"
+      />
+    </CardWrapper>
     <CardWrapper
       color="sky"
       class="flex flex-col gap-4"
@@ -104,5 +128,6 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
       mode="create"
       openExpr="showModal"
     />
+    <ScheduleFormModal openExpr="showScheduleModal" />
   </div>
 </AppLayout>

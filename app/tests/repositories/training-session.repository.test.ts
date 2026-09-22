@@ -1,6 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderingDb, onlyStatement } from "./render-sql";
 
+/**
+ * `v_training_completions` (0042) is declared here as well as in
+ * `schema.ts`: the override keeps this suite independent of whether the
+ * introspected schema has been regenerated yet, and matches its shape.
+ */
+vi.mock("@db/schema", async (importOriginal) => {
+  const actual = await importOriginal<object>();
+  const { pgView, uuid, text, timestamp } = await import("drizzle-orm/pg-core");
+  return {
+    ...actual,
+    vTrainingCompletions: pgView("v_training_completions", {
+      activityId: uuid("activity_id"),
+      playerId: uuid("player_id"),
+      routineTemplateId: text("routine_template_id"),
+      routineName: text("routine_name"),
+      completedAt: timestamp("completed_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+    }).existing(),
+  };
+});
+
 function predicateColumns(clause: unknown): string[] {
   const names: string[] = [];
   const visit = (node: unknown) => {
@@ -484,6 +507,47 @@ describe("training-session.repository rendered SQL", () => {
     expect(statements.map((statement) => statement.sql)).toEqual([
       'insert into "activities" ("id", "player_id", "status_id", "started_at", "completed_at", "created_at") values ($1, $2, $3, $4, default, $5)',
       'insert into "activity_configurations" ("id", "activity_id", "configuration", "created_at") values ($1, $2, $3, $4)',
+    ]);
+  });
+});
+
+describe("findTrainingCompletions", () => {
+  const load = () => import("@repositories/training-session.repository");
+
+  it("reads v_training_completions scoped to the caller and since the instant", async () => {
+    const { db, statements } = renderingDb([]);
+    await (
+      await load()
+    ).findTrainingCompletions(db, "p1", "2026-09-22T00:00:00.000Z");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_training_completions"');
+    expect(sql).toMatch(/"player_id" = \$1 and .*"completed_at" >= \$2/);
+    expect(statements[0].params).toEqual(["p1", "2026-09-22T00:00:00.000Z"]);
+  });
+
+  it("orders newest first", async () => {
+    const { db, statements } = renderingDb([]);
+    await (
+      await load()
+    ).findTrainingCompletions(db, "p1", "2026-09-22T00:00:00.000Z");
+    expect(onlyStatement(statements)).toMatch(/order by .*"completed_at" desc/);
+  });
+
+  it("shapes positional rows into completions", async () => {
+    const { db } = renderingDb([
+      ["act-1", "rt-1", "Balanced Training", "2026-09-22T08:00:00.000Z"],
+    ]);
+    expect(
+      await (
+        await load()
+      ).findTrainingCompletions(db, "p1", "2026-09-22T00:00:00.000Z"),
+    ).toEqual([
+      {
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        completedAt: "2026-09-22T08:00:00.000Z",
+      },
     ]);
   });
 });

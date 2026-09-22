@@ -1,8 +1,9 @@
 ---
 /**
- * Homepage weekday strip: seven day-initial circles in one row, the
- * current weekday's circle picked out in accent. Purely presentational —
- * carries no schedule data of its own.
+ * Homepage weekday strip: seven day-initial circles in one row. Reads
+ * `isToday(index)`/`hasRoutine(index)` from the enclosing `homeWeek()` scope —
+ * today in accent at 110%, a day with a scheduled routine filled, a rest day
+ * outlined.
  */
 import { weekdayNames } from "@lib/training/schedules/today";
 
@@ -10,20 +11,15 @@ import { weekdayNames } from "@lib/training/schedules/today";
 const letters = weekdayNames().map((name) => name.charAt(0).toLowerCase());
 ---
 
-<div
-  class="flex justify-between"
-  x-data="{ today: (new Date().getDay() + 6) % 7 }"
->
-  {
-    letters.map((letter, index) => (
-      <span
-        class="flex size-10 items-center justify-center rounded-full border-2 font-normal"
-        {...{
-          ":class": `${index} === today ? 'border-accent text-accent' : 'border-muted text-muted'`,
-        }}
-      >
-        {letter}
-      </span>
-    ))
-  }
+<div class="flex justify-between">
+  <template
+    x-for={`(letter, index) in ${JSON.stringify(letters)}`}
+    :key="index"
+  >
+    <span
+      class="flex size-10 items-center justify-center rounded-full border-2 font-normal transition-[transform,color,background-color,border-color] duration-150"
+      :class="isToday(index) ? (hasRoutine(index) ? 'scale-110 border-accent bg-accent text-accent-foreground' : 'scale-110 border-accent text-accent') : (hasRoutine(index) ? 'border-muted bg-muted text-foreground' : 'border-muted text-muted')"
+      x-text="letter"
+    ></span>
+  </template>
 </div>

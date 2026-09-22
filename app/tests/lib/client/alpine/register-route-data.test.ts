@@ -9,6 +9,8 @@ import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { todayCard } from "@lib/training/schedules/today-card.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
+import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
+import { homeWeek } from "@lib/training/schedules/home-week.data";
 
 describe("registerRouteData", () => {
   it("registers quickSubtractPlay as an Alpine data factory", () => {
@@ -57,5 +59,17 @@ describe("registerRouteData", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("scheduleEditor", scheduleEditor);
+  });
+
+  it("registers myScheduleForm as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("myScheduleForm", myScheduleForm);
+  });
+
+  it("registers homeWeek as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("homeWeek", homeWeek);
   });
 });

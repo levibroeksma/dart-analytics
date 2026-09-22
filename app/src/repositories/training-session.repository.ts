@@ -1,13 +1,17 @@
-import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
   activityConfigurations,
   exerciseSessions,
   vRoutineExecution,
+  vTrainingCompletions,
 } from "@db/schema";
 import { nonNull } from "./row-helpers";
-import type { RoutineStepTemplateRow } from "./interfaces";
+import type {
+  RoutineStepTemplateRow,
+  TrainingCompletionRow,
+} from "./interfaces";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -220,4 +224,36 @@ export async function insertTrainingActivity(
     configuration: input.configuration,
     createdAt: now,
   });
+}
+
+/**
+ * The caller's completed trainings with `completed_at` at or after `since`,
+ * newest first, through `v_training_completions` (0042).
+ */
+export async function findTrainingCompletions(
+  db: Db,
+  playerId: string,
+  since: string,
+): Promise<TrainingCompletionRow[]> {
+  const rows = await db
+    .select({
+      activityId: vTrainingCompletions.activityId,
+      routineTemplateId: vTrainingCompletions.routineTemplateId,
+      routineName: vTrainingCompletions.routineName,
+      completedAt: vTrainingCompletions.completedAt,
+    })
+    .from(vTrainingCompletions)
+    .where(
+      and(
+        eq(vTrainingCompletions.playerId, playerId),
+        gte(vTrainingCompletions.completedAt, since),
+      ),
+    )
+    .orderBy(desc(vTrainingCompletions.completedAt));
+  return rows.map((row) => ({
+    activityId: nonNull(row.activityId, "activity_id"),
+    routineTemplateId: nonNull(row.routineTemplateId, "routine_template_id"),
+    routineName: nonNull(row.routineName, "routine_name"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+  }));
 }

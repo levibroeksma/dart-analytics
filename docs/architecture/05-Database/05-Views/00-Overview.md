@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0041)
+# Implemented Views (migrations 0009–0042)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -157,6 +157,7 @@ The name should describe the returned data, not the underlying tables.
 | `v_player_leg_facts` | Analytics | One row per complete-capture LEG stage, for best-leg/darts-per-leg style statistics (2026-09-06) |
 | `v_training_schedules` | API Read Model | One row per weekly training schedule with its day count, filtered by `player_id`; a schedule with no days still lists (2026-09-20) |
 | `v_training_schedule_days` | API Read Model | One row per (schedule, weekday) with the routine's name and `MINUTES` total, filtered by `player_id`; a missing weekday is a rest day, not a row (2026-09-20) |
+| `v_training_completions` | API Read Model | One row per completed training activity with the routine snapshot it ran, filtered by `player_id` and `completed_at`; abandoned trainings are excluded (0042, 2026-09-22) |
 
 Every view above that reaches `exercise_sessions.game_type_id` or
 `exercise_templates.game_type_id` joins `game_types` with a `LEFT JOIN` from

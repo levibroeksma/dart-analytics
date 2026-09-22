@@ -6,8 +6,10 @@ import {
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
   type AbandonTrainingResponseData,
+  type TrainingCompletionListData,
 } from "./types";
 import { SessionApiError } from "./sessions";
+import { unwrapOrThrow } from "./unwrap";
 
 export async function startTraining(
   body: StartTrainingRequestInput,
@@ -77,4 +79,16 @@ export async function abandonTraining(
       result.error.details,
     );
   return result.data;
+}
+
+/** The caller's completed trainings at or after `since` (an ISO instant). */
+export async function listTrainingCompletions(
+  since: string,
+): Promise<TrainingCompletionListData> {
+  return unwrapOrThrow(
+    await apiRequest<TrainingCompletionListData>(
+      `/api/training-sessions/completed?since=${encodeURIComponent(since)}`,
+      { method: "GET" },
+    ),
+  );
 }
