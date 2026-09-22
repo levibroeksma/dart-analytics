@@ -57,3 +57,26 @@ export const AbandonTrainingResponse = z.object({
 export type AbandonTrainingResponseData = z.infer<
   typeof AbandonTrainingResponse
 >;
+
+/** `GET /api/training-sessions/completed` query: completions at or after `since`. */
+export const TrainingCompletionsQuery = z.object({
+  since: z.string().datetime({ offset: true }),
+});
+export type TrainingCompletionsQueryInput = z.infer<
+  typeof TrainingCompletionsQuery
+>;
+
+export const TrainingCompletion = z.object({
+  activityId: z.string(),
+  routineTemplateId: z.string(),
+  routineName: z.string(),
+  completedAt: z.string(),
+});
+
+export const TrainingCompletionListResponse = z.object({
+  items: z.array(TrainingCompletion),
+  nextCursor: z.null(),
+});
+export type TrainingCompletionListData = z.infer<
+  typeof TrainingCompletionListResponse
+>;

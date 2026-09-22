@@ -965,6 +965,24 @@ Never edits `0004`/`0011`/`0038`/`0040`.
 
 ---
 
+## 0042_training_completions_view.sql
+
+Purpose:
+
+Read model for "has today's scheduled routine been trained": one row per `COMPLETED` training activity with the routine it ran. <!-- 2026-09-22 -->
+
+Contains:
+
+- new `v_training_completions` (activity_id, player_id, routine_template_id, routine_name, completed_at) — `activities` joined to its `activity_configurations` snapshot (0030) and `game_statuses`, filtered to `implementation_key = 'COMPLETED'`
+
+The routine id and name are read from the snapshot JSON, never a template FK, so editing or deleting a routine never rewrites history. The view is day-agnostic: "today" is the player's local day, so the caller filters `completed_at` by an instant (`GET /api/training-sessions/completed?since=`).
+
+View-only; no table, column or constraint changes. Not yet applied: `database/verification/0042_training_completions_view_checks.sql` runs once it is. <!-- 2026-09-22 -->
+
+Never edits `0005`/`0030`.
+
+---
+
 # Schema Changes
 
 

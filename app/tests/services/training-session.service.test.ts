@@ -12,6 +12,7 @@ vi.mock("@repositories/training-session.repository", () => ({
   findActivityStatus: vi.fn(),
   updateActivityStatusRecord: vi.fn(),
   abandonActiveTrainingActivities: vi.fn(),
+  findTrainingCompletions: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
   const actual =
@@ -40,6 +41,7 @@ import {
   startTrainingStep,
   completeTraining,
   abandonTraining,
+  listTrainingCompletions,
 } from "@services/training-session.service";
 
 const RESOLVED = {
@@ -823,5 +825,31 @@ describe("abandonTraining", () => {
       code: "INTERNAL_ERROR",
       details: { reason: "reference data missing" },
     });
+  });
+});
+
+describe("listTrainingCompletions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("reads the caller's completions since the instant", async () => {
+    const items = [
+      {
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        completedAt: "2026-09-22T08:00:00.000Z",
+      },
+    ];
+    vi.mocked(trainingRepo.findTrainingCompletions).mockResolvedValue(items);
+    const result = await listTrainingCompletions(
+      "p1",
+      "2026-09-22T00:00:00.000Z",
+    );
+    expect(trainingRepo.findTrainingCompletions).toHaveBeenCalledWith(
+      {},
+      "p1",
+      "2026-09-22T00:00:00.000Z",
+    );
+    expect(result).toEqual({ ok: true, data: { items, nextCursor: null } });
   });
 });

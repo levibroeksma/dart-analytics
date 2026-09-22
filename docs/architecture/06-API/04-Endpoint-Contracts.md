@@ -7,7 +7,7 @@ updated: 2026-09-21
 
 # API Endpoint Contracts
 
-> **Version:** 1.10.0 (Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.11.0 (`GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -375,6 +375,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/schedules` | `v_training_schedules` | `ListResult<ScheduleSummary>` | 2026-09-20 |
 | `GET /api/schedules/active` | `v_training_schedules` + `v_training_schedule_days` | `Schedule \| null` | 2026-09-20 |
 | `GET /api/schedules/:scheduleId` | `v_training_schedules` + `v_training_schedule_days` | `Schedule` | 2026-09-20 |
+| `GET /api/training-sessions/completed?since=` | `v_training_completions` | `ListResult<TrainingCompletion>` | 2026-09-22 |
 | `GET /api/configuration-templates` | `v_configuration_presets` | `ConfigurationPreset[]` | 2026-07-13 |
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
@@ -424,6 +425,23 @@ that `GET /api/exercise-templates` filters out for having no
 missed case: a distinct reason for "exists but not offerable" would let a
 write confirm the existence of a system template the read side never exposes
 (`app/src/services/routine.service.ts`'s `writeIssues`, 2026-09-19).
+
+---
+
+## Training Completions — `GET /api/training-sessions/completed`
+
+Per D353. Read-only, backed by `v_training_completions` (migration `0042`), player-scoped
+through the service. Returns the caller's `COMPLETED` training activities with
+`completedAt` at or after `since`, newest first, each as `TrainingCompletion`
+(`activityId`, `routineTemplateId`, `routineName`, `completedAt`) — routine fields come
+from the activity's configuration snapshot, not a template.
+
+- `since` is required and must be an ISO 8601 instant (offset allowed); missing or
+  malformed → `422 VALIDATION_FAILED` without reaching the service.
+- The server has no player timezone (D343): the client passes its local midnight to ask
+  "done today" (`lib/training/schedules/home-week.data.ts`).
+- Success → `200` with the standard `ok()` envelope carrying
+  `ListResult<TrainingCompletion>` (`nextCursor` always `null`). <!-- 2026-09-22 -->
 
 ---
 

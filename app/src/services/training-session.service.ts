@@ -18,6 +18,7 @@ import {
   findActivityConfiguration,
   findActivityStatus,
   findRoutineTemplateSteps,
+  findTrainingCompletions,
   insertTrainingActivity,
   updateActivityStatusRecord,
 } from "@repositories/training-session.repository";
@@ -36,6 +37,7 @@ import type {
   ServiceResult,
   StartTrainingResult,
   StartTrainingStepResult,
+  TrainingCompletion,
   TrainingStepResolved,
 } from "./types";
 
@@ -615,4 +617,17 @@ export async function abandonTraining(
   activityId: string,
 ): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
   return transitionTrainingActivity(playerId, activityId, "ABANDONED");
+}
+
+/**
+ * The caller's completed trainings since `since`, newest first. The caller
+ * picks the instant (e.g. its local midnight) — the server has no notion of
+ * the player's day.
+ */
+export async function listTrainingCompletions(
+  playerId: string,
+  since: string,
+): Promise<ServiceResult<{ items: TrainingCompletion[]; nextCursor: null }>> {
+  const items = await findTrainingCompletions(getDb(), playerId, since);
+  return { ok: true, data: { items, nextCursor: null } };
 }

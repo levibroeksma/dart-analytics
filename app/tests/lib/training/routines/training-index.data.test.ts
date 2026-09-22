@@ -64,6 +64,11 @@ describe("trainingIndex", () => {
     expect(data.showModal).toBe(false);
   });
 
+  it("starts with the schedule modal closed", () => {
+    const data: TrainingIndexContext = trainingIndex();
+    expect(data.showScheduleModal).toBe(false);
+  });
+
   it("surfaces a load failure as error text", async () => {
     vi.mocked(listRoutines).mockRejectedValue(new Error("boom"));
     const data: TrainingIndexContext = trainingIndex();

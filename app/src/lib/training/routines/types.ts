@@ -137,6 +137,7 @@ export type TrainingIndexContext = {
   error: string;
   /** Open flag for the page's `RoutineFormModal`. */
   showModal: boolean;
+  showScheduleModal: boolean;
   routines: RoutineSummaryData[];
   init(this: TrainingIndexContext): Promise<void>;
   /** The seeded default routines. */

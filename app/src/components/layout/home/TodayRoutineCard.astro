@@ -1,0 +1,61 @@
+---
+/**
+ * Homepage card for today's scheduled routine, inside the `homeWeek()`
+ * scope: a link straight into the routine while it has not been completed
+ * today, then a "You're on fire" completion state. Renders nothing on a rest
+ * day or without an active schedule.
+ */
+import CardWrapper from "@components/ui/CardWrapper.astro";
+import Badge from "@components/ui/Badge.astro";
+
+// Icons
+import DartIcon from "@icons/dart.svg";
+import FlameIcon from "@icons/flame.svg";
+---
+
+<div
+  x-show="showStart()"
+  x-cloak
+>
+  <a
+    :href="startHref()"
+    class="block no-underline"
+  >
+    <CardWrapper class="flex-row items-center justify-between gap-4 glass">
+      <div class="flex flex-col gap-0.5">
+        <p class="text-xs text-muted-foreground">Today's training</p>
+        <div class="flex items-center gap-2">
+          <h3
+            class="font-semibold text-base text-accent"
+            x-text="todayEntry()?.routineName"
+          >
+          </h3>
+          <Badge
+            class="text-xs"
+            x-text="`${todayEntry()?.routineMinutes} min`"
+          />
+        </div>
+      </div>
+      <DartIcon class="-rotate-45 size-8 text-accent" />
+    </CardWrapper>
+  </a>
+</div>
+<div
+  x-show="showDone()"
+  x-cloak
+>
+  <CardWrapper
+    color="orange"
+    class="flex-row items-center gap-4"
+  >
+    <FlameIcon class="size-8 shrink-0 text-foreground" />
+    <div class="flex flex-col gap-0.5">
+      <h3 class="font-semibold text-base text-foreground">You're on fire</h3>
+      <p
+        class="text-xs text-muted-foreground"
+        x-text="`${todayEntry()?.routineName} done for today.`"
+      >
+      </p>
+    </div>
+  </CardWrapper>
+</div>

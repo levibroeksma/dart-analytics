@@ -208,3 +208,11 @@ export interface TrainingScheduleDayRow {
   routineName: string;
   routineMinutes: number;
 }
+
+/** One `v_training_completions` row — a completed training and the routine it ran. */
+export interface TrainingCompletionRow {
+  activityId: string;
+  routineTemplateId: string;
+  routineName: string;
+  completedAt: string;
+}

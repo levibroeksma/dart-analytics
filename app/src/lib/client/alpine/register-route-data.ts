@@ -27,6 +27,8 @@ import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { todayCard } from "@lib/training/schedules/today-card.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
+import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
+import { homeWeek } from "@lib/training/schedules/home-week.data";
 
 export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);
@@ -57,4 +59,6 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("todayCard", todayCard);
   Alpine.data("schedulesIndex", schedulesIndex);
   Alpine.data("scheduleEditor", scheduleEditor);
+  Alpine.data("myScheduleForm", myScheduleForm);
+  Alpine.data("homeWeek", homeWeek);
 }

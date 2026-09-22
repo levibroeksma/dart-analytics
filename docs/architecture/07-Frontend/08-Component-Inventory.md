@@ -26,10 +26,10 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `Badge.astro` | Small inline status pill | `variant` (`accent`/`error`/`neutral`) |
 | `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture | `zoom` |
-| `CardWrapper.astro` | Bordered card, optionally a link | `href`, `title`, `description`, `color`, `external` |
+| `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `red` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
 | `ConfirmDialog.astro` | Modal with cancel/confirm actions | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `confirmVariant`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
-| `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen` |
+| `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21). `detached` hides the collapsed corner toggle so the caller opens it from its own control (2026-09-22) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
@@ -130,9 +130,11 @@ that split (2026-09-19, closes issue #423).
 | `TodayCard.astro` | `/training`'s Today card: active schedule's routine for today (or rest), `Start`, link to Schedules; whole card `x-show="schedule"`, hidden with no active schedule | none — reads `todayCard()` from the parent scope (2026-09-20) |
 | `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
 | `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
+| `ScheduleFormModal.astro` | `/training`'s "My schedule" editor in a `detached` `ExpandingModal`, opened from the red schedule card's Plan button. Seven day circles pick the day to edit; the routine list assigns or clears that day's routine; Save needs one mapped day and closes on success. Mounts `myScheduleForm()` around the modal so every close path reaches `resetForm()` (2026-09-22) | `openExpr`, `titleId` |
 
 ## `components/layout/home/`
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`); today's circle picked out accent border/text with no background, the rest muted border/text. Letters come from `weekdayNames()` (build time); today's index is resolved client-side (`new Date().getDay()`) since the page is static. Presentational only — not wired to a schedule yet (2026-09-22) | none |
+| `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`), below the intro text. Classes come from `homeWeek().dayClass(index)`: today at `scale-110` in accent (filled `bg-accent` when it has a routine, border only when not); other days muted (filled `bg-muted` when they have a routine, border only when not). Letters come from `weekdayNames()` (build time) (2026-09-22) | none — reads `homeWeek()` from the parent scope |
+| `TodayRoutineCard.astro` | Homepage card for today's scheduled routine: a link card into the routine's play page while it has not been completed today, then a "You're on fire" completion state with a flame icon; nothing on a rest day or with no active schedule (2026-09-22) | none — reads `homeWeek()` from the parent scope |

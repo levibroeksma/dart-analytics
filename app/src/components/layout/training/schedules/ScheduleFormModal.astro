@@ -1,0 +1,163 @@
+---
+/**
+ * "My schedule" editor inside a detached `ExpandingModal`, opened from the
+ * `/training` schedule card. Mounts its own `myScheduleForm()` scope around
+ * the modal so every close path can reach `resetForm()`. The seven weekday
+ * circles pick the day to edit; the routine list below assigns (or clears)
+ * that day's routine. Save closes the panel once `save()` resolves `true`.
+ * @param {string} openExpr Alpine expression, true while the panel is open
+ * @param {string} [titleId] Stable unique heading id for this call site
+ */
+interface Props {
+  openExpr: string;
+  titleId?: string;
+}
+
+// Props
+const { openExpr, titleId = "schedule-form-modal" }: Props = Astro.props;
+
+// Components
+import ExpandingModal from "@components/ui/ExpandingModal.astro";
+import Button from "@components/forms/Button.astro";
+import Badge from "@components/ui/Badge.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+// Icons
+import CheckIcon from "@icons/check.svg";
+
+// Data
+const title = "My schedule";
+const close = `(${openExpr} = false, resetForm())`;
+const toggle = `${openExpr} ? ${close} : ${openExpr} = true`;
+const saveAndClose = `(await save()) && (${openExpr} = false)`;
+const days = [0, 1, 2, 3, 4, 5, 6];
+---
+
+<div x-data="myScheduleForm()">
+  <ExpandingModal
+    openExpr={openExpr}
+    onToggle={toggle}
+    onClose={close}
+    title={title}
+    titleId={titleId}
+    toggleLabelClosed={title}
+    toggleLabelOpen="Close"
+    detached
+  >
+    <div class="shrink-0 space-y-6">
+      <ErrorAlert />
+      <div
+        class="flex justify-between"
+        role="group"
+        aria-label="Day to edit"
+      >
+        {
+          days.map((index) => (
+            <button
+              type="button"
+              class="flex size-10 cursor-pointer items-center justify-center rounded-full border-2 font-normal transition-[transform,color,background-color,border-color] duration-150"
+              {...{
+                ":class": `(selectedIndex === ${index} ? 'scale-110 border-accent ' : 'border-muted ') + (hasRoutine(${index}) ? (selectedIndex === ${index} ? 'bg-accent text-accent-foreground' : 'bg-muted text-foreground') : (selectedIndex === ${index} ? 'text-accent' : 'text-muted'))`,
+                ":aria-pressed": `selectedIndex === ${index}`,
+                ":aria-label": `dayLabel(${index})`,
+                "x-text": `dayInitial(${index})`,
+                "@click": `selectDay(${index})`,
+              }}
+            />
+          ))
+        }
+      </div>
+
+      <section class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h2
+            class="text-sm font-semibold text-foreground"
+            x-text="selectedDayLabel()"
+          >
+          </h2>
+          <Badge
+            variant="neutral"
+            class="text-xs"
+            x-show="!hasRoutine(selectedIndex)"
+            x-cloak
+          >
+            Rest
+          </Badge>
+        </div>
+        <ul class="space-y-2">
+          <template
+            x-for="routine in routines"
+            :key="routine.routineId"
+          >
+            <li>
+              <button
+                type="button"
+                class="glass flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left transition-[border-color] duration-150"
+                :class="isRoutineSelected(routine) ? 'border-accent' : 'border-transparent'"
+                :aria-pressed="isRoutineSelected(routine)"
+                @click="toggleRoutine(routine)"
+              >
+                <span class="flex flex-col gap-0.5">
+                  <span
+                    class="font-semibold text-base text-accent"
+                    x-text="routine.routineName"
+                  ></span>
+                  <span
+                    class="text-xs text-muted-foreground"
+                    x-text="`${routine.totalMinutes} min`"
+                  ></span>
+                </span>
+                <span
+                  class="shrink-0 text-accent"
+                  x-show="isRoutineSelected(routine)"
+                  x-cloak
+                >
+                  <CheckIcon class="size-5" />
+                </span>
+              </button>
+            </li>
+          </template>
+        </ul>
+      </section>
+
+      <ul
+        class="text-xs text-error"
+        x-show="serverIssues.length > 0"
+        x-cloak
+      >
+        <template
+          x-for="(issue, index) in serverIssues"
+          :key="index"
+        >
+          <li x-text="issue"></li>
+        </template>
+      </ul>
+
+      <p
+        class="text-xs text-muted-foreground"
+        x-show="!loading && !canSave() && !saving"
+        x-cloak
+      >
+        Assign a routine to at least one day to save.
+      </p>
+
+      <div class="flex gap-2">
+        <Button
+          title="Cancel"
+          variant="secondary"
+          grow
+          loadingExpr="false"
+          x-on:click={close}
+        />
+        <Button
+          title="Save"
+          variant="primary"
+          grow
+          :disabled="!canSave()"
+          loadingExpr="saving"
+          x-on:click={saveAndClose}
+        />
+      </div>
+    </div>
+  </ExpandingModal>
+</div>

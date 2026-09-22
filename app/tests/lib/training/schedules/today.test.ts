@@ -3,6 +3,8 @@ import {
   isoWeekday,
   weekdayNames,
   todayEntry,
+  startOfLocalDay,
+  isRoutineCompleted,
 } from "@lib/training/schedules/today";
 
 describe("isoWeekday", () => {
@@ -62,5 +64,39 @@ describe("todayEntry", () => {
 
   it("returns null when there is no active schedule", () => {
     expect(todayEntry(null, new Date(2024, 0, 1))).toBeNull();
+  });
+});
+
+describe("startOfLocalDay", () => {
+  it("returns local midnight of the same calendar day", () => {
+    const start = startOfLocalDay(new Date(2024, 0, 1, 17, 45, 12));
+    expect(start).toEqual(new Date(2024, 0, 1, 0, 0, 0, 0));
+  });
+});
+
+describe("isRoutineCompleted", () => {
+  const ENTRY = {
+    dayOfWeek: 1,
+    routineId: "r1",
+    routineName: "Warm-Up",
+    routineMinutes: 30,
+  };
+  const completion = (routineTemplateId: string) => ({
+    activityId: "a1",
+    routineTemplateId,
+    routineName: "x",
+    completedAt: "2024-01-01T08:00:00.000Z",
+  });
+
+  it("is true when a completion ran the entry's routine", () => {
+    expect(isRoutineCompleted(ENTRY, [completion("r1")])).toBe(true);
+  });
+
+  it("is false when only other routines were completed", () => {
+    expect(isRoutineCompleted(ENTRY, [completion("r2")])).toBe(false);
+  });
+
+  it("is false without an entry", () => {
+    expect(isRoutineCompleted(null, [completion("r1")])).toBe(false);
   });
 });

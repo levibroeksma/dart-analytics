@@ -7,7 +7,7 @@ updated: 2026-09-21
 
 # API Overview
 
-> **Version:** 1.12.0 (session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.13.0 (`GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -82,6 +82,12 @@ All six shipped 2026-09-19 (D306, refined by D321) against `v_routine_execution`
 - `POST /api/schedules/:scheduleId/deactivate`
 
 Shipped 2026-09-20 (D342, refined by D343) against `v_training_schedules`/`v_training_schedule_days`, backed by migration `0041`. There is no `/today` route: "today" is resolved client-side (D343) — `players` carries no timezone column and the API sets no cookie a server could read one from. `GET /api/schedules/active` is a convenience read returning the active `Schedule | null` in one call, so the `/training` Today card does not need the list. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-09-20 -->
+
+### Training Completions
+
+- `GET /api/training-sessions/completed?since=<ISO instant>`
+
+The caller's completed trainings since a client-supplied instant, backed by `v_training_completions` (migration `0042`, D353). Backs the homepage "done today" check; the client passes its local midnight. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-09-22 -->
 
 ### Configuration Templates
 
@@ -179,6 +185,7 @@ Reads are view-backed and player-scoped.
 | `GET /api/schedules`                     | `v_training_schedules` |
 | `GET /api/schedules/active`              | `v_training_schedules`, `v_training_schedule_days` |
 | `GET /api/schedules/:scheduleId`         | `v_training_schedules`, `v_training_schedule_days` |
+| `GET /api/training-sessions/completed`   | `v_training_completions` |
 | `GET /api/configuration-templates`       | `v_configuration_presets` |
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
