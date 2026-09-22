@@ -69,15 +69,15 @@ const panelClass = cn(
   <div
     class={panelClass}
     x-cloak
-    x-bind:class={`${openExpr} ? 'size-full' : '${collapsedClass}'`}
-    x-on:keydown.escape.window={onClose}
+    :class={`${openExpr} ? 'size-full' : '${collapsedClass}'`}
+    @keydown.escape.window={onClose}
   >
     <div
       class="absolute top-0 right-0 flex h-[100cqh] w-[100cqw] flex-col items-end justify-start"
     >
       <div
         class="flex w-full items-center justify-between"
-        x-bind:class={`${openExpr} ? 'pl-4' : ''`}
+        :class={`${openExpr} ? 'pl-4' : ''`}
       >
         <h1
           id={titleId}
@@ -94,14 +94,14 @@ const panelClass = cn(
           loadingExpr="false"
           ariaLabel={toggleLabelClosed}
           aria-controls={bodyId}
-          x-on:click={onToggle}
-          x-bind:aria-expanded={openExpr}
-          x-bind:aria-label={`${openExpr} ? '${toggleLabelOpen}' : '${toggleLabelClosed}'`}
+          @click={onToggle}
+          :aria-expanded={openExpr}
+          :aria-label={`${openExpr} ? '${toggleLabelOpen}' : '${toggleLabelClosed}'`}
         >
           <span
             slot="iconBefore"
             class="transition-rotate text-4xl duration-200 ease-in"
-            x-bind:class={`${openExpr} ? 'rotate-45' : ''`}
+            :class={`${openExpr} ? 'rotate-45' : ''`}
           >
             +
           </span>

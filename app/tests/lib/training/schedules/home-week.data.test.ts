@@ -72,20 +72,10 @@ describe("homeWeek", () => {
     expect(data.hasRoutine(2)).toBe(true);
   });
 
-  it("styles each day by today and routine", async () => {
-    const data = await loaded(new Date(2024, 0, 3, 9)); // Wednesday
-    expect(data.dayClass(2)).toContain("bg-accent");
-    expect(data.dayClass(2)).toContain("scale-110");
-    expect(data.dayClass(0)).toContain("bg-muted");
-    expect(data.dayClass(1)).toContain("border-muted");
-    expect(data.dayClass(1)).not.toContain("bg-");
-  });
-
-  it("outlines today in accent when today is a rest day", async () => {
+  it("has no entry for today on a rest day", async () => {
     const data = await loaded(new Date(2024, 0, 2, 9)); // Tuesday
-    expect(data.dayClass(1)).toContain("border-accent");
-    expect(data.dayClass(1)).toContain("scale-110");
-    expect(data.dayClass(1)).not.toContain("bg-accent");
+    expect(data.isToday(1)).toBe(true);
+    expect(data.hasRoutine(1)).toBe(false);
     expect(data.todayEntry()).toBeNull();
     expect(data.showStart()).toBe(false);
     expect(data.showDone()).toBe(false);
@@ -105,7 +95,7 @@ describe("homeWeek", () => {
     expect(data.showDone()).toBe(true);
   });
 
-  it("shows nothing and outlines every day without an active schedule", async () => {
+  it("shows nothing and maps no day without an active schedule", async () => {
     const data = await loaded(new Date(2024, 0, 1, 9), [], null);
     expect(data.hasRoutine(0)).toBe(false);
     expect(data.showStart()).toBe(false);

@@ -52,19 +52,6 @@ export function homeWeek() {
       );
     },
 
-    /** Today in accent (filled when it has a routine) at 110%; other days muted (filled when they have one). */
-    dayClass(this: HomeWeekContext, index: number): string {
-      const filled = this.hasRoutine(index);
-      if (this.isToday(index)) {
-        return filled
-          ? "scale-110 border-accent bg-accent text-accent-foreground"
-          : "scale-110 border-accent text-accent";
-      }
-      return filled
-        ? "border-muted bg-muted text-foreground"
-        : "border-muted text-muted";
-    },
-
     todayEntry(this: HomeWeekContext): ScheduleDayEntry | null {
       return todayEntry(this.schedule, new Date());
     },

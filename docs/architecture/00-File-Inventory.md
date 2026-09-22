@@ -276,7 +276,7 @@ Registered for discoverability, not as reading material — the view contract li
 | `database/verification/0042_training_completions_view_checks.sql` | Live-DB proof: completed training listed with its snapshot routine; abandoned, active and snapshot-less activities excluded (2026-09-22) | canonical |
 | `app/src/pages/api/training-sessions/completed.ts` | `GET /api/training-sessions/completed?since=` — `422` on a missing/non-ISO `since` (2026-09-22) | canonical |
 | `app/src/lib/training/schedules/my-schedule.data.ts` | `myScheduleForm()` — day picker + single-select routine list; updates the active schedule or creates and activates `MY_SCHEDULE_NAME`; `save()` resolves `true` and dispatches `schedule-saved` (2026-09-22) | canonical |
-| `app/src/lib/training/schedules/home-week.data.ts` | `homeWeek()` — active schedule + completions since local midnight; `dayClass(index)`, `showStart()`/`showDone()`, `startHref()` (2026-09-22) | canonical |
+| `app/src/lib/training/schedules/home-week.data.ts` | `homeWeek()` — active schedule + completions since local midnight; `isToday(index)`/`hasRoutine(index)`, `showStart()`/`showDone()`, `startHref()` (2026-09-22) | canonical |
 | `app/src/lib/training/schedules/schedule-issues.ts` | `formatScheduleIssues(details)` — a schedule `VALIDATION_FAILED` envelope as one user-facing line; shared by `scheduleEditor` and `myScheduleForm` (2026-09-22) | canonical |
 | `app/src/components/layout/training/schedules/ScheduleFormModal.astro`, `app/src/components/layout/home/TodayRoutineCard.astro` | The modal and homepage today card — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-22) | canonical |
 | `app/src/icons/flame.svg` | Flame icon for the "You're on fire" state (2026-09-22) | canonical |

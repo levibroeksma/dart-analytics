@@ -30,7 +30,6 @@ const title = "My schedule";
 const close = `(${openExpr} = false, resetForm())`;
 const toggle = `${openExpr} ? ${close} : ${openExpr} = true`;
 const saveAndClose = `(await save()) && (${openExpr} = false)`;
-const days = [0, 1, 2, 3, 4, 5, 6];
 ---
 
 <div x-data="myScheduleForm()">
@@ -51,21 +50,20 @@ const days = [0, 1, 2, 3, 4, 5, 6];
         role="group"
         aria-label="Day to edit"
       >
-        {
-          days.map((index) => (
-            <button
-              type="button"
-              class="flex size-10 cursor-pointer items-center justify-center rounded-full border-2 font-normal transition-[transform,color,background-color,border-color] duration-150"
-              {...{
-                ":class": `(selectedIndex === ${index} ? 'scale-110 border-accent ' : 'border-muted ') + (hasRoutine(${index}) ? (selectedIndex === ${index} ? 'bg-accent text-accent-foreground' : 'bg-muted text-foreground') : (selectedIndex === ${index} ? 'text-accent' : 'text-muted'))`,
-                ":aria-pressed": `selectedIndex === ${index}`,
-                ":aria-label": `dayLabel(${index})`,
-                "x-text": `dayInitial(${index})`,
-                "@click": `selectDay(${index})`,
-              }}
-            />
-          ))
-        }
+        <template
+          x-for="index in [0, 1, 2, 3, 4, 5, 6]"
+          :key="index"
+        >
+          <button
+            type="button"
+            class="flex size-10 cursor-pointer items-center justify-center rounded-full border-2 font-normal transition-[transform,color,background-color,border-color] duration-150"
+            :class="selectedIndex === index ? (hasRoutine(index) ? 'scale-110 border-accent bg-accent text-accent-foreground' : 'scale-110 border-accent text-accent') : (hasRoutine(index) ? 'border-muted bg-muted text-foreground' : 'border-muted text-muted')"
+            :aria-pressed="selectedIndex === index"
+            :aria-label="dayLabel(index)"
+            x-text="dayInitial(index)"
+            @click="selectDay(index)"
+          ></button>
+        </template>
       </div>
 
       <section class="space-y-2">
@@ -147,7 +145,7 @@ const days = [0, 1, 2, 3, 4, 5, 6];
           variant="secondary"
           grow
           loadingExpr="false"
-          x-on:click={close}
+          @click={close}
         />
         <Button
           title="Save"
@@ -155,7 +153,7 @@ const days = [0, 1, 2, 3, 4, 5, 6];
           grow
           :disabled="!canSave()"
           loadingExpr="saving"
-          x-on:click={saveAndClose}
+          @click={saveAndClose}
         />
       </div>
     </div>

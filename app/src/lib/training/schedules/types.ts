@@ -113,7 +113,6 @@ export type HomeWeekContext = {
   init(this: HomeWeekContext): Promise<void>;
   isToday(this: HomeWeekContext, index: number): boolean;
   hasRoutine(this: HomeWeekContext, index: number): boolean;
-  dayClass(this: HomeWeekContext, index: number): string;
   todayEntry(this: HomeWeekContext): ScheduleDayEntry | null;
   doneToday(this: HomeWeekContext): boolean;
   showStart(this: HomeWeekContext): boolean;
