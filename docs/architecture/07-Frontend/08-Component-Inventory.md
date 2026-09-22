@@ -26,7 +26,7 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `Badge.astro` | Small inline status pill | `variant` (`accent`/`error`/`neutral`) |
 | `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture | `zoom` |
-| `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `red` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
+| `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `teal` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
 | `ConfirmDialog.astro` | Modal with cancel/confirm actions | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `confirmVariant`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
 | `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21). `detached` hides the collapsed corner toggle so the caller opens it from its own control (2026-09-22) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
@@ -130,7 +130,7 @@ that split (2026-09-19, closes issue #423).
 | `TodayCard.astro` | `/training`'s Today card: active schedule's routine for today (or rest), `Start`, link to Schedules; whole card `x-show="schedule"`, hidden with no active schedule | none — reads `todayCard()` from the parent scope (2026-09-20) |
 | `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
 | `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
-| `ScheduleFormModal.astro` | `/training`'s "My schedule" editor in a `detached` `ExpandingModal`, opened from the red schedule card's Plan button. Seven day circles pick the day to edit; the routine list assigns or clears that day's routine; Save needs one mapped day and closes on success. Mounts `myScheduleForm()` around the modal so every close path reaches `resetForm()` (2026-09-22) | `openExpr`, `titleId` |
+| `ScheduleFormModal.astro` | `/training`'s "My schedule" editor in a `detached` `ExpandingModal`, opened from the teal schedule card's Plan button. Seven day circles pick the day to edit; the routine list assigns or clears that day's routine; Save needs one mapped day and closes on success. Mounts `myScheduleForm()` around the modal so every close path reaches `resetForm()` (2026-09-22) | `openExpr`, `titleId` |
 
 ## `components/layout/home/`
 
