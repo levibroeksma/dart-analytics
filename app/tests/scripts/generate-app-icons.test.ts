@@ -2,6 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import { describe, expect, it } from "vitest";
 import {
   assertNonBlackRgba,
+  composeIconSvg,
   createIco,
   svgOklchToSrgb,
 } from "../../scripts/generate-app-icons";
@@ -24,6 +25,20 @@ describe("generate-app-icons helpers", () => {
 
     expect(converted).not.toContain("oklch");
     expect(converted).toMatch(/fill="rgb\(\d+, \d+, \d+\)"/);
+  });
+
+  it("paints the icon background with a gradient behind the board", () => {
+    const svg = composeIconSvg(
+      { inner: '<circle id="board" r="10"/>', width: 20, height: 20 },
+      180,
+    );
+
+    expect(svg).toContain('<radialGradient id="bg"');
+    expect(svg).toContain('fill="url(#bg)"');
+    expect(svg.indexOf('fill="url(#bg)"')).toBeLessThan(
+      svg.indexOf('id="board"'),
+    );
+    expect(svg).not.toMatch(/filter|feGaussianBlur/);
   });
 
   it("rejects an all-black raster", () => {
