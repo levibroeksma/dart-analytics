@@ -77,6 +77,7 @@ export function routineBuilder(mode: "create" | "edit") {
     routineId: null as string | null,
     loading: true,
     saving: false,
+    attemptedSave: false,
     error: "",
     serverIssues: [] as string[],
     name: "",
@@ -228,6 +229,12 @@ export function routineBuilder(mode: "create" | "edit") {
       );
     },
 
+    saveDisabled(this: RoutineBuilderContext): boolean {
+      if (this.saving || this.loading) return true;
+      if (this.mode === "edit" && !this.routineId) return true;
+      return !this.nameValid();
+    },
+
     payload(this: RoutineBuilderContext) {
       return {
         name: this.name.trim(),
@@ -241,6 +248,7 @@ export function routineBuilder(mode: "create" | "edit") {
     },
 
     async save(this: RoutineBuilderContext) {
+      this.attemptedSave = true;
       if (!this.canSave()) return;
       this.saving = true;
       this.error = "";
@@ -269,6 +277,7 @@ export function routineBuilder(mode: "create" | "edit") {
     async resetForm(this: RoutineBuilderContext) {
       this.error = "";
       this.serverIssues = [];
+      this.attemptedSave = false;
       if (this.mode === "edit" && this.routineId) {
         try {
           await this.loadExisting();

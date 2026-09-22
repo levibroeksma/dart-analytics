@@ -187,6 +187,7 @@ export type RoutineBuilderContext = {
   routineId: string | null;
   loading: boolean;
   saving: boolean;
+  attemptedSave: boolean;
   error: string;
   serverIssues: string[];
   name: string;
@@ -217,6 +218,7 @@ export type RoutineBuilderContext = {
   durationIssues(this: RoutineBuilderContext): string[];
   nameValid(this: RoutineBuilderContext): boolean;
   canSave(this: RoutineBuilderContext): boolean;
+  saveDisabled(this: RoutineBuilderContext): boolean;
   payload(this: RoutineBuilderContext): {
     name: string;
     description: string | null;
