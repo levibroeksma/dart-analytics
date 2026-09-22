@@ -5,7 +5,7 @@ read-when: why a CSS token/primitive/typography/spacing choice was made
 load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-09-19
+updated: 2026-09-22
 -->
 
 | # | Source | Decision | Rationale |
@@ -61,3 +61,9 @@ Status: Accepted · Date: 2026-09-19
 Decision: the region at the top of every play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, identical for one seat and two. `SplitScoreboard.astro` carries it unconditionally; `SinglePlayerDisplay.astro` carries it behind a new `pinnedHeight?: boolean` prop defaulting to `true`, which only `SplitScoreboardHalf.astro` sets to `false` (its card is nested *inside* the band, not the band itself). All 21 call sites — twelve `SinglePlayerDisplay`, nine `SplitScoreboard` — drop their height class and pass none.
 Reason: three spellings were live for one region (issue #484): `max-h-2/5` on seven screens, `min-h-2/5 max-h-2/5` on five, and `h-2/5` on all nine `SplitScoreboard` calls, with nothing written down about which a new screen should copy. The third was not a third height but no height at all: `SplitScoreboard`'s root is `flex-1 min-h-0`, so `h-2/5` was inert for exactly the reason D326's `h-full` was, and the two-seat scoreboard has been growing to fill the play area rather than the 40% its author wrote. `min-h-2/5 max-h-2/5` is the spelling that survives on a `flex-1` item, so it is the one that becomes the rule. Owning it in the shells rather than naming a `global.css` primitive was chosen because the geometry is not a look a screen opts into — it is what these two components *are* when used as the region; a primitive class would have left the same 21 repetitions in place under a nicer name.
 Consequences: two-seat play screens change visibly — the scoreboard stops filling the play area and sits at 40%, matching the one-seat screens and returning the space to the input surface. Estimated against the 501 two-seat column at 390×844 (the richest content: name, `text-4xl` number, label, checkout chips, three stat rows, leg pill and dot pager) the band's ~292px has roughly 55px of headroom, but that is arithmetic, not a measurement: this environment has no WebKit and its one Chromium build (MDM-managed Edge) crashes headless, so **the two-seat screens need an on-device look before this is trusted** — if a column overflows, the fix is the band's fraction or the column's content, not a per-screen class. `min-h-0` leaves `SplitScoreboard`'s base classes, superseded by `min-h-2/5`. The rule is prose in `07-Frontend/07-Style-Guide.md`; no gate can see an element's flex context.
+
+### D355 — App icon background is a brand-hue radial gradient, not flat black
+Status: Accepted · Date: 2026-09-22
+Decision: `app/scripts/generate-app-icons.ts` paints the icon square with a radial gradient in the brand hue (237), lit from the top edge and falling to near-black, instead of `#000000`. The board is drawn on top unchanged — no filter, no blur. Applies to every generated icon (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`).
+Reason: on the iOS Home Screen (tinted mode) the flat black icon read dark and flat beside other app icons, which carry top-lit depth.
+Consequences: Refines D176's output only; generator stays the single source, regenerate with `npm run icons:generate`.

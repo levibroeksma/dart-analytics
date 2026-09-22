@@ -16,7 +16,14 @@ const appRoot = resolve(__dirname, "..");
 const sourcePath = resolve(appRoot, "src/assets/bg-dartboard.svg");
 const publicDir = resolve(appRoot, "public");
 
-const BG = "#000000";
+// Radial wash in the brand hue (237), lit from the top edge and falling off
+// to near-black, so the icon reads with depth beside other Home Screen icons.
+// Background only — the board is drawn on top, untouched.
+const BG_GRADIENT_STOPS = [
+  { offset: 0, color: "oklch(34% 0.075 237.323)" },
+  { offset: 0.55, color: "oklch(18% 0.04 237.323)" },
+  { offset: 1, color: "oklch(9% 0.015 237.323)" },
+] as const;
 const INSET = 0.12; // 12% padding each side → content uses 76% of canvas
 
 /**
@@ -57,9 +64,9 @@ export function svgOklchToSrgb(svg: string): string {
 }
 
 /**
- * Build an opaque square SVG with the board centered and inset.
+ * Build an opaque square SVG: gradient background, board centered and inset.
  */
-function composeIconSvg(
+export function composeIconSvg(
   board: ReturnType<typeof parseBoardSvg>,
   size: number,
 ): string {
@@ -69,7 +76,12 @@ function composeIconSvg(
   const ty = size / 2;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="${BG}"/>
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0" r="1.1" gradientUnits="objectBoundingBox">
+${BG_GRADIENT_STOPS.map((s) => `      <stop offset="${s.offset}" stop-color="${s.color}"/>`).join("\n")}
+    </radialGradient>
+  </defs>
+  <rect width="${size}" height="${size}" fill="url(#bg)"/>
   <g transform="translate(${tx} ${ty}) scale(${scale})">
     ${board.inner}
   </g>
