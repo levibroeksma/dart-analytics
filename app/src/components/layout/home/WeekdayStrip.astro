@@ -1,0 +1,29 @@
+---
+/**
+ * Homepage weekday strip: seven day-initial circles in one row, the
+ * current weekday's circle picked out in accent. Purely presentational —
+ * carries no schedule data of its own.
+ */
+import { weekdayNames } from "@lib/training/schedules/today";
+
+// Data
+const letters = weekdayNames().map((name) => name.charAt(0).toLowerCase());
+---
+
+<div
+  class="flex justify-between"
+  x-data="{ today: (new Date().getDay() + 6) % 7 }"
+>
+  {
+    letters.map((letter, index) => (
+      <span
+        class="flex size-10 items-center justify-center rounded-full border-2 font-normal"
+        {...{
+          ":class": `${index} === today ? 'border-accent text-accent' : 'border-muted text-muted'`,
+        }}
+      >
+        {letter}
+      </span>
+    ))
+  }
+</div>

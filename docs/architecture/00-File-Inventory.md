@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-21
+updated: 2026-09-22
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -73,7 +73,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02); rendered-SQL convention for repository write paths, D303 (2026-09-17); wrapped-store seam tested through the real store, D304 (2026-09-17) | canonical | ~1.9k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29); container-query sizing for variable-length content (D262, 2026-09-09); no `height` beside `flex-1` (D326, 2026-09-19); the 40% play-screen scoreboard band (D327, 2026-09-19) | canonical | ~4.4k |
-| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08); `BlockedStepModal.astro` added (2026-09-16); `components/layout/training/` split into its real `routines/`/`exercises/`/`trivia/` subheadings, all three (closes #423), `RoutineCard`/`RoutineBuilder`/`RoutineStepRow`/`ExercisePicker`/`QuickSubtract` rows added, `RoutineDetail.astro` rewritten data-driven (2026-09-19) | canonical | ~3.1k |
+| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08); `BlockedStepModal.astro` added (2026-09-16); `components/layout/training/` split into its real `routines/`/`exercises/`/`trivia/` subheadings, all three (closes #423), `RoutineCard`/`RoutineBuilder`/`RoutineStepRow`/`ExercisePicker`/`QuickSubtract` rows added, `RoutineDetail.astro` rewritten data-driven (2026-09-19); new `components/layout/home/` subheading, `WeekdayStrip.astro` row added (2026-09-22) | canonical | ~3.9k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 

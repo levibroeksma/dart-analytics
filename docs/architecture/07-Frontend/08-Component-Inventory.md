@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-21
+updated: 2026-09-22
 -->
 
 # Component Inventory
@@ -130,3 +130,9 @@ that split (2026-09-19, closes issue #423).
 | `TodayCard.astro` | `/training`'s Today card: active schedule's routine for today (or rest), `Start`, link to Schedules; whole card `x-show="schedule"`, hidden with no active schedule | none — reads `todayCard()` from the parent scope (2026-09-20) |
 | `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
 | `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
+
+## `components/layout/home/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`); today's circle picked out accent border/text with no background, the rest muted border/text. Letters come from `weekdayNames()` (build time); today's index is resolved client-side (`new Date().getDay()`) since the page is static. Presentational only — not wired to a schedule yet (2026-09-22) | none |
