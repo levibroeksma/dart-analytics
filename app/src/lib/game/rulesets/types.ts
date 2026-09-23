@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { aroundTheClockDurationBounds } from "../around-the-clock-duration";
 
 /**
  * Every ruleset schema is `.strict()`: an unrecognized key fails the parse
@@ -324,6 +325,47 @@ export const OneTwentyOneV2Config = z
  */
 export const AroundTheClockConfig = z.object({}).strict();
 
+/**
+ * Around the Clock V2: the training variants. A new version rather than a
+ * widening of `AroundTheClockConfig` — V1's empty schema is live against real
+ * session data (D243/D245/D247). `duration_value` is bounded by
+ * `duration_type`, so the bound lives in a whole-object `superRefine`.
+ */
+export const AroundTheClockV2Config = z
+  .object({
+    path_direction: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW"]),
+    odds_first: z.boolean(),
+    segment_rule: z.enum(["ANY", "OUTER_SINGLE"]),
+    difficulty: z.enum(["EASY", "INTERMEDIATE", "HARD", "PRO"]),
+    duration_type: z.enum(["UNTIMED", "MINUTES"]),
+    duration_value: z.number().int().nullable(),
+  })
+  .strict()
+  .superRefine((val, ctx) => {
+    if (val.duration_type === "UNTIMED") {
+      if (val.duration_value !== null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["duration_value"],
+          message: "duration_value must be null for UNTIMED",
+        });
+      }
+      return;
+    }
+    const { min, max } = aroundTheClockDurationBounds();
+    if (
+      val.duration_value === null ||
+      val.duration_value < min ||
+      val.duration_value > max
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration_value"],
+        message: `duration_value must be between ${min} and ${max} for MINUTES`,
+      });
+    }
+  });
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -337,7 +379,8 @@ export type RulesetVersionKey =
   | "SHANGHAI_V2"
   | "121_V1"
   | "121_V2"
-  | "AROUND_THE_CLOCK_V1";
+  | "AROUND_THE_CLOCK_V1"
+  | "AROUND_THE_CLOCK_V2";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
@@ -353,6 +396,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   "121_V1": OneTwentyOneConfig,
   "121_V2": OneTwentyOneV2Config,
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
+  AROUND_THE_CLOCK_V2: AroundTheClockV2Config,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -468,6 +512,18 @@ export type OneTwentyOneV2Snapshot = {
 /** Around the Clock v1 has nothing to configure — no fields to carry. */
 export type AroundTheClockSnapshot = Record<string, never>;
 
+export type AroundTheClockV2ConfigData = z.infer<typeof AroundTheClockV2Config>;
+
+/** Around the Clock V2 carries every schema field, camel-cased. */
+export type AroundTheClockV2Snapshot = {
+  pathDirection: AroundTheClockV2ConfigData["path_direction"];
+  oddsFirst: AroundTheClockV2ConfigData["odds_first"];
+  segmentRule: AroundTheClockV2ConfigData["segment_rule"];
+  difficulty: AroundTheClockV2ConfigData["difficulty"];
+  durationType: AroundTheClockV2ConfigData["duration_type"];
+  durationValue: AroundTheClockV2ConfigData["duration_value"];
+};
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -493,7 +549,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                         ? OneTwentyOneSnapshot
                         : K extends "121_V2"
                           ? OneTwentyOneV2Snapshot
-                          : AroundTheClockSnapshot;
+                          : K extends "AROUND_THE_CLOCK_V1"
+                            ? AroundTheClockSnapshot
+                            : AroundTheClockV2Snapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
@@ -624,3 +682,7 @@ export type Seated<TConfig> =
   TConfig extends Record<string, never>
     ? { seats: readonly SeatFact[] }
     : TConfig & { seats: readonly SeatFact[] };
+
+/** Either Around the Clock snapshot, seated — the one engine serves both versions. */
+export type AroundTheClockEngineConfig =
+  Seated<AroundTheClockSnapshot> | Seated<AroundTheClockV2Snapshot>;

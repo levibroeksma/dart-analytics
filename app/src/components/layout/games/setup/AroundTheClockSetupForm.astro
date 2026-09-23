@@ -1,7 +1,11 @@
 ---
 // Components
+import Input from "@components/forms/Input.astro";
+import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
@@ -9,8 +13,31 @@ import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 const infoSection = {
   title: "Around the Clock rules",
   description:
-    "Hit every number from 1 through 20 in order, then finish on the bull. Any single, double, or treble of the current number counts — a hit advances immediately, so a great turn can clear several numbers in three darts. The bull needs one hit, outer or inner, and ends the session the moment it lands.",
+    "Hit every number in order, then finish on the bull — either bull ring counts. Choose low to high or high to low, and odds before evens. On Easy any hit advances immediately, so a great turn can clear several numbers in three darts. On 1, 2 or 3 darts, a visit needs that many hits to move up one; fall short and you step back one, never below the first number. Outer single only counts just the large single ring (Analytics mode). Timed runs restart at the first number after the bull and count laps until time runs out. Playing the DartBot always uses the classic rules.",
 };
+
+const directionOpts = [
+  { value: "LOW_TO_HIGH", label: "Low → High" },
+  { value: "HIGH_TO_LOW", label: "High → Low" },
+];
+
+const segmentOpts = [
+  { value: "ANY", label: "Any segment" },
+  { value: "OUTER_SINGLE", label: "Outer single" },
+];
+
+const difficultyOpts = [
+  { value: "EASY", label: "Easy" },
+  { value: "INTERMEDIATE", label: "1 dart" },
+  { value: "HARD", label: "2 darts" },
+  { value: "PRO", label: "3 darts" },
+];
+
+const durationOpts = [
+  { value: "UNTIMED", label: "Untimed" },
+  { value: "MINUTES", label: "Timed" },
+];
+const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Around the Clock">
@@ -22,4 +49,86 @@ const infoSection = {
     title={infoSection.title}
     description={infoSection.description}
   />
+  <SettingSectionShell>
+    <div
+      class="flex flex-col gap-3"
+      x-show="!bot"
+      x-cloak
+    >
+      <div>
+        <label class={labelClass}>Direction</label>
+        <Toggle
+          orientation="horizontal"
+          options={directionOpts}
+          x-model="pathDirection"
+          class="w-full"
+        />
+      </div>
+      <Switch
+        label="Odds first"
+        x-model="oddsFirst"
+      />
+      <div>
+        <label class={labelClass}>Difficulty</label>
+        <Toggle
+          orientation="horizontal"
+          options={difficultyOpts}
+          x-model="difficulty"
+          class="w-full"
+        />
+      </div>
+      <div
+        x-show="$store.settings.captureModeKey === 'ANALYTICS'"
+        x-cloak
+      >
+        <label class={labelClass}>Segment</label>
+        <Toggle
+          orientation="horizontal"
+          options={segmentOpts}
+          x-model="segmentRule"
+          class="w-full"
+        />
+      </div>
+      <div
+        x-show="guests.length === 0"
+        x-cloak
+      >
+        <label class={labelClass}>Duration</label>
+        <Toggle
+          orientation="horizontal"
+          options={durationOpts}
+          x-model="durationType"
+          class="w-full"
+        />
+        <div
+          x-show="durationType === 'MINUTES'"
+          x-cloak
+        >
+          <Input
+            id="durationValue"
+            name="durationValue"
+            type="text"
+            inputmode="numeric"
+            placeholder="10"
+            x-model.number="durationValue"
+            @input="clampNotice = ''"
+            class="glass border-tab-border rounded-full mt-4"
+          />
+          <label
+            for="durationValue"
+            class="text-xs text-muted-foreground px-4 py-0 italic"
+            >Minutes (3–30)</label
+          >
+          <p
+            class="text-sm text-muted-foreground px-4 py-0"
+            role="status"
+            x-show="clampNotice"
+            x-text="clampNotice"
+            x-cloak
+          >
+          </p>
+        </div>
+      </div>
+    </div>
+  </SettingSectionShell>
 </SetupShell>

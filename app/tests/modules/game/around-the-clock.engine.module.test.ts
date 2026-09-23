@@ -4,6 +4,8 @@ import {
   foldAroundTheClockState,
   initialAroundTheClockState,
   isAroundTheClockHit,
+  isClockHit,
+  rulesOf,
   AroundTheClockEngine,
   aroundTheClockEngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
@@ -14,7 +16,12 @@ import type {
   AroundTheClockState,
   DartObservation,
 } from "@modules/types";
-import type { AroundTheClockSnapshot, Seated } from "@lib/types";
+import type {
+  AroundTheClockEngineConfig,
+  AroundTheClockSnapshot,
+  AroundTheClockV2Snapshot,
+  Seated,
+} from "@lib/types";
 
 const SEATS = [
   {
@@ -86,6 +93,8 @@ describe("initialAroundTheClockState", () => {
         sideKey: "A",
         targetIndex: 0,
         dartsThisVisit: 0,
+        hitsThisVisit: 0,
+        laps: 0,
         status: "IN_PROGRESS",
       },
     ]);
@@ -152,6 +161,8 @@ const SEAT: AroundTheClockSeatState = {
   sideKey: "A",
   targetIndex: 0,
   dartsThisVisit: 0,
+  hitsThisVisit: 0,
+  laps: 0,
   status: "IN_PROGRESS",
 };
 
@@ -690,5 +701,315 @@ describe("foldAroundTheClockState", () => {
     const folded = foldAroundTheClockState(engine.facts(), config);
 
     expect(folded).toEqual(expected);
+  });
+});
+
+function outer(number: number): DartObservation {
+  return {
+    hitTargetNumber: number,
+    hitZoneKey: "OUTER_SINGLE",
+    locationX: null,
+    locationY: null,
+  };
+}
+
+function inner(number: number): DartObservation {
+  return {
+    hitTargetNumber: number,
+    hitZoneKey: "INNER_SINGLE",
+    locationX: null,
+    locationY: null,
+  };
+}
+
+function v2(
+  over: Partial<AroundTheClockV2Snapshot> = {},
+): Seated<AroundTheClockV2Snapshot> {
+  return {
+    seats: SEATS,
+    pathDirection: "LOW_TO_HIGH",
+    oddsFirst: false,
+    segmentRule: "ANY",
+    difficulty: "EASY",
+    durationType: "UNTIMED",
+    durationValue: null,
+    ...over,
+  };
+}
+
+const TIMED = { durationType: "MINUTES", durationValue: 10 } as const;
+
+function seatAt(
+  targetIndex: number,
+  over: Partial<AroundTheClockSeatState> = {},
+): AroundTheClockSeatState {
+  return { ...SEAT, targetIndex, ...over };
+}
+
+function run(
+  cfg: AroundTheClockEngineConfig,
+  darts: DartObservation[],
+  from: AroundTheClockSeatState = SEAT,
+): AroundTheClockSeatState {
+  const rules = rulesOf(cfg);
+  return darts.reduce((s, d) => applyAroundTheClockDart(s, d, rules), from);
+}
+
+describe("rulesOf", () => {
+  it("resolves a V1 snapshot to the fixed 1..20 path, any segment, Easy, untimed", () => {
+    expect(rulesOf(config)).toEqual({
+      path: numbersPath(),
+      segmentRule: "ANY",
+      hitsRequired: 0,
+      timed: false,
+    });
+  });
+
+  it("maps V2 difficulty and duration", () => {
+    const rules = rulesOf(v2({ difficulty: "HARD", ...TIMED }));
+    expect(rules.hitsRequired).toBe(2);
+    expect(rules.timed).toBe(true);
+  });
+});
+
+describe("isClockHit — outer single only", () => {
+  const rules = rulesOf(v2({ segmentRule: "OUTER_SINGLE" }));
+  const one = targetAt(rules.path, 0);
+  const bull = targetAt(rules.path, 20);
+
+  it("counts the outer single on the target", () => {
+    expect(isClockHit(rules, one, outer(1))).toBe(true);
+  });
+
+  it("rejects inner single, double, treble and another number", () => {
+    expect(isClockHit(rules, one, inner(1))).toBe(false);
+    expect(isClockHit(rules, one, numberHit(1, "DOUBLE"))).toBe(false);
+    expect(isClockHit(rules, one, numberHit(1, "TREBLE"))).toBe(false);
+    expect(isClockHit(rules, one, outer(2))).toBe(false);
+  });
+
+  it("counts either bull ring on BULL", () => {
+    expect(isClockHit(rules, bull, bullHit("OUTER_BULL"))).toBe(true);
+    expect(isClockHit(rules, bull, bullHit("INNER_BULL"))).toBe(true);
+  });
+});
+
+describe("applyAroundTheClockDart — V2 rules", () => {
+  it("Easy on HIGH_TO_LOW advances mid-visit from 20", () => {
+    const next = run(v2({ pathDirection: "HIGH_TO_LOW" }), [
+      numberHit(20, "SINGLE"),
+    ]);
+    expect(next.targetIndex).toBe(1);
+    expect(next.dartsThisVisit).toBe(1);
+  });
+
+  it("INTERMEDIATE moves up only when the visit closes", () => {
+    const cfg = v2({ difficulty: "INTERMEDIATE" });
+    const partial = run(cfg, [miss(), numberHit(1, "SINGLE")]);
+    expect(partial).toMatchObject({ targetIndex: 0, hitsThisVisit: 1 });
+    const closed = run(cfg, [miss(), numberHit(1, "SINGLE"), miss()]);
+    expect(closed).toMatchObject({
+      targetIndex: 1,
+      dartsThisVisit: 0,
+      hitsThisVisit: 0,
+    });
+  });
+
+  it("HARD moves up on two hits and steps back on one", () => {
+    const cfg = v2({ difficulty: "HARD" });
+    expect(
+      run(cfg, [numberHit(1, "SINGLE"), numberHit(1, "DOUBLE"), miss()])
+        .targetIndex,
+    ).toBe(1);
+    expect(
+      run(cfg, [numberHit(4, "SINGLE"), miss(), miss()], seatAt(3)).targetIndex,
+    ).toBe(2);
+  });
+
+  it("PRO moves up on three hits and steps back on two", () => {
+    const cfg = v2({ difficulty: "PRO" });
+    const three = [1, 1, 1].map((n) => numberHit(n, "SINGLE"));
+    expect(run(cfg, three, seatAt(0)).targetIndex).toBe(1);
+    const two = [numberHit(6, "SINGLE"), numberHit(6, "SINGLE"), miss()];
+    expect(run(cfg, two, seatAt(5)).targetIndex).toBe(4);
+  });
+
+  it("never steps back below the first target", () => {
+    const next = run(v2({ difficulty: "INTERMEDIATE" }), [
+      miss(),
+      miss(),
+      miss(),
+    ]);
+    expect(next.targetIndex).toBe(0);
+  });
+
+  it("steps back from BULL to the last number", () => {
+    const next = run(
+      v2({ difficulty: "HARD" }),
+      [bullHit("OUTER_BULL"), miss(), miss()],
+      seatAt(20),
+    );
+    expect(next).toMatchObject({ targetIndex: 19, status: "IN_PROGRESS" });
+  });
+
+  it("untimed PRO completes on three bull hits", () => {
+    const bulls = [0, 1, 2].map(() => bullHit("INNER_BULL"));
+    expect(run(v2({ difficulty: "PRO" }), bulls, seatAt(20)).status).toBe(
+      "COMPLETE",
+    );
+  });
+
+  it("untimed Easy completes on one bull hit", () => {
+    const next = run(v2(), [bullHit("OUTER_BULL")], seatAt(20));
+    expect(next).toMatchObject({ status: "COMPLETE", dartsThisVisit: 0 });
+  });
+
+  it("timed run restarts the lap at the bull and closes the visit", () => {
+    const next = run(v2(TIMED), [bullHit("OUTER_BULL")], seatAt(20));
+    expect(next).toMatchObject({
+      laps: 1,
+      targetIndex: 0,
+      dartsThisVisit: 0,
+      status: "IN_PROGRESS",
+    });
+  });
+
+  it("keeps the floor after a lap restart", () => {
+    const next = run(
+      v2({ difficulty: "INTERMEDIATE", ...TIMED }),
+      [miss(), miss(), miss()],
+      seatAt(0, { laps: 1 }),
+    );
+    expect(next).toMatchObject({ targetIndex: 0, laps: 1 });
+  });
+});
+
+describe("AroundTheClockEngine — V2 factory, timer and laps", () => {
+  const oneToTwenty = (): DartObservation[] =>
+    Array.from({ length: 20 }, (_, i) => numberHit(i + 1, "SINGLE"));
+
+  function timedEngine(
+    over: Partial<AroundTheClockV2Snapshot> = {},
+  ): AroundTheClockEngine {
+    return new AroundTheClockEngine(v2({ ...TIMED, ...over }));
+  }
+
+  it("registers a V2 factory bound to AROUND_THE_CLOCK_V2", () => {
+    const factory = getEngineFactory("AROUND_THE_CLOCK_V2");
+    expect(factory?.create(v2()).rulesetVersionKey).toBe("AROUND_THE_CLOCK_V2");
+    expect(aroundTheClockEngineFactory.create(config).rulesetVersionKey).toBe(
+      "AROUND_THE_CLOCK_V1",
+    );
+  });
+
+  it("closes a short visit on the lap-closing dart and opens a new one", () => {
+    const engine = timedEngine();
+    for (const dart of [miss(), ...oneToTwenty()]) engine.record(dart);
+    const state = engine.record(bullHit("OUTER_BULL"));
+    expect(state.seats[0]).toMatchObject({ laps: 1, targetIndex: 0 });
+
+    const lapTurn = engine.facts().turns.at(-1)!;
+    expect(lapTurn.darts).toHaveLength(1);
+    expect(lapTurn.completedAt).not.toBeNull();
+
+    engine.record(numberHit(1, "SINGLE"));
+    const turns = engine.facts().turns;
+    expect(turns.at(-1)!.darts).toHaveLength(1);
+    expect(turns.at(-1)!.completedAt).toBeNull();
+  });
+
+  it("finishes only once the open visit closes after expiry", () => {
+    const engine = timedEngine();
+    for (let i = 0; i < 4; i += 1) engine.record(miss());
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(false);
+    engine.record(miss());
+    engine.record(miss());
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.state().status).toBe("COMPLETE");
+  });
+
+  it("finishes at once when the timer expires between visits", () => {
+    const engine = timedEngine();
+    for (let i = 0; i < 3; i += 1) engine.record(miss());
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.state().timerExpired).toBe(true);
+  });
+
+  it("does not finish on expiry before any visit closes", () => {
+    const engine = timedEngine();
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(false);
+    for (let i = 0; i < 3; i += 1) engine.record(miss());
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("wouldComplete reads true only for the dart that closes the visit after expiry", () => {
+    const engine = timedEngine();
+    for (let i = 0; i < 3; i += 1) engine.record(miss());
+    engine.record(miss());
+    engine.expireTimer();
+    expect(engine.wouldComplete(miss())).toBe(false);
+    engine.record(miss());
+    expect(engine.wouldComplete(numberHit(1, "SINGLE"))).toBe(true);
+  });
+
+  it("never completes an untimed-style circuit while timed and running", () => {
+    const engine = timedEngine();
+    for (const dart of [miss(), ...oneToTwenty()]) engine.record(dart);
+    expect(engine.wouldComplete(bullHit("INNER_BULL"))).toBe(false);
+  });
+
+  it("undoes the lap-closing dart back to the bull", () => {
+    const engine = timedEngine();
+    for (const dart of [miss(), miss(), ...oneToTwenty()]) engine.record(dart);
+    engine.record(bullHit("OUTER_BULL"));
+    expect(engine.state().seats[0].laps).toBe(1);
+
+    engine.undo();
+    const state = engine.state();
+    expect(state.seats[0]).toMatchObject({ laps: 0, targetIndex: 20 });
+    expect(engine.facts().turns.at(-1)!.completedAt).toBeNull();
+  });
+
+  it("untimed V2 PRO 1v1 resolves on darts as V1", () => {
+    const twoSeats = [
+      { ...SEATS[0], participantRef: "p1", sideKey: "A" },
+      { ...SEATS[0], participantRef: "p2", sideKey: "B" },
+    ];
+    const engine = new AroundTheClockEngine({
+      ...v2({ difficulty: "PRO" }),
+      seats: twoSeats,
+    });
+    const path = rulesOf(v2()).path;
+    const hitOn = (index: number): DartObservation => {
+      const target = targetAt(path, index);
+      return target.kind === "BULL"
+        ? bullHit("INNER_BULL")
+        : numberHit(target.number, "SINGLE");
+    };
+    for (let index = 0; index <= 20; index += 1) {
+      for (let seat = 0; seat < 2; seat += 1) {
+        for (let dart = 0; dart < 3; dart += 1) engine.record(hitOn(index));
+      }
+    }
+    expect(engine.state().status).toBe("TIE");
+  });
+
+  it("V1 folds carry zeroed V2 fields and a false timer", () => {
+    const engine = new AroundTheClockEngine(config);
+    engine.record(numberHit(1, "SINGLE"));
+    const state = foldAroundTheClockState(engine.facts(), config);
+    expect(state.timerExpired).toBe(false);
+    expect(state.seats[0]).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 1,
+      dartsThisVisit: 1,
+      hitsThisVisit: 0,
+      laps: 0,
+      status: "IN_PROGRESS",
+    });
   });
 });

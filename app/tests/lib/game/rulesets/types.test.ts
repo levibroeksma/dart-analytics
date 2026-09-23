@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
+  AroundTheClockV2Config,
   FiveOhOneConfig,
   OneTwentyOneV2Config,
   RULESET_CONFIGS,
@@ -11,6 +12,7 @@ import {
   SinglesV3Config,
   TuodConfig,
 } from "@lib/types";
+import { toSnapshot } from "@lib/game/rulesets/config-codec";
 
 describe("FiveOhOneConfig starting_score floor", () => {
   const validRest = {
@@ -498,5 +500,76 @@ describe("SinglesV3Config scoring_mode", () => {
 describe("RULESET_CONFIGS SHANGHAI_V2", () => {
   it("registers SHANGHAI_V2", () => {
     expect(RULESET_CONFIGS.SHANGHAI_V2).toBe(ShanghaiV2Config);
+  });
+});
+
+describe("AroundTheClockV2Config", () => {
+  const v2Base = {
+    path_direction: "LOW_TO_HIGH",
+    odds_first: false,
+    segment_rule: "ANY",
+    difficulty: "EASY",
+    duration_type: "UNTIMED",
+    duration_value: null,
+  } as const;
+
+  it("accepts the untimed default", () => {
+    expect(AroundTheClockV2Config.safeParse(v2Base).success).toBe(true);
+  });
+
+  it("accepts MINUTES 3 and 30", () => {
+    for (const v of [3, 30]) {
+      expect(
+        AroundTheClockV2Config.safeParse({
+          ...v2Base,
+          duration_type: "MINUTES",
+          duration_value: v,
+        }).success,
+      ).toBe(true);
+    }
+  });
+
+  it("rejects MINUTES 2, 31 and null", () => {
+    for (const v of [2, 31, null]) {
+      expect(
+        AroundTheClockV2Config.safeParse({
+          ...v2Base,
+          duration_type: "MINUTES",
+          duration_value: v,
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects UNTIMED carrying a value", () => {
+    expect(
+      AroundTheClockV2Config.safeParse({ ...v2Base, duration_value: 10 })
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects unknown keys and bad enums", () => {
+    expect(
+      AroundTheClockV2Config.safeParse({ ...v2Base, extra: 1 }).success,
+    ).toBe(false);
+    expect(
+      AroundTheClockV2Config.safeParse({ ...v2Base, difficulty: "EXTREME" })
+        .success,
+    ).toBe(false);
+  });
+
+  it("is registered as AROUND_THE_CLOCK_V2", () => {
+    expect(RULESET_CONFIGS.AROUND_THE_CLOCK_V2).toBe(AroundTheClockV2Config);
+  });
+
+  it("toSnapshot camel-cases every key", () => {
+    expect(toSnapshot("AROUND_THE_CLOCK_V2", v2Base)).toEqual({
+      pathDirection: "LOW_TO_HIGH",
+      oddsFirst: false,
+      segmentRule: "ANY",
+      difficulty: "EASY",
+      durationType: "UNTIMED",
+      durationValue: null,
+    });
   });
 });

@@ -241,24 +241,39 @@ export type OneTwentyOneState = MultiSeatState<OneTwentyOneSeatState> & {
 };
 
 /**
- * Around the Clock session state. `targetIndex` is the active target (0..19
- * = numbers 1..20, 20 = BULL) and can advance more than once within a single
- * visit — unlike every other engine, a visit's remaining darts aim at
- * whatever target is now active, not the one the visit started on.
- * `dartsThisVisit` counts darts thrown in the open visit (0..2); it resets
- * to 0 both when a visit closes normally at 3 darts and when a BULL hit
- * completes the session early. Both fields are folds over the fact log,
- * never accumulated.
+ * Around the Clock's resolved per-session rules. V1 resolves to the fixed
+ * 1..20 path, any segment, Easy, untimed. `hitsRequired` 0 = Easy
+ * (mid-visit advance); 1..3 = hits a closed visit needs to move up.
+ */
+export type AroundTheClockRules = {
+  path: readonly BoardTarget[];
+  segmentRule: "ANY" | "OUTER_SINGLE";
+  hitsRequired: 0 | 1 | 2 | 3;
+  timed: boolean;
+};
+
+/**
+ * Around the Clock session state. `targetIndex` is the active index into the
+ * session's path (the last index is BULL). Under Easy it can advance more
+ * than once within a single visit — a visit's remaining darts aim at
+ * whatever target is now active. `dartsThisVisit` counts darts thrown in the
+ * open visit (0..2); it reads 0 exactly when the last dart closed a visit.
+ * `hitsThisVisit` counts hits in the open visit under a 1/2/3-dart
+ * difficulty; `laps` counts timed-run restarts at the bull. Both read 0
+ * under V1. Every field is a fold over the fact log, never accumulated.
  */
 export type AroundTheClockSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
+  hitsThisVisit: number;
+  laps: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
 export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
+  timerExpired: boolean;
 };
 
 /**

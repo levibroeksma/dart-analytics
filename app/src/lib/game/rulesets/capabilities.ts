@@ -50,6 +50,7 @@ export const RULESET_CAPABILITIES: Readonly<
   "121_V1": [QUICK_SCORE, VISUAL_BOARD],
   "121_V2": [QUICK_SCORE, VISUAL_BOARD],
   AROUND_THE_CLOCK_V1: [DETAILED_DARTS, VISUAL_BOARD],
+  AROUND_THE_CLOCK_V2: [DETAILED_DARTS, VISUAL_BOARD],
 };
 
 /** Whether this ruleset version's engine implements the given mode pair. */

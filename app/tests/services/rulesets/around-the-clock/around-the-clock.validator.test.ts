@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { aroundTheClockValidator } from "@services/rulesets/around-the-clock/around-the-clock.validator";
+import {
+  aroundTheClockValidator,
+  aroundTheClockV2Validator,
+} from "@services/rulesets/around-the-clock/around-the-clock.validator";
 import type { DartFactInput } from "@routes/types";
 
 const validConfig = {};
@@ -220,6 +223,59 @@ describe("aroundTheClockValidator.validateBatch — visual board", () => {
       inputModeKey: "VISUAL_BOARD",
     });
 
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("aroundTheClockV2Validator.validateConfig", () => {
+  const v2Config = {
+    path_direction: "HIGH_TO_LOW",
+    odds_first: true,
+    segment_rule: "ANY",
+    difficulty: "HARD",
+    duration_type: "MINUTES",
+    duration_value: 10,
+  };
+  const outerSingle = { ...v2Config, segment_rule: "OUTER_SINGLE" };
+
+  it("accepts a V2 config under RECREATIONAL + DETAILED_DARTS", () => {
+    const result = aroundTheClockV2Validator.validateConfig({
+      config: v2Config,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects outer single only under RECREATIONAL + DETAILED_DARTS", () => {
+    const result = aroundTheClockV2Validator.validateConfig({
+      config: outerSingle,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result).toEqual({
+      valid: false,
+      issues: [
+        "Around the Clock outer single only requires ANALYTICS + VISUAL_BOARD capture",
+      ],
+    });
+  });
+
+  it("accepts outer single only under ANALYTICS + VISUAL_BOARD", () => {
+    const result = aroundTheClockV2Validator.validateConfig({
+      config: outerSingle,
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects V1's empty config", () => {
+    const result = aroundTheClockV2Validator.validateConfig({
+      config: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
     expect(result.valid).toBe(false);
   });
 });

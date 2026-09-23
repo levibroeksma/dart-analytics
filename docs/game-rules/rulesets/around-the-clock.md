@@ -139,7 +139,8 @@ ratio.
   10); the result is how far the player got, not darts to finish.
 - **Clock restart (V2):** in a timed run, hitting the bull with time left starts
   the path again from its first target (1 low → high, 20 high → low, 1 or 19 odds
-  first) and counts one lap. An untimed run still ends on the bull.
+  first) and counts one lap; the lap-closing dart ends that visit. An untimed
+  run still ends on the bull.
 - **Segment locks:** doubles-only or trebles-only (same difficulty ladder)
 - **Difficulty:**
   - **Intermediate:** at least **1** dart of the visit must hit the current target (or the player fails that requirement)

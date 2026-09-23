@@ -16,6 +16,15 @@ const STANDARD_PRESET = {
   isSystemTemplate: true,
 } as any;
 
+const V2_WIRE_DEFAULTS = {
+  path_direction: "LOW_TO_HIGH",
+  odds_first: false,
+  segment_rule: "ANY",
+  difficulty: "EASY",
+  duration_type: "UNTIMED",
+  duration_value: null,
+};
+
 describe("aroundTheClockSetup", () => {
   let store: AroundTheClockSetupContext["$store"];
 
@@ -159,7 +168,7 @@ describe("aroundTheClockSetup", () => {
   });
 
   describe("start", () => {
-    it("creates a session from the seeded preset with no overrides and redirects", async () => {
+    it("creates a solo V2 session from the seeded preset with every V2 key and redirects", async () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -178,18 +187,25 @@ describe("aroundTheClockSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "AROUND_THE_CLOCK",
-        rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+        rulesetVersionKey: "AROUND_THE_CLOCK_V2",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         config: {
           source: "template",
           templateRef: "tmpl-around-the-clock-standard",
+          overrides: V2_WIRE_DEFAULTS,
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
           templateRef: "tmpl-around-the-clock-standard",
           configSnapshot: {
+            pathDirection: "LOW_TO_HIGH",
+            oddsFirst: false,
+            segmentRule: "ANY",
+            difficulty: "EASY",
+            durationType: "UNTIMED",
+            durationValue: null,
             seats: [
               {
                 participantRef: "participant-1",
@@ -256,6 +272,141 @@ describe("aroundTheClockSetup", () => {
       expect(setup.showActiveSessionModal).toBe(true);
       expect(setup.activeSession).toMatchObject({ sessionId: "active-1" });
       expect(setup.loading).toBe(false);
+    });
+  });
+
+  describe("V2 variants", () => {
+    function mockCreate() {
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+    }
+
+    function sentConfig() {
+      return vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+    }
+
+    it("sends a timed run's minutes", async () => {
+      mockCreate();
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.durationType = "MINUTES";
+      setup.durationValue = 12;
+      await setup.start();
+      expect(sentConfig().config).toMatchObject({
+        overrides: { duration_type: "MINUTES", duration_value: 12 },
+      });
+      expect(setup.clampNotice).toBe("");
+    });
+
+    it("defaults an empty timed run to 10 minutes", async () => {
+      mockCreate();
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.durationType = "MINUTES";
+      await setup.start();
+      expect(sentConfig().config).toMatchObject({
+        overrides: { duration_type: "MINUTES", duration_value: 10 },
+      });
+      expect(setup.clampNotice).toBe("");
+    });
+
+    it("clamps a timed run past 30 minutes and says so", async () => {
+      mockCreate();
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.durationType = "MINUTES";
+      setup.durationValue = 45;
+      await setup.start();
+      expect(sentConfig().config).toMatchObject({
+        overrides: { duration_value: 30 },
+      });
+      expect(setup.durationValue).toBe(30);
+      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
+    });
+
+    it("sends outer single only under ANALYTICS", async () => {
+      mockCreate();
+      store.settings = {
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      };
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.segmentRule = "OUTER_SINGLE";
+      await setup.start();
+      expect(sentConfig().config).toMatchObject({
+        overrides: { segment_rule: "OUTER_SINGLE" },
+      });
+    });
+
+    it("sends any segment when capture is not ANALYTICS (the row is hidden)", async () => {
+      mockCreate();
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.segmentRule = "OUTER_SINGLE";
+      await setup.start();
+      expect(sentConfig().config).toMatchObject({
+        overrides: { segment_rule: "ANY" },
+      });
+    });
+
+    it("falls back to V1 with no overrides when a bot is seated", async () => {
+      mockCreate();
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        bot: { level: 5 },
+      });
+      await setup.start();
+      expect(sentConfig().rulesetVersionKey).toBe("AROUND_THE_CLOCK_V1");
+      expect(sentConfig().config).not.toHaveProperty("overrides");
+    });
+
+    it("forces a guest game untimed", async () => {
+      mockCreate();
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.durationType = "MINUTES";
+      setup.durationValue = 10;
+      setup.newGuestName = "Sam";
+      setup.addGuest();
+      expect(setup.guests).toHaveLength(1);
+      expect(setup.durationType).toBe("UNTIMED");
+      expect(setup.durationValue).toBeNull();
+      await setup.start();
+      expect(sentConfig().rulesetVersionKey).toBe("AROUND_THE_CLOCK_V2");
+      expect(sentConfig().config).toMatchObject({
+        overrides: { duration_type: "UNTIMED", duration_value: null },
+      });
+    });
+
+    it("resets every toggle when a bot is seated", () => {
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      setup.pathDirection = "HIGH_TO_LOW";
+      setup.oddsFirst = true;
+      setup.segmentRule = "OUTER_SINGLE";
+      setup.difficulty = "PRO";
+      setup.durationType = "MINUTES";
+      setup.durationValue = 20;
+      setup.addBot();
+      expect(setup.bot).not.toBeNull();
+      expect({
+        pathDirection: setup.pathDirection,
+        oddsFirst: setup.oddsFirst,
+        segmentRule: setup.segmentRule,
+        difficulty: setup.difficulty,
+        durationType: setup.durationType,
+        durationValue: setup.durationValue,
+      }).toEqual({
+        pathDirection: "LOW_TO_HIGH",
+        oddsFirst: false,
+        segmentRule: "ANY",
+        difficulty: "EASY",
+        durationType: "UNTIMED",
+        durationValue: null,
+      });
     });
   });
 });

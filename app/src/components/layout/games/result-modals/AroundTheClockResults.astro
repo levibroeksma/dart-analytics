@@ -10,6 +10,11 @@ const STAT_ROWS = [
   { label: "Accuracy", key: "accuracy" },
   { label: "Darts thrown", key: "totalDarts" },
 ] as const;
+const TIMED_ROWS = [
+  ...STAT_ROWS,
+  { label: "Laps", key: "laps" },
+  { label: "Reached", key: "targetAtEnd" },
+] as const;
 // TODO: harden the mandatory showSavedMessage on ResultModalShell for consistancy
 ---
 
@@ -21,6 +26,15 @@ const STAT_ROWS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <template x-if="!isTimed()">
+    <div class="contents">
+      <SinglePlayerSummary statRows={STAT_ROWS} />
+    </div>
+  </template>
+  <template x-if="isTimed()">
+    <div class="contents">
+      <SinglePlayerSummary statRows={TIMED_ROWS} />
+    </div>
+  </template>
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

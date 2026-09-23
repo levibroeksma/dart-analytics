@@ -41,6 +41,25 @@ export function numbersPath(order?: readonly number[]): readonly BoardTarget[] {
   return order ? pathFromOrder(order, "NUMBER") : NUMBERS_PATH;
 }
 
+/**
+ * Around the Clock V2's order array for `numbersPath`: 1..20 or 20..1,
+ * optionally odds before evens in that direction, BULL always last.
+ */
+export function clockPath(
+  direction: "LOW_TO_HIGH" | "HIGH_TO_LOW",
+  oddsFirst: boolean,
+): readonly number[] {
+  const ascending = Array.from({ length: 20 }, (_, i) => i + 1);
+  const numbers = direction === "LOW_TO_HIGH" ? ascending : ascending.reverse();
+  const ordered = oddsFirst
+    ? [
+        ...numbers.filter((n) => n % 2 === 1),
+        ...numbers.filter((n) => n % 2 === 0),
+      ]
+    : numbers;
+  return [...ordered, BULL_TARGET_NUMBER];
+}
+
 export function targetAt(
   path: readonly BoardTarget[],
   index: number,

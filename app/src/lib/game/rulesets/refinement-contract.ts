@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  AroundTheClockV2Config,
   DoublesTrainingConfig,
   OneTwentyOneV2Config,
   ScoreTrainingConfig,
@@ -486,6 +487,71 @@ const tuodContract: SchemaRefinementContract<TuodInput> = {
  * refinement without a matching entry here fails
  * `scripts/check-refinement-coverage.sh`.
  */
+type AroundTheClockV2Input = z.input<typeof AroundTheClockV2Config>;
+
+const aroundTheClockV2Base = {
+  path_direction: "LOW_TO_HIGH",
+  odds_first: false,
+  segment_rule: "ANY",
+  difficulty: "EASY",
+  duration_type: "UNTIMED",
+  duration_value: null,
+} satisfies AroundTheClockV2Input;
+
+const aroundTheClockV2Minutes = (
+  value: number | null,
+): AroundTheClockV2Input => ({
+  ...aroundTheClockV2Base,
+  duration_type: "MINUTES",
+  duration_value: value,
+});
+
+/**
+ * `AroundTheClockV2Config.duration_value` is bounded conditionally by
+ * `duration_type` — null for UNTIMED, 3..30 for MINUTES — which is why it
+ * lives in a whole-object `superRefine`. Every probe is load-bearing: the
+ * field itself is only `.int().nullable()`.
+ */
+const aroundTheClockV2Contract: SchemaRefinementContract<AroundTheClockV2Input> =
+  {
+    schemaName: "AroundTheClockV2Config",
+    schema: AroundTheClockV2Config,
+    fields: [
+      {
+        field: "duration_value",
+        accept: [
+          { label: "UNTIMED with null", config: aroundTheClockV2Base },
+          {
+            label: "duration_value 3 for MINUTES, the floor",
+            config: aroundTheClockV2Minutes(3),
+          },
+          {
+            label: "duration_value 30 for MINUTES, the ceiling",
+            config: aroundTheClockV2Minutes(30),
+          },
+        ],
+        reject: [
+          {
+            label: "UNTIMED carrying a duration_value",
+            config: { ...aroundTheClockV2Base, duration_value: 10 },
+          },
+          {
+            label: "duration_value 2 for MINUTES, one below the floor",
+            config: aroundTheClockV2Minutes(2),
+          },
+          {
+            label: "duration_value 31 for MINUTES, one past the ceiling",
+            config: aroundTheClockV2Minutes(31),
+          },
+          {
+            label: "MINUTES with null",
+            config: aroundTheClockV2Minutes(null),
+          },
+        ],
+      },
+    ],
+  };
+
 export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   scoreTrainingContract,
   singlesTrainingContract,
@@ -494,4 +560,5 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   doublesTrainingContract,
   oneTwentyOneV2Contract,
   tuodContract,
+  aroundTheClockV2Contract,
 ];

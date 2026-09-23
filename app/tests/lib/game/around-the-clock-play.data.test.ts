@@ -7,6 +7,28 @@ vi.mock("@client/api/sessions", () => ({
   createSession: vi.fn(),
 }));
 
+const segmentTimerInstances: Array<{
+  options: Record<string, unknown>;
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  unlockAudio: ReturnType<typeof vi.fn>;
+}> = [];
+
+vi.mock("@modules/ui/segment-timer.module", () => ({
+  SegmentTimer: vi.fn().mockImplementation(function (
+    options: Record<string, unknown>,
+  ) {
+    const instance = {
+      options,
+      start: vi.fn(),
+      stop: vi.fn(),
+      unlockAudio: vi.fn(),
+    };
+    segmentTimerInstances.push(instance);
+    return instance;
+  }),
+}));
+
 import {
   appendBatch,
   completeSession,
@@ -17,10 +39,14 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { aroundTheClockEngineFactory } from "@modules/game/around-the-clock.engine.module";
+import {
+  aroundTheClockEngineFactory,
+  aroundTheClockV2EngineFactory,
+} from "@modules/game/around-the-clock.engine.module";
 import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import type {
   AroundTheClockSnapshot,
+  AroundTheClockV2Snapshot,
   AroundTheClockPlayContext,
   Seated,
   SeatFact,
@@ -163,6 +189,7 @@ function makePlay(
       game: gameStub(gameOverrides),
       settings: settingsStub(settingsOverrides),
     },
+    $watch: vi.fn(),
   } as AroundTheClockPlayContext;
 }
 
@@ -170,6 +197,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(aroundTheClockEngineFactory);
+  registerEngineFactory(aroundTheClockV2EngineFactory);
+  segmentTimerInstances.length = 0;
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -298,6 +327,8 @@ describe("session completion on BULL", () => {
           turns: 21,
           accuracy: "34.43%",
           totalDarts: 61,
+          laps: null,
+          targetAtEnd: null,
         },
       ],
     });
@@ -356,6 +387,8 @@ describe("session completion — 1v1", () => {
         turns: 7,
         accuracy: "100.00%",
         totalDarts: 21,
+        laps: null,
+        targetAtEnd: null,
       },
       {
         participantRef: "participant-2",
@@ -363,6 +396,8 @@ describe("session completion — 1v1", () => {
         turns: 7,
         accuracy: "100.00%",
         totalDarts: 21,
+        laps: null,
+        targetAtEnd: null,
       },
     ]);
     expect(play.resultsTitle.call(play)).toBe("Tie — same darts!");
@@ -432,6 +467,8 @@ describe("session completion — 1v1", () => {
         turns: 1,
         accuracy: "100.00%",
         totalDarts: 1,
+        laps: null,
+        targetAtEnd: null,
       },
       {
         participantRef: "participant-2",
@@ -439,6 +476,8 @@ describe("session completion — 1v1", () => {
         turns: 1,
         accuracy: "0.00%",
         totalDarts: 1,
+        laps: null,
+        targetAtEnd: null,
       },
     ]);
   });
@@ -485,6 +524,7 @@ describe("aroundTheClockPlay — per-seat accessors", () => {
         game: gameStub({ configSnapshot: { seats: twoSeats } }),
         settings: settingsStub(),
       },
+      $watch: vi.fn(),
     } as AroundTheClockPlayContext;
     play.engine = null;
 
@@ -872,5 +912,214 @@ describe("aroundTheClockPlay — DartBot opponent", () => {
     await play.undoVisit.call(play);
 
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+  });
+});
+
+describe("V2", () => {
+  function v2(
+    over: Partial<AroundTheClockV2Snapshot> = {},
+  ): Seated<AroundTheClockV2Snapshot> {
+    return {
+      seats: SEATS,
+      pathDirection: "LOW_TO_HIGH",
+      oddsFirst: false,
+      segmentRule: "ANY",
+      difficulty: "EASY",
+      durationType: "UNTIMED",
+      durationValue: null,
+      ...over,
+    };
+  }
+
+  function makeV2(over: Partial<AroundTheClockV2Snapshot> = {}) {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "AROUND_THE_CLOCK_V2" },
+    ]);
+    return makePlay(
+      {
+        rulesetVersionKey: "AROUND_THE_CLOCK_V2",
+        configSnapshot: v2(over),
+        timerExpired: false,
+      },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    );
+  }
+
+  function mockCompletion() {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 1 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+  }
+
+  const board = (number: number, zone: string) => ({
+    hitTargetNumber: number,
+    hitZoneKey: zone as "OUTER_SINGLE",
+    locationX: 1,
+    locationY: 1,
+  });
+
+  it("resumes a V2 session and rejects a foreign key", async () => {
+    const play = makeV2();
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("AROUND_THE_CLOCK_V2");
+
+    const foreign = makePlay({ rulesetVersionKey: "TUOD_V1" });
+    await foreign.init.call(foreign);
+    expect(foreign.engine).toBeNull();
+  });
+
+  it("labels the first target off the configured path", async () => {
+    const high = makeV2({ pathDirection: "HIGH_TO_LOW" });
+    await high.init.call(high);
+    expect(high.currentTargetLabel.call(high)).toBe("20");
+
+    const odds = makeV2({ pathDirection: "HIGH_TO_LOW", oddsFirst: true });
+    await odds.init.call(odds);
+    expect(odds.currentTargetLabel.call(odds)).toBe("19");
+  });
+
+  it("previews and counts only outer singles under OUTER_SINGLE", async () => {
+    const play = makeV2({ segmentRule: "OUTER_SINGLE" });
+    await play.init.call(play);
+    await play.recordDart.call(play, board(1, "INNER_SINGLE"));
+    await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
+    const segments = play.previewSegments.call(play);
+    expect(segments[0].status).toBe("miss");
+    expect(segments[1].status).toBe("hit");
+    expect(play.accuracy.call(play)).toBe("50.00%");
+  });
+
+  it("shows hits needed under a 1/2/3-dart difficulty", async () => {
+    const play = makeV2({ difficulty: "HARD" });
+    await play.init.call(play);
+    expect(play.hitsNeededLabel.call(play)).toBe("0 / 2 hits");
+    await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
+    expect(play.hitsNeededLabel.call(play)).toBe("1 / 2 hits");
+
+    const easy = makeV2();
+    await easy.init.call(easy);
+    expect(easy.hitsNeededLabel.call(easy)).toBe("");
+  });
+
+  describe("timed", () => {
+    const TIMED = { durationType: "MINUTES", durationValue: 10 } as const;
+
+    function expire(play: AroundTheClockPlayContext) {
+      (segmentTimerInstances[0].options.onComplete as () => void)();
+      const watchCall = vi
+        .mocked(play.$watch)
+        .mock.calls.find(([key]) => key === "$store.game.timerExpired");
+      return (watchCall?.[1] as () => Promise<void>)();
+    }
+
+    it("starts the countdown and reads as timed", async () => {
+      const play = makeV2(TIMED);
+      await play.init.call(play);
+      expect(segmentTimerInstances).toHaveLength(1);
+      expect(play.isTimed.call(play)).toBe(true);
+      expect(play.remainingLabel.call(play)).toBe("10:00");
+    });
+
+    it("finishes on expiry between visits", async () => {
+      mockCompletion();
+      const play = makeV2(TIMED);
+      await play.init.call(play);
+      for (let i = 0; i < 3; i += 1) {
+        await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
+      }
+      await expire(play);
+      expect(play.finished).toBe(true);
+      expect(completeSession).toHaveBeenCalled();
+      expect(play.resultsSnapshot?.seats[0]).toMatchObject({
+        laps: 0,
+        targetAtEnd: "2",
+      });
+      expect(play.resultsTitle.call(play)).toBe("Time — 0 laps, on 2");
+    });
+
+    it("waits for the open visit to close after expiry", async () => {
+      mockCompletion();
+      const play = makeV2(TIMED);
+      await play.init.call(play);
+      for (let i = 0; i < 4; i += 1) {
+        await play.recordDart.call(play, board(20, "OUTER_SINGLE"));
+      }
+      await expire(play);
+      expect(play.finished).toBe(false);
+      expect(completeSession).not.toHaveBeenCalled();
+      await play.recordDart.call(play, board(20, "OUTER_SINGLE"));
+      await play.recordDart.call(play, board(20, "OUTER_SINGLE"));
+      expect(play.finished).toBe(true);
+      expect(completeSession).toHaveBeenCalled();
+    });
+
+    it("finishes a reloaded session whose timer already ran out", async () => {
+      mockCompletion();
+      const play = makeV2(TIMED);
+      play.$store.game.timerExpired = true;
+      play.$store.game.turns = priorTurnsThroughNumber(1);
+      await play.init.call(play);
+      expect(play.finished).toBe(true);
+    });
+  });
+
+  it("leaves laps and target at end null when untimed", async () => {
+    mockCompletion();
+    const play = makeV2();
+    await play.init.call(play);
+    for (let n = 1; n <= 20; n += 1) {
+      await play.recordDart.call(play, board(n, "OUTER_SINGLE"));
+    }
+    await play.recordDart.call(play, board(25, "OUTER_BULL"));
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot?.seats[0]).toMatchObject({
+      laps: null,
+      targetAtEnd: null,
+    });
+  });
+
+  it("play again keeps V2 and resends every variant", async () => {
+    const play = makeV2({
+      difficulty: "PRO",
+      ...{ durationType: "MINUTES", durationValue: 12 },
+    });
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "AROUND_THE_CLOCK_V2",
+        config: {
+          source: "template",
+          templateRef: "tpl-1",
+          overrides: {
+            path_direction: "LOW_TO_HIGH",
+            odds_first: false,
+            segment_rule: "ANY",
+            difficulty: "PRO",
+            duration_type: "MINUTES",
+            duration_value: 12,
+          },
+        },
+      }),
+    );
+    expect(play.$store.game.timerExpired).toBe(false);
+    expect(segmentTimerInstances).toHaveLength(1);
   });
 });

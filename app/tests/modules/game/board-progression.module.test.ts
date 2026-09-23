@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   boardScore,
+  clockPath,
   doublesPath,
   isHitOn,
   numbersPath,
@@ -129,5 +130,31 @@ describe("numbersPath / doublesPath with an explicit order", () => {
     ];
     expect(numbersPath()).toEqual(numbersPath(ascending));
     expect(doublesPath()).toEqual(doublesPath(ascending));
+  });
+});
+
+describe("clockPath", () => {
+  it("LOW_TO_HIGH", () => {
+    expect(clockPath("LOW_TO_HIGH", false)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
+    ]);
+  });
+
+  it("HIGH_TO_LOW", () => {
+    expect(clockPath("HIGH_TO_LOW", false)).toEqual([
+      20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 25,
+    ]);
+  });
+
+  it("odds first, low to high", () => {
+    expect(clockPath("LOW_TO_HIGH", true)).toEqual([
+      1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 25,
+    ]);
+  });
+
+  it("odds first, high to low", () => {
+    expect(clockPath("HIGH_TO_LOW", true)).toEqual([
+      19, 17, 15, 13, 11, 9, 7, 5, 3, 1, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 25,
+    ]);
   });
 });

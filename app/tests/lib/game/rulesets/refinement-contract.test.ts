@@ -39,6 +39,12 @@ describe("ruleset refinement contract", () => {
     ).toContain("SinglesV3Config");
   });
 
+  it("covers AroundTheClockV2Config's UNTIMED/MINUTES bounds", () => {
+    expect(
+      REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),
+    ).toContain("AroundTheClockV2Config");
+  });
+
   for (const contract of REFINEMENT_CONTRACTS) {
     describe(contract.schemaName, () => {
       it("names a schema that types.ts actually exports under that name", () => {
