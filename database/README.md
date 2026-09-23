@@ -73,6 +73,7 @@ astro check
 23. `seeds/0023_target_scoring_exercise_type.sql`
 24. `seeds/0024_switching_target_scoring_exercise_type.sql`
 25. `seeds/0025_score_threshold_exercise_type.sql`
+26. `seeds/0026_warm_up_advanced_template.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -104,6 +105,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0023_target_scoring_seed_checks.sql` | seed `0023`: the `TARGET_SCORING` type is published, `TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18,25]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
 | `verification/0024_switching_target_scoring_seed_checks.sql` | seed `0024`: the `SWITCHING_TARGET_SCORING` type is published, `SWITCHING_TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
 | `verification/0025_score_threshold_seed_checks.sql` | seed `0025`: the `SCORE_THRESHOLD` type is published, `SCORE_THRESHOLD_V1` is its version 1, the system template "65 or More" pins it with `{"threshold":65}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
+| `verification/0026_warm_up_advanced_seed_checks.sql` | seed `0026`: the "Warm-Up Advanced" system template is `WARM_UP`, pinned to `WARM_UP_V1`, its sections aim at 20, 3, 6, 11, then the bull, and `v_exercise_template_catalog` offers both `WARM_UP` templates (3 checks) (2026-09-23) |
 | `verification/0023_owner_scoped_dart_view_checks.sql` | `v_dart_analytics`/`v_dart_locations` return only the session owner's own dart for a PLAYER+GUEST fixture, `v_game_replay` deliberately returns both participants' turns, anti-vacuity guard (7 checks) |
 | `verification/0011_one_twenty_one_v2_capability_checks.sql` | `seeds/0011`+`0007` combined: `121_V2`/`RECREATIONAL`/`QUICK_SCORE` and `121_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, all three `121_V2` presets carry the right `duration_type`, zero undeclared `exercise_sessions` (4 checks) |
 | `verification/0012_shanghai_v2_capability_checks.sql` | `seeds/0012`+`0007` combined: `SHANGHAI_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SHANGHAI_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |

@@ -325,3 +325,10 @@ Decision: `SCORE_THRESHOLD` / `SCORE_THRESHOLD_V1` is a new exercise type (seed 
 Reason: the rules (`docs/game-rules/training/exercises/score-threshold.md`) judge a whole visit by its board total with no target — no existing exercise fold does that. The author wants only 65 for now but a later threshold without a new type, so the type is named for the rule and the number sits in config from day one.
 Consequences: allowing another threshold is widening `ScoreThresholdV1Config` (or a V2 ruleset) plus a template, with no engine, seed-type or schema change. Board preview marks a dart on the board as a hit and off it as a miss, since there is no target to judge against. Standalone play stays deferred (V2+).
 Supersedes: none.
+
+### D359 — Warm-Up Advanced is a second Warm-Up template, not a new ruleset or type
+Status: Accepted · Date: 2026-09-23
+Decision: "Warm-Up Advanced" (seed `0026`) is a second `WARM_UP` system template pinned to `WARM_UP_V1`. Its five sections keep Warm-Up's names and equal weights but each aims at one number — Upper 20, Lower 3, Right 6, Left 11 — then the bull. No engine, config schema, adapter or UI change.
+Reason: the author wants the same warm-up with a smaller target; section targets are already template configuration (`WarmUpPhaseConfig`), and `dartboardHighlightPath` already outlines a single-number slice. A routine-step override would tie the variant to one routine; a template lets any custom routine pick it from the catalog.
+Consequences: the routine builder lists two Warm-Up templates. A further variant is another template row. Rules: `docs/game-rules/training/exercises/warm-up.md`.
+Supersedes: none.
