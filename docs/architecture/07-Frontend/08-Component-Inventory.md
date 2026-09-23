@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-22
+updated: 2026-09-23
 -->
 
 # Component Inventory
@@ -127,7 +127,6 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `TodayCard.astro` | `/training`'s Today card: active schedule's routine for today (or rest), `Start`, link to Schedules; whole card `x-show="schedule"`, hidden with no active schedule | none — reads `todayCard()` from the parent scope (2026-09-20) |
 | `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
 | `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
 | `ScheduleFormModal.astro` | `/training`'s "My schedule" editor in a `detached` `ExpandingModal`, opened from the teal schedule card's Plan button. Seven day circles pick the day to edit; the routine list assigns or clears that day's routine; Save needs one mapped day and closes on success. Mounts `myScheduleForm()` around the modal so every close path reaches `resetForm()` (2026-09-22) | `openExpr`, `titleId` |
@@ -137,4 +136,4 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`), below the intro text. An inline `:class` ternary on `homeWeek()`'s `isToday(index)`/`hasRoutine(index)`: today at `scale-110` in accent (filled `bg-accent` when it has a routine, border only when not); other days muted (filled `bg-muted` when they have a routine, border only when not). Letters come from `weekdayNames()` (build time) (2026-09-22) | none — reads `homeWeek()` from the parent scope |
-| `TodayRoutineCard.astro` | Homepage card for today's scheduled routine: a link card into the routine's play page while it has not been completed today, then a "You're on fire" completion state with a flame icon; nothing on a rest day or with no active schedule (2026-09-22) | none — reads `homeWeek()` from the parent scope |
+| `TodayRoutineCard.astro` | Homepage card for today's scheduled routine, below `WeekdayStrip`: while not completed today, "Today · <schedule name>" with a Schedules link, routine name, minutes badge and a `Start` button (`start()`); once done, a "You're on fire" state with a flame icon; nothing on a rest day or with no active schedule. Replaces the former `/training` `TodayCard` (2026-09-23) | none — reads `homeWeek()` from the parent scope |

@@ -1,15 +1,15 @@
 ---
 /**
  * Homepage card for today's scheduled routine, inside the `homeWeek()`
- * scope: a link straight into the routine while it has not been completed
- * today, then a "You're on fire" completion state. Renders nothing on a rest
+ * scope: the active schedule's routine with a Start button while it has not
+ * been completed today, then a "You're on fire" completion state. Renders nothing on a rest
  * day or without an active schedule.
  */
 import CardWrapper from "@components/ui/CardWrapper.astro";
 import Badge from "@components/ui/Badge.astro";
+import Button from "@components/forms/Button.astro";
 
 // Icons
-import DartIcon from "@icons/dart.svg";
 import FlameIcon from "@icons/flame.svg";
 ---
 
@@ -17,28 +17,38 @@ import FlameIcon from "@icons/flame.svg";
   x-show="showStart()"
   x-cloak
 >
-  <a
-    :href="startHref()"
-    class="block no-underline"
-  >
-    <CardWrapper class="flex-row items-center justify-between gap-4 glass">
+  <CardWrapper class="gap-3 glass">
+    <div class="flex items-center justify-between gap-2">
+      <h2 class="text-sm font-semibold text-muted-foreground">
+        Today &middot; <span x-text="schedule?.name"></span>
+      </h2>
+      <a
+        href="/training/schedules"
+        class="text-xs text-accent"
+      >
+        Schedules
+      </a>
+    </div>
+    <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col gap-0.5">
-        <p class="text-xs text-muted-foreground">Today's training</p>
-        <div class="flex items-center gap-2">
-          <h3
-            class="font-semibold text-base text-accent"
-            x-text="todayEntry()?.routineName"
-          >
-          </h3>
-          <Badge
-            class="text-xs"
-            x-text="`${todayEntry()?.routineMinutes} min`"
-          />
-        </div>
+        <p
+          class="font-semibold text-base text-foreground"
+          x-text="todayEntry()?.routineName"
+        >
+        </p>
+        <Badge
+          class="text-xs w-fit"
+          x-text="`${todayEntry()?.routineMinutes} min`"
+        />
       </div>
-      <DartIcon class="-rotate-45 size-8 text-accent" />
-    </CardWrapper>
-  </a>
+      <Button
+        title="Start"
+        variant="primary"
+        loadingExpr="false"
+        @click="start()"
+      />
+    </div>
+  </CardWrapper>
 </div>
 <div
   x-show="showDone()"

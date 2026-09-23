@@ -6,7 +6,6 @@ import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
-import { todayCard } from "@lib/training/schedules/today-card.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
 import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
@@ -41,12 +40,6 @@ describe("registerRouteData", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("routineBuilder", routineBuilder);
-  });
-
-  it("registers todayCard as an Alpine data factory", () => {
-    const data = vi.fn();
-    registerRouteData({ data } as unknown as Alpine);
-    expect(data).toHaveBeenCalledWith("todayCard", todayCard);
   });
 
   it("registers schedulesIndex as an Alpine data factory", () => {

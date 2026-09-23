@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-22
+updated: 2026-09-23
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -255,13 +255,12 @@ Registered for discoverability, not as reading material — the domain model liv
 | `app/src/pages/api/schedules/[scheduleId]/deactivate.ts` | `POST /api/schedules/:scheduleId/deactivate` (2026-09-20) | canonical |
 | `app/src/lib/client/api/schedules.ts` | Browser client: `listSchedules`/`getSchedule`/`getActiveSchedule`/`createSchedule`/`updateSchedule`/`activateSchedule`/`deactivateSchedule`/`deleteSchedule`, following the sibling API clients' `unwrap`/`SessionApiError` shape (2026-09-20) | canonical |
 | `app/src/lib/client/api/unwrap.ts` | `unwrapOrThrow(result)` — returns a success envelope's data or throws `SessionApiError`; shared by `routines.ts`/`schedules.ts`. Separate from `client.ts` so the transport never imports `sessions.ts` (D346, 2026-09-20) | canonical |
-| `app/src/lib/training/schedules/types.ts` | `ScheduleDayEntry`, `TodayCardContext`, `SchedulesIndexContext`, `ScheduleEditorRow`/`ScheduleEditorContext` — the three data factories' Alpine context shapes (2026-09-20) | canonical |
+| `app/src/lib/training/schedules/types.ts` | `ScheduleDayEntry`, `SchedulesIndexContext`, `ScheduleEditorRow`/`ScheduleEditorContext`, `MyScheduleFormContext`, `HomeWeekContext` — the schedule data factories' Alpine context shapes (2026-09-23) | canonical |
 | `app/src/lib/training/schedules/today.ts` | `startOfLocalDay(date)`/`isRoutineCompleted(entry, completions)` added (2026-09-22); `isoWeekday(date)` (JS `getDay()` 0..6 → ISO 1..7, Sunday = 7); `weekdayNames(locale?)` Monday..Sunday via `Intl.DateTimeFormat` pinned to a fixed UTC Monday; `todayEntry(schedule, date)` — the matching `ScheduleDayEntry` or `null` (2026-09-20) | canonical |
 | `app/src/lib/training/schedules/schedule-route.ts` | `scheduleIdFromLocation()` (reads `?schedule=` from `window.location`), `scheduleEditPath(scheduleId)` (2026-09-20) | canonical |
-| `app/src/lib/training/schedules/today-card.data.ts` | `todayCard()` — loads `getActiveSchedule`; `entry()`/`isRestDay()`/`startPath()` via `today.ts` and `routinePlayPath` (`routine-route.ts`); `start()` navigates (2026-09-20) | canonical |
 | `app/src/lib/training/schedules/schedules-index.data.ts` | `schedulesIndex()` — loads `listSchedules`; `activate`/`deactivate` call the client then `refresh()`; `editHref` via `scheduleEditPath` (2026-09-20) | canonical |
 | `app/src/lib/training/schedules/schedule-editor.data.ts` | `scheduleEditor(mode)` — seven `restRows()` Monday..Sunday (`routineTemplateId: string \| null`); loads `GET /api/routines` for the picker and, in edit mode, the existing schedule; `payload()` drops any falsy `routineTemplateId` (rest); `formatScheduleIssues` (moved to `schedule-issues.ts`, 2026-09-22) renders a `VALIDATION_FAILED` `{ reason, dayOfWeek? }` as one line (2026-09-20) | canonical |
-| `app/src/components/layout/training/schedules/TodayCard.astro`, `ScheduleEditor.astro`, `ScheduleDayRow.astro` | The three schedule components — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-20) | canonical |
+| `app/src/components/layout/training/schedules/ScheduleEditor.astro`, `ScheduleDayRow.astro` | The schedule editor components — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-23) | canonical |
 | `app/src/pages/training/schedules/index.astro` | `/training/schedules` — own schedules list, active badge, Activate/Deactivate, `New schedule` `GameCard` (2026-09-20) | canonical |
 | `app/src/pages/training/schedules/new/index.astro` | `/training/schedules/new` — mounts `scheduleEditor('create')` around `ScheduleEditor` (2026-09-20) | canonical |
 | `app/src/pages/training/schedules/edit/index.astro` | `/training/schedules/edit?schedule=<id>` — mounts `scheduleEditor('edit')` around `ScheduleEditor` (2026-09-20) | canonical |
@@ -276,7 +275,7 @@ Registered for discoverability, not as reading material — the view contract li
 | `database/verification/0042_training_completions_view_checks.sql` | Live-DB proof: completed training listed with its snapshot routine; abandoned, active and snapshot-less activities excluded (2026-09-22) | canonical |
 | `app/src/pages/api/training-sessions/completed.ts` | `GET /api/training-sessions/completed?since=` — `422` on a missing/non-ISO `since` (2026-09-22) | canonical |
 | `app/src/lib/training/schedules/my-schedule.data.ts` | `myScheduleForm()` — day picker + single-select routine list; updates the active schedule or creates and activates `MY_SCHEDULE_NAME`; `save()` resolves `true` and dispatches `schedule-saved` (2026-09-22) | canonical |
-| `app/src/lib/training/schedules/home-week.data.ts` | `homeWeek()` — active schedule + completions since local midnight; `isToday(index)`/`hasRoutine(index)`, `showStart()`/`showDone()`, `startHref()` (2026-09-22) | canonical |
+| `app/src/lib/training/schedules/home-week.data.ts` | `homeWeek()` — active schedule + completions since local midnight; `isToday(index)`/`hasRoutine(index)`, `showStart()`/`showDone()`, `startHref()`, `start()` navigates (2026-09-23) | canonical |
 | `app/src/lib/training/schedules/schedule-issues.ts` | `formatScheduleIssues(details)` — a schedule `VALIDATION_FAILED` envelope as one user-facing line; shared by `scheduleEditor` and `myScheduleForm` (2026-09-22) | canonical |
 | `app/src/components/layout/training/schedules/ScheduleFormModal.astro`, `app/src/components/layout/home/TodayRoutineCard.astro` | The modal and homepage today card — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-22) | canonical |
 | `app/src/icons/flame.svg` | Flame icon for the "You're on fire" state (2026-09-22) | canonical |

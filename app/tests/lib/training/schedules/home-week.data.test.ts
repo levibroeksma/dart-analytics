@@ -89,6 +89,14 @@ describe("homeWeek", () => {
     expect(data.startHref()).toBe("/training/routines/play?routine=r1");
   });
 
+  it("start() navigates to today's routine", async () => {
+    const data = await loaded(new Date(2024, 0, 1, 9));
+    const navigate = vi.fn();
+    data.navigate = navigate;
+    data.start();
+    expect(navigate).toHaveBeenCalledWith("/training/routines/play?routine=r1");
+  });
+
   it("shows the completion state once today's routine is done", async () => {
     const data = await loaded(new Date(2024, 0, 1, 9), [COMPLETION("r1")]);
     expect(data.showStart()).toBe(false);
