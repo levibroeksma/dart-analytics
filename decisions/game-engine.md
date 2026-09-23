@@ -318,3 +318,10 @@ Decision: `SWITCHING_TARGET_SCORING` / `SWITCHING_TARGET_SCORING_V1` is a new ex
 Reason: the rules (`docs/game-rules/training/exercises/switching-target-scoring.md`) advance on every hit and restart on every miss — neither Target Scoring's fold (advance only on a broken chain, D356) nor Switching's (dart-by-dart cycle, no chain, no bull, D297). Sharing the point function keeps the two exercises' scoring from drifting apart.
 Consequences: a change to Target Scoring's point table changes both exercises at once, which is the intent; a divergent table would be a new ruleset version on one of them. A sequence length other than three is a new ruleset version, not a config edit. Standalone play stays deferred (V2+).
 Supersedes: none.
+
+### D358 — 65 or More is a Score Threshold exercise type, threshold in config but locked to 65
+Status: Accepted · Date: 2026-09-23
+Decision: `SCORE_THRESHOLD` / `SCORE_THRESHOLD_V1` is a new exercise type (seed `0025`, template "65 or More") with its own `DartExerciseEngine` (`score-threshold.engine.module.ts`). Three darts per visit, free aim: darts carry no intended target or zone. A visit is judged once its third dart lands; it beats when the sum of its board scores is at least `threshold`. A visit unfinished at timer expiry is not judged. Configuration is `{ threshold }`, which V1 accepts only as `65` (`z.literal(65)`). Routine step only.
+Reason: the rules (`docs/game-rules/training/exercises/score-threshold.md`) judge a whole visit by its board total with no target — no existing exercise fold does that. The author wants only 65 for now but a later threshold without a new type, so the type is named for the rule and the number sits in config from day one.
+Consequences: allowing another threshold is widening `ScoreThresholdV1Config` (or a V2 ruleset) plus a template, with no engine, seed-type or schema change. Board preview marks a dart on the board as a hit and off it as a miss, since there is no target to judge against. Standalone play stays deferred (V2+).
+Supersedes: none.

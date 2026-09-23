@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EXERCISE_RULESET_CONFIGS,
+  ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
   TargetScoringV1Config,
@@ -100,6 +101,36 @@ describe("SwitchingTargetScoringV1Config", () => {
   it("is registered under SWITCHING_TARGET_SCORING_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.SWITCHING_TARGET_SCORING_V1).toBe(
       SwitchingTargetScoringV1Config,
+    );
+  });
+});
+
+describe("ScoreThresholdV1Config", () => {
+  it("accepts the 65 threshold", () => {
+    expect(ScoreThresholdV1Config.safeParse({ threshold: 65 }).success).toBe(
+      true,
+    );
+  });
+
+  it("rejects any other threshold — V1 is 65 only", () => {
+    for (const threshold of [60, 64, 66, 100, "65"]) {
+      expect(ScoreThresholdV1Config.safeParse({ threshold }).success).toBe(
+        false,
+      );
+    }
+  });
+
+  it("rejects a missing threshold and an unknown key", () => {
+    expect(ScoreThresholdV1Config.safeParse({}).success).toBe(false);
+    expect(
+      ScoreThresholdV1Config.safeParse({ threshold: 65, targets: [20] })
+        .success,
+    ).toBe(false);
+  });
+
+  it("is registered under SCORE_THRESHOLD_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.SCORE_THRESHOLD_V1).toBe(
+      ScoreThresholdV1Config,
     );
   });
 });

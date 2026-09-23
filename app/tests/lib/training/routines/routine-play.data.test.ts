@@ -1324,6 +1324,124 @@ describe("routinePlay — Switching Target Scoring", () => {
   });
 });
 
+const SCORE_THRESHOLD_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "SCORE_THRESHOLD",
+  exerciseRulesetVersionKey: "SCORE_THRESHOLD_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { threshold: 65 },
+};
+
+describe("routinePlay — 65 or More", () => {
+  const T20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SCORE_THRESHOLD_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SCORE_THRESHOLD",
+      configuration: SCORE_THRESHOLD_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.scoreThresholdEngine).not.toBeNull();
+    expect(store.scoreThresholdBeats()).toBe(0);
+    expect(store.scoreThresholdVisits()).toBe(0);
+    expect(store.scoreThresholdVisitTotal()).toBe(0);
+    expect(store.scoreThresholdLastVisitTotal()).toBeNull();
+    expect(store.scoreThresholdBeatRate()).toBe("—");
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow the running visit and each judged visit", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordScoreThresholdDart(T20);
+    store.recordScoreThresholdDart(T20);
+    expect(store.scoreThresholdVisitTotal()).toBe(120);
+    expect(store.scoreThresholdVisits()).toBe(0);
+
+    store.recordScoreThresholdDart(MISS);
+    expect(store.scoreThresholdBeats()).toBe(1);
+    expect(store.scoreThresholdVisits()).toBe(1);
+    expect(store.scoreThresholdLastVisitTotal()).toBe(120);
+    expect(store.scoreThresholdVisitTotal()).toBe(0);
+    expect(store.scoreThresholdBeatRate()).toBe("100.00%");
+    expect(store.dartsThrown()).toBe(3);
+  });
+
+  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordScoreThresholdDart(T20);
+    store.recordScoreThresholdDart(MISS);
+
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-23T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordScoreThresholdDart(T20);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "SCORE_THRESHOLD",
+    });
+  });
+});
+
 const GAME_STEP = {
   sequenceNumber: 4,
   exerciseTypeKey: "GAME",

@@ -64,8 +64,9 @@ script `0025_…_seed_checks.sql`.
 ## 7. Client
 
 Adapter `SCORE_THRESHOLD` / panel `score-threshold`; controller engine slot,
-dispatch, `expireTimer`, readouts. Board preview highlights nothing (no
-target). Panel: beats as score; This visit, Last, Visits, Rate, Time.
+dispatch, `expireTimer`, readouts. Board preview: a dart on the board is a
+hit, off it a miss (no target). Panel: beats as score; This visit, Last,
+Visits, Rate, Time.
 Summary: Beats, Visits, Beat rate, Darts.
 
 ## 8. Docs

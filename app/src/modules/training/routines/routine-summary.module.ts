@@ -6,6 +6,7 @@ import type {
   DoublePatternState,
   TargetScoringState,
   SwitchingTargetScoringState,
+  ScoreThresholdState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -112,6 +113,32 @@ export function summariseSwitchingTargetScoring(
       { label: "Sequences", value: String(state.completedSequences) },
       { label: "Darts", value: String(state.dartsThrown) },
       hitRateRow(state.hits, state.dartsThrown),
+    ],
+  };
+}
+
+/**
+ * 65 or More's result is how many visits beat the threshold, out of how
+ * many were judged. An unfinished visit at expiry is not judged, so its
+ * darts count toward Darts but not Visits.
+ */
+export function summariseScoreThreshold(
+  state: ScoreThresholdState,
+): RoutineStepSummary {
+  return {
+    stepKey: "SCORE_THRESHOLD",
+    label: "65 or More",
+    rows: [
+      { label: "Beats", value: String(state.beats) },
+      { label: "Visits", value: String(state.visits) },
+      {
+        label: "Beat rate",
+        value:
+          state.visits === 0
+            ? NO_VALUE
+            : accuracyDisplay(state.beats, state.visits),
+      },
+      { label: "Darts", value: String(state.dartsThrown) },
     ],
   };
 }

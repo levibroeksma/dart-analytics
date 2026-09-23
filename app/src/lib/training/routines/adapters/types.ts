@@ -10,6 +10,7 @@ export type StepAdapterKey =
   | "DOUBLE_PATTERN"
   | "TARGET_SCORING"
   | "SWITCHING_TARGET_SCORING"
+  | "SCORE_THRESHOLD"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -19,6 +20,7 @@ export type StepPanel =
   | "double-pattern"
   | "target-scoring"
   | "switching-target-scoring"
+  | "score-threshold"
   | "tuod"
   | "score-training"
   | "one-twenty-one";

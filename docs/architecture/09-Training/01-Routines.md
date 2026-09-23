@@ -174,6 +174,7 @@ SWITCHING
 DOUBLE_PATTERN
 TARGET_SCORING
 SWITCHING_TARGET_SCORING
+SCORE_THRESHOLD
 GAME
 CHECKOUT
 ACCURACY
@@ -824,6 +825,22 @@ targets:
 Target Scoring's points on a three-target sequence: each hit adds to the chain and moves the aim to the next target; after the last the sequence starts again and the chain keeps growing. A miss resets the chain and restarts the sequence at the first target, even mid-visit; the sequence carries across visits. Rules: `docs/game-rules/training/exercises/switching-target-scoring.md`.
 
 **Implemented** (`SWITCHING_TARGET_SCORING_V1`, `app/src/modules/training/exercises/switching-target-scoring.engine.module.ts`, seed `0024`): `targets` — exactly three, distinct, `1`–`20` or `25` — is the whole configuration; scoring reuses Target Scoring's `targetScoringPoints`. Intended zone, turn shape, capture pair and upload path match Target Scoring. State carries the live chain, the best chain (live at expiry counts), the best finished chain as the one "to beat" mark per run, and the count of completed sequences. Routine step only in V1 (D357).
+
+---
+
+## 65 or More (Score Threshold)
+
+Configuration:
+
+```text
+duration: 10m
+
+threshold: 65
+```
+
+Three darts, free aim: a visit beats when its board total is 65 or more. How many times can you beat it before the time runs out? Rules: `docs/game-rules/training/exercises/score-threshold.md`.
+
+**Implemented** (`SCORE_THRESHOLD_V1`, `app/src/modules/training/exercises/score-threshold.engine.module.ts`, seed `0025`): `threshold` is the whole configuration and V1 accepts only `65`. Darts carry no intended target; `score` is the board score and the visit total its sum. A visit is judged after its third dart; one unfinished at expiry is not judged. State carries beats, judged visits, the last and running visit totals. Capture pair and upload path match Target Scoring. Routine step only in V1 (D358).
 
 ---
 

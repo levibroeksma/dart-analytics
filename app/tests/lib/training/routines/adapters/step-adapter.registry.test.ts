@@ -17,8 +17,15 @@ describe("step adapter registry", () => {
         "DOUBLE_PATTERN",
         "TARGET_SCORING",
         "SWITCHING_TARGET_SCORING",
+        "SCORE_THRESHOLD",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
+    );
+  });
+
+  it("resolves the 65 or More step", () => {
+    expect(resolveStepAdapter("SCORE_THRESHOLD")?.headerLabel).toBe(
+      "65 or more",
     );
   });
 

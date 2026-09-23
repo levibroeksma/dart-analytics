@@ -92,6 +92,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a SCORE_THRESHOLD step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "SCORE_THRESHOLD",
+            exerciseRulesetVersionKey: "SCORE_THRESHOLD_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: { threshold: 65 },
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects an unknown exerciseTypeKey", () => {
     expect(
       StartTrainingResponse.safeParse({

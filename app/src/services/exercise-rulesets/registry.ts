@@ -3,6 +3,7 @@ import { warmUpValidator } from "./warm-up/warm-up.validator";
 import { switchingValidator } from "./switching/switching.validator";
 import { doublePatternValidator } from "./double-pattern/double-pattern.validator";
 import { targetScoringValidator } from "./target-scoring/target-scoring.validator";
+import { scoreThresholdValidator } from "./score-threshold/score-threshold.validator";
 import { switchingTargetScoringValidator } from "./switching-target-scoring/switching-target-scoring.validator";
 
 const REGISTRY: Record<string, ExerciseRulesetValidator> = {
@@ -11,6 +12,7 @@ const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   DOUBLE_PATTERN_V1: doublePatternValidator,
   TARGET_SCORING_V1: targetScoringValidator,
   SWITCHING_TARGET_SCORING_V1: switchingTargetScoringValidator,
+  SCORE_THRESHOLD_V1: scoreThresholdValidator,
 };
 
 export function getExerciseRulesetValidator(
@@ -31,6 +33,7 @@ const DART_WRITING_RULESET_VERSION_KEYS = new Set([
   "DOUBLE_PATTERN_V1",
   "TARGET_SCORING_V1",
   "SWITCHING_TARGET_SCORING_V1",
+  "SCORE_THRESHOLD_V1",
 ]);
 
 export function exerciseRulesetWritesDarts(

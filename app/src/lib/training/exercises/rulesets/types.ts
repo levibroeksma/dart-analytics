@@ -12,7 +12,8 @@ export type ExerciseRulesetVersionKey =
   | "SWITCHING_V1"
   | "DOUBLE_PATTERN_V1"
   | "TARGET_SCORING_V1"
-  | "SWITCHING_TARGET_SCORING_V1";
+  | "SWITCHING_TARGET_SCORING_V1"
+  | "SCORE_THRESHOLD_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -171,6 +172,21 @@ export type SwitchingTargetScoringConfigData = z.infer<
   typeof SwitchingTargetScoringV1Config
 >;
 
+/**
+ * Score Threshold v1 ("65 or More"): a visit beats when its board total
+ * reaches the threshold
+ * (`docs/game-rules/training/exercises/score-threshold.md`). V1 accepts 65
+ * only; the threshold still lives here so a later ruleset widens the
+ * number without a new exercise type.
+ */
+export const ScoreThresholdV1Config = z
+  .object({
+    threshold: z.literal(65),
+  })
+  .strict();
+
+export type ScoreThresholdConfigData = z.infer<typeof ScoreThresholdV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -180,4 +196,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   DOUBLE_PATTERN_V1: DoublePatternV1Config,
   TARGET_SCORING_V1: TargetScoringV1Config,
   SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
+  SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
 };

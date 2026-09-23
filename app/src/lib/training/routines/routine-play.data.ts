@@ -42,6 +42,8 @@ import {
   type TargetScoringEngine,
 } from "@modules/training/exercises/target-scoring.engine.module";
 import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
+import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
+import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
 
 const STEP_CHANGE_CUE_HZ = 660;
@@ -88,6 +90,7 @@ export function routinePlay() {
     doublePatternEngine: null,
     targetScoringEngine: null,
     switchingTargetScoringEngine: null,
+    scoreThresholdEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -114,6 +117,8 @@ export function routinePlay() {
           self.recordTargetScoringDart(observation);
         else if (self.switchingTargetScoringEngine)
           self.recordSwitchingTargetScoringDart(observation);
+        else if (self.scoreThresholdEngine)
+          self.recordScoreThresholdDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
@@ -125,12 +130,14 @@ export function routinePlay() {
       | DoublePatternEngine
       | TargetScoringEngine
       | SwitchingTargetScoringEngine
+      | ScoreThresholdEngine
       | null {
       return (
         this.switchingEngine ??
         this.doublePatternEngine ??
         this.targetScoringEngine ??
         this.switchingTargetScoringEngine ??
+        this.scoreThresholdEngine ??
         null
       );
     },
@@ -145,12 +152,14 @@ export function routinePlay() {
      * is needed; Double Pattern additionally requires the double, since
      * nothing else scores under `DOUBLE_PATTERN_V1`, and both Target
      * Scoring exercises defer to their shared ring rule (a double is a miss).
+     * 65 or More has no target: a dart on the board is a hit, off it a miss.
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
       const requireDouble = this.doublePatternEngine !== null;
-      const isHit =
-        this.targetScoringEngine || this.switchingTargetScoringEngine
+      const isHit = this.scoreThresholdEngine
+        ? (dart: DartFact) => dart.hitTargetNumber !== null
+        : this.targetScoringEngine || this.switchingTargetScoringEngine
           ? (dart: DartFact) =>
               dart.intendedTargetNumber !== null &&
               targetScoringPoints(dart.intendedTargetNumber, dart) !== null
@@ -386,6 +395,7 @@ export function routinePlay() {
           this.doublePatternEngine?.expireTimer();
           this.targetScoringEngine?.expireTimer();
           this.switchingTargetScoringEngine?.expireTimer();
+          this.scoreThresholdEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -430,6 +440,14 @@ export function routinePlay() {
     ) {
       if (!this.switchingTargetScoringEngine) return;
       this.switchingTargetScoringEngine.record(observation);
+    },
+
+    recordScoreThresholdDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.scoreThresholdEngine) return;
+      this.scoreThresholdEngine.record(observation);
     },
 
     switchingPoints(this: RoutinePlayContext): number {
@@ -483,6 +501,29 @@ export function routinePlay() {
 
     switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null {
       return this.switchingTargetScoringEngine?.state().markToBeat ?? null;
+    },
+
+    scoreThresholdBeats(this: RoutinePlayContext): number {
+      return this.scoreThresholdEngine?.state().beats ?? 0;
+    },
+
+    scoreThresholdVisits(this: RoutinePlayContext): number {
+      return this.scoreThresholdEngine?.state().visits ?? 0;
+    },
+
+    scoreThresholdVisitTotal(this: RoutinePlayContext): number {
+      return this.scoreThresholdEngine?.state().currentVisitTotal ?? 0;
+    },
+
+    scoreThresholdLastVisitTotal(this: RoutinePlayContext): number | null {
+      return this.scoreThresholdEngine?.state().lastVisitTotal ?? null;
+    },
+
+    scoreThresholdBeatRate(this: RoutinePlayContext): string {
+      const state = this.scoreThresholdEngine?.state();
+      return !state || state.visits === 0
+        ? "—"
+        : accuracyDisplay(state.beats, state.visits);
     },
 
     dartsThrown(this: RoutinePlayContext): number {
