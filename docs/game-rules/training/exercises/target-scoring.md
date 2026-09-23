@@ -21,6 +21,8 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Target list cycles | V1 | All | |
 | Time-bound run | V1 | All | |
 | Best chain readout | V1 | All | |
+| Per-target best chain as the mark to beat | V1 | All | |
+| Duplicate targets rejected | V1 | All | |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `routines/`, `schedules/` and `quick-subtract/`; Warm-Up is "standalone" only as a one-step system routine (`database/seeds/0015_warm_up_routine.sql`). V1 is routine step only, by the author's choice |
 | Number points: double 2 | Dropped | All | Decided against by the author: a double is a miss and resets the chain. Stops the Singles Training ladder (S=1, D=2, T=3, `../../rulesets/singles-training.md`) being re-proposed here |
 | Number points: double 0, chain kept | Dropped | All | Decided against by the author (2026-09-23): an earlier draft let a double keep the chain alive at 0 points; the author ruled a double is a miss |
@@ -57,7 +59,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Setting | Preset | On config screen |
 | --- | --- | --- |
 | Duration | 10 minutes | Routine step configuration |
-| Targets | 20, 19, 18, Bull (25) — any of 1–20 and 25, in any order | Routine step configuration |
+| Targets | 20, 19, 18, Bull (25) — any of 1–20 and 25, in any order, each at most once | Routine step configuration |
 | Points (number) | Single 1, treble 3; double is a miss | Shown, locked |
 | Points (bull) | Outer bull 1, bullseye 3 | Shown, locked |
 
@@ -96,12 +98,20 @@ defaults. Duration preset mirrors the `SWITCHING` example in
   one target.
 - **Target list cycles:** after the last target the list starts again from the
   first (20 → 19 → 18 → Bull → 20 → …).
+- **Per-target best chain as the mark to beat:** once the current target has a
+  finished chain earlier in this run, its best chain on that target is shown
+  while the player builds the next one — simulating match pressure. Not shown
+  on a target's first pass. The mark is this run only, never an all-time best.
+- **Duplicate targets rejected:** a target list naming the same target twice
+  (e.g. 20, 20, 19) is invalid configuration.
 
 ### Bound
 
 - **Time-bound run:** the run lasts the step's duration (default 10 minutes).
   Every exercise used in a routine is time-bound in that routine (§3.3, §5).
   The list cycling means the targets never run out before the timer.
+- A chain still live when the timer expires counts toward **best chain** (run
+  and per target): it was reached.
 
 ## Later versions
 
@@ -147,13 +157,15 @@ defaults. Duration preset mirrors the `SWITCHING` example in
 | **Chain** | V1 | Sum of exercise points of consecutive hits since the last miss; a miss resets it to 0 |
 | **Advance on a broken chain** | V1 | A miss ending a chain with ≥1 hit moves to the next target |
 | **Target list cycles** | V1 | After the last target the list restarts at the first |
-| **Best chain** | V1 | Highest chain value reached in the run |
+| **Best chain** | V1 | Highest chain value reached in the run, including a chain still live at timer expiry; also kept per target |
 | **Standalone entry** | V2+ | Playing a run outside a routine |
 
 ## Open questions
 
-- Timer expires mid-chain: does the live chain count toward **best chain**?
-  Proposed: yes — it was reached.
-- Is **best chain** per target shown during play, or only overall?
-- Duplicate targets in a configured list (e.g. 20, 20, 19): allowed, or
-  rejected by validation?
+- ~~Timer expires mid-chain: does the live chain count toward **best chain**?~~
+  **Resolved (2026-09-23):** yes — see Bound.
+- ~~Is **best chain** per target shown during play, or only overall?~~
+  **Resolved (2026-09-23):** both; the per-target mark shows once that target
+  has a finished chain in this run, to simulate match pressure — see Progress.
+- ~~Duplicate targets in a configured list (e.g. 20, 20, 19): allowed, or
+  rejected by validation?~~ **Resolved (2026-09-23):** rejected — see Progress.
