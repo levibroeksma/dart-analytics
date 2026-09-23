@@ -12,8 +12,8 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Single player | V1 | Single | |
 | Target list: 20 → 19 → 18 → Bull | V1 | All | |
 | Target list accepts any board target (1–20, Bull) | V1 | All | |
-| Hit = any ring of the current target | V1 | All | |
-| Number points: single 1, double 0, treble 3 | V1 | All | |
+| Hit = single or treble of the current target; a double is a miss | V1 | All | |
+| Number points: single 1, treble 3 | V1 | All | |
 | Bull points: outer bull 1, bullseye 3 | V1 | All | |
 | Chain resets on a miss | V1 | All | |
 | Advance on a broken chain | V1 | All | |
@@ -22,7 +22,8 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Time-bound run | V1 | All | |
 | Best chain readout | V1 | All | |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `routines/`, `schedules/` and `quick-subtract/`; Warm-Up is "standalone" only as a one-step system routine (`database/seeds/0015_warm_up_routine.sql`). V1 is routine step only, by the author's choice |
-| Number points: double 2 | Dropped | All | Decided against by the author: the aim on a number is the treble, so a double keeps the chain alive but earns nothing. Stops the Singles Training ladder (S=1, D=2, T=3, `../../rulesets/singles-training.md`) being re-proposed here |
+| Number points: double 2 | Dropped | All | Decided against by the author: a double is a miss and resets the chain. Stops the Singles Training ladder (S=1, D=2, T=3, `../../rulesets/singles-training.md`) being re-proposed here |
+| Number points: double 0, chain kept | Dropped | All | Decided against by the author (2026-09-23): an earlier draft let a double keep the chain alive at 0 points; the author ruled a double is a miss |
 
 ## Identity
 
@@ -57,7 +58,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | --- | --- | --- |
 | Duration | 10 minutes | Routine step configuration |
 | Targets | 20, 19, 18, Bull (25) — any of 1–20 and 25, in any order | Routine step configuration |
-| Points (number) | Single 1, double 0, treble 3 | Shown, locked |
+| Points (number) | Single 1, treble 3; double is a miss | Shown, locked |
 | Points (bull) | Outer bull 1, bullseye 3 | Shown, locked |
 
 A routine step may override any of these
@@ -74,19 +75,18 @@ defaults. Duration preset mirrors the `SWITCHING` example in
 
 - Visits are three darts. Every dart is thrown at the **current target**,
   which may change mid-visit (see Progress).
-- A dart **hits** when it lands in any ring of the current target:
-  - number target: inner single, outer single, double or treble of that
-    number;
+- A dart **hits** when it lands in a scoring ring of the current target:
+  - number target: inner single, outer single or treble of that number;
   - Bull: outer bull or bullseye.
-- Anything else is a **miss**: another number, the bull when aiming at a
-  number, a number when aiming at the bull, or off the board.
+- Anything else is a **miss**: the double of the current number, another
+  number, the bull when aiming at a number, a number when aiming at the bull,
+  or off the board. A double resets the chain like any other miss.
 
 ### Progress
 
 - Points per hit, added to the **chain**:
-  - number: single **1**, double **0**, treble **3**;
+  - number: single **1**, treble **3**;
   - Bull: outer bull **1**, bullseye **3**.
-- A double on a number keeps the chain alive but adds nothing.
 - A miss resets the chain to 0.
 - **Advance on a broken chain:** a miss that ends a chain holding at least one
   hit moves the current target to the next in the list.
@@ -143,7 +143,7 @@ defaults. Duration preset mirrors the `SWITCHING` example in
 | Term | Version | Meaning |
 | --- | --- | --- |
 | **Target list** | V1 | The ordered targets a run steps through; any of 1–20 and Bull |
-| **Hit** | V1 | A dart in any ring of the current target |
+| **Hit** | V1 | A dart in the single or treble of the current number, or either bull ring on the bull; a double is a miss |
 | **Chain** | V1 | Sum of exercise points of consecutive hits since the last miss; a miss resets it to 0 |
 | **Advance on a broken chain** | V1 | A miss ending a chain with ≥1 hit moves to the next target |
 | **Target list cycles** | V1 | After the last target the list restarts at the first |
