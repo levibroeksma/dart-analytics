@@ -4,6 +4,7 @@ import GameLayout from "@layouts/GameLayout.astro";
 import WarmUpPanel from "@components/layout/training/exercises/WarmUpPanel.astro";
 import SwitchingPanel from "@components/layout/training/exercises/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/exercises/DoublePatternPanel.astro";
+import TargetScoringPanel from "@components/layout/training/exercises/TargetScoringPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
@@ -40,6 +41,12 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
       x-if="!loading && adapter?.panel === 'double-pattern' && doublePatternEngine"
     >
       <DoublePatternPanel />
+    </template>
+
+    <template
+      x-if="!loading && adapter?.panel === 'target-scoring' && targetScoringEngine"
+    >
+      <TargetScoringPanel />
     </template>
 
     <template x-if="!loading && adapter?.panel === 'tuod' && game">

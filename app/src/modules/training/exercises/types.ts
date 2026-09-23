@@ -43,3 +43,23 @@ export type DoublePatternState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Target Scoring state, derived on every `state()` call by replaying
+ * `facts()` (`foldTargetScoringState`), exactly like `SwitchingState`.
+ * `targetIndex`/`currentTargetNumber` locate the target the *next* dart is
+ * thrown at. `bestChain` and `bestChainByTarget` include the live chain, so
+ * a chain cut by the timer still counts; `markToBeat` is the best *finished*
+ * chain on the current target this run — `null` until one exists.
+ */
+export type TargetScoringState = {
+  currentTargetNumber: number;
+  targetIndex: number;
+  currentChain: number;
+  bestChain: number;
+  markToBeat: number | null;
+  bestChainByTarget: { targetNumber: number; bestChain: number }[];
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

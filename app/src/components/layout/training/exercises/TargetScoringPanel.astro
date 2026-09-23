@@ -1,0 +1,47 @@
+---
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
+---
+
+<div class="flex flex-col flex-1 min-h-0 gap-3 p-3">
+  <SinglePlayerDisplay
+    isTarget={false}
+    score="targetScoringChain()"
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="Target"
+          value="targetScoringTargetLabel()"
+        />
+        <div
+          x-show="targetScoringMarkToBeat() !== null"
+          x-cloak
+        >
+          <StatRow
+            label="To beat"
+            value="targetScoringMarkToBeat()"
+          />
+        </div>
+        <StatRow
+          label="Best"
+          value="targetScoringBestChain()"
+        />
+        <StatRow
+          label="Time"
+          value="formattedStepRemaining()"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
+
+  <VisitPreview />
+
+  <ExerciseBoardInputPanel />
+</div>

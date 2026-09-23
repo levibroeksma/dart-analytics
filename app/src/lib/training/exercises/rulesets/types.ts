@@ -8,7 +8,7 @@ import { z } from "zod";
  * (09-Training/01-Routines.md §24).
  */
 export type ExerciseRulesetVersionKey =
-  "WARM_UP_V1" | "SWITCHING_V1" | "DOUBLE_PATTERN_V1";
+  "WARM_UP_V1" | "SWITCHING_V1" | "DOUBLE_PATTERN_V1" | "TARGET_SCORING_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -113,6 +113,39 @@ export const DoublePatternV1Config = z
 
 export type DoublePatternConfigData = z.infer<typeof DoublePatternV1Config>;
 
+/** The bull's board number — the only legal target above 20. */
+const BULL_TARGET_NUMBER = 25;
+
+/**
+ * Target Scoring v1: an ordered list of distinct board targets — any of
+ * 1–20 and the bull (25) — worked one at a time, chain by chain, for the
+ * step's full duration (`docs/game-rules/training/exercises/target-scoring.md`).
+ * Scoring is locked by the rules (single 1, treble 3, outer bull 1,
+ * bullseye 3, double a miss), so it lives in the engine, not here.
+ */
+export const TargetScoringV1Config = z
+  .object({
+    targets: z
+      .array(
+        z
+          .number()
+          .int()
+          .min(1)
+          .max(BULL_TARGET_NUMBER)
+          .refine((n) => n <= 20 || n === BULL_TARGET_NUMBER, {
+            message: "must be 1–20 or 25",
+          }),
+      )
+      .min(1)
+      .max(21)
+      .refine((targets) => new Set(targets).size === targets.length, {
+        message: "targets must not repeat",
+      }),
+  })
+  .strict();
+
+export type TargetScoringConfigData = z.infer<typeof TargetScoringV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -120,4 +153,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   WARM_UP_V1: WarmUpV1Config,
   SWITCHING_V1: SwitchingV1Config,
   DOUBLE_PATTERN_V1: DoublePatternV1Config,
+  TARGET_SCORING_V1: TargetScoringV1Config,
 };

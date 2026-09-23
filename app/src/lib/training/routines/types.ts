@@ -15,6 +15,7 @@ import type {
 } from "@client/api/types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
+import type { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -56,6 +57,7 @@ export type RoutinePlayContext = {
   warmUpEngine: ExerciseEngine<WarmUpState> | null;
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
+  targetScoringEngine: TargetScoringEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -105,10 +107,14 @@ export type RoutinePlayContext = {
   switchingTargetLabel(this: RoutinePlayContext): string;
   doublePatternPoints(this: RoutinePlayContext): number;
   doublePatternLabel(this: RoutinePlayContext): string;
+  targetScoringChain(this: RoutinePlayContext): number;
+  targetScoringTargetLabel(this: RoutinePlayContext): string;
+  targetScoringBestChain(this: RoutinePlayContext): number;
+  targetScoringMarkToBeat(this: RoutinePlayContext): number | null;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
-  ): SwitchingEngine | DoublePatternEngine | null;
+  ): SwitchingEngine | DoublePatternEngine | TargetScoringEngine | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
   recordSwitchingDart(
@@ -116,6 +122,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordDoublePatternDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordTargetScoringDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;

@@ -27,6 +27,7 @@ import type { TrainingEngine } from "@modules/interfaces";
 import type { DartObservation } from "@modules/types";
 import type {
   BoardMarker,
+  ExerciseRulesetVersionKey,
   PreviewSegment,
   WarmUpEngineInput,
 } from "@lib/types";
@@ -35,6 +36,12 @@ import type { StepAdapter } from "@lib/interfaces";
 import type { RoutinePlayContext, TrainingStepResolved } from "./types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
+import {
+  targetScoringPoints,
+  targetScoringTargetLabel,
+  type TargetScoringEngine,
+} from "@modules/training/exercises/target-scoring.engine.module";
+import type { DartFact } from "@modules/types";
 
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
@@ -78,6 +85,7 @@ export function routinePlay() {
     warmUpEngine: null,
     switchingEngine: null,
     doublePatternEngine: null,
+    targetScoringEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -100,14 +108,21 @@ export function routinePlay() {
         if (self.switchingEngine) self.recordSwitchingDart(observation);
         else if (self.doublePatternEngine)
           self.recordDoublePatternDart(observation);
+        else if (self.targetScoringEngine)
+          self.recordTargetScoringDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
 
     activeDartEngine(
       this: RoutinePlayContext,
-    ): SwitchingEngine | DoublePatternEngine | null {
-      return this.switchingEngine ?? this.doublePatternEngine ?? null;
+    ): SwitchingEngine | DoublePatternEngine | TargetScoringEngine | null {
+      return (
+        this.switchingEngine ??
+        this.doublePatternEngine ??
+        this.targetScoringEngine ??
+        null
+      );
     },
 
     visitMarkers(this: RoutinePlayContext): BoardMarker[] {
@@ -118,16 +133,21 @@ export function routinePlay() {
      * Hit/miss marks for the current visit's darts. Each dart carries the
      * target it was thrown at (`intendedTargetNumber`), so no config lookup
      * is needed; Double Pattern additionally requires the double, since
-     * nothing else scores under `DOUBLE_PATTERN_V1`.
+     * nothing else scores under `DOUBLE_PATTERN_V1`, and Target Scoring
+     * defers to its own ring rule (a double is a miss).
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
       const requireDouble = this.doublePatternEngine !== null;
+      const isHit = this.targetScoringEngine
+        ? (dart: DartFact) =>
+            dart.intendedTargetNumber !== null &&
+            targetScoringPoints(dart.intendedTargetNumber, dart) !== null
+        : (dart: DartFact) =>
+            dart.hitTargetNumber === dart.intendedTargetNumber &&
+            (!requireDouble || dart.hitZoneKey === "DOUBLE");
       return playPreviewSegments(turns, null, (dart) =>
-        dart.hitTargetNumber === dart.intendedTargetNumber &&
-        (!requireDouble || dart.hitZoneKey === "DOUBLE")
-          ? "hit"
-          : "miss",
+        isHit(dart) ? "hit" : "miss",
       );
     },
 
@@ -153,8 +173,7 @@ export function routinePlay() {
             exerciseRulesetVersionKey:
               step.exerciseTypeKey === "GAME"
                 ? ("WARM_UP_V1" as const)
-                : (step.exerciseRulesetVersionKey as
-                    "WARM_UP_V1" | "SWITCHING_V1" | "DOUBLE_PATTERN_V1"),
+                : (step.exerciseRulesetVersionKey as ExerciseRulesetVersionKey),
             configuration: step.configuration,
           })),
         });
@@ -354,6 +373,7 @@ export function routinePlay() {
         onComplete: () => {
           this.switchingEngine?.expireTimer();
           this.doublePatternEngine?.expireTimer();
+          this.targetScoringEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -384,6 +404,14 @@ export function routinePlay() {
       this.doublePatternEngine.record(observation);
     },
 
+    recordTargetScoringDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.targetScoringEngine) return;
+      this.targetScoringEngine.record(observation);
+    },
+
     switchingPoints(this: RoutinePlayContext): number {
       return this.switchingEngine?.state().totalPoints ?? 0;
     },
@@ -400,6 +428,23 @@ export function routinePlay() {
     doublePatternLabel(this: RoutinePlayContext): string {
       const double = this.doublePatternEngine?.state().currentDoubleNumber;
       return double === undefined ? "" : `D${double}`;
+    },
+
+    targetScoringChain(this: RoutinePlayContext): number {
+      return this.targetScoringEngine?.state().currentChain ?? 0;
+    },
+
+    targetScoringTargetLabel(this: RoutinePlayContext): string {
+      const target = this.targetScoringEngine?.state().currentTargetNumber;
+      return target === undefined ? "" : targetScoringTargetLabel(target);
+    },
+
+    targetScoringBestChain(this: RoutinePlayContext): number {
+      return this.targetScoringEngine?.state().bestChain ?? 0;
+    },
+
+    targetScoringMarkToBeat(this: RoutinePlayContext): number | null {
+      return this.targetScoringEngine?.state().markToBeat ?? null;
     },
 
     dartsThrown(this: RoutinePlayContext): number {
