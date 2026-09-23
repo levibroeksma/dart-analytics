@@ -1051,6 +1051,146 @@ describe("routinePlay — Double Pattern", () => {
   });
 });
 
+const TARGET_SCORING_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "TARGET_SCORING",
+  exerciseRulesetVersionKey: "TARGET_SCORING_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { targets: [20, 25] },
+};
+
+describe("routinePlay — Target Scoring", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [TARGET_SCORING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "TARGET_SCORING",
+      configuration: TARGET_SCORING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.targetScoringEngine).not.toBeNull();
+    expect(store.targetScoringTargetLabel()).toBe("20");
+    expect(store.targetScoringChain()).toBe(0);
+    expect(store.targetScoringBestChain()).toBe(0);
+    expect(store.targetScoringMarkToBeat()).toBeNull();
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow the chain, the target change and the mark to beat", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+    expect(store.targetScoringChain()).toBe(3);
+    expect(store.dartsThrown()).toBe(1);
+
+    store.recordTargetScoringDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(store.targetScoringTargetLabel()).toBe("Bull");
+    expect(store.targetScoringChain()).toBe(0);
+    expect(store.targetScoringBestChain()).toBe(3);
+
+    store.recordTargetScoringDart({
+      hitTargetNumber: 25,
+      hitZoneKey: "OUTER_BULL",
+      locationX: 0,
+      locationY: 0,
+    });
+    store.recordTargetScoringDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(store.targetScoringTargetLabel()).toBe("20");
+    expect(store.targetScoringMarkToBeat()).toBe(3);
+  });
+
+  it("previewSegments() marks a double on the target as a miss", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+    store.recordTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-23T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "TARGET_SCORING",
+    });
+  });
+});
+
 const GAME_STEP = {
   sequenceNumber: 4,
   exerciseTypeKey: "GAME",

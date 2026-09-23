@@ -9,6 +9,7 @@ import {
 import { warmUpValidator } from "@services/exercise-rulesets/warm-up/warm-up.validator";
 import { switchingValidator } from "@services/exercise-rulesets/switching/switching.validator";
 import { doublePatternValidator } from "@services/exercise-rulesets/double-pattern/double-pattern.validator";
+import { targetScoringValidator } from "@services/exercise-rulesets/target-scoring/target-scoring.validator";
 
 describe("getExerciseRulesetValidator", () => {
   it("resolves WARM_UP_V1", () => {
@@ -27,6 +28,12 @@ describe("getExerciseRulesetValidator", () => {
     );
   });
 
+  it("resolves TARGET_SCORING_V1", () => {
+    expect(getExerciseRulesetValidator("TARGET_SCORING_V1")).toBe(
+      targetScoringValidator,
+    );
+  });
+
   it("returns undefined for a game ruleset key", () => {
     expect(getExerciseRulesetValidator("501_V1")).toBeUndefined();
   });
@@ -36,6 +43,7 @@ describe("exerciseRulesetWritesDarts", () => {
   it("is true for the dart exercises, which upload an events batch", () => {
     expect(exerciseRulesetWritesDarts("SWITCHING_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("DOUBLE_PATTERN_V1")).toBe(true);
+    expect(exerciseRulesetWritesDarts("TARGET_SCORING_V1")).toBe(true);
   });
 
   it("is false for Warm-Up, which records no dart", () => {

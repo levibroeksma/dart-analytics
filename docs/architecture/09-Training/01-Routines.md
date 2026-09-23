@@ -172,6 +172,7 @@ Examples:
 WARM_UP
 SWITCHING
 DOUBLE_PATTERN
+TARGET_SCORING
 GAME
 CHECKOUT
 ACCURACY
@@ -783,6 +784,26 @@ patterns:
 The engine tracks the current pattern and evaluates each observed dart against the intended target.
 
 **Implemented** (`DOUBLE_PATTERN_V1`, `app/src/modules/training/exercises/double-pattern.engine.module.ts`): `patterns: number[][]` (e.g. `[[20, 10, 5], [16, 8, 4], [12, 6, 3]]`) replaces the `D20 → D10 → D5` notation — each element is a board number whose double counts. One turn is one pattern, whatever its own length: a turn stays open until it holds as many darts as the pattern it was created for, so patterns of unequal length still group their darts correctly. One point per hit double; nothing else scores. Its play screen uses the same shape as Switching's, labelling the current target `D20` and counting only a hit double as a preview hit (D275, 2026-09-14).
+
+---
+
+## Target Scoring
+
+Configuration:
+
+```text
+duration: 10m
+
+targets:
+    20
+    19
+    18
+    Bull
+```
+
+Each dart that hits the current target adds to a running chain — single 1, treble 3 on a number (the double is a miss), outer bull 1, bullseye 3 on the bull. A miss resets the chain; a miss that ends a chain holding a hit moves to the next target, and the list cycles. Rules: `docs/game-rules/training/exercises/target-scoring.md`.
+
+**Implemented** (`TARGET_SCORING_V1`, `app/src/modules/training/exercises/target-scoring.engine.module.ts`, seed `0023`): `targets: number[]` — distinct, `1`–`20` or `25` — is the whole configuration; scoring is locked in the engine. Unlike Switching (D297) the bull is a legal target: each dart's intended zone is `TREBLE` on a number and `INNER_BULL` on `25`. One turn is one three-dart visit, whatever the target does inside it. State carries the live chain, the best chain (a chain live at timer expiry counts) and the best finished chain on the current target this run as the "to beat" mark. Capture pair and upload path match Switching (D277). Routine step only in V1 (D356).
 
 ---
 

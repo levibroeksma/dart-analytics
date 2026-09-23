@@ -1,8 +1,10 @@
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import { targetScoringTargetLabel } from "@modules/training/exercises/target-scoring.engine.module";
 import type {
   EngineFacts,
   SwitchingState,
   DoublePatternState,
+  TargetScoringState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -66,6 +68,29 @@ export function summariseDoublePattern(
       { label: "Doubles hit", value: String(state.totalPoints) },
       { label: "Darts", value: String(state.dartsThrown) },
       hitRateRow(state.totalPoints, state.dartsThrown),
+    ],
+  };
+}
+
+/**
+ * Target Scoring's result is its best chain — overall, then per target in
+ * list order. The engine already folds a chain still live at expiry into
+ * both, and counts its own hits, so no fact replay is needed.
+ */
+export function summariseTargetScoring(
+  state: TargetScoringState,
+): RoutineStepSummary {
+  return {
+    stepKey: "TARGET_SCORING",
+    label: "Target Scoring",
+    rows: [
+      { label: "Best chain", value: String(state.bestChain) },
+      ...state.bestChainByTarget.map(({ targetNumber, bestChain }) => ({
+        label: `Best on ${targetScoringTargetLabel(targetNumber)}`,
+        value: String(bestChain),
+      })),
+      { label: "Darts", value: String(state.dartsThrown) },
+      hitRateRow(state.hits, state.dartsThrown),
     ],
   };
 }

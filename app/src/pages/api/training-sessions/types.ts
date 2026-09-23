@@ -7,7 +7,13 @@ export type StartTrainingRequestInput = z.infer<typeof StartTrainingRequest>;
 
 const TrainingStepResolved = z.object({
   sequenceNumber: z.number().int(),
-  exerciseTypeKey: z.enum(["WARM_UP", "SWITCHING", "DOUBLE_PATTERN", "GAME"]),
+  exerciseTypeKey: z.enum([
+    "WARM_UP",
+    "SWITCHING",
+    "DOUBLE_PATTERN",
+    "TARGET_SCORING",
+    "GAME",
+  ]),
   exerciseRulesetVersionKey: z.string().nullable(),
   gameTypeKey: z.string().nullable(),
   gameRulesetVersionKey: z.string().nullable(),
@@ -30,7 +36,13 @@ export type StartTrainingStepRequestInput = z.infer<
 
 export const StartTrainingStepResponse = z.object({
   sessionId: z.string(),
-  exerciseTypeKey: z.enum(["WARM_UP", "SWITCHING", "DOUBLE_PATTERN", "GAME"]),
+  exerciseTypeKey: z.enum([
+    "WARM_UP",
+    "SWITCHING",
+    "DOUBLE_PATTERN",
+    "TARGET_SCORING",
+    "GAME",
+  ]),
   configuration: z.record(z.unknown()),
   participant: z.object({ ref: z.string(), displayName: z.string() }),
   gameTypeKey: z.string().optional(),

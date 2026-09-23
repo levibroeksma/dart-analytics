@@ -15,6 +15,7 @@ describe("step adapter registry", () => {
         "WARM_UP",
         "SWITCHING",
         "DOUBLE_PATTERN",
+        "TARGET_SCORING",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -39,6 +40,9 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("WARM_UP")?.headerLabel).toBe("warm up");
     expect(resolveStepAdapter("SWITCHING")?.headerLabel).toBe("switching");
     expect(resolveStepAdapter("DOUBLE_PATTERN")?.headerLabel).toBe("doubles");
+    expect(resolveStepAdapter("TARGET_SCORING")?.headerLabel).toBe(
+      "target scoring",
+    );
     expect(resolveStepAdapter("GAME:TUOD_V1")?.headerLabel).toBe("finishing");
     expect(resolveStepAdapter("GAME:SCORE_TRAINING_V1")?.headerLabel).toBe(
       "scoring",

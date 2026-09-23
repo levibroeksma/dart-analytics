@@ -37,7 +37,8 @@ export type AppendBatchResult = {
 
 export type TrainingStepResolved = {
   sequenceNumber: number;
-  exerciseTypeKey: "WARM_UP" | "SWITCHING" | "DOUBLE_PATTERN" | "GAME";
+  exerciseTypeKey:
+    "WARM_UP" | "SWITCHING" | "DOUBLE_PATTERN" | "TARGET_SCORING" | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
   gameRulesetVersionKey: string | null;

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   summariseSwitching,
   summariseDoublePattern,
+  summariseTargetScoring,
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
@@ -10,6 +11,7 @@ import type {
   EngineFacts,
   SwitchingState,
   DoublePatternState,
+  TargetScoringState,
 } from "@modules/types";
 import type {
   TuodSeatResult,
@@ -228,5 +230,48 @@ describe("summariseOneTwentyOne", () => {
       label: "Checkout %",
       value: "—",
     });
+  });
+});
+
+describe("summariseTargetScoring", () => {
+  const STATE: TargetScoringState = {
+    currentTargetNumber: 19,
+    targetIndex: 1,
+    currentChain: 2,
+    bestChain: 7,
+    markToBeat: null,
+    bestChainByTarget: [
+      { targetNumber: 20, bestChain: 7 },
+      { targetNumber: 19, bestChain: 2 },
+      { targetNumber: 25, bestChain: 0 },
+    ],
+    hits: 6,
+    dartsThrown: 8,
+    status: "COMPLETE",
+  };
+
+  it("reports the best chain, the best per target, darts and hit rate", () => {
+    expect(summariseTargetScoring(STATE)).toEqual({
+      stepKey: "TARGET_SCORING",
+      label: "Target Scoring",
+      rows: [
+        { label: "Best chain", value: "7" },
+        { label: "Best on 20", value: "7" },
+        { label: "Best on 19", value: "2" },
+        { label: "Best on Bull", value: "0" },
+        { label: "Darts", value: "8" },
+        { label: "Hit rate", value: "75.00%" },
+      ],
+    });
+  });
+
+  it("reads a dash for the hit rate of an untouched run", () => {
+    const summary = summariseTargetScoring({
+      ...STATE,
+      hits: 0,
+      dartsThrown: 0,
+    });
+
+    expect(summary.rows.at(-1)).toEqual({ label: "Hit rate", value: "—" });
   });
 });

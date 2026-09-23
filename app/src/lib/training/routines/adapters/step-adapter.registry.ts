@@ -4,6 +4,7 @@ import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import { warmUpAdapter } from "./warm-up.adapter";
 import { switchingAdapter } from "./switching.adapter";
 import { doublePatternAdapter } from "./double-pattern.adapter";
+import { targetScoringAdapter } from "./target-scoring.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -24,6 +25,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   WARM_UP: warmUpAdapter,
   SWITCHING: switchingAdapter,
   DOUBLE_PATTERN: doublePatternAdapter,
+  TARGET_SCORING: targetScoringAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",
