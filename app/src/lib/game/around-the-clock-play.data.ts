@@ -2,9 +2,14 @@ import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   BULL_TARGET_NUMBER,
-  numbersPath,
   targetAt,
 } from "@modules/game/board-progression.module";
+import {
+  formatRemaining,
+  maybeResumeCountdown,
+  startCountdown,
+} from "@lib/game/play-countdown";
+import { toWireConfig } from "@lib/game/rulesets/config-codec";
 import {
   playAbandonAndExit,
   playBack,
@@ -13,6 +18,7 @@ import {
   playPreviewSegments,
   playRetryReconciliation,
   playRunBotVisualBoardVisit,
+  playToggleTimerPause,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
@@ -26,12 +32,14 @@ import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import type {
-  AroundTheClockSnapshot,
+  AroundTheClockEngineConfig,
+  AroundTheClockV2Snapshot,
   RulesetVersionKey,
   Seated,
   SeatFact,
 } from "@lib/types";
 import type {
+  AroundTheClockRules,
   AroundTheClockSeatState,
   AroundTheClockState,
   DartFact,
@@ -50,17 +58,44 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // aroundTheClockEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
+// V1 and V2 keys.
 import {
   applyAroundTheClockDart,
   AroundTheClockEngine,
   foldAroundTheClockState,
   initialAroundTheClockState,
-  isAroundTheClockHit,
+  isClockHit,
+  rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
 
 const GAME_TYPE_KEY = "AROUND_THE_CLOCK";
-const RULESET_VERSION_KEY: RulesetVersionKey = "AROUND_THE_CLOCK_V1";
+const RESUMABLE = new Set<RulesetVersionKey>([
+  "AROUND_THE_CLOCK_V1",
+  "AROUND_THE_CLOCK_V2",
+]);
+
+/** The session's own key, read off the snapshot's shape (as the engine does). */
+function keyOf(config: AroundTheClockEngineConfig): RulesetVersionKey {
+  return "pathDirection" in config
+    ? "AROUND_THE_CLOCK_V2"
+    : "AROUND_THE_CLOCK_V1";
+}
+
+/** A timed V2 snapshot, or null for V1 and untimed V2. */
+function timedConfig(
+  config: AroundTheClockEngineConfig | null,
+): (Seated<AroundTheClockV2Snapshot> & { durationValue: number }) | null {
+  if (!config || !("durationType" in config)) return null;
+  if (config.durationType !== "MINUTES" || config.durationValue === null) {
+    return null;
+  }
+  return { ...config, durationValue: config.durationValue };
+}
+
+function labelOf(rules: AroundTheClockRules, index: number): string {
+  const target = targetAt(rules.path, index);
+  return target.kind === "BULL" ? "BULL" : String(target.number);
+}
 
 const EMPTY_SEGMENTS: readonly AroundTheClockPreviewSegment[] = [
   { status: "empty" },
@@ -87,24 +122,26 @@ function dartObservation(dart: DartFact): DartObservation {
  * active target from a hit on the wrong number.
  */
 function replayHits(
-  config: Seated<AroundTheClockSnapshot>,
+  config: AroundTheClockEngineConfig,
   turns: readonly TurnFact[],
 ): boolean[] {
+  const rules = rulesOf(config);
   let state = initialAroundTheClockState(config).seats[0];
   const hits: boolean[] = [];
   for (const turn of turns) {
     for (const dart of turn.darts) {
+      if (state.status !== "IN_PROGRESS") break;
       const observation = dartObservation(dart);
-      const target = targetAt(numbersPath(), state.targetIndex);
-      hits.push(isAroundTheClockHit(target, observation));
-      state = applyAroundTheClockDart(state, observation);
+      const target = targetAt(rules.path, state.targetIndex);
+      hits.push(isClockHit(rules, target, observation));
+      state = applyAroundTheClockDart(state, observation, rules);
     }
   }
   return hits;
 }
 
 function previewSegmentsFor(
-  config: Seated<AroundTheClockSnapshot>,
+  config: AroundTheClockEngineConfig,
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
 ): AroundTheClockPreviewSegment[] {
@@ -118,7 +155,7 @@ function previewSegmentsFor(
 }
 
 function countHits(
-  config: Seated<AroundTheClockSnapshot>,
+  config: AroundTheClockEngineConfig,
   turns: readonly TurnFact[],
 ): number {
   return replayHits(config, turns).filter(Boolean).length;
@@ -131,12 +168,15 @@ function countDarts(turns: readonly TurnFact[]): number {
 function statsFor(
   seat: AroundTheClockSeatState,
   turns: readonly TurnFact[],
-  config: Seated<AroundTheClockSnapshot> | null,
+  config: AroundTheClockEngineConfig | null,
 ): AroundTheClockSeatResult {
   const seatTurns = turns.filter(
     (turn) => turn.participantRef === seat.participantRef,
   );
+  const timed = timedConfig(config);
   return {
+    laps: timed ? seat.laps : null,
+    targetAtEnd: timed ? labelOf(rulesOf(timed), seat.targetIndex) : null,
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     turns: seatTurns.length,
@@ -151,8 +191,14 @@ function resumeEngine(
   game: AroundTheClockPlayContext["$store"]["game"],
 ): AroundTheClockEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -196,7 +242,8 @@ function throwBotDart(
     botSeat.participantRef,
   );
   const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const target = targetAt(numbersPath(), seatState.targetIndex);
+  const config = context.$store.game.configSnapshot!;
+  const target = targetAt(rulesOf(config).path, seatState.targetIndex);
   const intent = chooseTarget({ target });
   const thrown = botThrowDart(intent, profile, rng);
   return {
@@ -235,6 +282,7 @@ export function aroundTheClockPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    timer: null as AroundTheClockPlayContext["timer"],
     engine: null as AroundTheClockEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),
@@ -247,6 +295,7 @@ export function aroundTheClockPlay() {
       return foldAroundTheClockState(
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
+        this.$store.game.timerExpired ?? false,
       );
     },
 
@@ -270,8 +319,10 @@ export function aroundTheClockPlay() {
         (candidate) => candidate.participantRef === seatRef,
       );
       if (!seat) return "";
-      const target = targetAt(numbersPath(), seat.targetIndex);
-      return target.kind === "BULL" ? "BULL" : String(target.number);
+      return labelOf(
+        rulesOf(this.$store.game.configSnapshot!),
+        seat.targetIndex,
+      );
     },
 
     currentTargetLabel(this: AroundTheClockPlayContext): string {
@@ -310,7 +361,30 @@ export function aroundTheClockPlay() {
     isBullVisit(this: AroundTheClockPlayContext): boolean {
       const seat = this.activeSeatState();
       if (!seat) return false;
-      return targetAt(numbersPath(), seat.targetIndex).kind === "BULL";
+      const config = this.$store.game.configSnapshot!;
+      return targetAt(rulesOf(config).path, seat.targetIndex).kind === "BULL";
+    },
+
+    isTimed(this: AroundTheClockPlayContext): boolean {
+      return timedConfig(this.$store.game.configSnapshot) !== null;
+    },
+
+    laps(this: AroundTheClockPlayContext): number {
+      return this.activeSeatState()?.laps ?? 0;
+    },
+
+    remainingLabel(this: AroundTheClockPlayContext): string {
+      return formatRemaining(this.$store.game.timerRemainingMs);
+    },
+
+    /** "hits / needed" in the open visit; empty on Easy (mid-visit advance). */
+    hitsNeededLabel(this: AroundTheClockPlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      const seat = this.activeSeatState();
+      if (!config || !seat) return "";
+      const { hitsRequired } = rulesOf(config);
+      if (hitsRequired === 0) return "";
+      return `${seat.hitsThisVisit} / ${hitsRequired} hits`;
     },
 
     previewSegments(
@@ -326,10 +400,37 @@ export function aroundTheClockPlay() {
       return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
     },
 
+    /**
+     * A timed run resumes its countdown after `playInit`. Expiry lands in the
+     * store flag the `$watch` reads: a run whose open visit is already closed
+     * finishes there; one mid-visit finishes on that visit's last dart, via
+     * `playCommitDart`'s own `isComplete()` check.
+     */
     async init(this: AroundTheClockPlayContext) {
       self = this;
       await playInit(this, GAME_TYPE_KEY, resumeEngine);
+      const timed = timedConfig(this.$store.game.configSnapshot);
+      if (timed && this.engine && !this.finished) {
+        this.timer = maybeResumeCountdown(this.$store.game, timed, this.engine);
+        this.$watch("$store.game.timerExpired", () => this.finishIfExpired());
+        await this.finishIfExpired();
+      }
       await this.maybeRunBotVisit();
+    },
+
+    async finishIfExpired(this: AroundTheClockPlayContext) {
+      if (this.finished || !this.engine?.isComplete()) return;
+      this.finished = true;
+      this.completionStatus = "pending";
+      await this.uploadAndCompleteSession();
+    },
+
+    togglePause(this: AroundTheClockPlayContext) {
+      playToggleTimerPause(this);
+    },
+
+    destroy(this: AroundTheClockPlayContext) {
+      this.timer?.stop();
     },
 
     retryReconciliation(this: AroundTheClockPlayContext) {
@@ -343,7 +444,8 @@ export function aroundTheClockPlay() {
       if (!this.engine || this.finished) return;
       const seat = this.activeSeatState();
       if (!seat) return;
-      const target = targetAt(numbersPath(), seat.targetIndex);
+      const config = this.$store.game.configSnapshot!;
+      const target = targetAt(rulesOf(config).path, seat.targetIndex);
       if (target.kind === "BULL" && ring === "TREBLE") return;
       const observation: DartObservation =
         ring === "MISS"
@@ -426,6 +528,10 @@ export function aroundTheClockPlay() {
     },
 
     resultsTitle(this: AroundTheClockPlayContext): string {
+      const timedSeat = this.resultsSnapshot?.seats[0];
+      if (timedSeat?.laps != null && this.resultsSnapshot?.seats.length === 1) {
+        return `Time — ${timedSeat.laps} laps, on ${timedSeat.targetAtEnd}`;
+      }
       if (this.resultsSnapshot?.status === "TIE") return "Tie — same darts!";
       const winner = matchWinnerName(
         this.$store.game.seats,
@@ -439,12 +545,50 @@ export function aroundTheClockPlay() {
     },
 
     abandonAndExit(this: AroundTheClockPlayContext) {
-      return playAbandonAndExit(this);
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
 
+    /**
+     * Replays under the session's own key. V2 resends every variant as
+     * overrides (V1 has none) and restarts a timed run's countdown.
+     */
     playAgain(this: AroundTheClockPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
-        engine instanceof AroundTheClockEngine ? engine : null,
+      const config = this.$store.game.configSnapshot;
+      if (!config) return Promise.resolve();
+      const key = keyOf(config);
+      return runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        key,
+        (engine) => (engine instanceof AroundTheClockEngine ? engine : null),
+        key === "AROUND_THE_CLOCK_V2"
+          ? (prior) => {
+              const { seats: _seats, ...variants } =
+                prior as Seated<AroundTheClockV2Snapshot>;
+              return {
+                snapshot: variants,
+                wire: toWireConfig("AROUND_THE_CLOCK_V2", variants),
+              };
+            }
+          : undefined,
+        () => {
+          this.timer?.stop();
+          this.timer = null;
+          this.$store.game.timerRemainingMs = null;
+          this.$store.game.timerStartedAt = null;
+          this.$store.game.timerExpired = false;
+          this.$store.game.timerPaused = false;
+        },
+        (engine) => {
+          const timed = timedConfig(this.$store.game.configSnapshot);
+          if (timed) {
+            this.timer = startCountdown(
+              this.$store.game,
+              timed.durationValue,
+              engine,
+            );
+          }
+        },
       );
     },
   };

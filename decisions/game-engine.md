@@ -332,3 +332,10 @@ Decision: "Warm-Up Advanced" (seed `0026`) is a second `WARM_UP` system template
 Reason: the author wants the same warm-up with a smaller target; section targets are already template configuration (`WarmUpPhaseConfig`), and `dartboardHighlightPath` already outlines a single-number slice. A routine-step override would tie the variant to one routine; a template lets any custom routine pick it from the catalog.
 Consequences: the routine builder lists two Warm-Up templates. A further variant is another template row. Rules: `docs/game-rules/training/exercises/warm-up.md`.
 Supersedes: none.
+
+### D360 — Around the Clock training variants are a V2 ruleset served by the V1 engine class
+Status: Accepted · Date: 2026-09-23
+Decision: `AROUND_THE_CLOCK_V2` (seed `0027`) adds path direction, odds first, outer single only, Easy/1/2/3-dart difficulty with a one-target step back (floored at the first target), and an untimed or 3–30 minute timed run whose bull hit restarts the lap and closes the visit. One `AroundTheClockEngine` serves both keys: `rulesOf(config)` resolves a snapshot without `pathDirection` to V1's fixed rules, so V1 folds unchanged. Timed completion enters only through `expireTimer()`; a seat is complete once its open visit closes after expiry. Outer single only is refused outside ANALYTICS + VISUAL_BOARD by the V2 validator. A seated DartBot resolves setup to V1; seating a guest forces untimed.
+Reason: V1's empty `.strict()` schema is live against real sessions, so the variants cannot widen it (D243/D245/D247). Keeping one engine class avoids a second fold that would drift from V1's rota and completion rules. Keypad capture records an unbanded `SINGLE`, so outer single only needs board positions.
+Consequences: a DartBot strategy for V2 or a timed 1v1 is a later change, not a config toggle. The timed run is the hook PR2 uses to make V2 routine-eligible. Rules: `docs/game-rules/rulesets/around-the-clock.md`.
+Supersedes: none.

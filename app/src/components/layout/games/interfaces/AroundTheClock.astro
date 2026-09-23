@@ -12,6 +12,8 @@ import SinglesRecreationalInput from "@components/layout/games/SinglesRecreation
 import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
+import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 ---
 
 <div
@@ -33,10 +35,24 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
             label="Accuracy"
             value="accuracy()"
           />
+          <template x-if="isTimed()">
+            <StatRow
+              label="Lap"
+              value="laps() + 1"
+            />
+          </template>
+          <template x-if="hitsNeededLabel()">
+            <StatRow
+              label="This visit"
+              value="hitsNeededLabel()"
+            />
+          </template>
         </dl>
       </div>
     </SinglePlayerDisplay>
   </template>
+
+  <CountdownPauseControl disabledExpr="finished" />
 
   <template x-if="(state()?.seats.length ?? 1) >= 2">
     <SplitScoreboard
@@ -88,7 +104,7 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
   <VisitPreview />
 
   <SinglesRecreationalInput
-    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD' && !$store.game.timerPaused"
     x-cloak
   />
   {
@@ -96,4 +112,5 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
   }
   <BoardInputPanel />
+  <CountdownResumePrompt disabledExpr="finished" />
 </div>

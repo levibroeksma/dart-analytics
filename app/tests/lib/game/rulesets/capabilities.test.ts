@@ -16,6 +16,7 @@ describe("RULESET_CAPABILITIES", () => {
       "121_V2",
       "501_V1",
       "AROUND_THE_CLOCK_V1",
+      "AROUND_THE_CLOCK_V2",
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
@@ -77,6 +78,7 @@ describe("supportsMode", () => {
     "SHANGHAI_V1",
     "SHANGHAI_V2",
     "AROUND_THE_CLOCK_V1",
+    "AROUND_THE_CLOCK_V2",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -131,6 +133,7 @@ describe("capableRulesets", () => {
       "121_V2",
       "501_V1",
       "AROUND_THE_CLOCK_V1",
+      "AROUND_THE_CLOCK_V2",
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
@@ -179,6 +182,10 @@ describe("supportsDartbot", () => {
 
   it("accepts Around the Clock", () => {
     expect(supportsDartbot("AROUND_THE_CLOCK_V1")).toBe(true);
+  });
+
+  it("refuses Around the Clock V2 — a bot seat falls back to V1", () => {
+    expect(supportsDartbot("AROUND_THE_CLOCK_V2")).toBe(false);
   });
 
   it("accepts Doubles Training", () => {

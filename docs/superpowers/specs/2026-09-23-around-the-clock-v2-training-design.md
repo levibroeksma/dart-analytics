@@ -1,6 +1,6 @@
 # Around the Clock V2 — Training Variants Design
 
-Status: draft — awaiting author review. Scope: config, engine, validator, setup/play UI, seeds, routine eligibility, docs for a new ruleset version `AROUND_THE_CLOCK_V2`. Delivered as two PRs (§11).
+Status: approved 2026-09-23. Scope: config, engine, validator, setup/play UI, seeds, routine eligibility, docs for a new ruleset version `AROUND_THE_CLOCK_V2`. Delivered as two PRs (§11).
 
 Source: `docs/game-rules/rulesets/around-the-clock.md` (V2 rows, amended 2026-09-23), `app/src/modules/game/around-the-clock.engine.module.ts`, `app/src/lib/game/rulesets/types.ts:325`, `docs/superpowers/specs/2026-09-12-singles-training-accuracy-mode-design.md` (new-ruleset-version precedent), `app/src/modules/game/tuod.engine.module.ts` + `app/src/lib/game/play-countdown.ts` (MINUTES precedent), `docs/architecture/09-Training/01-Routines.md` §11, `app/src/services/routines/game-step.ts`.
 
@@ -145,3 +145,13 @@ V2 meets §11's three conditions once listed: native timed mode, ANALYTICS + VIS
 ## 14. Open Questions
 
 None blocking.
+
+## Status Note (2026-09-23, implementation)
+
+Deltas found while planning and building PR1:
+
+- Timer expiry with no visit open needs an explicit finish trigger: the play controller watches `$store.game.timerExpired` and finishes once the engine reads complete (§8).
+- Routine eligibility (PR2) also needs a summary, a `StepPanel` and a routine panel template; the play surface already exists as `components/layout/games/interfaces/AroundTheClock.astro`, so no extraction is needed (§10/§12).
+- The games-listing row stays on `AROUND_THE_CLOCK_V1` (Singles V3 precedent): both versions declare the same mode pairs, so the row key changes nothing.
+- The engine constructor stays `(config, prior?)`; the key is read off the snapshot's shape, as `rulesOf` reads the rules.
+- Setup sends `segment_rule: "ANY"` outside ANALYTICS (the row is hidden there) instead of watching for a capture change; a blank minutes box reads as 10.

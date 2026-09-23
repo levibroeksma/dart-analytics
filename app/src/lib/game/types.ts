@@ -48,6 +48,7 @@ import type {
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
   OneTwentyOneSnapshot,
+  AroundTheClockV2Snapshot,
   OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
   TuodSnapshot,
@@ -644,7 +645,7 @@ export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
   rulesetVersionKey: RulesetVersionKey | ((ctx: Ctx) => RulesetVersionKey);
   playHref: string;
   label: string;
-  configOverrides?: (ctx: Ctx) => Record<string, unknown>;
+  configOverrides?: (ctx: Ctx) => Record<string, unknown> | undefined;
 };
 
 export type Bobs27SetupContext = PresetSetupContext;
@@ -1038,7 +1039,20 @@ export type OneTwentyOneSetupContext = {
   start(this: OneTwentyOneSetupContext): Promise<void>;
 };
 
-export type AroundTheClockSetupContext = PresetSetupContext;
+/**
+ * Around the Clock setup: the V2 toggles on top of the shared preset
+ * controller. A seated bot resolves the session to V1 and hides them;
+ * `durationValue` is the raw minutes input (a string while typed).
+ */
+export type AroundTheClockSetupContext = PresetSetupContext & {
+  pathDirection: AroundTheClockV2Snapshot["pathDirection"];
+  oddsFirst: boolean;
+  segmentRule: AroundTheClockV2Snapshot["segmentRule"];
+  difficulty: AroundTheClockV2Snapshot["difficulty"];
+  durationType: AroundTheClockV2Snapshot["durationType"];
+  durationValue: number | string | null;
+  clampNotice: string;
+};
 
 export type DoublesTrainingSeatResult = {
   participantRef: string;
@@ -1178,12 +1192,15 @@ export type AroundTheClockPreviewSegment = {
 /** One seat's own results stats, replayed from its own completed turns.
  * `accuracy` is genuine target hits over darts thrown, formatted as a
  * percentage rounded to 2 decimals. */
+/** `laps`/`targetAtEnd` are set for a timed V2 run only, null otherwise. */
 export type AroundTheClockSeatResult = {
   participantRef: string;
   sideKey: string;
   turns: number;
   accuracy: string;
   totalDarts: number;
+  laps: number | null;
+  targetAtEnd: string | null;
 };
 
 /** `winningSideKey` is score-compare (fewest darts) resolved by the engine;
@@ -1200,11 +1217,20 @@ export type AroundTheClockResultsSnapshot = {
 };
 
 export type AroundTheClockPlayContext = PlayLifecycleContext<
-  AroundTheClockSnapshot,
+  AroundTheClockSnapshot | AroundTheClockV2Snapshot,
   AroundTheClockEngine,
   AroundTheClockResultsSnapshot
 > & {
   botThrowing: boolean;
+  timer: SegmentTimer | null;
+  $watch(key: "$store.game.timerExpired", callback: () => void): void;
+  isTimed(this: AroundTheClockPlayContext): boolean;
+  laps(this: AroundTheClockPlayContext): number;
+  remainingLabel(this: AroundTheClockPlayContext): string;
+  hitsNeededLabel(this: AroundTheClockPlayContext): string;
+  finishIfExpired(this: AroundTheClockPlayContext): Promise<void>;
+  togglePause(this: AroundTheClockPlayContext): void;
+  destroy(this: AroundTheClockPlayContext): void;
   visitMarkers(this: AroundTheClockPlayContext): BoardMarker[];
   recordDart(
     this: AroundTheClockPlayContext,
