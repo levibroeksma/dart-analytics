@@ -72,18 +72,20 @@ describe("homeWeek", () => {
     expect(data.hasRoutine(2)).toBe(true);
   });
 
-  it("has no entry for today on a rest day", async () => {
+  it("shows the today card as a rest day when today has no routine", async () => {
     const data = await loaded(new Date(2024, 0, 2, 9)); // Tuesday
     expect(data.isToday(1)).toBe(true);
     expect(data.hasRoutine(1)).toBe(false);
     expect(data.todayEntry()).toBeNull();
-    expect(data.showStart()).toBe(false);
+    expect(data.isRestDay()).toBe(true);
+    expect(data.showStart()).toBe(true);
     expect(data.showDone()).toBe(false);
   });
 
   it("offers today's routine until it has been completed", async () => {
     const data = await loaded(new Date(2024, 0, 1, 9), [COMPLETION("r9")]);
     expect(data.todayEntry()?.routineId).toBe("r1");
+    expect(data.isRestDay()).toBe(false);
     expect(data.showStart()).toBe(true);
     expect(data.showDone()).toBe(false);
     expect(data.startHref()).toBe("/training/routines/play?routine=r1");
@@ -106,6 +108,7 @@ describe("homeWeek", () => {
   it("shows nothing and maps no day without an active schedule", async () => {
     const data = await loaded(new Date(2024, 0, 1, 9), [], null);
     expect(data.hasRoutine(0)).toBe(false);
+    expect(data.isRestDay()).toBe(false);
     expect(data.showStart()).toBe(false);
     expect(data.showDone()).toBe(false);
   });

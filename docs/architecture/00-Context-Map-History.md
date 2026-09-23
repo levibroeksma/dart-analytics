@@ -17,6 +17,8 @@ updated: 2026-09-23
 
 # Version History
 
+> **Version:** 1.116.0 (2026-09-23 — home-today-card-rest-day: the homepage Today card now also renders on a rest day ("Rest day", no Start button); `homeWeek()` gains `isRestDay()` and `showStart()` gates on an active schedule instead of today's entry. File Inventory and `08-Component-Inventory.md` rows updated.)
+>
 > **Version:** 1.115.0 (2026-09-23 — daily-schedule-card-home: the Today schedule card moves from `/training` to the homepage `TodayRoutineCard` start state (shown only while today's routine is not yet completed; the "You're on fire" state replaces it). `TodayCard.astro`, `todayCard()` (`today-card.data.ts`), `TodayCardContext` and their tests deleted; `homeWeek()` gains `navigate()`/`start()`. File Inventory and `08-Component-Inventory.md` rows updated.)
 >
 > **Version:** 1.114.0 (2026-09-22 — schedule-card-teal: the `/training` "My schedule" `CardWrapper` switches from the `red` tint to a new `teal` preset (`oklch(60% 0.118 184.704)`); `red` is dropped from `CardWrapper`'s presets. `08-Component-Inventory.md` rows updated.)

@@ -64,8 +64,12 @@ export function homeWeek() {
       return isRoutineCompleted(this.todayEntry(), this.completions);
     },
 
+    isRestDay(this: HomeWeekContext): boolean {
+      return this.schedule !== null && this.todayEntry() === null;
+    },
+
     showStart(this: HomeWeekContext): boolean {
-      return !this.loading && this.todayEntry() !== null && !this.doneToday();
+      return !this.loading && this.schedule !== null && !this.doneToday();
     },
 
     showDone(this: HomeWeekContext): boolean {
