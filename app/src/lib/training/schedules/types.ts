@@ -8,18 +8,6 @@ import type {
 /** One entry of `ScheduleData["days"]` — a weekday's mapped routine. */
 export type ScheduleDayEntry = ScheduleData["days"][number];
 
-export type TodayCardContext = {
-  loading: boolean;
-  error: string;
-  schedule: ScheduleData | null;
-  navigate(path: string): void;
-  init(this: TodayCardContext): Promise<void>;
-  entry(this: TodayCardContext): ScheduleDayEntry | null;
-  isRestDay(this: TodayCardContext): boolean;
-  startPath(this: TodayCardContext): string;
-  start(this: TodayCardContext): void;
-};
-
 export type SchedulesIndexContext = {
   loading: boolean;
   error: string;
@@ -110,6 +98,7 @@ export type HomeWeekContext = {
   schedule: ScheduleData | null;
   completions: TrainingCompletionListData["items"];
   today: number;
+  navigate(path: string): void;
   init(this: HomeWeekContext): Promise<void>;
   isToday(this: HomeWeekContext, index: number): boolean;
   hasRoutine(this: HomeWeekContext, index: number): boolean;
@@ -118,4 +107,5 @@ export type HomeWeekContext = {
   showStart(this: HomeWeekContext): boolean;
   showDone(this: HomeWeekContext): boolean;
   startHref(this: HomeWeekContext): string;
+  start(this: HomeWeekContext): void;
 };

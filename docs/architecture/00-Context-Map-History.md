@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-09-21
+updated: 2026-09-23
 -->
 
 # Context Map History
@@ -17,6 +17,8 @@ updated: 2026-09-21
 
 # Version History
 
+> **Version:** 1.115.0 (2026-09-23 — daily-schedule-card-home: the Today schedule card moves from `/training` to the homepage `TodayRoutineCard` start state (shown only while today's routine is not yet completed; the "You're on fire" state replaces it). `TodayCard.astro`, `todayCard()` (`today-card.data.ts`), `TodayCardContext` and their tests deleted; `homeWeek()` gains `navigate()`/`start()`. File Inventory and `08-Component-Inventory.md` rows updated.)
+>
 > **Version:** 1.114.0 (2026-09-22 — schedule-card-teal: the `/training` "My schedule" `CardWrapper` switches from the `red` tint to a new `teal` preset (`oklch(60% 0.118 184.704)`); `red` is dropped from `CardWrapper`'s presets. `08-Component-Inventory.md` rows updated.)
 >
 > **Version:** 1.113.0 (2026-09-22 — schedule-trainings-integration: `/training` gains a red "My schedule" `CardWrapper` (new `red` tint) whose Plan button opens `ScheduleFormModal` in a `detached` `ExpandingModal` (new prop) — seven day circles pick the day, a single-select routine list assigns it, Save needs one mapped day and edits the active schedule or creates+activates "My schedule" (`myScheduleForm()`). Homepage: `WeekdayStrip` moved below the intro and driven by `homeWeek()` (today accent at 110%, filled when it has a routine; other days muted fill or border), plus `TodayRoutineCard` (quick link until done, then "You're on fire"). "Done today" reads new migration `0042` `v_training_completions` through `GET /api/training-sessions/completed?since=` (D353). Docs: `03-Migrations.md` §0042, `05-Views/00-Overview.md`, `06-Spec/05-Read-Model-Layer.md`, `06-API/00-Overview.md` 1.13.0, `04-Endpoint-Contracts.md` 1.11.0, `08-Component-Inventory.md`, File Inventory section, chain range bumped to `0042`; "New view"/"New general stat view" pack budgets re-derived. `0042` is unapplied; `vTrainingCompletions` was hand-added to `app/src/db/schema.ts` in introspect style to clear the type gate — a local `npm run validate:app` (migrate + introspect) is still owed to confirm it.)

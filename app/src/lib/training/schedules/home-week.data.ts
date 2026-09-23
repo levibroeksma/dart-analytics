@@ -25,6 +25,10 @@ export function homeWeek() {
     completions: [] as TrainingCompletionListData["items"],
     today: isoWeekday(now) - 1,
 
+    navigate(path: string) {
+      globalThis.location.href = path;
+    },
+
     async init(this: HomeWeekContext) {
       this.loading = true;
       try {
@@ -71,6 +75,10 @@ export function homeWeek() {
     startHref(this: HomeWeekContext): string {
       const entry = this.todayEntry();
       return entry ? routinePlayPath(entry.routineId) : "/training";
+    },
+
+    start(this: HomeWeekContext) {
+      this.navigate(this.startHref());
     },
   };
 }
