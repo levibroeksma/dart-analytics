@@ -83,3 +83,21 @@ export type SwitchingTargetScoringState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Score Threshold ("65 or More") state, derived by replaying `facts()`
+ * (`foldScoreThresholdState`). A visit is judged once its third dart lands:
+ * `visits` counts judged visits, `beats` those reaching `threshold`, and
+ * `lastVisitTotal` is the latest judged total — `null` until one exists.
+ * `currentVisitTotal`/`dartsInVisit` describe the visit still open.
+ */
+export type ScoreThresholdState = {
+  threshold: number;
+  beats: number;
+  visits: number;
+  lastVisitTotal: number | null;
+  currentVisitTotal: number;
+  dartsInVisit: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

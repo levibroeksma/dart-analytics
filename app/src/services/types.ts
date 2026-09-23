@@ -43,6 +43,7 @@ export type TrainingStepResolved = {
     | "DOUBLE_PATTERN"
     | "TARGET_SCORING"
     | "SWITCHING_TARGET_SCORING"
+    | "SCORE_THRESHOLD"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;

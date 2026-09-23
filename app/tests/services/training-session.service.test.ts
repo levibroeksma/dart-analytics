@@ -616,6 +616,48 @@ describe("startTrainingStep", () => {
     );
   });
 
+  it("inserts SCORE_THRESHOLD under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
+      routineName: "Custom",
+      steps: [
+        {
+          sequenceNumber: 1,
+          exerciseTypeKey: "SCORE_THRESHOLD",
+          exerciseRulesetVersionKey: "SCORE_THRESHOLD_V1",
+          gameTypeKey: null,
+          gameRulesetVersionKey: null,
+          durationSeconds: 600,
+          configuration: { threshold: 65 },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-st65");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-st65",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 1);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exerciseTypeKey).toBe("SCORE_THRESHOLD");
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        exerciseRulesetVersionId: "erv-st65",
+        captureModeId: 3,
+        inputModeId: 4,
+      }),
+    );
+  });
+
   it("inserts a GAME exercise session for Score Training, resolving SCORE_TRAINING_V1", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
       SNAPSHOT as any,

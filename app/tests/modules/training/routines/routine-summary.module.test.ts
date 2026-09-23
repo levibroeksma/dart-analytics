@@ -4,6 +4,7 @@ import {
   summariseDoublePattern,
   summariseTargetScoring,
   summariseSwitchingTargetScoring,
+  summariseScoreThreshold,
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
@@ -14,6 +15,7 @@ import type {
   DoublePatternState,
   TargetScoringState,
   SwitchingTargetScoringState,
+  ScoreThresholdState,
 } from "@modules/types";
 import type {
   TuodSeatResult,
@@ -302,5 +304,40 @@ describe("summariseSwitchingTargetScoring", () => {
         { label: "Hit rate", value: "75.00%" },
       ],
     });
+  });
+});
+
+describe("summariseScoreThreshold", () => {
+  const STATE: ScoreThresholdState = {
+    threshold: 65,
+    beats: 3,
+    visits: 8,
+    lastVisitTotal: 41,
+    currentVisitTotal: 20,
+    dartsInVisit: 1,
+    dartsThrown: 25,
+    status: "COMPLETE",
+  };
+
+  it("reports beats, visits, beat rate and darts", () => {
+    expect(summariseScoreThreshold(STATE)).toEqual({
+      stepKey: "SCORE_THRESHOLD",
+      label: "65 or More",
+      rows: [
+        { label: "Beats", value: "3" },
+        { label: "Visits", value: "8" },
+        { label: "Beat rate", value: "37.50%" },
+        { label: "Darts", value: "25" },
+      ],
+    });
+  });
+
+  it("reports a dash for the beat rate before any visit is judged", () => {
+    const summary = summariseScoreThreshold({
+      ...STATE,
+      beats: 0,
+      visits: 0,
+    });
+    expect(summary.rows[2]).toEqual({ label: "Beat rate", value: "—" });
   });
 });

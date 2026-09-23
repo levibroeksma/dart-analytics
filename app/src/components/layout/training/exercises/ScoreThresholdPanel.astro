@@ -1,0 +1,51 @@
+---
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
+import StatRow from "@components/layout/games/StatRow.astro";
+import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
+---
+
+<div class="flex flex-col flex-1 min-h-0 gap-3 p-3">
+  <SinglePlayerDisplay
+    isTarget={false}
+    score="scoreThresholdBeats()"
+  >
+    <div
+      slot="progress"
+      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
+    >
+      <dl class="w-full space-y-1">
+        <StatRow
+          label="This visit"
+          value="scoreThresholdVisitTotal()"
+        />
+        <div
+          x-show="scoreThresholdLastVisitTotal() !== null"
+          x-cloak
+        >
+          <StatRow
+            label="Last"
+            value="scoreThresholdLastVisitTotal()"
+          />
+        </div>
+        <StatRow
+          label="Visits"
+          value="scoreThresholdVisits()"
+        />
+        <StatRow
+          label="Rate"
+          value="scoreThresholdBeatRate()"
+        />
+        <StatRow
+          label="Time"
+          value="formattedStepRemaining()"
+        />
+      </dl>
+    </div>
+  </SinglePlayerDisplay>
+
+  <VisitPreview />
+
+  <ExerciseBoardInputPanel />
+</div>
