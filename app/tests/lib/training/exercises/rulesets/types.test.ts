@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EXERCISE_RULESET_CONFIGS,
+  SwitchingTargetScoringV1Config,
   SwitchingV1Config,
   TargetScoringV1Config,
   WarmUpV1Config,
@@ -51,6 +52,54 @@ describe("TargetScoringV1Config", () => {
   it("is registered under TARGET_SCORING_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.TARGET_SCORING_V1).toBe(
       TargetScoringV1Config,
+    );
+  });
+});
+
+describe("SwitchingTargetScoringV1Config", () => {
+  const VALID = { targets: [20, 19, 18] };
+
+  it("accepts the default sequence and one with the bull", () => {
+    expect(SwitchingTargetScoringV1Config.safeParse(VALID).success).toBe(true);
+    expect(
+      SwitchingTargetScoringV1Config.safeParse({ targets: [25, 1, 7] }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a sequence that is not exactly three targets", () => {
+    for (const targets of [[20, 19], [20, 19, 18, 17], []]) {
+      expect(
+        SwitchingTargetScoringV1Config.safeParse({ targets }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects numbers that are not on the board", () => {
+    for (const target of [0, 21, 24, 26]) {
+      expect(
+        SwitchingTargetScoringV1Config.safeParse({ targets: [20, 19, target] })
+          .success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects a repeated target", () => {
+    expect(
+      SwitchingTargetScoringV1Config.safeParse({ targets: [20, 20, 19] })
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects an unknown key, scoring included — it is locked", () => {
+    expect(
+      SwitchingTargetScoringV1Config.safeParse({ ...VALID, scoring: {} })
+        .success,
+    ).toBe(false);
+  });
+
+  it("is registered under SWITCHING_TARGET_SCORING_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.SWITCHING_TARGET_SCORING_V1).toBe(
+      SwitchingTargetScoringV1Config,
     );
   });
 });

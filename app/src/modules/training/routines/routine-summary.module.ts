@@ -5,6 +5,7 @@ import type {
   SwitchingState,
   DoublePatternState,
   TargetScoringState,
+  SwitchingTargetScoringState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -89,6 +90,26 @@ export function summariseTargetScoring(
         label: `Best on ${targetScoringTargetLabel(targetNumber)}`,
         value: String(bestChain),
       })),
+      { label: "Darts", value: String(state.dartsThrown) },
+      hitRateRow(state.hits, state.dartsThrown),
+    ],
+  };
+}
+
+/**
+ * Switching Target Scoring's result is its best chain, then how many full
+ * passes through the sequence the run made. The engine folds a chain still
+ * live at expiry into `bestChain`, so no fact replay is needed.
+ */
+export function summariseSwitchingTargetScoring(
+  state: SwitchingTargetScoringState,
+): RoutineStepSummary {
+  return {
+    stepKey: "SWITCHING_TARGET_SCORING",
+    label: "Switching Target Scoring",
+    rows: [
+      { label: "Best chain", value: String(state.bestChain) },
+      { label: "Sequences", value: String(state.completedSequences) },
       { label: "Darts", value: String(state.dartsThrown) },
       hitRateRow(state.hits, state.dartsThrown),
     ],

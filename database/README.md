@@ -71,6 +71,7 @@ astro check
 21. `seeds/0021_exercise_template_game_rulesets.sql`
 22. `seeds/0022_routine_game_templates.sql`
 23. `seeds/0023_target_scoring_exercise_type.sql`
+24. `seeds/0024_switching_target_scoring_exercise_type.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -100,6 +101,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0009_121_capability_checks.sql` | `seeds/0009`+`0007` combined: `121_V1`/`RECREATIONAL`/`QUICK_SCORE` resolves, zero undeclared `exercise_sessions` (2 checks) |
 | `verification/0010_around_the_clock_capability_checks.sql` | `seeds/0010`+`0007` combined: `AROUND_THE_CLOCK_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, zero undeclared `exercise_sessions` (2 checks) |
 | `verification/0023_target_scoring_seed_checks.sql` | seed `0023`: the `TARGET_SCORING` type is published, `TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18,25]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
+| `verification/0024_switching_target_scoring_seed_checks.sql` | seed `0024`: the `SWITCHING_TARGET_SCORING` type is published, `SWITCHING_TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
 | `verification/0023_owner_scoped_dart_view_checks.sql` | `v_dart_analytics`/`v_dart_locations` return only the session owner's own dart for a PLAYER+GUEST fixture, `v_game_replay` deliberately returns both participants' turns, anti-vacuity guard (7 checks) |
 | `verification/0011_one_twenty_one_v2_capability_checks.sql` | `seeds/0011`+`0007` combined: `121_V2`/`RECREATIONAL`/`QUICK_SCORE` and `121_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, all three `121_V2` presets carry the right `duration_type`, zero undeclared `exercise_sessions` (4 checks) |
 | `verification/0012_shanghai_v2_capability_checks.sql` | `seeds/0012`+`0007` combined: `SHANGHAI_V2`/`RECREATIONAL`/`DETAILED_DARTS` and `SHANGHAI_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |

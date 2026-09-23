@@ -71,6 +71,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a SWITCHING_TARGET_SCORING step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "SWITCHING_TARGET_SCORING",
+            exerciseRulesetVersionKey: "SWITCHING_TARGET_SCORING_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: { targets: [20, 19, 18] },
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects an unknown exerciseTypeKey", () => {
     expect(
       StartTrainingResponse.safeParse({

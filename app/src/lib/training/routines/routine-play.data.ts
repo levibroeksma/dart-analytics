@@ -41,6 +41,7 @@ import {
   targetScoringTargetLabel,
   type TargetScoringEngine,
 } from "@modules/training/exercises/target-scoring.engine.module";
+import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import type { DartFact } from "@modules/types";
 
 const STEP_CHANGE_CUE_HZ = 660;
@@ -86,6 +87,7 @@ export function routinePlay() {
     switchingEngine: null,
     doublePatternEngine: null,
     targetScoringEngine: null,
+    switchingTargetScoringEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -110,17 +112,25 @@ export function routinePlay() {
           self.recordDoublePatternDart(observation);
         else if (self.targetScoringEngine)
           self.recordTargetScoringDart(observation);
+        else if (self.switchingTargetScoringEngine)
+          self.recordSwitchingTargetScoringDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
 
     activeDartEngine(
       this: RoutinePlayContext,
-    ): SwitchingEngine | DoublePatternEngine | TargetScoringEngine | null {
+    ):
+      | SwitchingEngine
+      | DoublePatternEngine
+      | TargetScoringEngine
+      | SwitchingTargetScoringEngine
+      | null {
       return (
         this.switchingEngine ??
         this.doublePatternEngine ??
         this.targetScoringEngine ??
+        this.switchingTargetScoringEngine ??
         null
       );
     },
@@ -133,19 +143,20 @@ export function routinePlay() {
      * Hit/miss marks for the current visit's darts. Each dart carries the
      * target it was thrown at (`intendedTargetNumber`), so no config lookup
      * is needed; Double Pattern additionally requires the double, since
-     * nothing else scores under `DOUBLE_PATTERN_V1`, and Target Scoring
-     * defers to its own ring rule (a double is a miss).
+     * nothing else scores under `DOUBLE_PATTERN_V1`, and both Target
+     * Scoring exercises defer to their shared ring rule (a double is a miss).
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
       const requireDouble = this.doublePatternEngine !== null;
-      const isHit = this.targetScoringEngine
-        ? (dart: DartFact) =>
-            dart.intendedTargetNumber !== null &&
-            targetScoringPoints(dart.intendedTargetNumber, dart) !== null
-        : (dart: DartFact) =>
-            dart.hitTargetNumber === dart.intendedTargetNumber &&
-            (!requireDouble || dart.hitZoneKey === "DOUBLE");
+      const isHit =
+        this.targetScoringEngine || this.switchingTargetScoringEngine
+          ? (dart: DartFact) =>
+              dart.intendedTargetNumber !== null &&
+              targetScoringPoints(dart.intendedTargetNumber, dart) !== null
+          : (dart: DartFact) =>
+              dart.hitTargetNumber === dart.intendedTargetNumber &&
+              (!requireDouble || dart.hitZoneKey === "DOUBLE");
       return playPreviewSegments(turns, null, (dart) =>
         isHit(dart) ? "hit" : "miss",
       );
@@ -374,6 +385,7 @@ export function routinePlay() {
           this.switchingEngine?.expireTimer();
           this.doublePatternEngine?.expireTimer();
           this.targetScoringEngine?.expireTimer();
+          this.switchingTargetScoringEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -412,6 +424,14 @@ export function routinePlay() {
       this.targetScoringEngine.record(observation);
     },
 
+    recordSwitchingTargetScoringDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.switchingTargetScoringEngine) return;
+      this.switchingTargetScoringEngine.record(observation);
+    },
+
     switchingPoints(this: RoutinePlayContext): number {
       return this.switchingEngine?.state().totalPoints ?? 0;
     },
@@ -445,6 +465,24 @@ export function routinePlay() {
 
     targetScoringMarkToBeat(this: RoutinePlayContext): number | null {
       return this.targetScoringEngine?.state().markToBeat ?? null;
+    },
+
+    switchingTargetScoringChain(this: RoutinePlayContext): number {
+      return this.switchingTargetScoringEngine?.state().currentChain ?? 0;
+    },
+
+    switchingTargetScoringTargetLabel(this: RoutinePlayContext): string {
+      const target =
+        this.switchingTargetScoringEngine?.state().currentTargetNumber;
+      return target === undefined ? "" : targetScoringTargetLabel(target);
+    },
+
+    switchingTargetScoringBestChain(this: RoutinePlayContext): number {
+      return this.switchingTargetScoringEngine?.state().bestChain ?? 0;
+    },
+
+    switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null {
+      return this.switchingTargetScoringEngine?.state().markToBeat ?? null;
     },
 
     dartsThrown(this: RoutinePlayContext): number {

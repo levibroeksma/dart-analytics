@@ -5,6 +5,7 @@ import { warmUpAdapter } from "./warm-up.adapter";
 import { switchingAdapter } from "./switching.adapter";
 import { doublePatternAdapter } from "./double-pattern.adapter";
 import { targetScoringAdapter } from "./target-scoring.adapter";
+import { switchingTargetScoringAdapter } from "./switching-target-scoring.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -26,6 +27,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   SWITCHING: switchingAdapter,
   DOUBLE_PATTERN: doublePatternAdapter,
   TARGET_SCORING: targetScoringAdapter,
+  SWITCHING_TARGET_SCORING: switchingTargetScoringAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",

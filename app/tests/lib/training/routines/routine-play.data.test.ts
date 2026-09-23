@@ -1191,6 +1191,139 @@ describe("routinePlay — Target Scoring", () => {
   });
 });
 
+const SWITCHING_TARGET_SCORING_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "SWITCHING_TARGET_SCORING",
+  exerciseRulesetVersionKey: "SWITCHING_TARGET_SCORING_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { targets: [20, 19, 25] },
+};
+
+describe("routinePlay — Switching Target Scoring", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SWITCHING_TARGET_SCORING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING_TARGET_SCORING",
+      configuration: SWITCHING_TARGET_SCORING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.switchingTargetScoringEngine).not.toBeNull();
+    expect(store.switchingTargetScoringTargetLabel()).toBe("20");
+    expect(store.switchingTargetScoringChain()).toBe(0);
+    expect(store.switchingTargetScoringBestChain()).toBe(0);
+    expect(store.switchingTargetScoringMarkToBeat()).toBeNull();
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow each hit's switch, the restart and the mark to beat", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 19,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 120,
+    });
+    expect(store.switchingTargetScoringTargetLabel()).toBe("Bull");
+    expect(store.switchingTargetScoringChain()).toBe(4);
+    expect(store.dartsThrown()).toBe(2);
+
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(store.switchingTargetScoringTargetLabel()).toBe("20");
+    expect(store.switchingTargetScoringChain()).toBe(0);
+    expect(store.switchingTargetScoringBestChain()).toBe(4);
+    expect(store.switchingTargetScoringMarkToBeat()).toBe(4);
+  });
+
+  it("previewSegments() marks each dart against its own target", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 19,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 166,
+    });
+
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-23T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "SWITCHING_TARGET_SCORING",
+    });
+  });
+});
+
 const GAME_STEP = {
   sequenceNumber: 4,
   exerciseTypeKey: "GAME",
