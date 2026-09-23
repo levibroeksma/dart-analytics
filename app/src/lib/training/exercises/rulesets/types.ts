@@ -8,7 +8,11 @@ import { z } from "zod";
  * (09-Training/01-Routines.md §24).
  */
 export type ExerciseRulesetVersionKey =
-  "WARM_UP_V1" | "SWITCHING_V1" | "DOUBLE_PATTERN_V1" | "TARGET_SCORING_V1";
+  | "WARM_UP_V1"
+  | "SWITCHING_V1"
+  | "DOUBLE_PATTERN_V1"
+  | "TARGET_SCORING_V1"
+  | "SWITCHING_TARGET_SCORING_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -123,28 +127,49 @@ const BULL_TARGET_NUMBER = 25;
  * Scoring is locked by the rules (single 1, treble 3, outer bull 1,
  * bullseye 3, double a miss), so it lives in the engine, not here.
  */
+const BoardTarget = z
+  .number()
+  .int()
+  .min(1)
+  .max(BULL_TARGET_NUMBER)
+  .refine((n) => n <= 20 || n === BULL_TARGET_NUMBER, {
+    message: "must be 1–20 or 25",
+  });
+
+function distinctTargets(targets: number[]): boolean {
+  return new Set(targets).size === targets.length;
+}
+
 export const TargetScoringV1Config = z
   .object({
     targets: z
-      .array(
-        z
-          .number()
-          .int()
-          .min(1)
-          .max(BULL_TARGET_NUMBER)
-          .refine((n) => n <= 20 || n === BULL_TARGET_NUMBER, {
-            message: "must be 1–20 or 25",
-          }),
-      )
+      .array(BoardTarget)
       .min(1)
       .max(21)
-      .refine((targets) => new Set(targets).size === targets.length, {
-        message: "targets must not repeat",
-      }),
+      .refine(distinctTargets, { message: "targets must not repeat" }),
   })
   .strict();
 
 export type TargetScoringConfigData = z.infer<typeof TargetScoringV1Config>;
+
+/**
+ * Switching Target Scoring v1: exactly three distinct board targets, hit in
+ * order and over again — a hit advances, a miss restarts at the first
+ * (`docs/game-rules/training/exercises/switching-target-scoring.md`).
+ * Scoring is Target Scoring's locked table, so it lives in the engine.
+ */
+export const SwitchingTargetScoringV1Config = z
+  .object({
+    targets: z
+      .array(BoardTarget)
+      .length(3)
+      .refine(distinctTargets, { message: "targets must not repeat" }),
+  })
+  .strict();
+
+export type SwitchingTargetScoringConfigData = z.infer<
+  typeof SwitchingTargetScoringV1Config
+>;
 
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
@@ -154,4 +179,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SWITCHING_V1: SwitchingV1Config,
   DOUBLE_PATTERN_V1: DoublePatternV1Config,
   TARGET_SCORING_V1: TargetScoringV1Config,
+  SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
 };

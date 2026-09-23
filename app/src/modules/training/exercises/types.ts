@@ -63,3 +63,23 @@ export type TargetScoringState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Switching Target Scoring state, derived by replaying `facts()`
+ * (`foldSwitchingTargetScoringState`). `targetIndex`/`currentTargetNumber`
+ * locate the target the *next* dart is thrown at. `bestChain` includes the
+ * live chain; `markToBeat` is the best chain ended by a miss this run —
+ * `null` until one exists. `completedSequences` counts hits on the last
+ * target, i.e. full passes through the sequence.
+ */
+export type SwitchingTargetScoringState = {
+  currentTargetNumber: number;
+  targetIndex: number;
+  currentChain: number;
+  bestChain: number;
+  markToBeat: number | null;
+  completedSequences: number;
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

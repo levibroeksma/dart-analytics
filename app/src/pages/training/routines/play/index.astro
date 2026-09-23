@@ -5,6 +5,7 @@ import WarmUpPanel from "@components/layout/training/exercises/WarmUpPanel.astro
 import SwitchingPanel from "@components/layout/training/exercises/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/exercises/DoublePatternPanel.astro";
 import TargetScoringPanel from "@components/layout/training/exercises/TargetScoringPanel.astro";
+import SwitchingTargetScoringPanel from "@components/layout/training/exercises/SwitchingTargetScoringPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
@@ -47,6 +48,12 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
       x-if="!loading && adapter?.panel === 'target-scoring' && targetScoringEngine"
     >
       <TargetScoringPanel />
+    </template>
+
+    <template
+      x-if="!loading && adapter?.panel === 'switching-target-scoring' && switchingTargetScoringEngine"
+    >
+      <SwitchingTargetScoringPanel />
     </template>
 
     <template x-if="!loading && adapter?.panel === 'tuod' && game">

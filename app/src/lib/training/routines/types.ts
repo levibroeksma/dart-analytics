@@ -16,6 +16,7 @@ import type {
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import type { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
+import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -58,6 +59,7 @@ export type RoutinePlayContext = {
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
   targetScoringEngine: TargetScoringEngine | null;
+  switchingTargetScoringEngine: SwitchingTargetScoringEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -111,10 +113,19 @@ export type RoutinePlayContext = {
   targetScoringTargetLabel(this: RoutinePlayContext): string;
   targetScoringBestChain(this: RoutinePlayContext): number;
   targetScoringMarkToBeat(this: RoutinePlayContext): number | null;
+  switchingTargetScoringChain(this: RoutinePlayContext): number;
+  switchingTargetScoringTargetLabel(this: RoutinePlayContext): string;
+  switchingTargetScoringBestChain(this: RoutinePlayContext): number;
+  switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
-  ): SwitchingEngine | DoublePatternEngine | TargetScoringEngine | null;
+  ):
+    | SwitchingEngine
+    | DoublePatternEngine
+    | TargetScoringEngine
+    | SwitchingTargetScoringEngine
+    | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
   recordSwitchingDart(
@@ -126,6 +137,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordTargetScoringDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordSwitchingTargetScoringDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
