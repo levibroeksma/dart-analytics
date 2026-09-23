@@ -104,6 +104,7 @@ export type HomeWeekContext = {
   hasRoutine(this: HomeWeekContext, index: number): boolean;
   todayEntry(this: HomeWeekContext): ScheduleDayEntry | null;
   doneToday(this: HomeWeekContext): boolean;
+  isRestDay(this: HomeWeekContext): boolean;
   showStart(this: HomeWeekContext): boolean;
   showDone(this: HomeWeekContext): boolean;
   startHref(this: HomeWeekContext): string;

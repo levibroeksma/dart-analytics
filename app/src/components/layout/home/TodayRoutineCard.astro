@@ -1,9 +1,9 @@
 ---
 /**
  * Homepage card for today's scheduled routine, inside the `homeWeek()`
- * scope: the active schedule's routine with a Start button while it has not
- * been completed today, then a "You're on fire" completion state. Renders nothing on a rest
- * day or without an active schedule.
+ * scope: the active schedule's routine with a Start button (or "Rest day")
+ * while today's routine has not been completed, then a "You're on fire"
+ * completion state. Renders nothing without an active schedule.
  */
 import CardWrapper from "@components/ui/CardWrapper.astro";
 import Badge from "@components/ui/Badge.astro";
@@ -33,11 +33,22 @@ import FlameIcon from "@icons/flame.svg";
       <div class="flex flex-col gap-0.5">
         <p
           class="font-semibold text-base text-foreground"
+          x-show="!isRestDay()"
+          x-cloak
           x-text="todayEntry()?.routineName"
         >
         </p>
+        <p
+          class="font-semibold text-base text-foreground"
+          x-show="isRestDay()"
+          x-cloak
+        >
+          Rest day
+        </p>
         <Badge
           class="text-xs w-fit"
+          x-show="!isRestDay()"
+          x-cloak
           x-text="`${todayEntry()?.routineMinutes} min`"
         />
       </div>
@@ -45,6 +56,8 @@ import FlameIcon from "@icons/flame.svg";
         title="Start"
         variant="primary"
         loadingExpr="false"
+        x-show="!isRestDay()"
+        x-cloak
         @click="start()"
       />
     </div>
