@@ -1,6 +1,6 @@
 # Around the Clock V2 — Training Variants Design
 
-Status: approved (brainstorming). Scope: config, engine, validator, setup/play UI, seeds, routine eligibility, docs for a new ruleset version `AROUND_THE_CLOCK_V2`. Delivered as two PRs (§11).
+Status: draft — awaiting author review. Scope: config, engine, validator, setup/play UI, seeds, routine eligibility, docs for a new ruleset version `AROUND_THE_CLOCK_V2`. Delivered as two PRs (§11).
 
 Source: `docs/game-rules/rulesets/around-the-clock.md` (V2 rows, amended 2026-09-23), `app/src/modules/game/around-the-clock.engine.module.ts`, `app/src/lib/game/rulesets/types.ts:325`, `docs/superpowers/specs/2026-09-12-singles-training-accuracy-mode-design.md` (new-ruleset-version precedent), `app/src/modules/game/tuod.engine.module.ts` + `app/src/lib/game/play-countdown.ts` (MINUTES precedent), `docs/architecture/09-Training/01-Routines.md` §11, `app/src/services/routines/game-step.ts`.
 
