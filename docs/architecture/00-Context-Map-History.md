@@ -17,6 +17,8 @@ updated: 2026-09-24
 
 # Version History
 
+> **Version:** 1.127.0 (2026-09-24 — custom-dropdown-glass: `components/forms/Select.astro` rewritten from native `<select>` to a custom glass dropdown — full-width 48px glass bar that grows downward into an option panel (`x-collapse`, ExpandingModal-style timing), `model` prop names the caller's value; `placeholder` prop removed. Statistics game picker seeds the first game. Component/File Inventory rows updated. No decision.)
+
 > **Version:** 1.126.0 (2026-09-24 — statistics-game-select: new shared `components/forms/Select.astro` (native `<select>`, `Input.astro` styling, `x-model` via spread props). Statistics Games tab shows a game picker under the tabs, fed from `GAME_CARDS` titles; the placeholder line reads `<game> statistics coming soon.` for the picked game. Component/File Inventory rows added; `ScheduleDayRow` inventory note updated, move-over filed as #593. No decision.)
 
 > **Version:** 1.125.0 (2026-09-24 — statistics-page-tabs: Statistics page stat cards removed; page now shows a Games/Routines tab switch (reuses `layout/games/setup/Toggle.astro` with `x-model`, QuickSubtract precedent) with a placeholder line per tab. `StatCard.astro`/`StatCardSkeleton.astro` deleted (no consumers left; fallow dead-code gate) and their File/Component Inventory rows removed. `stats` store and `/api/statistics/overview` left in place, now unread by any page. No decision.)

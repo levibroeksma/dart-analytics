@@ -15,7 +15,7 @@ const gameOptions = GAME_CARDS.map((game) => ({
 }));
 const scope = JSON.stringify({
   tab: "games",
-  game: "",
+  game: gameOptions[0]?.value ?? "",
   titles: Object.fromEntries(
     gameOptions.map((option) => [option.value, option.label]),
   ),
@@ -43,9 +43,8 @@ const scope = JSON.stringify({
       >
         <Select
           options={gameOptions}
-          placeholder="Select a game"
-          aria-label="Game"
-          x-model="game"
+          model="game"
+          ariaLabel="Game"
         />
         <p
           class="text-sm text-muted-foreground"
