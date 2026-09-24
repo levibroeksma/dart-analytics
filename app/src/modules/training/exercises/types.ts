@@ -101,3 +101,23 @@ export type ScoreThresholdState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Bullseye Checkout ("Bullseye Checkouts") state, derived by replaying
+ * `facts()` (`foldBullseyeCheckoutState`). A visit is judged once its third
+ * dart lands: `visits` counts judged visits, `checkouts` those whose setup
+ * darts total `startScore − 50` and whose third dart hit the inner bull.
+ * `lastVisitCheckout` is `null` until a visit is judged. `currentLeft` is
+ * `startScore` minus the open visit's darts — negative once the setup
+ * overshoots.
+ */
+export type BullseyeCheckoutState = {
+  startScore: number;
+  checkouts: number;
+  visits: number;
+  lastVisitCheckout: boolean | null;
+  currentLeft: number;
+  dartsInVisit: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
