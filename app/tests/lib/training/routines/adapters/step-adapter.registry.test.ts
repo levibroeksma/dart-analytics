@@ -19,6 +19,7 @@ describe("step adapter registry", () => {
         "SWITCHING_TARGET_SCORING",
         "SCORE_THRESHOLD",
         "BULLSEYE_CHECKOUT",
+        "BULL_UP",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -34,6 +35,10 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("BULLSEYE_CHECKOUT")?.headerLabel).toBe(
       "Bullseye checkouts",
     );
+  });
+
+  it("resolves the Bull Up Practice step", () => {
+    expect(resolveStepAdapter("BULL_UP")?.headerLabel).toBe("Bull up practice");
   });
 
   it("derives the key from a resolved step", () => {

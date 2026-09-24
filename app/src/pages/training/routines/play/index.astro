@@ -8,6 +8,7 @@ import TargetScoringPanel from "@components/layout/training/exercises/TargetScor
 import SwitchingTargetScoringPanel from "@components/layout/training/exercises/SwitchingTargetScoringPanel.astro";
 import ScoreThresholdPanel from "@components/layout/training/exercises/ScoreThresholdPanel.astro";
 import BullseyeCheckoutPanel from "@components/layout/training/exercises/BullseyeCheckoutPanel.astro";
+import BullUpPanel from "@components/layout/training/exercises/BullUpPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
@@ -69,6 +70,10 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
       x-if="!loading && adapter?.panel === 'bullseye-checkout' && bullseyeCheckoutEngine"
     >
       <BullseyeCheckoutPanel />
+    </template>
+
+    <template x-if="!loading && adapter?.panel === 'bull-up' && bullUpEngine">
+      <BullUpPanel />
     </template>
 
     <template x-if="!loading && adapter?.panel === 'tuod' && game">

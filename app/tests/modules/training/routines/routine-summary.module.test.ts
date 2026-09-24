@@ -6,6 +6,7 @@ import {
   summariseSwitchingTargetScoring,
   summariseScoreThreshold,
   summariseBullseyeCheckout,
+  summariseBullUp,
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
@@ -19,6 +20,7 @@ import type {
   SwitchingTargetScoringState,
   ScoreThresholdState,
   BullseyeCheckoutState,
+  BullUpState,
 } from "@modules/types";
 import type {
   TuodSeatResult,
@@ -419,5 +421,49 @@ describe("summariseBullseyeCheckout", () => {
       visits: 0,
     }).rows;
     expect(rows[2]).toEqual({ label: "Checkout rate", value: "—" });
+  });
+});
+
+describe("summariseBullUp", () => {
+  const STATE: BullUpState = {
+    throws: 4,
+    bullseyes: 1,
+    bulls: 2,
+    lastTier: "MISS",
+    dartsThrown: 4,
+    status: "COMPLETE",
+  };
+
+  it("reports throws, bullseyes, bulls and both rates", () => {
+    expect(summariseBullUp(STATE)).toEqual({
+      stepKey: "BULL_UP",
+      label: "Bull Up Practice",
+      rows: [
+        { label: "Throws", value: "4" },
+        { label: "Bullseyes", value: "1" },
+        { label: "Bulls", value: "2" },
+        { label: "Bullseye rate", value: "25.00%" },
+        { label: "Bull rate", value: "50.00%" },
+      ],
+    });
+  });
+
+  it("shows no rate before the first throw", () => {
+    expect(
+      summariseBullUp({
+        ...STATE,
+        throws: 0,
+        bullseyes: 0,
+        bulls: 0,
+        lastTier: null,
+        dartsThrown: 0,
+      }).rows,
+    ).toEqual([
+      { label: "Throws", value: "0" },
+      { label: "Bullseyes", value: "0" },
+      { label: "Bulls", value: "0" },
+      { label: "Bullseye rate", value: "—" },
+      { label: "Bull rate", value: "—" },
+    ]);
   });
 });

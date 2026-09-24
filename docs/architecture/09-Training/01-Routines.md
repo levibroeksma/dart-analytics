@@ -176,6 +176,7 @@ TARGET_SCORING
 SWITCHING_TARGET_SCORING
 SCORE_THRESHOLD
 BULLSEYE_CHECKOUT
+BULL_UP
 GAME
 CHECKOUT
 ACCURACY
@@ -860,6 +861,20 @@ startScore: 81
 Every visit starts at 81: set up 50 with two darts, then finish on the bullseye with the third. How many checkouts before the time runs out? Rules: `docs/game-rules/training/exercises/bullseye-checkout.md`.
 
 **Implemented** (`BULLSEYE_CHECKOUT_V1`, `app/src/modules/training/exercises/bullseye-checkout.engine.module.ts`, seed `0029`): `startScore` is the whole configuration and V1 accepts only `81`. Darts 1–2 carry no intended target; dart 3 always carries `25`/`INNER_BULL`. `score` is the board score. A visit is judged after its third dart and checks out when darts 1–2 total `startScore − 50` and dart 3 hits the inner bull; one unfinished at expiry is not judged. State carries checkouts, judged visits, the last result and what is left in the open visit. Capture pair and upload path match 65 or More. Routine step only in V1 (D361).
+
+---
+
+## Bull Up Practice (Bull Up)
+
+Configuration:
+
+```text
+duration: 5m
+```
+
+One dart at the bull, retrieve it, throw again: the throw that decides who starts a match. Each throw is a bullseye, an outer bull or a miss. How many bullseyes before the time runs out? Rules: `docs/game-rules/training/exercises/bull-up-practice.md`.
+
+**Implemented** (`BULL_UP_V1`, `app/src/modules/training/exercises/bull-up.engine.module.ts`, seed `0030`): the configuration is the empty object. Each throw is one `turns` row holding one dart, completed when written; every dart carries `25`/`INNER_BULL` and `score` is the board score. State carries throws, bullseyes, bulls (either ring) and the last result; the bullseye and bull rates are derived at display. No throw is left open at expiry. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D362).
 
 ---
 
