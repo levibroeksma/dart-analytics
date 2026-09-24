@@ -47,6 +47,7 @@ evaluated in the page's own Alpine scope.
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
+| `Select.astro` | Native `<select>` styled like `Input.astro`; bind via `x-model` (rest props spread onto the element) | `options` (`{value,label}[]`), `id`, `name`, `placeholder` (disabled `""` first option), `disabled` (2026-09-24) |
 | `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
 | `SettingRow.astro` | Label plus inline-editable value with a save action | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `disabledExpr` |
 
@@ -126,7 +127,7 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `ScheduleEditor.astro` | Editor body for create/edit: name `Input`, seven `ScheduleDayRow`s, server-issue list, Cancel/Save | none — reads `scheduleEditor(mode)` from the page's `x-data` (2026-09-20) |
-| `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component exists in `components/forms/`, the accepted exception | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
+| `ScheduleDayRow.astro` | One weekday row: label plus a routine picker; uses a native `<select>` (a "Rest" `""` option) rather than a shared primitive — no select component existed in `components/forms/` when written, the accepted exception; `Select.astro` now exists and has no `x-for` options, move-over tracked in #593 | reads `row`/`index` from the enclosing `x-for` plus `routineLabel()`/`routines` from `scheduleEditor()` (2026-09-20) |
 | `ScheduleFormModal.astro` | `/training`'s "My schedule" editor in a `detached` `ExpandingModal`, opened from the teal schedule card's Plan button. Seven day circles pick the day to edit; the routine list assigns or clears that day's routine; Save needs one mapped day and closes on success. Mounts `myScheduleForm()` around the modal so every close path reaches `resetForm()` (2026-09-22) | `openExpr`, `titleId` |
 
 ## `components/layout/home/`
