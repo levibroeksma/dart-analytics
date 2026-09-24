@@ -134,6 +134,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a BULL_UP step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "BULL_UP",
+            exerciseRulesetVersionKey: "BULL_UP_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 300,
+            configuration: {},
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects an unknown exerciseTypeKey", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -191,6 +212,19 @@ describe("StartTrainingStepResponse", () => {
         exerciseTypeKey: "WARM_UP",
         configuration: {},
         participant: { ref: "pt1", displayName: "Levi" },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a BULL_UP step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "BULL_UP",
+        configuration: {},
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
       }).success,
     ).toBe(true);
   });

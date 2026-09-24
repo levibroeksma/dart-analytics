@@ -6,6 +6,7 @@ import { targetScoringValidator } from "./target-scoring/target-scoring.validato
 import { scoreThresholdValidator } from "./score-threshold/score-threshold.validator";
 import { switchingTargetScoringValidator } from "./switching-target-scoring/switching-target-scoring.validator";
 import { bullseyeCheckoutValidator } from "./bullseye-checkout/bullseye-checkout.validator";
+import { bullUpValidator } from "./bull-up/bull-up.validator";
 
 const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   WARM_UP_V1: warmUpValidator,
@@ -15,6 +16,7 @@ const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   SWITCHING_TARGET_SCORING_V1: switchingTargetScoringValidator,
   SCORE_THRESHOLD_V1: scoreThresholdValidator,
   BULLSEYE_CHECKOUT_V1: bullseyeCheckoutValidator,
+  BULL_UP_V1: bullUpValidator,
 };
 
 export function getExerciseRulesetValidator(
@@ -37,6 +39,7 @@ const DART_WRITING_RULESET_VERSION_KEYS = new Set([
   "SWITCHING_TARGET_SCORING_V1",
   "SCORE_THRESHOLD_V1",
   "BULLSEYE_CHECKOUT_V1",
+  "BULL_UP_V1",
 ]);
 
 export function exerciseRulesetWritesDarts(
