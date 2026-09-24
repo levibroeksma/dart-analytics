@@ -14,7 +14,8 @@ export type ExerciseRulesetVersionKey =
   | "TARGET_SCORING_V1"
   | "SWITCHING_TARGET_SCORING_V1"
   | "SCORE_THRESHOLD_V1"
-  | "BULLSEYE_CHECKOUT_V1";
+  | "BULLSEYE_CHECKOUT_V1"
+  | "BULL_UP_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -206,6 +207,16 @@ export type BullseyeCheckoutConfigData = z.infer<
   typeof BullseyeCheckoutV1Config
 >;
 
+/**
+ * Bull Up v1 ("Bull Up Practice"): one dart per throw, always at the bull
+ * (`docs/game-rules/training/exercises/bull-up-practice.md`). Nothing is
+ * configurable — duration is the routine step's — so the config is the
+ * empty object.
+ */
+export const BullUpV1Config = z.object({}).strict();
+
+export type BullUpConfigData = z.infer<typeof BullUpV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -217,4 +228,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
   SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
   BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
+  BULL_UP_V1: BullUpV1Config,
 };

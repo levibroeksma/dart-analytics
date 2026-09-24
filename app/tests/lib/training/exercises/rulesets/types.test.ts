@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   EXERCISE_RULESET_CONFIGS,
   BullseyeCheckoutV1Config,
+  BullUpV1Config,
   ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
@@ -215,5 +216,20 @@ describe("BullseyeCheckoutV1Config", () => {
     expect(EXERCISE_RULESET_CONFIGS.BULLSEYE_CHECKOUT_V1).toBe(
       BullseyeCheckoutV1Config,
     );
+  });
+});
+
+describe("BullUpV1Config", () => {
+  it("accepts the empty configuration — the target is always the bull", () => {
+    expect(BullUpV1Config.safeParse({}).success).toBe(true);
+  });
+
+  it("rejects any key", () => {
+    expect(BullUpV1Config.safeParse({ target: 25 }).success).toBe(false);
+    expect(BullUpV1Config.safeParse({ startScore: 81 }).success).toBe(false);
+  });
+
+  it("is registered under BULL_UP_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.BULL_UP_V1).toBe(BullUpV1Config);
   });
 });
