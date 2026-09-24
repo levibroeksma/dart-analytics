@@ -121,3 +121,21 @@ export type BullseyeCheckoutState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/** One throw's outcome in Bull Up Practice. */
+export type BullUpTier = "BULLSEYE" | "OUTER_BULL" | "MISS";
+
+/**
+ * Bull Up ("Bull Up Practice") state, derived by replaying `facts()`
+ * (`foldBullUpState`). Every throw is one dart and is judged when it lands:
+ * `bulls` counts bullseyes and outer bulls together. `lastTier` is `null`
+ * before the first throw. Rates are derived at display, not held here.
+ */
+export type BullUpState = {
+  throws: number;
+  bullseyes: number;
+  bulls: number;
+  lastTier: BullUpTier | null;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
