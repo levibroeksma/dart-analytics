@@ -47,7 +47,7 @@ evaluated in the page's own Alpine scope.
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
-| `Select.astro` | Native `<select>` styled like `Input.astro`; bind via `x-model` (rest props spread onto the element) | `options` (`{value,label}[]`), `id`, `name`, `placeholder` (disabled `""` first option), `disabled` (2026-09-24) |
+| `Select.astro` | Custom glass dropdown (no native `<select>`): full-width 48px glass bar showing the picked label, grows downward into an overlaying option panel on click; closes on pick, outside click, Escape; caller seeds the value (no placeholder) | `options` (`{value,label}[]`), `model` (writable Alpine expression in the caller's scope), `ariaLabel`, `class` (2026-09-24) |
 | `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
 | `SettingRow.astro` | Label plus inline-editable value with a save action | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `disabledExpr` |
 

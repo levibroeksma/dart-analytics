@@ -1,13 +1,16 @@
 ---
 /**
- * Native `<select>` styled to match `Input.astro`. Bind the chosen value from
- * a parent scope with `x-model`; extra attributes spread onto the element.
+ * Glass dropdown: a full-width 48px glass bar showing the picked label that
+ * grows downward into a panel listing every option, and collapses back on
+ * pick, outside click or Escape. The open panel overlays the content below
+ * it on a dark backing so that content cannot read through the glass.
+ *
+ * The value lives in the caller's scope — `model` names a writable Alpine
+ * expression there; the caller seeds it (no placeholder state).
  * @param {SelectOption[]} options
- * @param {string} [id]
- * @param {string} [name]
- * @param {string} [placeholder] Disabled first option with value `""`
- * @param {boolean} [disabled]
- * @param {string} [class] Extra classes
+ * @param {string} model Writable Alpine expression holding the picked value
+ * @param {string} ariaLabel Accessible name of the control
+ * @param {string} [class] Extra wrapper classes
  */
 interface SelectOption {
   value: string;
@@ -16,57 +19,119 @@ interface SelectOption {
 
 interface Props {
   options: readonly SelectOption[];
-  id?: string;
-  name?: string;
-  placeholder?: string;
-  disabled?: boolean;
+  model: string;
+  ariaLabel: string;
   class?: string;
-  [key: string]: unknown;
 }
 
 // Props
-const {
-  options,
-  id,
-  name,
-  placeholder,
-  disabled = false,
-  class: classNameProp = "",
-  ...props
-} = Astro.props;
+const { options, model, ariaLabel, class: classNameProp }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
 
 // Lib
 import { cn } from "@client/cn";
 
+// Icons
+import CheckIcon from "@icons/check.svg";
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+// Data
+const scope = JSON.stringify({
+  open: false,
+  labels: Object.fromEntries(
+    options.map((option) => [option.value, option.label]),
+  ),
+});
+
+const items = options.map((option) => {
+  const picked = `${model} === ${JSON.stringify(option.value)}`;
+  return {
+    ...option,
+    picked,
+    pickedClass: `${picked} ? 'bg-accent-muted' : ''`,
+    pick: `${model} = ${JSON.stringify(option.value)}; open = false`,
+  };
+});
+
 // Styles
-const selectId = id ?? name;
-const className = cn(
-  "input w-full rounded-md border border-border px-3.5 py-2.5 text-sm text-foreground outline-none transition-[border-color,box-shadow,background-color] duration-150",
-  classNameProp,
-);
+const wrapperClass = cn("relative h-12", classNameProp);
 ---
 
-<select
-  id={selectId}
-  name={name}
-  disabled={disabled}
-  class={className}
-  {...props}
+<div
+  class={wrapperClass}
+  x-data={scope}
+  @click.outside="open = false"
+  @keydown.escape.window="open = false"
 >
-  {
-    placeholder && (
-      <option
-        value=""
-        disabled
-        selected
+  <div
+    class="glass absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl transition-all duration-250 ease-in"
+    :class="open ? 'glass-strong' : ''"
+  >
+    <div
+      class="absolute inset-0 -z-10 bg-surface/80"
+      x-show="open"
+      x-cloak
+      x-transition.opacity.duration.250ms
+    >
+    </div>
+    <Button
+      variant="ghost"
+      class="h-12 w-full justify-between rounded-3xl px-4 text-sm font-normal text-foreground"
+      loadingExpr="false"
+      aria-haspopup="listbox"
+      ariaLabel={ariaLabel}
+      :aria-expanded="open"
+      @click="open = !open"
+    >
+      <span
+        slot="iconBefore"
+        x-text={`labels[${model}]`}
       >
-        {placeholder}
-      </option>
-    )
-  }
-  {
-    options.map((option) => (
-      <option value={option.value}>{option.label}</option>
-    ))
-  }
-</select>
+      </span>
+      <ChevronDownIcon
+        slot="iconAfter"
+        class="size-4 transition-transform duration-250 ease-in"
+        :class="open ? 'rotate-180' : ''"
+        aria-hidden="true"
+      />
+    </Button>
+    <div
+      role="listbox"
+      aria-label={ariaLabel}
+      class="max-h-[60dvh] overflow-y-auto"
+      x-show="open"
+      x-cloak
+      x-collapse.duration.250ms
+    >
+      <div
+        class="space-y-1 p-2 pt-0"
+        x-show="open"
+        x-cloak
+        x-transition.delay.150ms
+      >
+        {
+          items.map((item) => (
+            <button
+              type="button"
+              role="option"
+              class="flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
+              x-bind:class={item.pickedClass}
+              x-bind:aria-selected={item.picked}
+              x-on:click={item.pick}
+            >
+              {item.label}
+              <CheckIcon
+                class="size-4 text-accent"
+                x-show={item.picked}
+                x-cloak
+                aria-hidden="true"
+              />
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</div>
