@@ -1,42 +1,11 @@
 ---
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
-import StatCard from "@components/ui/StatCard.astro";
-import StatCardSkeleton from "@components/ui/StatCardSkeleton.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Toggle from "@components/layout/games/setup/Toggle.astro";
 
-const statCards: readonly {
-  label: string;
-  key: string;
-  hintKey?: string;
-  full?: boolean;
-}[] = [
-  { label: "Favorite game", key: "favoriteGameTypeKey", full: true },
-  {
-    label: "Play streak",
-    key: "currentPlayStreakDays",
-    hintKey: "longestStreakHint",
-    full: true,
-  },
-  { label: "Games played", key: "totalGamesPlayed" },
-  { label: "Total play time", key: "totalPlayTimeSeconds" },
-  { label: "Darts thrown", key: "totalDartsThrown" },
-  { label: "100+", key: "hundredPlusCount" },
-  { label: "120+", key: "oneTwentyPlusCount" },
-  { label: "140+", key: "oneFortyPlusCount" },
-  { label: "180s", key: "oneEightiesCount" },
-  { label: "Median visit", key: "medianVisitScore" },
-  { label: "Highest game avg", key: "highestGameAverage" },
-  { label: "First-9 average", key: "firstNineCareerAverage" },
-  { label: "Scoring average", key: "scoringAverageExcludingDoubles" },
-  { label: "Best leg", key: "bestLegDarts" },
-  { label: "Avg darts/leg", key: "averageDartsPerLeg" },
-  { label: "Checkout %", key: "checkoutPercentage" },
-  {
-    label: "Highest checkout",
-    key: "highestCheckoutValue",
-    hintKey: "highestCheckoutHint",
-  },
+const tabOptions = [
+  { value: "games", label: "Games" },
+  { value: "routines", label: "Routines" },
 ];
 ---
 
@@ -44,41 +13,30 @@ const statCards: readonly {
   <div class="space-y-4 p-4">
     <h1 class="text-xl font-semibold text-foreground">Statistics</h1>
 
-    <ErrorAlert
-      showExpr="$store.stats.error"
-      textExpr="$store.stats.error"
-    />
-
     <div
-      class="grid grid-cols-2 gap-3"
-      x-show="$store.stats.loading"
-      x-cloak
+      class="space-y-4"
+      x-data="{ tab: 'games' }"
     >
-      {
-        statCards.map((row) => (
-          <StatCardSkeleton
-            label={row.label}
-            class={row.full ? "col-span-2" : undefined}
-          />
-        ))
-      }
-    </div>
-
-    <div
-      class="grid grid-cols-2 gap-3"
-      x-show="!$store.stats.loading"
-      x-cloak
-    >
-      {
-        statCards.map((row) => (
-          <StatCard
-            label={row.label}
-            valueExpr={`$store.stats.${row.key}`}
-            hintExpr={row.hintKey ? `$store.stats.${row.hintKey}` : undefined}
-            class={row.full ? "col-span-2" : undefined}
-          />
-        ))
-      }
+      <Toggle
+        orientation="horizontal"
+        options={tabOptions}
+        x-model="tab"
+        class="w-full"
+      />
+      <p
+        class="text-sm text-muted-foreground"
+        x-show="tab === 'games'"
+        x-cloak
+      >
+        Games statistics coming soon.
+      </p>
+      <p
+        class="text-sm text-muted-foreground"
+        x-show="tab === 'routines'"
+        x-cloak
+      >
+        Routines statistics coming soon.
+      </p>
     </div>
   </div>
 </AppLayout>
