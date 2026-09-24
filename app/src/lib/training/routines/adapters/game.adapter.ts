@@ -4,6 +4,7 @@ import {
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
+  summariseAroundTheClock,
 } from "@modules/training/routines/routine-summary.module";
 import { gameStep } from "../game-step.data";
 import type { StepAdapter } from "./interfaces";
@@ -15,6 +16,7 @@ import type {
   TuodSeatResult,
   ScoreTrainingSeatResult,
   OneTwentyOneSeatResult,
+  AroundTheClockSeatResult,
   RulesetVersionKey,
 } from "@lib/types";
 
@@ -48,6 +50,13 @@ export function summariseOneTwentyOneStep(
 ): RoutineStepSummary | null {
   const seat = finishedSeat(ctx) as OneTwentyOneSeatResult | undefined;
   return seat ? summariseOneTwentyOne(seat) : null;
+}
+
+export function summariseAroundTheClockStep(
+  ctx: RoutinePlayContext,
+): RoutineStepSummary | null {
+  const seat = finishedSeat(ctx) as AroundTheClockSeatResult | undefined;
+  return seat ? summariseAroundTheClock(seat) : null;
 }
 
 /**

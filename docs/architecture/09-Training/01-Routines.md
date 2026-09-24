@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-20
+updated: 2026-09-24
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -578,7 +578,7 @@ A game is routine-eligible only when all of the following hold at once:
 - its ruleset version declares both `ANALYTICS` and `VISUAL_BOARD` in `RULESET_CAPABILITIES` (§13);
 - the ruleset version key is listed in **both** `ROUTINE_GAME_STEPS` (server) and `STEP_ADAPTERS` (client).
 
-Currently eligible: `TUOD_V1`, `SCORE_TRAINING_V1`, `121_V2`. `121_V1` (TARGET-only, no timed mode) is not eligible. A template pins exactly one eligible ruleset version; the pin is copied onto the session's configuration snapshot at Training start, the same as every other template value (§18) — it is never resolved independently on the session.
+Currently eligible: `TUOD_V1`, `SCORE_TRAINING_V1`, `121_V2`, `AROUND_THE_CLOCK_V2` (2026-09-24, D360). `121_V1` (TARGET-only, no timed mode) is not eligible. A template pins exactly one eligible ruleset version; the pin is copied onto the session's configuration snapshot at Training start, the same as every other template value (§18) — it is never resolved independently on the session.
 
 ---
 
@@ -861,6 +861,8 @@ game:
 The exercise engine orchestrates the exercise while delegating game mechanics to the 501 `GameEngine`.
 
 **Implemented (seed `0022`; 2026-09-20):** three GAME templates are seeded, each pinning one routine-eligible ruleset version (§11) — Finishing, pinned to `TUOD_V1` (seed `0021`); Score Training (timed), pinned to `SCORE_TRAINING_V1`; and 121 (timed), pinned to game type `ONE_TWENTY_ONE`'s `121_V2`. See §11 for the eligibility rule these three satisfy and `05-Database/06-Spec/02-Template-Layer.md` for the schema.
+
+**Implemented (seed `0028`; 2026-09-24):** three more GAME templates pin `AROUND_THE_CLOCK_V2` — Around the Clock 1, 2 and 3 darts: outer single only, low → high, the matching Intermediate/Hard/Pro difficulty, 10 minutes by default (the step's minutes replace it). The step reuses the standalone play surface (`app/src/components/layout/games/interfaces/AroundTheClock.astro`) and summarises laps, target reached and accuracy.
 
 ---
 

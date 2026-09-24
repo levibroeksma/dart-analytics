@@ -6,11 +6,13 @@ import {
 } from "@services/routines/game-step";
 import { RULESET_CAPABILITIES } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "@services/rulesets/registry";
+import { AroundTheClockV2Config } from "@lib/types";
 
 describe("routine game steps", () => {
   it("lists exactly the timed-mode games", () => {
     expect(Object.keys(ROUTINE_GAME_STEPS).sort()).toEqual([
       "121_V2",
+      "AROUND_THE_CLOCK_V2",
       "SCORE_TRAINING_V1",
       "TUOD_V1",
     ]);
@@ -44,6 +46,17 @@ describe("routine game steps", () => {
     const ott: Record<string, unknown> = { duration_type: "TARGET" };
     ROUTINE_GAME_STEPS["121_V2"].applyStepDuration(ott, 12);
     expect(ott).toEqual({ duration_type: "MINUTES", duration_value: 12 });
+    const atc: Record<string, unknown> = {
+      path_direction: "LOW_TO_HIGH",
+      odds_first: false,
+      segment_rule: "ANY",
+      difficulty: "EASY",
+      duration_type: "UNTIMED",
+      duration_value: null,
+    };
+    ROUTINE_GAME_STEPS.AROUND_THE_CLOCK_V2.applyStepDuration(atc, 8);
+    expect(AroundTheClockV2Config.safeParse(atc).success).toBe(true);
+    expect(atc).toMatchObject({ duration_type: "MINUTES", duration_value: 8 });
   });
 
   it("bounds come from each game's own duration helper, and agree across all three (the routine builder's GAME-step hint is one literal, '3-30 min', for all of them)", () => {
@@ -56,6 +69,10 @@ describe("routine game steps", () => {
       max: 30,
     });
     expect(ROUTINE_GAME_STEPS["121_V2"].minuteBounds).toEqual({
+      min: 3,
+      max: 30,
+    });
+    expect(ROUTINE_GAME_STEPS.AROUND_THE_CLOCK_V2.minuteBounds).toEqual({
       min: 3,
       max: 30,
     });

@@ -10,6 +10,7 @@ import ScoreThresholdPanel from "@components/layout/training/exercises/ScoreThre
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
+import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -226,6 +227,40 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
           class="p-4 text-center"
         >
           <p class="text-foreground">Saving your 121 session…</p>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="!loading && adapter?.panel === 'around-the-clock' && game">
+      <div
+        x-data="game"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <AroundTheClock
+          x-show="!finished"
+          x-cloak
+        />
+        <div
+          x-show="finished && completionStatus === 'failed'"
+          x-cloak
+          class="p-4"
+        >
+          <ErrorAlert
+            textExpr="completionError"
+            alwaysVisible
+          />
+          <Button
+            class="mt-2"
+            @click="uploadAndCompleteSession()"
+            title="Retry"
+          />
+        </div>
+        <div
+          x-show="finished && completionStatus !== 'failed'"
+          x-cloak
+          class="p-4 text-center"
+        >
+          <p class="text-foreground">Saving your Around the Clock session…</p>
         </div>
       </div>
     </template>

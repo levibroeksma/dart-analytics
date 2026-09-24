@@ -8,6 +8,7 @@ import {
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
+  summariseAroundTheClock,
 } from "@modules/training/routines/routine-summary.module";
 import type {
   EngineFacts,
@@ -21,6 +22,7 @@ import type {
   TuodSeatResult,
   ScoreTrainingSeatResult,
   OneTwentyOneSeatResult,
+  AroundTheClockSeatResult,
 } from "@lib/types";
 
 function dart(
@@ -234,6 +236,47 @@ describe("summariseOneTwentyOne", () => {
       label: "Checkout %",
       value: "—",
     });
+  });
+});
+
+describe("summariseAroundTheClock", () => {
+  it("reports laps, the target reached and accuracy", () => {
+    const seat: AroundTheClockSeatResult = {
+      participantRef: "pt1",
+      sideKey: "A",
+      turns: 12,
+      accuracy: "41.67%",
+      totalDarts: 36,
+      laps: 1,
+      targetAtEnd: "7",
+    };
+
+    expect(summariseAroundTheClock(seat)).toEqual({
+      stepKey: "GAME:AROUND_THE_CLOCK_V2",
+      label: "Around the Clock",
+      rows: [
+        { label: "Laps", value: "1" },
+        { label: "Reached", value: "7" },
+        { label: "Accuracy", value: "41.67%" },
+      ],
+    });
+  });
+
+  it("falls back to an em dash when the run was not timed", () => {
+    const seat: AroundTheClockSeatResult = {
+      participantRef: "pt1",
+      sideKey: "A",
+      turns: 7,
+      accuracy: "100.00%",
+      totalDarts: 21,
+      laps: null,
+      targetAtEnd: null,
+    };
+
+    expect(summariseAroundTheClock(seat).rows.slice(0, 2)).toEqual([
+      { label: "Laps", value: "—" },
+      { label: "Reached", value: "—" },
+    ]);
   });
 });
 

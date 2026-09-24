@@ -1,6 +1,7 @@
 import { tuodDurationBounds } from "@lib/game/tuod-duration";
 import { scoreTrainingDurationBounds } from "@lib/game/score-training-duration";
 import { oneTwentyOneDurationBounds } from "@lib/game/one-twenty-one-duration";
+import { aroundTheClockDurationBounds } from "@lib/game/around-the-clock-duration";
 import type { RoutineGameStepHook } from "./types";
 
 /** The capture pair every routine step records under (01-Routines.md §13). */
@@ -40,6 +41,11 @@ export const ROUTINE_GAME_STEPS: Record<string, RoutineGameStepHook> = {
     rulesetVersionKey: "121_V2",
     applyStepDuration: minutesInto,
     minuteBounds: oneTwentyOneDurationBounds("MINUTES"),
+  },
+  AROUND_THE_CLOCK_V2: {
+    rulesetVersionKey: "AROUND_THE_CLOCK_V2",
+    applyStepDuration: minutesInto,
+    minuteBounds: aroundTheClockDurationBounds(),
   },
 };
 

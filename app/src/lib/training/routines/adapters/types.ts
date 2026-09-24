@@ -23,4 +23,5 @@ export type StepPanel =
   | "score-threshold"
   | "tuod"
   | "score-training"
-  | "one-twenty-one";
+  | "one-twenty-one"
+  | "around-the-clock";
