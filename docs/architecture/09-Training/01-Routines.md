@@ -175,6 +175,7 @@ DOUBLE_PATTERN
 TARGET_SCORING
 SWITCHING_TARGET_SCORING
 SCORE_THRESHOLD
+BULLSEYE_CHECKOUT
 GAME
 CHECKOUT
 ACCURACY
@@ -843,6 +844,22 @@ threshold: 65
 Three darts, free aim: a visit beats when its board total is 65 or more. How many times can you beat it before the time runs out? Rules: `docs/game-rules/training/exercises/score-threshold.md`.
 
 **Implemented** (`SCORE_THRESHOLD_V1`, `app/src/modules/training/exercises/score-threshold.engine.module.ts`, seed `0025`): `threshold` is the whole configuration and V1 accepts only `65`. Darts carry no intended target; `score` is the board score and the visit total its sum. A visit is judged after its third dart; one unfinished at expiry is not judged. State carries beats, judged visits, the last and running visit totals. Capture pair and upload path match Target Scoring. Routine step only in V1 (D358).
+
+---
+
+## Bullseye Checkouts (Bullseye Checkout)
+
+Configuration:
+
+```text
+duration: 10m
+
+startScore: 81
+```
+
+Every visit starts at 81: set up 50 with two darts, then finish on the bullseye with the third. How many checkouts before the time runs out? Rules: `docs/game-rules/training/exercises/bullseye-checkout.md`.
+
+**Implemented** (`BULLSEYE_CHECKOUT_V1`, `app/src/modules/training/exercises/bullseye-checkout.engine.module.ts`, seed `0029`): `startScore` is the whole configuration and V1 accepts only `81`. Darts 1–2 carry no intended target; dart 3 always carries `25`/`INNER_BULL`. `score` is the board score. A visit is judged after its third dart and checks out when darts 1–2 total `startScore − 50` and dart 3 hits the inner bull; one unfinished at expiry is not judged. State carries checkouts, judged visits, the last result and what is left in the open visit. Capture pair and upload path match 65 or More. Routine step only in V1 (D361).
 
 ---
 

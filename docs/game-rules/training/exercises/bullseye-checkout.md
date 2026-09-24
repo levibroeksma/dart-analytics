@@ -1,6 +1,6 @@
 # Bullseye Checkouts
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-09-24)
 Entry points: routine step
 
 ## Features
