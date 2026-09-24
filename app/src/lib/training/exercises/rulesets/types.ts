@@ -13,7 +13,8 @@ export type ExerciseRulesetVersionKey =
   | "DOUBLE_PATTERN_V1"
   | "TARGET_SCORING_V1"
   | "SWITCHING_TARGET_SCORING_V1"
-  | "SCORE_THRESHOLD_V1";
+  | "SCORE_THRESHOLD_V1"
+  | "BULLSEYE_CHECKOUT_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -187,6 +188,24 @@ export const ScoreThresholdV1Config = z
 
 export type ScoreThresholdConfigData = z.infer<typeof ScoreThresholdV1Config>;
 
+/**
+ * Bullseye Checkout v1 ("Bullseye Checkouts"): every visit starts at
+ * `startScore`; a checkout is a setup of `startScore − 50` on darts 1–2 and
+ * the inner bull on dart 3
+ * (`docs/game-rules/training/exercises/bullseye-checkout.md`). V1 accepts
+ * 81 only; the start score still lives here so a later ruleset widens the
+ * number without a new exercise type.
+ */
+export const BullseyeCheckoutV1Config = z
+  .object({
+    startScore: z.literal(81),
+  })
+  .strict();
+
+export type BullseyeCheckoutConfigData = z.infer<
+  typeof BullseyeCheckoutV1Config
+>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -197,4 +216,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   TARGET_SCORING_V1: TargetScoringV1Config,
   SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
   SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
+  BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
 };
