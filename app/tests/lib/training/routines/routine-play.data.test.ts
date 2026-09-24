@@ -1459,6 +1459,156 @@ const GAME_STEP = {
   },
 };
 
+const BULLSEYE_CHECKOUT_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "BULLSEYE_CHECKOUT",
+  exerciseRulesetVersionKey: "BULLSEYE_CHECKOUT_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { startScore: 81 },
+};
+
+describe("routinePlay — Bullseye Checkouts", () => {
+  const S19 = {
+    hitTargetNumber: 19,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const S12 = {
+    hitTargetNumber: 12,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const BULL = {
+    hitTargetNumber: 25,
+    hitZoneKey: "INNER_BULL" as const,
+    locationX: 0,
+    locationY: 0,
+  };
+  const OUTER = {
+    hitTargetNumber: 25,
+    hitZoneKey: "OUTER_BULL" as const,
+    locationX: 0,
+    locationY: 10,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [BULLSEYE_CHECKOUT_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "BULLSEYE_CHECKOUT",
+      configuration: BULLSEYE_CHECKOUT_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.bullseyeCheckoutEngine).not.toBeNull();
+    expect(store.bullseyeCheckoutCheckouts()).toBe(0);
+    expect(store.bullseyeCheckoutVisits()).toBe(0);
+    expect(store.bullseyeCheckoutLeft()).toBe(81);
+    expect(store.bullseyeCheckoutLastResult()).toBe("—");
+    expect(store.bullseyeCheckoutRate()).toBe("—");
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow the setup and each judged visit", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordBullseyeCheckoutDart(S19);
+    store.recordBullseyeCheckoutDart(S12);
+    expect(store.bullseyeCheckoutLeft()).toBe(50);
+    expect(store.bullseyeCheckoutVisits()).toBe(0);
+
+    store.recordBullseyeCheckoutDart(BULL);
+    expect(store.bullseyeCheckoutCheckouts()).toBe(1);
+    expect(store.bullseyeCheckoutVisits()).toBe(1);
+    expect(store.bullseyeCheckoutLastResult()).toBe("✓");
+    expect(store.bullseyeCheckoutLeft()).toBe(81);
+    expect(store.bullseyeCheckoutRate()).toBe("100.00%");
+
+    [S19, S12, OUTER].forEach((d) => store.recordBullseyeCheckoutDart(d));
+    expect(store.bullseyeCheckoutLastResult()).toBe("✗");
+    expect(store.dartsThrown()).toBe(6);
+  });
+
+  it("previewSegments() marks setup darts on the board as hit and dart 3 hit only on the bullseye", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordBullseyeCheckoutDart(S19);
+    store.recordBullseyeCheckoutDart(MISS);
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+
+    store.recordBullseyeCheckoutDart(OUTER);
+    expect(store.previewSegments()[2]).toEqual({ status: "miss" });
+  });
+
+  it("previewSegments() marks the bullseye on dart 3 as hit", async () => {
+    const store = makeStore();
+    await store.init();
+
+    [S19, S12, BULL].forEach((d) => store.recordBullseyeCheckoutDart(d));
+
+    expect(store.previewSegments()[2]).toEqual({ status: "hit" });
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-24T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordBullseyeCheckoutDart(S19);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "BULLSEYE_CHECKOUT",
+    });
+  });
+});
+
 describe("routinePlay — Finishing", () => {
   beforeEach(() => {
     vi.clearAllMocks();

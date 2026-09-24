@@ -18,6 +18,7 @@ import type { DoublePatternEngine } from "@modules/training/exercises/double-pat
 import type { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
 import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
+import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -62,6 +63,7 @@ export type RoutinePlayContext = {
   targetScoringEngine: TargetScoringEngine | null;
   switchingTargetScoringEngine: SwitchingTargetScoringEngine | null;
   scoreThresholdEngine: ScoreThresholdEngine | null;
+  bullseyeCheckoutEngine: BullseyeCheckoutEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -124,6 +126,11 @@ export type RoutinePlayContext = {
   scoreThresholdVisitTotal(this: RoutinePlayContext): number;
   scoreThresholdLastVisitTotal(this: RoutinePlayContext): number | null;
   scoreThresholdBeatRate(this: RoutinePlayContext): string;
+  bullseyeCheckoutCheckouts(this: RoutinePlayContext): number;
+  bullseyeCheckoutVisits(this: RoutinePlayContext): number;
+  bullseyeCheckoutLeft(this: RoutinePlayContext): number;
+  bullseyeCheckoutLastResult(this: RoutinePlayContext): string;
+  bullseyeCheckoutRate(this: RoutinePlayContext): string;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -133,6 +140,7 @@ export type RoutinePlayContext = {
     | TargetScoringEngine
     | SwitchingTargetScoringEngine
     | ScoreThresholdEngine
+    | BullseyeCheckoutEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
@@ -153,6 +161,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordScoreThresholdDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordBullseyeCheckoutDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;

@@ -44,6 +44,7 @@ export type TrainingStepResolved = {
     | "TARGET_SCORING"
     | "SWITCHING_TARGET_SCORING"
     | "SCORE_THRESHOLD"
+    | "BULLSEYE_CHECKOUT"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;

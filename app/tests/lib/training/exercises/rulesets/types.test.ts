@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EXERCISE_RULESET_CONFIGS,
+  BullseyeCheckoutV1Config,
   ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
@@ -184,5 +185,35 @@ describe("WarmUpV1Config", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe("BullseyeCheckoutV1Config", () => {
+  it("accepts the 81 start score", () => {
+    expect(BullseyeCheckoutV1Config.safeParse({ startScore: 81 }).success).toBe(
+      true,
+    );
+  });
+
+  it("rejects any other start score — V1 is 81 only", () => {
+    for (const startScore of [61, 80, 82, 100, "81"]) {
+      expect(BullseyeCheckoutV1Config.safeParse({ startScore }).success).toBe(
+        false,
+      );
+    }
+  });
+
+  it("rejects a missing start score and an unknown key", () => {
+    expect(BullseyeCheckoutV1Config.safeParse({}).success).toBe(false);
+    expect(
+      BullseyeCheckoutV1Config.safeParse({ startScore: 81, threshold: 65 })
+        .success,
+    ).toBe(false);
+  });
+
+  it("is registered under BULLSEYE_CHECKOUT_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.BULLSEYE_CHECKOUT_V1).toBe(
+      BullseyeCheckoutV1Config,
+    );
   });
 });

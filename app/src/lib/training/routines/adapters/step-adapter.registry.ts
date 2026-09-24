@@ -8,6 +8,7 @@ import { doublePatternAdapter } from "./double-pattern.adapter";
 import { targetScoringAdapter } from "./target-scoring.adapter";
 import { switchingTargetScoringAdapter } from "./switching-target-scoring.adapter";
 import { scoreThresholdAdapter } from "./score-threshold.adapter";
+import { bullseyeCheckoutAdapter } from "./bullseye-checkout.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -32,6 +33,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   TARGET_SCORING: targetScoringAdapter,
   SWITCHING_TARGET_SCORING: switchingTargetScoringAdapter,
   SCORE_THRESHOLD: scoreThresholdAdapter,
+  BULLSEYE_CHECKOUT: bullseyeCheckoutAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",

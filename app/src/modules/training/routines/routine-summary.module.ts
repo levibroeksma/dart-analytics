@@ -7,6 +7,7 @@ import type {
   TargetScoringState,
   SwitchingTargetScoringState,
   ScoreThresholdState,
+  BullseyeCheckoutState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -138,6 +139,32 @@ export function summariseScoreThreshold(
           state.visits === 0
             ? NO_VALUE
             : accuracyDisplay(state.beats, state.visits),
+      },
+      { label: "Darts", value: String(state.dartsThrown) },
+    ],
+  };
+}
+
+/**
+ * Bullseye Checkouts' result is how many visits checked out 81 on the bull,
+ * out of how many were judged. An unfinished visit at expiry is not judged,
+ * so its darts count toward Darts but not Visits.
+ */
+export function summariseBullseyeCheckout(
+  state: BullseyeCheckoutState,
+): RoutineStepSummary {
+  return {
+    stepKey: "BULLSEYE_CHECKOUT",
+    label: "Bullseye Checkouts",
+    rows: [
+      { label: "Checkouts", value: String(state.checkouts) },
+      { label: "Visits", value: String(state.visits) },
+      {
+        label: "Checkout rate",
+        value:
+          state.visits === 0
+            ? NO_VALUE
+            : accuracyDisplay(state.checkouts, state.visits),
       },
       { label: "Darts", value: String(state.dartsThrown) },
     ],

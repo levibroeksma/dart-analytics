@@ -339,3 +339,10 @@ Decision: `AROUND_THE_CLOCK_V2` (seed `0027`) adds path direction, odds first, o
 Reason: V1's empty `.strict()` schema is live against real sessions, so the variants cannot widen it (D243/D245/D247). Keeping one engine class avoids a second fold that would drift from V1's rota and completion rules. Keypad capture records an unbanded `SINGLE`, so outer single only needs board positions.
 Consequences: a DartBot strategy for V2 or a timed 1v1 is a later change, not a config toggle. The timed run is the hook PR2 uses to make V2 routine-eligible. Rules: `docs/game-rules/rulesets/around-the-clock.md`.
 Supersedes: none.
+
+### D361 — Bullseye Checkouts is its own exercise type, start score in config but locked to 81
+Status: Accepted · Date: 2026-09-24
+Decision: `BULLSEYE_CHECKOUT` / `BULLSEYE_CHECKOUT_V1` is a new exercise type (seed `0029`, template "Bullseye Checkouts") with its own `DartExerciseEngine` (`bullseye-checkout.engine.module.ts`). Each three-dart visit starts at `startScore`; darts 1–2 carry no intent, dart 3 always carries `25`/`INNER_BULL`. A visit is judged once its third dart lands and checks out when darts 1–2 total `startScore − 50` and dart 3 hits the inner bull; the outer bull never finishes. A visit unfinished at timer expiry is not judged. Configuration is `{ startScore }`, which V1 accepts only as `81`. Routine step only.
+Reason: the rules (`docs/game-rules/training/exercises/bullseye-checkout.md`) judge a visit on its setup total and its last dart's ring together — neither `SCORE_THRESHOLD` (total only) nor the target types (per dart) do that. A separate engine keeps the shipped 65 or More engine untouched.
+Consequences: another bull finish is widening `BullseyeCheckoutV1Config` plus a template, with no engine, seed-type or schema change. Board preview treats setup darts as 65 or More does and dart 3 as a hit only on the bullseye. Standalone play stays deferred (V2+).
+Supersedes: none.

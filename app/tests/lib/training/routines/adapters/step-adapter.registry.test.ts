@@ -18,6 +18,7 @@ describe("step adapter registry", () => {
         "TARGET_SCORING",
         "SWITCHING_TARGET_SCORING",
         "SCORE_THRESHOLD",
+        "BULLSEYE_CHECKOUT",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -26,6 +27,12 @@ describe("step adapter registry", () => {
   it("resolves the 65 or More step", () => {
     expect(resolveStepAdapter("SCORE_THRESHOLD")?.headerLabel).toBe(
       "65 or more",
+    );
+  });
+
+  it("resolves the Bullseye Checkouts step", () => {
+    expect(resolveStepAdapter("BULLSEYE_CHECKOUT")?.headerLabel).toBe(
+      "Bullseye checkouts",
     );
   });
 
