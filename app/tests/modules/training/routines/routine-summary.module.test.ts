@@ -5,6 +5,7 @@ import {
   summariseTargetScoring,
   summariseSwitchingTargetScoring,
   summariseScoreThreshold,
+  summariseBullseyeCheckout,
   summariseTuod,
   summariseScoreTraining,
   summariseOneTwentyOne,
@@ -17,6 +18,7 @@ import type {
   TargetScoringState,
   SwitchingTargetScoringState,
   ScoreThresholdState,
+  BullseyeCheckoutState,
 } from "@modules/types";
 import type {
   TuodSeatResult,
@@ -382,5 +384,40 @@ describe("summariseScoreThreshold", () => {
       visits: 0,
     });
     expect(summary.rows[2]).toEqual({ label: "Beat rate", value: "—" });
+  });
+});
+
+describe("summariseBullseyeCheckout", () => {
+  const STATE: BullseyeCheckoutState = {
+    startScore: 81,
+    checkouts: 3,
+    visits: 8,
+    lastVisitCheckout: false,
+    currentLeft: 62,
+    dartsInVisit: 1,
+    dartsThrown: 25,
+    status: "COMPLETE",
+  };
+
+  it("reports checkouts, visits, checkout rate and darts", () => {
+    expect(summariseBullseyeCheckout(STATE)).toEqual({
+      stepKey: "BULLSEYE_CHECKOUT",
+      label: "Bullseye Checkouts",
+      rows: [
+        { label: "Checkouts", value: "3" },
+        { label: "Visits", value: "8" },
+        { label: "Checkout rate", value: "37.50%" },
+        { label: "Darts", value: "25" },
+      ],
+    });
+  });
+
+  it("shows no rate before any visit is judged", () => {
+    const rows = summariseBullseyeCheckout({
+      ...STATE,
+      checkouts: 0,
+      visits: 0,
+    }).rows;
+    expect(rows[2]).toEqual({ label: "Checkout rate", value: "—" });
   });
 });
