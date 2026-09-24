@@ -44,6 +44,7 @@ import {
 import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
+import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
 
@@ -93,6 +94,7 @@ export function routinePlay() {
     switchingTargetScoringEngine: null,
     scoreThresholdEngine: null,
     bullseyeCheckoutEngine: null,
+    bullUpEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -123,6 +125,7 @@ export function routinePlay() {
           self.recordScoreThresholdDart(observation);
         else if (self.bullseyeCheckoutEngine)
           self.recordBullseyeCheckoutDart(observation);
+        else if (self.bullUpEngine) self.recordBullUpDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
@@ -136,6 +139,7 @@ export function routinePlay() {
       | SwitchingTargetScoringEngine
       | ScoreThresholdEngine
       | BullseyeCheckoutEngine
+      | BullUpEngine
       | null {
       return (
         this.switchingEngine ??
@@ -144,6 +148,7 @@ export function routinePlay() {
         this.switchingTargetScoringEngine ??
         this.scoreThresholdEngine ??
         this.bullseyeCheckoutEngine ??
+        this.bullUpEngine ??
         null
       );
     },
@@ -160,25 +165,29 @@ export function routinePlay() {
      * Scoring exercises defer to their shared ring rule (a double is a miss).
      * 65 or More has no target: a dart on the board is a hit, off it a miss.
      * Bullseye Checkouts: setup darts as 65 or More; dart 3 (the one aimed at
-     * the bull) is a hit only on the bullseye.
+     * the bull) is a hit only on the bullseye. Bull Up Practice: either bull
+     * is a hit.
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
       const requireDouble = this.doublePatternEngine !== null;
-      const isHit = this.bullseyeCheckoutEngine
+      const isHit = this.bullUpEngine
         ? (dart: DartFact) =>
-            dart.intendedZoneKey === "INNER_BULL"
-              ? dart.hitZoneKey === "INNER_BULL"
-              : dart.hitTargetNumber !== null
-        : this.scoreThresholdEngine
-          ? (dart: DartFact) => dart.hitTargetNumber !== null
-          : this.targetScoringEngine || this.switchingTargetScoringEngine
-            ? (dart: DartFact) =>
-                dart.intendedTargetNumber !== null &&
-                targetScoringPoints(dart.intendedTargetNumber, dart) !== null
-            : (dart: DartFact) =>
-                dart.hitTargetNumber === dart.intendedTargetNumber &&
-                (!requireDouble || dart.hitZoneKey === "DOUBLE");
+            dart.hitZoneKey === "INNER_BULL" || dart.hitZoneKey === "OUTER_BULL"
+        : this.bullseyeCheckoutEngine
+          ? (dart: DartFact) =>
+              dart.intendedZoneKey === "INNER_BULL"
+                ? dart.hitZoneKey === "INNER_BULL"
+                : dart.hitTargetNumber !== null
+          : this.scoreThresholdEngine
+            ? (dart: DartFact) => dart.hitTargetNumber !== null
+            : this.targetScoringEngine || this.switchingTargetScoringEngine
+              ? (dart: DartFact) =>
+                  dart.intendedTargetNumber !== null &&
+                  targetScoringPoints(dart.intendedTargetNumber, dart) !== null
+              : (dart: DartFact) =>
+                  dart.hitTargetNumber === dart.intendedTargetNumber &&
+                  (!requireDouble || dart.hitZoneKey === "DOUBLE");
       return playPreviewSegments(turns, null, (dart) =>
         isHit(dart) ? "hit" : "miss",
       );
@@ -410,6 +419,7 @@ export function routinePlay() {
           this.switchingTargetScoringEngine?.expireTimer();
           this.scoreThresholdEngine?.expireTimer();
           this.bullseyeCheckoutEngine?.expireTimer();
+          this.bullUpEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -470,6 +480,11 @@ export function routinePlay() {
     ) {
       if (!this.bullseyeCheckoutEngine) return;
       this.bullseyeCheckoutEngine.record(observation);
+    },
+
+    recordBullUpDart(this: RoutinePlayContext, observation: DartObservation) {
+      if (!this.bullUpEngine) return;
+      this.bullUpEngine.record(observation);
     },
 
     switchingPoints(this: RoutinePlayContext): number {
@@ -571,6 +586,42 @@ export function routinePlay() {
       return !state || state.visits === 0
         ? "—"
         : accuracyDisplay(state.checkouts, state.visits);
+    },
+
+    bullUpThrows(this: RoutinePlayContext): number {
+      return this.bullUpEngine?.state().throws ?? 0;
+    },
+
+    bullUpBullseyes(this: RoutinePlayContext): number {
+      return this.bullUpEngine?.state().bullseyes ?? 0;
+    },
+
+    bullUpBulls(this: RoutinePlayContext): number {
+      return this.bullUpEngine?.state().bulls ?? 0;
+    },
+
+    bullUpLastResult(this: RoutinePlayContext): string {
+      const last = this.bullUpEngine?.state().lastTier ?? null;
+      if (last === null) return "—";
+      return last === "BULLSEYE"
+        ? "Bullseye"
+        : last === "OUTER_BULL"
+          ? "Outer bull"
+          : "Miss";
+    },
+
+    bullUpBullseyeRate(this: RoutinePlayContext): string {
+      const state = this.bullUpEngine?.state();
+      return !state || state.throws === 0
+        ? "—"
+        : accuracyDisplay(state.bullseyes, state.throws);
+    },
+
+    bullUpBullRate(this: RoutinePlayContext): string {
+      const state = this.bullUpEngine?.state();
+      return !state || state.throws === 0
+        ? "—"
+        : accuracyDisplay(state.bulls, state.throws);
     },
 
     dartsThrown(this: RoutinePlayContext): number {

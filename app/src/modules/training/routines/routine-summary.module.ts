@@ -8,6 +8,7 @@ import type {
   SwitchingTargetScoringState,
   ScoreThresholdState,
   BullseyeCheckoutState,
+  BullUpState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -167,6 +168,26 @@ export function summariseBullseyeCheckout(
             : accuracyDisplay(state.checkouts, state.visits),
       },
       { label: "Darts", value: String(state.dartsThrown) },
+    ],
+  };
+}
+
+/**
+ * Bull Up Practice's result is how often a single cold dart found the bull,
+ * split by ring. Every throw is judged on landing; none is left open.
+ */
+export function summariseBullUp(state: BullUpState): RoutineStepSummary {
+  const rate = (hits: number) =>
+    state.throws === 0 ? NO_VALUE : accuracyDisplay(hits, state.throws);
+  return {
+    stepKey: "BULL_UP",
+    label: "Bull Up Practice",
+    rows: [
+      { label: "Throws", value: String(state.throws) },
+      { label: "Bullseyes", value: String(state.bullseyes) },
+      { label: "Bulls", value: String(state.bulls) },
+      { label: "Bullseye rate", value: rate(state.bullseyes) },
+      { label: "Bull rate", value: rate(state.bulls) },
     ],
   };
 }

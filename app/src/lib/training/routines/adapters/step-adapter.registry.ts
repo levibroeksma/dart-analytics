@@ -9,6 +9,7 @@ import { targetScoringAdapter } from "./target-scoring.adapter";
 import { switchingTargetScoringAdapter } from "./switching-target-scoring.adapter";
 import { scoreThresholdAdapter } from "./score-threshold.adapter";
 import { bullseyeCheckoutAdapter } from "./bullseye-checkout.adapter";
+import { bullUpAdapter } from "./bull-up.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -34,6 +35,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   SWITCHING_TARGET_SCORING: switchingTargetScoringAdapter,
   SCORE_THRESHOLD: scoreThresholdAdapter,
   BULLSEYE_CHECKOUT: bullseyeCheckoutAdapter,
+  BULL_UP: bullUpAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",

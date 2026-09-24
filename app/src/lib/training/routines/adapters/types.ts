@@ -12,6 +12,7 @@ export type StepAdapterKey =
   | "SWITCHING_TARGET_SCORING"
   | "SCORE_THRESHOLD"
   | "BULLSEYE_CHECKOUT"
+  | "BULL_UP"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -23,6 +24,7 @@ export type StepPanel =
   | "switching-target-scoring"
   | "score-threshold"
   | "bullseye-checkout"
+  | "bull-up"
   | "tuod"
   | "score-training"
   | "one-twenty-one"

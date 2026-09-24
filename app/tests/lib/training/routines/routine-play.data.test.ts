@@ -1609,6 +1609,135 @@ describe("routinePlay — Bullseye Checkouts", () => {
   });
 });
 
+const BULL_UP_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "BULL_UP",
+  exerciseRulesetVersionKey: "BULL_UP_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 300,
+  configuration: {},
+};
+
+describe("routinePlay — Bull Up Practice", () => {
+  const S20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const BULL = {
+    hitTargetNumber: 25,
+    hitZoneKey: "INNER_BULL" as const,
+    locationX: 0,
+    locationY: 0,
+  };
+  const OUTER = {
+    hitTargetNumber: 25,
+    hitZoneKey: "OUTER_BULL" as const,
+    locationX: 0,
+    locationY: 10,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [BULL_UP_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "BULL_UP",
+      configuration: BULL_UP_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.bullUpEngine).not.toBeNull();
+    expect(store.bullUpThrows()).toBe(0);
+    expect(store.bullUpBullseyes()).toBe(0);
+    expect(store.bullUpBulls()).toBe(0);
+    expect(store.bullUpLastResult()).toBe("—");
+    expect(store.bullUpBullseyeRate()).toBe("—");
+    expect(store.bullUpBullRate()).toBe("—");
+    expect(store.stepRemainingSeconds).toBe(300);
+  });
+
+  it("the readouts follow each throw", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordBullUpDart(BULL);
+    expect(store.bullUpBullseyes()).toBe(1);
+    expect(store.bullUpBulls()).toBe(1);
+    expect(store.bullUpLastResult()).toBe("Bullseye");
+    expect(store.bullUpBullseyeRate()).toBe("100.00%");
+
+    store.recordBullUpDart(OUTER);
+    expect(store.bullUpBulls()).toBe(2);
+    expect(store.bullUpLastResult()).toBe("Outer bull");
+    expect(store.bullUpBullRate()).toBe("100.00%");
+
+    store.recordBullUpDart(S20);
+    expect(store.bullUpLastResult()).toBe("Miss");
+    expect(store.bullUpThrows()).toBe(3);
+    expect(store.bullUpBullseyeRate()).toBe("33.33%");
+    expect(store.dartsThrown()).toBe(3);
+  });
+
+  it("previewSegments() marks either bull as hit and anything else as miss", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordBullUpDart(BULL);
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+    store.recordBullUpDart(OUTER);
+    expect(store.previewSegments()[0]).toEqual({ status: "hit" });
+    store.recordBullUpDart(S20);
+    expect(store.previewSegments()[0]).toEqual({ status: "miss" });
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-24T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordBullUpDart(BULL);
+
+    await vi.advanceTimersByTimeAsync(300_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({ stepKey: "BULL_UP" });
+  });
+});
+
 describe("routinePlay — Finishing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
