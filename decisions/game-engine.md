@@ -346,3 +346,10 @@ Decision: `BULLSEYE_CHECKOUT` / `BULLSEYE_CHECKOUT_V1` is a new exercise type (s
 Reason: the rules (`docs/game-rules/training/exercises/bullseye-checkout.md`) judge a visit on its setup total and its last dart's ring together — neither `SCORE_THRESHOLD` (total only) nor the target types (per dart) do that. A separate engine keeps the shipped 65 or More engine untouched.
 Consequences: another bull finish is widening `BullseyeCheckoutV1Config` plus a template, with no engine, seed-type or schema change. Board preview treats setup darts as 65 or More does and dart 3 as a hit only on the bullseye. Standalone play stays deferred (V2+).
 Supersedes: none.
+
+### D362 — Bull Up Practice is its own exercise type with one-dart turns
+Status: Accepted · Date: 2026-09-24
+Decision: `BULL_UP` / `BULL_UP_V1` is a new exercise type (seed `0030`, template "Bull Up Practice") with its own `DartExerciseEngine` (`bull-up.engine.module.ts`). Each throw is one dart and one `turns` row, completed when written; every dart carries `25`/`INNER_BULL`. A throw is a Bullseye (inner bull), an Outer bull, or a Miss; bulls count both rings. Configuration is the empty object `{}`. Routine step only.
+Reason: the rules (`docs/game-rules/training/exercises/bull-up-practice.md`) judge a single cold dart, and every shipped exercise judges three-dart visits. Target Scoring accepts the bull as a target but builds a chain across visits, so it is not a bull-up configuration.
+Consequences: the first exercise whose turns hold one dart; `undoLastDart` removes the emptied turn, so no new turn shape is needed. Board preview marks either bull a hit. A distance-from-centre readout and standalone play stay deferred (V2+).
+Supersedes: none.
