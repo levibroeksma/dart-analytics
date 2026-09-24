@@ -1,12 +1,25 @@
 ---
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
+import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
+import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
 const tabOptions = [
   { value: "games", label: "Games" },
   { value: "routines", label: "Routines" },
 ];
+const gameOptions = GAME_CARDS.map((game) => ({
+  value: game.rulesetVersionKey,
+  label: game.title,
+}));
+const scope = JSON.stringify({
+  tab: "games",
+  game: "",
+  titles: Object.fromEntries(
+    gameOptions.map((option) => [option.value, option.label]),
+  ),
+});
 ---
 
 <AppLayout title="Statistics">
@@ -15,7 +28,7 @@ const tabOptions = [
 
     <div
       class="space-y-4"
-      x-data="{ tab: 'games' }"
+      x-data={scope}
     >
       <Toggle
         orientation="horizontal"
@@ -23,13 +36,23 @@ const tabOptions = [
         x-model="tab"
         class="w-full"
       />
-      <p
-        class="text-sm text-muted-foreground"
+      <div
+        class="space-y-4"
         x-show="tab === 'games'"
         x-cloak
       >
-        Games statistics coming soon.
-      </p>
+        <Select
+          options={gameOptions}
+          placeholder="Select a game"
+          aria-label="Game"
+          x-model="game"
+        />
+        <p
+          class="text-sm text-muted-foreground"
+          x-text="`${titles[game] ?? 'Games'} statistics coming soon.`"
+        >
+        </p>
+      </div>
       <p
         class="text-sm text-muted-foreground"
         x-show="tab === 'routines'"
