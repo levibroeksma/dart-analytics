@@ -17,6 +17,8 @@ updated: 2026-09-24
 
 # Version History
 
+> **Version:** 1.128.0 (2026-09-24 — dropdown-smooth-transition: `components/forms/Select.astro` open/close now animates the panel's own height via a `grid-template-rows` 0fr↔1fr transition (options stay laid out, `inert` while closed, fade in after 150ms) instead of `x-collapse` over a nested delayed `x-show`, which measured the list while hidden and snapped open; `glass-strong` and the dark open backing removed — the panel stays plain `glass`. No decision.)
+
 > **Version:** 1.127.0 (2026-09-24 — custom-dropdown-glass: `components/forms/Select.astro` rewritten from native `<select>` to a custom glass dropdown — full-width 48px glass bar that grows downward into an option panel (`x-collapse`, ExpandingModal-style timing), `model` prop names the caller's value; `placeholder` prop removed. Statistics game picker seeds the first game. Component/File Inventory rows updated. No decision.)
 
 > **Version:** 1.126.0 (2026-09-24 — statistics-game-select: new shared `components/forms/Select.astro` (native `<select>`, `Input.astro` styling, `x-model` via spread props). Statistics Games tab shows a game picker under the tabs, fed from `GAME_CARDS` titles; the placeholder line reads `<game> statistics coming soon.` for the picked game. Component/File Inventory rows added; `ScheduleDayRow` inventory note updated, move-over filed as #593. No decision.)

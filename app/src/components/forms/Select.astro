@@ -2,8 +2,12 @@
 /**
  * Glass dropdown: a full-width 48px glass bar showing the picked label that
  * grows downward into a panel listing every option, and collapses back on
- * pick, outside click or Escape. The open panel overlays the content below
- * it on a dark backing so that content cannot read through the glass.
+ * pick, outside click or Escape. The open panel overlays the content below.
+ *
+ * Options stay laid out while closed: a `grid-template-rows` transition
+ * (`0fr` ↔ `1fr`) animates the panel's own height, so nothing is measured or
+ * reflowed mid-animation; options fade in once the panel has mostly grown,
+ * and are `inert` while closed.
  *
  * The value lives in the caller's scope — `model` names a writable Alpine
  * expression there; the caller seeds it (no placeholder state).
@@ -66,16 +70,9 @@ const wrapperClass = cn("relative h-12", classNameProp);
   @keydown.escape.window="open = false"
 >
   <div
-    class="glass absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl transition-all duration-250 ease-in"
-    :class="open ? 'glass-strong' : ''"
+    class="glass group absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl"
+    :data-open="open"
   >
-    <div
-      class="absolute inset-0 -z-10 bg-surface/80"
-      x-show="open"
-      x-cloak
-      x-transition.opacity.duration.250ms
-    >
-    </div>
     <Button
       variant="ghost"
       class="h-12 w-full justify-between rounded-3xl px-4 text-sm font-normal text-foreground"
@@ -92,45 +89,43 @@ const wrapperClass = cn("relative h-12", classNameProp);
       </span>
       <ChevronDownIcon
         slot="iconAfter"
-        class="size-4 transition-transform duration-250 ease-in"
-        :class="open ? 'rotate-180' : ''"
+        class="size-4 transition-transform duration-250 ease-in group-data-open:rotate-180"
         aria-hidden="true"
       />
     </Button>
     <div
-      role="listbox"
-      aria-label={ariaLabel}
-      class="max-h-[60dvh] overflow-y-auto"
-      x-show="open"
-      x-cloak
-      x-collapse.duration.250ms
+      class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-250 ease-in group-data-open:grid-rows-[1fr]"
     >
       <div
-        class="space-y-1 p-2 pt-0"
-        x-show="open"
-        x-cloak
-        x-transition.delay.150ms
+        role="listbox"
+        aria-label={ariaLabel}
+        class="min-h-0 overflow-hidden"
+        :inert="!open"
       >
-        {
-          items.map((item) => (
-            <button
-              type="button"
-              role="option"
-              class="flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
-              x-bind:class={item.pickedClass}
-              x-bind:aria-selected={item.picked}
-              x-on:click={item.pick}
-            >
-              {item.label}
-              <CheckIcon
-                class="size-4 text-accent"
-                x-show={item.picked}
-                x-cloak
-                aria-hidden="true"
-              />
-            </button>
-          ))
-        }
+        <div
+          class="max-h-[60dvh] space-y-1 overflow-y-auto p-2 pt-0 opacity-0 transition-opacity duration-75 group-data-open:opacity-100 group-data-open:delay-150 group-data-open:duration-150"
+        >
+          {
+            items.map((item) => (
+              <button
+                type="button"
+                role="option"
+                class="flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
+                x-bind:class={item.pickedClass}
+                x-bind:aria-selected={item.picked}
+                x-on:click={item.pick}
+              >
+                {item.label}
+                <CheckIcon
+                  class="size-4 text-accent"
+                  x-show={item.picked}
+                  x-cloak
+                  aria-hidden="true"
+                />
+              </button>
+            ))
+          }
+        </div>
       </div>
     </div>
   </div>
