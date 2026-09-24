@@ -16,6 +16,7 @@ import {
   summariseTuodStep,
   summariseScoreTrainingStep,
   summariseOneTwentyOneStep,
+  summariseAroundTheClockStep,
 } from "@lib/training/routines/adapters/game.adapter";
 import type { RoutinePlayContext } from "@lib/types";
 import type { StartTrainingStepResponseData } from "@client/api/types";
@@ -243,10 +244,34 @@ describe("summarise*Step wrappers", () => {
     });
   });
 
+  it("summariseAroundTheClockStep reads the game's own results snapshot", () => {
+    const summary = summariseAroundTheClockStep(
+      ctxWithSeat({
+        participantRef: "pt1",
+        sideKey: "A",
+        turns: 10,
+        accuracy: "50.00%",
+        totalDarts: 30,
+        laps: 0,
+        targetAtEnd: "BULL",
+      }),
+    );
+    expect(summary).toEqual({
+      stepKey: "GAME:AROUND_THE_CLOCK_V2",
+      label: "Around the Clock",
+      rows: [
+        { label: "Laps", value: "0" },
+        { label: "Reached", value: "BULL" },
+        { label: "Accuracy", value: "50.00%" },
+      ],
+    });
+  });
+
   it("every wrapper returns null when the game recorded no finished seat", () => {
     const ctx = { game: null } as unknown as RoutinePlayContext;
     expect(summariseTuodStep(ctx)).toBeNull();
     expect(summariseScoreTrainingStep(ctx)).toBeNull();
     expect(summariseOneTwentyOneStep(ctx)).toBeNull();
+    expect(summariseAroundTheClockStep(ctx)).toBeNull();
   });
 });

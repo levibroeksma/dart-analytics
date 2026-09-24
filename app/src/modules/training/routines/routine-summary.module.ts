@@ -14,6 +14,7 @@ import type {
   TuodSeatResult,
   ScoreTrainingSeatResult,
   OneTwentyOneSeatResult,
+  AroundTheClockSeatResult,
 } from "@lib/types";
 
 const NO_VALUE = "—";
@@ -191,6 +192,28 @@ export function summariseOneTwentyOne(
     rows: [
       { label: "Target reached", value: String(seat.target) },
       { label: "Checkout %", value: seat.checkoutPercentage ?? NO_VALUE },
+    ],
+  };
+}
+
+/**
+ * Reuses Around the Clock's own results snapshot. A routine step is always
+ * timed, so laps and the target reached are the result; an untimed seat
+ * reads as a dash.
+ */
+export function summariseAroundTheClock(
+  seat: AroundTheClockSeatResult,
+): RoutineStepSummary {
+  return {
+    stepKey: "GAME:AROUND_THE_CLOCK_V2",
+    label: "Around the Clock",
+    rows: [
+      {
+        label: "Laps",
+        value: seat.laps === null ? NO_VALUE : String(seat.laps),
+      },
+      { label: "Reached", value: seat.targetAtEnd ?? NO_VALUE },
+      { label: "Accuracy", value: seat.accuracy },
     ],
   };
 }

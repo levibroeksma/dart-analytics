@@ -1,6 +1,7 @@
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
+import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { warmUpAdapter } from "./warm-up.adapter";
 import { switchingAdapter } from "./switching.adapter";
 import { doublePatternAdapter } from "./double-pattern.adapter";
@@ -12,6 +13,7 @@ import {
   summariseTuodStep,
   summariseScoreTrainingStep,
   summariseOneTwentyOneStep,
+  summariseAroundTheClockStep,
 } from "./game.adapter";
 import type { StepAdapter } from "./interfaces";
 import type { StepAdapterKey } from "./types";
@@ -50,6 +52,13 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
     panel: "one-twenty-one",
     playFactory: oneTwentyOnePlay,
     summarise: summariseOneTwentyOneStep,
+  }),
+  "GAME:AROUND_THE_CLOCK_V2": gameAdapter({
+    rulesetVersionKey: "AROUND_THE_CLOCK_V2",
+    headerLabel: "around the clock",
+    panel: "around-the-clock",
+    playFactory: aroundTheClockPlay,
+    summarise: summariseAroundTheClockStep,
   }),
 };
 

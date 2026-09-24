@@ -1,6 +1,6 @@
 # Around the Clock
 
-Current version: V1 (shipped 2026-08-15)
+Current version: V2 (shipped 2026-09-24)
 Entry points: standalone, routine step
 
 ## Features

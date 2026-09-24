@@ -61,6 +61,12 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("GAME:121_V2")?.headerLabel).toBe("121");
   });
 
+  it("resolves the Around the Clock step to its own header and panel", () => {
+    const adapter = resolveStepAdapter("GAME:AROUND_THE_CLOCK_V2")!;
+    expect(adapter.headerLabel).toBe("around the clock");
+    expect(adapter.panel).toBe("around-the-clock");
+  });
+
   it("an unknown key resolves to nothing", () => {
     expect(resolveStepAdapter("GAME:501_V1")).toBeUndefined();
   });
