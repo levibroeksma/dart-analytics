@@ -38,48 +38,25 @@ describe("trainingIndex", () => {
     expect(data.detailHref(OWN)).toBe("/training/routines/detail?routine=o");
   });
 
-  it("lists default routines before personal ones as select options", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({
-      items: [OWN, SYS],
-      nextCursor: null,
-    });
-    const data: TrainingIndexContext = trainingIndex();
-    await data.init();
-    expect(data.routineOptions()).toEqual([
-      { value: "s", label: "Balanced Training" },
-      { value: "o", label: "Mine" },
-    ]);
-  });
-
-  it("selects the first option once routines load", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({
-      items: [OWN, SYS],
-      nextCursor: null,
-    });
-    const data: TrainingIndexContext = trainingIndex();
-    await data.init();
-    expect(data.selectedRoutineId).toBe("s");
-    expect(data.selectedRoutine()).toEqual(SYS);
-  });
-
-  it("follows the picked routine", async () => {
+  it("splits loaded routines into default and personal lists", async () => {
     vi.mocked(listRoutines).mockResolvedValue({
       items: [SYS, OWN],
       nextCursor: null,
     });
     const data: TrainingIndexContext = trainingIndex();
     await data.init();
-    data.selectedRoutineId = "o";
-    expect(data.selectedRoutine()).toEqual(OWN);
+    expect(data.systemRoutines()).toEqual([SYS]);
+    expect(data.personalRoutines()).toEqual([OWN]);
   });
 
-  it("selects nothing when no routines load", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({ items: [], nextCursor: null });
+  it("reports no personal routines when only system templates load", async () => {
+    vi.mocked(listRoutines).mockResolvedValue({
+      items: [SYS],
+      nextCursor: null,
+    });
     const data: TrainingIndexContext = trainingIndex();
     await data.init();
-    expect(data.routineOptions()).toEqual([]);
-    expect(data.selectedRoutineId).toBe("");
-    expect(data.selectedRoutine()).toBeNull();
+    expect(data.personalRoutines()).toEqual([]);
   });
 
   it("starts with the routine-form modal closed", () => {
