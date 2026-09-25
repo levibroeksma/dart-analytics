@@ -115,11 +115,24 @@ BEGIN
     END;
 END $$;
 
--- 7. the seeded 5-minute system Warm-Up routine is untouched by the bound
-INSERT INTO verification_results
-SELECT '7', 'system Warm-Up routine (5 min) still exists under the trigger',
-    CASE WHEN count(*) = 1 THEN 'PASS' ELSE 'FAIL' END, format('%s row(s)', count(*))
-FROM routine_templates WHERE id = '0199c000-0000-7000-8000-000000000001' AND is_system_template;
+-- 7. a 5-minute system routine is exempt from the bound
+--    Builds its own fixture: the seeded 5-minute Warm-Up routine this case
+--    once read was removed by seed 0031.
+DO $$
+BEGIN
+    SET CONSTRAINTS trg_routine_steps_duration_bounds, trg_routine_templates_duration_bounds DEFERRED;
+    BEGIN
+        INSERT INTO routine_templates (id, player_id, name, description, is_system_template, created_at, updated_at)
+        VALUES ('01999400-0000-7000-8000-0000000000f7', NULL, 'Verify system 5', NULL, TRUE, now(), now());
+        INSERT INTO routine_steps (id, routine_template_id, exercise_template_id, sequence_number, duration_type_id, duration_value, configuration, created_at)
+        VALUES (gen_random_uuid(), '01999400-0000-7000-8000-0000000000f7', '0199b000-0000-7000-8000-000000000001', 1,
+                (SELECT id FROM duration_types WHERE implementation_key = 'MINUTES'), 5, NULL, now());
+        SET CONSTRAINTS trg_routine_steps_duration_bounds, trg_routine_templates_duration_bounds IMMEDIATE;
+        INSERT INTO verification_results VALUES ('7', 'a 5-minute system routine is exempt from the bound', 'PASS', NULL);
+    EXCEPTION WHEN check_violation THEN
+        INSERT INTO verification_results VALUES ('7', 'a 5-minute system routine is exempt from the bound', 'FAIL', SQLERRM);
+    END;
+END $$;
 
 -- 8. deleting a user routine cascades its steps without tripping the trigger
 --    Catches OTHERS, not just check_violation: the failure this case is here to

@@ -7,7 +7,10 @@
 -- Contains:
 -- - default exercise templates (one per game type)
 -- - default configuration presets per game type
--- - one pre-configured training routine
+--
+-- The "Standard Practice" routine (0198f400-*/0198f500-*) this
+-- file once seeded was removed at the player's request; seed
+-- 0031 deletes it from databases that already hold it.
 --
 -- All rows are system templates:
 -- - is_system_template = TRUE
@@ -19,8 +22,6 @@
 -- UUID allocation:
 -- - 0198f200-* exercise_templates
 -- - 0198f300-* configuration_templates
--- - 0198f400-* routine_templates
--- - 0198f500-* routine_steps
 --
 -- Configuration JSONB structures follow the ruleset
 -- configuration schema of each game type (V1 rulesets).
@@ -300,86 +301,4 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
--- ============================================================
--- Default training routine
---
--- Standard practice session:
--- 1. Singles accuracy   (15 minutes)
--- 2. Score training     (20 minutes)
--- 3. Ten Up One Down    (10 rounds)
--- ============================================================
-INSERT INTO routine_templates (
-        id,
-        player_id,
-        name,
-        description,
-        is_system_template,
-        created_at,
-        updated_at
-    )
-VALUES (
-        '0198f400-0000-7000-8000-000000000001',
-        NULL,
-        'Standard Practice',
-        'Balanced warmup, scoring and target training session.',
-        TRUE,
-        now(),
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
--- Joined to exercise_templates for the same reason the template
--- insert above is joined to exercise_types: on a fresh database's
--- first pass the templates do not exist yet, and a bare VALUES list
--- would fail this file on the foreign key instead of waiting for the
--- second pass.
-INSERT INTO routine_steps (
-        id,
-        routine_template_id,
-        exercise_template_id,
-        sequence_number,
-        duration_type_id,
-        duration_value,
-        created_at
-    )
-SELECT v.id::uuid,
-    v.routine_template_id::uuid,
-    template.id,
-    v.sequence_number,
-    v.duration_type_id,
-    v.duration_value,
-    now()
-FROM (
-        VALUES (
-                '0198f500-0000-7000-8000-000000000001',
-                '0198f400-0000-7000-8000-000000000001',
-                '0198f200-0000-7000-8000-000000000003',
-                1,
-                2,
-                15
-            ),
-            (
-                '0198f500-0000-7000-8000-000000000002',
-                '0198f400-0000-7000-8000-000000000001',
-                '0198f200-0000-7000-8000-000000000004',
-                2,
-                2,
-                20
-            ),
-            (
-                '0198f500-0000-7000-8000-000000000003',
-                '0198f400-0000-7000-8000-000000000001',
-                '0198f200-0000-7000-8000-000000000002',
-                3,
-                1,
-                10
-            )
-    ) AS v(
-        id,
-        routine_template_id,
-        exercise_template_id,
-        sequence_number,
-        duration_type_id,
-        duration_value
-    )
-    JOIN exercise_templates AS template ON template.id = v.exercise_template_id::uuid
-ON CONFLICT (id) DO NOTHING;
 COMMIT;
