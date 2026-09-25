@@ -2,6 +2,7 @@
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
@@ -52,13 +53,31 @@ const scope = JSON.stringify({
         >
         </p>
       </div>
-      <p
-        class="text-sm text-muted-foreground"
+      <div
+        class="space-y-4"
+        x-data="statisticsRoutines()"
         x-show="tab === 'routines'"
         x-cloak
       >
-        Routines statistics coming soon.
-      </p>
+        <div
+          x-show="routines.length"
+          x-cloak
+        >
+          <Select
+            optionsExpr="routineOptions()"
+            model="routine"
+            ariaLabel="Routine"
+          />
+        </div>
+        <p
+          class="text-sm text-muted-foreground"
+          x-show="!loading && !error"
+          x-cloak
+          x-text="routines.length ? `${routineName()} statistics coming soon.` : 'No routines available'"
+        >
+        </p>
+        <ErrorAlert />
+      </div>
     </div>
   </div>
 </AppLayout>

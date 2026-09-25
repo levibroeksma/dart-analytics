@@ -1,5 +1,6 @@
 import { listRoutines } from "@client/api/routines";
 import { routineDetailPath } from "./routine-route";
+import { routineSelectOptions } from "./routine-options";
 import type { RoutineSummaryData } from "@client/api/types";
 import type { SelectOption, TrainingIndexContext } from "./types";
 
@@ -27,13 +28,7 @@ export function trainingIndex() {
     },
 
     routineOptions(this: TrainingIndexContext): SelectOption[] {
-      return [
-        ...this.routines.filter((routine) => routine.isSystemTemplate),
-        ...this.routines.filter((routine) => !routine.isSystemTemplate),
-      ].map((routine) => ({
-        value: routine.routineId,
-        label: routine.routineName,
-      }));
+      return routineSelectOptions(this.routines);
     },
 
     selectedRoutine(this: TrainingIndexContext): RoutineSummaryData | null {

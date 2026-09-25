@@ -5,6 +5,7 @@ import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data
 import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
+import { statisticsRoutines } from "@lib/training/routines/statistics-routines.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
@@ -34,6 +35,12 @@ describe("registerRouteData", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("trainingIndex", trainingIndex);
+  });
+
+  it("registers statisticsRoutines as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("statisticsRoutines", statisticsRoutines);
   });
 
   it("registers routineBuilder as an Alpine data factory", () => {

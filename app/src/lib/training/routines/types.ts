@@ -214,6 +214,19 @@ export type TrainingIndexContext = {
   detailHref(routine: RoutineSummaryData): string;
 };
 
+export type StatisticsRoutinesContext = {
+  loading: boolean;
+  error: string;
+  routines: RoutineSummaryData[];
+  /** The picked routine id; seeded to the first option. */
+  routine: string;
+  init(this: StatisticsRoutinesContext): Promise<void>;
+  /** Every routine as a `Select` option: default routines first, then the user's own. */
+  routineOptions(this: StatisticsRoutinesContext): SelectOption[];
+  /** Name of the picked routine, "" when none. */
+  routineName(this: StatisticsRoutinesContext): string;
+};
+
 export type RoutineDetailContext = {
   loading: boolean;
   error: string;
