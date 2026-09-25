@@ -167,7 +167,7 @@ Answer these questions:
 Current seeds:
 
 - `0001_reference_data.sql` — lookups + game types + rulesets + dart zones
-- `0002_default_templates.sql` — exercise templates, configuration presets, one system routine
+- `0002_default_templates.sql` — exercise templates, configuration presets (its "Standard Practice" routine removed by `0031`, D363)
 - `0003_game_engine_reference.sql` — `BOBS27`/`DOUBLES_TRAINING` game types, ruleset versions, configuration presets (2026-07-26)
 - `0004_score_training_minutes_preset.sql` — Score Training minutes preset realigned to 5 (2026-07-31)
 

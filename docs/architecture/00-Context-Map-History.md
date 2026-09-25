@@ -17,6 +17,8 @@ updated: 2026-09-24
 
 # Version History
 
+> **Version:** 1.130.0 (2026-09-25 — remove-default-routines: seeds `0002`/`0015` stop inserting the "Standard Practice" and standalone "Warm-Up" system routines (player-granted one-time seed edit); new seed `0031_remove_default_routines.sql` deletes both from existing databases, keeping any a schedule still names; Warm-Up exercise template kept. Verification `0015` loses its routine checks, `0038` case 7 gets its own system-routine fixture, new `0031_remove_default_routines_checks.sql`. D363.)
+
 > **Version:** 1.129.0 (2026-09-25 — select-active-tab-highlight: `components/forms/Select.astro` picked option now uses the Toggle active-pill styling (`bg-tab-active`, `border-border`, `backdrop-blur-[2px]`) instead of `bg-accent-muted`; options carry a transparent border so picking does not shift layout. No decision.)
 
 > **Version:** 1.128.0 (2026-09-24 — dropdown-smooth-transition: `components/forms/Select.astro` open/close now animates the panel's own height via a `grid-template-rows` 0fr↔1fr transition (options stay laid out, `inert` while closed, fade in after 150ms) instead of `x-collapse` over a nested delayed `x-show`, which measured the list while hidden and snapped open; `glass-strong` and the dark open backing removed — the panel stays plain `glass`. No decision.)

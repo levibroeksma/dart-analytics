@@ -2,17 +2,17 @@
 -- Seed: 0015_warm_up_routine.sql
 --
 -- Purpose:
--- Insert the one system routine phase 1 ships: a single warm-up
--- exercise of five timed phases (09-training-routines.md 16).
---
--- The routine is a system routine: player_id NULL,
--- is_system_template TRUE (06-Spec/02-Template-Layer.md).
+-- Insert the Warm-Up exercise template: five timed phases
+-- (09-training-routines.md 16).
 --
 -- The five phases live in exercise_templates.default_configuration
--- because they are the exercise type's own defaults; the routine
--- step overrides nothing, so routine_steps.configuration stays
--- NULL. A future routine that wants different phases sets that
--- column instead of creating a second exercise template.
+-- because they are the exercise type's own defaults; a routine
+-- step that wants different phases sets routine_steps.configuration
+-- instead of creating a second exercise template.
+--
+-- The standalone "Warm-Up" system routine this file once seeded
+-- was removed at the player's request; seed 0031 deletes it from
+-- databases that already hold it.
 -- ============================================================
 BEGIN;
 
@@ -44,45 +44,5 @@ VALUES (
         now(),
         now()
     ) ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO routine_templates (
-        id,
-        player_id,
-        name,
-        description,
-        is_system_template,
-        created_at,
-        updated_at
-    )
-VALUES (
-        '0199c000-0000-7000-8000-000000000001',
-        NULL,
-        'Warm-Up',
-        'Five-minute warm-up routine.',
-        TRUE,
-        now(),
-        now()
-    ) ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO routine_steps (
-        id,
-        routine_template_id,
-        exercise_template_id,
-        sequence_number,
-        duration_type_id,
-        duration_value,
-        configuration,
-        created_at
-    )
-SELECT '0199d000-0000-7000-8000-000000000001',
-    '0199c000-0000-7000-8000-000000000001',
-    '0199b000-0000-7000-8000-000000000001',
-    1,
-    dt.id,
-    5,
-    NULL,
-    now()
-FROM duration_types dt
-WHERE dt.implementation_key = 'MINUTES' ON CONFLICT (id) DO NOTHING;
 
 COMMIT;
