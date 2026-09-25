@@ -17,6 +17,8 @@ updated: 2026-09-24
 
 # Version History
 
+> **Version:** 1.132.0 (2026-09-25 — statistics-routine-select: `/statistics` Routines tab gains a `Select` of every routine (default first, then the player's own; first auto-selected) backed by new `statisticsRoutines()` (`lib/training/routines/statistics-routines.data.ts`); option ordering extracted to `routineSelectOptions()` (`routine-options.ts`), shared with `trainingIndex()`. File Inventory rows added. No decision.)
+
 > **Version:** 1.131.0 (2026-09-25 — training-routine-select: `/training` Routines and Personal routines cards merged into one Routines card — a `Select` lists default then personal routines (first auto-selected) above the picked routine's `RoutineCard`; `Select` gains `optionsExpr` for runtime options; `trainingIndex()` swaps `systemRoutines()`/`personalRoutines()` for `routineOptions()`/`selectedRoutine()`/`selectedRoutineId`. No decision.)
 
 > **Version:** 1.130.0 (2026-09-25 — remove-default-routines: seeds `0002`/`0015` stop inserting the "Standard Practice" and standalone "Warm-Up" system routines (player-granted one-time seed edit); new seed `0031_remove_default_routines.sql` deletes both from existing databases, keeping any a schedule still names; Warm-Up exercise template kept. Verification `0015` loses its routine checks, `0038` case 7 gets its own system-routine fixture, new `0031_remove_default_routines_checks.sql`. D363.)

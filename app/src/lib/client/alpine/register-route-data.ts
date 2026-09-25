@@ -23,6 +23,7 @@ import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data
 import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
+import { statisticsRoutines } from "@lib/training/routines/statistics-routines.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
@@ -54,6 +55,7 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("routinePlay", routinePlay);
   Alpine.data("routineDetail", routineDetail);
   Alpine.data("trainingIndex", trainingIndex);
+  Alpine.data("statisticsRoutines", statisticsRoutines);
   Alpine.data("routineBuilder", routineBuilder);
   Alpine.data("schedulesIndex", schedulesIndex);
   Alpine.data("scheduleEditor", scheduleEditor);
