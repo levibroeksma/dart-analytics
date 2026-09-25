@@ -17,6 +17,8 @@ updated: 2026-09-24
 
 # Version History
 
+> **Version:** 1.133.0 (2026-09-25 — restore-training-routine-cards: reverts 1.131.0's `/training` change, which misread the request — the Routines (defaults; only Balanced Training since 1.130.0) and Personal routines cards return, `trainingIndex()` gets `systemRoutines()`/`personalRoutines()` back. `Select`'s `optionsExpr` and `routineSelectOptions()` stay for the `/statistics` Routines tab. No decision.)
+
 > **Version:** 1.132.0 (2026-09-25 — statistics-routine-select: `/statistics` Routines tab gains a `Select` of every routine (default first, then the player's own; first auto-selected) backed by new `statisticsRoutines()` (`lib/training/routines/statistics-routines.data.ts`); option ordering extracted to `routineSelectOptions()` (`routine-options.ts`), shared with `trainingIndex()`. File Inventory rows added. No decision.)
 
 > **Version:** 1.131.0 (2026-09-25 — training-routine-select: `/training` Routines and Personal routines cards merged into one Routines card — a `Select` lists default then personal routines (first auto-selected) above the picked routine's `RoutineCard`; `Select` gains `optionsExpr` for runtime options; `trainingIndex()` swaps `systemRoutines()`/`personalRoutines()` for `routineOptions()`/`selectedRoutine()`/`selectedRoutineId`. No decision.)

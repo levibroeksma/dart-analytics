@@ -10,7 +10,6 @@ import CardWrapper from "@components/ui/CardWrapper.astro";
 import RoutineFormModal from "@components/layout/training/routines/RoutineFormModal.astro";
 import ScheduleFormModal from "@components/layout/training/schedules/ScheduleFormModal.astro";
 import Button from "@components/forms/Button.astro";
-import Select from "@components/forms/Select.astro";
 ---
 
 <AppLayout title="Training">
@@ -43,48 +42,30 @@ import Select from "@components/forms/Select.astro";
     </CardWrapper>
     <CardWrapper
       color="sky"
-      class="flex flex-col gap-4 overflow-visible"
+      class="flex flex-col gap-4"
     >
       <div>
         <h2 class="text-sm font-semibold text-foreground">Routines</h2>
         <p class="text-xs text-muted-foreground">
-          Practice the default routines or the ones you built yourself, so you
-          can perform them quickly and accurately.
+          Practice your routines, so you can perform them quickly and
+          accurately.
         </p>
       </div>
-      <div
-        class="space-y-4"
-        x-show="routines.length"
-        x-cloak
+      <template
+        x-for="routine in systemRoutines()"
+        :key="routine.routineId"
       >
-        <Select
-          optionsExpr="routineOptions()"
-          model="selectedRoutineId"
-          ariaLabel="Routine"
-        />
-        <template
-          x-for="routine in selectedRoutine() ? [selectedRoutine()] : []"
-          :key="routine.routineId"
-        >
-          <RoutineCard />
-        </template>
-      </div>
-      <p
-        class="text-xs text-muted-foreground"
-        x-show="!loading && !routines.length"
-        x-cloak
-      >
-        No routines available
-      </p>
+        <RoutineCard />
+      </template>
 
       <div
         class="space-y-4"
-        x-show="loading"
+        x-show="!routines.length"
         x-cloak
         aria-hidden="true"
       >
         {
-          [0, 1].map(() => (
+          [0].map(() => (
             <div class="card-wrapper glass flex flex-row items-center justify-between gap-3 rounded-2xl p-3.5 animate-pulse">
               <div class="flex flex-col gap-2">
                 <div class="h-4 w-32 rounded bg-surface-raised" />
@@ -94,6 +75,30 @@ import Select from "@components/forms/Select.astro";
           ))
         }
       </div>
+    </CardWrapper>
+    <CardWrapper
+      color="fuchsia"
+      class="flex flex-col gap-4"
+    >
+      <div>
+        <h2 class="text-sm font-semibold text-foreground">Personal routines</h2>
+        <p class="text-xs text-muted-foreground">
+          The routines you built yourself, ready to run whenever you want them.
+        </p>
+      </div>
+      <template
+        x-for="routine in personalRoutines()"
+        :key="routine.routineId"
+      >
+        <RoutineCard />
+      </template>
+      <p
+        class="text-xs text-muted-foreground"
+        x-show="!loading && !personalRoutines().length"
+        x-cloak
+      >
+        No custom routines available
+      </p>
     </CardWrapper>
     <CardWrapper
       color="violet"
