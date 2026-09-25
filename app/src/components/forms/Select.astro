@@ -54,7 +54,7 @@ const items = options.map((option) => {
   return {
     ...option,
     picked,
-    pickedClass: `${picked} ? 'bg-accent-muted' : ''`,
+    pickedClass: `${picked} ? 'border-border bg-tab-active backdrop-blur-[2px]' : ''`,
     pick: `${model} = ${JSON.stringify(option.value)}; open = false`,
   };
 });
@@ -110,7 +110,7 @@ const wrapperClass = cn("relative h-12", classNameProp);
               <button
                 type="button"
                 role="option"
-                class="flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
+                class="flex w-full items-center justify-between rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
                 x-bind:class={item.pickedClass}
                 x-bind:aria-selected={item.picked}
                 x-on:click={item.pick}
