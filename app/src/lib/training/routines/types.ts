@@ -194,6 +194,9 @@ export type TrainingSessionStoreContext = ReturnType<
   typeof trainingSessionStore
 >;
 
+/** One `Select` option, as the glass dropdown renders it. */
+export type SelectOption = { value: string; label: string };
+
 export type TrainingIndexContext = {
   loading: boolean;
   error: string;
@@ -201,11 +204,12 @@ export type TrainingIndexContext = {
   showModal: boolean;
   showScheduleModal: boolean;
   routines: RoutineSummaryData[];
+  /** The routine the page's `Select` has picked; seeded to the first option. */
+  selectedRoutineId: string;
   init(this: TrainingIndexContext): Promise<void>;
-  /** The seeded default routines. */
-  systemRoutines(this: TrainingIndexContext): RoutineSummaryData[];
-  /** The user's own saved routines. */
-  personalRoutines(this: TrainingIndexContext): RoutineSummaryData[];
+  /** Every routine as a `Select` option: default routines first, then the user's own. */
+  routineOptions(this: TrainingIndexContext): SelectOption[];
+  selectedRoutine(this: TrainingIndexContext): RoutineSummaryData | null;
   durationLabel(routine: RoutineSummaryData): string;
   detailHref(routine: RoutineSummaryData): string;
 };

@@ -11,7 +11,10 @@
  *
  * The value lives in the caller's scope — `model` names a writable Alpine
  * expression there; the caller seeds it (no placeholder state).
- * @param {SelectOption[]} options
+ * Options are either fixed at build time (`options`) or read at runtime from
+ * the caller's scope (`optionsExpr`, e.g. data fetched in `init()`); pass one.
+ * @param {SelectOption[]} [options] Build-time options
+ * @param {string} [optionsExpr] Alpine expression yielding `SelectOption[]`
  * @param {string} model Writable Alpine expression holding the picked value
  * @param {string} ariaLabel Accessible name of the control
  * @param {string} [class] Extra wrapper classes
@@ -22,14 +25,21 @@ interface SelectOption {
 }
 
 interface Props {
-  options: readonly SelectOption[];
+  options?: readonly SelectOption[];
+  optionsExpr?: string;
   model: string;
   ariaLabel: string;
   class?: string;
 }
 
 // Props
-const { options, model, ariaLabel, class: classNameProp }: Props = Astro.props;
+const {
+  options = [],
+  optionsExpr,
+  model,
+  ariaLabel,
+  class: classNameProp,
+}: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
@@ -42,22 +52,12 @@ import CheckIcon from "@icons/check.svg";
 import ChevronDownIcon from "@icons/chevron-down.svg";
 
 // Data
-const scope = JSON.stringify({
-  open: false,
-  labels: Object.fromEntries(
-    options.map((option) => [option.value, option.label]),
-  ),
-});
-
-const items = options.map((option) => {
-  const picked = `${model} === ${JSON.stringify(option.value)}`;
-  return {
-    ...option,
-    picked,
-    pickedClass: `${picked} ? 'border-border bg-tab-active backdrop-blur-[2px]' : ''`,
-    pick: `${model} = ${JSON.stringify(option.value)}; open = false`,
-  };
-});
+const scope = JSON.stringify({ open: false, fixedOptions: options });
+const list = optionsExpr ?? "fixedOptions";
+const picked = `${model} === option.value`;
+const pickedLabel = `(${list}).find((option) => ${picked})?.label ?? ''`;
+const pickedClass = `${picked} ? 'border-border bg-tab-active backdrop-blur-[2px]' : ''`;
+const pick = `${model} = option.value; open = false`;
 
 // Styles
 const wrapperClass = cn("relative h-12", classNameProp);
@@ -84,7 +84,7 @@ const wrapperClass = cn("relative h-12", classNameProp);
     >
       <span
         slot="iconBefore"
-        x-text={`labels[${model}]`}
+        x-text={pickedLabel}
       >
       </span>
       <ChevronDownIcon
@@ -105,26 +105,27 @@ const wrapperClass = cn("relative h-12", classNameProp);
         <div
           class="max-h-[60dvh] space-y-1 overflow-y-auto p-2 pt-0 opacity-0 transition-opacity duration-75 group-data-open:opacity-100 group-data-open:delay-150 group-data-open:duration-150"
         >
-          {
-            items.map((item) => (
-              <button
-                type="button"
-                role="option"
-                class="flex w-full items-center justify-between rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
-                x-bind:class={item.pickedClass}
-                x-bind:aria-selected={item.picked}
-                x-on:click={item.pick}
-              >
-                {item.label}
-                <CheckIcon
-                  class="size-4 text-accent"
-                  x-show={item.picked}
-                  x-cloak
-                  aria-hidden="true"
-                />
-              </button>
-            ))
-          }
+          <template
+            x-for={`option in ${list}`}
+            :key="option.value"
+          >
+            <button
+              type="button"
+              role="option"
+              class="flex w-full items-center justify-between rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:bg-glass-strong"
+              x-bind:class={pickedClass}
+              x-bind:aria-selected={picked}
+              x-on:click={pick}
+            >
+              <span x-text="option.label"></span>
+              <CheckIcon
+                class="size-4 text-accent"
+                x-show={picked}
+                x-cloak
+                aria-hidden="true"
+              />
+            </button>
+          </template>
         </div>
       </div>
     </div>
