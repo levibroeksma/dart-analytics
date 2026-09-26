@@ -34,6 +34,7 @@ function rangeSearchParams(q: GameStatsRangeParams): URLSearchParams {
   if (q.status !== undefined) params.set("status", q.status);
   if (q.context !== undefined) params.set("context", q.context);
   if (q.inputMode !== undefined) params.set("inputMode", q.inputMode);
+  if (q.target !== undefined) params.set("target", q.target);
   return params;
 }
 
