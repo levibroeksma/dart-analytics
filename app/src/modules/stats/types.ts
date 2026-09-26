@@ -1,3 +1,4 @@
+import type { ContextFilter, GameTypeKey } from "@lib/types";
 import type { DartFact } from "@modules/types";
 
 /**
@@ -152,4 +153,65 @@ export type SessionResultMetrics = Record<string, SessionResultRulesetMetrics>;
 export type SessionListCursor = {
   completedAt: string;
   sessionId: string;
+};
+
+/** The shared filter every dart-level reader applies to `v_stats_dart_facts` (phase-2 Task 3). */
+export type DartScope = {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  statuses: string[];
+  context: ContextFilter;
+};
+
+/** One `findIntentCells` row: an intended×hit pair count within a bucket. */
+export type IntentCellRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  intendedTargetNumber: number;
+  intendedZoneKey: string;
+  hitTargetNumber: number | null;
+  hitZoneKey: string;
+  darts: number;
+};
+
+/** One `findIntentMoments` row: additive position moments for an intended pair within a bucket. */
+export type IntentMomentRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  intendedTargetNumber: number;
+  intendedZoneKey: string;
+  n: number;
+  sumX: number;
+  sumY: number;
+  sumXX: number;
+  sumYY: number;
+  sumXY: number;
+};
+
+/** One target's board reference point and ring band, bound into `findMissSectors`'s `VALUES` join (phase-2 decision 4). */
+export type MissReference = {
+  targetNumber: number;
+  zoneKey: string;
+  cx: number;
+  cy: number;
+  rInner: number;
+  rOuter: number;
+};
+
+/** One `findMissSectors` row: missed-dart counts by 45°-sector and radial band for an intended target. */
+export type MissSectorRow = {
+  targetNumber: number;
+  zoneKey: string;
+  sector: number;
+  radial: "INSIDE" | "WITHIN" | "OUTSIDE";
+  darts: number;
+};
+
+/** One `findHeatmapCells` row: a non-empty `HEATMAP_CELL_MM` grid cell. */
+export type HeatmapCellRow = {
+  ix: number;
+  iy: number;
+  darts: number;
 };
