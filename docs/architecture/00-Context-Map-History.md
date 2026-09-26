@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-09-24
+updated: 2026-09-26
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-09-24
 ---
 
 # Version History
+
+> **Version:** 1.134.0 (2026-09-26 — statistics-pages-architecture: new canonical folder `10-Statistics/` (`00-Overview.md`, `01-Section-Catalog.md`, `02-Replay.md`) — architecture only, nothing built: insight-section registry with capability tags and a per-section compute site, common query contract (required date range, `tz`, bucket, status, play context), additive metric components for MoM/YoY, IndexedDB cache with immutable closed buckets, paginated replay, abandoned-session `completion` section, scalability review, six-phase rollout. `06-API/00-Overview.md` replaces reserved `trends`/`checkouts` with planned section/session/replay routes; `05-Views/00-Overview.md` names planned `v_stats_*` views. New context pack row. Spec `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`. Decisions D364 (`decisions/database.md`), D365 (`decisions/api.md`), D366 (`decisions/frontend/alpine.md`).)
 
 > **Version:** 1.133.0 (2026-09-25 — restore-training-routine-cards: reverts 1.131.0's `/training` change, which misread the request — the Routines (defaults; only Balanced Training since 1.130.0) and Personal routines cards return, `trainingIndex()` gets `systemRoutines()`/`personalRoutines()` back. `Select`'s `optionsExpr` and `routineSelectOptions()` stay for the `/statistics` Routines tab. No decision.)
 

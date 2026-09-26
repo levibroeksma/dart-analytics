@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-09-20
+updated: 2026-09-26
 -->
 # Context Map
 
@@ -26,6 +26,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
 | New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~12.1k |
+| Detailed statistics page / insight section / statistics endpoint | `10-Statistics/00-Overview.md`, `10-Statistics/01-Section-Catalog.md`, `05-Database/05-Views/00-Overview.md`, `06-API/03-Shared-Conventions.md` | ~13k |
 | New view / analytics query | `05-Database/05-Views/00-Overview.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~8.5k |
 | New general (career-wide) stat view | `05-Database/05-Views/01-General-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5.9k |
 | New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~2.2k |
