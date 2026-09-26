@@ -113,7 +113,7 @@ export function isSectionId(value: string): value is SectionId {
 }
 
 /** The union of every stats tag a game type's ruleset versions produce. */
-function tagsForGameType(gameTypeKey: GameTypeKey): Set<StatsTag> {
+export function tagsForGameType(gameTypeKey: GameTypeKey): Set<StatsTag> {
   const tags = new Set<StatsTag>();
   for (const rulesetVersionKey of rulesetsOfGameType(gameTypeKey)) {
     for (const tag of STATS_TAGS[rulesetVersionKey]) tags.add(tag);

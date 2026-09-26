@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ locals, params, url }) => {
     status: url.searchParams.get("status") ?? undefined,
     context: url.searchParams.get("context") ?? undefined,
     inputMode: url.searchParams.get("inputMode") ?? undefined,
+    target: url.searchParams.get("target") ?? undefined,
   });
   if (!parsed.success) {
     return fail("VALIDATION_FAILED", locals.requestId, {

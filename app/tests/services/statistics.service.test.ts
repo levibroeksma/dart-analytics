@@ -10,6 +10,10 @@ vi.mock("@repositories/statistics.repository", () => ({
   findGameDataVersion: vi.fn(),
   findBucketFloor: vi.fn(),
   findBucketedSessionAggregates: vi.fn(),
+  findIntentCells: vi.fn(),
+  findIntentMoments: vi.fn(),
+  findMissSectors: vi.fn(),
+  findHeatmapCells: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
@@ -610,5 +614,248 @@ describe("getGameSection", () => {
     expect(result.ok).toBe(true);
     if (result.ok)
       expect(result.data.range.from).toBe("2026-01-01T00:00:00.000Z");
+  });
+
+  it("dispatches target-accuracy through findIntentCells", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: "2026-01-15T00:00:00.000Z",
+    });
+    vi.mocked(repo.findIntentCells).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: 16,
+        hitZoneKey: "DOUBLE",
+        darts: 5,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "target-accuracy",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("target-accuracy");
+      expect(result.data.buckets[0].metrics).toEqual({
+        "DOUBLE:16": { attempts: 5, hits: 5 },
+      });
+    }
+  });
+
+  it("dispatches confusion through findIntentCells", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findIntentCells).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: 16,
+        hitZoneKey: "DOUBLE",
+        darts: 5,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "confusion",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("confusion");
+  });
+
+  it("dispatches loose-darts through findIntentCells", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findIntentCells).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: 16,
+        hitZoneKey: "DOUBLE",
+        darts: 5,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "loose-darts",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("loose-darts");
+  });
+
+  it("dispatches grouping through findIntentMoments", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findIntentMoments).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        n: 2,
+        sumX: 1,
+        sumY: 1,
+        sumXX: 1,
+        sumYY: 1,
+        sumXY: 1,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "grouping",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("grouping");
+    expect(repo.findIntentMoments).toHaveBeenCalled();
+  });
+
+  it("dispatches miss-direction through findMissSectors with reference points", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findMissSectors).mockResolvedValue([
+      {
+        targetNumber: 16,
+        zoneKey: "DOUBLE",
+        sector: 0,
+        radial: "WITHIN",
+        darts: 3,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "miss-direction",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("miss-direction");
+    const call = vi.mocked(repo.findMissSectors).mock.calls[0]![1] as {
+      refs: unknown[];
+    };
+    expect(call.refs.length).toBe(82);
+  });
+
+  it("dispatches heatmap through findHeatmapCells", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findHeatmapCells).mockResolvedValue([
+      { ix: 0, iy: 0, darts: 4 },
+    ]);
+
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("heatmap");
+  });
+
+  it("passes the parsed target to findHeatmapCells on an intent-stored game", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findHeatmapCells).mockResolvedValue([]);
+
+    await getGameSection(playerId, "DOUBLES_TRAINING", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "DOUBLE:16",
+    });
+
+    const call = vi.mocked(repo.findHeatmapCells).mock.calls[0]![1] as {
+      target: { number: number; zone: string } | null;
+    };
+    expect(call.target).toEqual({ number: 16, zone: "DOUBLE" });
+  });
+
+  it("rejects a target on a game without intent-stored", async () => {
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "DOUBLE:16",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toContain("target");
+    }
+  });
+
+  it("rejects a target on a section that does not declare the target param", async () => {
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "grouping",
+      { ...baseRangeQuery, status: "completed", target: "DOUBLE:16" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  it("rejects bucket=month on the non-bucketable confusion section", async () => {
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "confusion",
+      {
+        ...baseRangeQuery,
+        bucket: "month",
+        tz: "Europe/Amsterdam",
+        status: "completed",
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  it("returns NOT_FOUND for target-accuracy on Singles Training", async () => {
+    const result = await getGameSection(
+      playerId,
+      "SINGLES_TRAINING",
+      "target-accuracy",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
   });
 });

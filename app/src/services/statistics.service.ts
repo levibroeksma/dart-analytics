@@ -1,5 +1,10 @@
 import { getDb } from "@db/client";
-import { SECTIONS, sectionsForGame } from "@lib/stats/section-registry";
+import {
+  SECTIONS,
+  sectionsForGame,
+  tagsForGameType,
+} from "@lib/stats/section-registry";
+import { parseTargetKey, formatTargetKey } from "@lib/stats/target-key";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { highestCheckout } from "@modules/game/highest-checkout.module";
 import {
@@ -23,34 +28,60 @@ import {
   totalDartsThrown,
 } from "@modules/stats/visit-stats.module";
 import { completionBuckets } from "@modules/stats/sections/completion.module";
+import { confusionBuckets } from "@modules/stats/sections/confusion.module";
+import { groupingBuckets } from "@modules/stats/sections/grouping.module";
+import {
+  HEATMAP_CELL_MM,
+  heatmapBuckets,
+} from "@modules/stats/sections/heatmap.module";
+import { looseDartsBuckets } from "@modules/stats/sections/loose-darts.module";
+import {
+  missDirectionBuckets,
+  missReferences,
+} from "@modules/stats/sections/miss-direction.module";
 import {
   decodeCursor,
   encodeCursor,
   encodeDataVersion,
 } from "@modules/stats/sections/series.module";
 import { sessionResultBuckets } from "@modules/stats/sections/session-result.module";
+import { targetAccuracyBuckets } from "@modules/stats/sections/target-accuracy.module";
 import { volumeBuckets } from "@modules/stats/sections/volume.module";
 import {
   findBucketFloor,
   findBucketedSessionAggregates,
   findGameDataVersion,
   findGameSessionsPage,
+  findHeatmapCells,
+  findIntentCells,
+  findIntentMoments,
   findLegFacts,
+  findMissSectors,
   findSessionSummaries,
   findVisitFacts,
   findX01CheckoutDarts,
 } from "@repositories/statistics.repository";
 import type {
+  Bucket,
+  ContextFilter,
   GameTypeKey,
+  IntentZoneKey,
   SectionId,
   SeriesBucket,
   StatusFilter,
+  TargetKey,
 } from "@lib/types";
 import type {
   SessionListQueryData,
   StatisticsRangeQueryData,
 } from "@routes/types";
-import type { StatsBucketRow } from "@modules/types";
+import type {
+  HeatmapCellRow,
+  IntentCellRow,
+  IntentMomentRow,
+  MissSectorRow,
+  StatsBucketRow,
+} from "@modules/types";
 import type {
   GameSessionList,
   ServiceResult,
@@ -99,16 +130,137 @@ export async function getStatisticsOverview(
   };
 }
 
-const HANDLERS: Record<
-  SectionId,
-  (
-    rows: StatsBucketRow[],
-    ctx: { to: string; now: Date },
-  ) => SeriesBucket<unknown>[]
-> = {
-  completion: completionBuckets,
-  volume: volumeBuckets,
-  "session-result": sessionResultBuckets,
+type Db = ReturnType<typeof getDb>;
+
+/**
+ * Everything a section's `load` might need, resolved once by `getGameSection`
+ * before dispatch. Each `load` reads only the fields its reader takes.
+ */
+type SectionContext = {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  bucket: Bucket;
+  tz: string | undefined;
+  statuses: string[];
+  context: ContextFilter;
+  target: { number: number; zone: IntentZoneKey } | null;
+};
+
+/** A section's shape function's context: the shared `{ to, now }` plus what the two non-bucketable, un-keyed sections need. */
+type ShapeContext = {
+  from: string;
+  to: string;
+  now: Date;
+  target: TargetKey | null;
+};
+
+type SectionHandler = {
+  load: (db: Db, ctx: SectionContext) => Promise<unknown[]>;
+  shape: (rows: unknown[], ctx: ShapeContext) => SeriesBucket<unknown>[];
+};
+
+/** Adapts one reader/shaper pair — each typed to its own row shape — into the uniform `SectionHandler` the registry dispatches through. */
+function handler<TRow>(
+  load: (db: Db, ctx: SectionContext) => Promise<TRow[]>,
+  shape: (rows: readonly TRow[], ctx: ShapeContext) => SeriesBucket<unknown>[],
+): SectionHandler {
+  return {
+    load,
+    shape: (rows, ctx) => shape(rows as TRow[], ctx),
+  };
+}
+
+function loadBucketedSessions(
+  db: Db,
+  ctx: SectionContext,
+): Promise<StatsBucketRow[]> {
+  return findBucketedSessionAggregates(db, {
+    playerId: ctx.playerId,
+    gameTypeKey: ctx.gameTypeKey,
+    from: ctx.from,
+    to: ctx.to,
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+    statuses: ctx.statuses,
+    context: ctx.context,
+  });
+}
+
+function loadIntentCells(
+  db: Db,
+  ctx: SectionContext,
+): Promise<IntentCellRow[]> {
+  return findIntentCells(db, {
+    playerId: ctx.playerId,
+    gameTypeKey: ctx.gameTypeKey,
+    from: ctx.from,
+    to: ctx.to,
+    statuses: ctx.statuses,
+    context: ctx.context,
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+  });
+}
+
+function loadIntentMoments(
+  db: Db,
+  ctx: SectionContext,
+): Promise<IntentMomentRow[]> {
+  return findIntentMoments(db, {
+    playerId: ctx.playerId,
+    gameTypeKey: ctx.gameTypeKey,
+    from: ctx.from,
+    to: ctx.to,
+    statuses: ctx.statuses,
+    context: ctx.context,
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+  });
+}
+
+function loadMissSectors(
+  db: Db,
+  ctx: SectionContext,
+): Promise<MissSectorRow[]> {
+  return findMissSectors(db, {
+    playerId: ctx.playerId,
+    gameTypeKey: ctx.gameTypeKey,
+    from: ctx.from,
+    to: ctx.to,
+    statuses: ctx.statuses,
+    context: ctx.context,
+    refs: missReferences(),
+  });
+}
+
+function loadHeatmapCells(
+  db: Db,
+  ctx: SectionContext,
+): Promise<HeatmapCellRow[]> {
+  return findHeatmapCells(db, {
+    playerId: ctx.playerId,
+    gameTypeKey: ctx.gameTypeKey,
+    from: ctx.from,
+    to: ctx.to,
+    statuses: ctx.statuses,
+    context: ctx.context,
+    cellMm: HEATMAP_CELL_MM,
+    target: ctx.target,
+  });
+}
+
+const HANDLERS: Record<SectionId, SectionHandler> = {
+  completion: handler(loadBucketedSessions, completionBuckets),
+  volume: handler(loadBucketedSessions, volumeBuckets),
+  "session-result": handler(loadBucketedSessions, sessionResultBuckets),
+  "target-accuracy": handler(loadIntentCells, targetAccuracyBuckets),
+  confusion: handler(loadIntentCells, confusionBuckets),
+  "loose-darts": handler(loadIntentCells, looseDartsBuckets),
+  grouping: handler(loadIntentMoments, groupingBuckets),
+  "miss-direction": handler(loadMissSectors, missDirectionBuckets),
+  heatmap: handler(loadHeatmapCells, heatmapBuckets),
 };
 
 /**
@@ -218,6 +370,25 @@ export async function getGameSection(
     };
   }
 
+  let target: { number: number; zone: IntentZoneKey } | null = null;
+  if (q.target !== undefined) {
+    if (!meta.params.includes("target")) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        details: { reason: "this section does not accept target" },
+      };
+    }
+    if (!tagsForGameType(gameTypeKey).has("intent-stored")) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        details: { reason: "target requires an intent-stored game" },
+      };
+    }
+    target = parseTargetKey(q.target);
+  }
+
   const resolved = sectionStatuses(meta.includesAbandoned, q.status);
   if ("error" in resolved) {
     return {
@@ -233,21 +404,32 @@ export async function getGameSection(
       ? q.from
       : await findBucketFloor(db, q.from, q.bucket, q.tz!);
 
+  const sectionContext: SectionContext = {
+    playerId,
+    gameTypeKey,
+    from,
+    to: q.to,
+    bucket: q.bucket,
+    tz: q.bucket === "none" ? undefined : q.tz,
+    statuses: resolved.statuses,
+    context: q.context,
+    target,
+  };
+
   const [dataVersionInput, rows] = await Promise.all([
     findGameDataVersion(db, playerId, gameTypeKey),
-    findBucketedSessionAggregates(db, {
-      playerId,
-      gameTypeKey,
-      from,
-      to: q.to,
-      bucket: q.bucket,
-      tz: q.bucket === "none" ? undefined : q.tz,
-      statuses: resolved.statuses,
-      context: q.context,
-    }),
+    HANDLERS[sectionId].load(db, sectionContext),
   ]);
 
-  const buckets = HANDLERS[sectionId](rows, { to: q.to, now });
+  const targetKey: TargetKey | null =
+    target === null ? null : formatTargetKey(target.number, target.zone);
+
+  const buckets = HANDLERS[sectionId].shape(rows, {
+    from,
+    to: q.to,
+    now,
+    target: targetKey,
+  });
 
   const response = {
     sectionId,

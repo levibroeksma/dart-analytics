@@ -1,8 +1,14 @@
 import type { ErrorCode } from "@server/types";
 import type {
   CompletionSeriesResponseData,
+  ConfusionSeriesResponseData,
   GameSessionListResponseData,
+  GroupingSeriesResponseData,
+  HeatmapSeriesResponseData,
+  LooseDartsSeriesResponseData,
+  MissDirectionSeriesResponseData,
   SessionResultSeriesResponseData,
+  TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
 
@@ -131,7 +137,13 @@ export type GameSessionList = GameSessionListResponseData;
 export type SeriesResponse =
   | CompletionSeriesResponseData
   | VolumeSeriesResponseData
-  | SessionResultSeriesResponseData;
+  | SessionResultSeriesResponseData
+  | TargetAccuracySeriesResponseData
+  | ConfusionSeriesResponseData
+  | GroupingSeriesResponseData
+  | MissDirectionSeriesResponseData
+  | LooseDartsSeriesResponseData
+  | HeatmapSeriesResponseData;
 
 export type RoutineStep = {
   sequenceNumber: number;
