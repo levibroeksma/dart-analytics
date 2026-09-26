@@ -382,8 +382,8 @@ export async function findVisitScoring(
 ): Promise<VisitScoringRow[]> {
   const whereClause = sessionScopeWhere(q);
   const firstNineClause = sql`${vPlayerVisitFacts.stageTypeKey} = 'LEG' and ${vPlayerVisitFacts.turnSequence} <= 3`;
-  const pointsExpr = sql<string>`sum(${vPlayerVisitFacts.totalScore})`;
-  const dartsExpr = sql<string>`sum(${vPlayerVisitFacts.dartCount})`;
+  const pointsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.totalScore}), 0)`;
+  const dartsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.dartCount}), 0)`;
   const firstNinePointsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.totalScore}) filter (where ${firstNineClause}), 0)`;
   const firstNineDartsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.dartCount}) filter (where ${firstNineClause}), 0)`;
   const tonExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[0]} and ${vPlayerVisitFacts.totalScore} < ${q.bands[1]})`;
