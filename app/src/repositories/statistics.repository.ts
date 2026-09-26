@@ -25,6 +25,7 @@ import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
   DartScope,
   HeatmapCellRow,
+  HitNumberCellRow,
   IntentCellRow,
   IntentMomentRow,
   MissReference,
@@ -32,9 +33,12 @@ import type {
   PlayerLegFactRow,
   PlayerSessionSummaryRow,
   PlayerVisitFactRow,
+  SessionScope,
   StatsBucketRow,
   StatsSessionRow,
+  VisitScoringRow,
   X01CheckoutDartRow,
+  X01FoldRow,
 } from "@modules/types";
 
 type Db = ReturnType<typeof getDb>;
@@ -216,6 +220,290 @@ function dartScopeWhere(scope: DartScope) {
       : eq(vStatsDartFacts.contextKey, scope.context.toUpperCase()),
   ].filter((condition) => condition !== undefined);
   return and(...conditions);
+}
+
+/**
+ * The shared filter every Task 3 fold/scoring reader applies to
+ * `v_stats_session_facts`: player, game type and status in range, restricted
+ * to `input_mode_key = 'VISUAL_BOARD'` (phase-3 plan "Shared session scope").
+ */
+function sessionScopeWhere(scope: SessionScope) {
+  const conditions = [
+    eq(vStatsSessionFacts.playerId, scope.playerId),
+    eq(vStatsSessionFacts.gameTypeKey, scope.gameTypeKey),
+    gte(vStatsSessionFacts.completedAt, scope.from),
+    lt(vStatsSessionFacts.completedAt, scope.to),
+    inArray(vStatsSessionFacts.statusKey, scope.statuses),
+    eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
+    contextCondition(scope.context),
+  ].filter((condition) => condition !== undefined);
+  return and(...conditions);
+}
+
+/**
+ * The `dart_count` sum over `v_stats_session_facts` for a scope (phase-3
+ * decision 1): the fold bound `MAX_FOLD_DARTS` gates against this before a
+ * server section reads `findX01FoldRows`.
+ */
+export async function findScopeDartCount(
+  db: Db,
+  scope: SessionScope,
+): Promise<number> {
+  const [row] = await db
+    .select({
+      dartCount: sql<string>`coalesce(sum(${vStatsSessionFacts.dartCount}), 0)::integer`,
+    })
+    .from(vStatsSessionFacts)
+    .where(sessionScopeWhere(scope));
+
+  return Number(nonNull(row?.dartCount ?? null, "dart_count"));
+}
+
+const X01_FOLD_COLUMNS = {
+  sessionId: vX01CheckoutDarts.sessionId,
+  gameTypeKey: vX01CheckoutDarts.gameTypeKey,
+  rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
+  configuration: vX01CheckoutDarts.configuration,
+  stageId: vX01CheckoutDarts.stageId,
+  stageSequence: vX01CheckoutDarts.stageSequence,
+  stageTypeKey: vX01CheckoutDarts.stageTypeKey,
+  parentStageId: vX01CheckoutDarts.parentStageId,
+  turnId: vX01CheckoutDarts.turnId,
+  turnSequence: vX01CheckoutDarts.turnSequence,
+  turnTotalScore: vX01CheckoutDarts.turnTotalScore,
+  turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
+  participantId: vX01CheckoutDarts.participantId,
+  dartNumber: vX01CheckoutDarts.dartNumber,
+  hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
+  hitZoneKey: vX01CheckoutDarts.hitZoneKey,
+  score: vX01CheckoutDarts.score,
+};
+
+/**
+ * Reads every `v_x01_checkout_darts` dart the scope covers, inner-joined to
+ * `v_stats_session_facts` under `sessionScopeWhere`, each row carrying the
+ * bucket its session's `completed_at` falls in. Ordered exactly as
+ * `findX01CheckoutDarts` pins (session, stage, turn, dart), the order every
+ * checkout-visit fold requires (phase-3 Task 3).
+ */
+export async function findX01FoldRows(
+  db: Db,
+  q: SessionScope & { bucket: Bucket; tz: string | undefined },
+): Promise<X01FoldRow[]> {
+  const whereClause = sessionScopeWhere(q);
+  const order = [
+    vX01CheckoutDarts.sessionId,
+    vX01CheckoutDarts.stageSequence,
+    vX01CheckoutDarts.turnSequence,
+    vX01CheckoutDarts.dartNumber,
+  ] as const;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        ...X01_FOLD_COLUMNS,
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+      })
+      .from(vX01CheckoutDarts)
+      .innerJoin(
+        vStatsSessionFacts,
+        eq(vX01CheckoutDarts.sessionId, vStatsSessionFacts.sessionId),
+      )
+      .where(whereClause)
+      .orderBy(...order);
+    return rows as X01FoldRow[];
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsSessionFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      ...X01_FOLD_COLUMNS,
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+    })
+    .from(vX01CheckoutDarts)
+    .innerJoin(
+      vStatsSessionFacts,
+      eq(vX01CheckoutDarts.sessionId, vStatsSessionFacts.sessionId),
+    )
+    .where(whereClause)
+    .orderBy(...order);
+  return rows as X01FoldRow[];
+}
+
+function mapVisitScoringRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  points: unknown;
+  darts: unknown;
+  firstNinePoints: unknown;
+  firstNineDarts: unknown;
+  ton: unknown;
+  tonForty: unknown;
+  oneEighty: unknown;
+}): VisitScoringRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    points: Number(nonNull(row.points as string | null, "points")),
+    darts: Number(nonNull(row.darts as string | null, "darts")),
+    firstNinePoints: Number(
+      nonNull(row.firstNinePoints as string | null, "first_nine_points"),
+    ),
+    firstNineDarts: Number(
+      nonNull(row.firstNineDarts as string | null, "first_nine_darts"),
+    ),
+    ton: Number(nonNull(row.ton as string | null, "ton")),
+    tonForty: Number(nonNull(row.tonForty as string | null, "ton_forty")),
+    oneEighty: Number(nonNull(row.oneEighty as string | null, "one_eighty")),
+  };
+}
+
+/**
+ * Additive turn-score sums for `scoring-trend` over `v_player_visit_facts`
+ * joined to `v_stats_session_facts` under `sessionScopeWhere` (phase-3
+ * decision 10). `bands` are the three `SCORE_BANDS` edges, bound as
+ * parameters so no band edge ever reaches SQL as a literal.
+ */
+export async function findVisitScoring(
+  db: Db,
+  q: SessionScope & {
+    bucket: Bucket;
+    tz: string | undefined;
+    bands: readonly [number, number, number];
+  },
+): Promise<VisitScoringRow[]> {
+  const whereClause = sessionScopeWhere(q);
+  const firstNineClause = sql`${vPlayerVisitFacts.stageTypeKey} = 'LEG' and ${vPlayerVisitFacts.turnSequence} <= 3`;
+  const pointsExpr = sql<string>`sum(${vPlayerVisitFacts.totalScore})`;
+  const dartsExpr = sql<string>`sum(${vPlayerVisitFacts.dartCount})`;
+  const firstNinePointsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.totalScore}) filter (where ${firstNineClause}), 0)`;
+  const firstNineDartsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.dartCount}) filter (where ${firstNineClause}), 0)`;
+  const tonExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[0]} and ${vPlayerVisitFacts.totalScore} < ${q.bands[1]})`;
+  const tonFortyExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[1]} and ${vPlayerVisitFacts.totalScore} < ${q.bands[2]})`;
+  const oneEightyExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[2]})`;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        points: pointsExpr,
+        darts: dartsExpr,
+        firstNinePoints: firstNinePointsExpr,
+        firstNineDarts: firstNineDartsExpr,
+        ton: tonExpr,
+        tonForty: tonFortyExpr,
+        oneEighty: oneEightyExpr,
+      })
+      .from(vPlayerVisitFacts)
+      .innerJoin(
+        vStatsSessionFacts,
+        eq(vPlayerVisitFacts.sessionId, vStatsSessionFacts.sessionId),
+      )
+      .where(whereClause);
+    return rows.map(mapVisitScoringRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsSessionFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      points: pointsExpr,
+      darts: dartsExpr,
+      firstNinePoints: firstNinePointsExpr,
+      firstNineDarts: firstNineDartsExpr,
+      ton: tonExpr,
+      tonForty: tonFortyExpr,
+      oneEighty: oneEightyExpr,
+    })
+    .from(vPlayerVisitFacts)
+    .innerJoin(
+      vStatsSessionFacts,
+      eq(vPlayerVisitFacts.sessionId, vStatsSessionFacts.sessionId),
+    )
+    .where(whereClause)
+    .groupBy(bucketStartExpr, bucketEndExpr);
+  return rows.map(mapVisitScoringRow);
+}
+
+function mapHitNumberCellRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  hitNumber: string | null;
+  darts: unknown;
+  trebles: unknown;
+}): HitNumberCellRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    hitNumber: nonNull(row.hitNumber, "hit_number"),
+    darts: Number(nonNull(row.darts as string | null, "darts")),
+    trebles: Number(nonNull(row.trebles as string | null, "trebles")),
+  };
+}
+
+/**
+ * Per-hit-number dart and treble counts over `v_stats_dart_facts` under
+ * phase-2's `dartScopeWhere` — feeds `treble-rate` (phase-3 decision 11).
+ * `hitNumber` is `hit_target_number` as text, or `'MISS'`.
+ */
+export async function findHitNumberCells(
+  db: Db,
+  q: DartScope & { bucket: Bucket; tz: string | undefined },
+): Promise<HitNumberCellRow[]> {
+  const whereClause = dartScopeWhere(q);
+  const hitNumberExpr = sql<string>`coalesce(${vStatsDartFacts.hitTargetNumber}::text, 'MISS')`;
+  const trebleExpr = sql<string>`count(*) filter (where ${vStatsDartFacts.hitZoneKey} = 'TREBLE')`;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        hitNumber: hitNumberExpr,
+        darts: count(),
+        trebles: trebleExpr,
+      })
+      .from(vStatsDartFacts)
+      .where(whereClause)
+      .groupBy(hitNumberExpr);
+    return rows.map(mapHitNumberCellRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsDartFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      hitNumber: hitNumberExpr,
+      darts: count(),
+      trebles: trebleExpr,
+    })
+    .from(vStatsDartFacts)
+    .where(whereClause)
+    .groupBy(bucketStartExpr, bucketEndExpr, hitNumberExpr);
+  return rows.map(mapHitNumberCellRow);
 }
 
 function mapIntentCellRow(row: {

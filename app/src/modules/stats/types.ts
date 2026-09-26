@@ -165,6 +165,61 @@ export type DartScope = {
   context: ContextFilter;
 };
 
+/**
+ * The shared filter every Task 3 fold/scoring reader applies to
+ * `v_stats_session_facts`: player, game type and status in range, restricted
+ * to `input_mode_key = 'VISUAL_BOARD'` (`00-Overview.md` §10, phase-3 plan
+ * "Shared session scope").
+ */
+export type SessionScope = {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  statuses: string[];
+  context: ContextFilter;
+};
+
+/**
+ * One `findX01FoldRows` row: a `v_x01_checkout_darts` dart plus the bucket
+ * its session's `completed_at` falls in. Session-ordered rows are grouped
+ * and folded through `sessionCheckoutVisits` downstream, never here.
+ */
+export type X01FoldRow = X01CheckoutDartRow & {
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/**
+ * One `findVisitScoring` row: additive turn-score sums for `scoring-trend`
+ * within one bucket (phase-3 decision 10). `ton`/`tonForty`/`oneEighty` are
+ * exclusive-band turn counts over `SCORE_BANDS`.
+ */
+export type VisitScoringRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  points: number;
+  darts: number;
+  firstNinePoints: number;
+  firstNineDarts: number;
+  ton: number;
+  tonForty: number;
+  oneEighty: number;
+};
+
+/**
+ * One `findHitNumberCells` row: darts thrown at, and trebles landed on, one
+ * hit number (`"1"`-`"20"`, `"25"`, or `"MISS"`) within one bucket
+ * (phase-3 decision 11), feeding `treble-rate`.
+ */
+export type HitNumberCellRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  hitNumber: string;
+  darts: number;
+  trebles: number;
+};
+
 /** One `findIntentCells` row: an intended×hit pair count within a bucket. */
 export type IntentCellRow = {
   bucketStart: string;
