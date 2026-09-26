@@ -10,6 +10,7 @@ updated: 2026-09-26
 > **Version:** 1.0.0 (2026-09-26, D364/D365/D366)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
+> Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
 > Status: **designed, not built.** Nothing here exists in `app/` or `database/`
 > yet; each rollout phase (§12) is its own spec + plan.
 
