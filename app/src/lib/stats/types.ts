@@ -31,14 +31,21 @@ export type SectionId =
   | "bobs27-survival"
   | "shanghai-count";
 
-/** The declared-intent zones a target key can name (`01-Section-Catalog.md` §1.1). */
+/**
+ * The declared-intent zones a target key can name (`01-Section-Catalog.md`
+ * §1.1). `NUMBER` and `BULL` are the two derived aim zones (phase-4 decision
+ * 2): a whole-number or bull aim recovered from an engine's own reducer,
+ * never written back as stored intent.
+ */
 export type IntentZoneKey =
   | "DOUBLE"
   | "TREBLE"
   | "INNER_SINGLE"
   | "OUTER_SINGLE"
   | "INNER_BULL"
-  | "OUTER_BULL";
+  | "OUTER_BULL"
+  | "NUMBER"
+  | "BULL";
 
 /** `<ZONE_KEY>:<number>` — the record key for every intent-cell metric (00-Overview.md §5, phase-2 decision 5). */
 export type TargetKey = `${IntentZoneKey}:${number}`;

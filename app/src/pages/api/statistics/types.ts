@@ -245,9 +245,18 @@ const HeatmapMetrics = z.object({
   ),
 });
 
+/**
+ * Set only by a server-site (derived or folded) handler — the count of
+ * sessions the fold could not replay (`00-Overview.md` §4, phase-4 decision
+ * 4). Optional so a `sql`-site response, which never sets it, still
+ * validates.
+ */
+const SkippedSessions = { skippedSessions: z.number().int().optional() };
+
 export const TargetAccuracySeriesResponse = SeriesBase.extend({
   sectionId: z.literal("target-accuracy"),
   buckets: z.array(BucketBase.extend({ metrics: TargetAccuracyMetrics })),
+  ...SkippedSessions,
 });
 export type TargetAccuracySeriesResponseData = z.infer<
   typeof TargetAccuracySeriesResponse
@@ -256,6 +265,7 @@ export type TargetAccuracySeriesResponseData = z.infer<
 export const ConfusionSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("confusion"),
   buckets: z.array(BucketBase.extend({ metrics: ConfusionMetrics })),
+  ...SkippedSessions,
 });
 export type ConfusionSeriesResponseData = z.infer<
   typeof ConfusionSeriesResponse
@@ -264,6 +274,7 @@ export type ConfusionSeriesResponseData = z.infer<
 export const LooseDartsSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("loose-darts"),
   buckets: z.array(BucketBase.extend({ metrics: LooseDartsMetrics })),
+  ...SkippedSessions,
 });
 export type LooseDartsSeriesResponseData = z.infer<
   typeof LooseDartsSeriesResponse
@@ -278,6 +289,7 @@ export type GroupingSeriesResponseData = z.infer<typeof GroupingSeriesResponse>;
 export const MissDirectionSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("miss-direction"),
   buckets: z.array(BucketBase.extend({ metrics: MissDirectionMetrics })),
+  ...SkippedSessions,
 });
 export type MissDirectionSeriesResponseData = z.infer<
   typeof MissDirectionSeriesResponse
@@ -348,6 +360,7 @@ const TrebleRateMetrics = z.record(
 export const CheckoutRateSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("checkout-rate"),
   buckets: z.array(BucketBase.extend({ metrics: CheckoutRateMetrics })),
+  ...SkippedSessions,
 });
 export type CheckoutRateSeriesResponseData = z.infer<
   typeof CheckoutRateSeriesResponse
@@ -356,6 +369,7 @@ export type CheckoutRateSeriesResponseData = z.infer<
 export const DoublePerformanceSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("double-performance"),
   buckets: z.array(BucketBase.extend({ metrics: DoublePerformanceMetrics })),
+  ...SkippedSessions,
 });
 export type DoublePerformanceSeriesResponseData = z.infer<
   typeof DoublePerformanceSeriesResponse
@@ -364,6 +378,7 @@ export type DoublePerformanceSeriesResponseData = z.infer<
 export const CheckoutPathSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("checkout-path"),
   buckets: z.array(BucketBase.extend({ metrics: CheckoutPathMetrics })),
+  ...SkippedSessions,
 });
 export type CheckoutPathSeriesResponseData = z.infer<
   typeof CheckoutPathSeriesResponse
@@ -372,18 +387,21 @@ export type CheckoutPathSeriesResponseData = z.infer<
 export const BustRateSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("bust-rate"),
   buckets: z.array(BucketBase.extend({ metrics: BustRateMetrics })),
+  ...SkippedSessions,
 });
 export type BustRateSeriesResponseData = z.infer<typeof BustRateSeriesResponse>;
 
 export const LegStatsSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("leg-stats"),
   buckets: z.array(BucketBase.extend({ metrics: LegStatsMetrics })),
+  ...SkippedSessions,
 });
 export type LegStatsSeriesResponseData = z.infer<typeof LegStatsSeriesResponse>;
 
 export const LadderProgressSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("ladder-progress"),
   buckets: z.array(BucketBase.extend({ metrics: LadderProgressMetrics })),
+  ...SkippedSessions,
 });
 export type LadderProgressSeriesResponseData = z.infer<
   typeof LadderProgressSeriesResponse
@@ -403,6 +421,67 @@ export const TrebleRateSeriesResponse = SeriesBase.extend({
 });
 export type TrebleRateSeriesResponseData = z.infer<
   typeof TrebleRateSeriesResponse
+>;
+
+/** Wraps `inner` per config group (`configGroupKey`, phase-4 decision 13). */
+function GroupRecord<T extends z.ZodTypeAny>(inner: T) {
+  return z.record(z.string(), inner);
+}
+
+const AtcDartsPerTargetMetrics = GroupRecord(
+  TargetRecord(
+    z.object({ darts: z.number().int(), cleared: z.number().int() }),
+  ),
+);
+
+const Bobs27SurvivalMetrics = GroupRecord(
+  z.object({
+    runs: z.number().int(),
+    completed: z.number().int(),
+    reached: TargetRecord(z.number().int()),
+    died: TargetRecord(z.number().int()),
+    scoreAfter: TargetRecord(
+      z.object({
+        runs: z.number().int(),
+        sum: z.number().int(),
+        min: z.number().int(),
+        max: z.number().int(),
+      }),
+    ),
+  }),
+);
+
+const ShanghaiCountMetrics = z.object({
+  sessions: z.number().int(),
+  shanghais: z.number().int(),
+  byRound: ValueRecord(z.number().int()),
+});
+
+export const AtcDartsPerTargetSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("atc-darts-per-target"),
+  buckets: z.array(BucketBase.extend({ metrics: AtcDartsPerTargetMetrics })),
+  ...SkippedSessions,
+});
+export type AtcDartsPerTargetSeriesResponseData = z.infer<
+  typeof AtcDartsPerTargetSeriesResponse
+>;
+
+export const Bobs27SurvivalSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("bobs27-survival"),
+  buckets: z.array(BucketBase.extend({ metrics: Bobs27SurvivalMetrics })),
+  ...SkippedSessions,
+});
+export type Bobs27SurvivalSeriesResponseData = z.infer<
+  typeof Bobs27SurvivalSeriesResponse
+>;
+
+export const ShanghaiCountSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("shanghai-count"),
+  buckets: z.array(BucketBase.extend({ metrics: ShanghaiCountMetrics })),
+  ...SkippedSessions,
+});
+export type ShanghaiCountSeriesResponseData = z.infer<
+  typeof ShanghaiCountSeriesResponse
 >;
 
 const GameSessionListItem = z.object({

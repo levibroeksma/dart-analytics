@@ -1,3 +1,4 @@
+import type { DartZoneKey } from "@modules/types";
 import type { IntentZoneKey, TargetKey } from "./types";
 
 const NUMBERED_ZONES: readonly IntentZoneKey[] = [
@@ -5,8 +6,13 @@ const NUMBERED_ZONES: readonly IntentZoneKey[] = [
   "TREBLE",
   "INNER_SINGLE",
   "OUTER_SINGLE",
+  "NUMBER",
 ];
-const BULL_ZONES: readonly IntentZoneKey[] = ["INNER_BULL", "OUTER_BULL"];
+const BULL_ZONES: readonly IntentZoneKey[] = [
+  "INNER_BULL",
+  "OUTER_BULL",
+  "BULL",
+];
 
 export function formatTargetKey(
   number: number,
@@ -33,4 +39,23 @@ export function parseTargetKey(
     return { number, zone: zone as IntentZoneKey };
   }
   return null;
+}
+
+/**
+ * Whether an observed dart counts as a hit on `aim` (phase-4 decision 2).
+ * `NUMBER:n` is hit by any ring of `n` except a `MISS`; `BULL:25` is hit by
+ * either bull ring; every other (stored) zone keeps phase-2's exact-pair
+ * rule.
+ */
+export function isAimHit(
+  aim: { number: number; zone: IntentZoneKey },
+  hit: { number: number | null; zone: DartZoneKey },
+): boolean {
+  if (aim.zone === "NUMBER") {
+    return hit.number === aim.number && hit.zone !== "MISS";
+  }
+  if (aim.zone === "BULL") {
+    return hit.zone === "OUTER_BULL" || hit.zone === "INNER_BULL";
+  }
+  return hit.number === aim.number && hit.zone === aim.zone;
 }
