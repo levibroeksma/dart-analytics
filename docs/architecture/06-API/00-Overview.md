@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-21
+updated: 2026-09-26
 -->
 
 # API Overview
 
-> **Version:** 1.13.0 (`GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.14.0 (statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` routed against `v_stats_session_facts`, D367, 2026-09-26; prior 1.13.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -98,16 +98,21 @@ Lists configuration presets (system + the caller's own) for a game type; backed 
 ### Statistics
 
 - `GET /api/statistics/overview` <!-- 2026-09-06 -->
+- `GET /api/statistics/games/:gameTypeKey/sessions` <!-- 2026-09-26, D367 -->
+- `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` <!-- 2026-09-26, D367 -->
 
 Planned (designed, not built — `10-Statistics/00-Overview.md` §5/§6, D365):
 
-- `GET /api/statistics/games/:rulesetKey/sessions`
-- `GET /api/statistics/games/:rulesetKey/sections/:sectionId`
 - `GET /api/statistics/sessions/:sessionId/replay`
 
-These replace the previously reserved `trends`/`checkouts` routes: trends are bucketed sections, checkouts the checkout-family sections. All share one query contract (required `from`/`to`, `tz`, `bucket`, `status`, `context`). <!-- 2026-09-26 -->
+The two `games/:gameTypeKey` routes above shipped phase 1 (D367): the route
+segment is `:gameTypeKey`, not `:rulesetKey` — a game page spans ruleset
+versions. They replace the previously reserved `trends`/`checkouts` routes:
+trends are bucketed sections, checkouts the checkout-family sections. All
+three statistics-games routes (built and planned) share one query contract
+(required `from`/`to`, `tz`, `bucket`, `status`, `context`). <!-- 2026-09-26 -->
 
-`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 --> The planned detailed-statistics routes above are view-backed too. <!-- 2026-09-26 -->
+`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 --> The built and planned detailed-statistics routes above are view-backed too, through `v_stats_session_facts` (`0043`). <!-- 2026-09-26 -->
 
 ### Players
 
@@ -193,6 +198,8 @@ Reads are view-backed and player-scoped.
 | `GET /api/players/me/settings`           | `v_player_settings` |
 | `GET /api/players/me`                    | `v_player_profile`    |
 | `GET /api/statistics/overview`           | `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, `v_x01_checkout_darts` |
+| `GET /api/statistics/games/:gameTypeKey/sessions` | `v_stats_session_facts` |
+| `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` |
 
 Policy:
 

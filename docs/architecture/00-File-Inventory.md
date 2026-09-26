@@ -234,6 +234,20 @@ Registered for discoverability, not as reading material — the API contract liv
 | `app/src/lib/client/api/statistics.ts` | `fetchStatisticsOverview()` browser client, mirrors `profile.ts`'s `apiRequest`/`*ApiError` shape (2026-09-08) | canonical |
 | `app/src/stores/stats.store.ts` | `stats` Alpine store: loads + formats once via `init()`/`load()`, exposes plain formatted-string fields read by the Statistics page as `$store.stats.*`, registered in `register-stores.ts` (2026-09-08) | canonical |
 
+## Detailed statistics pages, phase 1 (2026-09-26)
+
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md`/`01-Section-Catalog.md`, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decisions in `decisions/api.md` D367.
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/lib/stats/section-registry.ts` | `SECTIONS`, `sectionsForGame()`, `isSectionId()`, `RESULT_DIRECTION` per game type — the phase-1 section registry | canonical |
+| `app/src/modules/stats/sections/series.module.ts` | Shared pure helpers: `isClosed()`, the session-list cursor codec, the `dataVersion` codec | canonical |
+| `app/src/modules/stats/sections/completion.module.ts`, `volume.module.ts`, `session-result.module.ts` | Pure row → bucket folds for the three built sections | canonical |
+| `app/src/pages/api/statistics/games/[gameTypeKey]/sessions.ts` | `GET` paginated session list route | canonical |
+| `app/src/pages/api/statistics/games/[gameTypeKey]/sections/[sectionId].ts` | `GET` generic section-dispatch route | canonical |
+| `app/src/lib/client/stats-cache/db.ts`, `keys.ts`, `cache.ts` | The IndexedDB stats cache: schema/open (`db.ts`), the params key (`keys.ts`), the fetch rule (`cache.ts`) — `readSection()`, `readSessionPage()`, `clearStatsCache()` | canonical |
+| `app/src/stores/game-stats.store.ts` | `gameStats` Alpine store: per-game section/session-list state, reads through the stats cache, registered in `register-stores.ts` | canonical |
+
 ## Custom routine builder (2026-09-19)
 
 Registered for discoverability, not as reading material — the contract lives in `06-API/04-Endpoint-Contracts.md` §Custom Routine Write Contracts, the domain model in `09-Training/01-Routines.md` §7/§20, and the rationale in D305/D306/D321/D336/D337/D334.

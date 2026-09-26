@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-21
+updated: 2026-09-26
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.11.0 (`GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.12.0 (statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -357,6 +357,142 @@ Win rate is deliberately absent from this shape, not a null field — it needs s
 
 ---
 
+## Statistics Games — `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId`
+
+Phase 1 of the detailed per-game statistics pages (`10-Statistics/00-Overview.md`
+§6, D365/D367). Both routes are read-only, view-backed through
+`v_stats_session_facts` (migration `0043`), and set `Cache-Control: private,
+no-store` — the client cache (`lib/client/stats-cache/`), not HTTP, owns reuse.
+
+**Auth:** standard protected route class. `:gameTypeKey` must be a known
+`game_types.implementation_key` (e.g. `501`, `SINGLES_TRAINING`) or the route
+404s; the session player is always the caller.
+
+**Shared query (both routes):**
+
+```typescript
+const StatisticsRangeQuery = z.object({
+  from: z.string().datetime({ offset: true }),
+  to: z.string().datetime({ offset: true }), // from < to
+  tz: z.string().optional(),                 // required when bucket != "none"
+  bucket: z.enum(["none", "day", "week", "month", "year"]).default("none"),
+  status: z.enum(["completed", "abandoned", "all"]).optional(),
+  context: z.enum(["all", "standalone", "routine"]).default("all"),
+  inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
+});
+```
+
+`status`'s accepted values and default depend on the section's
+`includesAbandoned` (D367 decision 5): `completion` accepts and defaults to
+`all`; `volume` and `session-result` accept and default to `completed`; the
+session list (below) accepts and defaults to all three. A `bucket ≠ "none"`
+request with no `tz`, an unknown `tz`, `from ≥ to`, or a bucket count over the
+cap (120; span ÷ nominal unit length, rounded up, plus 1) all fail
+`VALIDATION_FAILED`.
+
+### `GET .../sessions`
+
+Adds `limit` (1–100, default 25) and `cursor` (opaque) to the shared query.
+Returns the page of the game's terminal sessions in `(completed_at DESC,
+session_id DESC)` order (D367 decision 4):
+
+```typescript
+const GameSessionListResponse = z.object({
+  items: z.array(
+    z.object({
+      sessionId: z.string().uuid(),
+      rulesetVersionKey: z.string(),
+      statusKey: z.string(),
+      contextKey: z.string(),
+      neverStarted: z.boolean(), // ABANDONED with turn_count = 0
+      startedAt: z.string(),
+      completedAt: z.string(),
+      durationSeconds: z.number().int(),
+      turnCount: z.number().int(),
+      dartCount: z.number().int(),
+      countedScore: z.number().int(), // SUM(turns.total_score); rule-free
+    }),
+  ),
+  nextCursor: z.string().nullable(),
+  dataVersion: z.string(),
+});
+```
+
+### `GET .../sections/:sectionId`
+
+`:sectionId` is `completion` | `volume` | `session-result` in phase 1
+(`10-Statistics/01-Section-Catalog.md` §1); any other value, or a section not
+returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. Dispatches through
+the section registry (`lib/stats/section-registry.ts`) to one of the three
+built section modules. Every response shares the `Series<M>` envelope
+(`00-Overview.md` §5.2, `range` per D367 decision 2):
+
+```typescript
+const SeriesEnvelope = z.object({
+  sectionId: z.string(),
+  sectionVersion: z.number().int(),
+  dataVersion: z.string(),
+  bucket: z.enum(["none", "day", "week", "month", "year"]),
+  tz: z.string().nullable(),
+  range: z.object({ from: z.string(), to: z.string() }),
+  buckets: z.array(
+    z.object({
+      start: z.string(),
+      end: z.string(),
+      closed: z.boolean(),
+      sampleSize: z.number().int(),
+      metrics: z.unknown(), // per-section shape below
+    }),
+  ),
+});
+```
+
+Per-section `metrics`:
+
+```typescript
+const CompletionMetrics = z.object({
+  completed: z.number().int(),
+  abandoned: z.number().int(),   // mid-game quits only
+  neverStarted: z.number().int(),
+  abandonedTurns: z.number().int(), // turn sum over mid-game quits
+});
+
+const ContextSplit = z.object({ standalone: z.number().int(), routine: z.number().int() });
+const VolumeMetrics = z.object({
+  sessions: ContextSplit,
+  darts: ContextSplit,
+  durationSeconds: ContextSplit,
+});
+
+// keyed by ruleset_version_key (session-result's configSensitive)
+const SessionResultMetrics = z.record(
+  z.string(),
+  z.object({
+    sessions: z.number().int(),
+    countedScoreSum: z.number().int(),
+    dartSum: z.number().int(),
+    turnSum: z.number().int(),
+    countedScoreMin: z.number().int(),
+    countedScoreMax: z.number().int(),
+    bestLowSessionId: z.string().uuid(),
+    bestHighSessionId: z.string().uuid(),
+  }),
+);
+```
+
+`session-result`'s components are rule-free (`00-Overview.md` §5.1); which
+extreme (`countedScoreMin`/`Max`) is the personal best is a client-side lookup
+against the per-game-type `RESULT_DIRECTION` registry value, `null` for a game
+whose headline is not a pure function of these components (D367 decision 3;
+`RESULT_DIRECTION` is `null` for 501, TUOD, 121, Singles Training, Doubles
+Training, Bob's 27 and Around the Clock in phase 1 — issue #615).
+
+**Errors (both routes):** `NOT_FOUND` (unknown `gameTypeKey` or `sectionId`),
+`VALIDATION_FAILED` (query, per the rules above), plus the standard protected-
+route failures.
+
+---
+
 ## Read Contracts
 
 All read endpoints are view-backed and player-scoped. Thin response contracts stay close to 1:1 view structure; list endpoints wrap view output in the standard `ListResult<T>` shape defined in `03-Shared-Conventions.md`.
@@ -380,8 +516,10 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/players/me/settings` | `v_player_settings` | `PlayerSettingsResponse` | 2026-08-08 |
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
 | `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_x01_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
+| `GET /api/statistics/games/:gameTypeKey/sessions` | `v_stats_session_facts` | `GameSessionListResponse` | 2026-09-26 (D367) |
+| `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` | `SeriesEnvelope<CompletionMetrics \| VolumeMetrics \| SessionResultMetrics>` | 2026-09-26 (D367) |
 
-**Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts`. `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the remaining two must each be view-backed when built per the view-backed-reads rule. <!-- 2026-07-12; overview shipped 2026-09-06 -->
+**Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts` — replaced by the section route (D365): trends are bucketed sections, checkouts are the checkout-family sections (`10-Statistics/00-Overview.md` §12 phase 3). `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the two statistics-games routes shipped 2026-09-26 (see the section above). <!-- 2026-07-12; overview shipped 2026-09-06; games/sections shipped 2026-09-26 -->
 
 `v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D336). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D336. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
 

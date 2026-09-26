@@ -7,11 +7,13 @@ updated: 2026-09-26
 
 # Statistics — Section Catalog
 
-> **Version:** 1.0.0 (2026-09-26, D364)
+> **Version:** 1.1.0 (2026-09-26, D364/D367)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
-> `00-Overview.md`; this file only applies them. Status: **designed, not built.**
+> `00-Overview.md`; this file only applies them. Status: `session-result`,
+> `completion` and `volume` are **built** (phase 1); every other section below
+> is still designed, not built.
 
 ---
 
@@ -36,11 +38,13 @@ Sections are reusable across games; a page picks them by capability tag
 | `bust-rate` | `checkout` | server | bust is a fold outcome | yes | busts per remaining-score band |
 | `leg-stats` | `leg` | sql | per-leg dart counts already in `v_player_leg_facts` | yes | darts per leg, best leg, distribution |
 | `ladder-progress` | `ladder` | server | target per attempt is a ladder fold | yes | highest target reached, success rate per target band, recovery after a miss |
-| `session-result` | any | sql | one scalar per session | yes | the session's game-specific result with the personal-best line |
+| `session-result` | any | sql | rule-free components (`counted_score`, `dart_count`, `turn_count`, min/max per bucket); PB direction per game (`RESULT_DIRECTION`, D367) | yes | the session's game-specific result with the personal-best line, where the game's headline is a pure function of the rule-free components |
 | `completion` | any | sql | status counts per bucket | yes | abandon rate; where the player quits (progress and score state at quit); "never started" separated |
 | `volume` | any | sql | counts and durations | yes | sessions, darts, time; standalone vs routine split |
 
 `completion` is the only section with `includesAbandoned = true`.
+`session-result`, `completion` and `volume` are built (phase 1); every other
+row above is planned.
 
 ## 1.1 Loose darts
 
@@ -58,9 +62,12 @@ the section module; changing it bumps the section `version`.
 
 ## 1.2 Derived intent
 
-For `intent-derived` rulesets (Shanghai, Around the Clock) the aimed target is
-the engine's active number at the time of the dart. It is recovered by folding
-the session's facts through the engine — the same pure engine the play page
+For `intent-derived` rulesets (Singles Training, Shanghai, Around the Clock)
+the aimed target is the engine's active number at the time of the dart. For
+Singles Training that is just the current number, any ring — every ring on it
+is a valid aim (D367), unlike Shanghai/Around the Clock where the active
+number also changes across the visit. It is recovered by folding the
+session's facts through the engine — the same pure engine the play page
 runs — in the `server` site, over a bounded range. It is never written back as
 stored intent.
 
