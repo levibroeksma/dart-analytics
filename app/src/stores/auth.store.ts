@@ -1,5 +1,6 @@
 import { isPublicPage, normalizePath } from "@utils/auth-routes";
 import { authClient } from "@client/auth/client";
+import { clearStatsCache } from "@client/stats-cache/cache";
 
 type AuthStatus = "checking" | "anonymous" | "authenticated";
 
@@ -54,7 +55,10 @@ export function authStore() {
     async signOut() {
       this.loading = true;
       try {
-        await authClient.signOut();
+        await Promise.all([
+          authClient.signOut(),
+          clearStatsCache().catch(() => undefined),
+        ]);
         this.status = "anonymous";
       } finally {
         this.loading = false;

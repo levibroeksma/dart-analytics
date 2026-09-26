@@ -382,6 +382,29 @@ export type RulesetVersionKey =
   | "AROUND_THE_CLOCK_V1"
   | "AROUND_THE_CLOCK_V2";
 
+/** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
+export type GameTypeKey =
+  | "501"
+  | "TUOD"
+  | "ONE_TWENTY_ONE"
+  | "SCORE_TRAINING"
+  | "SINGLES_TRAINING"
+  | "DOUBLES_TRAINING"
+  | "BOBS27"
+  | "SHANGHAI"
+  | "AROUND_THE_CLOCK";
+
+/** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
+export type StatsTag =
+  | "board"
+  | "scoring"
+  | "checkout"
+  | "leg"
+  | "ladder"
+  | "intent-stored"
+  | "intent-derived"
+  | "target-sequence";
+
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
   BOBS27_V1: Bobs27Config,

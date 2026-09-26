@@ -7,12 +7,13 @@ updated: 2026-09-26
 
 # Statistics — Overview
 
-> **Version:** 1.0.0 (2026-09-26, D364/D365/D366)
+> **Version:** 1.1.0 (2026-09-26, D364/D365/D366/D367)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **designed, not built.** Nothing here exists in `app/` or `database/`
-> yet; each rollout phase (§12) is its own spec + plan.
+> Status: **phase 1 built** (§12) — base views (0043), the session list, the
+> `completion`/`volume`/`session-result` sections, the registry skeleton and
+> the IndexedDB cache. Everything else is still designed, not built.
 
 | File | Covers |
 | ---- | ------ |
@@ -71,17 +72,22 @@ The page renders the intersection.
 | Tag | Fact it guarantees | Rulesets (VISUAL_BOARD) |
 | --- | ------------------ | ----------------------- |
 | `board` | landing coordinates per dart | all |
-| `intent-stored` | `intended_target_number`/`intended_zone` stored per dart | Singles, Doubles Training, Bob's 27 |
-| `intent-derived` | the aimed target is implicit and recovered by an engine fold | Shanghai, Around the Clock |
+| `intent-stored` | `intended_target_number`/`intended_zone` stored per dart | Doubles Training, Bob's 27 |
+| `intent-derived` | the aimed target is implicit and recovered by an engine fold | Singles, Shanghai, Around the Clock |
 | `scoring` | face-value visit scoring | 501, Score Training |
 | `checkout` | double-out remaining-score ladder | 501, 121, TUOD |
 | `leg` | `LEG` stages | 501 |
 | `ladder` | target climbs/falls per attempt | 121, TUOD |
 | `target-sequence` | one target per visit/round | Singles, Doubles Training, Bob's 27, Shanghai, Around the Clock |
 
-X01 and Score Training capture **no intent** (verified 2026-09-26: only the
-Singles, Doubles Training and Bob's 27 engines set it). Sections needing intent
-are therefore not offered for them; inferring an aim would fabricate a fact.
+X01 and Score Training capture **no intent** (only Doubles Training and Bob's
+27 store it). Singles Training carries `intent-derived`, not `intent-stored`
+(D367): its engine (`singles-training.engine.module.ts` `record`) writes both
+intent columns `NULL` by design — every ring on the current number is a valid
+aim, and `chk_dart_target_consistency` (`0007`) rejects a number without a
+zone — so its aimed number is recovered from the visit index, the same way as
+Shanghai and Around the Clock. Sections needing intent are not offered where
+neither tag applies; inferring an aim would fabricate a fact.
 
 The tag map lives beside `RULESET_CAPABILITIES` (`lib/game/rulesets/capabilities.ts`)
 so a new ruleset declares its tags where it already declares its modes.
@@ -117,11 +123,17 @@ silently ignored.
 | ----- | ------ | ---- |
 | `from`, `to` | ISO 8601 instants | **Required.** Half-open `[from, to)` on `completed_at`. The client supplies boundaries (no server timezone, D343). |
 | `tz` | IANA zone name | Required when `bucket ≠ none`. Used only for bucket boundaries (`date_trunc(…, completed_at AT TIME ZONE tz)`). Never stored. |
-| `bucket` | `none` \| `day` \| `week` \| `month` \| `year` | Bucketable sections only. Server caps bucket count per request (e.g. 120). |
-| `status` | `completed` (default) \| `abandoned` \| `all` | Constrained by the section's `includesAbandoned`. |
+| `bucket` | `none` \| `day` \| `week` \| `month` \| `year` | Bucketable sections only. Server caps bucket count per request (120, D367) — the estimate is span ÷ nominal unit length, rounded up, plus 1 for widening. |
+| `status` | `completed` (default) \| `abandoned` \| `all` | Constrained by the section's `includesAbandoned` (D367 decision 5): an `includesAbandoned` section accepts only `all` (its default); every other section accepts only `completed` (its default); the session list accepts and defaults to all three. Anything else is `VALIDATION_FAILED`. |
 | `context` | `all` (default for game pages) \| `standalone` \| `routine` | §8 |
 | `inputMode` | `VISUAL_BOARD` (only value in this version) | reserved for recreational sections |
-| `limit`, `cursor` | per `06-API/03-Shared-Conventions.md` §Pagination | every list or raw-row endpoint |
+| `limit`, `cursor` | per `06-API/03-Shared-Conventions.md` §Pagination | every list or raw-row endpoint. The session list orders by `(completed_at DESC, session_id DESC)`; the opaque cursor encodes both (D367 decision 4). |
+
+**Bucket widening (D367 decision 2):** a bucketed request's `from` is floored
+to the start of its own bucket in `tz` before the query runs, and the server
+echoes the widened range it actually used as `range: { from, to }`. A bucket
+is `closed` iff `bucketEnd ≤ min(to, now)` — the client never caches a partial
+bucket as closed and needs no timezone arithmetic of its own.
 
 ## 5.1 Additive metric components
 
@@ -145,15 +157,17 @@ type Series<M> = {
   sectionId: string;
   sectionVersion: number;
   dataVersion: string;          // opaque, §7
-  bucket: "day" | "week" | "month" | "year";
-  tz: string;
-  buckets: { start: string; closed: boolean; sampleSize: number; metrics: M }[];
+  bucket: "none" | "day" | "week" | "month" | "year";
+  tz: string | null;            // null iff bucket = "none"
+  range: { from: string; to: string };  // the widened range actually queried (D367)
+  buckets: { start: string; end: string; closed: boolean; sampleSize: number; metrics: M }[];
 };
 ```
 
 `closed` is `true` when the bucket ends before the request time: no completed
 session can ever land in it again (completion is always stamped "now"), so the
-client caches it forever (§7).
+client caches it forever (§7). Precisely, `closed` iff `end ≤ min(to, now)`
+(D367 decision 2).
 
 ---
 
@@ -162,15 +176,18 @@ client caches it forever (§7).
 All under `/api/statistics/`, protected route class, caller is always `me`,
 view-backed end to end (D63).
 
-| Route | Returns |
-| ----- | ------- |
-| `GET games/:rulesetKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first |
-| `GET games/:rulesetKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` |
-| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) |
+| Route | Returns | Status |
+| ----- | ------- | ------ |
+| `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
+| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1) |
+| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | planned |
 
-One generic section route keeps the route count flat as insights grow; the
-registry, not the router, is what grows. Contracts are written into
-`06-API/04-Endpoint-Contracts.md` when the phase that builds them lands.
+The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
+`:rulesetKey` (D367 decision 1): a game page spans ruleset versions (e.g.
+Singles V1–V3), and `configSensitive` (§2) is what keeps versions from
+blending within it. One generic section route keeps the route count flat as
+insights grow; the registry, not the router, is what grows. Full contracts
+for the two built routes are in `06-API/04-Endpoint-Contracts.md`.
 
 ---
 
@@ -278,11 +295,14 @@ per-section views are still planned.
 
 Each phase is its own spec, plan, and migration.
 
-1. Base views, session list, `completion`/`volume`/`session-result`, registry
-   skeleton, IndexedDB cache.
-2. Board sections: `heatmap`, and the `intent-stored` family (Singles, Doubles
+1. **Done** (1a: base views, 0043, 2026-09-26; 1b: session list,
+   `completion`/`volume`/`session-result`, registry skeleton, IndexedDB
+   cache, D367).
+2. Board sections: `heatmap`, and the `intent-stored` family (Doubles
    Training, Bob's 27).
 3. Checkout family for 501/121/TUOD (`server` folds).
-4. `intent-derived` sections (Shanghai, Around the Clock) and the game-specific sections.
+4. `intent-derived` sections (Singles, Shanghai, Around the Clock) and the
+   game-specific sections — including the phase-1 `null` `RESULT_DIRECTION`
+   games (issue #615).
 5. Replay route (`02-Replay.md`).
 6. Routine statistics (later; `context = routine`).

@@ -1,4 +1,4 @@
-import type { RulesetVersionKey } from "@lib/types";
+import type { GameTypeKey, RulesetVersionKey, StatsTag } from "@lib/types";
 import type { ModePair } from "./types";
 
 const QUICK_SCORE: ModePair = {
@@ -52,6 +52,73 @@ export const RULESET_CAPABILITIES: Readonly<
   AROUND_THE_CLOCK_V1: [DETAILED_DARTS, VISUAL_BOARD],
   AROUND_THE_CLOCK_V2: [DETAILED_DARTS, VISUAL_BOARD],
 };
+
+/**
+ * Which facts each ruleset version's engine produces, in the vocabulary
+ * `10-Statistics/00-Overview.md` §3 defines. A statistics section is offered
+ * for a game where its `requires` is a subset of the game's tags here.
+ * Singles Training carries `intent-derived`, not `intent-stored`: its engine
+ * (`singles-training.engine.module.ts` `record`) always writes both intent
+ * columns `null` by design, since every ring on the current number is a
+ * valid aim — the aimed number is recovered from the visit index, the same
+ * way as Shanghai and Around the Clock (D367).
+ */
+export const STATS_TAGS: Readonly<
+  Record<RulesetVersionKey, readonly StatsTag[]>
+> = {
+  "501_V1": ["board", "scoring", "checkout", "leg"],
+  SCORE_TRAINING_V1: ["board", "scoring"],
+  TUOD_V1: ["board", "checkout", "ladder"],
+  "121_V1": ["board", "checkout", "ladder"],
+  "121_V2": ["board", "checkout", "ladder"],
+  SINGLES_V1: ["board", "intent-derived", "target-sequence"],
+  SINGLES_V2: ["board", "intent-derived", "target-sequence"],
+  SINGLES_V3: ["board", "intent-derived", "target-sequence"],
+  DOUBLES_TRAINING_V1: ["board", "intent-stored", "target-sequence"],
+  BOBS27_V1: ["board", "intent-stored", "target-sequence"],
+  SHANGHAI_V1: ["board", "intent-derived", "target-sequence"],
+  SHANGHAI_V2: ["board", "intent-derived", "target-sequence"],
+  AROUND_THE_CLOCK_V1: ["board", "intent-derived", "target-sequence"],
+  AROUND_THE_CLOCK_V2: ["board", "intent-derived", "target-sequence"],
+};
+
+/** Which game page (`10-Statistics/00-Overview.md` §6 `:gameTypeKey`) each ruleset version belongs to. */
+export const GAME_TYPE_BY_RULESET: Readonly<
+  Record<RulesetVersionKey, GameTypeKey>
+> = {
+  "501_V1": "501",
+  SCORE_TRAINING_V1: "SCORE_TRAINING",
+  TUOD_V1: "TUOD",
+  "121_V1": "ONE_TWENTY_ONE",
+  "121_V2": "ONE_TWENTY_ONE",
+  SINGLES_V1: "SINGLES_TRAINING",
+  SINGLES_V2: "SINGLES_TRAINING",
+  SINGLES_V3: "SINGLES_TRAINING",
+  DOUBLES_TRAINING_V1: "DOUBLES_TRAINING",
+  BOBS27_V1: "BOBS27",
+  SHANGHAI_V1: "SHANGHAI",
+  SHANGHAI_V2: "SHANGHAI",
+  AROUND_THE_CLOCK_V1: "AROUND_THE_CLOCK",
+  AROUND_THE_CLOCK_V2: "AROUND_THE_CLOCK",
+};
+
+const GAME_TYPE_KEYS: readonly GameTypeKey[] = Array.from(
+  new Set(Object.values(GAME_TYPE_BY_RULESET)),
+);
+
+/** Whether a string is a known game-type route segment. */
+export function isGameTypeKey(value: string): value is GameTypeKey {
+  return (GAME_TYPE_KEYS as readonly string[]).includes(value);
+}
+
+/** Every ruleset version that belongs to the given game type. */
+export function rulesetsOfGameType(
+  gameTypeKey: GameTypeKey,
+): RulesetVersionKey[] {
+  return (Object.keys(GAME_TYPE_BY_RULESET) as RulesetVersionKey[]).filter(
+    (key) => GAME_TYPE_BY_RULESET[key] === gameTypeKey,
+  );
+}
 
 /** Whether this ruleset version's engine implements the given mode pair. */
 export function supportsMode(

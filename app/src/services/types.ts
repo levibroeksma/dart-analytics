@@ -1,4 +1,10 @@
 import type { ErrorCode } from "@server/types";
+import type {
+  CompletionSeriesResponseData,
+  GameSessionListResponseData,
+  SessionResultSeriesResponseData,
+  VolumeSeriesResponseData,
+} from "@routes/types";
 
 export * from "./exercise-rulesets/types";
 export * from "./rulesets/types";
@@ -119,6 +125,13 @@ export type StatisticsOverview = {
   checkoutPercentage: number | null;
   highestCheckout: { value: number; timesHit: number } | null;
 };
+
+export type GameSessionList = GameSessionListResponseData;
+
+export type SeriesResponse =
+  | CompletionSeriesResponseData
+  | VolumeSeriesResponseData
+  | SessionResultSeriesResponseData;
 
 export type RoutineStep = {
   sequenceNumber: number;

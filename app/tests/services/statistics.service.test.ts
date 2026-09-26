@@ -6,10 +6,19 @@ vi.mock("@repositories/statistics.repository", () => ({
   findVisitFacts: vi.fn(),
   findLegFacts: vi.fn(),
   findX01CheckoutDarts: vi.fn(),
+  findGameSessionsPage: vi.fn(),
+  findGameDataVersion: vi.fn(),
+  findBucketFloor: vi.fn(),
+  findBucketedSessionAggregates: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
-import { getStatisticsOverview } from "@services/statistics.service";
+import {
+  getStatisticsOverview,
+  listGameSessions,
+  getGameSection,
+} from "@services/statistics.service";
+import { SECTIONS } from "@lib/stats/section-registry";
 
 const playerId = "0198f200-0000-7000-8000-000000000001";
 
@@ -388,5 +397,218 @@ describe("getStatisticsOverview", () => {
 
     expect(result.checkoutPercentage).toBe(1);
     expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
+  });
+});
+
+const baseRangeQuery = {
+  from: "2026-01-01T00:00:00.000Z",
+  to: "2026-02-01T00:00:00.000Z",
+  tz: undefined,
+  bucket: "none" as const,
+  status: undefined,
+  context: "all" as const,
+  inputMode: "VISUAL_BOARD" as const,
+};
+
+function makeSessionRow(overrides: Record<string, unknown>) {
+  return {
+    sessionId: "s1",
+    rulesetVersionKey: "501_V1",
+    statusKey: "COMPLETED",
+    contextKey: "STANDALONE",
+    neverStarted: false,
+    startedAt: "2026-01-01T00:00:00.000Z",
+    completedAt: "2026-01-01T00:05:00.000Z",
+    durationSeconds: 300,
+    turnCount: 10,
+    dartCount: 30,
+    countedScore: 501,
+    ...overrides,
+  };
+}
+
+describe("listGameSessions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("sets nextCursor when a further page exists (limit + 1 rows)", async () => {
+    vi.mocked(repo.findGameSessionsPage).mockResolvedValue([
+      makeSessionRow({
+        sessionId: "s1",
+        completedAt: "2026-01-03T00:00:00.000Z",
+      }),
+      makeSessionRow({
+        sessionId: "s2",
+        completedAt: "2026-01-02T00:00:00.000Z",
+      }),
+    ]);
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: "2026-01-03T00:00:00.000Z",
+    });
+
+    const result = await listGameSessions(playerId, "501", {
+      ...baseRangeQuery,
+      status: "all",
+      limit: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.items).toHaveLength(1);
+      expect(result.data.nextCursor).not.toBeNull();
+    }
+  });
+
+  it("returns nextCursor null when exactly limit rows come back", async () => {
+    vi.mocked(repo.findGameSessionsPage).mockResolvedValue([
+      makeSessionRow({}),
+    ]);
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const result = await listGameSessions(playerId, "501", {
+      ...baseRangeQuery,
+      status: "all",
+      limit: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.nextCursor).toBeNull();
+  });
+
+  it("rejects a malformed cursor", async () => {
+    const result = await listGameSessions(playerId, "501", {
+      ...baseRangeQuery,
+      status: "all",
+      limit: 25,
+      cursor: "%%%",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findGameSessionsPage).not.toHaveBeenCalled();
+  });
+});
+
+describe("getGameSection", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects a status the section does not accept", async () => {
+    const result = await getGameSection(playerId, "501", "volume", {
+      ...baseRangeQuery,
+      status: "abandoned",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  it("rejects a status other than all on the includesAbandoned section", async () => {
+    const result = await getGameSection(playerId, "501", "completion", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  it("returns NOT_FOUND for a section outside the game's registry", async () => {
+    const result = await getGameSection(
+      playerId,
+      "501",
+      "heatmap" as never,
+      baseRangeQuery,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects bucket != none on a non-bucketable section", async () => {
+    const original = SECTIONS.volume.bucketable;
+    (SECTIONS.volume as { bucketable: boolean }).bucketable = false;
+    try {
+      const result = await getGameSection(playerId, "501", "volume", {
+        ...baseRangeQuery,
+        bucket: "month",
+        tz: "Europe/Amsterdam",
+        status: "completed",
+      });
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    } finally {
+      (SECTIONS.volume as { bucketable: boolean }).bucketable = original;
+    }
+  });
+
+  it("returns a completion series on the happy path without flooring", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 3,
+      maxCompletedAt: "2026-01-15T00:00:00.000Z",
+    });
+    vi.mocked(repo.findBucketedSessionAggregates).mockResolvedValue([
+      {
+        bucketStart: "2026-01-01T00:00:00.000Z",
+        bucketEnd: "2026-02-01T00:00:00.000Z",
+        statusKey: "COMPLETED",
+        contextKey: "STANDALONE",
+        rulesetVersionKey: "501_V1",
+        neverStarted: false,
+        sessions: 3,
+        turnSum: 30,
+        dartSum: 90,
+        durationSum: 900,
+        scoreSum: 1500,
+        scoreMin: 400,
+        scoreMax: 600,
+        minSessionId: "s1",
+        maxSessionId: "s2",
+      },
+    ]);
+
+    const result = await getGameSection(playerId, "501", "completion", {
+      ...baseRangeQuery,
+      status: "all",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("completion");
+      expect(result.data.buckets).toHaveLength(1);
+    }
+    expect(repo.findBucketFloor).not.toHaveBeenCalled();
+  });
+
+  it("floors from to the bucket start when bucketed, and echoes it in range", async () => {
+    vi.mocked(repo.findBucketFloor).mockResolvedValue(
+      "2026-01-01T00:00:00.000Z",
+    );
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 0,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findBucketedSessionAggregates).mockResolvedValue([]);
+
+    const result = await getGameSection(playerId, "501", "volume", {
+      ...baseRangeQuery,
+      from: "2026-01-15T00:00:00.000Z",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      status: "completed",
+    });
+
+    expect(repo.findBucketFloor).toHaveBeenCalledWith(
+      expect.anything(),
+      "2026-01-15T00:00:00.000Z",
+      "month",
+      "Europe/Amsterdam",
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok)
+      expect(result.data.range.from).toBe("2026-01-01T00:00:00.000Z");
   });
 });

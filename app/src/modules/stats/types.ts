@@ -72,3 +72,84 @@ export type X01CheckoutDartRow = {
   hitZoneKey: DartFact["hitZoneKey"];
   score: number;
 };
+
+/** One row of `v_stats_session_facts` (`findGameSessionsPage`); `neverStarted` is derived, not a view column. */
+export type StatsSessionRow = {
+  sessionId: string;
+  rulesetVersionKey: string;
+  statusKey: string;
+  contextKey: string;
+  neverStarted: boolean;
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+  countedScore: number;
+};
+
+/**
+ * One group of `findBucketedSessionAggregates`'s shared aggregate query: a
+ * bucket × status × context × ruleset-version × never-started slice of a
+ * game's terminal sessions. `minSessionId`/`maxSessionId` carry the session
+ * that produced `scoreMin`/`scoreMax` so the client can link to it.
+ */
+export type StatsBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  statusKey: string;
+  contextKey: string;
+  rulesetVersionKey: string;
+  neverStarted: boolean;
+  sessions: number;
+  turnSum: number;
+  dartSum: number;
+  durationSum: number;
+  scoreSum: number;
+  scoreMin: number;
+  scoreMax: number;
+  minSessionId: string;
+  maxSessionId: string;
+};
+
+/** A count split by play context (`10-Statistics/00-Overview.md` §8). */
+export type ContextSplit = {
+  standalone: number;
+  routine: number;
+};
+
+/** `completion` section metrics — one bucket (`01-Section-Catalog.md` §1). */
+export type CompletionMetrics = {
+  completed: number;
+  abandoned: number;
+  neverStarted: number;
+  abandonedTurns: number;
+};
+
+/** `volume` section metrics — one bucket. */
+export type VolumeMetrics = {
+  sessions: ContextSplit;
+  darts: ContextSplit;
+  durationSeconds: ContextSplit;
+};
+
+/** One ruleset version's slice of a `session-result` bucket (D367 decision 3). */
+export type SessionResultRulesetMetrics = {
+  sessions: number;
+  countedScoreSum: number;
+  dartSum: number;
+  turnSum: number;
+  countedScoreMin: number;
+  countedScoreMax: number;
+  bestLowSessionId: string;
+  bestHighSessionId: string;
+};
+
+/** `session-result` section metrics — one bucket, keyed by `ruleset_version_key`. */
+export type SessionResultMetrics = Record<string, SessionResultRulesetMetrics>;
+
+/** The opaque session-list cursor's decoded shape (`series.module.ts`). */
+export type SessionListCursor = {
+  completedAt: string;
+  sessionId: string;
+};

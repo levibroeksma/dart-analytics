@@ -27,3 +27,184 @@ export const StatisticsOverviewResponse = z.object({
 export type StatisticsOverviewResponseData = z.infer<
   typeof StatisticsOverviewResponse
 >;
+
+/**
+ * Every `bucket ≠ none` request is capped at `MAX_BUCKETS` estimated buckets
+ * (`10-Statistics/00-Overview.md` §5, D367). The estimate is span ÷ nominal
+ * unit length, rounded up, plus 1 for the widening a bucketed request
+ * always takes (decision 2): the lower bound floors to its bucket start, so
+ * the widened range can span one more unit than the raw request.
+ */
+export const MAX_BUCKETS = 120;
+
+const BUCKET_UNIT_SECONDS: Record<"day" | "week" | "month" | "year", number> = {
+  day: 86400,
+  week: 7 * 86400,
+  month: 31 * 86400,
+  year: 366 * 86400,
+};
+
+function isValidTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Statistics Games. */
+export const StatisticsRangeQuery = z
+  .object({
+    from: z.string().datetime({ offset: true }),
+    to: z.string().datetime({ offset: true }),
+    tz: z.string().optional(),
+    bucket: z.enum(["none", "day", "week", "month", "year"]).default("none"),
+    status: z.enum(["completed", "abandoned", "all"]).optional(),
+    context: z.enum(["all", "standalone", "routine"]).default("all"),
+    inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
+  })
+  .superRefine((val, ctx) => {
+    const fromMs = Date.parse(val.from);
+    const toMs = Date.parse(val.to);
+    if (!(fromMs < toMs)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["to"],
+        message: "to must be after from",
+      });
+      return;
+    }
+    if (val.tz !== undefined && !isValidTimeZone(val.tz)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tz"],
+        message: "tz must be a valid IANA time zone",
+      });
+      return;
+    }
+    if (val.bucket === "none") return;
+    if (val.tz === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tz"],
+        message: "tz is required when bucket is not none",
+      });
+      return;
+    }
+    const spanSeconds = (toMs - fromMs) / 1000;
+    const estimate =
+      Math.ceil(spanSeconds / BUCKET_UNIT_SECONDS[val.bucket]) + 1;
+    if (estimate > MAX_BUCKETS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bucket"],
+        message: `range spans too many ${val.bucket} buckets (max ${MAX_BUCKETS})`,
+      });
+    }
+  });
+export type StatisticsRangeQueryData = z.infer<typeof StatisticsRangeQuery>;
+
+export const SessionListQuery = z.intersection(
+  StatisticsRangeQuery,
+  z.object({
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+    cursor: z.string().optional(),
+  }),
+);
+export type SessionListQueryData = z.infer<typeof SessionListQuery>;
+
+const BucketBase = z.object({
+  start: z.string().datetime({ offset: true }),
+  end: z.string().datetime({ offset: true }),
+  closed: z.boolean(),
+  sampleSize: z.number().int(),
+});
+
+const CompletionMetrics = z.object({
+  completed: z.number().int(),
+  abandoned: z.number().int(),
+  neverStarted: z.number().int(),
+  abandonedTurns: z.number().int(),
+});
+
+const ContextSplit = z.object({
+  standalone: z.number().int(),
+  routine: z.number().int(),
+});
+
+const VolumeMetrics = z.object({
+  sessions: ContextSplit,
+  darts: ContextSplit,
+  durationSeconds: ContextSplit,
+});
+
+const SessionResultMetrics = z.record(
+  z.string(),
+  z.object({
+    sessions: z.number().int(),
+    countedScoreSum: z.number().int(),
+    dartSum: z.number().int(),
+    turnSum: z.number().int(),
+    countedScoreMin: z.number().int(),
+    countedScoreMax: z.number().int(),
+    bestLowSessionId: z.string().uuid(),
+    bestHighSessionId: z.string().uuid(),
+  }),
+);
+
+const SeriesBase = z.object({
+  sectionVersion: z.number().int(),
+  dataVersion: z.string(),
+  bucket: z.enum(["none", "day", "week", "month", "year"]),
+  tz: z.string().nullable(),
+  range: z.object({
+    from: z.string().datetime({ offset: true }),
+    to: z.string().datetime({ offset: true }),
+  }),
+});
+
+export const CompletionSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("completion"),
+  buckets: z.array(BucketBase.extend({ metrics: CompletionMetrics })),
+});
+export type CompletionSeriesResponseData = z.infer<
+  typeof CompletionSeriesResponse
+>;
+
+export const VolumeSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("volume"),
+  buckets: z.array(BucketBase.extend({ metrics: VolumeMetrics })),
+});
+export type VolumeSeriesResponseData = z.infer<typeof VolumeSeriesResponse>;
+
+export const SessionResultSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("session-result"),
+  buckets: z.array(BucketBase.extend({ metrics: SessionResultMetrics })),
+});
+export type SessionResultSeriesResponseData = z.infer<
+  typeof SessionResultSeriesResponse
+>;
+
+const GameSessionListItem = z.object({
+  sessionId: z.string().uuid(),
+  rulesetVersionKey: z.string(),
+  statusKey: z.string(),
+  contextKey: z.string(),
+  neverStarted: z.boolean(),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  durationSeconds: z.number().int(),
+  turnCount: z.number().int(),
+  dartCount: z.number().int(),
+  countedScore: z.number().int(),
+});
+
+export const GameSessionListResponse = z.object({
+  items: z.array(GameSessionListItem),
+  nextCursor: z.string().nullable(),
+  dataVersion: z.string(),
+});
+export type GameSessionListResponseData = z.infer<
+  typeof GameSessionListResponse
+>;

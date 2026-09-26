@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authClient } from "@client/auth/client";
 import { authStore } from "@stores/auth.store";
 
+const clearStatsCache = vi.fn();
+vi.mock("@client/stats-cache/cache", () => ({
+  clearStatsCache: () => clearStatsCache(),
+}));
+
 describe("authStore.init", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -93,7 +98,10 @@ describe("authStore.signIn", () => {
 });
 
 describe("authStore.signOut", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    clearStatsCache.mockResolvedValue(undefined);
+  });
 
   it("sets anonymous after signOut resolves", async () => {
     vi.mocked(authClient.signOut).mockResolvedValue(undefined);
@@ -101,6 +109,21 @@ describe("authStore.signOut", () => {
     store.status = "authenticated";
     await store.signOut();
     expect(authClient.signOut).toHaveBeenCalled();
+    expect(store.status).toBe("anonymous");
+  });
+
+  it("clears the statistics cache", async () => {
+    vi.mocked(authClient.signOut).mockResolvedValue(undefined);
+    const store = authStore();
+    await store.signOut();
+    expect(clearStatsCache).toHaveBeenCalled();
+  });
+
+  it("a rejected clearStatsCache never blocks sign-out", async () => {
+    vi.mocked(authClient.signOut).mockResolvedValue(undefined);
+    clearStatsCache.mockRejectedValue(new Error("blocked"));
+    const store = authStore();
+    await store.signOut();
     expect(store.status).toBe("anonymous");
   });
 
