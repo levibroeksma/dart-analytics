@@ -125,4 +125,40 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
       }),
     );
   });
+
+  it("passes target through to the service for heatmap", async () => {
+    vi.mocked(getGameSection).mockResolvedValue({
+      ok: true,
+      data: {
+        sectionId: "heatmap",
+        sectionVersion: 1,
+        dataVersion: "v1:1:0",
+        bucket: "none",
+        tz: null,
+        range: {
+          from: "2026-01-01T00:00:00+01:00",
+          to: "2026-02-01T00:00:00+01:00",
+        },
+        buckets: [],
+      } as never,
+    });
+
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "DOUBLES_TRAINING", sectionId: "heatmap" },
+      url: makeUrl("DOUBLES_TRAINING", "heatmap", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        target: "DOUBLE:16",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    expect(getGameSection).toHaveBeenCalledWith(
+      "player-1",
+      "DOUBLES_TRAINING",
+      "heatmap",
+      expect.objectContaining({ target: "DOUBLE:16" }),
+    );
+  });
 });

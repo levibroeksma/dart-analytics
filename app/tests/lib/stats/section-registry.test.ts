@@ -4,6 +4,7 @@ import {
   SECTIONS,
   isSectionId,
   sectionsForGame,
+  tagsForGameType,
 } from "@lib/stats/section-registry";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 
@@ -132,5 +133,14 @@ describe("statistics section registry", () => {
         Object.prototype.hasOwnProperty.call(RESULT_DIRECTION, gameType),
       ).toBe(true);
     }
+  });
+
+  it("tagsForGameType unions the tags of every ruleset version", () => {
+    expect(tagsForGameType("DOUBLES_TRAINING")).toEqual(
+      new Set(["board", "intent-stored", "target-sequence"]),
+    );
+    expect(tagsForGameType("501")).toEqual(
+      new Set(["board", "scoring", "checkout", "leg"]),
+    );
   });
 });
