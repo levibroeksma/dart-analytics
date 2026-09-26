@@ -825,6 +825,23 @@ describe("findVisitScoring", () => {
     expect(sql).toContain('"v_stats_session_facts"');
   });
 
+  it("coalesces points and darts to 0 so an empty bucket=none scope does not yield null sums", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+      bands,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /coalesce\(sum\("v_player_visit_facts"\."total_score"\), 0\)/,
+    );
+    expect(sql).toMatch(
+      /coalesce\(sum\("v_player_visit_facts"\."dart_count"\), 0\)/,
+    );
+  });
+
   it("binds all three band edges as parameters, with no literal 140 in the rendered SQL", async () => {
     const { db, statements } = renderingDb([]);
     await findVisitScoring(db, {
