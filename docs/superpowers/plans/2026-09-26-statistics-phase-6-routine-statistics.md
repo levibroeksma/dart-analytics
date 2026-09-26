@@ -20,7 +20,7 @@
 **Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, dbmate, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
 
 **Spec:** `docs/architecture/10-Statistics/00-Overview.md` §1, §5–§8, §10 and `01-Section-Catalog.md` §3 (canonical); `09-Training/01-Routines.md` §11, §18 and `05-Database/06-Spec/04-Runtime-Layer.md` §`activity_configurations` for the snapshot. Earlier plans own what this one extends:
-- phase 1 (`2026-09-26-statistics-phase-1-foundation.md`): the section registry and route, `Series`, the session-list cursor, the stats cache (`db.ts`, `keys.ts`, `cache.ts`), `dataVersion`, `game-stats.store.ts`
+- phase 1b (`2026-09-26-statistics-phase-1b-foundation.md`): the section registry and route, `Series`, the session-list cursor, the stats cache (`db.ts`, `keys.ts`, `cache.ts`), `dataVersion`, `game-stats.store.ts`
 - phase 2 (`2026-09-26-statistics-phase-2-board-sections.md`): `SectionHandler`, `DartScope`, `dartScopeWhere`
 - phase 3 (`2026-09-26-statistics-phase-3-checkout-sections.md`): `MAX_FOLD_DARTS`, `findScopeDartCount`, `sessionScopeWhere`, `chunkWindows`, `mergeMetrics`
 - phase 4 (`2026-09-26-statistics-phase-4-derived-intent-sections.md`): `configGroupKey`, the game-specific sections a GAME step inherits

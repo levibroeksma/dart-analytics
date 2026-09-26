@@ -14,7 +14,8 @@
 **Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, dbmate, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
 
 **Spec:** `docs/architecture/10-Statistics/02-Replay.md` and `00-Overview.md` §5–§7, §10 (canonical). Earlier plans own what this one extends:
-- phase 1 (`2026-09-26-statistics-phase-1-foundation.md`): `v_stats_session_facts`, the cursor codec in `series.module.ts`, the stats cache (`db.ts`, `cache.ts`), `game-stats.store.ts`, the session list, `RESULT_DIRECTION`
+- phase 1a (`2026-09-26-statistics-phase-1a-database.md`): `v_stats_session_facts`
+- phase 1b (`2026-09-26-statistics-phase-1b-foundation.md`): the cursor codec in `series.module.ts`, the stats cache (`db.ts`, `cache.ts`), `game-stats.store.ts`, the session list, `RESULT_DIRECTION`
 - phase 3 (`2026-09-26-statistics-phase-3-checkout-sections.md`): `snapshotOf`
 - phase 4 (`2026-09-26-statistics-phase-4-derived-intent-sections.md`): defers the per-session Bob's 27 curve to this phase
 

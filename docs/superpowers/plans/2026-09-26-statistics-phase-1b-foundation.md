@@ -1,18 +1,20 @@
-# Statistics Phase 1 — Foundation Implementation Plan
+# Statistics Phase 1b — Foundation Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship rollout phase 1 of the detailed statistics pages: two base views, the per-game session list, the `completion` / `volume` / `session-result` sections behind one generic section route, the section registry skeleton, capability tags, and the IndexedDB client cache. The Games tab renders them in place of "coming soon".
+**Goal:** Ship the app half of rollout phase 1 of the detailed statistics pages: the per-game session list, the `completion` / `volume` / `session-result` sections behind one generic section route, the section registry skeleton, capability tags, and the IndexedDB client cache. The Games tab renders them in place of "coming soon".
 
-**Architecture:** Migration `0043` adds `v_stats_session_facts` (one row per terminal game session, owner-scoped, with rule-free turn/dart/score counts and a derived `context_key`), `v_stats_dart_facts` (one row per `VISUAL_BOARD` dart; no consumer until phase 2), and the date-range index. The three sections are `sql` site: the repository runs `date_trunc` bucket aggregates over the session view, and a pure module per section shapes rows into the `Series` contract. A registry maps section id → metadata + handler; one route dispatches through it. The client reads through an IndexedDB cache that never refetches a closed bucket.
+**Architecture:** Phase 1a's migration `0043` is on `main` and applied to production: `v_stats_session_facts` (one row per terminal game session, owner-scoped, with rule-free turn/dart/score counts and a derived `context_key`), `v_stats_dart_facts` (no consumer until phase 2), the date-range index, and their `schema.ts` declarations. This plan adds no migration. The three sections are `sql` site: the repository runs `date_trunc` bucket aggregates over the session view, and a pure module per section shapes rows into the `Series` contract. A registry maps section id → metadata + handler; one route dispatches through it. The client reads through an IndexedDB cache that never refetches a closed bucket.
 
-**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, dbmate, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
+**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
 
-**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical); brainstorm record `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
+**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical); brainstorm record `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`; phase 1a plan `2026-09-26-statistics-phase-1a-database.md` (the views this plan reads).
+
+**Prerequisite:** Phase 1a is merged to `main`, and the `deploy` workflow run for its merge commit is green (`rehearse`, `migrate`, `deploy`). So `0043` is applied in production and `schema.ts` on `main` declares `vStatsSessionFacts` and `vStatsDartFacts`. Check both before Task 1: the run's status in GitHub Actions, and `grep -n "vStatsSessionFacts\|vStatsDartFacts" app/src/db/schema.ts`. If a column name in `schema.ts` differs from what this plan says, follow `schema.ts` and note it in the PR body.
 
 ## Plan-level decisions (resolve gaps the architecture left open)
 
-Each is written into the canonical docs in Task 12 under decision **D367** (confirm the id with `bash scripts/next-decision-id.sh`).
+Each is written into the canonical docs in Task 11 under decision **D367** (confirm the id with `bash scripts/next-decision-id.sh`).
 
 1. **Route segment is the game type key.** `00-Overview.md` §6 says `:rulesetKey`; a game page spans ruleset versions (Singles V1–V3), so the segment is `:gameTypeKey` (`game_types.implementation_key`: `501`, `TUOD`, `ONE_TWENTY_ONE`, `SCORE_TRAINING`, `SINGLES_TRAINING`, `DOUBLES_TRAINING`, `BOBS27`, `SHANGHAI`, `AROUND_THE_CLOCK`). Versions stay separated through `configSensitive`.
 2. **Bucketed requests are widened to whole buckets.** For `bucket ≠ none` the server floors `from` to the start of its bucket in `tz` and echoes the range it used as `range: { from, to }`. A bucket is `closed` iff `bucketEnd ≤ min(to, now)`. So the client never caches a partial bucket as closed, and needs no timezone arithmetic.
@@ -26,8 +28,8 @@ Each is written into the canonical docs in Task 12 under decision **D367** (conf
 
 - TDD: write the failing test, run it, watch it fail, then implement. No implementation before a red test (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Always finish a task with the full suite, never one file only.
-- Never modify an applied migration (`0001`–`0042`). Schema change = new numbered migration + verification file + spec update.
-- `app/src/db/schema.ts` is generated. Never hand-edit it; `npm run db:introspect` after the migration is applied. That needs `DATABASE_URL`. A session without one **stops at Task 1 Step 4** and asks the owner to run `npm run db:migrate && npm run db:introspect`, then continues.
+- No migration in this plan. Never modify an applied migration (`0001`–`0043`). If a view turns out to need a change, stop: that is a new migration on its own 1a-style branch, not part of this one.
+- `app/src/db/schema.ts` is generated and already carries the views. Never hand-edit it.
 - Reads go through views. No repository selects a raw runtime table.
 - Statistics are never persisted. The views compute, nothing stores.
 - IDs are UUIDv7, app-generated. This phase writes no rows.
@@ -35,16 +37,13 @@ Each is written into the canonical docs in Task 12 under decision **D367** (conf
 - Exported types live in type barrels (`lib/stats/types.ts`, `modules/types.ts`, `services/types.ts`, `lib/client/api/types.ts`), never inline in a module (`check-type-barrels.sh`).
 - `x-init` is forbidden; stores hydrate in `init()`.
 - `npm run format` before every commit; `npm run format:check` clean.
-- Branch: `feat/statistics-foundation`, cut from `main` once the architecture branch (`claude/stats-pages-architecture-4vapgh`) has merged. If it has not, cut it from that branch (the stack cap allows one level).
+- Branch: `feat/statistics-foundation`, cut from `main` after the Prerequisite holds. Never stacked on the 1a branch: the point of the split is that 1b starts from the deployed `main`.
 - Anything noticed that this plan does not ask for → GitHub issue via `capturing-discovered-work`, never fixed in the same pass.
 
 ## File map
 
 | Action | Path | Responsibility |
 | ------ | ---- | -------------- |
-| Create | `database/migrations/0043_stats_base_views.sql` | the two base views + index |
-| Create | `database/verification/0043_stats_base_views_checks.sql` | live-DB assertions (D193) |
-| Regenerate | `app/src/db/schema.ts` | `vStatsSessionFacts`, `vStatsDartFacts` |
 | Modify | `app/src/lib/game/rulesets/capabilities.ts` | `STATS_TAGS`, `GAME_TYPE_BY_RULESET` |
 | Modify | `app/src/lib/game/rulesets/types.ts` | `GameTypeKey`, `StatsTag` |
 | Create | `app/src/lib/stats/section-registry.ts` | registry of phase-1 sections, `resultDirection` per game |
@@ -63,165 +62,11 @@ Each is written into the canonical docs in Task 12 under decision **D367** (conf
 | Modify | `app/src/stores/auth.store.ts` | wipe cache on sign-out |
 | Modify | `app/src/pages/statistics/index.astro` | render the sections + session list |
 | Tests | mirror each path under `app/tests/` | |
-| Docs | Task 12 list | |
+| Docs | Task 11 list | |
 
 ---
 
-### Task 1: Migration `0043` — base views and index
-
-**Files:**
-- Create: `database/migrations/0043_stats_base_views.sql`
-- Create: `database/verification/0043_stats_base_views_checks.sql`
-- Regenerate: `app/src/db/schema.ts`
-- Test: `app/tests/db/schema-view-drift.test.ts` (existing; must stay green), `app/tests/db/migration-numeric-typing.test.ts` (existing)
-
-- [ ] **Step 1: Read the rules.** `database/CLAUDE.md` (numbering, header, index rationale, `migrate:down`) and `docs/architecture/05-Database/05-Views/00-Overview.md` (§Business Logic: no game rules in SQL).
-
-- [ ] **Step 2: Write the migration.**
-
-```sql
--- ============================================================
--- Migration: 0043_stats_base_views.sql
---
--- Purpose:
--- Base fact views for the detailed statistics pages
--- (docs/architecture/10-Statistics/00-Overview.md §10, D364).
---
--- v_stats_session_facts: one row per COMPLETED or ABANDONED
--- game session, owner-scoped. Counts are rule-free reductions
--- over the owning participant's turns and darts. context_key is
--- derived, never stored: ROUTINE when the session's activity
--- has an activity_configurations snapshot, else STANDALONE.
--- Turn and dart aggregates are separate LATERAL subqueries so
--- neither fans the other out. COUNT/SUM are cast to integer so
--- node-postgres does not deliver NUMERIC strings.
---
--- v_stats_dart_facts: one row per VISUAL_BOARD dart with
--- coordinates, owner-scoped, carrying the session columns every
--- board/intent section filters on. Consumed from phase 2.
---
--- idx_exercise_sessions_player_game_completed: the date-range
--- entry point every statistics query takes.
--- ============================================================
-
--- migrate:up
-CREATE VIEW v_stats_session_facts AS
-SELECT es.id AS session_id,
-    es.player_id,
-    es.activity_id,
-    gt.implementation_key AS game_type_key,
-    rv.implementation_key AS ruleset_version_key,
-    im.implementation_key AS input_mode_key,
-    gs.implementation_key AS status_key,
-    CASE WHEN ac.activity_id IS NULL THEN 'STANDALONE' ELSE 'ROUTINE' END AS context_key,
-    es.routine_step_sequence_number,
-    ec.configuration,
-    es.started_at,
-    es.completed_at,
-    FLOOR(EXTRACT(EPOCH FROM (es.completed_at - es.started_at)))::integer AS duration_seconds,
-    COALESCE(tf.turn_count, 0) AS turn_count,
-    COALESCE(tf.counted_score, 0) AS counted_score,
-    COALESCE(df.dart_count, 0) AS dart_count
-FROM exercise_sessions es
-    JOIN game_types gt       ON gt.id = es.game_type_id
-    JOIN ruleset_versions rv ON rv.id = es.ruleset_version_id
-    JOIN input_modes im      ON im.id = es.input_mode_id
-    JOIN game_statuses gs    ON gs.id = es.status_id
-    LEFT JOIN activity_configurations ac ON ac.activity_id = es.activity_id
-    LEFT JOIN exercise_configurations ec ON ec.exercise_session_id = es.id
-    LEFT JOIN LATERAL (
-        SELECT COUNT(*)::integer AS turn_count,
-            SUM(t.total_score)::integer AS counted_score
-        FROM turns t
-            JOIN participants p     ON p.id = t.participant_id
-            JOIN exercise_stages st ON st.id = t.exercise_stage_id
-        WHERE st.exercise_session_id = es.id
-            AND p.player_id = es.player_id
-    ) tf ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT COUNT(*)::integer AS dart_count
-        FROM darts d
-            JOIN turns t            ON t.id = d.turn_id
-            JOIN participants p     ON p.id = t.participant_id
-            JOIN exercise_stages st ON st.id = t.exercise_stage_id
-        WHERE st.exercise_session_id = es.id
-            AND p.player_id = es.player_id
-    ) df ON TRUE
-WHERE gs.implementation_key IN ('COMPLETED', 'ABANDONED');
-COMMENT ON VIEW v_stats_session_facts IS 'One row per terminal game session (owning player only) with rule-free turn/dart/score counts and derived context_key (ROUTINE when the activity has an activity_configurations snapshot). Statistics phase 1, D364.';
-
-CREATE VIEW v_stats_dart_facts AS
-SELECT es.id AS session_id,
-    es.player_id,
-    gt.implementation_key AS game_type_key,
-    rv.implementation_key AS ruleset_version_key,
-    gs.implementation_key AS status_key,
-    CASE WHEN ac.activity_id IS NULL THEN 'STANDALONE' ELSE 'ROUTINE' END AS context_key,
-    es.completed_at,
-    st.id AS stage_id,
-    t.sequence_number AS turn_sequence,
-    d.dart_number,
-    d.hit_target_number,
-    hit_zone.implementation_key AS hit_zone_key,
-    d.intended_target_number,
-    intended_zone.implementation_key AS intended_zone_key,
-    d.score,
-    d.location_x,
-    d.location_y
-FROM darts d
-    JOIN turns t              ON t.id = d.turn_id
-    JOIN participants p       ON p.id = t.participant_id
-    JOIN exercise_stages st   ON st.id = t.exercise_stage_id
-    JOIN exercise_sessions es ON es.id = st.exercise_session_id
-    JOIN game_types gt        ON gt.id = es.game_type_id
-    JOIN ruleset_versions rv  ON rv.id = es.ruleset_version_id
-    JOIN input_modes im       ON im.id = es.input_mode_id
-    JOIN game_statuses gs     ON gs.id = es.status_id
-    LEFT JOIN activity_configurations ac ON ac.activity_id = es.activity_id
-    LEFT JOIN dart_zones hit_zone      ON hit_zone.id = d.hit_zone_id
-    LEFT JOIN dart_zones intended_zone ON intended_zone.id = d.intended_zone_id
-WHERE im.implementation_key = 'VISUAL_BOARD'
-    AND gs.implementation_key IN ('COMPLETED', 'ABANDONED')
-    AND d.location_x IS NOT NULL
-    AND d.location_y IS NOT NULL
-    AND p.player_id = es.player_id;
-COMMENT ON VIEW v_stats_dart_facts IS 'One row per VISUAL_BOARD dart with coordinates in a terminal game session (owning player only), with the session columns statistics sections filter on. Statistics phase 1, D364.';
-
-CREATE INDEX idx_exercise_sessions_player_game_completed
-    ON exercise_sessions (player_id, game_type_id, completed_at DESC);
-
--- migrate:down
-DROP INDEX IF EXISTS idx_exercise_sessions_player_game_completed;
-DROP VIEW IF EXISTS v_stats_dart_facts;
-DROP VIEW IF EXISTS v_stats_session_facts;
-```
-
-Confirm three facts against the spec before committing: the column name `routine_step_sequence_number`, the unique `activity_configurations.activity_id` (no fan-out), and the unique `exercise_configurations.exercise_session_id` (`0037`). All three are in `05-Database/06-Spec/04-Runtime-Layer.md`. If a fact differs, fix the SQL rather than the doc.
-
-- [ ] **Step 3: Write the verification script.** Mirror `database/verification/0023_owner_scoped_dart_view_checks.sql`: one transaction ending in `ROLLBACK`, lookups by `implementation_key`, a `verification_results` temp table, every row `PASS`. Fixtures and checks:
-  1. A completed standalone 501 `VISUAL_BOARD` session with 2 player turns (3 darts each, totals 60 and 45) and 1 DartBot turn. Assert `turn_count = 2`, `dart_count = 6`, `counted_score = 105`, `context_key = 'STANDALONE'`.
-  2. The same session shape under an activity with an `activity_configurations` row → `context_key = 'ROUTINE'`, and still exactly one row (no fan-out).
-  3. An abandoned session with zero turns → one row, `turn_count = 0`, `dart_count = 0`, `counted_score = 0`.
-  4. An `ACTIVE` session → absent from both views.
-  5. A training exercise session (NULL `game_type_id`) → absent.
-  6. `v_stats_dart_facts` returns 6 rows for fixture 1 (not the DartBot's), and none for a `QUICK_SCORE` session.
-  7. `pg_indexes` contains `idx_exercise_sessions_player_game_completed`.
-
-- [ ] **Step 4: Apply and introspect.** With `DATABASE_URL`:
-
-```bash
-cd app && npm run db:migrate && psql "$DATABASE_URL" -f ../database/verification/0043_stats_base_views_checks.sql && npm run db:introspect
-```
-
-Expected: every verification row `PASS`; `schema.ts` gains `vStatsSessionFacts` and `vStatsDartFacts`. **Without `DATABASE_URL`: stop and ask the owner to run the line above.** Do not hand-edit `schema.ts`.
-
-- [ ] **Step 5: Run the suite.** `cd app && npm test`. `schema-view-drift` and `migration-numeric-typing` must pass. If `migration-numeric-typing` flags a column, add the missing `::integer` cast in `0043` (still unapplied on this branch only if `db:status` and `db:status:prod` both report it pending — D344). Otherwise, parse the value in the repository.
-
-- [ ] **Step 6: Commit.** `feat(db): statistics base views and date-range index (0043)`
-
----
-
-### Task 2: Capability tags and game-type map
+### Task 1: Capability tags and game-type map
 
 **Files:**
 - Modify: `app/src/lib/game/rulesets/types.ts`, `app/src/lib/game/rulesets/capabilities.ts`
@@ -297,7 +142,7 @@ Add a JSDoc on `STATS_TAGS` pointing to `00-Overview.md` §3. The map says which
 
 ---
 
-### Task 3: Registry skeleton and shared types
+### Task 2: Registry skeleton and shared types
 
 **Files:**
 - Modify: `app/src/lib/stats/types.ts`
@@ -308,7 +153,7 @@ Add a JSDoc on `STATS_TAGS` pointing to `00-Overview.md` §3. The map says which
 - Produces (types): `SectionId = "completion" | "volume" | "session-result"`, `ComputeSite`, `Bucket = "none" | "day" | "week" | "month" | "year"`, `StatusFilter`, `ContextFilter`, `SectionMeta { id; version; requires: readonly StatsTag[]; computeSite; bucketable; includesAbandoned; configSensitive: readonly string[] }`, `Series<M>` (`00-Overview.md` §5.2 plus `range: { from: string; to: string }`), `ResultDirection = "higher" | "lower" | null`.
 - Produces (values): `SECTIONS: Readonly<Record<SectionId, SectionMeta>>`, `sectionsForGame(gameTypeKey): SectionMeta[]` (in page order), `isSectionId(value): value is SectionId`, `RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>>`.
 
-The registry lives in `lib/` (isomorphic, imported by both service and client). Handlers are **not** in it: the service owns the id → handler map (Task 7), so no DB code reaches the client bundle.
+The registry lives in `lib/` (isomorphic, imported by both service and client). Handlers are **not** in it: the service owns the id → handler map (Task 6), so no DB code reaches the client bundle.
 
 - [ ] **Step 1: Failing test.** Cover these points:
   - Every `SECTIONS` key equals its `id`.
@@ -330,7 +175,7 @@ The registry lives in `lib/` (isomorphic, imported by both service and client). 
 
 ---
 
-### Task 4: Query contract (zod)
+### Task 3: Query contract (zod)
 
 **Files:**
 - Modify: `app/src/pages/api/statistics/types.ts`
@@ -404,7 +249,7 @@ const SessionResultMetrics = z.record(
 
 ---
 
-### Task 5: Repository readers
+### Task 4: Repository readers
 
 **Files:**
 - Modify: `app/src/repositories/statistics.repository.ts`, `app/src/modules/types.ts`
@@ -444,7 +289,7 @@ The numeric columns come back as strings, so every count and sum is mapped throu
 
 ---
 
-### Task 6: Section modules (pure)
+### Task 5: Section modules (pure)
 
 **Files:**
 - Create: `app/src/modules/stats/sections/series.module.ts`, `completion.module.ts`, `volume.module.ts`, `session-result.module.ts`
@@ -459,7 +304,7 @@ The numeric columns come back as strings, so every count and sum is mapped throu
 - `volume.module.ts`: `volumeBuckets(rows, ctx): Bucket<VolumeMetrics>[]`.
 - `session-result.module.ts`: `sessionResultBuckets(rows, ctx): Bucket<SessionResultMetrics>[]`. Merging groups takes min/max across groups and keeps the matching session id. It never averages.
 
-Each module folds rows by `bucket_start` in ascending order. `sampleSize` = total sessions in the bucket. Empty buckets are not emitted: a closed bucket absent from a response is known-empty for its range (the cache relies on this, Task 9).
+Each module folds rows by `bucket_start` in ascending order. `sampleSize` = total sessions in the bucket. Empty buckets are not emitted: a closed bucket absent from a response is known-empty for its range (the cache relies on this, Task 8).
 
 - [ ] **Step 1: Failing tests**, one file per module:
   - Completion partitions `COMPLETED` / mid-quit / never-started from mixed rows.
@@ -475,7 +320,7 @@ Each module folds rows by `bucket_start` in ascending order. `sampleSize` = tota
 
 ---
 
-### Task 7: Service
+### Task 6: Service
 
 **Files:**
 - Modify: `app/src/services/statistics.service.ts`, `app/src/services/types.ts`
@@ -500,7 +345,7 @@ Behaviour:
 
 ---
 
-### Task 8: Routes
+### Task 7: Routes
 
 **Files:**
 - Create: `app/src/pages/api/statistics/games/[gameTypeKey]/sessions.ts`, `app/src/pages/api/statistics/games/[gameTypeKey]/sections/[sectionId].ts`
@@ -520,7 +365,7 @@ Behaviour:
 
 ---
 
-### Task 9: IndexedDB stats cache
+### Task 8: IndexedDB stats cache
 
 **Files:**
 - Create: `app/src/lib/client/stats-cache/db.ts`, `keys.ts`, `cache.ts` (types into `lib/client/api/types.ts` or a `stats-cache/types.ts` barrel; follow `check-type-barrels.sh`)
@@ -566,7 +411,7 @@ Every IndexedDB call goes through one `safe<T>(fn, fallback)` helper, and any th
 
 ---
 
-### Task 10: Client API, store and page
+### Task 9: Client API, store and page
 
 **Files:**
 - Modify: `app/src/lib/client/api/statistics.ts`, `app/src/lib/client/api/types.ts`
@@ -607,7 +452,7 @@ Every IndexedDB call goes through one `safe<T>(fn, fallback)` helper, and any th
 
 ---
 
-### Task 11: Wipe the cache on sign-out
+### Task 10: Wipe the cache on sign-out
 
 **Files:**
 - Modify: `app/src/stores/auth.store.ts` (`signOut`)
@@ -618,7 +463,7 @@ Every IndexedDB call goes through one `safe<T>(fn, fallback)` helper, and any th
 
 ---
 
-### Task 12: Docs, decision, gates
+### Task 11: Docs, decision, gates
 
 **Files:**
 - `decisions/api.md`: **D367**, covering plan-level decisions 1–7 above. Get the id from `bash scripts/next-decision-id.sh`.
@@ -631,19 +476,19 @@ Every IndexedDB call goes through one `safe<T>(fn, fallback)` helper, and any th
 - `docs/architecture/10-Statistics/01-Section-Catalog.md`: §1.2 names Singles as derived (number only, any ring); the `session-result` row says "rule-free components; PB direction per game (`RESULT_DIRECTION`)"; status line updated for the three built sections.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: full contracts for the two routes (params, defaults, errors, response shapes).
 - `docs/architecture/06-API/00-Overview.md`: the "Planned" list gets the two routes marked built.
-- `docs/architecture/05-Database/05-Views/00-Overview.md` and the views catalog chapter that lists each view: entries for `v_stats_session_facts` and `v_stats_dart_facts`. The spec chapter holding indexes gets the new index with its rationale.
 - `docs/architecture/07-Frontend/*` handbook entry for the stats cache, if the handbook lists client modules. Check `00-File-Inventory.md` for the canonical file.
-- `docs/CLAUDE.md`, root `CLAUDE.md`, `database/CLAUDE.md`: the migration range becomes `0001`–`0043` wherever it is stated. Note that root `CLAUDE.md`'s "never modify" range only moves once `0043` is applied.
+- Root `CLAUDE.md`: the "never modify applied migrations" range becomes `0001`–`0043`, citing the green 1a deploy run as the proof it is applied. `docs/CLAUDE.md` and `database/CLAUDE.md` already say `0043` (phase 1a); the views, index and §10 docs are 1a's too.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
 - [ ] **Step 2:** Run the `context-maintenance` skill: the context map, the File Inventory rows and token claims, and a history entry.
 - [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set, `check-constraint-mirror.sh`, and `check-decision-ids.sh`. Report each result.
-- [ ] **Step 4:** Commit `docs(stats): phase 1 contracts, views and D367`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
+- [ ] **Step 4:** Commit `docs(stats): phase 1 contracts and D367`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---
 
 ## Out of scope (later phases)
 
+- The migration, verification script, `schema.ts` regeneration and database docs (phase 1a).
 - Board and intent sections, the heatmap, and a `v_stats_dart_facts` reader (phase 2).
 - Checkout folds (phase 3); derived intent and game-specific sections (phase 4).
 - Replay and the `replayPages` store (phase 5); routine pages (phase 6).
