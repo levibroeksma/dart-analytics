@@ -7,14 +7,16 @@ updated: 2026-09-26
 
 # Statistics — Section Catalog
 
-> **Version:** 1.2.0 (2026-09-26, D368)
+> **Version:** 1.3.0 (2026-09-26, D369)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
 > `00-Overview.md`; this file only applies them. Status: `session-result`,
 > `completion`, `volume`, `heatmap`, `target-accuracy`, `confusion`,
-> `grouping`, `miss-direction` and `loose-darts` are **built** (phase 1 + 2);
-> every other section below is still designed, not built.
+> `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
+> `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
+> `ladder-progress`, `scoring-trend` and `treble-rate` are **built** (phase 1 +
+> 2 + 3); every other section below is still designed, not built.
 
 ---
 
@@ -31,13 +33,13 @@ Sections are reusable across games; a page picks them by capability tag
 | `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
 | `target-accuracy` | `intent-*` | sql (stored) / server (derived) | hit counts per target and ring | yes | hit rate per target/ring; strongest and weakest targets |
 | `confusion` | `intent-*` | sql (stored) / server (derived) | intended × hit counts | no | where aims at a target actually land (e.g. D16 → D8/D7) |
-| `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is a turn-sequence filter | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
-| `treble-rate` | `scoring` + `board` | sql | ring counts inside the scoring beds | yes | treble share of darts thrown at the scoring beds |
-| `checkout-rate` | `checkout` | server | remaining score is a ladder fold (`checkout-visits.module.ts`) | yes | checkout % overall and by remaining-score band |
-| `double-performance` | `checkout` | server | double attempts need remaining-before-dart (`double-attempt.module.ts`) | yes | darts at double, hit rate per double, **favorite double** (best rate above a minimum sample) |
+| `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is a turn-sequence filter; score bands are exclusive bins, not cumulative thresholds (D369) | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
+| `treble-rate` | `scoring` + `board` | sql | ring counts inside the scoring beds; counted per landed segment, not per aimed target — X01 and Score Training store no intent (D369) | yes | treble share of darts thrown at the scoring beds |
+| `checkout-rate` | `checkout` | server | remaining score is a ladder fold (`checkout-visits.module.ts`); a chance is counted per visit, not per dart (D369) | yes | checkout % overall and by remaining-score band |
+| `double-performance` | `checkout` | server | double attempts need remaining-before-dart (`double-attempt.module.ts`); counted per dart, keyed per double the remaining requires (D369) | yes | darts at double, hit rate per double, **favorite double** (best rate above a minimum sample) |
 | `checkout-path` | `checkout` | server | route per remaining needs the fold | no | **preferred path by setup shot**: from remaining X, the route taken and how often it finished |
-| `bust-rate` | `checkout` | server | bust is a fold outcome | yes | busts per remaining-score band |
-| `leg-stats` | `leg` | sql | per-leg dart counts already in `v_player_leg_facts` | yes | darts per leg, best leg, distribution |
+| `bust-rate` | `checkout` | server | bust is a fold outcome; the shared double-out rule only — a ruleset's early-bust forfeit (121's final-visit rule, TUOD's one-dart rule) is not counted (D369) | yes | busts per remaining-score band |
+| `leg-stats` | `leg` | server | finished legs need the checkout fold; `v_player_leg_facts` has no winner column and counts lost 1v1 legs and the abandoned final leg as legs, which breaks "darts per leg"/"best leg" (D369) | yes | darts per leg, best leg, distribution |
 | `ladder-progress` | `ladder` | server | target per attempt is a ladder fold | yes | highest target reached, success rate per target band, recovery after a miss |
 | `session-result` | any | sql | rule-free components (`counted_score`, `dart_count`, `turn_count`, min/max per bucket); PB direction per game (`RESULT_DIRECTION`, D367) | yes | the session's game-specific result with the personal-best line, where the game's headline is a pure function of the rule-free components |
 | `completion` | any | sql | status counts per bucket | yes | abandon rate; where the player quits (progress and score state at quit); "never started" separated |
@@ -45,8 +47,10 @@ Sections are reusable across games; a page picks them by capability tag
 
 `completion` is the only section with `includesAbandoned = true`.
 `session-result`, `completion`, `volume`, `heatmap`, `target-accuracy`,
-`confusion`, `grouping` and `miss-direction` are built (phase 1 + 2); every
-other row above is planned.
+`confusion`, `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
+`double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
+`ladder-progress`, `scoring-trend` and `treble-rate` are built (phase 1 + 2 +
+3); every other row above is planned.
 
 ## 1.1 Loose darts
 
@@ -111,7 +115,13 @@ store no intent (`00-Overview.md` §3).
 
 Versions that change scoring or difficulty (Singles V1–V3, Shanghai V1/V2, 121
 V1/V2, Around the Clock V1/V2) put `ruleset_version_key` in `configSensitive`:
-results are grouped or filtered per version, never blended.
+results are grouped or filtered per version, never blended. `configSensitive`
+governs **result-shaped** sections — `session-result` and `ladder-progress`,
+whose headline result depends on which version's rules produced it (D369).
+The checkout family, `scoring-trend`, `treble-rate` and `leg-stats` are
+**fact-shaped**: a dart at remaining 32 or a landed treble is the same fact
+under any ruleset version, so those sections pool versions instead (D369
+decision 9).
 
 ---
 

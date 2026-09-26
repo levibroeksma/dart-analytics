@@ -4,7 +4,11 @@ import {
   classifyDart,
 } from "@modules/game/double-attempt.module";
 import { isClosed } from "./series.module";
-import type { BucketedSession, DoublePerformanceMetrics } from "@modules/types";
+import type {
+  BucketedSession,
+  DoublePerformanceMetrics,
+  StagedVisit,
+} from "@modules/types";
 import type { SeriesBucket, TargetKey } from "@lib/types";
 
 /**
@@ -28,11 +32,37 @@ type BucketAccumulator = {
 };
 
 /**
+ * Folds one visit's `checkoutDarts` steps into `bucket`: every step is
+ * classified with `classifyDart`, and a `HIT`/`MISS` counts against the
+ * double its remaining required. `NOT_ATTEMPT` steps are skipped.
+ */
+function foldVisitIntoBucket(
+  bucket: BucketAccumulator,
+  visit: StagedVisit,
+): void {
+  for (const { remaining, dart } of checkoutDarts(visit)) {
+    const outcome = classifyDart(remaining, dart);
+    if (outcome === "NOT_ATTEMPT") continue;
+
+    const key = doubleTargetKey(remaining);
+    if (key === null) {
+      throw new Error(
+        `double-performance: classifyDart counted an attempt at remaining ${remaining}, which no double can finish`,
+      );
+    }
+
+    const existing = bucket.metrics[key] ?? { attempts: 0, hits: 0 };
+    existing.attempts += 1;
+    if (outcome === "HIT") existing.hits += 1;
+    bucket.metrics[key] = existing;
+    bucket.sampleSize += 1;
+  }
+}
+
+/**
  * Folds session checkout visits into `double-performance` buckets (phase-3
- * decision 4): every `checkoutDarts` step is classified with `classifyDart`,
- * and a `HIT`/`MISS` counts against the double its remaining required.
- * `NOT_ATTEMPT` steps are skipped. `sampleSize` is the number of counted
- * attempts; a bucket with none is not emitted.
+ * decision 4). `sampleSize` is the number of counted attempts; a bucket with
+ * none is not emitted.
  */
 export function doublePerformanceBuckets(
   sessions: readonly BucketedSession[],
@@ -46,25 +76,7 @@ export function doublePerformanceBuckets(
       metrics: {},
       sampleSize: 0,
     };
-    for (const visit of session.visits) {
-      for (const { remaining, dart } of checkoutDarts(visit)) {
-        const outcome = classifyDart(remaining, dart);
-        if (outcome === "NOT_ATTEMPT") continue;
-
-        const key = doubleTargetKey(remaining);
-        if (key === null) {
-          throw new Error(
-            `double-performance: classifyDart counted an attempt at remaining ${remaining}, which no double can finish`,
-          );
-        }
-
-        const existing = bucket.metrics[key] ?? { attempts: 0, hits: 0 };
-        existing.attempts += 1;
-        if (outcome === "HIT") existing.hits += 1;
-        bucket.metrics[key] = existing;
-        bucket.sampleSize += 1;
-      }
-    }
+    for (const visit of session.visits) foldVisitIntoBucket(bucket, visit);
     buckets.set(session.bucketStart, bucket);
   }
 

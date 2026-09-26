@@ -7,16 +7,21 @@ updated: 2026-09-26
 
 # Statistics — Overview
 
-> **Version:** 1.2.0 (2026-09-26, D364/D365/D366/D367/D368)
+> **Version:** 1.3.0 (2026-09-26, D364/D365/D366/D367/D368/D369)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **phase 1 + 2 built** (§12) — base views (0043), the session list,
-> the `completion`/`volume`/`session-result` sections, the registry skeleton,
-> the IndexedDB cache, and the six board sections (`heatmap`,
+> Status: **phase 1 + 2 + 3 built** (§12) — base views (0043), the session
+> list, the `completion`/`volume`/`session-result` sections, the registry
+> skeleton, the IndexedDB cache, the six board sections (`heatmap`,
 > `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
 > `loose-darts`) for every `board` game and the `intent-stored` family
-> (Doubles Training, Bob's 27). Everything else is still designed, not built.
+> (Doubles Training, Bob's 27), and the checkout family for 501/121/TUOD —
+> six `server` folds (`checkout-rate`, `double-performance`, `checkout-path`,
+> `bust-rate`, `ladder-progress`, `leg-stats`) plus two `sql` sections
+> (`scoring-trend`, `treble-rate`), all bounded by `MAX_FOLD_DARTS` and
+> fetched in client chunk windows (D369). Everything else is still designed,
+> not built.
 
 | File | Covers |
 | ---- | ------ |
@@ -115,6 +120,20 @@ stat table: statistics stay in views (root `CLAUDE.md` Hard Invariants).
 
 Every section records its site and a one-line reason in `01-Section-Catalog.md`.
 
+**The `server` bound, made mechanical (D369):** a `server` section's dart cap
+is `MAX_FOLD_DARTS = 5_000`. Before loading, the service sums `dart_count`
+over the scoped `v_stats_session_facts` rows (`findScopeDartCount`); above the
+cap the request fails `VALIDATION_FAILED`, `reason` naming it, before any fold
+row is even read. The number was measured, not guessed: a synthetic
+worst-case TUOD session log (the ruleset whose per-visit refold is quadratic
+within a session) took ~128ms at the plan's original placeholder of 20,000
+darts — over the 50ms budget — and ~30ms at 5,000. The client keeps the cap
+from ever being hit in practice by fetching in **chunk windows** — the bucket
+unit for `day`/`week`/`month`, or calendar months in `tz` for `none`/`year` —
+so a server fold never runs over more than one chunk's sessions at a time; an
+all-time view costs one fold per month, once, since closed chunks are cached
+forever (§7) and every server metric is additive (§5.1).
+
 ---
 
 # 5. Common Query Contract
@@ -184,7 +203,7 @@ view-backed end to end (D63).
 | Route | Returns | Status |
 | ----- | ------- | ------ |
 | `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
-| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`) |
+| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`) |
 | `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | planned |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
@@ -216,6 +235,18 @@ behind one module; Alpine stores read through it.
 - **Fetch rule:** a request is made only for keys absent from the cache or stale
   under the table above. Splitting a series request into its open bucket only is
   the main cost saving for Neon and Workers.
+- **Chunked reads for `server` sections (D369):** `readSection` splits a
+  `computeSite: "server"` request into `chunkWindows(from, to, bucket, tz)` —
+  the bucket unit for `day`/`week`/`month`, calendar months in `tz` for
+  `none`/`year` — reads whatever chunks are already cached, and fetches the
+  missing ones sequentially (one Worker fold at a time). Results are merged
+  with `mergeMetrics(sectionId, a, b)` (`lib/stats/merge-metrics.ts`): numeric
+  leaves sum, `maxTarget` merges by `max` with `null` as the identity, and
+  record-keyed metrics merge by key — one exhaustive
+  `Record<ServerSectionId, merger>`, so a new server section with no merger
+  entry is a compile error. A `year` view is a client regroup of cached month
+  chunks. A `VALIDATION_FAILED` chunk shows the card error state and is never
+  auto-split further.
 - Every read and write is wrapped so a blocked or empty IndexedDB (private mode,
   quota) degrades to network-only, never to an error.
 
@@ -306,7 +337,12 @@ Each phase is its own spec, plan, and migration.
 2. **Done** (board sections, 2026-09-26, D368): `heatmap` on every `board`
    game; `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
    `loose-darts` on the `intent-stored` family (Doubles Training, Bob's 27).
-3. Checkout family for 501/121/TUOD (`server` folds).
+3. **Done** (checkout family, 2026-09-26, D369): six `server` folds for
+   501/121/TUOD (`checkout-rate`, `double-performance`, `checkout-path`,
+   `bust-rate`, `ladder-progress`, `leg-stats`), bounded by
+   `MAX_FOLD_DARTS = 5_000` and fetched in client chunk windows; two `sql`
+   sections (`scoring-trend`, `treble-rate`) also serving Score Training via
+   its `scoring` tag.
 4. `intent-derived` sections (Singles, Shanghai, Around the Clock) and the
    game-specific sections — including the phase-1 `null` `RESULT_DIRECTION`
    games (issue #615).
