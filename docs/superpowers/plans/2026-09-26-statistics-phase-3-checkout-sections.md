@@ -68,7 +68,7 @@ Each is written into the canonical docs in Task 10 under decision **D369** (conf
 
 - TDD: write the failing test, run it, watch it fail, then implement (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Finish every task with the full suite.
-- No migration is planned. Task 3 Step 4 measures the query plans. If it fails, add migration `0044` (+ verification + spec update) as its own task, never by editing `0001`–`0043`.
+- No migration in this plan. Task 3 Step 4 measures the query plans. A needed index or view follows that step's on-fail rule, never an edit to an applied migration.
 - Reads go through views only: `vX01CheckoutDarts`, `vPlayerVisitFacts`, `vStatsSessionFacts`, `vStatsDartFacts`.
 - No game rules in SQL. Remaining score, bust, finish and ladder all stay in TS. Score-band edges reach SQL only as bound parameters.
 - Refactors of `x01-checkout-sessions`, `double-attempt` and `highest-checkout` must leave their existing tests unedited and green. The career Checkout % on `/statistics` must not move.
@@ -221,7 +221,7 @@ COUNT(*) FILTER (WHERE total_score >= $b3)::integer AS one_eighty
   - No seq scan on `darts` or `turns`.
   - `v_stats_session_facts`' LATERAL counts run only for in-range sessions.
 
-  **On fail:** stop. Add migration `0044` as its own task first: an index, or a lateral-free `v_stats_session_scope` view if the laterals are the cost, + verification + spec. Record the plan summaries in the PR body.
+  **On fail:** stop. The fix (an index, or a lateral-free `v_stats_session_scope` view if the laterals are the cost) is added as its own migration on a database branch run the phase 1a way (verification script, local introspection, PR, deploy), and this plan's PR merges only after that deploy is green. Record the plan summaries in the PR body.
 - [ ] **Step 5:** Commit: `feat(stats): readers for checkout and scoring sections`
 
 ---
@@ -441,11 +441,11 @@ Sparse samples show "not enough data yet" below `MIN_TARGET_SAMPLE`, never a rat
   - §12: phase 3 is done.
   - Version bump 1.3.0, citing D369.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: the eight section ids, their metric shapes, and the fold-bound `VALIDATION_FAILED` reason.
-- If Task 3 Step 4 added `0044`: the views/spec rationale, and the migration range in `docs/CLAUDE.md`, root `CLAUDE.md` and `database/CLAUDE.md`.
+- If Task 3 Step 4 required a migration: root `CLAUDE.md`'s never-modify range moves to it, citing its green deploy run. Its database branch carried the spec, views and `docs/CLAUDE.md` / `database/CLAUDE.md` edits.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
 - [ ] **Step 2:** Run the `context-maintenance` skill.
-- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh` (plus `check-constraint-mirror.sh` if `0044` exists). Report each result. `check-doc-sync.sh` is satisfied by the Step 1 edits, because `modules/game` and `modules/stats` changed.
+- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh`. Report each result. `check-doc-sync.sh` is satisfied by the Step 1 edits, because `modules/game` and `modules/stats` changed.
 - [ ] **Step 4:** Commit `docs(stats): phase 3 checkout family and D369`, then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---

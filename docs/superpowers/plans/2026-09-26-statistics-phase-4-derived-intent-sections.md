@@ -93,7 +93,7 @@ Each is written into the canonical docs in Task 10 under decision **D370** (conf
 
 - TDD: write the failing test, run it, watch it fail, then implement (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Finish every task with the full suite.
-- No migration is planned. Task 5 Step 4 measures the query plans. If it fails, add migration `0044` (+ verification + spec update) as its own task first, never by editing `0001`–`0043`.
+- No migration in this plan. Task 5 Step 4 measures the query plans. A needed index follows that step's on-fail rule, never an edit to an applied migration.
 - Reads go through views only: `vStatsDartFacts`, `vStatsSessionFacts`.
 - No game rules in SQL. Active target, hit rule, Shanghai, clears and Bob's 27 score all stay in TS.
 - Engine refactors (`activeTargetOf`) leave every existing engine test unedited and green.
@@ -291,7 +291,7 @@ const ShanghaiCountMetrics = z.object({
 - [ ] **Step 3:** Green, full suite.
 - [ ] **Step 4: Measure** (needs `DATABASE_URL`; without it, ask the owner to run it and paste the plans). Run `EXPLAIN (ANALYZE, BUFFERS)` of `findDartFoldRows` for the heaviest real Around the Clock player over one month.
   - **Pass:** entry through `idx_exercise_sessions_player_game_completed`; no seq scan on `darts` or `turns`.
-  - **On fail:** stop, and add migration `0044` as its own task first (+ verification + spec).
+  - **On fail:** stop. The index is added as its own migration on a database branch run the phase 1a way (verification script, local introspection, PR, deploy), and this plan's PR merges only after that deploy is green.
 
   Record the plan summary in the PR body.
 - [ ] **Step 5:** Commit: `feat(stats): dart fold reader`
@@ -461,11 +461,11 @@ const ShanghaiCountMetrics = z.object({
   - §12: phase 4 is done.
   - Version bump 1.4.0, citing D370.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: the three section ids with their metric shapes, `skippedSessions`, and per-game site.
-- If Task 5 Step 4 added `0044`: the views/spec rationale, and the migration range in `docs/CLAUDE.md`, root `CLAUDE.md` and `database/CLAUDE.md`.
+- If Task 5 Step 4 required a migration: root `CLAUDE.md`'s never-modify range moves to it, citing its green deploy run. Its database branch carried the spec, views and `docs/CLAUDE.md` / `database/CLAUDE.md` edits.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
 - [ ] **Step 2:** Run the `context-maintenance` skill.
-- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh` (plus `check-constraint-mirror.sh` if `0044` exists). Report each result. `check-doc-sync.sh` is satisfied by the Step 1 edits, since `modules/game` and `modules/stats` changed.
+- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh`. Report each result. `check-doc-sync.sh` is satisfied by the Step 1 edits, since `modules/game` and `modules/stats` changed.
 - [ ] **Step 4:** Commit `docs(stats): phase 4 derived intent sections and D370`, then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---
