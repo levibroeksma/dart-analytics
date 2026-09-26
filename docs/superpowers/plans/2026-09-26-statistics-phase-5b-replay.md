@@ -1,29 +1,30 @@
-# Statistics Phase 5 — Game Replay Implementation Plan
+# Statistics Phase 5b — Game Replay Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship rollout phase 5 of the detailed statistics pages: a paginated, owner-scoped replay of one finished game session, served by `GET /api/statistics/sessions/:sessionId/replay` and shown on a `/statistics/replay` page. The game page's session list and personal-best line link to it.
+**Goal:** Ship the app half of rollout phase 5 of the detailed statistics pages: a paginated, owner-scoped replay of one finished game session, served by `GET /api/statistics/sessions/:sessionId/replay` and shown on a `/statistics/replay` page. The game page's session list and personal-best line link to it.
 
 **Architecture:**
-- One migration appends four columns to `v_game_replay`: `participant_id`, `participant_type_key`, `location_x`, `location_y`. Nothing in `app/` reads the view yet, and appending columns keeps its documented `ReplayEntry` contract valid.
+- Phase 5a's migration is on `main` and applied to production: `v_game_replay` carries `participant_id`, `participant_type_key`, `location_x`, `location_y`, and `schema.ts` declares them. This plan adds no migration.
 - Every page is gated by phase 1's `v_stats_session_facts`, which is owner-scoped and holds only terminal game sessions. The first page carries a header with the snapshot, `context_key`, `activity_id`, the participants and the stage tree.
 - Pages hold whole turns in play order. The cursor encodes the last turn's `(stageId, turnSequence)`.
 - Pages are immutable. The server sends them with `Cache-Control: immutable`, and the client keeps them forever in a new `replayPages` IndexedDB store.
 - The client derives per-turn values (remaining score, active target, Bob's 27 running score) by rebuilding the ruleset's engine from the loaded facts through the play pages' existing rehydrate path. No game rule is added to the server.
 
-**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, dbmate, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
+**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
 
 **Spec:** `docs/architecture/10-Statistics/02-Replay.md` and `00-Overview.md` §5–§7, §10 (canonical). Earlier plans own what this one extends:
 - phase 1a (`2026-09-26-statistics-phase-1a-database.md`): `v_stats_session_facts`
+- phase 5a (`2026-09-26-statistics-phase-5a-replay-database.md`): the widened `v_game_replay`
 - phase 1b (`2026-09-26-statistics-phase-1b-foundation.md`): the cursor codec in `series.module.ts`, the stats cache (`db.ts`, `cache.ts`), `game-stats.store.ts`, the session list, `RESULT_DIRECTION`
 - phase 3 (`2026-09-26-statistics-phase-3-checkout-sections.md`): `snapshotOf`
 - phase 4 (`2026-09-26-statistics-phase-4-derived-intent-sections.md`): defers the per-session Bob's 27 curve to this phase
 
-**Prerequisite:** Phases 1–4 are merged. If a name differs from what this plan says, follow the code and note the difference in the PR body.
+**Prerequisite:** Phases 1–4 and 5a are merged, and the `deploy` run for 5a's merge commit is green. Check `grep -n "locationX\|participantTypeKey" app/src/db/schema.ts` inside `vGameReplay` before Task 1. If a name differs from what this plan says, follow the code and note the difference in the PR body.
 
 ## Plan-level decisions
 
-Each is written into the canonical docs in Task 9 under decision **D371** (confirm with `bash scripts/next-decision-id.sh`; D367–D370 belong to phases 1–4).
+Each is written into the canonical docs in Task 8 under decision **D371** (confirm with `bash scripts/next-decision-id.sh`; D367–D370 belong to phases 1–4).
 
 1. **Widen `v_game_replay`; no sibling view.**
    - No `app/` code reads the view. Its only other consumers are the verification script `0023_owner_scoped_dart_view_checks.sql`, which counts rows per participant, and the documented but unbuilt `ReplayEntry` contract. Neither is broken by appended columns.
@@ -53,7 +54,7 @@ Each is written into the canonical docs in Task 9 under decision **D371** (confi
 8. **The client derives per-turn values from the engine; the server never does.**
    - The snapshot is decoded with phase 3's `snapshotOf`. If it is still private to `x01-checkout-sessions.module.ts`, it moves to `modules/stats/snapshot.module.ts` and both callers import it. That extraction is required work, not discovered work.
    - The loaded pages map to `EngineFacts`. Stage `clientKey` = `stageId`. Turn `clientKey` = `stageId:turnSequence`. `participantRef` = `participantId`, which is what `composeSeatFacts` stores as the seat's `participantRef`.
-   - The state after turn *k* is `getEngineFactory(rulesetVersionKey).create(config, factsUpTo(k)).state()`, the same rehydrate path `resumeGameEngine` uses. It is memoized per turn. The cost is quadratic in the session's turns but bounded by one session; Task 6 pins a ceiling.
+   - The state after turn *k* is `getEngineFactory(rulesetVersionKey).create(config, factsUpTo(k)).state()`, the same rehydrate path `resumeGameEngine` uses. It is memoized per turn. The cost is quadratic in the session's turns but bounded by one session; Task 5 pins a ceiling.
    - Per-game **presenters** turn a state into what the page shows. Each presenter reads the state the same way that game's `*-play.data.ts` already does, and never re-derives a rule:
 
      | Game | Per turn | Session line |
@@ -76,7 +77,7 @@ Each is written into the canonical docs in Task 9 under decision **D371** (confi
 10. **Scope: every terminal game session in any input mode.**
     - A turn-total-only turn (recreational quick score) replays at turn resolution: `turnTotalScore` and no darts, which is `v_game_replay`'s existing `LEFT JOIN` behaviour.
     - Training (non-game) sessions are absent from `v_stats_session_facts`, so they return `NOT_FOUND`. Routine replay belongs to phase 6.
-11. **The frozen `GET /api/sessions/:sessionId/replay` stays untouched.** It is documented (`04-Endpoint-Contracts.md`, `ReplayEntry[]`) but was never built, and the route surface is frozen (`06-API/00-Overview.md`). This phase neither builds it nor drops it. Task 9 files a `discovered-work` issue so the owner can choose between retiring it (a D321-style drop) and pointing it at the same service.
+11. **The frozen `GET /api/sessions/:sessionId/replay` stays untouched.** It is documented (`04-Endpoint-Contracts.md`, `ReplayEntry[]`) but was never built, and the route surface is frozen (`06-API/00-Overview.md`). This phase neither builds it nor drops it. Task 8 files a `discovered-work` issue so the owner can choose between retiring it (a D321-style drop) and pointing it at the same service.
 12. **Links from the game page.**
     - Every session-list row links to its replay.
     - The session-result PB line links to the session id that phase 1 already returns with `min`/`max`.
@@ -86,24 +87,21 @@ Each is written into the canonical docs in Task 9 under decision **D371** (confi
 
 - TDD: write the failing test, run it, watch it fail, then implement (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Finish every task with the full suite.
-- Migration number: the next free one, which is `0044` unless an earlier phase's measurement step took it. Written here as `NNNN`. Never edit an applied migration. The D344 carve-out applies only with `db:status` and `db:status:prod` both reporting it pending.
-- `app/src/db/schema.ts` is generated: run `npm run db:introspect` after the migration is applied. A session without `DATABASE_URL` **stops at Task 1 Step 4** and asks the owner to run `npm run db:migrate && npm run db:introspect`.
+- No migration in this plan. Never edit an applied migration. A needed index follows Task 2 Step 3's on-fail rule.
+- `app/src/db/schema.ts` is generated and already carries the widened view. Never hand-edit it.
 - Reads go through views only: `vGameReplay` and `vStatsSessionFacts`.
 - No game rules on the server. The server returns stored facts in stored order; the engine runs only on the client.
 - NUMERIC arrives as a string: `locationX`/`locationY` are `Number(…)` when non-null.
 - Engine modules stay unedited. The replay consumes `create(config, prior)` exactly as the play pages do.
 - JSDoc only (`check-no-inline-comments.sh`). Exported types go in the barrels (`check-type-barrels.sh`). No `x-init`.
 - `npm run format` before every commit.
-- Branch: `feat/statistics-replay` from `main` after phase 4 has merged.
+- Branch: `feat/statistics-replay` from `main` after the Prerequisite holds; never stacked on the 5a branch.
 - Anything noticed that this plan does not ask for → GitHub issue via `capturing-discovered-work`, never fixed in the same pass.
 
 ## File map
 
 | Action | Path | Responsibility |
 | ------ | ---- | -------------- |
-| Create | `database/migrations/NNNN_replay_view_coordinates.sql` | widen `v_game_replay` |
-| Create | `database/verification/NNNN_replay_view_coordinates_checks.sql` | live-DB assertions (D193) |
-| Regenerate | `app/src/db/schema.ts` | `vGameReplay` gains four columns |
 | Create | `app/src/modules/stats/replay.module.ts` | `stageOrder`, replay cursor codec, rows → turns |
 | Create or move | `app/src/modules/stats/snapshot.module.ts` | `snapshotOf` (decision 8), if still private |
 | Modify | `app/src/repositories/statistics.repository.ts`, `app/src/modules/types.ts` | gate, stages, participants, turn page |
@@ -119,36 +117,11 @@ Each is written into the canonical docs in Task 9 under decision **D371** (confi
 | Create | `app/src/pages/statistics/replay.astro` | the replay page |
 | Modify | `app/src/pages/statistics/index.astro` | replay links |
 | Tests | mirror each path under `app/tests/` | |
-| Docs | Task 9 list | |
+| Docs | Task 8 list | |
 
 ---
 
-### Task 1: Migration — widen `v_game_replay`
-
-**Files:**
-- Create: `database/migrations/NNNN_replay_view_coordinates.sql`, `database/verification/NNNN_replay_view_coordinates_checks.sql`
-- Regenerate: `app/src/db/schema.ts`
-
-**Interfaces:**
-- `migrate:up`: `CREATE OR REPLACE VIEW v_game_replay AS` the exact `0016` select list, followed by `p.id AS participant_id, pt.implementation_key AS participant_type_key, d.location_x, d.location_y`, with `JOIN participant_types pt ON pt.id = p.participant_type_id` added. A `COMMENT ON VIEW` names the new columns.
-- `migrate:down`: `DROP VIEW v_game_replay` and recreate the `0016` definition verbatim, because `CREATE OR REPLACE` cannot drop columns.
-- The header comment states decision 1: why the view is widened rather than a sibling added, and why there is no `context_key`.
-
-- [ ] **Step 1: Write the verification script first** (fixture pattern: `0023_owner_scoped_dart_view_checks.sql`, lookups by `implementation_key`, ending in `ROLLBACK`). It asserts:
-  1. A VISUAL_BOARD dart returns its `location_x`/`location_y` unchanged.
-  2. A bounce-out dart (NULL location) returns NULL for both.
-  3. A turn-total-only turn returns one row with NULL dart columns and a non-null `participant_id`.
-  4. PLAYER, GUEST and DARTBOT participants each appear with their `participant_type_key`.
-  5. Row count per session equals that of the `0016` definition, computed inline as a CTE. The widening adds columns, never rows.
-- [ ] **Step 2: Write the migration.** Diff its select list against `0016` line by line: the first 15 columns are identical.
-- [ ] **Step 3: Query plan.** `EXPLAIN (ANALYZE, BUFFERS)` the Task 3 page query for the largest session in the dev database. It must use `idx_stages_session_sequence`, `idx_turns_stage_sequence` and `idx_darts_turn_number`, with no sequential scan on `turns` or `darts`. **On fail:** stop, and add the index to this same migration with its rationale (`04-Indexes.md`). Record the plan summary in the PR body.
-- [ ] **Step 4: Apply and introspect.** `cd app && npm run db:migrate && psql "$DATABASE_URL" -f ../database/verification/NNNN_replay_view_coordinates_checks.sql && npm run db:introspect`. Without `DATABASE_URL`: stop and ask (Global Constraints).
-- [ ] **Step 5: Suite.** `cd app && npm test`. `schema-view-drift` and `migration-numeric-typing` must pass. The coordinates stay NUMERIC and are parsed in the repository.
-- [ ] **Step 6: Commit.** `feat(db): replay view carries participant and coordinates (NNNN)`
-
----
-
-### Task 2: Replay module — stage order, cursor, rows → turns
+### Task 1: Replay module — stage order, cursor, rows → turns
 
 **Files:**
 - Create: `app/src/modules/stats/replay.module.ts`
@@ -171,7 +144,7 @@ Each is written into the canonical docs in Task 9 under decision **D371** (confi
 
 ---
 
-### Task 3: Repository readers
+### Task 2: Repository readers
 
 **Files:**
 - Modify: `app/src/repositories/statistics.repository.ts`, `app/src/modules/types.ts`
@@ -189,11 +162,13 @@ Every reader filters `player_id` **and** `session_id`, and `nonNull` guards the 
   - The rendered SQL of each reader: the view name, both filters, and for the page: `dense_rank`, `array_position`, the row-comparison keyset, `limit + 1`, and the three-column order.
   - Mapping: NUMERIC `"12.50"` → `12.5`; NULL coordinates stay `null`; `nonNull` throws on a null `stage_id` or `participant_id`.
   - `after: null` renders no keyset predicate.
-- [ ] **Step 2: Implement.** Green, full suite. Commit: `feat(stats): replay repository readers`
+- [ ] **Step 2: Implement.** Green, full suite.
+- [ ] **Step 3: Measure** (needs `DATABASE_URL`; without it, ask the owner to run it and paste the plans). `EXPLAIN (ANALYZE, BUFFERS)` of `findReplayTurnPage` for the largest session in the dev database. It must use `idx_stages_session_sequence`, `idx_turns_stage_sequence` and `idx_darts_turn_number`, with no sequential scan on `turns` or `darts`. **On fail:** stop. The index is added as its own migration on a database branch run the phase 1a way (verification script, local introspection, PR, deploy), and this plan's PR merges only after that deploy is green. Either way, record the plan summary in the PR body.
+- [ ] **Step 4:** Commit: `feat(stats): replay repository readers`
 
 ---
 
-### Task 4: Service `getSessionReplay`
+### Task 3: Service `getSessionReplay`
 
 **Files:**
 - Modify: `app/src/services/statistics.service.ts`, `app/src/services/types.ts`
@@ -220,7 +195,7 @@ Behaviour:
 
 ---
 
-### Task 5: Route and contract
+### Task 4: Route and contract
 
 **Files:**
 - Modify: `app/src/pages/api/statistics/types.ts`
@@ -229,7 +204,7 @@ Behaviour:
 
 **Interfaces:**
 - `ReplayQuery`: a zod `.strict()` object over the search params: `cursor` optional; `limit` an optional integer 1–120, default 30. Any other key fails (decision 6).
-- `ReplayHeaderSchema`, `ReplayTurnSchema`, `ReplayPageSchema` mirror Task 4's types. The types are `z.infer`'d into the barrels.
+- `ReplayHeaderSchema`, `ReplayTurnSchema`, `ReplayPageSchema` mirror Task 3's types. The types are `z.infer`'d into the barrels.
 - `sessionId` must be a UUID, else `VALIDATION_FAILED`.
 
 - [ ] **Step 1: Failing tests.**
@@ -244,7 +219,7 @@ Behaviour:
 
 ---
 
-### Task 6: Client fold and presenters
+### Task 5: Client fold and presenters
 
 **Files:**
 - Create or move: `app/src/modules/stats/snapshot.module.ts` (decision 8), updating the phase 3/4 import sites
@@ -271,7 +246,7 @@ Behaviour:
 
 ---
 
-### Task 7: Client API and `replayPages` cache
+### Task 6: Client API and `replayPages` cache
 
 **Files:**
 - Modify: `app/src/lib/client/api/statistics.ts`, `app/src/lib/client/api/types.ts`
@@ -295,7 +270,7 @@ Behaviour:
 
 ---
 
-### Task 8: Store, page and links
+### Task 7: Store, page and links
 
 **Files:**
 - Create: `app/src/lib/stats/replay-route.ts`, `app/src/stores/replay.store.ts` (register beside `gameStats`), `app/src/pages/statistics/replay.astro`
@@ -331,7 +306,7 @@ Behaviour:
 
 ---
 
-### Task 9: Docs, decision, gates
+### Task 8: Docs, decision, gates
 
 **Files:**
 - `decisions/api.md`: **D371**, covering plan-level decisions 1–12. Get the id from `bash scripts/next-decision-id.sh`.
@@ -341,23 +316,24 @@ Behaviour:
   - §3: the widened view without `context_key`, the cache header and the schema bump
   - new §4: client derivation, presenters and skip rules
   - version 1.1.0 citing D371; status **built**
-- `docs/architecture/10-Statistics/00-Overview.md`: §6 replay row **built**; §7 `replayPages` built; §10 the replay bullet resolved (widened, no per-row `context_key`); §12 phase 5 done; version 1.5.0 citing D371.
+- `docs/architecture/10-Statistics/00-Overview.md`: §6 replay row **built**; §7 `replayPages` built; §12 phase 5 done (§10 is 5a's); version 1.5.0 citing D371.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: the full replay contract (params, errors, headers, `ReplayPage`). The frozen `ReplayEntry` row stays; add one line that this phase does not build it and that the issue from Step 3 tracks it.
 - `docs/architecture/06-API/00-Overview.md`: the planned replay route marked built.
-- `docs/architecture/05-Database/06-Spec/05-Read-Model-Layer.md` §`v_game_replay`: the four new columns and the `participant_types` source. Also `05-Views/00-Overview.md` if it lists columns, and `03-Migrations.md` with an entry for `NNNN`.
+- `04-Indexes.md` and `03-Migrations.md` only if Task 2 Step 3 required an index (landed by its own database branch).
 - `docs/architecture/07-Frontend/01-Rendering-Strategy.md`: add `/statistics/replay` (`?session=`, prerendered) to the route table.
-- `docs/CLAUDE.md`, root `CLAUDE.md`, `database/CLAUDE.md`: the migration range wherever it is stated. Root `CLAUDE.md`'s never-modify range moves only once `NNNN` is applied.
+- Root `CLAUDE.md`: the never-modify range moves to 5a's migration, citing its green deploy run. `docs/CLAUDE.md` and `database/CLAUDE.md` were moved by 5a.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
-- [ ] **Step 2:** Run the `context-maintenance` skill: the context map, File Inventory rows (new verification script, new route and page) and a history entry.
+- [ ] **Step 2:** Run the `context-maintenance` skill: the context map, File Inventory rows (new route and page) and a history entry.
 - [ ] **Step 3:** File the decision 11 issue (`discovered-work`) through `capturing-discovered-work`: "frozen `GET /api/sessions/:sessionId/replay` overlaps the built statistics replay — retire or alias". Name it in the PR body.
 - [ ] **Step 4:** Run the `run-all-gates` skill: the Always-run set, the `app/` set, `check-constraint-mirror.sh` and `check-decision-ids.sh`. Report each result.
-- [ ] **Step 5:** Commit `docs(stats): phase 5 replay contract, view and D371`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
+- [ ] **Step 5:** Commit `docs(stats): phase 5 replay contract and D371`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---
 
 ## Out of scope
 
+- The `v_game_replay` migration, its verification script, `schema.ts` regeneration and its database docs (phase 5a).
 - Routine statistics and the replay of training (non-game) sessions (phase 6).
 - The `supersededBy` header field, which lands with corrections.
 - Building, aliasing or retiring the frozen `GET /api/sessions/:sessionId/replay` (the decision 11 issue).
