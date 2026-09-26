@@ -289,6 +289,122 @@ export const HeatmapSeriesResponse = SeriesBase.extend({
 });
 export type HeatmapSeriesResponseData = z.infer<typeof HeatmapSeriesResponse>;
 
+/** Keyed by the exact remaining score or dart total (`00-Overview.md` §5, phase-3 decision 3). */
+function ValueRecord<T extends z.ZodTypeAny>(value: T) {
+  return z.record(z.string().regex(/^\d+$/), value);
+}
+
+const HitCount = z.object({
+  attempts: z.number().int(),
+  hits: z.number().int(),
+});
+
+const CheckoutRateMetrics = ValueRecord(
+  z.object({ chances: z.number().int(), finished: z.number().int() }),
+);
+
+const DoublePerformanceMetrics = TargetRecord(HitCount);
+
+/** The inner key is a route label: dart labels in throw order (`checkout-path.module.ts`). */
+const CheckoutPathMetrics = ValueRecord(
+  z.record(
+    z.string(),
+    z.object({ visits: z.number().int(), finished: z.number().int() }),
+  ),
+);
+
+const BustRateMetrics = ValueRecord(
+  z.object({ visits: z.number().int(), busts: z.number().int() }),
+);
+
+const LegStatsMetrics = ValueRecord(z.number().int());
+
+const LadderProgressMetrics = z.object({
+  targets: ValueRecord(
+    z.object({ attempts: z.number().int(), successes: z.number().int() }),
+  ),
+  maxTarget: z.number().int().nullable(),
+  afterMiss: z.number().int(),
+  recovered: z.number().int(),
+});
+
+const ScoringTrendMetrics = z.object({
+  points: z.number().int(),
+  darts: z.number().int(),
+  firstNinePoints: z.number().int(),
+  firstNineDarts: z.number().int(),
+  bands: z.object({
+    ton: z.number().int(),
+    tonForty: z.number().int(),
+    oneEighty: z.number().int(),
+  }),
+});
+
+const TrebleRateMetrics = z.record(
+  z.string().regex(/^(\d+|MISS)$/),
+  z.object({ darts: z.number().int(), trebles: z.number().int() }),
+);
+
+export const CheckoutRateSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("checkout-rate"),
+  buckets: z.array(BucketBase.extend({ metrics: CheckoutRateMetrics })),
+});
+export type CheckoutRateSeriesResponseData = z.infer<
+  typeof CheckoutRateSeriesResponse
+>;
+
+export const DoublePerformanceSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("double-performance"),
+  buckets: z.array(BucketBase.extend({ metrics: DoublePerformanceMetrics })),
+});
+export type DoublePerformanceSeriesResponseData = z.infer<
+  typeof DoublePerformanceSeriesResponse
+>;
+
+export const CheckoutPathSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("checkout-path"),
+  buckets: z.array(BucketBase.extend({ metrics: CheckoutPathMetrics })),
+});
+export type CheckoutPathSeriesResponseData = z.infer<
+  typeof CheckoutPathSeriesResponse
+>;
+
+export const BustRateSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("bust-rate"),
+  buckets: z.array(BucketBase.extend({ metrics: BustRateMetrics })),
+});
+export type BustRateSeriesResponseData = z.infer<typeof BustRateSeriesResponse>;
+
+export const LegStatsSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("leg-stats"),
+  buckets: z.array(BucketBase.extend({ metrics: LegStatsMetrics })),
+});
+export type LegStatsSeriesResponseData = z.infer<typeof LegStatsSeriesResponse>;
+
+export const LadderProgressSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("ladder-progress"),
+  buckets: z.array(BucketBase.extend({ metrics: LadderProgressMetrics })),
+});
+export type LadderProgressSeriesResponseData = z.infer<
+  typeof LadderProgressSeriesResponse
+>;
+
+export const ScoringTrendSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("scoring-trend"),
+  buckets: z.array(BucketBase.extend({ metrics: ScoringTrendMetrics })),
+});
+export type ScoringTrendSeriesResponseData = z.infer<
+  typeof ScoringTrendSeriesResponse
+>;
+
+export const TrebleRateSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("treble-rate"),
+  buckets: z.array(BucketBase.extend({ metrics: TrebleRateMetrics })),
+});
+export type TrebleRateSeriesResponseData = z.infer<
+  typeof TrebleRateSeriesResponse
+>;
+
 const GameSessionListItem = z.object({
   sessionId: z.string().uuid(),
   rulesetVersionKey: z.string(),
