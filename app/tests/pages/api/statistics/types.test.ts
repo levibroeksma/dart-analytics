@@ -14,6 +14,14 @@ import {
   GroupingSeriesResponse,
   MissDirectionSeriesResponse,
   HeatmapSeriesResponse,
+  CheckoutRateSeriesResponse,
+  DoublePerformanceSeriesResponse,
+  CheckoutPathSeriesResponse,
+  BustRateSeriesResponse,
+  LegStatsSeriesResponse,
+  LadderProgressSeriesResponse,
+  ScoringTrendSeriesResponse,
+  TrebleRateSeriesResponse,
 } from "@routes/types";
 
 describe("StatisticsOverviewResponse", () => {
@@ -510,6 +518,324 @@ describe("board section series responses", () => {
             target: null,
             cells: [[0.5, 0, 1]],
           },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("checkout family series responses", () => {
+  it("parses a checkout-rate series response", () => {
+    const result = CheckoutRateSeriesResponse.safeParse({
+      sectionId: "checkout-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 4,
+          metrics: { "170": { chances: 4, finished: 1 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a checkout-rate metrics key that is not a plain integer", () => {
+    const result = CheckoutRateSeriesResponse.safeParse({
+      sectionId: "checkout-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { abc: { chances: 1, finished: 0 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a double-performance series response", () => {
+    const result = DoublePerformanceSeriesResponse.safeParse({
+      sectionId: "double-performance",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 30,
+          metrics: { "DOUBLE:16": { attempts: 30, hits: 12 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a checkout-path series response", () => {
+    const result = CheckoutPathSeriesResponse.safeParse({
+      sectionId: "checkout-path",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 4,
+          metrics: {
+            "170": { "T20 T20 BULL": { visits: 3, finished: 1 } },
+            "81": { "T19 D12": { visits: 1, finished: 1 } },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a checkout-path outer key that is not a plain integer", () => {
+    const result = CheckoutPathSeriesResponse.safeParse({
+      sectionId: "checkout-path",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { abc: { "T20 T20 BULL": { visits: 1, finished: 0 } } },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a bust-rate series response", () => {
+    const result = BustRateSeriesResponse.safeParse({
+      sectionId: "bust-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 2,
+          metrics: { "40": { visits: 2, busts: 1 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a bust-rate metrics key that is not a plain integer", () => {
+    const result = BustRateSeriesResponse.safeParse({
+      sectionId: "bust-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { abc: { visits: 1, busts: 0 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a leg-stats series response", () => {
+    const result = LegStatsSeriesResponse.safeParse({
+      sectionId: "leg-stats",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { "18": 1 },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a leg-stats metrics key that is not a plain integer", () => {
+    const result = LegStatsSeriesResponse.safeParse({
+      sectionId: "leg-stats",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { abc: 1 },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a ladder-progress series response", () => {
+    const result = LadderProgressSeriesResponse.safeParse({
+      sectionId: "ladder-progress",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            targets: { "41": { attempts: 1, successes: 1 } },
+            maxTarget: 51,
+            afterMiss: 1,
+            recovered: 1,
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a ladder-progress bucket missing maxTarget", () => {
+    const result = LadderProgressSeriesResponse.safeParse({
+      sectionId: "ladder-progress",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            targets: { "41": { attempts: 1, successes: 1 } },
+            afterMiss: 1,
+            recovered: 1,
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a scoring-trend series response", () => {
+    const result = ScoringTrendSeriesResponse.safeParse({
+      sectionId: "scoring-trend",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 10,
+          metrics: {
+            points: 450,
+            darts: 90,
+            firstNinePoints: 150,
+            firstNineDarts: 27,
+            bands: { ton: 3, tonForty: 1, oneEighty: 0 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a treble-rate series response with a MISS key", () => {
+    const result = TrebleRateSeriesResponse.safeParse({
+      sectionId: "treble-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 90,
+          metrics: {
+            "20": { darts: 40, trebles: 10 },
+            "25": { darts: 5, trebles: 0 },
+            MISS: { darts: 3, trebles: 0 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a treble-rate key that is neither a number nor MISS", () => {
+    const result = TrebleRateSeriesResponse.safeParse({
+      sectionId: "treble-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { bogey: { darts: 1, trebles: 0 } },
         },
       ],
     });
