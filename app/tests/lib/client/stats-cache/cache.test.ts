@@ -26,6 +26,7 @@ const meta: SectionMeta = {
   bucketable: true,
   includesAbandoned: true,
   configSensitive: [],
+  params: [],
 };
 
 type Metrics = { completed: number };

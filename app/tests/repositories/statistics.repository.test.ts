@@ -5,6 +5,10 @@ import {
   findGameDataVersion,
   findBucketedSessionAggregates,
   findBucketFloor,
+  findIntentCells,
+  findIntentMoments,
+  findMissSectors,
+  findHeatmapCells,
 } from "@repositories/statistics.repository";
 
 function fakeSelect(rows: unknown[]) {
@@ -482,5 +486,222 @@ describe("findBucketedSessionAggregates", () => {
         tz: undefined,
       }),
     ).rejects.toThrow(/status_key/);
+  });
+});
+
+const dartScope = {
+  playerId: "p1",
+  gameTypeKey: "DOUBLES_TRAINING" as const,
+  from: "2026-01-01T00:00:00.000Z",
+  to: "2026-02-01T00:00:00.000Z",
+  statuses: ["COMPLETED"],
+  context: "all" as const,
+};
+
+describe("findIntentCells", () => {
+  it("selects from v_stats_dart_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+  });
+
+  it("adds context_key = 'STANDALONE' when context=standalone", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, {
+      ...dartScope,
+      context: "standalone",
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"context_key" = \$/);
+    expect(statements[0].params).toContain("STANDALONE");
+  });
+
+  it("filters to intended_zone_key IS NOT NULL", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"intended_zone_key" is not null');
+  });
+
+  it("renders the bucket expression on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, {
+      ...dartScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("parses darts from a string count", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          bucketStart: dartScope.from,
+          bucketEnd: dartScope.to,
+          intendedTargetNumber: 16,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: 16,
+          hitZoneKey: "DOUBLE",
+          darts: "3",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findIntentCells(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result[0].darts).toBe(3);
+  });
+
+  it("nonNull throws on a null intended_zone_key row", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          bucketStart: dartScope.from,
+          bucketEnd: dartScope.to,
+          intendedTargetNumber: 16,
+          intendedZoneKey: null,
+          hitTargetNumber: 16,
+          hitZoneKey: "DOUBLE",
+          darts: "1",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(
+      findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined }),
+    ).rejects.toThrow(/intended_zone_key/);
+  });
+});
+
+describe("findIntentMoments", () => {
+  it("selects from v_stats_dart_facts and filters intended_zone_key IS NOT NULL", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentMoments(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+    expect(sql).toContain('"intended_zone_key" is not null');
+  });
+
+  it("parses the moment sums from strings", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          bucketStart: dartScope.from,
+          bucketEnd: dartScope.to,
+          intendedTargetNumber: 16,
+          intendedZoneKey: "DOUBLE",
+          n: "4",
+          sumX: "10.5",
+          sumY: "-8.25",
+          sumXX: "44.5",
+          sumYY: "30.25",
+          sumXY: "-12.5",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findIntentMoments(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result[0]).toMatchObject({
+      n: 4,
+      sumX: 10.5,
+      sumY: -8.25,
+      sumXX: 44.5,
+      sumYY: 30.25,
+      sumXY: -12.5,
+    });
+  });
+});
+
+describe("findMissSectors", () => {
+  const refs = [
+    {
+      targetNumber: 16,
+      zoneKey: "DOUBLE",
+      cx: 0,
+      cy: -162,
+      rInner: 162,
+      rOuter: 170,
+    },
+  ];
+
+  it("selects from v_stats_dart_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMissSectors(db, { ...dartScope, refs });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+  });
+
+  it("binds every reference value as a parameter, never a literal", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMissSectors(db, { ...dartScope, refs });
+    const sql = onlyStatement(statements);
+    expect(sql).not.toContain("162");
+    expect(statements[0].params).toContain(162);
+    expect(statements[0].params).toContain(170);
+  });
+
+  it("excludes darts that hit the intended target", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMissSectors(db, { ...dartScope, refs });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/NOT \(/);
+    expect(sql).toContain("IS NOT DISTINCT FROM");
+  });
+});
+
+describe("findHeatmapCells", () => {
+  it("selects from v_stats_dart_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+  });
+
+  it("binds both the target number and zone when a target is set", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHeatmapCells(db, {
+      ...dartScope,
+      cellMm: 5,
+      target: { number: 16, zone: "DOUBLE" },
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"intended_target_number" = \$/);
+    expect(sql).toMatch(/"intended_zone_key" = \$/);
+    expect(statements[0].params).toContain(16);
+    expect(statements[0].params).toContain("DOUBLE");
+  });
+
+  it("omits the target filter when target is null", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
+    const sql = onlyStatement(statements);
+    expect(sql).not.toContain("intended_target_number");
   });
 });

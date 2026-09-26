@@ -1,8 +1,21 @@
-import { and, count, desc, eq, gte, inArray, lt, max, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  lt,
+  max,
+  sql,
+} from "drizzle-orm";
+import type { Column } from "drizzle-orm";
 import {
   vPlayerLegFacts,
   vPlayerVisitFacts,
   vSessionOverview,
+  vStatsDartFacts,
   vStatsSessionFacts,
   vX01CheckoutDarts,
 } from "@db/schema";
@@ -10,6 +23,12 @@ import { nonNull } from "./row-helpers";
 import type { getDb } from "@db/client";
 import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
+  DartScope,
+  HeatmapCellRow,
+  IntentCellRow,
+  IntentMomentRow,
+  MissReference,
+  MissSectorRow,
   PlayerLegFactRow,
   PlayerSessionSummaryRow,
   PlayerVisitFactRow,
@@ -164,6 +183,317 @@ function contextCondition(context: ContextFilter) {
   return context === "all"
     ? undefined
     : eq(vStatsSessionFacts.contextKey, context.toUpperCase());
+}
+
+/**
+ * The shared bucket-start/bucket-end expression pair (`00-Overview.md` §5):
+ * a whitelisted `date_trunc(unit, … AT TIME ZONE tz)` pair applied to
+ * whichever view's `completedAt` column the caller passes.
+ */
+function bucketExprs(
+  completedAt: Column,
+  unit: Exclude<Bucket, "none">,
+  tz: string,
+) {
+  const unitLiteral = sql.raw(`'${BUCKET_UNIT[unit]}'`);
+  const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[unit]}'`);
+  return {
+    bucketStartExpr: sql<string>`(date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz})`,
+    bucketEndExpr: sql<string>`((date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tz}) + ${intervalLiteral}) AT TIME ZONE ${tz})`,
+  };
+}
+
+/** The shared filter every dart-level reader applies to `v_stats_dart_facts` (Task 3). */
+function dartScopeWhere(scope: DartScope) {
+  const conditions = [
+    eq(vStatsDartFacts.playerId, scope.playerId),
+    eq(vStatsDartFacts.gameTypeKey, scope.gameTypeKey),
+    gte(vStatsDartFacts.completedAt, scope.from),
+    lt(vStatsDartFacts.completedAt, scope.to),
+    inArray(vStatsDartFacts.statusKey, scope.statuses),
+    scope.context === "all"
+      ? undefined
+      : eq(vStatsDartFacts.contextKey, scope.context.toUpperCase()),
+  ].filter((condition) => condition !== undefined);
+  return and(...conditions);
+}
+
+function mapIntentCellRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: string | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: string | null;
+  darts: unknown;
+}): IntentCellRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    intendedTargetNumber: nonNull(
+      row.intendedTargetNumber,
+      "intended_target_number",
+    ),
+    intendedZoneKey: nonNull(row.intendedZoneKey, "intended_zone_key"),
+    hitTargetNumber: row.hitTargetNumber,
+    hitZoneKey: nonNull(row.hitZoneKey, "hit_zone_key"),
+    darts: Number(nonNull(row.darts as string | null, "darts")),
+  };
+}
+
+/**
+ * Intended×hit pair counts over `v_stats_dart_facts`, filtered to darts with
+ * a stored intent — feeds `target-accuracy`, `confusion` and `loose-darts`
+ * (phase-2 decision 2).
+ */
+export async function findIntentCells(
+  db: Db,
+  q: DartScope & { bucket: Bucket; tz: string | undefined },
+): Promise<IntentCellRow[]> {
+  const whereClause = and(
+    dartScopeWhere(q),
+    isNotNull(vStatsDartFacts.intendedZoneKey),
+  );
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+        intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+        hitTargetNumber: vStatsDartFacts.hitTargetNumber,
+        hitZoneKey: vStatsDartFacts.hitZoneKey,
+        darts: count(),
+      })
+      .from(vStatsDartFacts)
+      .where(whereClause)
+      .groupBy(
+        vStatsDartFacts.intendedTargetNumber,
+        vStatsDartFacts.intendedZoneKey,
+        vStatsDartFacts.hitTargetNumber,
+        vStatsDartFacts.hitZoneKey,
+      );
+    return rows.map(mapIntentCellRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsDartFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+      intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+      hitTargetNumber: vStatsDartFacts.hitTargetNumber,
+      hitZoneKey: vStatsDartFacts.hitZoneKey,
+      darts: count(),
+    })
+    .from(vStatsDartFacts)
+    .where(whereClause)
+    .groupBy(
+      bucketStartExpr,
+      bucketEndExpr,
+      vStatsDartFacts.intendedTargetNumber,
+      vStatsDartFacts.intendedZoneKey,
+      vStatsDartFacts.hitTargetNumber,
+      vStatsDartFacts.hitZoneKey,
+    );
+  return rows.map(mapIntentCellRow);
+}
+
+function mapIntentMomentRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: string | null;
+  n: unknown;
+  sumX: unknown;
+  sumY: unknown;
+  sumXX: unknown;
+  sumYY: unknown;
+  sumXY: unknown;
+}): IntentMomentRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    intendedTargetNumber: nonNull(
+      row.intendedTargetNumber,
+      "intended_target_number",
+    ),
+    intendedZoneKey: nonNull(row.intendedZoneKey, "intended_zone_key"),
+    n: Number(nonNull(row.n as string | null, "n")),
+    sumX: Number(nonNull(row.sumX as string | null, "sum_x")),
+    sumY: Number(nonNull(row.sumY as string | null, "sum_y")),
+    sumXX: Number(nonNull(row.sumXX as string | null, "sum_xx")),
+    sumYY: Number(nonNull(row.sumYY as string | null, "sum_yy")),
+    sumXY: Number(nonNull(row.sumXY as string | null, "sum_xy")),
+  };
+}
+
+/**
+ * Additive position moments (Σx, Σy, Σx², Σy², Σxy) per intended pair over
+ * `v_stats_dart_facts` — feeds `grouping` (phase-2 decision 3). Sums
+ * re-aggregate exactly across buckets; the mean/spread/bias derivation stays
+ * in `grouping.module.ts`.
+ */
+export async function findIntentMoments(
+  db: Db,
+  q: DartScope & { bucket: Bucket; tz: string | undefined },
+): Promise<IntentMomentRow[]> {
+  const whereClause = and(
+    dartScopeWhere(q),
+    isNotNull(vStatsDartFacts.intendedZoneKey),
+  );
+  const sumXExpr = sql<string>`sum(${vStatsDartFacts.locationX})`;
+  const sumYExpr = sql<string>`sum(${vStatsDartFacts.locationY})`;
+  const sumXXExpr = sql<string>`sum(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationX})`;
+  const sumYYExpr = sql<string>`sum(${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY})`;
+  const sumXYExpr = sql<string>`sum(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationY})`;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+        intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+        n: count(),
+        sumX: sumXExpr,
+        sumY: sumYExpr,
+        sumXX: sumXXExpr,
+        sumYY: sumYYExpr,
+        sumXY: sumXYExpr,
+      })
+      .from(vStatsDartFacts)
+      .where(whereClause)
+      .groupBy(
+        vStatsDartFacts.intendedTargetNumber,
+        vStatsDartFacts.intendedZoneKey,
+      );
+    return rows.map(mapIntentMomentRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsDartFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+      intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+      n: count(),
+      sumX: sumXExpr,
+      sumY: sumYExpr,
+      sumXX: sumXXExpr,
+      sumYY: sumYYExpr,
+      sumXY: sumXYExpr,
+    })
+    .from(vStatsDartFacts)
+    .where(whereClause)
+    .groupBy(
+      bucketStartExpr,
+      bucketEndExpr,
+      vStatsDartFacts.intendedTargetNumber,
+      vStatsDartFacts.intendedZoneKey,
+    );
+  return rows.map(mapIntentMomentRow);
+}
+
+/**
+ * Missed-dart counts by 45°-sector and radial band, joined against a bound
+ * `VALUES` table of reference points — feeds `miss-direction` (phase-2
+ * decision 4). Only darts that missed the intended pair count.
+ */
+export async function findMissSectors(
+  db: Db,
+  q: DartScope & { refs: MissReference[] },
+): Promise<MissSectorRow[]> {
+  const whereClause = dartScopeWhere(q);
+  const missedClause = sql`NOT (${vStatsDartFacts.hitTargetNumber} IS NOT DISTINCT FROM ${vStatsDartFacts.intendedTargetNumber} AND ${vStatsDartFacts.hitZoneKey} IS NOT DISTINCT FROM ${vStatsDartFacts.intendedZoneKey})`;
+  const valuesRows = sql.join(
+    q.refs.map(
+      (ref) =>
+        sql`(${ref.targetNumber}, ${ref.zoneKey}, ${ref.cx}, ${ref.cy}, ${ref.rInner}, ${ref.rOuter})`,
+    ),
+    sql`, `,
+  );
+  const sectorExpr = sql`MOD(FLOOR(MOD(DEGREES(ATAN2(${vStatsDartFacts.locationX} - ref.cx, -(${vStatsDartFacts.locationY} - ref.cy))) + 360 + 22.5, 360) / 45)::integer, 8)`;
+  const radialExpr = sql`CASE WHEN SQRT(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationX} + ${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY}) < ref.r_inner THEN 'INSIDE' WHEN SQRT(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationX} + ${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY}) >= ref.r_outer THEN 'OUTSIDE' ELSE 'WITHIN' END`;
+
+  const statement = sql`
+    SELECT ref.target_number AS target_number, ref.zone_key AS zone_key, ${sectorExpr} AS sector, ${radialExpr} AS radial, count(*)::integer AS darts
+    FROM ${vStatsDartFacts}
+    JOIN (VALUES ${valuesRows}) AS ref(target_number, zone_key, cx, cy, r_inner, r_outer)
+      ON ${vStatsDartFacts.intendedTargetNumber} IS NOT DISTINCT FROM ref.target_number
+     AND ${vStatsDartFacts.intendedZoneKey} IS NOT DISTINCT FROM ref.zone_key
+    WHERE ${whereClause} AND ${missedClause}
+    GROUP BY ref.target_number, ref.zone_key, sector, radial
+  `;
+
+  const result = await db.execute(statement);
+  const rows = executedRows<{
+    target_number: number | null;
+    zone_key: string | null;
+    sector: number | null;
+    radial: string | null;
+    darts: number | null;
+  }>(result);
+
+  return rows.map((row) => ({
+    targetNumber: nonNull(row.target_number, "target_number"),
+    zoneKey: nonNull(row.zone_key, "zone_key"),
+    sector: Number(nonNull(row.sector, "sector")),
+    radial: nonNull(row.radial, "radial") as MissSectorRow["radial"],
+    darts: Number(nonNull(row.darts, "darts")),
+  }));
+}
+
+/**
+ * Non-empty `HEATMAP_CELL_MM` grid cells over `v_stats_dart_facts` — feeds
+ * `heatmap` (phase-2 decision 6). `target` narrows to darts aimed at one
+ * target when the section's optional `target` parameter is set.
+ */
+export async function findHeatmapCells(
+  db: Db,
+  q: DartScope & {
+    cellMm: number;
+    target: { number: number; zone: string } | null;
+  },
+): Promise<HeatmapCellRow[]> {
+  const conditions = [dartScopeWhere(q)];
+  if (q.target !== null) {
+    conditions.push(eq(vStatsDartFacts.intendedTargetNumber, q.target.number));
+    conditions.push(eq(vStatsDartFacts.intendedZoneKey, q.target.zone));
+  }
+  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
+  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
+
+  const rows = await db
+    .select({
+      ix: ixExpr,
+      iy: iyExpr,
+      darts: sql<number>`count(*)::integer`,
+    })
+    .from(vStatsDartFacts)
+    .where(and(...conditions))
+    .groupBy(ixExpr, iyExpr);
+
+  return rows.map((row) => ({
+    ix: Number(nonNull(row.ix, "ix")),
+    iy: Number(nonNull(row.iy, "iy")),
+    darts: Number(nonNull(row.darts, "darts")),
+  }));
 }
 
 /**
@@ -349,10 +679,11 @@ export async function findBucketedSessionAggregates(
   }
 
   const tz = nonNull(q.tz ?? null, "tz");
-  const unitLiteral = sql.raw(`'${BUCKET_UNIT[q.bucket]}'`);
-  const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[q.bucket]}'`);
-  const bucketStartExpr = sql<string>`(date_trunc(${unitLiteral}, ${vStatsSessionFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz})`;
-  const bucketEndExpr = sql<string>`((date_trunc(${unitLiteral}, ${vStatsSessionFacts.completedAt} AT TIME ZONE ${tz}) + ${intervalLiteral}) AT TIME ZONE ${tz})`;
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsSessionFacts.completedAt,
+    q.bucket,
+    tz,
+  );
 
   const rows = await db
     .select({
