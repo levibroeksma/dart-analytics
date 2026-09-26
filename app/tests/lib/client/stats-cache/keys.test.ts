@@ -34,4 +34,14 @@ describe("paramsKey", () => {
       paramsKey({ ...base, context: "routine" }),
     );
   });
+
+  it("differs for a different target", () => {
+    expect(paramsKey({ ...base, target: "DOUBLE:16" })).not.toBe(
+      paramsKey({ ...base, target: "DOUBLE:8" }),
+    );
+  });
+
+  it("matches phase 1's key when target is absent, so existing cache entries survive", () => {
+    expect(paramsKey(base)).toBe(paramsKey({ ...base, target: undefined }));
+  });
 });

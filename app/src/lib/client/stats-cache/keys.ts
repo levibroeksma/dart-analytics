@@ -8,5 +8,6 @@ export function paramsKey(q: StatsCacheParams): string {
     status: q.status ?? null,
     context: q.context,
     inputMode: q.inputMode,
+    ...(q.target === undefined ? {} : { target: q.target }),
   });
 }
