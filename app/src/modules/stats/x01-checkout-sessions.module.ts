@@ -8,7 +8,9 @@ import {
 import type {
   CheckoutVisitTotals,
   EngineFacts,
+  SessionCheckoutVisits,
   StageFact,
+  StagedVisit,
   TurnFact,
   X01CheckoutDartRow,
 } from "@modules/types";
@@ -16,6 +18,29 @@ import type {
 type SessionRows = {
   rows: X01CheckoutDartRow[];
 };
+
+/**
+ * Tags each visit with the stage its own seat turn belongs to. Every builder
+ * in `checkout-visits.module.ts` maps `seatTurns` one-to-one in order, so
+ * `visits[i]`'s stage is `seatTurns[i].stageClientKey`.
+ */
+function stageTag(
+  visits: readonly CheckoutVisitTotals[],
+  seatTurns: readonly TurnFact[],
+  stages: readonly StageFact[],
+): StagedVisit[] {
+  const stageTypeByClientKey = new Map(
+    stages.map((stageFact) => [stageFact.clientKey, stageFact.stageTypeKey]),
+  );
+  return visits.map((visit, index) => {
+    const stageId = seatTurns[index]!.stageClientKey;
+    return {
+      ...visit,
+      stageId,
+      stageTypeKey: stageTypeByClientKey.get(stageId)!,
+    };
+  });
+}
 
 /** Rebuilds one session's stage list, newest row wins nothing -- stages are unique by id. */
 function stagesOf(rows: readonly X01CheckoutDartRow[]): StageFact[] {
@@ -163,9 +188,7 @@ function snapshotOf(
  * row a session contributes here belongs to its owner. Do not "fix" this
  * into a per-participant grouping without changing one of those two first.
  */
-function visitsForSession(
-  rows: readonly X01CheckoutDartRow[],
-): CheckoutVisitTotals[] {
+function visitsForSession(rows: readonly X01CheckoutDartRow[]): StagedVisit[] {
   const first = rows[0];
   if (!first) return [];
   if (first.configuration === null) return [];
@@ -181,44 +204,84 @@ function visitsForSession(
   );
 
   if (first.gameTypeKey === "501") {
-    return fiveOhOneCheckoutVisits(
+    return stageTag(
+      fiveOhOneCheckoutVisits(seatTurns, Number(config.startingScore ?? 0)),
       seatTurns,
-      Number(config.startingScore ?? 0),
+      facts.stages,
     );
   }
   if (first.gameTypeKey === "TUOD") {
-    return tuodCheckoutVisits(
+    return stageTag(
+      tuodCheckoutVisits(
+        seatTurns,
+        facts,
+        config as Parameters<typeof tuodCheckoutVisits>[2],
+        participantRef,
+      ),
       seatTurns,
-      facts,
-      config as Parameters<typeof tuodCheckoutVisits>[2],
-      participantRef,
+      facts.stages,
     );
   }
-  return oneTwentyOneCheckoutVisits(
+  return stageTag(
+    oneTwentyOneCheckoutVisits(
+      seatTurns,
+      facts.stages,
+      facts.turns,
+      config as Parameters<typeof oneTwentyOneCheckoutVisits>[3],
+      participantRef,
+    ),
     seatTurns,
     facts.stages,
-    facts.turns,
-    config as Parameters<typeof oneTwentyOneCheckoutVisits>[3],
-    participantRef,
   );
 }
 
+/** `StagedVisit`'s stage tag, stripped back off for a caller that only needs the totals. */
+function toCheckoutVisitTotals(visit: StagedVisit): CheckoutVisitTotals {
+  return {
+    startingRemaining: visit.startingRemaining,
+    countedTotal: visit.countedTotal,
+    darts: visit.darts,
+  };
+}
+
 /**
- * Every checkout visit the player owns, across every X01 session
- * `v_x01_checkout_darts` returns -- one fold per session, through the same
- * builders the live result modals use, so the career number can never
- * disagree with the per-game ones.
+ * Every X01 session `v_x01_checkout_darts` returns, folded through the same
+ * builders the live result modals use -- one entry per session, in the order
+ * its first row appears in `rows`, each visit kept with the stage it was
+ * played in. A session `visitsForSession` skips still gets an entry, with an
+ * empty `visits` list, so a caller folding per session sees it happened
+ * rather than losing it silently.
  */
-export function checkoutVisitsFromRows(
+export function sessionCheckoutVisits(
   rows: readonly X01CheckoutDartRow[],
-): CheckoutVisitTotals[] {
+): SessionCheckoutVisits[] {
   const bySession = new Map<string, SessionRows>();
   for (const row of rows) {
     const bucket = bySession.get(row.sessionId) ?? { rows: [] };
     bucket.rows.push(row);
     bySession.set(row.sessionId, bucket);
   }
-  return [...bySession.values()].flatMap((bucket) =>
-    visitsForSession(bucket.rows),
-  );
+  return [...bySession.entries()].map(([sessionId, bucket]) => {
+    const first = bucket.rows[0]!;
+    return {
+      sessionId,
+      gameTypeKey: first.gameTypeKey,
+      rulesetVersionKey: first.rulesetVersionKey,
+      visits: visitsForSession(bucket.rows),
+    };
+  });
+}
+
+/**
+ * Every checkout visit the player owns, across every X01 session
+ * `v_x01_checkout_darts` returns, so the career number can never disagree
+ * with the per-game ones. Built off `sessionCheckoutVisits`, with the stage
+ * tag it adds stripped back off.
+ */
+export function checkoutVisitsFromRows(
+  rows: readonly X01CheckoutDartRow[],
+): CheckoutVisitTotals[] {
+  return sessionCheckoutVisits(rows)
+    .flatMap((session) => session.visits)
+    .map(toCheckoutVisitTotals);
 }

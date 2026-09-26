@@ -3,11 +3,15 @@ import {
   fiveOhOneCheckoutVisits,
   oneTwentyOneCheckoutVisits,
 } from "@modules/game/checkout-visits.module";
-import { checkoutVisitsFromRows } from "@modules/stats/x01-checkout-sessions.module";
+import {
+  checkoutVisitsFromRows,
+  sessionCheckoutVisits,
+} from "@modules/stats/x01-checkout-sessions.module";
 import type {
   DartFact,
   EngineFacts,
   StageFact,
+  StagedVisit,
   TurnFact,
   X01CheckoutDartRow,
 } from "@modules/types";
@@ -448,5 +452,121 @@ describe("checkoutVisitsFromRows agrees with the live modal path", () => {
       live.map((visit) => visit.startingRemaining),
     );
     expect(career).toEqual(live);
+  });
+});
+
+/** A `StagedVisit`'s totals, with the stage tag stripped back off. */
+function toTotals(visit: StagedVisit) {
+  return {
+    startingRemaining: visit.startingRemaining,
+    countedTotal: visit.countedTotal,
+    darts: visit.darts,
+  };
+}
+
+describe("sessionCheckoutVisits", () => {
+  it("tags each visit of a two-leg 501 session with its own leg", () => {
+    const rows = rowsFor(twoLegFiveOhOneFacts(), {
+      sessionId: "session-501",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: {
+        starting_score: 501,
+        legs_to_win: 2,
+        check_in: "STRAIGHT_IN",
+        check_out: "DOUBLE_OUT",
+        max_darts_per_turn: 3,
+        seats: SEATS,
+      },
+    });
+
+    const sessions = sessionCheckoutVisits(rows);
+
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].sessionId).toBe("session-501");
+    expect(sessions[0].gameTypeKey).toBe("501");
+    expect(sessions[0].rulesetVersionKey).toBe("501_V1");
+    expect(
+      sessions[0].visits.map((visit) => ({
+        stageId: visit.stageId,
+        stageTypeKey: visit.stageTypeKey,
+      })),
+    ).toEqual([
+      { stageId: "leg-1", stageTypeKey: "LEG" },
+      { stageId: "leg-1", stageTypeKey: "LEG" },
+      { stageId: "leg-2", stageTypeKey: "LEG" },
+      { stageId: "leg-2", stageTypeKey: "LEG" },
+    ]);
+  });
+
+  it("tags each visit of a two-round 121 session with its own round", () => {
+    const rows = rowsFor(twoRoundOneTwentyOneFacts(), {
+      sessionId: "session-121",
+      gameTypeKey: "ONE_TWENTY_ONE",
+      rulesetVersionKey: "121_V1",
+      configuration: { seats: SEATS },
+    });
+
+    const sessions = sessionCheckoutVisits(rows);
+
+    expect(sessions).toHaveLength(1);
+    expect(
+      sessions[0].visits.map((visit) => ({
+        stageId: visit.stageId,
+        stageTypeKey: visit.stageTypeKey,
+      })),
+    ).toEqual([
+      { stageId: "round-1", stageTypeKey: "ROUND" },
+      { stageId: "round-1", stageTypeKey: "ROUND" },
+      { stageId: "round-1", stageTypeKey: "ROUND" },
+      { stageId: "round-2", stageTypeKey: "ROUND" },
+      { stageId: "round-2", stageTypeKey: "ROUND" },
+      { stageId: "round-2", stageTypeKey: "ROUND" },
+    ]);
+  });
+
+  it("gives a session with no stored configuration an entry with no visits", () => {
+    const sessions = sessionCheckoutVisits([row({ configuration: null })]);
+
+    expect(sessions).toEqual([
+      {
+        sessionId: "session-1",
+        gameTypeKey: "501",
+        rulesetVersionKey: "501_V1",
+        visits: [],
+      },
+    ]);
+  });
+
+  it("checkoutVisitsFromRows is sessionCheckoutVisits' visits with the stage tag stripped, for every existing fixture", () => {
+    const fiveOhOneRows = rowsFor(twoLegFiveOhOneFacts(), {
+      sessionId: "session-501",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: {
+        starting_score: 501,
+        legs_to_win: 2,
+        check_in: "STRAIGHT_IN",
+        check_out: "DOUBLE_OUT",
+        max_darts_per_turn: 3,
+        seats: SEATS,
+      },
+    });
+    const oneTwentyOneRows = rowsFor(twoRoundOneTwentyOneFacts(), {
+      sessionId: "session-121",
+      gameTypeKey: "ONE_TWENTY_ONE",
+      rulesetVersionKey: "121_V1",
+      configuration: { seats: SEATS },
+    });
+
+    for (const rows of [fiveOhOneRows, oneTwentyOneRows, [row({})]]) {
+      const staged = sessionCheckoutVisits(rows).flatMap(
+        (session) => session.visits,
+      );
+      const flat = checkoutVisitsFromRows(rows);
+
+      expect(staged.map(toTotals)).toEqual(flat);
+      expect(flat.every((visit) => !("stageId" in visit))).toBe(true);
+    }
   });
 });

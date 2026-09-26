@@ -1,5 +1,5 @@
 import type { ContextFilter, GameTypeKey } from "@lib/types";
-import type { DartFact } from "@modules/types";
+import type { CheckoutVisitTotals, DartFact } from "@modules/types";
 
 /**
  * Fields `career-summary.module.ts` needs from a `v_session_overview` row.
@@ -72,6 +72,32 @@ export type X01CheckoutDartRow = {
   hitTargetNumber: number | null;
   hitZoneKey: DartFact["hitZoneKey"];
   score: number;
+};
+
+/**
+ * One checkout visit `sessionCheckoutVisits` folded, tagged with the stage
+ * its own seat turn belongs to -- a leg for 501, a round for 121, an
+ * exercise block for TUOD. `stageTypeKey` is read back off the rebuilt stage
+ * list rather than assumed from `gameTypeKey`, since it is what a checkout
+ * section groups or filters visits by.
+ */
+export type StagedVisit = CheckoutVisitTotals & {
+  stageId: string;
+  stageTypeKey: string;
+};
+
+/**
+ * One session's checkout visits, kept with the session's own identity
+ * instead of flattened into a career-wide list. `visits` is empty for a
+ * session `visitsForSession` skips (no stored snapshot, an undecodable one,
+ * or a seatless 121/TUOD session) -- the session still gets an entry, it
+ * just contributed nothing.
+ */
+export type SessionCheckoutVisits = {
+  sessionId: string;
+  gameTypeKey: string;
+  rulesetVersionKey: string;
+  visits: StagedVisit[];
 };
 
 /** One row of `v_stats_session_facts` (`findGameSessionsPage`); `neverStarted` is derived, not a view column. */
