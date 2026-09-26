@@ -48,7 +48,7 @@ Each is written into the canonical docs in Task 9 under decision **D368** (confi
 
 - TDD: write the failing test, run it, watch it fail, then implement (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Finish every task with the full suite.
-- No migration is planned. The join path `exercise_sessions → exercise_stages → turns → darts` is already indexed (`idx_stages_session_sequence`, `idx_turns_stage_sequence`, `idx_darts_turn_number`), and phase 1 adds the date-range index. Task 3 Step 4 measures this. A new index is added only if the measurement fails, as migration `0044` + verification + spec update, never by editing `0001`–`0043`.
+- No migration in this plan. The join path `exercise_sessions → exercise_stages → turns → darts` is already indexed (`idx_stages_session_sequence`, `idx_turns_stage_sequence`, `idx_darts_turn_number`), and phase 1 adds the date-range index. Task 3 Step 4 measures this. A needed index follows that step's on-fail rule, never an edit to an applied migration.
 - Reads go through views: every new reader selects from `vStatsDartFacts` only.
 - No game rules in SQL (`05-Views/00-Overview.md` §Business Logic). Geometry constants reach SQL only as bound parameters built from `board-geometry.module.ts`.
 - Units and zone keys are whitelisted. User text is never interpolated; `sql.raw` is only for whitelisted literals.
@@ -200,7 +200,7 @@ END AS radial
 
 - [ ] **Step 4: Measure** (needs `DATABASE_URL`; without it, ask the owner to run it and paste the plans). Run `EXPLAIN (ANALYZE, BUFFERS)` of `findIntentCells` and `findHeatmapCells` for the heaviest real player over an all-time range (`from = 2000-01-01`).
   - **Pass:** the plan enters through `idx_exercise_sessions_player_game_completed` and reaches darts via `idx_darts_turn_number`, with no seq scan on `darts` or `turns`.
-  - **On fail:** stop. Add migration `0044` with the missing index (+ verification + spec index rationale) as its own task, before continuing.
+  - **On fail:** stop. The index is added as its own migration on a database branch run the phase 1a way (verification script, local introspection, PR, deploy), and this plan's PR merges only after that deploy is green.
 
   Record the plan summary in the PR body.
 
@@ -383,11 +383,11 @@ Sparse samples show "not enough darts yet" below `MIN_TARGET_SAMPLE`, never a ra
   - §12: phase 2 is done.
   - Version bump 1.2.0, citing D368.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: the six section ids with their metric shapes, and the `target` rule and errors.
-- If Task 3 Step 4 added `0044`, also: `05-Database/05-Views` / spec index rationale and the migration range in `docs/CLAUDE.md`, root `CLAUDE.md` and `database/CLAUDE.md`.
+- If Task 3 Step 4 required a migration: root `CLAUDE.md`'s never-modify range moves to it, citing its green deploy run. Its database branch carried the spec, views and `docs/CLAUDE.md` / `database/CLAUDE.md` edits.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
 - [ ] **Step 2:** Run the `context-maintenance` skill.
-- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh` (plus `check-constraint-mirror.sh` if `0044` exists). Report each result.
+- [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set and `check-decision-ids.sh`. Report each result.
 - [ ] **Step 4:** Commit `docs(stats): phase 2 board sections and D368`, then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---
