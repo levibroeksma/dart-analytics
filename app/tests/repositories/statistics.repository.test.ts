@@ -1,4 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
+import { renderingDb, onlyStatement } from "./render-sql";
+import {
+  findGameSessionsPage,
+  findGameDataVersion,
+  findBucketedSessionAggregates,
+  findBucketFloor,
+} from "@repositories/statistics.repository";
 
 function fakeSelect(rows: unknown[]) {
   const fromCalls: unknown[] = [];
@@ -236,5 +243,244 @@ describe("findX01CheckoutDarts", () => {
       identityOf(vX01CheckoutDarts.turnSequence),
       identityOf(vX01CheckoutDarts.dartNumber),
     ]);
+  });
+});
+
+describe("findGameSessionsPage", () => {
+  const baseQuery = {
+    playerId: "p1",
+    gameTypeKey: "501" as const,
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED", "ABANDONED"],
+    context: "all" as const,
+    limit: 25,
+  };
+
+  it("selects from v_stats_session_facts scoped to the player and game", async () => {
+    const { db, statements } = renderingDb([]);
+    await findGameSessionsPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"game_type_key" = \$/);
+  });
+
+  it("orders by completed_at desc, session_id desc and fetches limit + 1", async () => {
+    const { db, statements } = renderingDb([]);
+    await findGameSessionsPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/order by .*"completed_at" desc.*"session_id" desc/);
+    expect(sql).toMatch(/limit \$/);
+    expect(statements[0].params).toContain(26);
+  });
+
+  it("adds context_key = 'ROUTINE' when context=routine", async () => {
+    const { db, statements } = renderingDb([]);
+    await findGameSessionsPage(db, { ...baseQuery, context: "routine" });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"context_key" = \$/);
+    expect(statements[0].params).toContain("ROUTINE");
+  });
+
+  it("adds the keyset predicate when a cursor is given", async () => {
+    const { db, statements } = renderingDb([]);
+    await findGameSessionsPage(db, {
+      ...baseQuery,
+      after: { completedAt: "2026-01-15T00:00:00.000Z", sessionId: "s1" },
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain("<");
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining(["2026-01-15T00:00:00.000Z", "s1"]),
+    );
+  });
+
+  it("marks a turn-free abandoned row as neverStarted", async () => {
+    const fromCalls: unknown[] = [];
+    const rows = [
+      {
+        sessionId: "s1",
+        rulesetVersionKey: "501_V1",
+        statusKey: "ABANDONED",
+        contextKey: "STANDALONE",
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:01:00.000Z",
+        durationSeconds: 60,
+        turnCount: 0,
+        dartCount: 0,
+        countedScore: 0,
+      },
+    ];
+    const chain = {
+      from: vi.fn((table: unknown) => {
+        fromCalls.push(table);
+        return chain;
+      }),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue(rows),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+    const { vStatsSessionFacts } = await import("@db/schema");
+
+    const result = await findGameSessionsPage(db, baseQuery);
+
+    expect(fromCalls).toEqual([vStatsSessionFacts]);
+    expect(result[0].neverStarted).toBe(true);
+  });
+});
+
+describe("findGameDataVersion", () => {
+  it("selects count and max(completed_at) from v_stats_session_facts", async () => {
+    const { db, statements } = renderingDb([["0", null]]);
+    await findGameDataVersion(db, "p1", "501");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/count\(/i);
+    expect(sql).toMatch(/max\(/i);
+  });
+
+  it("parses count from a string", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi
+        .fn()
+        .mockResolvedValue([
+          { count: "7", maxCompletedAt: "2026-01-01T00:00:00.000Z" },
+        ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findGameDataVersion(db, "p1", "501");
+
+    expect(result).toEqual({
+      count: 7,
+      maxCompletedAt: "2026-01-01T00:00:00.000Z",
+    });
+  });
+});
+
+describe("findBucketFloor", () => {
+  it("renders the widened date_trunc floor for the unit and tz", async () => {
+    const { db, statements } = renderingDb([
+      { floor: "2026-01-01T00:00:00.000Z" },
+    ]);
+    await findBucketFloor(
+      db,
+      "2026-01-15T00:00:00.000Z",
+      "month",
+      "Europe/Amsterdam",
+    );
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+});
+
+describe("findBucketedSessionAggregates", () => {
+  const baseQuery = {
+    playerId: "p1",
+    gameTypeKey: "501" as const,
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    bucket: "month" as const,
+    tz: "Europe/Amsterdam",
+    statuses: ["COMPLETED"],
+    context: "all" as const,
+  };
+
+  it("selects from v_stats_session_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+  });
+
+  it("renders date_trunc('month', … AT TIME ZONE $n) for the bucket expression", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("adds context_key = 'ROUTINE' when context=routine", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, {
+      ...baseQuery,
+      context: "routine",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"context_key" = \$/);
+    expect(statements[0].params).toContain("ROUTINE");
+  });
+
+  function fakeGroupedSelect(rows: unknown[]) {
+    return {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue(rows),
+    };
+  }
+
+  it("groups with no bucket expression and returns bucket_start=from, bucket_end=to when bucket=none", async () => {
+    const chain = fakeGroupedSelect([
+      {
+        bucketStart: baseQuery.from,
+        bucketEnd: baseQuery.to,
+        statusKey: "COMPLETED",
+        contextKey: "STANDALONE",
+        rulesetVersionKey: "501_V1",
+        neverStarted: false,
+        sessions: "3",
+        turnSum: "30",
+        dartSum: "90",
+        durationSum: "900",
+        scoreSum: "1500",
+        scoreMin: "400",
+        scoreMax: "600",
+        minSessionId: "s1",
+        maxSessionId: "s2",
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findBucketedSessionAggregates(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result[0].bucketStart).toBe(baseQuery.from);
+    expect(result[0].bucketEnd).toBe(baseQuery.to);
+    expect(result[0].sessions).toBe(3);
+  });
+
+  it("nonNull throws on a null status_key", async () => {
+    const chain = fakeGroupedSelect([
+      {
+        statusKey: null,
+        contextKey: "STANDALONE",
+        rulesetVersionKey: "501_V1",
+        neverStarted: false,
+        sessions: "1",
+        turnSum: "1",
+        dartSum: "1",
+        durationSum: "1",
+        scoreSum: "1",
+        scoreMin: "1",
+        scoreMax: "1",
+        minSessionId: "s1",
+        maxSessionId: "s1",
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(
+      findBucketedSessionAggregates(db, {
+        ...baseQuery,
+        bucket: "none",
+        tz: undefined,
+      }),
+    ).rejects.toThrow(/status_key/);
   });
 });

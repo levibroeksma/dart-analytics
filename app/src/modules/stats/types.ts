@@ -72,3 +72,42 @@ export type X01CheckoutDartRow = {
   hitZoneKey: DartFact["hitZoneKey"];
   score: number;
 };
+
+/** One row of `v_stats_session_facts` (`findGameSessionsPage`); `neverStarted` is derived, not a view column. */
+export type StatsSessionRow = {
+  sessionId: string;
+  rulesetVersionKey: string;
+  statusKey: string;
+  contextKey: string;
+  neverStarted: boolean;
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+  countedScore: number;
+};
+
+/**
+ * One group of `findBucketedSessionAggregates`'s shared aggregate query: a
+ * bucket × status × context × ruleset-version × never-started slice of a
+ * game's terminal sessions. `minSessionId`/`maxSessionId` carry the session
+ * that produced `scoreMin`/`scoreMax` so the client can link to it.
+ */
+export type StatsBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  statusKey: string;
+  contextKey: string;
+  rulesetVersionKey: string;
+  neverStarted: boolean;
+  sessions: number;
+  turnSum: number;
+  dartSum: number;
+  durationSum: number;
+  scoreSum: number;
+  scoreMin: number;
+  scoreMax: number;
+  minSessionId: string;
+  maxSessionId: string;
+};

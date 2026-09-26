@@ -1,4 +1,4 @@
-import type { GameTypeKey, StatsTag } from "@lib/types";
+import type { StatsTag } from "@lib/types";
 
 /** Phase-1 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
 export type SectionId = "completion" | "volume" | "session-result";

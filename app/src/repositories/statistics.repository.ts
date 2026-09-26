@@ -1,16 +1,20 @@
-import { eq } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lt, max, sql } from "drizzle-orm";
 import {
   vPlayerLegFacts,
   vPlayerVisitFacts,
   vSessionOverview,
+  vStatsSessionFacts,
   vX01CheckoutDarts,
 } from "@db/schema";
 import { nonNull } from "./row-helpers";
 import type { getDb } from "@db/client";
+import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
   PlayerLegFactRow,
   PlayerSessionSummaryRow,
   PlayerVisitFactRow,
+  StatsBucketRow,
+  StatsSessionRow,
   X01CheckoutDartRow,
 } from "@modules/types";
 
@@ -136,4 +140,286 @@ export async function findX01CheckoutDarts(
     );
 
   return rows as X01CheckoutDartRow[];
+}
+
+const BUCKET_UNIT: Readonly<Record<Exclude<Bucket, "none">, string>> = {
+  day: "day",
+  week: "week",
+  month: "month",
+  year: "year",
+};
+
+/**
+ * `db.execute()`'s raw-row shape differs by driver: neon-http (production)
+ * returns `{ rows }`, while the pg-proxy driver the test suite renders SQL
+ * through (`render-sql.ts`) resolves to the row array itself. Both are
+ * normalized here rather than assuming either shape.
+ */
+function executedRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  return (result as { rows: T[] }).rows;
+}
+
+function contextCondition(context: ContextFilter) {
+  return context === "all"
+    ? undefined
+    : eq(vStatsSessionFacts.contextKey, context.toUpperCase());
+}
+
+/**
+ * Reads one page of a game's terminal sessions through
+ * `v_stats_session_facts`, newest first (`completed_at DESC, session_id
+ * DESC` — D367 decision 4). Fetches `limit + 1` rows so the service can
+ * detect a further page without a second query.
+ */
+export async function findGameSessionsPage(
+  db: Db,
+  q: {
+    playerId: string;
+    gameTypeKey: GameTypeKey;
+    from: string;
+    to: string;
+    statuses: string[];
+    context: ContextFilter;
+    limit: number;
+    after?: { completedAt: string; sessionId: string };
+  },
+): Promise<StatsSessionRow[]> {
+  const conditions = [
+    eq(vStatsSessionFacts.playerId, q.playerId),
+    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
+    gte(vStatsSessionFacts.completedAt, q.from),
+    lt(vStatsSessionFacts.completedAt, q.to),
+    inArray(vStatsSessionFacts.statusKey, q.statuses),
+    contextCondition(q.context),
+    q.after
+      ? sql`(${vStatsSessionFacts.completedAt}, ${vStatsSessionFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`
+      : undefined,
+  ].filter((condition) => condition !== undefined);
+
+  const rows = await db
+    .select({
+      sessionId: vStatsSessionFacts.sessionId,
+      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+      statusKey: vStatsSessionFacts.statusKey,
+      contextKey: vStatsSessionFacts.contextKey,
+      startedAt: vStatsSessionFacts.startedAt,
+      completedAt: vStatsSessionFacts.completedAt,
+      durationSeconds: vStatsSessionFacts.durationSeconds,
+      turnCount: vStatsSessionFacts.turnCount,
+      dartCount: vStatsSessionFacts.dartCount,
+      countedScore: vStatsSessionFacts.countedScore,
+    })
+    .from(vStatsSessionFacts)
+    .where(and(...conditions))
+    .orderBy(
+      desc(vStatsSessionFacts.completedAt),
+      desc(vStatsSessionFacts.sessionId),
+    )
+    .limit(q.limit + 1);
+
+  return rows.map((row) => {
+    const statusKey = nonNull(row.statusKey, "status_key");
+    const turnCount = nonNull(row.turnCount, "turn_count");
+    return {
+      sessionId: nonNull(row.sessionId, "session_id"),
+      rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+      statusKey,
+      contextKey: nonNull(row.contextKey, "context_key"),
+      neverStarted: statusKey === "ABANDONED" && turnCount === 0,
+      startedAt: nonNull(row.startedAt, "started_at"),
+      completedAt: nonNull(row.completedAt, "completed_at"),
+      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+      turnCount,
+      dartCount: nonNull(row.dartCount, "dart_count"),
+      countedScore: nonNull(row.countedScore, "counted_score"),
+    };
+  });
+}
+
+/** The `dataVersion` inputs (`10-Statistics/00-Overview.md` §7): the population's size and its most recent completion. */
+export async function findGameDataVersion(
+  db: Db,
+  playerId: string,
+  gameTypeKey: GameTypeKey,
+): Promise<{ count: number; maxCompletedAt: string | null }> {
+  const [row] = await db
+    .select({
+      count: count(),
+      maxCompletedAt: max(vStatsSessionFacts.completedAt),
+    })
+    .from(vStatsSessionFacts)
+    .where(
+      and(
+        eq(vStatsSessionFacts.playerId, playerId),
+        eq(vStatsSessionFacts.gameTypeKey, gameTypeKey),
+      ),
+    );
+
+  return {
+    count: Number(nonNull(row?.count ?? null, "count")),
+    maxCompletedAt: row?.maxCompletedAt ?? null,
+  };
+}
+
+/**
+ * The bucket-widening floor (D367 decision 2): a bucketed request's `from`
+ * is floored to the start of its own bucket, so the range the service
+ * echoes back exactly matches what `findBucketedSessionAggregates` queried.
+ * No table — this is the same `date_trunc` expression evaluated once
+ * against the literal `from`, not a column.
+ */
+export async function findBucketFloor(
+  db: Db,
+  from: string,
+  unit: Exclude<Bucket, "none">,
+  tz: string,
+): Promise<string> {
+  const unitLiteral = sql.raw(`'${BUCKET_UNIT[unit]}'`);
+  const result = await db.execute(
+    sql`SELECT (date_trunc(${unitLiteral}, ${from}::timestamptz AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) AS floor`,
+  );
+  const rows = executedRows<{ floor: string | null }>(result);
+  return nonNull(rows[0]?.floor ?? null, "floor");
+}
+
+/**
+ * One shared aggregate query for `completion`, `volume` and
+ * `session-result`: groups a game's terminal sessions by bucket, status,
+ * context, ruleset version and never-started, so every section reads the
+ * same index scan and projects only what it needs (`00-Overview.md` §5.2).
+ * `bucket = none` groups with no bucket expression at all; the caller's
+ * `from`/`to` become the single bucket's bounds.
+ */
+export async function findBucketedSessionAggregates(
+  db: Db,
+  q: {
+    playerId: string;
+    gameTypeKey: GameTypeKey;
+    from: string;
+    to: string;
+    bucket: Bucket;
+    tz: string | undefined;
+    statuses: string[];
+    context: ContextFilter;
+  },
+): Promise<StatsBucketRow[]> {
+  const conditions = [
+    eq(vStatsSessionFacts.playerId, q.playerId),
+    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
+    gte(vStatsSessionFacts.completedAt, q.from),
+    lt(vStatsSessionFacts.completedAt, q.to),
+    inArray(vStatsSessionFacts.statusKey, q.statuses),
+    contextCondition(q.context),
+  ].filter((condition) => condition !== undefined);
+
+  const neverStartedExpr = sql<boolean>`(${vStatsSessionFacts.turnCount} = 0)`;
+  const minSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} asc, ${vStatsSessionFacts.completedAt} asc))[1]`;
+  const maxSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} desc, ${vStatsSessionFacts.completedAt} desc))[1]`;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        statusKey: vStatsSessionFacts.statusKey,
+        contextKey: vStatsSessionFacts.contextKey,
+        rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+        neverStarted: neverStartedExpr,
+        sessions: count(),
+        turnSum: sql<string>`sum(${vStatsSessionFacts.turnCount})`,
+        dartSum: sql<string>`sum(${vStatsSessionFacts.dartCount})`,
+        durationSum: sql<string>`sum(${vStatsSessionFacts.durationSeconds})`,
+        scoreSum: sql<string>`sum(${vStatsSessionFacts.countedScore})`,
+        scoreMin: sql<string>`min(${vStatsSessionFacts.countedScore})`,
+        scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
+        minSessionId: minSessionIdExpr,
+        maxSessionId: maxSessionIdExpr,
+      })
+      .from(vStatsSessionFacts)
+      .where(and(...conditions))
+      .groupBy(
+        vStatsSessionFacts.statusKey,
+        vStatsSessionFacts.contextKey,
+        vStatsSessionFacts.rulesetVersionKey,
+        neverStartedExpr,
+      );
+
+    return rows.map(mapBucketRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const unitLiteral = sql.raw(`'${BUCKET_UNIT[q.bucket]}'`);
+  const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[q.bucket]}'`);
+  const bucketStartExpr = sql<string>`(date_trunc(${unitLiteral}, ${vStatsSessionFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz})`;
+  const bucketEndExpr = sql<string>`((date_trunc(${unitLiteral}, ${vStatsSessionFacts.completedAt} AT TIME ZONE ${tz}) + ${intervalLiteral}) AT TIME ZONE ${tz})`;
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      statusKey: vStatsSessionFacts.statusKey,
+      contextKey: vStatsSessionFacts.contextKey,
+      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+      neverStarted: neverStartedExpr,
+      sessions: count(),
+      turnSum: sql<string>`sum(${vStatsSessionFacts.turnCount})`,
+      dartSum: sql<string>`sum(${vStatsSessionFacts.dartCount})`,
+      durationSum: sql<string>`sum(${vStatsSessionFacts.durationSeconds})`,
+      scoreSum: sql<string>`sum(${vStatsSessionFacts.countedScore})`,
+      scoreMin: sql<string>`min(${vStatsSessionFacts.countedScore})`,
+      scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
+      minSessionId: minSessionIdExpr,
+      maxSessionId: maxSessionIdExpr,
+    })
+    .from(vStatsSessionFacts)
+    .where(and(...conditions))
+    .groupBy(
+      bucketStartExpr,
+      bucketEndExpr,
+      vStatsSessionFacts.statusKey,
+      vStatsSessionFacts.contextKey,
+      vStatsSessionFacts.rulesetVersionKey,
+      neverStartedExpr,
+    );
+
+  return rows.map(mapBucketRow);
+}
+
+function mapBucketRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  statusKey: string | null;
+  contextKey: string | null;
+  rulesetVersionKey: string | null;
+  neverStarted: boolean | null;
+  sessions: unknown;
+  turnSum: unknown;
+  dartSum: unknown;
+  durationSum: unknown;
+  scoreSum: unknown;
+  scoreMin: unknown;
+  scoreMax: unknown;
+  minSessionId: string | null;
+  maxSessionId: string | null;
+}): StatsBucketRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    statusKey: nonNull(row.statusKey, "status_key"),
+    contextKey: nonNull(row.contextKey, "context_key"),
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    neverStarted: nonNull(row.neverStarted, "never_started"),
+    sessions: Number(nonNull(row.sessions as string | null, "sessions")),
+    turnSum: Number(nonNull(row.turnSum as string | null, "turn_sum")),
+    dartSum: Number(nonNull(row.dartSum as string | null, "dart_sum")),
+    durationSum: Number(
+      nonNull(row.durationSum as string | null, "duration_sum"),
+    ),
+    scoreSum: Number(nonNull(row.scoreSum as string | null, "score_sum")),
+    scoreMin: Number(nonNull(row.scoreMin as string | null, "score_min")),
+    scoreMax: Number(nonNull(row.scoreMax as string | null, "score_max")),
+    minSessionId: nonNull(row.minSessionId, "min_session_id"),
+    maxSessionId: nonNull(row.maxSessionId, "max_session_id"),
+  };
 }
