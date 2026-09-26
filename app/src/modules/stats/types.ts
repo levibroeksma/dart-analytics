@@ -372,3 +372,29 @@ export type CheckoutPathMetrics = Record<
 
 /** `bust-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 6). */
 export type BustRateMetrics = Record<string, { visits: number; busts: number }>;
+
+/** `leg-stats` section metrics — one bucket: a darts-per-leg histogram (phase-3 decision 7). */
+export type LegStatsMetrics = Record<string, number>;
+
+/** `ladder-progress` section metrics — one bucket, keyed by target (phase-3 decision 8). */
+export type LadderProgressMetrics = {
+  targets: Record<string, { attempts: number; successes: number }>;
+  maxTarget: number | null;
+  afterMiss: number;
+  recovered: number;
+};
+
+/** `scoring-trend` section metrics — one bucket (phase-3 decision 10). */
+export type ScoringTrendMetrics = {
+  points: number;
+  darts: number;
+  firstNinePoints: number;
+  firstNineDarts: number;
+  bands: { ton: number; tonForty: number; oneEighty: number };
+};
+
+/** `treble-rate` section metrics — one bucket, keyed by hit number (`"1"`-`"20"`, `"25"`, or `"MISS"`) (phase-3 decision 11). */
+export type TrebleRateMetrics = Record<
+  string,
+  { darts: number; trebles: number }
+>;
