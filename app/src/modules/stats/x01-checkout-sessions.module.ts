@@ -135,8 +135,12 @@ function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
  * one undecodable snapshot would otherwise 500 the whole
  * `/api/statistics/overview` response -- every card on `/statistics`, not
  * just Checkout %.
+ *
+ * Exported for `derived-aims.module.ts`'s `sessionSteps`, which decodes a
+ * Singles/Shanghai/Around the Clock/Bob's 27 snapshot the same way (phase-4
+ * decision 3) -- the one place this decode-or-null rule is implemented.
  */
-function snapshotOf(
+export function snapshotOf(
   rulesetVersionKey: string,
   configuration: Record<string, unknown> | null,
 ): (Record<string, unknown> & { seats: readonly SeatFact[] }) | null {

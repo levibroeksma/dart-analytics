@@ -6,6 +6,7 @@ import {
 import {
   checkoutVisitsFromRows,
   sessionCheckoutVisits,
+  snapshotOf,
 } from "@modules/stats/x01-checkout-sessions.module";
 import type {
   DartFact,
@@ -568,5 +569,40 @@ describe("sessionCheckoutVisits", () => {
       expect(staged.map(toTotals)).toEqual(flat);
       expect(flat.every((visit) => !("stageId" in visit))).toBe(true);
     }
+  });
+});
+
+describe("snapshotOf", () => {
+  it("decodes a valid wire config into its camelCase snapshot, seats included", () => {
+    expect(
+      snapshotOf("501_V1", {
+        starting_score: 501,
+        legs_to_win: 2,
+        check_in: "STRAIGHT_IN",
+        check_out: "DOUBLE_OUT",
+        max_darts_per_turn: 3,
+        seats: SEATS,
+      }),
+    ).toEqual({
+      startingScore: 501,
+      legsToWin: 2,
+      checkIn: "STRAIGHT_IN",
+      checkOut: "DOUBLE_OUT",
+      maxDartsPerTurn: 3,
+      maxVisitScore: 180,
+      seats: SEATS,
+    });
+  });
+
+  it("returns an empty seats array for a config that never named one", () => {
+    expect(snapshotOf("121_V1", {})).toEqual({ seats: [] });
+  });
+
+  it("returns null for a configuration that no longer validates", () => {
+    expect(snapshotOf("501_V1", { starting_score: 501 })).toBeNull();
+  });
+
+  it("returns null for an unrecognised ruleset version", () => {
+    expect(snapshotOf("501_V99" as never, { seats: SEATS })).toBeNull();
   });
 });
