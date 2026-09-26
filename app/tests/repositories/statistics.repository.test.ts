@@ -9,6 +9,10 @@ import {
   findIntentMoments,
   findMissSectors,
   findHeatmapCells,
+  findScopeDartCount,
+  findX01FoldRows,
+  findVisitScoring,
+  findHitNumberCells,
 } from "@repositories/statistics.repository";
 
 function fakeSelect(rows: unknown[]) {
@@ -673,6 +677,303 @@ describe("findMissSectors", () => {
     const sql = onlyStatement(statements);
     expect(sql).toMatch(/NOT \(/);
     expect(sql).toContain("IS NOT DISTINCT FROM");
+  });
+});
+
+const sessionScope = {
+  playerId: "p1",
+  gameTypeKey: "501" as const,
+  from: "2026-01-01T00:00:00.000Z",
+  to: "2026-02-01T00:00:00.000Z",
+  statuses: ["COMPLETED"],
+  context: "all" as const,
+};
+
+describe("findScopeDartCount", () => {
+  it("selects the dart-count sum from v_stats_session_facts, scoped to VISUAL_BOARD", async () => {
+    const { db, statements } = renderingDb([["0"]]);
+    await findScopeDartCount(db, sessionScope);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"game_type_key" = \$/);
+    expect(sql).toMatch(/"input_mode_key" = \$/);
+    expect(statements[0].params).toContain("VISUAL_BOARD");
+  });
+
+  it("returns 0 for an empty scope", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{ dartCount: "0" }]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findScopeDartCount(db, sessionScope);
+
+    expect(result).toBe(0);
+  });
+
+  it("parses the sum from a string", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{ dartCount: "12345" }]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findScopeDartCount(db, sessionScope);
+
+    expect(result).toBe(12345);
+  });
+});
+
+describe("findX01FoldRows", () => {
+  it("reads v_x01_checkout_darts joined to v_stats_session_facts, filtering status_key and completed_at", async () => {
+    const { db, statements } = renderingDb([]);
+    await findX01FoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_x01_checkout_darts"');
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"status_key"/);
+    expect(sql).toMatch(/"completed_at" >= \$/);
+    expect(sql).toMatch(/"completed_at" < \$/);
+  });
+
+  it("orders by session, stage sequence, turn sequence and dart number, in that order", async () => {
+    const { db, statements } = renderingDb([]);
+    await findX01FoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().indexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    const orderClause = sql.slice(orderIndex);
+    expect(orderClause).toMatch(
+      /"session_id".*"stage_sequence".*"turn_sequence".*"dart_number"/,
+    );
+  });
+
+  it("renders the bucket expression on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findX01FoldRows(db, {
+      ...sessionScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("returns rows carrying every v_x01_checkout_darts column plus the bucket bounds", async () => {
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: { starting_score: 501 },
+      stageId: "stage-1",
+      stageSequence: 1,
+      stageTypeKey: "LEG",
+      parentStageId: null,
+      turnId: "turn-1",
+      turnSequence: 1,
+      turnTotalScore: 60,
+      turnCompletedAt: "2026-09-19T10:00:00.000Z",
+      participantId: "participant-1",
+      dartNumber: 1,
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+    };
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([row]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findX01FoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([row]);
+  });
+});
+
+describe("findVisitScoring", () => {
+  const bands = [100, 140, 180] as const;
+
+  it("selects from v_player_visit_facts joined to v_stats_session_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+      bands,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_player_visit_facts"');
+    expect(sql).toContain('"v_stats_session_facts"');
+  });
+
+  it("binds all three band edges as parameters, with no literal 140 in the rendered SQL", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      bands,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).not.toContain("140");
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining([100, 140, 180]),
+    );
+  });
+
+  it("filters the first-nine sums to LEG stages at turn_sequence <= 3", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+      bands,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/filter \(where .*'LEG'.*<= 3\)/i);
+  });
+
+  it("parses every sum from a string", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([
+        {
+          bucketStart: sessionScope.from,
+          bucketEnd: sessionScope.to,
+          points: "180",
+          darts: "9",
+          firstNinePoints: "180",
+          firstNineDarts: "9",
+          ton: "1",
+          tonForty: "0",
+          oneEighty: "1",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+      bands,
+    });
+
+    expect(result).toEqual([
+      {
+        bucketStart: sessionScope.from,
+        bucketEnd: sessionScope.to,
+        points: 180,
+        darts: 9,
+        firstNinePoints: 180,
+        firstNineDarts: 9,
+        ton: 1,
+        tonForty: 0,
+        oneEighty: 1,
+      },
+    ]);
+  });
+});
+
+describe("findHitNumberCells", () => {
+  it("uses dartScopeWhere: selects from v_stats_dart_facts and adds context_key when context is not 'all'", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHitNumberCells(db, {
+      ...dartScope,
+      context: "standalone",
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+    expect(sql).toMatch(/"context_key" = \$/);
+    expect(statements[0].params).toContain("STANDALONE");
+  });
+
+  it("groups by hit number, coalescing a null hit_target_number to 'MISS'", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHitNumberCells(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/coalesce\(.*'MISS'\)/i);
+  });
+
+  it("counts trebles via a FILTER on hit_zone_key = 'TREBLE'", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHitNumberCells(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/filter \(where .*'TREBLE'\)/i);
+  });
+
+  it("renders the bucket expression on bucket=week", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHitNumberCells(db, {
+      ...dartScope,
+      bucket: "week",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('week', .*AT TIME ZONE \$/);
+  });
+
+  it("parses darts and trebles from string counts", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          bucketStart: dartScope.from,
+          bucketEnd: dartScope.to,
+          hitNumber: "20",
+          darts: "10",
+          trebles: "3",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findHitNumberCells(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([
+      {
+        bucketStart: dartScope.from,
+        bucketEnd: dartScope.to,
+        hitNumber: "20",
+        darts: 10,
+        trebles: 3,
+      },
+    ]);
   });
 });
 
