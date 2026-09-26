@@ -7,6 +7,7 @@ export type StatsCacheParams = {
   status?: string;
   context: ContextFilter;
   inputMode: string;
+  target?: string;
 };
 
 /** A section request the cache reads through — the range plus `StatsCacheParams`. */
