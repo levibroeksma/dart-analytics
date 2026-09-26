@@ -519,7 +519,7 @@ describe("getGameSection", () => {
     const result = await getGameSection(
       playerId,
       "501",
-      "heatmap" as never,
+      "target-accuracy",
       baseRangeQuery,
     );
 

@@ -1,7 +1,28 @@
 import type { StatsTag } from "@lib/types";
 
-/** Phase-1 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
-export type SectionId = "completion" | "volume" | "session-result";
+/** Phase-1 and phase-2 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
+export type SectionId =
+  | "completion"
+  | "volume"
+  | "session-result"
+  | "heatmap"
+  | "target-accuracy"
+  | "confusion"
+  | "grouping"
+  | "miss-direction"
+  | "loose-darts";
+
+/** The declared-intent zones a target key can name (`01-Section-Catalog.md` §1.1). */
+export type IntentZoneKey =
+  | "DOUBLE"
+  | "TREBLE"
+  | "INNER_SINGLE"
+  | "OUTER_SINGLE"
+  | "INNER_BULL"
+  | "OUTER_BULL";
+
+/** `<ZONE_KEY>:<number>` — the record key for every intent-cell metric (00-Overview.md §5, phase-2 decision 5). */
+export type TargetKey = `${IntentZoneKey}:${number}`;
 
 /** Where a section's numbers are computed (`00-Overview.md` §4). */
 export type ComputeSite = "sql" | "server" | "client";
@@ -27,6 +48,8 @@ export interface SectionMeta {
   bucketable: boolean;
   includesAbandoned: boolean;
   configSensitive: readonly string[];
+  /** Optional query parameters this section accepts beyond the shared ones (phase-2 decision 5); `[]` for every section that accepts none. */
+  params: readonly "target"[];
 }
 
 /** One bucket of a `Series<M>` result (`00-Overview.md` §5.2). */
