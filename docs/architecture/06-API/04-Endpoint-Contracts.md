@@ -7,7 +7,7 @@ updated: 2026-09-26
 
 # API Endpoint Contracts
 
-> **Version:** 1.12.0 (statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.13.0 (statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -359,10 +359,11 @@ Win rate is deliberately absent from this shape, not a null field — it needs s
 
 ## Statistics Games — `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId`
 
-Phase 1 of the detailed per-game statistics pages (`10-Statistics/00-Overview.md`
-§6, D365/D367). Both routes are read-only, view-backed through
-`v_stats_session_facts` (migration `0043`), and set `Cache-Control: private,
-no-store` — the client cache (`lib/client/stats-cache/`), not HTTP, owns reuse.
+Phase 1 + 2 of the detailed per-game statistics pages (`10-Statistics/00-Overview.md`
+§6, D365/D367/D368). Both routes are read-only, view-backed through
+`v_stats_session_facts`/`v_stats_dart_facts` (migration `0043`), and set
+`Cache-Control: private, no-store` — the client cache
+(`lib/client/stats-cache/`), not HTTP, owns reuse.
 
 **Auth:** standard protected route class. `:gameTypeKey` must be a known
 `game_types.implementation_key` (e.g. `501`, `SINGLES_TRAINING`) or the route
@@ -379,16 +380,23 @@ const StatisticsRangeQuery = z.object({
   status: z.enum(["completed", "abandoned", "all"]).optional(),
   context: z.enum(["all", "standalone", "routine"]).default("all"),
   inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
+  target: z.string().optional(), // "<ZONE_KEY>:<number>"; D368 decision 5
 });
 ```
 
 `status`'s accepted values and default depend on the section's
 `includesAbandoned` (D367 decision 5): `completion` accepts and defaults to
-`all`; `volume` and `session-result` accept and default to `completed`; the
+`all`; every other phase 1/2 section accepts and defaults to `completed`; the
 session list (below) accepts and defaults to all three. A `bucket ≠ "none"`
 request with no `tz`, an unknown `tz`, `from ≥ to`, or a bucket count over the
 cap (120; span ÷ nominal unit length, rounded up, plus 1) all fail
 `VALIDATION_FAILED`.
+
+`target` is accepted only on a section whose registry entry declares
+`params: ["target"]`, and only on a game with the `intent-stored` tag (D368
+decision 5) — in phase 2 that is `heatmap` on Doubles Training and Bob's 27.
+Anything else (an unsupported section, a non-`intent-stored` game, or a
+malformed `target`) is `VALIDATION_FAILED`.
 
 ### `GET .../sessions`
 
@@ -420,12 +428,14 @@ const GameSessionListResponse = z.object({
 
 ### `GET .../sections/:sectionId`
 
-`:sectionId` is `completion` | `volume` | `session-result` in phase 1
-(`10-Statistics/01-Section-Catalog.md` §1); any other value, or a section not
-returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. Dispatches through
-the section registry (`lib/stats/section-registry.ts`) to one of the three
-built section modules. Every response shares the `Series<M>` envelope
-(`00-Overview.md` §5.2, `range` per D367 decision 2):
+`:sectionId` is `completion` | `volume` | `session-result` (phase 1) or
+`heatmap` | `target-accuracy` | `confusion` | `grouping` | `miss-direction` |
+`loose-darts` (phase 2) (`10-Statistics/01-Section-Catalog.md` §1); any other
+value, or a section not returned by `sectionsForGame(gameTypeKey)`, is
+`NOT_FOUND`. Dispatches through the section registry
+(`lib/stats/section-registry.ts`) to one of the nine built section modules.
+Every response shares the `Series<M>` envelope (`00-Overview.md` §5.2, `range`
+per D367 decision 2):
 
 ```typescript
 const SeriesEnvelope = z.object({
@@ -487,9 +497,65 @@ whose headline is not a pure function of these components (D367 decision 3;
 `RESULT_DIRECTION` is `null` for 501, TUOD, 121, Singles Training, Doubles
 Training, Bob's 27 and Around the Clock in phase 1 — issue #615).
 
+**Phase 2 (board sections, D368)** — every intent-cell metric is keyed by
+`TargetKey` (`<ZONE_KEY>:<number>`, e.g. `DOUBLE:16`):
+
+```typescript
+const TargetRecord = <T extends z.ZodTypeAny>(value: T) => z.record(z.string(), value);
+
+const TargetAccuracyMetrics = TargetRecord(
+  z.object({ attempts: z.number().int(), hits: z.number().int() }),
+);
+
+// inner key is a hit key: a TargetKey, or "MISS"
+const ConfusionMetrics = TargetRecord(z.record(z.string(), z.number().int()));
+
+const LooseDartsMetrics = TargetRecord(
+  z.object({
+    onTarget: z.number().int(),
+    nearMiss: z.number().int(),
+    loose: z.number().int(),
+  }),
+);
+
+// additive position moments; mean/spread/bias are derived client-side against zoneCentroid
+const GroupingMetrics = TargetRecord(
+  z.object({
+    n: z.number().int(),
+    sumX: z.number(),
+    sumY: z.number(),
+    sumXX: z.number(),
+    sumYY: z.number(),
+    sumXY: z.number(),
+  }),
+);
+
+const MissDirectionMetrics = TargetRecord(
+  z.array(
+    z.object({
+      sector: z.number().int().min(0).max(7), // 45° sectors, 0 centred on "up"
+      radial: z.enum(["INSIDE", "WITHIN", "OUTSIDE"]),
+      darts: z.number().int(),
+    }),
+  ),
+);
+
+// not keyed by target; HEATMAP_CELL_MM = 5, origin at the bull
+const HeatmapMetrics = z.object({
+  cellMm: z.number().positive(),
+  target: z.string().nullable(), // the requested target, echoed
+  cells: z.array(z.tuple([z.number().int(), z.number().int(), z.number().int()])), // [ix, iy, darts]
+});
+```
+
+`confusion`, `miss-direction` and `heatmap` are not bucketable
+(`bucketable: false`): a `bucket ≠ "none"` request against one of them is
+`VALIDATION_FAILED`, same as any other non-bucketable section. Their single
+bucket spans the full requested `[from, to)`.
+
 **Errors (both routes):** `NOT_FOUND` (unknown `gameTypeKey` or `sectionId`),
-`VALIDATION_FAILED` (query, per the rules above), plus the standard protected-
-route failures.
+`VALIDATION_FAILED` (query, per the rules above — including an unsupported or
+misapplied `target`), plus the standard protected-route failures.
 
 ---
 

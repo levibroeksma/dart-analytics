@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-23
+updated: 2026-09-26
 -->
 
 # Component Inventory
@@ -36,6 +36,7 @@ evaluated in the page's own Alpine scope.
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
 | `LogoutButton.astro` | Sign-out action wired to the auth flow | none |
 | `Modal.astro` | Base dialog shell; `ConfirmDialog` builds on it | `titleId`, `descriptionId`, `dismissible`, `onDismiss` |
+| `StatsHeatmap.astro` | The `heatmap` statistics section: `DartBoard.astro`'s SVG plus a cell overlay, geometry and intensity read from `$store.gameStats.heatmapCells` (2026-09-26) | `class` |
 
 ## `components/forms/`
 
