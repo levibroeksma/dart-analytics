@@ -23,7 +23,9 @@ import { nonNull } from "./row-helpers";
 import type { getDb } from "@db/client";
 import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
+  DartFoldRow,
   DartScope,
+  DartZoneKey,
   HeatmapCellRow,
   HitNumberCellRow,
   IntentCellRow,
@@ -336,6 +338,123 @@ export async function findX01FoldRows(
     .where(whereClause)
     .orderBy(...order);
   return rows as X01FoldRow[];
+}
+
+const DART_FOLD_COLUMNS = {
+  sessionId: vStatsDartFacts.sessionId,
+  gameTypeKey: vStatsDartFacts.gameTypeKey,
+  rulesetVersionKey: vStatsDartFacts.rulesetVersionKey,
+  configuration: vStatsSessionFacts.configuration,
+  sessionDartCount: vStatsSessionFacts.dartCount,
+  turnSequence: vStatsDartFacts.turnSequence,
+  dartNumber: vStatsDartFacts.dartNumber,
+  hitTargetNumber: vStatsDartFacts.hitTargetNumber,
+  hitZoneKey: vStatsDartFacts.hitZoneKey,
+  intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+  intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+  locationX: vStatsDartFacts.locationX,
+  locationY: vStatsDartFacts.locationY,
+};
+
+/**
+ * `location_x`/`location_y` are `NUMERIC(6, 2)` and arrive as strings through
+ * node-postgres; every other selected column is an integer or text column
+ * that arrives already typed, so only these two need parsing.
+ */
+function mapDartFoldRow(row: {
+  sessionId: string | null;
+  gameTypeKey: string | null;
+  rulesetVersionKey: string | null;
+  configuration: Record<string, unknown> | null;
+  sessionDartCount: number | null;
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  turnSequence: number | null;
+  dartNumber: number | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: string | null;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: string | null;
+  locationX: string | number | null;
+  locationY: string | number | null;
+}): DartFoldRow {
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key") as GameTypeKey,
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    configuration: row.configuration,
+    sessionDartCount: nonNull(row.sessionDartCount, "dart_count"),
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    turnSequence: nonNull(row.turnSequence, "turn_sequence"),
+    dartNumber: nonNull(row.dartNumber, "dart_number"),
+    hitTargetNumber: row.hitTargetNumber,
+    hitZoneKey: nonNull(row.hitZoneKey, "hit_zone_key") as DartZoneKey,
+    intendedTargetNumber: row.intendedTargetNumber,
+    intendedZoneKey: row.intendedZoneKey as DartZoneKey | null,
+    locationX: row.locationX === null ? null : Number(row.locationX),
+    locationY: row.locationY === null ? null : Number(row.locationY),
+  };
+}
+
+/**
+ * Reads every `v_stats_dart_facts` dart the scope covers, inner-joined to
+ * `v_stats_session_facts` under `sessionScopeWhere`, each row carrying its
+ * session's dart count and the bucket its `completed_at` falls in (phase-4
+ * Task 5). `sessionSteps` (`derived-aims.module.ts`) groups the result by
+ * session and folds each one through its own engine reducer. Ordered by
+ * session, then `(turn_sequence, dart_number)` -- the order every fold
+ * replays a session's darts in.
+ */
+export async function findDartFoldRows(
+  db: Db,
+  q: SessionScope & { bucket: Bucket; tz: string | undefined },
+): Promise<DartFoldRow[]> {
+  const whereClause = sessionScopeWhere(q);
+  const order = [
+    vStatsDartFacts.sessionId,
+    vStatsDartFacts.turnSequence,
+    vStatsDartFacts.dartNumber,
+  ] as const;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        ...DART_FOLD_COLUMNS,
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+      })
+      .from(vStatsDartFacts)
+      .innerJoin(
+        vStatsSessionFacts,
+        eq(vStatsDartFacts.sessionId, vStatsSessionFacts.sessionId),
+      )
+      .where(whereClause)
+      .orderBy(...order);
+    return rows.map(mapDartFoldRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsSessionFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      ...DART_FOLD_COLUMNS,
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+    })
+    .from(vStatsDartFacts)
+    .innerJoin(
+      vStatsSessionFacts,
+      eq(vStatsDartFacts.sessionId, vStatsSessionFacts.sessionId),
+    )
+    .where(whereClause)
+    .orderBy(...order);
+  return rows.map(mapDartFoldRow);
 }
 
 function mapVisitScoringRow(row: {
