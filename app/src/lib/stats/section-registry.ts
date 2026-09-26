@@ -1,16 +1,31 @@
-import type { GameTypeKey, StatsTag } from "@lib/types";
+import type { GameTypeKey, Requirement, StatsTag } from "@lib/types";
 import {
   STATS_TAGS,
   rulesetsOfGameType,
 } from "@lib/game/rulesets/capabilities";
-import type { ResultDirection, SectionId, SectionMeta } from "./types";
+import type {
+  ComputeSite,
+  ResultDirection,
+  SectionId,
+  SectionMeta,
+} from "./types";
+
+/** Either `intent-stored` (declared aims) or `intent-derived` (folded from the engine) satisfies the four widened board sections (phase-4 decision 5). */
+const INTENT_ANY_OF: Requirement = {
+  anyOf: ["intent-stored", "intent-derived"],
+};
+
+/** Overrides `computeSite` with `server` wherever a game's tags include `intent-derived` (phase-4 decision 5). */
+const DERIVED_ON_SERVER: Partial<Record<StatsTag, ComputeSite>> = {
+  "intent-derived": "server",
+};
 
 /**
- * Phase-1, phase-2 and phase-3 sections, declared in catalog order
+ * Phase-1 through phase-4 sections, declared in catalog order
  * (`00-Overview.md` §2, `01-Section-Catalog.md` §1-2). `SECTIONS`' own
- * declaration order *is* page order — `sectionsForGame` preserves it rather
- * than re-sorting. Phase 4 revisits this for Shanghai, whose catalog order
- * puts `session-result` before `confusion`.
+ * declaration order *is* page order, unless `PAGE_ORDER_OVERRIDES` names the
+ * game — `sectionsForGame` applies the tag filter in declaration order, then
+ * that override, rather than re-sorting.
  */
 export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "scoring-trend": {
@@ -93,11 +108,50 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     configSensitive: [],
     params: [],
   },
+  "atc-darts-per-target": {
+    id: "atc-darts-per-target",
+    version: 1,
+    requires: ["intent-derived"],
+    games: ["AROUND_THE_CLOCK"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: ["ruleset_version_key", "difficulty", "segment_rule"],
+    params: [],
+  },
   "target-accuracy": {
     id: "target-accuracy",
     version: 1,
-    requires: ["intent-stored"],
+    requires: [INTENT_ANY_OF],
+    siteByTag: DERIVED_ON_SERVER,
     computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "bobs27-survival": {
+    id: "bobs27-survival",
+    version: 1,
+    requires: ["intent-stored"],
+    games: ["BOBS27"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [
+      "ruleset_version_key",
+      "start_score",
+      "miss_penalty_multiplier",
+      "bull_hit_value",
+    ],
+    params: [],
+  },
+  "shanghai-count": {
+    id: "shanghai-count",
+    version: 1,
+    requires: ["intent-derived"],
+    games: ["SHANGHAI"],
+    computeSite: "server",
     bucketable: true,
     includesAbandoned: false,
     configSensitive: [],
@@ -106,7 +160,8 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   confusion: {
     id: "confusion",
     version: 1,
-    requires: ["intent-stored"],
+    requires: [INTENT_ANY_OF],
+    siteByTag: DERIVED_ON_SERVER,
     computeSite: "sql",
     bucketable: false,
     includesAbandoned: false,
@@ -126,7 +181,8 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "miss-direction": {
     id: "miss-direction",
     version: 1,
-    requires: ["board", "intent-stored"],
+    requires: ["board", INTENT_ANY_OF],
+    siteByTag: DERIVED_ON_SERVER,
     computeSite: "sql",
     bucketable: false,
     includesAbandoned: false,
@@ -136,7 +192,8 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "loose-darts": {
     id: "loose-darts",
     version: 1,
-    requires: ["board", "intent-stored"],
+    requires: ["board", INTENT_ANY_OF],
+    siteByTag: DERIVED_ON_SERVER,
     computeSite: "sql",
     bucketable: true,
     includesAbandoned: false,
@@ -211,14 +268,72 @@ export function tagsForGameType(gameTypeKey: GameTypeKey): Set<StatsTag> {
   return tags;
 }
 
-function offersSection(tags: Set<StatsTag>, meta: SectionMeta): boolean {
-  return meta.requires.every((tag) => tags.has(tag));
+function requirementMet(
+  tags: Set<StatsTag>,
+  requirement: Requirement,
+): boolean {
+  return typeof requirement === "string"
+    ? tags.has(requirement)
+    : requirement.anyOf.some((tag) => tags.has(tag));
 }
 
-/** A game page's sections, in catalog order, filtered to those whose `requires` the game's tags satisfy. */
+function offersSection(
+  tags: Set<StatsTag>,
+  gameTypeKey: GameTypeKey,
+  meta: SectionMeta,
+): boolean {
+  if (meta.games && !meta.games.includes(gameTypeKey)) return false;
+  return meta.requires.every((requirement) =>
+    requirementMet(tags, requirement),
+  );
+}
+
+/**
+ * Reorders a game's page after Shanghai's catalog order, which puts
+ * `session-result` right after `shanghai-count` (`01-Section-Catalog.md` §2,
+ * phase-4 decision 11). Every entry is a permutation of the tag- and
+ * game-gated set for that game (`section-registry.test.ts` asserts this) —
+ * an override can reorder a page but never add or drop a section from it.
+ */
+export const PAGE_ORDER_OVERRIDES: Partial<
+  Record<GameTypeKey, readonly SectionId[]>
+> = {
+  SHANGHAI: [
+    "target-accuracy",
+    "shanghai-count",
+    "session-result",
+    "confusion",
+    "miss-direction",
+    "loose-darts",
+    "heatmap",
+    "completion",
+    "volume",
+  ],
+};
+
+/** Where a section's numbers are computed for a game: the first `siteByTag` entry whose tag the game carries, else `computeSite` (phase-4 decision 5). */
+export function sectionSite(
+  meta: SectionMeta,
+  gameTypeKey: GameTypeKey,
+): ComputeSite {
+  const tags = tagsForGameType(gameTypeKey);
+  for (const [tag, site] of Object.entries(meta.siteByTag ?? {})) {
+    if (tags.has(tag as StatsTag)) return site as ComputeSite;
+  }
+  return meta.computeSite;
+}
+
+/**
+ * A game page's sections, filtered to those whose `requires` and `games` the
+ * game satisfies, in catalog order — then reordered by `PAGE_ORDER_OVERRIDES`
+ * when the game has one.
+ */
 export function sectionsForGame(gameTypeKey: GameTypeKey): SectionId[] {
   const tags = tagsForGameType(gameTypeKey);
-  return SECTION_IDS.filter((id) => offersSection(tags, SECTIONS[id]));
+  const tagDerived = SECTION_IDS.filter((id) =>
+    offersSection(tags, gameTypeKey, SECTIONS[id]),
+  );
+  return PAGE_ORDER_OVERRIDES[gameTypeKey]?.slice() ?? tagDerived;
 }
 
 /**

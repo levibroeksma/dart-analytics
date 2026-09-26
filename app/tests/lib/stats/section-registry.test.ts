@@ -1,13 +1,30 @@
 import { describe, it, expect } from "vitest";
 import {
   MAX_FOLD_DARTS,
+  PAGE_ORDER_OVERRIDES,
   RESULT_DIRECTION,
   SECTIONS,
   isSectionId,
+  sectionSite,
   sectionsForGame,
   tagsForGameType,
 } from "@lib/stats/section-registry";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
+import type { GameTypeKey, SectionId } from "@lib/types";
+
+/** The tag- and game-gated set for a game, in `SECTIONS`' declaration order, before `PAGE_ORDER_OVERRIDES` reorders it — the baseline decision 11's permutation invariant is checked against. */
+function tagDerivedSections(gameTypeKey: GameTypeKey): SectionId[] {
+  const tags = tagsForGameType(gameTypeKey);
+  return (Object.keys(SECTIONS) as SectionId[]).filter((id) => {
+    const meta = SECTIONS[id];
+    if (meta.games && !meta.games.includes(gameTypeKey)) return false;
+    return meta.requires.every((requirement) =>
+      typeof requirement === "string"
+        ? tags.has(requirement)
+        : requirement.anyOf.some((tag) => tags.has(tag)),
+    );
+  });
+}
 
 describe("statistics section registry", () => {
   it("keys every entry by its own id", () => {
@@ -77,8 +94,8 @@ describe("statistics section registry", () => {
     ]);
   });
 
-  it("orders an intent-stored game's sections per the catalog", () => {
-    const expected = [
+  it("orders Doubles Training's sections per the catalog", () => {
+    expect(sectionsForGame("DOUBLES_TRAINING")).toEqual([
       "target-accuracy",
       "confusion",
       "grouping",
@@ -88,34 +105,81 @@ describe("statistics section registry", () => {
       "session-result",
       "completion",
       "volume",
-    ];
-    expect(sectionsForGame("DOUBLES_TRAINING")).toEqual(expected);
-    expect(sectionsForGame("BOBS27")).toEqual(expected);
+    ]);
   });
 
-  it("gives Singles Training heatmap but no intent section (phase 4 defers its accuracy)", () => {
-    const sections = sectionsForGame("SINGLES_TRAINING");
-    expect(sections).toContain("heatmap");
-    expect(sections).not.toContain("target-accuracy");
-    expect(sections).not.toContain("confusion");
-    expect(sections).not.toContain("grouping");
-    expect(sections).not.toContain("miss-direction");
-    expect(sections).not.toContain("loose-darts");
+  it("orders Bob's 27's sections per the catalog, with the survival section (decision 10)", () => {
+    expect(sectionsForGame("BOBS27")).toEqual([
+      "target-accuracy",
+      "bobs27-survival",
+      "confusion",
+      "grouping",
+      "miss-direction",
+      "loose-darts",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ]);
+  });
+
+  it("gives Singles Training the derived-intent sections but not grouping (decision 6)", () => {
+    expect(sectionsForGame("SINGLES_TRAINING")).toEqual([
+      "target-accuracy",
+      "confusion",
+      "miss-direction",
+      "loose-darts",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ]);
+  });
+
+  it("orders Shanghai's sections per the catalog, session-result moved by the override (decision 11)", () => {
+    expect(sectionsForGame("SHANGHAI")).toEqual([
+      "target-accuracy",
+      "shanghai-count",
+      "session-result",
+      "confusion",
+      "miss-direction",
+      "loose-darts",
+      "heatmap",
+      "completion",
+      "volume",
+    ]);
+  });
+
+  it("orders Around the Clock's sections per the catalog, darts-per-target first (decision 10)", () => {
+    expect(sectionsForGame("AROUND_THE_CLOCK")).toEqual([
+      "atc-darts-per-target",
+      "target-accuracy",
+      "confusion",
+      "miss-direction",
+      "loose-darts",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ]);
   });
 
   it("declares the six board sections with their registry shape", () => {
+    const intentAnyOf = [{ anyOf: ["intent-stored", "intent-derived"] }];
     expect(SECTIONS.heatmap).toMatchObject({
       requires: ["board"],
       bucketable: false,
       params: ["target"],
     });
     expect(SECTIONS["target-accuracy"]).toMatchObject({
-      requires: ["intent-stored"],
+      requires: intentAnyOf,
+      siteByTag: { "intent-derived": "server" },
       bucketable: true,
       params: [],
     });
     expect(SECTIONS.confusion).toMatchObject({
-      requires: ["intent-stored"],
+      requires: intentAnyOf,
+      siteByTag: { "intent-derived": "server" },
       bucketable: false,
       params: [],
     });
@@ -124,13 +188,16 @@ describe("statistics section registry", () => {
       bucketable: true,
       params: [],
     });
+    expect(SECTIONS.grouping.siteByTag).toBeUndefined();
     expect(SECTIONS["miss-direction"]).toMatchObject({
-      requires: ["board", "intent-stored"],
+      requires: ["board", ...intentAnyOf],
+      siteByTag: { "intent-derived": "server" },
       bucketable: false,
       params: [],
     });
     expect(SECTIONS["loose-darts"]).toMatchObject({
-      requires: ["board", "intent-stored"],
+      requires: ["board", ...intentAnyOf],
+      siteByTag: { "intent-derived": "server" },
       bucketable: true,
       params: [],
     });
@@ -147,6 +214,87 @@ describe("statistics section registry", () => {
       expect(SECTIONS[id].configSensitive).toEqual([]);
       expect(SECTIONS[id].version).toBe(1);
     }
+  });
+
+  it("declares the three game-specific sections with their registry shape (decision 10, 13)", () => {
+    expect(SECTIONS["atc-darts-per-target"]).toMatchObject({
+      requires: ["intent-derived"],
+      games: ["AROUND_THE_CLOCK"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+      configSensitive: ["ruleset_version_key", "difficulty", "segment_rule"],
+      params: [],
+      version: 1,
+    });
+    expect(SECTIONS["bobs27-survival"]).toMatchObject({
+      requires: ["intent-stored"],
+      games: ["BOBS27"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+      configSensitive: [
+        "ruleset_version_key",
+        "start_score",
+        "miss_penalty_multiplier",
+        "bull_hit_value",
+      ],
+      params: [],
+      version: 1,
+    });
+    expect(SECTIONS["shanghai-count"]).toMatchObject({
+      requires: ["intent-derived"],
+      games: ["SHANGHAI"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+      configSensitive: [],
+      params: [],
+      version: 1,
+    });
+  });
+
+  it("resolves site by tag: target-accuracy is server on a derived game, sql on a stored one", () => {
+    expect(sectionSite(SECTIONS["target-accuracy"], "SHANGHAI")).toBe("server");
+    expect(sectionSite(SECTIONS["target-accuracy"], "DOUBLES_TRAINING")).toBe(
+      "sql",
+    );
+  });
+
+  it("resolves site by tag for every widened section across derived and stored games", () => {
+    for (const id of [
+      "target-accuracy",
+      "confusion",
+      "miss-direction",
+      "loose-darts",
+    ] as const) {
+      expect(sectionSite(SECTIONS[id], "SHANGHAI")).toBe("server");
+      expect(sectionSite(SECTIONS[id], "AROUND_THE_CLOCK")).toBe("server");
+      expect(sectionSite(SECTIONS[id], "SINGLES_TRAINING")).toBe("server");
+      expect(sectionSite(SECTIONS[id], "DOUBLES_TRAINING")).toBe("sql");
+      expect(sectionSite(SECTIONS[id], "BOBS27")).toBe("sql");
+    }
+  });
+
+  it("falls back to computeSite when a section declares no siteByTag", () => {
+    expect(sectionSite(SECTIONS.grouping, "BOBS27")).toBe("sql");
+  });
+
+  it("keeps every PAGE_ORDER_OVERRIDES entry a permutation of the tag-derived set for its game", () => {
+    const entries = Object.entries(PAGE_ORDER_OVERRIDES) as [
+      GameTypeKey,
+      readonly SectionId[],
+    ][];
+    expect(entries.length).toBeGreaterThan(0);
+    for (const [gameTypeKey, override] of entries) {
+      const derived = tagDerivedSections(gameTypeKey);
+      expect(new Set(override)).toEqual(new Set(derived));
+      expect(override.length).toBe(derived.length);
+    }
+  });
+
+  it("holds the Shanghai override named in decision 11", () => {
+    expect(PAGE_ORDER_OVERRIDES.SHANGHAI).toEqual(sectionsForGame("SHANGHAI"));
   });
 
   it("declares params as [] for every phase-1 section", () => {

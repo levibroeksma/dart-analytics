@@ -6,9 +6,9 @@ import type {
   LadderProgressMetrics,
   LegStatsMetrics,
 } from "@modules/types";
-import type { StatsTag } from "@lib/types";
+import type { GameTypeKey, StatsTag } from "@lib/types";
 
-/** Phase-1, phase-2 and phase-3 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
+/** Phase-1 through phase-4 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
 export type SectionId =
   | "completion"
   | "volume"
@@ -26,7 +26,10 @@ export type SectionId =
   | "checkout-path"
   | "bust-rate"
   | "leg-stats"
-  | "treble-rate";
+  | "treble-rate"
+  | "atc-darts-per-target"
+  | "bobs27-survival"
+  | "shanghai-count";
 
 /** The declared-intent zones a target key can name (`01-Section-Catalog.md` §1.1). */
 export type IntentZoneKey =
@@ -42,6 +45,9 @@ export type TargetKey = `${IntentZoneKey}:${number}`;
 
 /** Where a section's numbers are computed (`00-Overview.md` §4). */
 export type ComputeSite = "sql" | "server" | "client";
+
+/** One `requires` entry: a tag every game must carry, or a tag any one of which suffices (`00-Overview.md` §2, phase-4 decision 5). */
+export type Requirement = StatsTag | { anyOf: readonly StatsTag[] };
 
 /** Bucket granularity for a time-series request (`00-Overview.md` §5). */
 export type Bucket = "none" | "day" | "week" | "month" | "year";
@@ -59,13 +65,17 @@ export type ResultDirection = "higher" | "lower" | null;
 export interface SectionMeta {
   id: SectionId;
   version: number;
-  requires: readonly StatsTag[];
+  requires: readonly Requirement[];
   computeSite: ComputeSite;
   bucketable: boolean;
   includesAbandoned: boolean;
   configSensitive: readonly string[];
   /** Optional query parameters this section accepts beyond the shared ones (phase-2 decision 5); `[]` for every section that accepts none. */
   params: readonly "target"[];
+  /** Overrides `computeSite` with the first entry whose tag the game carries (`sectionSite`, phase-4 decision 5); absent tags fall through to `computeSite`. */
+  siteByTag?: Partial<Record<StatsTag, ComputeSite>>;
+  /** Narrows this section to named games on top of `requires` (phase-4 decision 10); absent means every game whose tags satisfy `requires`. */
+  games?: readonly GameTypeKey[];
 }
 
 /** One bucket of a `Series<M>` result (`00-Overview.md` §5.2). */

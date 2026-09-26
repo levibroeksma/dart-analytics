@@ -852,11 +852,11 @@ describe("getGameSection", () => {
     if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
   });
 
-  it("returns NOT_FOUND for target-accuracy on Singles Training", async () => {
+  it("returns NOT_FOUND for grouping on Singles Training (phase-4 decision 6: no aim point for a whole-number aim)", async () => {
     const result = await getGameSection(
       playerId,
       "SINGLES_TRAINING",
-      "target-accuracy",
+      "grouping",
       { ...baseRangeQuery, status: "completed" },
     );
 
