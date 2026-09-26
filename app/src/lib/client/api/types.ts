@@ -1,3 +1,9 @@
+import type {
+  CompletionSeriesResponseData,
+  SessionResultSeriesResponseData,
+  VolumeSeriesResponseData,
+} from "@routes/types";
+
 export type ApiErrorBody = {
   code: string;
   message: string;
@@ -18,6 +24,23 @@ export type ApiFailure = {
 };
 
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
+
+/** The range-request parameters `fetchGameSessions`/`fetchGameSection` build into a query string. */
+export type GameStatsRangeParams = {
+  from: string;
+  to: string;
+  bucket?: "none" | "day" | "week" | "month" | "year";
+  tz?: string;
+  status?: string;
+  context?: string;
+  inputMode?: string;
+};
+
+/** The section response `fetchGameSection` returns, whichever section was requested. */
+export type GameSectionResponseData =
+  | CompletionSeriesResponseData
+  | VolumeSeriesResponseData
+  | SessionResultSeriesResponseData;
 
 export {
   ProvisionPlayerRequest,
@@ -40,6 +63,10 @@ export {
   type UpdatePlayerProfileInput,
   type PlayerProfileResponseData,
   type StatisticsOverviewResponseData,
+  type GameSessionListResponseData,
+  type CompletionSeriesResponseData,
+  type VolumeSeriesResponseData,
+  type SessionResultSeriesResponseData,
   StartTrainingRequest,
   type StartTrainingRequestInput,
   type StartTrainingResponseData,
