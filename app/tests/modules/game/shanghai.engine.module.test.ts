@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  activeTargetOf,
   applyShanghaiDart,
   foldShanghaiState,
   initialShanghaiState,
@@ -353,6 +354,32 @@ describe("applyShanghaiDart — Hard mode (Target Needed)", () => {
     );
     expect(state.status).toBe("SHANGHAI");
     expect(state.totalScore).toBe(6);
+  });
+});
+
+describe("activeTargetOf", () => {
+  it("reads NUMBER 1 off round 1 (targetIndex 0)", () => {
+    expect(activeTargetOf(initialShanghaiState(config).seats[0])).toEqual({
+      kind: "NUMBER",
+      number: 1,
+    });
+  });
+
+  it("reads NUMBER 2 after three darts resolve round 1", () => {
+    const engine = shanghaiEngineFactory.create(config);
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+    engine.record(hitObservationFor(engine.state().seats[0], "DOUBLE"));
+
+    expect(activeTargetOf(engine.state().seats[0])).toEqual({
+      kind: "NUMBER",
+      number: 2,
+    });
+  });
+
+  it("ignores an omitted config — Shanghai's path never depends on one", () => {
+    const seat = initialShanghaiState(config).seats[0];
+    expect(activeTargetOf(seat, config)).toEqual(activeTargetOf(seat));
   });
 });
 

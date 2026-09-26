@@ -19,6 +19,7 @@ import {
 import { raceWinner, scoreCompareWinner } from "./match-outcome.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import type {
+  BoardTarget,
   DartObservation,
   DartZoneKey,
   EngineFacts,
@@ -83,8 +84,21 @@ export function zoneBucketOf(
   return null;
 }
 
-function activeNumberAt(targetIndex: number): number {
-  const target = targetAt(numbersPath(), targetIndex);
+/**
+ * The seat's active target: round `targetIndex` of the fixed 1..20 path,
+ * never BULL. `config` is accepted only to match the other engines'
+ * `activeTargetOf(state, config)` shape — Shanghai's path never depends on
+ * it — so it is optional and unused here.
+ */
+export function activeTargetOf(
+  state: ShanghaiSeatState,
+  _config?: ShanghaiEngineConfig,
+): BoardTarget {
+  return targetAt(numbersPath(), state.targetIndex);
+}
+
+function activeNumberAt(state: ShanghaiSeatState): number {
+  const target = activeTargetOf(state);
   if (target.kind === "BULL") {
     throw new Error("Shanghai never reaches the BULL target");
   }
@@ -126,7 +140,7 @@ export function applyShanghaiDart(
     );
   }
 
-  const targetNumber = activeNumberAt(state.targetIndex);
+  const targetNumber = activeNumberAt(state);
   const onTarget =
     observation.hitTargetNumber === targetNumber &&
     zoneBucketOf(observation.hitZoneKey) !== null;

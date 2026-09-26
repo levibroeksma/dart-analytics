@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  activeTargetOf,
   applyAroundTheClockDart,
   foldAroundTheClockState,
   initialAroundTheClockState,
@@ -769,6 +770,33 @@ describe("rulesOf", () => {
     const rules = rulesOf(v2({ difficulty: "HARD", ...TIMED }));
     expect(rules.hitsRequired).toBe(2);
     expect(rules.timed).toBe(true);
+  });
+});
+
+describe("activeTargetOf", () => {
+  it("reads NUMBER 1 first on the V1 fixed path", () => {
+    expect(activeTargetOf(SEAT, config)).toEqual({ kind: "NUMBER", number: 1 });
+  });
+
+  it("reads NUMBER 19 first under V2 HIGH_TO_LOW, odds first", () => {
+    const v2Config = v2({
+      pathDirection: "HIGH_TO_LOW",
+      oddsFirst: true,
+    });
+    expect(activeTargetOf(SEAT, v2Config)).toEqual({
+      kind: "NUMBER",
+      number: 19,
+    });
+  });
+
+  it("reads BULL at the path's last index", () => {
+    expect(activeTargetOf(seatAt(20), config)).toEqual({ kind: "BULL" });
+  });
+
+  it("agrees with the reducer's own targeting for the resolved rules", () => {
+    const cfg = v2({ pathDirection: "HIGH_TO_LOW", oddsFirst: true });
+    const next = run(cfg, [numberHit(19, "SINGLE")]);
+    expect(activeTargetOf(next, cfg)).toEqual({ kind: "NUMBER", number: 17 });
   });
 });
 

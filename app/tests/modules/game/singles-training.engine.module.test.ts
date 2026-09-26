@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  activeTargetOf,
   applySinglesTrainingDart,
   foldSinglesTrainingState,
   initialSinglesTrainingState,
@@ -1713,6 +1714,62 @@ describe("applySinglesTrainingDart — scoringMode absence defaults to STANDARD"
       locationY: null,
     });
     expect(next.totalPoints).toBe(2);
+  });
+});
+
+describe("activeTargetOf", () => {
+  it("reads NUMBER 1 off the default ascending path at the starting index", () => {
+    expect(activeTargetOf(initialSeat(), config)).toEqual({
+      kind: "NUMBER",
+      number: 1,
+    });
+  });
+
+  it("reads NUMBER 20 first under a High->Low target_order (V2)", () => {
+    const highToLowV2Config: Seated<SinglesV2Snapshot> = {
+      ...config,
+      difficulty: "EASY",
+      orderMode: "HIGH_TO_LOW",
+      targetOrder: [
+        20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+        25,
+      ],
+    };
+    expect(activeTargetOf(initialSeat(), highToLowV2Config)).toEqual({
+      kind: "NUMBER",
+      number: 20,
+    });
+  });
+
+  it("reads BULL at the path's last index", () => {
+    const bullState: SinglesTrainingSeatState = {
+      ...initialSeat(),
+      targetIndex: 20,
+    };
+    expect(activeTargetOf(bullState, config)).toEqual({ kind: "BULL" });
+  });
+
+  it("agrees with applySinglesTrainingDart's own inline targeting after an advance", () => {
+    let state = initialSeat();
+    state = applySinglesTrainingDart(
+      config,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    state = applySinglesTrainingDart(
+      config,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    state = applySinglesTrainingDart(
+      config,
+      state,
+      hitObservationFor(state, "SINGLE"),
+    );
+    expect(activeTargetOf(state, config)).toEqual({
+      kind: "NUMBER",
+      number: 2,
+    });
   });
 });
 

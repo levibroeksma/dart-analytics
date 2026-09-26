@@ -156,6 +156,18 @@ export type MultiSeatState<TSeat extends SeatState = SeatState> = {
   seats: readonly TSeat[];
 };
 
+/**
+ * One dart's fold step: the seat state immediately before and after
+ * `observation`, alongside the observation itself. `steps[i].after` is
+ * always structurally equal to `steps[i + 1].before` — the walk never skips
+ * or rewrites a state between two consecutive darts.
+ */
+export type SeatFoldStep<TSeat> = {
+  before: TSeat;
+  observation: DartObservation;
+  after: TSeat;
+};
+
 /** One seat's score in the leg being played. */
 export type FiveOhOneSeatState = SeatState & {
   remainingScore: number;

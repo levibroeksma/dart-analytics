@@ -2,15 +2,57 @@ import type { SeatFact } from "@lib/types";
 import type {
   DartObservation,
   MultiSeatState,
+  SeatFoldStep,
   SeatState,
   TurnFact,
 } from "./types";
+
+/**
+ * Replays `darts` through `applyDart` one at a time, yielding every
+ * intermediate seat state instead of only the final one — the walker the
+ * statistics module's derived-aims fold reads its per-dart aim from, since
+ * the aim of dart N is a property of the state *before* it, not after.
+ * `initial` is never itself returned as a step's `before`/`after`; an empty
+ * `darts` yields an empty array.
+ */
+export function foldSeatSteps<TSeat>(
+  darts: readonly DartObservation[],
+  initial: TSeat,
+  applyDart: (state: TSeat, observation: DartObservation) => TSeat,
+): SeatFoldStep<TSeat>[] {
+  const steps: SeatFoldStep<TSeat>[] = [];
+  let state = initial;
+  for (const observation of darts) {
+    const before = state;
+    state = applyDart(before, observation);
+    steps.push({ before, observation, after: state });
+  }
+  return steps;
+}
+
+function seatObservations(
+  turns: readonly TurnFact[],
+  participantRef: string,
+): DartObservation[] {
+  return turns
+    .filter((turn) => turn.participantRef === participantRef)
+    .flatMap((turn) =>
+      turn.darts.map((dart) => ({
+        hitTargetNumber: dart.hitTargetNumber,
+        hitZoneKey: dart.hitZoneKey,
+        locationX: dart.locationX,
+        locationY: dart.locationY,
+      })),
+    );
+}
 
 /**
  * Replays the whole log, per seat, through a ruleset's own dart reducer —
  * the derivation every dart-fed engine's `deriveState()` opens with. Each
  * seat sees only its own turns, so a 1v1 log folds to two independent seat
  * states and a solo log to one, with no branch on seat count anywhere.
+ * Built on `foldSeatSteps`: the final state is that walk's last step's
+ * `after`, or the seat's initial state when it has thrown nothing.
  *
  * Nothing here is stored: `initialSeatState` rebuilds the starting shape on
  * every read and `applyDart` is pure, so the returned array is fresh each
@@ -24,21 +66,13 @@ export function foldSeatStates<TSeat>(
   applyDart: (state: TSeat, observation: DartObservation) => TSeat,
 ): TSeat[] {
   return seats.map((seat) => {
-    let state = initialSeatState(seat);
-    const seatTurns = turns.filter(
-      (turn) => turn.participantRef === seat.participantRef,
+    const initial = initialSeatState(seat);
+    const steps = foldSeatSteps(
+      seatObservations(turns, seat.participantRef),
+      initial,
+      applyDart,
     );
-    for (const turn of seatTurns) {
-      for (const dart of turn.darts) {
-        state = applyDart(state, {
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneKey: dart.hitZoneKey,
-          locationX: dart.locationX,
-          locationY: dart.locationY,
-        });
-      }
-    }
-    return state;
+    return steps.at(-1)?.after ?? initial;
   });
 }
 
