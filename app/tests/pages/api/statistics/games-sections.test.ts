@@ -6,8 +6,14 @@ vi.mock("@services/statistics.service", () => ({
 
 import { getGameSection } from "@services/statistics.service";
 import { GET } from "@routes/statistics/games/[gameTypeKey]/sections/[sectionId]";
-import { CompletionSeriesResponse } from "@routes/types";
-import type { CompletionSeriesResponseData } from "@routes/types";
+import {
+  CompletionSeriesResponse,
+  CheckoutRateSeriesResponse,
+} from "@routes/types";
+import type {
+  CheckoutRateSeriesResponseData,
+  CompletionSeriesResponseData,
+} from "@routes/types";
 
 const locals = {
   requestId: "req-1",
@@ -159,6 +165,56 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
       "DOUBLES_TRAINING",
       "heatmap",
       expect.objectContaining({ target: "DOUBLE:16" }),
+    );
+  });
+
+  it("dispatches checkout-rate through the service and returns a validated series", async () => {
+    const seriesResponse: CheckoutRateSeriesResponseData = {
+      sectionId: "checkout-rate",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00+01:00",
+          end: "2026-02-01T00:00:00+01:00",
+          closed: true,
+          sampleSize: 1,
+          metrics: { "40": { chances: 1, finished: 1 } },
+        },
+      ],
+    };
+    vi.mocked(getGameSection).mockResolvedValue({
+      ok: true,
+      data: seriesResponse as never,
+    });
+
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501", sectionId: "checkout-rate" },
+      url: makeUrl("501", "checkout-rate", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data).toEqual(seriesResponse);
+    expect(CheckoutRateSeriesResponse.safeParse(body.data).success).toBe(true);
+    expect(getGameSection).toHaveBeenCalledWith(
+      "player-1",
+      "501",
+      "checkout-rate",
+      expect.objectContaining({
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      }),
     );
   });
 });

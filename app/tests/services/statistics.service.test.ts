@@ -14,6 +14,10 @@ vi.mock("@repositories/statistics.repository", () => ({
   findIntentMoments: vi.fn(),
   findMissSectors: vi.fn(),
   findHeatmapCells: vi.fn(),
+  findScopeDartCount: vi.fn(),
+  findX01FoldRows: vi.fn(),
+  findVisitScoring: vi.fn(),
+  findHitNumberCells: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
@@ -22,7 +26,8 @@ import {
   listGameSessions,
   getGameSection,
 } from "@services/statistics.service";
-import { SECTIONS } from "@lib/stats/section-registry";
+import { SECTIONS, MAX_FOLD_DARTS } from "@lib/stats/section-registry";
+import { SCORE_BANDS } from "@modules/stats/sections/scoring-trend.module";
 
 const playerId = "0198f200-0000-7000-8000-000000000001";
 
@@ -857,5 +862,347 @@ describe("getGameSection", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+  });
+});
+
+const FOLD_501_CONFIG = {
+  starting_score: 40,
+  legs_to_win: 1,
+  check_in: "STRAIGHT_IN",
+  check_out: "DOUBLE_OUT",
+  max_darts_per_turn: 3,
+  max_visit_score: 180,
+  seats: SEATS,
+};
+
+const FOLD_TUOD_CONFIG = {
+  starting_target: 40,
+  finish_bonus: 10,
+  miss_penalty: 10,
+  duration_type: "ROUNDS",
+  duration_value: 5,
+  max_darts_per_turn: 3,
+  seats: SEATS,
+};
+
+/** A single X01 fold row: a 501 leg's lone visit, a straight double-20 checkout of 40. */
+function makeFoldRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "s1",
+    gameTypeKey: "501",
+    rulesetVersionKey: "501_V1",
+    configuration: FOLD_501_CONFIG,
+    stageId: "stage-1",
+    stageSequence: 1,
+    stageTypeKey: "LEG",
+    parentStageId: null,
+    turnId: "turn-1",
+    turnSequence: 1,
+    turnTotalScore: 40,
+    turnCompletedAt: "2026-09-01T10:00:00.000Z",
+    participantId: "participant-1",
+    dartNumber: 1,
+    hitTargetNumber: 20,
+    hitZoneKey: "DOUBLE",
+    score: 40,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+/** A single X01 fold row: a TUOD exercise block's lone visit, checking out target 40. */
+function makeTuodFoldRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "s-tuod",
+    gameTypeKey: "TUOD",
+    rulesetVersionKey: "TUOD_V1",
+    configuration: FOLD_TUOD_CONFIG,
+    stageId: "block-1",
+    stageSequence: 1,
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentStageId: null,
+    turnId: "turn-1",
+    turnSequence: 1,
+    turnTotalScore: 40,
+    turnCompletedAt: "2026-09-01T10:00:00.000Z",
+    participantId: "participant-1",
+    dartNumber: 1,
+    hitTargetNumber: 20,
+    hitZoneKey: "DOUBLE",
+    score: 40,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("getGameSection dispatches the checkout family", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("dispatches checkout-rate through the fold", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "checkout-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("checkout-rate");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "40": { chances: 1, finished: 1 },
+      });
+    }
+    expect(repo.findScopeDartCount).toHaveBeenCalled();
+    expect(repo.findX01FoldRows).toHaveBeenCalled();
+  });
+
+  it("dispatches double-performance through the fold", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "double-performance", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("double-performance");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "DOUBLE:20": { attempts: 1, hits: 1 },
+      });
+    }
+  });
+
+  it("dispatches checkout-path through the fold", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "checkout-path", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("checkout-path");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "40": { D20: { visits: 1, finished: 1 } },
+      });
+    }
+  });
+
+  it("dispatches bust-rate through the fold", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "bust-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("bust-rate");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "40": { visits: 1, busts: 0 },
+      });
+    }
+  });
+
+  it("dispatches leg-stats through the fold", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "leg-stats", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("leg-stats");
+      expect(result.data.buckets[0]!.metrics).toEqual({ "1": 1 });
+    }
+  });
+
+  it("dispatches ladder-progress through the fold on TUOD", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeTuodFoldRow(),
+    ] as never);
+
+    const result = await getGameSection(playerId, "TUOD", "ladder-progress", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("ladder-progress");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        targets: { "40": { attempts: 1, successes: 1 } },
+        maxTarget: 40,
+        afterMiss: 0,
+        recovered: 0,
+      });
+    }
+  });
+
+  it("dispatches scoring-trend through findVisitScoring with SCORE_BANDS", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findVisitScoring).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        points: 180,
+        darts: 3,
+        firstNinePoints: 180,
+        firstNineDarts: 3,
+        ton: 0,
+        tonForty: 0,
+        oneEighty: 1,
+      },
+    ]);
+
+    const result = await getGameSection(playerId, "501", "scoring-trend", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("scoring-trend");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        points: 180,
+        darts: 3,
+        firstNinePoints: 180,
+        firstNineDarts: 3,
+        bands: { ton: 0, tonForty: 0, oneEighty: 1 },
+      });
+    }
+    expect(repo.findScopeDartCount).not.toHaveBeenCalled();
+    const call = vi.mocked(repo.findVisitScoring).mock.calls[0]![1] as {
+      bands: unknown;
+    };
+    expect(call.bands).toEqual(SCORE_BANDS);
+  });
+
+  it("dispatches treble-rate through findHitNumberCells", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findHitNumberCells).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        hitNumber: "20",
+        darts: 4,
+        trebles: 2,
+      },
+    ]);
+
+    const result = await getGameSection(playerId, "501", "treble-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("treble-rate");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "20": { darts: 4, trebles: 2 },
+      });
+    }
+    expect(repo.findScopeDartCount).not.toHaveBeenCalled();
+  });
+
+  it("returns VALIDATION_FAILED above MAX_FOLD_DARTS and never calls findX01FoldRows", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    const dartCount = MAX_FOLD_DARTS + 1;
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(dartCount);
+
+    const result = await getGameSection(playerId, "501", "checkout-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`,
+      );
+    }
+    expect(repo.findX01FoldRows).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for ladder-progress on 501", async () => {
+    const result = await getGameSection(playerId, "501", "ladder-progress", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+    expect(repo.findScopeDartCount).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for leg-stats on TUOD", async () => {
+    const result = await getGameSection(playerId, "TUOD", "leg-stats", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects bucket=month on checkout-path (not bucketable)", async () => {
+    const result = await getGameSection(playerId, "501", "checkout-path", {
+      ...baseRangeQuery,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findScopeDartCount).not.toHaveBeenCalled();
   });
 });
