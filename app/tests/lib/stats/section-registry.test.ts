@@ -245,6 +245,6 @@ describe("statistics section registry", () => {
   });
 
   it("exports the server fold dart cap", () => {
-    expect(MAX_FOLD_DARTS).toBe(20_000);
+    expect(MAX_FOLD_DARTS).toBe(5_000);
   });
 });

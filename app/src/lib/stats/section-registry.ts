@@ -185,8 +185,15 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   },
 };
 
-/** Above this many darts in a scoped range, a server-folded section refuses the request (`00-Overview.md` §4, phase-3 decision 1). */
-export const MAX_FOLD_DARTS = 20_000;
+/**
+ * Above this many darts in a scoped range, a server-folded section refuses
+ * the request (`00-Overview.md` §4, phase-3 decision 1). Lowered from the
+ * plan's starting `20_000` (Task 8 Step 3): a synthetic worst-case TUOD log
+ * (100-round sessions) measured `sessionCheckoutVisits` plus the six
+ * server-section shapes at ~128ms total at `20_000`, well over the 50ms
+ * budget; `5_000` measured ~30ms, with margin.
+ */
+export const MAX_FOLD_DARTS = 5_000;
 
 const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
 
