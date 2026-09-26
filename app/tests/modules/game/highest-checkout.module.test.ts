@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  FINISHING_ZONES,
   highestCheckout,
   isFinishingDart,
 } from "@modules/game/highest-checkout.module";
@@ -84,5 +85,13 @@ describe("isFinishingDart", () => {
   it("is exported so other modules can reuse the finish rule", () => {
     expect(isFinishingDart(50, dart("INNER_BULL", 50))).toBe(true);
     expect(isFinishingDart(32, dart("DOUBLE", 16))).toBe(false);
+  });
+});
+
+describe("FINISHING_ZONES", () => {
+  it("is exported so other modules can reuse the checkout rings, without a copy", () => {
+    expect(FINISHING_ZONES.has("DOUBLE")).toBe(true);
+    expect(FINISHING_ZONES.has("INNER_BULL")).toBe(true);
+    expect(FINISHING_ZONES.has("OUTER_BULL")).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import type { CheckoutVisitDarts, DartFact, HighestCheckout } from "./types";
 
-const FINISHING_ZONES: ReadonlySet<DartFact["hitZoneKey"]> = new Set([
+/** The zones a checkout can legally land in; shared with `bust-rate.module.ts`'s `endedOnDouble` gate. */
+export const FINISHING_ZONES: ReadonlySet<DartFact["hitZoneKey"]> = new Set([
   "DOUBLE",
   "INNER_BULL",
 ]);
