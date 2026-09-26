@@ -4,6 +4,7 @@ import {
   readSection,
   readSessionPage,
   clearStatsCache,
+  missingSpans,
 } from "@client/stats-cache/cache";
 import { STATS_DB_NAME } from "@client/stats-cache/db";
 import type { SectionMeta } from "@lib/types";
@@ -303,5 +304,56 @@ describe("clearStatsCache", () => {
       from: baseQuery.from,
       to: baseQuery.to,
     });
+  });
+});
+
+describe("missingSpans", () => {
+  it("returns the whole requested range when there is no coverage yet", () => {
+    expect(missingSpans({ ...baseQuery }, undefined)).toEqual([
+      { from: baseQuery.from, to: baseQuery.to },
+    ]);
+  });
+
+  it("returns nothing when the requested range is already fully covered", () => {
+    const coverage = {
+      coveredFrom: baseQuery.from,
+      coveredTo: baseQuery.to,
+      dataVersion: "v1",
+    };
+    expect(missingSpans({ ...baseQuery }, coverage)).toEqual([]);
+  });
+
+  it("returns only the trailing span when the tail is still open", () => {
+    const coverage = {
+      coveredFrom: baseQuery.from,
+      coveredTo: "2026-03-01T00:00:00.000Z",
+      dataVersion: "v1",
+    };
+    expect(missingSpans({ ...baseQuery }, coverage)).toEqual([
+      { from: "2026-03-01T00:00:00.000Z", to: baseQuery.to },
+    ]);
+  });
+
+  it("returns only the leading span when widening from earlier", () => {
+    const coverage = {
+      coveredFrom: "2026-02-01T00:00:00.000Z",
+      coveredTo: baseQuery.to,
+      dataVersion: "v1",
+    };
+    expect(missingSpans({ ...baseQuery }, coverage)).toEqual([
+      { from: baseQuery.from, to: "2026-02-01T00:00:00.000Z" },
+    ]);
+  });
+
+  it("returns both spans when widening earlier while the tail is still open", () => {
+    const coverage = {
+      coveredFrom: "2026-02-01T00:00:00.000Z",
+      coveredTo: "2026-03-01T00:00:00.000Z",
+      dataVersion: "v1",
+    };
+    expect(missingSpans({ ...baseQuery }, coverage)).toEqual([
+      { from: baseQuery.from, to: "2026-02-01T00:00:00.000Z" },
+      { from: "2026-03-01T00:00:00.000Z", to: baseQuery.to },
+    ]);
   });
 });

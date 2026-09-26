@@ -165,64 +165,97 @@ async function readNoneBucketSection<M>(
   return response;
 }
 
-async function readBucketedSection<M>(
+type MissingSpan = { from: string; to: string };
+
+type CoverageState = {
+  coveredFrom: string | null;
+  coveredTo: string | null;
+  dataVersion: string;
+};
+
+function initCoverageState(
+  coverage: CoverageRecord | undefined,
+): CoverageState {
+  if (coverage === undefined) {
+    return { coveredFrom: null, coveredTo: null, dataVersion: "" };
+  }
+  return {
+    coveredFrom: coverage.coveredFrom,
+    coveredTo: coverage.coveredTo,
+    dataVersion: coverage.dataVersion,
+  };
+}
+
+/** The coverage record to persist after fetching, or `null` when nothing was fetched or nothing closed yet. */
+function coverageRecordToPersist(
+  missing: MissingSpan[],
+  state: CoverageState,
+): CoverageRecord | null {
+  if (missing.length === 0) return null;
+  if (state.coveredFrom === null || state.coveredTo === null) return null;
+  return {
+    coveredFrom: state.coveredFrom,
+    coveredTo: state.coveredTo,
+    dataVersion: state.dataVersion,
+  };
+}
+
+/** The requested `[from, to)` minus the stored coverage: at most a before-span and an after-span. */
+export function missingSpans(
+  q: StatsCacheQuery,
+  coverage: CoverageRecord | undefined,
+): MissingSpan[] {
+  if (coverage === undefined) return [{ from: q.from, to: q.to }];
+  const spans: MissingSpan[] = [];
+  if (q.from < coverage.coveredFrom) {
+    spans.push({ from: q.from, to: coverage.coveredFrom });
+  }
+  if (q.to > coverage.coveredTo) {
+    spans.push({ from: coverage.coveredTo, to: q.to });
+  }
+  return spans;
+}
+
+/** Fetches one missing span, persists its closed buckets, and widens the coverage state to include it. */
+async function fetchMissingSpan<M>(
   db: IDBDatabase,
-  meta: SectionMeta,
+  key: string,
+  span: MissingSpan,
+  state: CoverageState,
+  fetcher: SeriesFetcher<M>,
+): Promise<{ state: CoverageState; openBuckets: CachedSeries<M>["buckets"] }> {
+  const response = await fetcher(span);
+  const closed = response.buckets.filter((bucket) => bucket.closed);
+  const openBuckets = response.buckets.filter((bucket) => !bucket.closed);
+
+  for (const bucket of closed) {
+    await putRecord(db, SECTION_RESULTS, `${key}:${bucket.start}`, bucket);
+  }
+
+  const coveredFrom =
+    state.coveredFrom === null || response.range.from < state.coveredFrom
+      ? response.range.from
+      : state.coveredFrom;
+  const lastClosedEnd = closed.at(-1)?.end;
+  const coveredTo =
+    lastClosedEnd !== undefined &&
+    (state.coveredTo === null || lastClosedEnd > state.coveredTo)
+      ? lastClosedEnd
+      : state.coveredTo;
+
+  return {
+    state: { coveredFrom, coveredTo, dataVersion: response.dataVersion },
+    openBuckets,
+  };
+}
+
+/** The stored closed buckets in range, plus the fresh open ones, in bucket-start order. */
+async function assembleBuckets<M>(
+  db: IDBDatabase,
   key: string,
   q: StatsCacheQuery,
-  fetcher: SeriesFetcher<M>,
-): Promise<CachedSeries<M>> {
-  const coverage = await getRecord<CoverageRecord>(db, COVERAGE, key);
-
-  const missing: { from: string; to: string }[] = [];
-  if (coverage === undefined) {
-    missing.push({ from: q.from, to: q.to });
-  } else {
-    if (q.from < coverage.coveredFrom) {
-      missing.push({ from: q.from, to: coverage.coveredFrom });
-    }
-    if (q.to > coverage.coveredTo) {
-      missing.push({ from: coverage.coveredTo, to: q.to });
-    }
-  }
-
-  let coveredFrom = coverage?.coveredFrom ?? null;
-  let coveredTo = coverage?.coveredTo ?? null;
-  let dataVersion = coverage?.dataVersion ?? "";
-  let openBuckets: CachedSeries<M>["buckets"] = [];
-
-  for (const span of missing) {
-    const response = await fetcher(span);
-    dataVersion = response.dataVersion;
-    const closed = response.buckets.filter((bucket) => bucket.closed);
-    if (span.to === q.to) {
-      openBuckets = response.buckets.filter((bucket) => !bucket.closed);
-    }
-
-    for (const bucket of closed) {
-      await putRecord(db, SECTION_RESULTS, `${key}:${bucket.start}`, bucket);
-    }
-
-    if (coveredFrom === null || response.range.from < coveredFrom) {
-      coveredFrom = response.range.from;
-    }
-    const lastClosedEnd = closed.at(-1)?.end;
-    if (
-      lastClosedEnd !== undefined &&
-      (coveredTo === null || lastClosedEnd > coveredTo)
-    ) {
-      coveredTo = lastClosedEnd;
-    }
-  }
-
-  if (missing.length > 0 && coveredFrom !== null && coveredTo !== null) {
-    await putRecord<CoverageRecord>(db, COVERAGE, key, {
-      coveredFrom,
-      coveredTo,
-      dataVersion,
-    });
-  }
-
+  openBuckets: CachedSeries<M>["buckets"],
+): Promise<CachedSeries<M>["buckets"]> {
   const stored = await getPrefixed<CachedSeries<M>["buckets"][number]>(
     db,
     SECTION_RESULTS,
@@ -231,16 +264,42 @@ async function readBucketedSection<M>(
   const inRange = stored.filter(
     (bucket) => bucket.start >= q.from && bucket.start < q.to,
   );
-  const buckets = [...inRange, ...openBuckets].sort((a, b) =>
+  return [...inRange, ...openBuckets].sort((a, b) =>
     a.start.localeCompare(b.start),
   );
+}
+
+async function readBucketedSection<M>(
+  db: IDBDatabase,
+  meta: SectionMeta,
+  key: string,
+  q: StatsCacheQuery,
+  fetcher: SeriesFetcher<M>,
+): Promise<CachedSeries<M>> {
+  const coverage = await getRecord<CoverageRecord>(db, COVERAGE, key);
+  const missing = missingSpans(q, coverage);
+
+  let state = initCoverageState(coverage);
+  let openBuckets: CachedSeries<M>["buckets"] = [];
+
+  for (const span of missing) {
+    const result = await fetchMissingSpan(db, key, span, state, fetcher);
+    state = result.state;
+    if (span.to === q.to) openBuckets = result.openBuckets;
+  }
+
+  const toPersist = coverageRecordToPersist(missing, state);
+  if (toPersist !== null) await putRecord(db, COVERAGE, key, toPersist);
+
+  const buckets = await assembleBuckets(db, key, q, openBuckets);
+  const tz = q.tz === undefined ? null : q.tz;
 
   return {
     sectionId: meta.id,
     sectionVersion: meta.version,
-    dataVersion,
+    dataVersion: state.dataVersion,
     bucket: q.bucket,
-    tz: q.tz ?? null,
+    tz,
     range: { from: q.from, to: q.to },
     buckets,
   };
