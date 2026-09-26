@@ -1,14 +1,14 @@
-# Statistics Phase 6 — Routine Statistics Implementation Plan
+# Statistics Phase 6b — Routine Statistics Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship rollout phase 6 of the detailed statistics pages: the Routines tab of `/statistics`.
+**Goal:** Ship the app half of rollout phase 6 of the detailed statistics pages: the Routines tab of `/statistics`.
 - A picker of the routines the player has trained, each with run-level sections (volume, completion).
 - Per step: a GAME step shows its game's phase 1–4 sections, scoped to that step's sessions with `context = routine` fixed by the server. A non-game dart step (Switching, Double Pattern, …) shows a volume and a result section.
 - Every step session lists and replays, which closes phase 5's training-session deferral.
 
 **Architecture:**
-- One migration adds two owner-scoped views:
+- Phase 6a's migration is on `main` and applied to production, with `schema.ts` declaring both views. This plan adds no migration:
   - `v_stats_routine_run_facts`: one row per terminal training activity
   - `v_stats_routine_step_facts`: one row per terminal step session, game and non-game
   - Both derive the routine and step identity from the `activity_configurations` snapshot and never reference a template.
@@ -17,20 +17,21 @@
 - GAME steps reuse the game section handlers unchanged. Phase 2's `dartScopeWhere` and phase 3's `sessionScopeWhere` gain one optional `routineStep` predicate, so no handler is edited.
 - The client cache generalizes its game key to a scope key (`game:…`, `routine:…`, `routine:…:step:…`) with one schema bump.
 
-**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, dbmate, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
+**Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB (`fake-indexeddb` in tests).
 
 **Spec:** `docs/architecture/10-Statistics/00-Overview.md` §1, §5–§8, §10 and `01-Section-Catalog.md` §3 (canonical); `09-Training/01-Routines.md` §11, §18 and `05-Database/06-Spec/04-Runtime-Layer.md` §`activity_configurations` for the snapshot. Earlier plans own what this one extends:
 - phase 1b (`2026-09-26-statistics-phase-1b-foundation.md`): the section registry and route, `Series`, the session-list cursor, the stats cache (`db.ts`, `keys.ts`, `cache.ts`), `dataVersion`, `game-stats.store.ts`
 - phase 2 (`2026-09-26-statistics-phase-2-board-sections.md`): `SectionHandler`, `DartScope`, `dartScopeWhere`
 - phase 3 (`2026-09-26-statistics-phase-3-checkout-sections.md`): `MAX_FOLD_DARTS`, `findScopeDartCount`, `sessionScopeWhere`, `chunkWindows`, `mergeMetrics`
 - phase 4 (`2026-09-26-statistics-phase-4-derived-intent-sections.md`): `configGroupKey`, the game-specific sections a GAME step inherits
-- phase 5 (`2026-09-26-statistics-phase-5-replay.md`): the replay gate, `ReplayHeader`, `rowsToTurns`, `stageOrder`, `replayFacts`, `foldReplay`, `REPLAY_PRESENTERS`, `replayPath`
+- phase 6a (`2026-09-26-statistics-phase-6a-routine-database.md`): the two routine fact views
+- phase 5b (`2026-09-26-statistics-phase-5b-replay.md`): the replay gate, `ReplayHeader`, `rowsToTurns`, `stageOrder`, `replayFacts`, `foldReplay`, `REPLAY_PRESENTERS`, `replayPath`
 
-**Prerequisite:** Phases 1–5 are merged. If a name differs from what this plan says, follow the code and note the difference in the PR body.
+**Prerequisite:** Phases 1–5 and 6a are merged, and the `deploy` run for 6a's merge commit is green. Check `grep -n "vStatsRoutineRunFacts\|vStatsRoutineStepFacts" app/src/db/schema.ts` before Task 1. If a name differs from what this plan says, follow the code and note the difference in the PR body.
 
 ## Plan-level decisions
 
-Each is written into the canonical docs in Task 11 under decision **D372** (confirm with `bash scripts/next-decision-id.sh`; D367–D371 belong to phases 1–5).
+Each is written into the canonical docs in Task 10 under decision **D372** (confirm with `bash scripts/next-decision-id.sh`; D367–D371 belong to phases 1–5).
 
 1. **Routine identity is the snapshot's `routineTemplateId`.**
    - `routine_key = configuration ->> 'routineTemplateId'`, read from `activity_configurations`, never from a template FK. Deleted routines keep their statistics.
@@ -111,25 +112,22 @@ Each is written into the canonical docs in Task 11 under decision **D372** (conf
 
 - TDD: write the failing test, run it, watch it fail, then implement (`app/CLAUDE.md` §Test-Driven Development).
 - `cd app && npm test` runs the whole suite. Finish every task with the full suite.
-- Migration number: the next free one after phase 5's (`0045` unless taken). Written here as `NNNN`. Never edit an applied migration. The D344 carve-out applies only with `db:status` and `db:status:prod` both reporting it pending.
-- `app/src/db/schema.ts` is generated: run `npm run db:introspect` after the migration is applied. A session without `DATABASE_URL` **stops at Task 1 Step 5** and asks the owner to run `npm run db:migrate && npm run db:introspect`.
+- No migration in this plan. Never edit an applied migration. A needed index follows Task 3 Step 3's on-fail rule.
+- `app/src/db/schema.ts` is generated and already carries both views. Never hand-edit it.
 - Reads go through views only: `vStatsRoutineRunFacts`, `vStatsRoutineStepFacts`, `vStatsSessionFacts`, `vStatsDartFacts`, `vGameReplay`.
 - Statistics are never persisted. No exercise rule in SQL; engines run in TS only.
-- The snapshot is read, never trusted blindly: a step element with a missing or non-integer `sequenceNumber` yields no row, and the verification script proves it.
+- The snapshot is read, never trusted blindly: a step element with a missing or non-integer `sequenceNumber` yields no row (proven by 6a's verification script).
 - Engine modules and phase 2–4 section handlers stay unedited. `routine-summary.module.ts` is refactored under unedited tests.
 - NUMERIC arrives as a string: wrap sums in `Number(nonNull(…))`.
 - JSDoc only (`check-no-inline-comments.sh`). Exported types go in the barrels (`check-type-barrels.sh`). No `x-init`.
 - `npm run format` before every commit.
-- Branch: `feat/statistics-routines` from `main` after phase 5 has merged.
+- Branch: `feat/statistics-routines` from `main` after the Prerequisite holds; never stacked on the 6a branch.
 - Anything noticed that this plan does not ask for → GitHub issue via `capturing-discovered-work`, never fixed in the same pass.
 
 ## File map
 
 | Action | Path | Responsibility |
 | ------ | ---- | -------------- |
-| Create | `database/migrations/NNNN_stats_routine_views.sql` | the two views, any measured index |
-| Create | `database/verification/NNNN_stats_routine_views_checks.sql` | live-DB assertions (D193) |
-| Regenerate | `app/src/db/schema.ts` | `vStatsRoutineRunFacts`, `vStatsRoutineStepFacts` |
 | Create | `app/src/modules/stats/routine-scope.module.ts` | key codecs and validation |
 | Create | `app/src/modules/stats/step-metrics.module.ts` | `STEP_METRIC_SPECS`, `stepMetrics`, `mergeStepMetrics` |
 | Modify | `app/src/modules/training/routines/routine-summary.module.ts` | `summarise*` onto `stepMetrics` |
@@ -146,58 +144,11 @@ Each is written into the canonical docs in Task 11 under decision **D372** (conf
 | Create | `app/src/stores/routine-stats.store.ts` | Routines tab state |
 | Modify | `app/src/pages/statistics/index.astro`, `app/src/lib/training/routines/statistics-routines.data.ts` | Routines tab |
 | Tests | mirror each path under `app/tests/` | |
-| Docs | Task 11 list | |
+| Docs | Task 10 list | |
 
 ---
 
-### Task 1: Migration — routine fact views
-
-**Files:**
-- Create: `database/migrations/NNNN_stats_routine_views.sql`, `database/verification/NNNN_stats_routine_views_checks.sql`
-- Regenerate: `app/src/db/schema.ts`
-
-**Interfaces:**
-- `v_stats_routine_run_facts`, one row per `COMPLETED` or `ABANDONED` activity that has an `activity_configurations` row. Columns:
-  - `activity_id`, `player_id`
-  - `routine_key` (decision 1), `routine_template_id` (nullable), `routine_name`
-  - `status_key`, `started_at`, `completed_at`, `duration_seconds`
-  - `step_count`, `steps_started`, `steps_completed`, `dart_count`
-- `v_stats_routine_step_facts`, one row per `COMPLETED` or `ABANDONED` exercise session whose activity has a snapshot and whose `routine_step_sequence_number` is not null. Columns:
-  - `session_id`, `activity_id`, `player_id`
-  - `routine_key`, `routine_name`
-  - `sequence_number`, `step_fingerprint`, `step_key` (decision 2), `step` (the snapshot element)
-  - `exercise_type_key`, `exercise_ruleset_version_key`, `game_type_key`, `ruleset_version_key`, `input_mode_key` (the last four nullable)
-  - `status_key`, `configuration` (the session's `exercise_configurations`)
-  - `started_at`, `completed_at`, `duration_seconds`, `turn_count`, `counted_score`, `dart_count`
-- The step element is found with a `LEFT JOIN LATERAL (SELECT e FROM jsonb_array_elements(ac.configuration -> 'steps') e WHERE e ->> 'sequenceNumber' = es.routine_step_sequence_number::text LIMIT 1)`. A session with no matching element is dropped by requiring the element to be non-null.
-- Lookups `LEFT JOIN` wherever `0033` made the key nullable. Counts are `::integer` (`migration-numeric-typing`).
-- The header comment states decisions 1–3.
-- `migrate:down` drops both views.
-
-- [ ] **Step 1: Write the verification script first** (fixture pattern: `0023_owner_scoped_dart_view_checks.sql` and phase 1's `0043` checks, ending in `ROLLBACK`). It asserts:
-  1. A completed training with a snapshot carrying `routineTemplateId` and three steps (Warm-Up, Switching, a `SCORE_TRAINING_V1` game) → one run row, `step_count = 3`, `steps_completed = 3`, `routine_key` equal to the template id.
-  2. A snapshot without `routineTemplateId` → `routine_key = 'name-' || md5(routineName)`.
-  3. Step rows: three, with the Warm-Up's `input_mode_key` null and the game step's `game_type_key` set. `step_key` is `sequenceNumber || '-' || md5(...)`.
-  4. Two runs whose step 2 differs only in configuration → two `step_key` values at `sequence_number = 2`. Two identical runs → one.
-  5. An activity abandoned with zero step sessions → one run row, `steps_started = 0`.
-  6. An `ACTIVE` activity and an `ACTIVE` step session → absent.
-  7. A standalone game (no snapshot) → absent from both views and still present in `v_stats_session_facts`.
-  8. `dart_count` counts the owner participant only.
-  9. A step whose `sequenceNumber` has no matching snapshot element → absent.
-- [ ] **Step 2: Write the migration.**
-- [ ] **Step 3: Query plans.** `EXPLAIN (ANALYZE, BUFFERS)` in the dev database:
-  - the step-facts filter by `player_id, routine_key, step_key` and a `completed_at` range
-  - the run-facts filter by `player_id, routine_key`
-
-  Neither may sequentially scan `turns` or `darts`. **On fail:** add the index to this same migration with its rationale (`04-Indexes.md`). The likely candidate is `activities (player_id, completed_at DESC)`. Record the plan summary in the PR body.
-- [ ] **Step 4: Numeric typing.** Every count and sum is cast; `duration_seconds` follows phase 1's `FLOOR(EXTRACT(...))::integer`.
-- [ ] **Step 5: Apply and introspect.** `cd app && npm run db:migrate && psql "$DATABASE_URL" -f ../database/verification/NNNN_stats_routine_views_checks.sql && npm run db:introspect`. Without `DATABASE_URL`: stop and ask (Global Constraints).
-- [ ] **Step 6: Suite.** `cd app && npm test`. `schema-view-drift` and `migration-numeric-typing` must pass.
-- [ ] **Step 7: Commit.** `feat(db): routine statistics fact views (NNNN)`
-
----
-
-### Task 2: Routine scope module
+### Task 1: Routine scope module
 
 **Files:**
 - Create: `app/src/modules/stats/routine-scope.module.ts`
@@ -218,7 +169,7 @@ Each is written into the canonical docs in Task 11 under decision **D372** (conf
 
 ---
 
-### Task 3: Step metrics — one definition for modal and page
+### Task 2: Step metrics — one definition for modal and page
 
 **Files:**
 - Create: `app/src/modules/stats/step-metrics.module.ts`
@@ -242,7 +193,7 @@ Each is written into the canonical docs in Task 11 under decision **D372** (conf
 
 ---
 
-### Task 4: Repository — routine readers and scope predicate
+### Task 3: Repository — routine readers and scope predicate
 
 **Files:**
 - Modify: `app/src/repositories/statistics.repository.ts`, `app/src/modules/types.ts`
@@ -267,11 +218,17 @@ Every reader filters `player_id`. `nonNull` guards view-guaranteed columns.
   - The rendered SQL of each reader: the view name, `player_id`, `routine_key`, `step_key` where scoped, and the bucket expression.
   - `dartScopeWhere` and `sessionScopeWhere` render the sub-select only when `routineStep` is set. Every existing phase 2–4 reader test still renders unchanged SQL (unedited tests).
   - Mapping: NUMERIC strings → numbers, nullable game keys stay `null`, and `nonNull` throws on a null `step_key`.
-- [ ] **Step 2: Implement.** Green, full suite. Commit: `feat(stats): routine repository readers and step scope predicate`
+- [ ] **Step 2: Implement.** Green, full suite.
+- [ ] **Step 3: Measure** (needs `DATABASE_URL`; without it, ask the owner to run it and paste the plans). `EXPLAIN (ANALYZE, BUFFERS)` in the dev database:
+  - the step-facts filter by `player_id, routine_key, step_key` and a `completed_at` range
+  - the run-facts filter by `player_id, routine_key`
+
+  Neither may sequentially scan `turns` or `darts`. The likely candidate index is `activities (player_id, completed_at DESC)`. **On fail:** stop. The index is added as its own migration on a database branch run the phase 1a way (verification script, local introspection, PR, deploy), and this plan's PR merges only after that deploy is green. Either way, record the plan summary in the PR body.
+- [ ] **Step 4:** Commit: `feat(stats): routine repository readers and step scope predicate`
 
 ---
 
-### Task 5: Registry and section modules
+### Task 4: Registry and section modules
 
 **Files:**
 - Modify: `app/src/lib/stats/section-registry.ts`, `app/src/lib/stats/types.ts`
@@ -305,7 +262,7 @@ Every reader filters `player_id`. `nonNull` guards view-guaranteed columns.
 
 ---
 
-### Task 6: Services
+### Task 5: Services
 
 **Files:**
 - Modify: `app/src/services/statistics.service.ts`, `app/src/services/types.ts`
@@ -335,7 +292,7 @@ Behaviour:
 
 ---
 
-### Task 7: Routes and contracts
+### Task 6: Routes and contracts
 
 **Files:**
 - Modify: `app/src/pages/api/statistics/types.ts`
@@ -358,7 +315,7 @@ Behaviour:
 
 ---
 
-### Task 8: Replay of training sessions
+### Task 7: Replay of training sessions
 
 **Files:**
 - Modify: `app/src/repositories/statistics.repository.ts` (`findReplaySession`), `app/src/services/statistics.service.ts` (`getSessionReplay`), `app/src/pages/api/statistics/types.ts` (`ReplayHeaderSchema`)
@@ -383,7 +340,7 @@ Behaviour:
 
 ---
 
-### Task 9: Client API and cache scope key
+### Task 8: Client API and cache scope key
 
 **Files:**
 - Modify: `app/src/lib/client/api/statistics.ts`, `app/src/lib/client/api/types.ts`
@@ -407,7 +364,7 @@ Behaviour:
 
 ---
 
-### Task 10: Store and Routines tab
+### Task 9: Store and Routines tab
 
 **Files:**
 - Create: `app/src/stores/routine-stats.store.ts`; register it beside `gameStats`
@@ -453,7 +410,7 @@ Behaviour:
 
 ---
 
-### Task 11: Docs, decision, gates
+### Task 10: Docs, decision, gates
 
 **Files:**
 - `decisions/api.md`: **D372**, covering plan-level decisions 1–13. Get the id from `bash scripts/next-decision-id.sh`.
@@ -462,25 +419,25 @@ Behaviour:
   - §6: the five routine routes
   - §7: the scope key and the schema bump
   - §8: the routine consumer is built, with the identity rules (decisions 1–2) and the fixed context (decision 4)
-  - §10: the two views
   - §12: phase 6 done
   - version 1.6.0 citing D372; status **built** once every phase has landed
 - `docs/architecture/10-Statistics/01-Section-Catalog.md`: a routine section table (decisions 6–7); remove "Routine pages" from §3 Deferred and add the decision 13 deferral.
 - `docs/architecture/10-Statistics/02-Replay.md`: the training-session scope and the header fields (decision 11); version bump citing D372.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md` and `06-API/00-Overview.md`: the five routes, their params, errors and schemas.
-- `docs/architecture/05-Database/06-Spec/05-Read-Model-Layer.md` and `05-Views/00-Overview.md`: both views. `03-Migrations.md`: an entry for `NNNN`. `04-Indexes.md`: only if Task 1 Step 3 added an index.
+- `04-Indexes.md` and `03-Migrations.md` only if Task 3 Step 3 required an index (landed by its own database branch). The views' docs and §10 are 6a's.
 - `docs/architecture/09-Training/01-Routines.md` §18: one line that routine statistics read the snapshot's identity (D372).
-- `docs/CLAUDE.md`, root `CLAUDE.md`, `database/CLAUDE.md`: the migration range wherever it is stated. Root `CLAUDE.md`'s never-modify range moves only once `NNNN` is applied.
+- Root `CLAUDE.md`: the never-modify range moves to 6a's migration, citing its green deploy run. `docs/CLAUDE.md` and `database/CLAUDE.md` were moved by 6a.
 
 - [ ] **Step 1:** Make the doc edits: minimal diffs, canonical doc first.
-- [ ] **Step 2:** Run the `context-maintenance` skill: the context map, File Inventory rows (new verification script, new routes and store) and a history entry.
+- [ ] **Step 2:** Run the `context-maintenance` skill: the context map, File Inventory rows (new routes and store) and a history entry.
 - [ ] **Step 3:** Run the `run-all-gates` skill: the Always-run set, the `app/` set, `check-constraint-mirror.sh` and `check-decision-ids.sh`. Report each result.
-- [ ] **Step 4:** Commit `docs(stats): phase 6 routine statistics contract, views and D372`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
+- [ ] **Step 4:** Commit `docs(stats): phase 6 routine statistics contract and D372`. Then run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch` (push + PR).
 
 ---
 
 ## Out of scope
 
+- The routine fact views, their verification script, `schema.ts` regeneration and their database docs (phase 6a).
 - Dart-level sections for non-game steps (heat map, per-target accuracy) and the non-game dart fact view they need (decision 13).
 - A run list or per-run detail page. A run is reached through its step sessions' replays.
 - Comparisons across routines, and adaptive-training statistics.
