@@ -7,13 +7,16 @@ updated: 2026-09-26
 
 # Statistics — Overview
 
-> **Version:** 1.1.0 (2026-09-26, D364/D365/D366/D367)
+> **Version:** 1.2.0 (2026-09-26, D364/D365/D366/D367/D368)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **phase 1 built** (§12) — base views (0043), the session list, the
-> `completion`/`volume`/`session-result` sections, the registry skeleton and
-> the IndexedDB cache. Everything else is still designed, not built.
+> Status: **phase 1 + 2 built** (§12) — base views (0043), the session list,
+> the `completion`/`volume`/`session-result` sections, the registry skeleton,
+> the IndexedDB cache, and the six board sections (`heatmap`,
+> `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
+> `loose-darts`) for every `board` game and the `intent-stored` family
+> (Doubles Training, Bob's 27). Everything else is still designed, not built.
 
 | File | Covers |
 | ---- | ------ |
@@ -56,6 +59,7 @@ favorite double, …). Each section is one entry in a typed registry
 | `bucketable` | supports `bucket` (§5) | enables MoM / YoY series |
 | `includesAbandoned` | whether abandoned sessions enter the population | partial games never skew averages by accident |
 | `configSensitive` | snapshot fields the result is grouped by (e.g. `ruleset_version_key`, `starting_score`) | unlike configurations are never blended |
+| `params` | optional query parameters beyond the shared ones (§5), e.g. `["target"]` | a param a section doesn't declare is `VALIDATION_FAILED`, never silently ignored (D368 decision 5) |
 | `contract` | zod schema of the result | typed API + client |
 | `module` | pure, isomorphic TS function (`modules/stats/sections/*`) | moves between `server` and `client` without rewrite |
 
@@ -128,6 +132,7 @@ silently ignored.
 | `context` | `all` (default for game pages) \| `standalone` \| `routine` | §8 |
 | `inputMode` | `VISUAL_BOARD` (only value in this version) | reserved for recreational sections |
 | `limit`, `cursor` | per `06-API/03-Shared-Conventions.md` §Pagination | every list or raw-row endpoint. The session list orders by `(completed_at DESC, session_id DESC)`; the opaque cursor encodes both (D367 decision 4). |
+| `target` | `<ZONE_KEY>:<number>` (a `TargetKey`, e.g. `DOUBLE:16`) | Only a section that declares `params: ["target"]` accepts it, and only on a game with the `intent-stored` tag (D368 decision 5); joins the client cache's `paramsKey`. Anything else is `VALIDATION_FAILED`. In phase 2 only `heatmap` declares it. |
 
 **Bucket widening (D367 decision 2):** a bucketed request's `from` is floored
 to the start of its own bucket in `tz` before the query runs, and the server
@@ -179,7 +184,7 @@ view-backed end to end (D63).
 | Route | Returns | Status |
 | ----- | ------- | ------ |
 | `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
-| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1) |
+| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`) |
 | `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | planned |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
@@ -298,8 +303,9 @@ Each phase is its own spec, plan, and migration.
 1. **Done** (1a: base views, 0043, 2026-09-26; 1b: session list,
    `completion`/`volume`/`session-result`, registry skeleton, IndexedDB
    cache, D367).
-2. Board sections: `heatmap`, and the `intent-stored` family (Doubles
-   Training, Bob's 27).
+2. **Done** (board sections, 2026-09-26, D368): `heatmap` on every `board`
+   game; `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
+   `loose-darts` on the `intent-stored` family (Doubles Training, Bob's 27).
 3. Checkout family for 501/121/TUOD (`server` folds).
 4. `intent-derived` sections (Singles, Shanghai, Around the Clock) and the
    game-specific sections — including the phase-1 `null` `RESULT_DIRECTION`

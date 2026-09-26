@@ -7,13 +7,14 @@ updated: 2026-09-26
 
 # Statistics — Section Catalog
 
-> **Version:** 1.1.0 (2026-09-26, D364/D367)
+> **Version:** 1.2.0 (2026-09-26, D368)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
 > `00-Overview.md`; this file only applies them. Status: `session-result`,
-> `completion` and `volume` are **built** (phase 1); every other section below
-> is still designed, not built.
+> `completion`, `volume`, `heatmap`, `target-accuracy`, `confusion`,
+> `grouping`, `miss-direction` and `loose-darts` are **built** (phase 1 + 2);
+> every other section below is still designed, not built.
 
 ---
 
@@ -25,9 +26,9 @@ Sections are reusable across games; a page picks them by capability tag
 | Section | Requires | Site | Reason for site | Bucketable | Insight |
 | ------- | -------- | ---- | --------------- | ---------- | ------- |
 | `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists |
-| `grouping` | `board` + `intent-stored` | sql | mean/std of offset per target is plain arithmetic | yes | spread size and bias per target ("pulls low-left on D16") |
-| `miss-direction` | `board` + `intent-*` | sql (stored) / server (derived) | angle sectors are arithmetic; derived intent needs the engine fold | no | direction of misses per target |
-| `loose-darts` | `board` + `intent-*` | server | classification needs board geometry, which lives in TS only (`miss-margin.module.ts`) | yes | loose-dart rate per target and its trend |
+| `grouping` | `board` + `intent-stored` | sql | position moment sums (Σx, Σy, Σx², Σy², Σxy) re-aggregate exactly across buckets; mean/spread/bias are derived isomorphically against `zoneCentroid` (D368) | yes | spread size and bias per target ("pulls low-left on D16") |
+| `miss-direction` | `board` + `intent-*` | sql (stored) / server (derived) | angle sectors are arithmetic against reference points TS binds as parameters (D368); derived intent needs the engine fold | no | direction of misses per target, inside/within/outside the intended ring band |
+| `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
 | `target-accuracy` | `intent-*` | sql (stored) / server (derived) | hit counts per target and ring | yes | hit rate per target/ring; strongest and weakest targets |
 | `confusion` | `intent-*` | sql (stored) / server (derived) | intended × hit counts | no | where aims at a target actually land (e.g. D16 → D8/D7) |
 | `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is a turn-sequence filter | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
@@ -43,22 +44,27 @@ Sections are reusable across games; a page picks them by capability tag
 | `volume` | any | sql | counts and durations | yes | sessions, darts, time; standalone vs routine split |
 
 `completion` is the only section with `includesAbandoned = true`.
-`session-result`, `completion` and `volume` are built (phase 1); every other
-row above is planned.
+`session-result`, `completion`, `volume`, `heatmap`, `target-accuracy`,
+`confusion`, `grouping` and `miss-direction` are built (phase 1 + 2); every
+other row above is planned.
 
 ## 1.1 Loose darts
 
-A dart with intent is classified by where it lands relative to the intended bed:
+A dart with stored intent (Doubles Training, Bob's 27) is classified by where
+it lands relative to the intended bed (D368 decision 9):
 
 | Class | Rule |
 | ----- | ---- |
-| `on-target` | inside the intended bed |
-| `near-miss` | outside it, but in an adjacent segment or ring of the intended bed |
-| `loose` | anywhere else, including off the board |
+| `on-target` | the hit pair equals the intended pair |
+| `near-miss` | the same ring in either neighbouring sector (`SECTOR_ORDER`), or the neighbouring ring in the same sector. Ring order: `INNER_SINGLE`, `TREBLE`, `OUTER_SINGLE`, `DOUBLE`. For `INNER_BULL` the near-miss is `OUTER_BULL`, and the reverse |
+| `loose` | anywhere else, including `MISS` — off the board |
 
-Built on `miss-margin.module.ts` / `zoneCentroid` — the same geometry the
-classifier uses, never a second copy in SQL. The adjacency rule is a constant in
-the section module; changing it bumps the section `version`.
+SQL counts intended × hit cells over `v_stats_dart_facts`; TS classifies each
+**aggregated cell** against board geometry (`loose-darts.module.ts`,
+`board-geometry.module.ts`'s `SECTOR_ORDER`) — the same geometry the
+`isHitOn`/`classify` functions use, never a second copy in SQL. The adjacency
+rule is a constant in the section module; changing it bumps the section
+`version`.
 
 ## 1.2 Derived intent
 
