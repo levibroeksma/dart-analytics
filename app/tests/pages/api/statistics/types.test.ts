@@ -8,6 +8,12 @@ import {
   CompletionSeriesResponse,
   VolumeSeriesResponse,
   SessionResultSeriesResponse,
+  TargetAccuracySeriesResponse,
+  ConfusionSeriesResponse,
+  LooseDartsSeriesResponse,
+  GroupingSeriesResponse,
+  MissDirectionSeriesResponse,
+  HeatmapSeriesResponse,
 } from "@routes/types";
 
 describe("StatisticsOverviewResponse", () => {
@@ -166,6 +172,37 @@ describe("StatisticsRangeQuery", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("accepts a valid target", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+      target: "DOUBLE:16",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.target).toBe("DOUBLE:16");
+  });
+
+  it("rejects an out-of-range target, naming target", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+      target: "DOUBLE:21",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["target"]);
+    }
+  });
+
+  it("omits target when not given", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.target).toBeUndefined();
+  });
 });
 
 describe("SessionListQuery", () => {
@@ -299,5 +336,183 @@ describe("statistics response schemas", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("board section series responses", () => {
+  it("parses a target-accuracy series response", () => {
+    const result = TargetAccuracySeriesResponse.safeParse({
+      sectionId: "target-accuracy",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 30,
+          metrics: { "DOUBLE:16": { attempts: 30, hits: 9 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a confusion series response with a MISS hit key", () => {
+    const result = ConfusionSeriesResponse.safeParse({
+      sectionId: "confusion",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 6,
+          metrics: {
+            "DOUBLE:16": { "DOUBLE:16": 3, "DOUBLE:8": 2, MISS: 1 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a loose-darts series response", () => {
+    const result = LooseDartsSeriesResponse.safeParse({
+      sectionId: "loose-darts",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 30,
+          metrics: {
+            "DOUBLE:16": { onTarget: 9, nearMiss: 12, loose: 9 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a grouping series response", () => {
+    const result = GroupingSeriesResponse.safeParse({
+      sectionId: "grouping",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 30,
+          metrics: {
+            "DOUBLE:16": {
+              n: 30,
+              sumX: 12.5,
+              sumY: -8.2,
+              sumXX: 400.1,
+              sumYY: 380.4,
+              sumXY: -20.3,
+            },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a miss-direction series response", () => {
+    const result = MissDirectionSeriesResponse.safeParse({
+      sectionId: "miss-direction",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 21,
+          metrics: {
+            "DOUBLE:16": [
+              { sector: 0, radial: "WITHIN", darts: 5 },
+              { sector: 4, radial: "OUTSIDE", darts: 2 },
+            ],
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a heatmap series response", () => {
+    const result = HeatmapSeriesResponse.safeParse({
+      sectionId: "heatmap",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 500,
+          metrics: {
+            cellMm: 5,
+            target: "DOUBLE:16",
+            cells: [
+              [0, 0, 12],
+              [1, -1, 4],
+            ],
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a heatmap cell with a non-integer index", () => {
+    const result = HeatmapSeriesResponse.safeParse({
+      sectionId: "heatmap",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: {
+            cellMm: 5,
+            target: null,
+            cells: [[0.5, 0, 1]],
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
   });
 });

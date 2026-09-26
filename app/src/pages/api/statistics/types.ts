@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseTargetKey } from "@lib/stats/target-key";
 
 /** Contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Statistics Overview. */
 export const StatisticsOverviewResponse = z.object({
@@ -63,6 +64,15 @@ export const StatisticsRangeQuery = z
     status: z.enum(["completed", "abandoned", "all"]).optional(),
     context: z.enum(["all", "standalone", "routine"]).default("all"),
     inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
+    target: z
+      .string()
+      .optional()
+      .refine(
+        (value) => value === undefined || parseTargetKey(value) !== null,
+        {
+          message: "target must be a valid TargetKey",
+        },
+      ),
   })
   .superRefine((val, ctx) => {
     const fromMs = Date.parse(val.from);
@@ -185,6 +195,99 @@ export const SessionResultSeriesResponse = SeriesBase.extend({
 export type SessionResultSeriesResponseData = z.infer<
   typeof SessionResultSeriesResponse
 >;
+
+/** Keyed by `TargetKey` (`lib/stats/target-key.ts`) — the intended `<ZONE_KEY>:<number>` (phase-2 decision 5). */
+function TargetRecord<T extends z.ZodTypeAny>(value: T) {
+  return z.record(z.string(), value);
+}
+
+const TargetAccuracyMetrics = TargetRecord(
+  z.object({ attempts: z.number().int(), hits: z.number().int() }),
+);
+
+/** The inner key is a hit key: a `TargetKey`, or `MISS`. */
+const ConfusionMetrics = TargetRecord(z.record(z.string(), z.number().int()));
+
+const LooseDartsMetrics = TargetRecord(
+  z.object({
+    onTarget: z.number().int(),
+    nearMiss: z.number().int(),
+    loose: z.number().int(),
+  }),
+);
+
+const GroupingMetrics = TargetRecord(
+  z.object({
+    n: z.number().int(),
+    sumX: z.number(),
+    sumY: z.number(),
+    sumXX: z.number(),
+    sumYY: z.number(),
+    sumXY: z.number(),
+  }),
+);
+
+const MissDirectionMetrics = TargetRecord(
+  z.array(
+    z.object({
+      sector: z.number().int().min(0).max(7),
+      radial: z.enum(["INSIDE", "WITHIN", "OUTSIDE"]),
+      darts: z.number().int(),
+    }),
+  ),
+);
+
+const HeatmapMetrics = z.object({
+  cellMm: z.number().positive(),
+  target: z.string().nullable(),
+  cells: z.array(
+    z.tuple([z.number().int(), z.number().int(), z.number().int()]),
+  ),
+});
+
+export const TargetAccuracySeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("target-accuracy"),
+  buckets: z.array(BucketBase.extend({ metrics: TargetAccuracyMetrics })),
+});
+export type TargetAccuracySeriesResponseData = z.infer<
+  typeof TargetAccuracySeriesResponse
+>;
+
+export const ConfusionSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("confusion"),
+  buckets: z.array(BucketBase.extend({ metrics: ConfusionMetrics })),
+});
+export type ConfusionSeriesResponseData = z.infer<
+  typeof ConfusionSeriesResponse
+>;
+
+export const LooseDartsSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("loose-darts"),
+  buckets: z.array(BucketBase.extend({ metrics: LooseDartsMetrics })),
+});
+export type LooseDartsSeriesResponseData = z.infer<
+  typeof LooseDartsSeriesResponse
+>;
+
+export const GroupingSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("grouping"),
+  buckets: z.array(BucketBase.extend({ metrics: GroupingMetrics })),
+});
+export type GroupingSeriesResponseData = z.infer<typeof GroupingSeriesResponse>;
+
+export const MissDirectionSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("miss-direction"),
+  buckets: z.array(BucketBase.extend({ metrics: MissDirectionMetrics })),
+});
+export type MissDirectionSeriesResponseData = z.infer<
+  typeof MissDirectionSeriesResponse
+>;
+
+export const HeatmapSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("heatmap"),
+  buckets: z.array(BucketBase.extend({ metrics: HeatmapMetrics })),
+});
+export type HeatmapSeriesResponseData = z.infer<typeof HeatmapSeriesResponse>;
 
 const GameSessionListItem = z.object({
   sessionId: z.string().uuid(),
