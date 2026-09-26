@@ -178,6 +178,27 @@ describe("ladderProgressBuckets", () => {
     expect(bucket.metrics.maxTarget).toBe(51);
   });
 
+  it("sums two sessions' multi-visit attempts into the same bucket", () => {
+    const a = bucketedSession({
+      sessionId: "a",
+      gameTypeKey: "TUOD",
+      visits: [visit(41, finishingDarts(41)), visit(51, [MISS, MISS, MISS])],
+    });
+    const b = bucketedSession({
+      sessionId: "b",
+      gameTypeKey: "TUOD",
+      visits: [visit(41, finishingDarts(41))],
+    });
+
+    const [bucket] = ladderProgressBuckets([a, b], CTX);
+
+    expect(bucket.metrics.targets).toEqual({
+      "41": { attempts: 2, successes: 2 },
+      "51": { attempts: 1, successes: 0 },
+    });
+    expect(bucket.sampleSize).toBe(3);
+  });
+
   it("gives no buckets and a null maxTarget for no attempts", () => {
     const s = bucketedSession({ gameTypeKey: "TUOD", visits: [] });
 

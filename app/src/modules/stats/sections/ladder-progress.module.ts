@@ -54,11 +54,53 @@ type BucketAccumulator = {
 };
 
 /**
+ * Folds one attempt into `bucket`, given whether the attempt immediately
+ * before it (in the same session) failed -- `afterMiss`/`recovered` credit.
+ */
+function foldAttemptIntoBucket(
+  bucket: BucketAccumulator,
+  attempt: { target: number; success: boolean },
+  previousFailed: boolean,
+): void {
+  if (previousFailed) {
+    bucket.metrics.afterMiss += 1;
+    if (attempt.success) bucket.metrics.recovered += 1;
+  }
+  const key = String(attempt.target);
+  const existing = bucket.metrics.targets[key] ?? {
+    attempts: 0,
+    successes: 0,
+  };
+  existing.attempts += 1;
+  if (attempt.success) existing.successes += 1;
+  bucket.metrics.targets[key] = existing;
+  bucket.metrics.maxTarget =
+    bucket.metrics.maxTarget === null
+      ? attempt.target
+      : Math.max(bucket.metrics.maxTarget, attempt.target);
+  bucket.sampleSize += 1;
+}
+
+/**
+ * Folds one session's ladder attempts into `bucket`, in order, so
+ * `afterMiss`/`recovered` never carry across a session boundary -- the
+ * "previous attempt failed" flag resets when a new session starts.
+ */
+function foldSessionIntoBucket(
+  bucket: BucketAccumulator,
+  session: SessionCheckoutVisits,
+): void {
+  let previousFailed = false;
+  for (const attempt of ladderAttempts(session)) {
+    foldAttemptIntoBucket(bucket, attempt, previousFailed);
+    previousFailed = !attempt.success;
+  }
+}
+
+/**
  * Folds session checkout visits into `ladder-progress` buckets (phase-3
- * decision 8), one session's attempts at a time so `afterMiss`/`recovered`
- * never carry across a session boundary -- the "previous attempt failed"
- * flag resets when a new session starts. `sampleSize` is the number of
- * attempts; a bucket with none is not emitted.
+ * decision 8). `sampleSize` is the number of attempts; a bucket with none is
+ * not emitted.
  */
 export function ladderProgressBuckets(
   sessions: readonly BucketedSession[],
@@ -72,27 +114,7 @@ export function ladderProgressBuckets(
       metrics: { targets: {}, maxTarget: null, afterMiss: 0, recovered: 0 },
       sampleSize: 0,
     };
-    let previousFailed = false;
-    for (const attempt of ladderAttempts(session)) {
-      if (previousFailed) {
-        bucket.metrics.afterMiss += 1;
-        if (attempt.success) bucket.metrics.recovered += 1;
-      }
-      const key = String(attempt.target);
-      const existing = bucket.metrics.targets[key] ?? {
-        attempts: 0,
-        successes: 0,
-      };
-      existing.attempts += 1;
-      if (attempt.success) existing.successes += 1;
-      bucket.metrics.targets[key] = existing;
-      bucket.metrics.maxTarget =
-        bucket.metrics.maxTarget === null
-          ? attempt.target
-          : Math.max(bucket.metrics.maxTarget, attempt.target);
-      bucket.sampleSize += 1;
-      previousFailed = !attempt.success;
-    }
+    foldSessionIntoBucket(bucket, session);
     buckets.set(session.bucketStart, bucket);
   }
 

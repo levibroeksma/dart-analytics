@@ -97,6 +97,23 @@ describe("doublePerformanceBuckets", () => {
     expect(doublePerformanceBuckets([s], CTX)).toEqual([]);
   });
 
+  it("sums two visits within the same session", () => {
+    const s = session({
+      visits: [
+        visit(32, [dart(16, "DOUBLE", 32)]),
+        visit(40, [dart(20, "DOUBLE", 40)]),
+      ],
+    });
+
+    const [bucket] = doublePerformanceBuckets([s], CTX);
+
+    expect(bucket.metrics).toEqual({
+      "DOUBLE:16": { attempts: 1, hits: 1 },
+      "DOUBLE:20": { attempts: 1, hits: 1 },
+    });
+    expect(bucket.sampleSize).toBe(2);
+  });
+
   it("sums two sessions in the same bucket and splits sessions across two buckets", () => {
     const a = session({
       sessionId: "a",

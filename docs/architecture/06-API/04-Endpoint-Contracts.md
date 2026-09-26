@@ -7,7 +7,7 @@ updated: 2026-09-26
 
 # API Endpoint Contracts
 
-> **Version:** 1.13.0 (statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.14.0 (statistics phase 3 shipped: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats` (`server` folds, bounded by `MAX_FOLD_DARTS = 5_000`) and `scoring-trend`/`treble-rate` (`sql`) added to `GET .../sections/:sectionId` for 501/121/TUOD/Score Training; a `server` section over the cap answers `VALIDATION_FAILED` naming it; D369, 2026-09-26; prior 1.13.0 statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -428,12 +428,29 @@ const GameSessionListResponse = z.object({
 
 ### `GET .../sections/:sectionId`
 
-`:sectionId` is `completion` | `volume` | `session-result` (phase 1) or
+`:sectionId` is `completion` | `volume` | `session-result` (phase 1),
 `heatmap` | `target-accuracy` | `confusion` | `grouping` | `miss-direction` |
-`loose-darts` (phase 2) (`10-Statistics/01-Section-Catalog.md` §1); any other
-value, or a section not returned by `sectionsForGame(gameTypeKey)`, is
-`NOT_FOUND`. Dispatches through the section registry
-(`lib/stats/section-registry.ts`) to one of the nine built section modules.
+`loose-darts` (phase 2), or `checkout-rate` | `double-performance` |
+`checkout-path` | `bust-rate` | `ladder-progress` | `leg-stats` |
+`scoring-trend` | `treble-rate` (phase 3, D369)
+(`10-Statistics/01-Section-Catalog.md` §1); any other value, or a section not
+returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. Dispatches through
+the section registry (`lib/stats/section-registry.ts`) to one of the
+seventeen built section modules.
+
+**The fold bound (phase 3, D369):** the six `server`-computed sections above
+are gated by `MAX_FOLD_DARTS = 5_000` (`lib/stats/section-registry.ts`).
+Before folding, the service sums `dart_count` over the scoped
+`v_stats_session_facts` rows (`findScopeDartCount`); above the cap the
+request answers `VALIDATION_FAILED` with
+
+```
+error.details.reason = "range holds N darts; server sections fold at most 5000 — request a shorter range"
+```
+
+(`N` is the scope's actual dart count), and no fold row is read.
+`scoring-trend`/`treble-rate` (`sql`) are exact over any range and never hit
+this gate.
 Every response shares the `Series<M>` envelope (`00-Overview.md` §5.2, `range`
 per D367 decision 2):
 
@@ -553,6 +570,62 @@ const HeatmapMetrics = z.object({
 `VALIDATION_FAILED`, same as any other non-bucketable section. Their single
 bucket spans the full requested `[from, to)`.
 
+**Phase 3 (checkout family, D369)** — every value-keyed metric is keyed by
+the exact remaining score or dart total as a decimal-string key (`ValueRecord`,
+`^\d+$`), never a band; `double-performance` reuses phase 2's `TargetRecord`,
+keyed by the double the remaining requires:
+
+```typescript
+const HitCount = z.object({ attempts: z.number().int(), hits: z.number().int() });
+
+const ValueRecord = <T extends z.ZodTypeAny>(value: T) =>
+  z.record(z.string().regex(/^\d+$/), value);
+
+const CheckoutRateMetrics = ValueRecord(
+  z.object({ chances: z.number().int(), finished: z.number().int() }),
+);
+
+const DoublePerformanceMetrics = TargetRecord(HitCount);
+
+// inner key is a route label: dart labels in throw order (checkout-path.module.ts)
+const CheckoutPathMetrics = ValueRecord(
+  z.record(z.string(), z.object({ visits: z.number().int(), finished: z.number().int() })),
+);
+
+const BustRateMetrics = ValueRecord(
+  z.object({ visits: z.number().int(), busts: z.number().int() }),
+);
+
+// keyed by darts-per-leg
+const LegStatsMetrics = ValueRecord(z.number().int());
+
+const LadderProgressMetrics = z.object({
+  targets: ValueRecord(z.object({ attempts: z.number().int(), successes: z.number().int() })),
+  maxTarget: z.number().int().nullable(),
+  afterMiss: z.number().int(),
+  recovered: z.number().int(),
+});
+
+const ScoringTrendMetrics = z.object({
+  points: z.number().int(), darts: z.number().int(),
+  firstNinePoints: z.number().int(), firstNineDarts: z.number().int(),
+  bands: z.object({ ton: z.number().int(), tonForty: z.number().int(), oneEighty: z.number().int() }),
+});
+
+// keyed by hit number "1"-"20"/"25", or "MISS"
+const TrebleRateMetrics = z.record(
+  z.string().regex(/^(\d+|MISS)$/),
+  z.object({ darts: z.number().int(), trebles: z.number().int() }),
+);
+```
+
+`checkout-path` is the one phase-3 section with `bucketable: false`; the rest
+bucket normally. `ladder-progress` alone declares
+`configSensitive: ["ruleset_version_key"]` — the checkout sections,
+`scoring-trend`, `treble-rate` and `leg-stats` pool ruleset versions instead
+(D369 decision 9). `scoring-trend`/`treble-rate` also serve Score Training
+through its `scoring`/`board` tags.
+
 **Errors (both routes):** `NOT_FOUND` (unknown `gameTypeKey` or `sectionId`),
 `VALIDATION_FAILED` (query, per the rules above — including an unsupported or
 misapplied `target`), plus the standard protected-route failures.
@@ -583,7 +656,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/players/me` | `v_player_profile` | `PlayerProfileResponse` | 2026-08-15 |
 | `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_x01_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
 | `GET /api/statistics/games/:gameTypeKey/sessions` | `v_stats_session_facts` | `GameSessionListResponse` | 2026-09-26 (D367) |
-| `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` | `SeriesEnvelope<CompletionMetrics \| VolumeMetrics \| SessionResultMetrics>` | 2026-09-26 (D367) |
+| `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` / `v_stats_dart_facts` | `SeriesEnvelope<CompletionMetrics \| VolumeMetrics \| SessionResultMetrics \| TargetAccuracyMetrics \| ConfusionMetrics \| GroupingMetrics \| MissDirectionMetrics \| LooseDartsMetrics \| HeatmapMetrics \| CheckoutRateMetrics \| DoublePerformanceMetrics \| CheckoutPathMetrics \| BustRateMetrics \| LadderProgressMetrics \| LegStatsMetrics \| ScoringTrendMetrics \| TrebleRateMetrics>` | 2026-09-26 (D367 phase 1; D368 phase 2; D369 phase 3) |
 
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts` — replaced by the section route (D365): trends are bucketed sections, checkouts are the checkout-family sections (`10-Statistics/00-Overview.md` §12 phase 3). `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the two statistics-games routes shipped 2026-09-26 (see the section above). <!-- 2026-07-12; overview shipped 2026-09-06; games/sections shipped 2026-09-26 -->
 
