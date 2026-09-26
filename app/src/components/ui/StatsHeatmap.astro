@@ -1,0 +1,36 @@
+---
+/**
+ * A board with a cell overlay for the `heatmap` statistics section — reuses
+ * `DartBoard.astro`'s SVG rather than a second board drawing. Cell geometry
+ * and intensity come from the store's `heatmapCells` getter
+ * (`game-stats.store.ts`); this component only positions and paints them.
+ * @param {string} [class] Extra wrapper classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import DartBoard from "./DartBoard.astro";
+import { cn } from "@client/cn";
+---
+
+<DartBoard
+  class={cn("relative", classNameProp)}
+  {...props}
+>
+  <template
+    x-for="cell in $store.gameStats.heatmapCells"
+    :key="cell.key"
+  >
+    <div
+      class="absolute -translate-x-1/2 -translate-y-1/2 rounded-[1px] bg-accent"
+      :style="{ left: cell.leftPct + '%', top: cell.topPct + '%', width: cell.sizePct + '%', height: cell.sizePct + '%', opacity: 0.15 + cell.opacity * 0.85 }"
+    >
+    </div>
+  </template>
+</DartBoard>

@@ -155,4 +155,32 @@ describe("fetchGameSection", () => {
       }),
     ).rejects.toBeInstanceOf(StatisticsApiError);
   });
+
+  it("includes target in the query string when given", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: {
+        sectionId: "heatmap",
+        sectionVersion: 1,
+        dataVersion: "v1:0:0",
+        bucket: "none",
+        tz: null,
+        range: {
+          from: "2026-01-01T00:00:00.000Z",
+          to: "2026-02-01T00:00:00.000Z",
+        },
+        buckets: [],
+      },
+    });
+
+    await fetchGameSection("DOUBLES_TRAINING", "heatmap", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      target: "DOUBLE:16",
+    });
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain("target=DOUBLE%3A16");
+  });
 });

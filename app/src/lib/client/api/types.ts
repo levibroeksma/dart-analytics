@@ -1,6 +1,12 @@
 import type {
   CompletionSeriesResponseData,
+  ConfusionSeriesResponseData,
+  GroupingSeriesResponseData,
+  HeatmapSeriesResponseData,
+  LooseDartsSeriesResponseData,
+  MissDirectionSeriesResponseData,
   SessionResultSeriesResponseData,
+  TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
 
@@ -34,13 +40,20 @@ export type GameStatsRangeParams = {
   status?: string;
   context?: string;
   inputMode?: string;
+  target?: string;
 };
 
 /** The section response `fetchGameSection` returns, whichever section was requested. */
 export type GameSectionResponseData =
   | CompletionSeriesResponseData
   | VolumeSeriesResponseData
-  | SessionResultSeriesResponseData;
+  | SessionResultSeriesResponseData
+  | TargetAccuracySeriesResponseData
+  | ConfusionSeriesResponseData
+  | GroupingSeriesResponseData
+  | MissDirectionSeriesResponseData
+  | LooseDartsSeriesResponseData
+  | HeatmapSeriesResponseData;
 
 export {
   ProvisionPlayerRequest,

@@ -4,6 +4,7 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Badge from "@components/ui/Badge.astro";
+import StatsHeatmap from "@components/ui/StatsHeatmap.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
@@ -58,6 +59,194 @@ const scope = JSON.stringify({
           x-show="!$store.gameStats.loading"
           x-cloak
         >
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['target-accuracy']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">
+              Target accuracy
+            </h2>
+            <template
+              x-for="row in $store.gameStats.accuracyRows"
+              :key="row.targetKey"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-20 shrink-0 text-foreground"
+                  x-text="row.targetKey"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-accent"
+                    :style="{ width: (row.rate * 100) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-16 shrink-0 text-right text-muted-foreground"
+                  x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough darts yet'"
+                ></span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-accent"
+              x-show="$store.gameStats.favoriteTarget"
+              x-cloak
+              x-text="$store.gameStats.favoriteTarget ? `Favourite: ${$store.gameStats.favoriteTarget.targetKey}` : ''"
+            >
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.weakestTarget"
+              x-cloak
+              x-text="$store.gameStats.weakestTarget ? `Weakest: ${$store.gameStats.weakestTarget.targetKey}` : ''"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ confusionTarget: '' }"
+            x-effect="confusionTarget = confusionTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
+            x-show="$store.gameStats.sections.confusion"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Confusion</h2>
+            <Select
+              optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+              model="confusionTarget"
+              ariaLabel="Confusion target"
+            />
+            <template
+              x-for="landing in $store.gameStats.confusionTop(confusionTarget, 3)"
+              :key="landing.hitKey"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="landing.hitKey"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-text="landing.count"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections.grouping"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Grouping</h2>
+            <template
+              x-for="row in $store.gameStats.groupingRows"
+              :key="row.targetKey"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="row.targetKey"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-show="row.summary"
+                  x-cloak
+                  x-text="row.summary ? `${Math.round(row.summary.spreadMm)} mm spread` : ''"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-show="!row.summary"
+                  x-cloak
+                >
+                  not enough darts yet
+                </span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ missTarget: '' }"
+            x-effect="missTarget = missTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
+            x-show="$store.gameStats.sections['miss-direction']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">
+              Miss direction
+            </h2>
+            <Select
+              optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+              model="missTarget"
+              ariaLabel="Miss direction target"
+            />
+            <div class="grid grid-cols-8 gap-1">
+              <template
+                x-for="sector in $store.gameStats.missRose(missTarget)"
+                :key="sector.sector"
+              >
+                <div
+                  class="flex flex-col items-center gap-1 text-xs text-muted-foreground"
+                >
+                  <div
+                    class="h-8 w-2 rounded-sm bg-accent"
+                    :style="{ opacity: 0.15 + Math.min(1, (sector.inside + sector.within + sector.outside) / 10) * 0.85 }"
+                  >
+                  </div>
+                  <span x-text="sector.sector"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['loose-darts']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Loose darts</h2>
+            <template
+              x-for="bucket in $store.gameStats.looseDartsTrend"
+              :key="bucket.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(bucket.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="`${bucket.onTarget} on · ${bucket.nearMiss} near · ${bucket.loose} loose`"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ heatmapTarget: '' }"
+            x-effect="$store.gameStats.selectHeatmapTarget(heatmapTarget || null)"
+            x-show="$store.gameStats.sections.heatmap"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Heatmap</h2>
+            <div
+              x-show="$store.gameStats.accuracyRows.length"
+              x-cloak
+            >
+              <Select
+                optionsExpr="[{ value: '', label: 'Whole board' }, ...$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))]"
+                model="heatmapTarget"
+                ariaLabel="Heatmap target"
+              />
+            </div>
+            <StatsHeatmap class="mx-auto max-w-56" />
+          </div>
+
           <div class="gradient-card space-y-2 p-4">
             <h2 class="text-sm font-semibold text-foreground">Completion</h2>
             <div
