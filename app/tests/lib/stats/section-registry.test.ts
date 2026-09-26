@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  MAX_FOLD_DARTS,
   RESULT_DIRECTION,
   SECTIONS,
   isSectionId,
@@ -35,6 +36,40 @@ describe("statistics section registry", () => {
 
   it("orders a game's sections per the catalog", () => {
     expect(sectionsForGame("501")).toEqual([
+      "scoring-trend",
+      "checkout-rate",
+      "double-performance",
+      "checkout-path",
+      "bust-rate",
+      "leg-stats",
+      "treble-rate",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ]);
+  });
+
+  it("orders the ladder games' sections per the catalog", () => {
+    const expected = [
+      "ladder-progress",
+      "checkout-rate",
+      "double-performance",
+      "checkout-path",
+      "bust-rate",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ];
+    expect(sectionsForGame("ONE_TWENTY_ONE")).toEqual(expected);
+    expect(sectionsForGame("TUOD")).toEqual(expected);
+  });
+
+  it("orders Score Training's sections per the catalog", () => {
+    expect(sectionsForGame("SCORE_TRAINING")).toEqual([
+      "scoring-trend",
+      "treble-rate",
       "heatmap",
       "session-result",
       "completion",
@@ -142,5 +177,74 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("501")).toEqual(
       new Set(["board", "scoring", "checkout", "leg"]),
     );
+  });
+
+  it("declares the eight checkout-family sections with their registry shape", () => {
+    expect(SECTIONS["scoring-trend"]).toMatchObject({
+      requires: ["scoring"],
+      computeSite: "sql",
+      bucketable: true,
+      configSensitive: [],
+    });
+    expect(SECTIONS["ladder-progress"]).toMatchObject({
+      requires: ["ladder"],
+      computeSite: "server",
+      bucketable: true,
+      configSensitive: ["ruleset_version_key"],
+    });
+    expect(SECTIONS["checkout-rate"]).toMatchObject({
+      requires: ["checkout"],
+      computeSite: "server",
+      bucketable: true,
+      configSensitive: [],
+    });
+    expect(SECTIONS["double-performance"]).toMatchObject({
+      requires: ["checkout"],
+      computeSite: "server",
+      bucketable: true,
+      configSensitive: [],
+    });
+    expect(SECTIONS["checkout-path"]).toMatchObject({
+      requires: ["checkout"],
+      computeSite: "server",
+      bucketable: false,
+      configSensitive: [],
+    });
+    expect(SECTIONS["bust-rate"]).toMatchObject({
+      requires: ["checkout"],
+      computeSite: "server",
+      bucketable: true,
+      configSensitive: [],
+    });
+    expect(SECTIONS["leg-stats"]).toMatchObject({
+      requires: ["leg"],
+      computeSite: "server",
+      bucketable: true,
+      configSensitive: [],
+    });
+    expect(SECTIONS["treble-rate"]).toMatchObject({
+      requires: ["scoring", "board"],
+      computeSite: "sql",
+      bucketable: true,
+      configSensitive: [],
+    });
+    for (const id of [
+      "scoring-trend",
+      "ladder-progress",
+      "checkout-rate",
+      "double-performance",
+      "checkout-path",
+      "bust-rate",
+      "leg-stats",
+      "treble-rate",
+    ] as const) {
+      expect(SECTIONS[id].includesAbandoned).toBe(false);
+      expect(SECTIONS[id].params).toEqual([]);
+      expect(SECTIONS[id].version).toBe(1);
+    }
+  });
+
+  it("exports the server fold dart cap", () => {
+    expect(MAX_FOLD_DARTS).toBe(20_000);
   });
 });

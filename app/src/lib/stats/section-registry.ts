@@ -6,13 +6,93 @@ import {
 import type { ResultDirection, SectionId, SectionMeta } from "./types";
 
 /**
- * Phase-1 and phase-2 sections, declared in catalog order (`00-Overview.md`
- * §2, `01-Section-Catalog.md` §1-2). `SECTIONS`' own declaration order *is*
- * page order — `sectionsForGame` preserves it rather than re-sorting.
- * Phase 4 revisits this for Shanghai, whose catalog order puts
- * `session-result` before `confusion`.
+ * Phase-1, phase-2 and phase-3 sections, declared in catalog order
+ * (`00-Overview.md` §2, `01-Section-Catalog.md` §1-2). `SECTIONS`' own
+ * declaration order *is* page order — `sectionsForGame` preserves it rather
+ * than re-sorting. Phase 4 revisits this for Shanghai, whose catalog order
+ * puts `session-result` before `confusion`.
  */
 export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
+  "scoring-trend": {
+    id: "scoring-trend",
+    version: 1,
+    requires: ["scoring"],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "ladder-progress": {
+    id: "ladder-progress",
+    version: 1,
+    requires: ["ladder"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: ["ruleset_version_key"],
+    params: [],
+  },
+  "checkout-rate": {
+    id: "checkout-rate",
+    version: 1,
+    requires: ["checkout"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "double-performance": {
+    id: "double-performance",
+    version: 1,
+    requires: ["checkout"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "checkout-path": {
+    id: "checkout-path",
+    version: 1,
+    requires: ["checkout"],
+    computeSite: "server",
+    bucketable: false,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "bust-rate": {
+    id: "bust-rate",
+    version: 1,
+    requires: ["checkout"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "leg-stats": {
+    id: "leg-stats",
+    version: 1,
+    requires: ["leg"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "treble-rate": {
+    id: "treble-rate",
+    version: 1,
+    requires: ["scoring", "board"],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
   "target-accuracy": {
     id: "target-accuracy",
     version: 1,
@@ -104,6 +184,9 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     params: [],
   },
 };
+
+/** Above this many darts in a scoped range, a server-folded section refuses the request (`00-Overview.md` §4, phase-3 decision 1). */
+export const MAX_FOLD_DARTS = 20_000;
 
 const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
 
