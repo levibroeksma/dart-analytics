@@ -1,6 +1,6 @@
 import type { StatsTag } from "@lib/types";
 
-/** Phase-1 and phase-2 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
+/** Phase-1, phase-2 and phase-3 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
 export type SectionId =
   | "completion"
   | "volume"
@@ -10,7 +10,15 @@ export type SectionId =
   | "confusion"
   | "grouping"
   | "miss-direction"
-  | "loose-darts";
+  | "loose-darts"
+  | "scoring-trend"
+  | "ladder-progress"
+  | "checkout-rate"
+  | "double-performance"
+  | "checkout-path"
+  | "bust-rate"
+  | "leg-stats"
+  | "treble-rate";
 
 /** The declared-intent zones a target key can name (`01-Section-Catalog.md` §1.1). */
 export type IntentZoneKey =
