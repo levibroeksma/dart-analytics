@@ -2,7 +2,7 @@
 status: canonical
 scope: database/indexes
 read-when: adding or reviewing indexes
-updated: 2026-07-11
+updated: 2026-09-26
 -->
 
 # Database Index Strategy
@@ -249,6 +249,31 @@ CREATE INDEX idx_sessions_player_completed
 ON exercise_sessions(player_id, completed_at DESC)
 WHERE completed_at IS NOT NULL;
 ```
+
+---
+
+Common query:
+
+```sql
+Statistics: a player's completed/abandoned sessions for one game type,
+newest first, within a date range
+```
+
+Applied in migration `0043` (statistics phase 1, D364):
+
+```sql
+CREATE INDEX idx_exercise_sessions_player_game_completed
+ON exercise_sessions (player_id, game_type_id, completed_at DESC);
+```
+
+Purpose:
+
+- the date-range entry point every `v_stats_session_facts` / `v_stats_dart_facts`
+  consumer query takes (player + game type + completed-at range)
+- not partial like `idx_sessions_player_completed`: statistics also read
+  ABANDONED sessions, which that index's own `WHERE completed_at IS NOT NULL`
+  already admits, but this index adds `game_type_id` to the key so a
+  single-game statistics page doesn't scan every game a player has played
 
 ---
 

@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0042)
+├── migrations/     # ordered schema migrations (0001–0043)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -137,6 +137,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0040_exercise_template_game_ruleset_checks.sql` | migration `0040` + seeds `0021`/`0022`: the pin column and its composite FK exist, a ruleset version of another game is rejected, a pin naming no game is rejected while a GAME template pinning nothing is accepted, seed `0021` backfilled Finishing to `TUOD_V1`, the three routine-eligible templates each pin a version, both routine views expose `game_ruleset_version_key`, seed `0022`'s two templates are present (10 checks) |
 | `verification/0041_training_schedule_checks.sql` | migration `0041`: two active schedules for one player raise `unique_violation`, `day_of_week` 0/8 raise `check_violation`, a duplicate weekday within one schedule raises `unique_violation`, deleting a scheduled routine template raises `foreign_key_violation`, deleting a schedule cascades its days, deleting a player cascades their schedules, `v_training_schedules.day_count` and `v_training_schedule_days.routine_minutes` both read correctly (7 checks) |
 | `verification/0042_training_completions_view_checks.sql` | migration `0042`: `v_training_completions` lists a completed training with its snapshot routine id/name and excludes abandoned, active and snapshot-less activities (2026-09-22) |
+| `verification/0043_stats_base_views_checks.sql` | migration `0043`: `v_stats_session_facts` owner-scopes turn/dart/score counts and derives `context_key` (STANDALONE vs ROUTINE, no fan-out), an abandoned zero-turn session zeroes every count, an ACTIVE session and a training exercise session are absent from both views, `v_stats_dart_facts` owner-scopes darts and excludes non-VISUAL_BOARD sessions, the date-range index exists, anti-vacuity guard (11 checks) (D364, 2026-09-26) |
 
 ## References
 

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-21
+updated: 2026-09-26
 -->
 
 # Database View Strategy
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0042)
+# Implemented Views (migrations 0009–0043)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -158,6 +158,8 @@ The name should describe the returned data, not the underlying tables.
 | `v_training_schedules` | API Read Model | One row per weekly training schedule with its day count, filtered by `player_id`; a schedule with no days still lists (2026-09-20) |
 | `v_training_schedule_days` | API Read Model | One row per (schedule, weekday) with the routine's name and `MINUTES` total, filtered by `player_id`; a missing weekday is a rest day, not a row (2026-09-20) |
 | `v_training_completions` | API Read Model | One row per completed training activity with the routine snapshot it ran, filtered by `player_id` and `completed_at`; abandoned trainings are excluded (0042, 2026-09-22) |
+| `v_stats_session_facts` | Analytics | One row per completed or abandoned game session, owner-scoped, with rule-free turn/dart/score counts and derived `context_key` (`ROUTINE` when the activity has an `activity_configurations` snapshot, else `STANDALONE`); base view for the detailed statistics pages (0043, D364, 2026-09-26) |
+| `v_stats_dart_facts` | Analytics | One row per `VISUAL_BOARD` dart with coordinates, owner-scoped, carrying the session columns every board/intent statistics section filters on; no consumer until statistics phase 2 (0043, D364, 2026-09-26) |
 
 Every view above that reaches `exercise_sessions.game_type_id` or
 `exercise_templates.game_type_id` joins `game_types` with a `LEFT JOIN` from
@@ -184,7 +186,7 @@ Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
 Future views (`v_player_statistics`, `v_player_dashboard`, etc.) are planned — not yet implemented.
 
-The detailed statistics pages plan `v_stats_session_facts`, `v_stats_dart_facts` and thin `v_stats_<section>` views over them (dependency depth ≤ 2) — see `10-Statistics/00-Overview.md` §10 (D364). <!-- 2026-09-26 -->
+`v_stats_session_facts` and `v_stats_dart_facts` are the two base views migration `0043` built; thin `v_stats_<section>` views over them (dependency depth ≤ 2) are still planned — see `10-Statistics/00-Overview.md` §10 (D364). <!-- 2026-09-26 -->
 
 ---
 

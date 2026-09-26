@@ -60,15 +60,29 @@ done
 # migration range with a same-line seed range under a shared label (e.g.
 # "migration/seed ranges bumped to A/B" in a version-history note) — neither
 # range sits directly after the literal word "migration" there.
+#
+# A line naming the *applied* boundary (root CLAUDE.md's D344 carve-out and
+# its mirrors, e.g. "applied migrations (`0001`-`0042`)") is checked
+# per-line, not per-file, and skipped independently of every other range in
+# the same file: it names what dbmate has run in production, which a
+# database-phase PR's own migration file can precede by one merge and one
+# deploy run (docs/superpowers/plans/*-phase-1a-*.md). Requiring the applied
+# figure to already match the on-disk chain would make that two-phase
+# author-then-apply split impossible to describe truthfully while its PR is
+# open — the same class of contradiction the decisions/** exclusion above
+# already exists to avoid, just scoped to a line instead of a whole file.
 ACTUAL_MAX=$(ls database/migrations/ | grep -oE '^[0-9]{4}' | sort | tail -1)
 if [ -n "$ACTUAL_MAX" ]; then
   for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md'); do
     head -6 "$f" | grep -q '^status: historical' && continue
-    for q in $(grep -hoiE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' "$f" 2>/dev/null \
-      | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
-      [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
-        && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
-    done
+    while IFS= read -r line; do
+      echo "$line" | grep -qi 'applied' && continue
+      for q in $(echo "$line" | grep -hoiE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' \
+        | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
+        [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
+          && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
+      done
+    done < "$f"
   done
 fi
 
