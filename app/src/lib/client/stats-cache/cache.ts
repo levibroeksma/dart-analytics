@@ -1,6 +1,11 @@
+import {
+  chunkWindows,
+  mergeMetrics,
+  zonedYearWindow,
+} from "@lib/stats/merge-metrics";
 import { openStatsDb } from "./db";
 import { paramsKey } from "./keys";
-import type { SectionMeta } from "@lib/types";
+import type { Bucket, SectionMeta, ServerSectionId } from "@lib/types";
 import type {
   CachedSeries,
   CachedSessionPage,
@@ -112,12 +117,16 @@ export async function readSection<M>(
   meta: SectionMeta,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
+  now: Date = new Date(),
 ): Promise<CachedSeries<M>> {
   const db = await openStatsDb();
   if (db === null) return fetcher({ from: q.from, to: q.to });
 
   try {
     const key = sectionKey(playerId, gameTypeKey, meta, paramsKey(q));
+    if (meta.computeSite === "server") {
+      return await readServerSection(db, meta, key, q, fetcher, now);
+    }
     if (q.bucket === "none") {
       return await readNoneBucketSection(
         db,
@@ -300,6 +309,188 @@ async function readBucketedSection<M>(
     dataVersion: state.dataVersion,
     bucket: q.bucket,
     tz,
+    range: { from: q.from, to: q.to },
+    buckets,
+  };
+}
+
+/** Merges two chunks of one server section's metrics, dispatching on its own id (phase-3 Task 9's `mergeMetrics`). */
+function combineMetrics(sectionId: string, a: unknown, b: unknown): unknown {
+  return mergeMetrics(sectionId as ServerSectionId, a as never, b as never);
+}
+
+/** The chunk-cache key for one server section's request bucket and window start. */
+function chunkKey(
+  sectionKeyValue: string,
+  requestBucket: Bucket,
+  windowFrom: string,
+): string {
+  return `${sectionKeyValue}:chunk:${requestBucket}:${windowFrom}`;
+}
+
+/**
+ * `bucket = none`'s single aggregate bucket, folded across every chunk that
+ * held data (phase-3 decision 2): metrics sum via `mergeMetrics`, sample
+ * sizes sum, and the result is closed only once every contributing chunk is.
+ * `[]` when no chunk held any data — the shared "empty buckets are not
+ * emitted" convention (`00-Overview.md` §5.2).
+ */
+function mergeNoneChunks<M>(
+  sectionId: string,
+  chunks: readonly CachedSeries<M>[],
+): CachedSeries<M>["buckets"] {
+  const withData = chunks.filter((chunk) => chunk.buckets.length > 0);
+  const first = withData[0]?.buckets[0];
+  if (first === undefined) return [];
+
+  let end = first.end;
+  let sampleSize = first.sampleSize;
+  let closed = first.closed;
+  let metrics: unknown = first.metrics;
+
+  for (const chunk of withData.slice(1)) {
+    const bucket = chunk.buckets[0]!;
+    metrics = combineMetrics(sectionId, metrics, bucket.metrics);
+    sampleSize += bucket.sampleSize;
+    closed = closed && bucket.closed;
+    if (bucket.end > end) end = bucket.end;
+  }
+
+  return [
+    { start: first.start, end, closed, sampleSize, metrics },
+  ] as CachedSeries<M>["buckets"];
+}
+
+/**
+ * A `year` view's client regroup of its month chunks (decision 2): each
+ * month chunk's own window decides which calendar year (in `tz`) it folds
+ * into, then `mergeMetrics` sums same-year months together. A year with no
+ * data in any of its months is omitted, matching every other section's
+ * "empty buckets are not emitted" rule.
+ */
+function regroupMonthsIntoYears<M>(
+  sectionId: string,
+  windows: readonly { from: string; to: string }[],
+  chunks: readonly CachedSeries<M>[],
+  tz: string,
+): CachedSeries<M>["buckets"] {
+  const groups = new Map<
+    string,
+    { end: string; sampleSize: number; closed: boolean; metrics: unknown }
+  >();
+
+  chunks.forEach((chunk, index) => {
+    const bucket = chunk.buckets[0];
+    if (bucket === undefined) return;
+    const window = windows[index]!;
+    const yearWindow = zonedYearWindow(window.from, tz);
+    const existing = groups.get(yearWindow.from);
+    if (existing === undefined) {
+      groups.set(yearWindow.from, {
+        end: yearWindow.to,
+        sampleSize: bucket.sampleSize,
+        closed: bucket.closed,
+        metrics: bucket.metrics,
+      });
+      return;
+    }
+    existing.sampleSize += bucket.sampleSize;
+    existing.closed = existing.closed && bucket.closed;
+    existing.metrics = combineMetrics(
+      sectionId,
+      existing.metrics,
+      bucket.metrics,
+    );
+  });
+
+  return Array.from(groups.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([start, group]) => ({
+      start,
+      end: group.end,
+      closed: group.closed,
+      sampleSize: group.sampleSize,
+      metrics: group.metrics,
+    })) as CachedSeries<M>["buckets"];
+}
+
+/**
+ * `readSection`'s path for a server-computed section (`00-Overview.md` §4,
+ * phase-3 decision 2): the request splits into `chunkWindows`, each chunk is
+ * read from the cache or fetched on its own (never in parallel — one Worker
+ * fold at a time), and a chunk whose window has fully elapsed is cached
+ * forever, exactly like a closed bucket. A `year` view fetches its chunks at
+ * `month` granularity and regroups them client-side; `none` merges every
+ * chunk into the single requested bucket; `day`/`week`/`month` chunks equal
+ * the requested bucket already, so their buckets are just concatenated. A
+ * `VALIDATION_FAILED` from the fetcher (the dart cap, `00-Overview.md` §4)
+ * propagates as a rejected promise — this never retries with a smaller
+ * window.
+ */
+async function readServerSection<M>(
+  db: IDBDatabase,
+  meta: SectionMeta,
+  key: string,
+  q: StatsCacheQuery,
+  fetcher: SeriesFetcher<M>,
+  now: Date,
+): Promise<CachedSeries<M>> {
+  const tz = q.tz ?? "UTC";
+  const windows = chunkWindows(q.from, q.to, q.bucket, tz);
+  const requestBucket: Bucket = q.bucket === "year" ? "month" : q.bucket;
+
+  const cached = await Promise.all(
+    windows.map((window) =>
+      getRecord<CachedSeries<M>>(
+        db,
+        SECTION_RESULTS,
+        chunkKey(key, requestBucket, window.from),
+      ),
+    ),
+  );
+
+  const chunks: CachedSeries<M>[] = [];
+  let dataVersion = "";
+  for (let index = 0; index < windows.length; index += 1) {
+    const cachedChunk = cached[index];
+    if (cachedChunk !== undefined) {
+      chunks.push(cachedChunk);
+      dataVersion = cachedChunk.dataVersion;
+      continue;
+    }
+    const window = windows[index]!;
+    const response = await fetcher({
+      from: window.from,
+      to: window.to,
+      bucket: requestBucket,
+    });
+    dataVersion = response.dataVersion;
+    if (Date.parse(window.to) <= now.getTime()) {
+      await putRecord(
+        db,
+        SECTION_RESULTS,
+        chunkKey(key, requestBucket, window.from),
+        response,
+      );
+    }
+    chunks.push(response);
+  }
+
+  const buckets =
+    q.bucket === "none"
+      ? mergeNoneChunks(meta.id, chunks)
+      : q.bucket === "year"
+        ? regroupMonthsIntoYears(meta.id, windows, chunks, tz)
+        : chunks
+            .flatMap((chunk) => chunk.buckets)
+            .sort((a, b) => a.start.localeCompare(b.start));
+
+  return {
+    sectionId: meta.id,
+    sectionVersion: meta.version,
+    dataVersion,
+    bucket: q.bucket,
+    tz: q.bucket === "none" ? null : tz,
     range: { from: q.from, to: q.to },
     buckets,
   };

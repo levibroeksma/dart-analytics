@@ -228,6 +228,376 @@ const scope = JSON.stringify({
 
           <div
             class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['scoring-trend']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Scoring trend</h2>
+            <div
+              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.threeDartAverage !== null ? $store.gameStats.threeDartAverage.toFixed(1) : '—'"
+                >
+                </span>
+                3-dart average
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.firstNineAverage !== null ? $store.gameStats.firstNineAverage.toFixed(1) : '—'"
+                >
+                </span>
+                First nine
+              </div>
+            </div>
+            <template
+              x-for="row in $store.gameStats.scoringTrendRows"
+              :key="row.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(row.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="row.threeDartAverage !== null ? row.threeDartAverage.toFixed(1) + ' avg' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <p class="text-xs text-muted-foreground">
+              <span x-text="$store.gameStats.bandCounts.ton"></span> 100+ ·
+              <span x-text="$store.gameStats.bandCounts.tonForty"></span> 140+ · <span
+                x-text="$store.gameStats.bandCounts.oneEighty"></span>
+              180s
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['ladder-progress']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">
+              Ladder progress
+            </h2>
+            <p
+              class="text-sm text-muted-foreground"
+              x-show="$store.gameStats.ladderSummary"
+              x-cloak
+              x-text="$store.gameStats.ladderSummary ? `Highest target: ${$store.gameStats.ladderSummary.maxTarget ?? '—'}` : ''"
+            >
+            </p>
+            <template
+              x-for="band in ($store.gameStats.ladderSummary?.bands ?? [])"
+              :key="band.start"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-16 shrink-0 text-foreground"
+                  x-text="`${band.start}-${band.end}`"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-accent"
+                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-28 shrink-0 text-right text-muted-foreground"
+                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.ladderSummary?.recoveryRate !== null"
+              x-cloak
+              x-text="$store.gameStats.ladderSummary?.recoveryRate !== null ? `Recovery after a miss: ${Math.round($store.gameStats.ladderSummary.recoveryRate * 100)}%` : ''"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['checkout-rate']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Checkout rate</h2>
+            <template
+              x-for="band in $store.gameStats.checkoutRateBands"
+              :key="band.label"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-20 shrink-0 text-foreground"
+                  x-text="band.label"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-accent"
+                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-28 shrink-0 text-right text-muted-foreground"
+                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <template
+              x-for="point in $store.gameStats.checkoutRateTrend"
+              :key="point.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['double-performance']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">
+              Double performance
+            </h2>
+            <template
+              x-for="row in $store.gameStats.doubleRows"
+              :key="row.targetKey"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-20 shrink-0 text-foreground"
+                  x-text="row.targetKey"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-accent"
+                    :style="{ width: (row.rate * 100) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-28 shrink-0 text-right text-muted-foreground"
+                  x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-accent"
+              x-show="$store.gameStats.favoriteDouble"
+              x-cloak
+              x-text="$store.gameStats.favoriteDouble ? `Favourite: ${$store.gameStats.favoriteDouble.targetKey}` : ''"
+            >
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.weakestDouble"
+              x-cloak
+              x-text="$store.gameStats.weakestDouble ? `Weakest: ${$store.gameStats.weakestDouble.targetKey}` : ''"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ pathRemaining: '' }"
+            x-effect="pathRemaining = pathRemaining || String($store.gameStats.checkoutPathRemainings[0] ?? '')"
+            x-show="$store.gameStats.sections['checkout-path']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Checkout path</h2>
+            <Select
+              optionsExpr="$store.gameStats.checkoutPathRemainings.map((r) => ({ value: String(r), label: String(r) }))"
+              model="pathRemaining"
+              ariaLabel="Checkout path remaining"
+            />
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.chartRouteFor(Number(pathRemaining))"
+              x-cloak
+              x-text="$store.gameStats.chartRouteFor(Number(pathRemaining)) ? `Chart route: ${$store.gameStats.chartRouteFor(Number(pathRemaining)).join(' ')}` : ''"
+            >
+            </p>
+            <template
+              x-for="path in $store.gameStats.pathsFor(Number(pathRemaining))"
+              :key="path.route"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="path.route"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-text="`${path.visits} visits · ${Math.round(path.finishRate * 100)}% finished`"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['bust-rate']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Bust rate</h2>
+            <template
+              x-for="band in $store.gameStats.bustRateBands"
+              :key="band.label"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-20 shrink-0 text-foreground"
+                  x-text="band.label"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-error"
+                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-28 shrink-0 text-right text-muted-foreground"
+                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <template
+              x-for="point in $store.gameStats.bustRateTrend"
+              :key="point.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['leg-stats']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Leg stats</h2>
+            <div
+              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.bestLeg ?? '—'"
+                >
+                </span>
+                Best leg
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.averageLegDarts !== null ? $store.gameStats.averageLegDarts.toFixed(1) : '—'"
+                >
+                </span>
+                Average darts
+              </div>
+            </div>
+            <template
+              x-for="row in $store.gameStats.legHistogram"
+              :key="row.darts"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="`${row.darts} darts`"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-text="`${row.legs} legs`"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['treble-rate']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Treble rate</h2>
+            <div
+              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.trebleRate('20') !== null ? Math.round($store.gameStats.trebleRate('20') * 100) + '%' : '—'"
+                >
+                </span>
+                T20
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.trebleRate('19') !== null ? Math.round($store.gameStats.trebleRate('19') * 100) + '%' : '—'"
+                >
+                </span>
+                T19
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.gameStats.trebleRateAll !== null ? Math.round($store.gameStats.trebleRateAll * 100) + '%' : '—'"
+                >
+                </span>
+                Overall
+              </div>
+            </div>
+            <template
+              x-for="point in $store.gameStats.trebleRateTrend"
+              :key="point.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
             x-data="{ heatmapTarget: '' }"
             x-effect="$store.gameStats.selectHeatmapTarget(heatmapTarget || null)"
             x-show="$store.gameStats.sections.heatmap"

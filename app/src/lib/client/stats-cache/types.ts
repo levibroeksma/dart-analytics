@@ -27,10 +27,16 @@ export type CachedSeries<M> = {
   buckets: SeriesBucket<M>[];
 };
 
-/** A section series fetcher: given the still-missing sub-range, returns the server's response for it. */
+/**
+ * A section series fetcher: given the still-missing sub-range, returns the
+ * server's response for it. `bucket` is set only by a server-computed
+ * section's chunked read (`cache.ts`), to request a chunk's own granularity
+ * (`year` chunks fetch as `month`) rather than the caller's outer `bucket`.
+ */
 export type SeriesFetcher<M> = (range: {
   from: string;
   to: string;
+  bucket?: Bucket;
 }) => Promise<CachedSeries<M>>;
 
 /** One page of `findGameSessionsPage`'s response shape, as cached client-side. */

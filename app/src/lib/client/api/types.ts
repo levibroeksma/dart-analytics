@@ -1,12 +1,20 @@
 import type {
+  BustRateSeriesResponseData,
+  CheckoutPathSeriesResponseData,
+  CheckoutRateSeriesResponseData,
   CompletionSeriesResponseData,
   ConfusionSeriesResponseData,
+  DoublePerformanceSeriesResponseData,
   GroupingSeriesResponseData,
   HeatmapSeriesResponseData,
+  LadderProgressSeriesResponseData,
+  LegStatsSeriesResponseData,
   LooseDartsSeriesResponseData,
   MissDirectionSeriesResponseData,
+  ScoringTrendSeriesResponseData,
   SessionResultSeriesResponseData,
   TargetAccuracySeriesResponseData,
+  TrebleRateSeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
 
@@ -53,7 +61,15 @@ export type GameSectionResponseData =
   | GroupingSeriesResponseData
   | MissDirectionSeriesResponseData
   | LooseDartsSeriesResponseData
-  | HeatmapSeriesResponseData;
+  | HeatmapSeriesResponseData
+  | ScoringTrendSeriesResponseData
+  | LadderProgressSeriesResponseData
+  | CheckoutRateSeriesResponseData
+  | DoublePerformanceSeriesResponseData
+  | CheckoutPathSeriesResponseData
+  | BustRateSeriesResponseData
+  | LegStatsSeriesResponseData
+  | TrebleRateSeriesResponseData;
 
 export {
   ProvisionPlayerRequest,
