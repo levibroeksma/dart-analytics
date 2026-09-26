@@ -14,9 +14,9 @@ describe("statistics section registry", () => {
   });
 
   it("computes all three phase-1 sections in sql, bucketable", () => {
-    for (const meta of Object.values(SECTIONS)) {
-      expect(meta.computeSite).toBe("sql");
-      expect(meta.bucketable).toBe(true);
+    for (const id of ["completion", "volume", "session-result"] as const) {
+      expect(SECTIONS[id].computeSite).toBe("sql");
+      expect(SECTIONS[id].bucketable).toBe(true);
     }
   });
 
@@ -34,15 +34,95 @@ describe("statistics section registry", () => {
 
   it("orders a game's sections per the catalog", () => {
     expect(sectionsForGame("501")).toEqual([
+      "heatmap",
       "session-result",
       "completion",
       "volume",
     ]);
   });
 
-  it("rejects a section id outside phase 1", () => {
-    expect(isSectionId("heatmap")).toBe(false);
+  it("orders an intent-stored game's sections per the catalog", () => {
+    const expected = [
+      "target-accuracy",
+      "confusion",
+      "grouping",
+      "miss-direction",
+      "loose-darts",
+      "heatmap",
+      "session-result",
+      "completion",
+      "volume",
+    ];
+    expect(sectionsForGame("DOUBLES_TRAINING")).toEqual(expected);
+    expect(sectionsForGame("BOBS27")).toEqual(expected);
+  });
+
+  it("gives Singles Training heatmap but no intent section (phase 4 defers its accuracy)", () => {
+    const sections = sectionsForGame("SINGLES_TRAINING");
+    expect(sections).toContain("heatmap");
+    expect(sections).not.toContain("target-accuracy");
+    expect(sections).not.toContain("confusion");
+    expect(sections).not.toContain("grouping");
+    expect(sections).not.toContain("miss-direction");
+    expect(sections).not.toContain("loose-darts");
+  });
+
+  it("declares the six board sections with their registry shape", () => {
+    expect(SECTIONS.heatmap).toMatchObject({
+      requires: ["board"],
+      bucketable: false,
+      params: ["target"],
+    });
+    expect(SECTIONS["target-accuracy"]).toMatchObject({
+      requires: ["intent-stored"],
+      bucketable: true,
+      params: [],
+    });
+    expect(SECTIONS.confusion).toMatchObject({
+      requires: ["intent-stored"],
+      bucketable: false,
+      params: [],
+    });
+    expect(SECTIONS.grouping).toMatchObject({
+      requires: ["board", "intent-stored"],
+      bucketable: true,
+      params: [],
+    });
+    expect(SECTIONS["miss-direction"]).toMatchObject({
+      requires: ["board", "intent-stored"],
+      bucketable: false,
+      params: [],
+    });
+    expect(SECTIONS["loose-darts"]).toMatchObject({
+      requires: ["board", "intent-stored"],
+      bucketable: true,
+      params: [],
+    });
+    for (const id of [
+      "heatmap",
+      "target-accuracy",
+      "confusion",
+      "grouping",
+      "miss-direction",
+      "loose-darts",
+    ] as const) {
+      expect(SECTIONS[id].computeSite).toBe("sql");
+      expect(SECTIONS[id].includesAbandoned).toBe(false);
+      expect(SECTIONS[id].configSensitive).toEqual([]);
+      expect(SECTIONS[id].version).toBe(1);
+    }
+  });
+
+  it("declares params as [] for every phase-1 section", () => {
+    expect(SECTIONS.completion.params).toEqual([]);
+    expect(SECTIONS.volume.params).toEqual([]);
+    expect(SECTIONS["session-result"].params).toEqual([]);
+  });
+
+  it("rejects a section id outside phase 1 and phase 2", () => {
+    expect(isSectionId("unknown-section")).toBe(false);
     expect(isSectionId("completion")).toBe(true);
+    expect(isSectionId("heatmap")).toBe(true);
   });
 
   it("declares a result direction for every game type", () => {

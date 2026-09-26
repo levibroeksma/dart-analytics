@@ -47,8 +47,8 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
   it("404s on an unknown sectionId", async () => {
     const response = await GET({
       locals,
-      params: { gameTypeKey: "501", sectionId: "heatmap" },
-      url: makeUrl("501", "heatmap", {
+      params: { gameTypeKey: "501", sectionId: "not-a-real-section" },
+      url: makeUrl("501", "not-a-real-section", {
         from: "2026-01-01T00:00:00+01:00",
         to: "2026-02-01T00:00:00+01:00",
       }),

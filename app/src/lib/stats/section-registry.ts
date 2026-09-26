@@ -1,12 +1,78 @@
-import type { GameTypeKey } from "@lib/types";
+import type { GameTypeKey, StatsTag } from "@lib/types";
+import {
+  STATS_TAGS,
+  rulesetsOfGameType,
+} from "@lib/game/rulesets/capabilities";
 import type { ResultDirection, SectionId, SectionMeta } from "./types";
 
 /**
- * Phase-1 sections in catalog order (`10-Statistics/01-Section-Catalog.md`
- * §1). `requires: []` — the "any" tier every game qualifies for — since none
- * of the three needs a capability tag.
+ * Phase-1 and phase-2 sections, declared in catalog order (`00-Overview.md`
+ * §2, `01-Section-Catalog.md` §1-2). `SECTIONS`' own declaration order *is*
+ * page order — `sectionsForGame` preserves it rather than re-sorting.
+ * Phase 4 revisits this for Shanghai, whose catalog order puts
+ * `session-result` before `confusion`.
  */
 export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
+  "target-accuracy": {
+    id: "target-accuracy",
+    version: 1,
+    requires: ["intent-stored"],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  confusion: {
+    id: "confusion",
+    version: 1,
+    requires: ["intent-stored"],
+    computeSite: "sql",
+    bucketable: false,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  grouping: {
+    id: "grouping",
+    version: 1,
+    requires: ["board", "intent-stored"],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "miss-direction": {
+    id: "miss-direction",
+    version: 1,
+    requires: ["board", "intent-stored"],
+    computeSite: "sql",
+    bucketable: false,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  "loose-darts": {
+    id: "loose-darts",
+    version: 1,
+    requires: ["board", "intent-stored"],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
+  heatmap: {
+    id: "heatmap",
+    version: 1,
+    requires: ["board"],
+    computeSite: "sql",
+    bucketable: false,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: ["target"],
+  },
   "session-result": {
     id: "session-result",
     version: 1,
@@ -15,6 +81,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     bucketable: true,
     includesAbandoned: false,
     configSensitive: ["ruleset_version_key"],
+    params: [],
   },
   completion: {
     id: "completion",
@@ -24,6 +91,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     bucketable: true,
     includesAbandoned: true,
     configSensitive: [],
+    params: [],
   },
   volume: {
     id: "volume",
@@ -33,6 +101,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     bucketable: true,
     includesAbandoned: false,
     configSensitive: [],
+    params: [],
   },
 };
 
@@ -43,9 +112,23 @@ export function isSectionId(value: string): value is SectionId {
   return (SECTION_IDS as readonly string[]).includes(value);
 }
 
-/** A game page's sections, in catalog order. Every phase-1 section applies to every game (`requires: []`). */
-export function sectionsForGame(_gameTypeKey: GameTypeKey): SectionId[] {
-  return [...SECTION_IDS];
+/** The union of every stats tag a game type's ruleset versions produce. */
+function tagsForGameType(gameTypeKey: GameTypeKey): Set<StatsTag> {
+  const tags = new Set<StatsTag>();
+  for (const rulesetVersionKey of rulesetsOfGameType(gameTypeKey)) {
+    for (const tag of STATS_TAGS[rulesetVersionKey]) tags.add(tag);
+  }
+  return tags;
+}
+
+function offersSection(tags: Set<StatsTag>, meta: SectionMeta): boolean {
+  return meta.requires.every((tag) => tags.has(tag));
+}
+
+/** A game page's sections, in catalog order, filtered to those whose `requires` the game's tags satisfy. */
+export function sectionsForGame(gameTypeKey: GameTypeKey): SectionId[] {
+  const tags = tagsForGameType(gameTypeKey);
+  return SECTION_IDS.filter((id) => offersSection(tags, SECTIONS[id]));
 }
 
 /**

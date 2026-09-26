@@ -55,15 +55,20 @@ beforeEach(() => {
 });
 
 describe("gameStatsStore", () => {
-  it("loads the three sections for 501 via the cache", async () => {
+  it("loads 501's sections via the cache", async () => {
     const store = gameStatsStore();
     store.gameTypeKey = "501";
 
     await store.load();
 
-    expect(readSection).toHaveBeenCalledTimes(3);
+    expect(readSection).toHaveBeenCalledTimes(4);
     const sectionIds = readSection.mock.calls.map((call) => call[2].id).sort();
-    expect(sectionIds).toEqual(["completion", "session-result", "volume"]);
+    expect(sectionIds).toEqual([
+      "completion",
+      "heatmap",
+      "session-result",
+      "volume",
+    ]);
   });
 
   it("selectGame(SINGLES_V1) resolves to SINGLES_TRAINING", async () => {
