@@ -215,3 +215,18 @@ export type HeatmapCellRow = {
   iy: number;
   darts: number;
 };
+
+/** `target-accuracy` section metrics — one bucket, keyed by `TargetKey`. */
+export type TargetAccuracyMetrics = Record<
+  string,
+  { attempts: number; hits: number }
+>;
+
+/** `confusion` section metrics — one bucket, keyed by `TargetKey` then by hit key (a `TargetKey`, or `MISS`). */
+export type ConfusionMetrics = Record<string, Record<string, number>>;
+
+/** `loose-darts` section metrics — one bucket, keyed by `TargetKey` (phase-2 decision 9). */
+export type LooseDartsMetrics = Record<
+  string,
+  { onTarget: number; nearMiss: number; loose: number }
+>;
