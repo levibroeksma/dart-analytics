@@ -1,3 +1,11 @@
+import type {
+  BustRateMetrics,
+  CheckoutPathMetrics,
+  CheckoutRateMetrics,
+  DoublePerformanceMetrics,
+  LadderProgressMetrics,
+  LegStatsMetrics,
+} from "@modules/types";
 import type { StatsTag } from "@lib/types";
 
 /** Phase-1, phase-2 and phase-3 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
@@ -79,6 +87,28 @@ export interface Series<M> {
   range: { from: string; to: string };
   buckets: SeriesBucket<M>[];
 }
+
+/** The section ids whose metrics fold checkout visits server-side (`00-Overview.md` §4, phase-3 decision 1). */
+export type ServerSectionId =
+  | "ladder-progress"
+  | "checkout-rate"
+  | "double-performance"
+  | "checkout-path"
+  | "bust-rate"
+  | "leg-stats";
+
+/** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
+export type ServerSectionMetrics = {
+  "ladder-progress": LadderProgressMetrics;
+  "checkout-rate": CheckoutRateMetrics;
+  "double-performance": DoublePerformanceMetrics;
+  "checkout-path": CheckoutPathMetrics;
+  "bust-rate": BustRateMetrics;
+  "leg-stats": LegStatsMetrics;
+};
+
+/** One chunked request's span (`00-Overview.md` §4, phase-3 decision 2). */
+export type ChunkWindow = { from: string; to: string };
 
 export interface FormattedStatisticsOverview {
   totalGamesPlayed: string;

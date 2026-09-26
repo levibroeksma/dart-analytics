@@ -243,6 +243,215 @@ describe("readSection (bucket=none)", () => {
   });
 });
 
+const serverMeta: SectionMeta = {
+  id: "checkout-rate",
+  version: 1,
+  requires: [],
+  computeSite: "server",
+  bucketable: true,
+  includesAbandoned: false,
+  configSensitive: [],
+  params: [],
+};
+
+type CheckoutRateLike = Record<string, { chances: number; finished: number }>;
+
+describe("readSection (server)", () => {
+  beforeEach(() => deleteStatsDb());
+
+  it("fetches every month chunk, then only the still-open one on a later read", async () => {
+    const query = {
+      bucket: "month" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2027-01-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation(
+        (span: { from: string; to: string; bucket: string }) =>
+          Promise.resolve(
+            response(span.from, span.to, [bucket(span.from, span.to, true, 1)]),
+          ),
+      );
+
+    const first = await readSection(
+      "p1",
+      "501",
+      serverMeta,
+      query,
+      fetcher,
+      new Date("2026-12-15T00:00:00.000Z"),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(12);
+    expect(fetcher.mock.calls[0]![0]).toEqual({
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      bucket: "month",
+    });
+    expect(first.buckets).toHaveLength(12);
+
+    fetcher.mockClear();
+    const second = await readSection(
+      "p1",
+      "501",
+      serverMeta,
+      query,
+      fetcher,
+      new Date("2026-12-20T00:00:00.000Z"),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledWith({
+      from: "2026-12-01T00:00:00.000Z",
+      to: "2027-01-01T00:00:00.000Z",
+      bucket: "month",
+    });
+    expect(second.buckets).toHaveLength(12);
+  });
+
+  it("merges bucket=none chunks into one aggregate bucket", async () => {
+    const query = {
+      bucket: "none" as const,
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve({
+          sectionId: "checkout-rate",
+          sectionVersion: 1,
+          dataVersion: "v1:1:0",
+          bucket: "none" as const,
+          tz: null,
+          range: { from: span.from, to: span.to },
+          buckets: [
+            {
+              start: span.from,
+              end: span.to,
+              closed: true,
+              sampleSize: 1,
+              metrics: (span.from === "2026-01-01T00:00:00.000Z"
+                ? { "170": { chances: 1, finished: 1 } }
+                : { "170": { chances: 2, finished: 0 } }) as CheckoutRateLike,
+            },
+          ],
+        }),
+      );
+
+    const result = await readSection(
+      "p1",
+      "501",
+      serverMeta,
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result.buckets).toHaveLength(1);
+    expect(result.buckets[0]!.metrics).toEqual({
+      "170": { chances: 3, finished: 1 },
+    });
+    expect(result.buckets[0]!.sampleSize).toBe(2);
+    expect(result.buckets[0]!.start).toBe("2026-01-01T00:00:00.000Z");
+    expect(result.buckets[0]!.end).toBe("2026-03-01T00:00:00.000Z");
+  });
+
+  it("regroups a year view's month chunks and requests them at month granularity", async () => {
+    const query = {
+      bucket: "year" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2027-01-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation(
+        (span: { from: string; to: string; bucket: string }) =>
+          Promise.resolve({
+            sectionId: "checkout-rate",
+            sectionVersion: 1,
+            dataVersion: "v1:1:0",
+            bucket: span.bucket,
+            tz: "UTC",
+            range: { from: span.from, to: span.to },
+            buckets: [
+              {
+                start: span.from,
+                end: span.to,
+                closed: true,
+                sampleSize: 1,
+                metrics: {
+                  "170": { chances: 1, finished: 1 },
+                } as CheckoutRateLike,
+              },
+            ],
+          }),
+      );
+
+    const result = await readSection(
+      "p1",
+      "501",
+      serverMeta,
+      query,
+      fetcher,
+      new Date("2027-06-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(12);
+    expect(fetcher.mock.calls[0]![0]).toMatchObject({ bucket: "month" });
+    expect(result.buckets).toHaveLength(1);
+    expect(result.buckets[0]!.start).toBe("2026-01-01T00:00:00.000Z");
+    expect(result.buckets[0]!.end).toBe("2027-01-01T00:00:00.000Z");
+    expect(result.buckets[0]!.metrics).toEqual({
+      "170": { chances: 12, finished: 12 },
+    });
+  });
+
+  it("propagates a fetcher rejection (VALIDATION_FAILED) without fetching further chunks", async () => {
+    const query = {
+      bucket: "month" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-04-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response("2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z", [
+          bucket(
+            "2026-01-01T00:00:00.000Z",
+            "2026-02-01T00:00:00.000Z",
+            true,
+            1,
+          ),
+        ]),
+      )
+      .mockRejectedValueOnce(new Error("VALIDATION_FAILED"));
+
+    await expect(
+      readSection(
+        "p1",
+        "501",
+        serverMeta,
+        query,
+        fetcher,
+        new Date("2026-05-01T00:00:00.000Z"),
+      ),
+    ).rejects.toThrow("VALIDATION_FAILED");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("readSessionPage", () => {
   beforeEach(() => deleteStatsDb());
 
