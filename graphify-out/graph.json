@@ -51379,7 +51379,7 @@
       "node_kind": "heading",
       "norm_label": "10. data layer (planned)",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L239"
+      "source_location": "L240"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_11_scalability_review",
@@ -51391,7 +51391,7 @@
       "node_kind": "heading",
       "norm_label": "11. scalability review",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L256"
+      "source_location": "L257"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_12_rollout",
@@ -51403,7 +51403,7 @@
       "node_kind": "heading",
       "norm_label": "12. rollout",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L273"
+      "source_location": "L274"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_1_scope",
@@ -51415,7 +51415,7 @@
       "node_kind": "heading",
       "norm_label": "1. scope",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L28"
+      "source_location": "L29"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_2_insight_section_the_unit_of_design",
@@ -51427,7 +51427,7 @@
       "node_kind": "heading",
       "norm_label": "2. insight section \u2014 the unit of design",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L42"
+      "source_location": "L43"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_3_capability_tags",
@@ -51439,7 +51439,7 @@
       "node_kind": "heading",
       "norm_label": "3. capability tags",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L65"
+      "source_location": "L66"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_4_compute_site_rule",
@@ -51451,7 +51451,7 @@
       "node_kind": "heading",
       "norm_label": "4. compute-site rule",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L90"
+      "source_location": "L91"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_6_endpoints_planned",
@@ -51463,7 +51463,7 @@
       "node_kind": "heading",
       "norm_label": "6. endpoints (planned)",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L159"
+      "source_location": "L160"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_7_client_cache_indexeddb",
@@ -51475,7 +51475,7 @@
       "node_kind": "heading",
       "norm_label": "7. client cache (indexeddb)",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L176"
+      "source_location": "L177"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_9_abandoned_sessions",
@@ -51487,7 +51487,7 @@
       "node_kind": "heading",
       "norm_label": "9. abandoned sessions",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L225"
+      "source_location": "L226"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_statistics_overview",
@@ -54153,7 +54153,7 @@
       "node_kind": "heading",
       "norm_label": "5.1 additive metric components",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L125"
+      "source_location": "L126"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_5_2_series_shape",
@@ -54165,7 +54165,7 @@
       "node_kind": "heading",
       "norm_label": "5.2 series shape",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L140"
+      "source_location": "L141"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_5_common_query_contract",
@@ -54177,7 +54177,7 @@
       "node_kind": "heading",
       "norm_label": "5. common query contract",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L109"
+      "source_location": "L110"
     },
     {
       "id": "docs_architecture_10_statistics_00_overview_8_play_context",
@@ -54189,7 +54189,7 @@
       "node_kind": "heading",
       "norm_label": "8. play context",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L201"
+      "source_location": "L202"
     },
     {
       "id": "app_tests_lib_game_doubles_training_play_data_test",
@@ -239516,7 +239516,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -239527,7 +239527,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L159",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -239538,7 +239538,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -239549,7 +239549,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L201",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -239560,7 +239560,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L225",
+      "source_location": "L226",
       "weight": 1.0
     },
     {
@@ -239571,7 +239571,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L239",
+      "source_location": "L240",
       "weight": 1.0
     },
     {
@@ -239582,7 +239582,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L256",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -239593,7 +239593,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L273",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -239604,7 +239604,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -239615,7 +239615,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -239626,7 +239626,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L65",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -239648,7 +239648,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -239659,7 +239659,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -239670,7 +239670,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L140",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -259045,7 +259045,7 @@
       "confidence_score": 0.95,
       "context": "ROUTINE",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L211",
+      "source_location": "L212",
       "weight": 1.0
     },
     {
@@ -263785,7 +263785,7 @@
       "confidence_score": 0.95,
       "context": "context",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L121",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -263797,7 +263797,7 @@
       "confidence_score": 0.95,
       "context": "context",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L215",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -268309,7 +268309,7 @@
       "confidence_score": 0.95,
       "context": "playAbandonAndExit",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L229",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -271177,7 +271177,7 @@
       "confidence_score": 0.95,
       "context": "status",
       "source_file": "docs/architecture/10-Statistics/00-Overview.md",
-      "source_location": "L120",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -273300,5 +273300,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "6f40b656f8c1785f6f140eb0a3ac1d3bcbdc4863"
+  "built_at_commit": "c11afbb35fac9796c243bb693e784cb97ff39acb"
 }
