@@ -341,3 +341,34 @@ export type HeatmapMetrics = {
   target: string | null;
   cells: [number, number, number][];
 };
+
+/**
+ * One `SessionCheckoutVisits` session, tagged with the bucket its own
+ * `completed_at` falls in (phase-3 Task 8) — identical on every one of a
+ * session's visits, since a session belongs to exactly one bucket.
+ */
+export type BucketedSession = SessionCheckoutVisits & {
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/** `checkout-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 4). */
+export type CheckoutRateMetrics = Record<
+  string,
+  { chances: number; finished: number }
+>;
+
+/** `double-performance` section metrics — one bucket, keyed by the double a remaining requires (phase-2's `TargetKey` format, phase-3 decision 4). */
+export type DoublePerformanceMetrics = Record<
+  string,
+  { attempts: number; hits: number }
+>;
+
+/** `checkout-path` section metrics — one bucket, keyed by `startingRemaining` then by the route label thrown. */
+export type CheckoutPathMetrics = Record<
+  string,
+  Record<string, { visits: number; finished: number }>
+>;
+
+/** `bust-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 6). */
+export type BustRateMetrics = Record<string, { visits: number; busts: number }>;
