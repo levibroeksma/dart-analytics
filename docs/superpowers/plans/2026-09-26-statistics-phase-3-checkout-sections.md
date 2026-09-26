@@ -15,7 +15,7 @@
 
 **Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB.
 
-**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical). The phase 1 plan (`2026-09-26-statistics-phase-1-foundation.md`) owns the registry, route, series helpers and cache. The phase 2 plan (`2026-09-26-statistics-phase-2-board-sections.md`) owns `SectionHandler = { load, shape }`, `dartScopeWhere`, `TargetKey` and `MIN_TARGET_SAMPLE`.
+**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical). The phase 1b plan (`2026-09-26-statistics-phase-1b-foundation.md`) owns the registry, route, series helpers and cache. The phase 2 plan (`2026-09-26-statistics-phase-2-board-sections.md`) owns `SectionHandler = { load, shape }`, `dartScopeWhere`, `TargetKey` and `MIN_TARGET_SAMPLE`.
 
 **Prerequisite:** Phases 1 and 2 are merged. If a name differs from what this plan says, follow the code and note the difference in the PR body.
 

@@ -15,7 +15,7 @@
 **Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB.
 
 **Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical). Earlier plans own what this one extends:
-- phase 1 (`2026-09-26-statistics-phase-1-foundation.md`): registry, `STATS_TAGS`, route, series helpers, cache
+- phase 1b (`2026-09-26-statistics-phase-1b-foundation.md`): registry, `STATS_TAGS`, route, series helpers, cache
 - phase 2 (`2026-09-26-statistics-phase-2-board-sections.md`): `SectionHandler`, `dartScopeWhere`, `TargetKey`, the intent shape modules, `missReferences`, `MIN_TARGET_SAMPLE`
 - phase 3 (`2026-09-26-statistics-phase-3-checkout-sections.md`): `MAX_FOLD_DARTS`, `findScopeDartCount`, `sessionScopeWhere`, `chunkWindows`, `mergeMetrics`
 

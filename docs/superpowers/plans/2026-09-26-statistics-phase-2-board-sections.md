@@ -14,9 +14,9 @@ Board geometry stays in TS (`lib/game/board/board-geometry.module.ts`). SQL gets
 
 **Tech Stack:** TypeScript, Astro, Alpine, Vitest, Drizzle ORM, PostgreSQL (Neon), zod, IndexedDB.
 
-**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical); phase 1 plan `docs/superpowers/plans/2026-09-26-statistics-phase-1-foundation.md` (the contracts, registry, repository, service, route and cache this plan extends).
+**Spec:** `docs/architecture/10-Statistics/00-Overview.md`, `01-Section-Catalog.md` (canonical); phase 1 plans `docs/superpowers/plans/2026-09-26-statistics-phase-1a-database.md` (the views) and `2026-09-26-statistics-phase-1b-foundation.md` (the contracts, registry, repository, service, route and cache this plan extends).
 
-**Prerequisite:** Phase 1 is merged. Every interface named "phase 1" below exists on `main`. If a phase 1 name differs from what this plan says, follow the code and note the difference in the PR body.
+**Prerequisite:** Phase 1 (1a and 1b) is merged. Every interface named "phase 1" below exists on `main`. If a phase 1 name differs from what this plan says, follow the code and note the difference in the PR body.
 
 ## Plan-level decisions
 
