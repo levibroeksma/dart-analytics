@@ -184,6 +184,8 @@ Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
 Future views (`v_player_statistics`, `v_player_dashboard`, etc.) are planned — not yet implemented.
 
+The detailed statistics pages plan `v_stats_session_facts`, `v_stats_dart_facts` and thin `v_stats_<section>` views over them (dependency depth ≤ 2) — see `10-Statistics/00-Overview.md` §10 (D364). <!-- 2026-09-26 -->
+
 ---
 
 # View Categories
