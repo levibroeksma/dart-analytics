@@ -84,6 +84,23 @@ export function classifyDart(remaining: number, dart: DartFact): DartOutcome {
 }
 
 /**
+ * The remaining score before each of `visit`'s darts, in throw order --
+ * the one definition of "remaining before this dart" every checkout-family
+ * module walks, rather than each keeping its own `remaining -= score` loop.
+ */
+export function checkoutDarts(
+  visit: CheckoutVisitDarts,
+): { remaining: number; dart: DartFact }[] {
+  const steps: { remaining: number; dart: DartFact }[] = [];
+  let remaining = visit.startingRemaining;
+  for (const dart of visit.darts) {
+    steps.push({ remaining, dart });
+    remaining -= dart.score;
+  }
+  return steps;
+}
+
+/**
  * Classifies every dart across `visits` as a checkout-attempt hit, miss, or
  * not an attempt at all (a deliberate lay-up/reroute) -- see
  * `docs/superpowers/specs/2026-09-19-x01-checkout-percentage-design.md` for
@@ -97,12 +114,10 @@ export function classifyDoubleAttempts(visits: readonly CheckoutVisitDarts[]): {
   let misses = 0;
 
   for (const visit of visits) {
-    let remaining = visit.startingRemaining;
-    for (const dart of visit.darts) {
+    for (const { remaining, dart } of checkoutDarts(visit)) {
       const outcome = classifyDart(remaining, dart);
       if (outcome === "HIT") hits += 1;
       else if (outcome === "MISS") misses += 1;
-      remaining -= dart.score;
     }
   }
 

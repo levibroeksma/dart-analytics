@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { highestCheckout } from "@modules/game/highest-checkout.module";
+import {
+  highestCheckout,
+  isFinishingDart,
+} from "@modules/game/highest-checkout.module";
 import type { CheckoutVisitDarts, DartFact } from "@modules/types";
 
 function dart(hitZoneKey: DartFact["hitZoneKey"], score: number): DartFact {
@@ -74,5 +77,12 @@ describe("highestCheckout", () => {
       },
     ];
     expect(highestCheckout(visits)).toEqual({ value: 170, timesHit: 1 });
+  });
+});
+
+describe("isFinishingDart", () => {
+  it("is exported so other modules can reuse the finish rule", () => {
+    expect(isFinishingDart(50, dart("INNER_BULL", 50))).toBe(true);
+    expect(isFinishingDart(32, dart("DOUBLE", 16))).toBe(false);
   });
 });

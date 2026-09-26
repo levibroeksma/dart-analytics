@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  checkoutDarts,
   classifyDart,
   classifyDoubleAttempts,
 } from "@modules/game/double-attempt.module";
@@ -222,5 +223,18 @@ describe("classifyDart", () => {
     expect(classifyDart(40, dart(20, "DOUBLE", 40))).toBe("HIT");
     expect(classifyDart(40, dart(20, "SINGLE", 20))).toBe("MISS");
     expect(classifyDart(121, dart(20, "TREBLE", 60))).toBe("NOT_ATTEMPT");
+  });
+});
+
+describe("checkoutDarts", () => {
+  it("yields the remaining score before each dart, in throw order", () => {
+    const visit = {
+      startingRemaining: 81,
+      darts: [dart(19, "TREBLE", 57), dart(12, "DOUBLE", 24)],
+    };
+    expect(checkoutDarts(visit)).toEqual([
+      { remaining: 81, dart: visit.darts[0] },
+      { remaining: 24, dart: visit.darts[1] },
+    ]);
   });
 });

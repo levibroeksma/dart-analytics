@@ -5,7 +5,8 @@ const FINISHING_ZONES: ReadonlySet<DartFact["hitZoneKey"]> = new Set([
   "INNER_BULL",
 ]);
 
-function isFinishingDart(remaining: number, dart: DartFact): boolean {
+/** Whether `dart`, thrown at `remaining`, is a legal checkout of it. */
+export function isFinishingDart(remaining: number, dart: DartFact): boolean {
   return FINISHING_ZONES.has(dart.hitZoneKey) && dart.score === remaining;
 }
 
