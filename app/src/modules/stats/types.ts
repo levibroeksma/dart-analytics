@@ -230,3 +230,33 @@ export type LooseDartsMetrics = Record<
   string,
   { onTarget: number; nearMiss: number; loose: number }
 >;
+
+/** Additive position moments for one intended target; sums re-aggregate exactly across buckets (phase-2 decision 3). */
+export type GroupingMoment = {
+  n: number;
+  sumX: number;
+  sumY: number;
+  sumXX: number;
+  sumYY: number;
+  sumXY: number;
+};
+
+/** `grouping` section metrics — one bucket, keyed by `TargetKey`. */
+export type GroupingMetrics = Record<string, GroupingMoment>;
+
+/** One target's missed-dart sector/radial slice (phase-2 decision 4). */
+export type MissDirectionEntry = {
+  sector: number;
+  radial: "INSIDE" | "WITHIN" | "OUTSIDE";
+  darts: number;
+};
+
+/** `miss-direction` section metrics — one bucket, keyed by `TargetKey`. */
+export type MissDirectionMetrics = Record<string, MissDirectionEntry[]>;
+
+/** `heatmap` section metrics — one bucket; never keyed by target (phase-2 decision 6). */
+export type HeatmapMetrics = {
+  cellMm: number;
+  target: string | null;
+  cells: [number, number, number][];
+};
