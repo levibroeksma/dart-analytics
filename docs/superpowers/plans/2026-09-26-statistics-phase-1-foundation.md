@@ -20,6 +20,7 @@ Each is written into the canonical docs in Task 12 under decision **D367** (conf
 4. **Session list orders by `(completed_at DESC, session_id DESC)`.** It is range-filtered on `completed_at`, so the opaque cursor encodes both. This is a documented per-endpoint ordering key; `03-Shared-Conventions.md` §Pagination already treats the cursor as server-owned.
 5. **Status default per section.** A section with `includesAbandoned = true` (`completion`) accepts only `status=all`, which is its default. Every other section accepts only `completed`, its default. The session list defaults to `all` (`00-Overview.md` §6). Anything else → `VALIDATION_FAILED`.
 6. **`dataVersion`** = base64url of `v1:<count>:<max completed_at epoch ms>` over the player's terminal sessions of that game type (all statuses, all time). This is one index-backed query per request.
+7. **Singles Training is `intent-derived`, not `intent-stored`.** `00-Overview.md` §3 lists it as stored. Its engine writes both intent columns `NULL` by design (`singles-training.engine.module.ts` `record` JSDoc): every ring on the current number is a valid aim, and `chk_dart_target_consistency` (`0007`) rejects a number without a zone. The aimed number comes from the visit index, like Shanghai and Around the Clock, so Singles joins the phase 4 derived-intent family.
 
 ## Global Constraints
 
@@ -254,13 +255,13 @@ describe("statistics capability tags", () => {
     for (const tags of Object.values(STATS_TAGS)) expect(tags).toContain("board");
   });
 
-  it("stores intent only for Singles, Doubles Training and Bob's 27", () => {
+  it("stores intent only for Doubles Training and Bob's 27", () => {
     const stored = Object.entries(STATS_TAGS)
       .filter(([, tags]) => tags.includes("intent-stored"))
       .map(([key]) => key)
       .sort();
     expect(stored).toEqual(
-      ["BOBS27_V1", "DOUBLES_TRAINING_V1", "SINGLES_V1", "SINGLES_V2", "SINGLES_V3"].sort(),
+      ["BOBS27_V1", "DOUBLES_TRAINING_V1"].sort(),
     );
   });
 
@@ -284,7 +285,7 @@ Run `cd app && npx vitest run tests/lib/game/rulesets/stats-tags.test.ts`. It sh
 | `SCORE_TRAINING_V1` | `SCORE_TRAINING` | board, scoring |
 | `TUOD_V1` | `TUOD` | board, checkout, ladder |
 | `121_V1`, `121_V2` | `ONE_TWENTY_ONE` | board, checkout, ladder |
-| `SINGLES_V1..V3` | `SINGLES_TRAINING` | board, intent-stored, target-sequence |
+| `SINGLES_V1..V3` | `SINGLES_TRAINING` | board, intent-derived, target-sequence (decision 7) |
 | `DOUBLES_TRAINING_V1` | `DOUBLES_TRAINING` | board, intent-stored, target-sequence |
 | `BOBS27_V1` | `BOBS27` | board, intent-stored, target-sequence |
 | `SHANGHAI_V1`, `SHANGHAI_V2` | `SHANGHAI` | board, intent-derived, target-sequence |
@@ -620,13 +621,14 @@ Every IndexedDB call goes through one `safe<T>(fn, fallback)` helper, and any th
 ### Task 12: Docs, decision, gates
 
 **Files:**
-- `decisions/api.md`: **D367**, covering plan-level decisions 1–6 above. Get the id from `bash scripts/next-decision-id.sh`.
+- `decisions/api.md`: **D367**, covering plan-level decisions 1–7 above. Get the id from `bash scripts/next-decision-id.sh`.
 - `docs/architecture/10-Statistics/00-Overview.md`:
   - §5: the bucket-widening rule, the `range` echo, the `closed` definition, and the status default per section.
   - §6: `:gameTypeKey` in place of `:rulesetKey`, with rows marked **built**.
   - §12: phase 1 marked done.
+  - §3: Singles moves from `intent-stored` to `intent-derived` (decision 7); §12 phase 2 drops Singles, phase 4 gains it.
   - Version bump 1.1.0, citing D367.
-- `docs/architecture/10-Statistics/01-Section-Catalog.md`: the `session-result` row says "rule-free components; PB direction per game (`RESULT_DIRECTION`)"; status line updated for the three built sections.
+- `docs/architecture/10-Statistics/01-Section-Catalog.md`: §1.2 names Singles as derived (number only, any ring); the `session-result` row says "rule-free components; PB direction per game (`RESULT_DIRECTION`)"; status line updated for the three built sections.
 - `docs/architecture/06-API/04-Endpoint-Contracts.md`: full contracts for the two routes (params, defaults, errors, response shapes).
 - `docs/architecture/06-API/00-Overview.md`: the "Planned" list gets the two routes marked built.
 - `docs/architecture/05-Database/05-Views/00-Overview.md` and the views catalog chapter that lists each view: entries for `v_stats_session_facts` and `v_stats_dart_facts`. The spec chapter holding indexes gets the new index with its rationale.
