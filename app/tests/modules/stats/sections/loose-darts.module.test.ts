@@ -136,6 +136,24 @@ describe("classifyLanding", () => {
       ).toBe(c.expected);
     });
   }
+
+  it("BULL:25 -> INNER_BULL:25 is onTarget (parity: the classifyBullAim branch)", () => {
+    expect(
+      classifyLanding(
+        { number: 25, zone: "BULL" as never },
+        { number: 25, zone: "INNER_BULL" as never },
+      ),
+    ).toBe("onTarget");
+  });
+
+  it("OUTER_BULL:25 -> INNER_SINGLE:20 is loose (parity: the stored-bull branch's non-adjacent case)", () => {
+    expect(
+      classifyLanding(
+        { number: 25, zone: "OUTER_BULL" as never },
+        { number: 20, zone: "INNER_SINGLE" as never },
+      ),
+    ).toBe("loose");
+  });
 });
 
 describe("looseDartsBuckets", () => {

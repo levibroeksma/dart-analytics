@@ -223,4 +223,33 @@ describe("aimMissRows", () => {
     expect([2, 3]).toContain(rows[0]!.sector);
     expect(rows[0]!.radial).toBe("WITHIN");
   });
+
+  it("a dart aimed at BULL:25 missing outside the board uses the centre reference (parity: the missBandFor BULL branch)", () => {
+    const row = aimMissFoldRow({
+      sessionId: "session-aim-miss-bull",
+      turnSequence: 1,
+      configuration: {
+        order_mode: "RANDOM",
+        target_order: [25, ...targetOrderStartingWith(20).slice(0, 20)],
+        difficulty: "EASY",
+        points_single: 1,
+        points_double: 2,
+        points_treble: 3,
+        seats: AIM_MISS_SEATS,
+      },
+      sessionDartCount: 1,
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: 0,
+      locationY: -200,
+    });
+
+    const { sessions, skippedSessions } = sessionSteps([row]);
+    expect(skippedSessions).toBe(0);
+
+    const missRows = aimMissRows(sessions);
+    expect(missRows).toHaveLength(1);
+    expect(missRows[0]!.zoneKey).toBe("BULL");
+    expect(missRows[0]!.radial).toBe("OUTSIDE");
+  });
 });

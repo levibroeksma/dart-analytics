@@ -115,13 +115,75 @@ const referencesByKey = new Map<string, MissReference>(
   missReferences().map((ref) => [`${ref.zoneKey}:${ref.targetNumber}`, ref]),
 );
 
+interface MissBand {
+  refX: number;
+  refY: number;
+  rInner: number;
+  rOuter: number;
+}
+
+/**
+ * The reference point and radial band for one aim's miss (phase-4 decision
+ * 7): `NUMBER:n` uses `wedgeNearestPoint`, banded `[outerBull, doubleOuter]`;
+ * `BULL:25` uses the board centre, banded `[0, outerBull]`; every other
+ * (stored) aim reuses `missReferences`' own row, or `null` when it has none.
+ */
+function missBandFor(
+  aim: { number: number; zone: IntentZoneKey },
+  dart: { x: number; y: number },
+): MissBand | null {
+  if (aim.zone === "NUMBER") {
+    const ref = wedgeNearestPoint(aim.number, { x: dart.x, y: dart.y });
+    return {
+      refX: ref.x,
+      refY: ref.y,
+      rInner: BOARD_RADII_MM.outerBull,
+      rOuter: BOARD_RADII_MM.doubleOuter,
+    };
+  }
+  if (aim.zone === "BULL") {
+    return { refX: 0, refY: 0, rInner: 0, rOuter: BOARD_RADII_MM.outerBull };
+  }
+  const stored = referencesByKey.get(`${aim.zone}:${aim.number}`);
+  if (stored === undefined) return null;
+  return {
+    refX: stored.cx,
+    refY: stored.cy,
+    rInner: stored.rInner,
+    rOuter: stored.rOuter,
+  };
+}
+
+/** Folds one missed dart's sector/radial band into `counts`, keyed by aim + sector + radial. */
+function accumulateMissRow(
+  counts: Map<string, MissSectorRow>,
+  aim: { number: number; zone: IntentZoneKey },
+  dart: { x: number; y: number },
+  band: MissBand,
+): void {
+  const radius = Math.sqrt(dart.x * dart.x + dart.y * dart.y);
+  const radial = radialClass(radius, band.rInner, band.rOuter);
+  const sector = missSector(dart.x - band.refX, dart.y - band.refY);
+
+  const key = `${aim.zone}:${aim.number}|${sector}|${radial}`;
+  const existing = counts.get(key);
+  if (existing) {
+    existing.darts += 1;
+    return;
+  }
+  counts.set(key, {
+    targetNumber: aim.number,
+    zoneKey: aim.zone,
+    sector,
+    radial,
+    darts: 1,
+  });
+}
+
 /**
  * Covers only the missed darts of `aimedDarts` across `sessions` (phase-4
  * decision 7), building each one's `MissSectorRow` the way `findMissSectors`
- * does for a stored zone: `NUMBER:n`'s reference is `wedgeNearestPoint`,
- * banded `[outerBull, doubleOuter]`; `BULL:25`'s reference is the board
- * centre, banded `[0, outerBull]`; every other (stored) aim reuses
- * `missReferences`' own row. The bearing is always `missSector` from the
+ * does for a stored zone. The bearing is always `missSector` from the
  * reference point, and the radial band always the dart's own distance from
  * the board centre — mirroring the SQL path exactly, so both share
  * `MissSectorRow`.
@@ -138,48 +200,10 @@ export function aimMissRows(
       const aim = parseTargetKey(dart.aim);
       if (aim === null) continue;
 
-      let refX: number;
-      let refY: number;
-      let rInner: number;
-      let rOuter: number;
+      const band = missBandFor(aim, dart);
+      if (band === null) continue;
 
-      if (aim.zone === "NUMBER") {
-        const ref = wedgeNearestPoint(aim.number, { x: dart.x, y: dart.y });
-        refX = ref.x;
-        refY = ref.y;
-        rInner = BOARD_RADII_MM.outerBull;
-        rOuter = BOARD_RADII_MM.doubleOuter;
-      } else if (aim.zone === "BULL") {
-        refX = 0;
-        refY = 0;
-        rInner = 0;
-        rOuter = BOARD_RADII_MM.outerBull;
-      } else {
-        const stored = referencesByKey.get(`${aim.zone}:${aim.number}`);
-        if (stored === undefined) continue;
-        refX = stored.cx;
-        refY = stored.cy;
-        rInner = stored.rInner;
-        rOuter = stored.rOuter;
-      }
-
-      const radius = Math.sqrt(dart.x * dart.x + dart.y * dart.y);
-      const radial = radialClass(radius, rInner, rOuter);
-      const sector = missSector(dart.x - refX, dart.y - refY);
-
-      const key = `${aim.zone}:${aim.number}|${sector}|${radial}`;
-      const existing = counts.get(key);
-      if (existing) {
-        existing.darts += 1;
-        continue;
-      }
-      counts.set(key, {
-        targetNumber: aim.number,
-        zoneKey: aim.zone,
-        sector,
-        radial,
-        darts: 1,
-      });
+      accumulateMissRow(counts, aim, dart, band);
     }
   }
 
