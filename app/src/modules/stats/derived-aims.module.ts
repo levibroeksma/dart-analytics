@@ -27,6 +27,7 @@ import type {
   IntentZoneKey,
   SeatFact,
   ShanghaiV2Snapshot,
+  TargetKey,
 } from "@lib/types";
 import type {
   AroundTheClockSeatState,
@@ -243,6 +244,24 @@ function aimPairFor(
     number: target.number,
     zone: isOuterSingleOnly ? "OUTER_SINGLE" : "NUMBER",
   };
+}
+
+/**
+ * The aim key for one Around the Clock seat step's `before` state (phase-4
+ * decision 1), shared with `aimedDarts` so `atc-darts-per-target.module.ts`
+ * (Task 7) never rebuilds the NUMBER/OUTER_SINGLE/BULL mapping on its own.
+ */
+export function aroundTheClockAimKey(
+  before: AroundTheClockSeatState,
+  config: AroundTheClockEngineConfig,
+): TargetKey {
+  const target = activeTargetOfAroundTheClock(before, config);
+  const aimPair = aimPairFor(
+    "AROUND_THE_CLOCK",
+    target,
+    config as DecodedSnapshot,
+  );
+  return formatTargetKey(aimPair.number, aimPair.zone);
 }
 
 /**

@@ -462,3 +462,37 @@ export type SessionSteps<TSeat> = {
   bucketEnd: string;
   steps: readonly SeatFoldStep<TSeat>[];
 };
+
+/** `shanghai-count` section metrics — one bucket (phase-4 decision 12). */
+export type ShanghaiCountMetrics = {
+  sessions: number;
+  shanghais: number;
+  byRound: Record<string, number>;
+};
+
+/**
+ * `atc-darts-per-target` section metrics — one bucket, keyed by
+ * `configGroupKey` then by the aim's `TargetKey` (phase-4 decisions 13, 14).
+ */
+export type AtcDartsPerTargetMetrics = Record<
+  string,
+  Record<string, { darts: number; cleared: number }>
+>;
+
+/** One config group's Bob's 27 survival counts (phase-4 decision 15). */
+export type Bobs27SurvivalGroupMetrics = {
+  runs: number;
+  completed: number;
+  reached: Record<string, number>;
+  died: Record<string, number>;
+  scoreAfter: Record<
+    string,
+    { runs: number; sum: number; min: number; max: number }
+  >;
+};
+
+/**
+ * `bobs27-survival` section metrics — one bucket, keyed by `configGroupKey`
+ * (phase-4 decisions 13, 15).
+ */
+export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;
