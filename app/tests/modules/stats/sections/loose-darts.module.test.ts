@@ -124,6 +124,13 @@ describe("classifyLanding", () => {
       hitZone: "TREBLE",
       expected: "loose",
     },
+    {
+      aimNumber: 1,
+      aimZone: "TREBLE",
+      hitNumber: 1,
+      hitZone: "TREBLE",
+      expected: "onTarget",
+    },
   ];
 
   for (const c of cases) {
