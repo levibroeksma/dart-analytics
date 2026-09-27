@@ -310,7 +310,7 @@ SELECT '3',
         THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s row(s); dart_number=%s participant_id=%s', count(*), max(dart_number), max(participant_id))
+    format('%s row(s); dart_number=%s participant_id=%s', count(*), max(dart_number), max(participant_id::text))
 FROM v_game_replay
 WHERE session_id = '01990000-0000-7000-8000-000000004403'
     AND participant_type_key = 'PLAYER'
