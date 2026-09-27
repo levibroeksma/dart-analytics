@@ -983,6 +983,26 @@ Never edits `0005`/`0030`.
 
 ---
 
+## 0044_replay_view_coordinates.sql
+
+Purpose:
+
+Let a replay reader resolve which participant a turn belongs to and where each dart landed. <!-- 2026-09-27 -->
+
+Contains:
+
+- rewritten `v_game_replay` (`CREATE OR REPLACE`): adds `participant_id`, `participant_type_key` (new `JOIN participant_types pt ON pt.id = p.participant_type_id`), `location_x`, `location_y`
+
+Widened in place rather than adding a sibling view: nothing in `app/` reads `v_game_replay` yet, and `0023`'s verification counts this view's rows for a session to prove it stays deliberately unfiltered by participant — a widening keeps that row count exact, a sibling view would never exercise it. `participant_type_id` is a NOT NULL foreign key to a single lookup row, so the new join adds no fan-out; `location_x`/`location_y` are darts' own columns (`0017`), already reached by `0016`'s LEFT JOIN to `darts` — the widening reads them, it does not add a join. No `context_key`: that is a session fact, derived once in `v_stats_session_facts` (`0043`), not a per-turn/per-dart fact this view has any business repeating.
+
+`CREATE OR REPLACE VIEW` cannot drop columns, so the four new columns land after the existing 15 and none is dropped or reordered; `migrate:down` instead drops the view and recreates `0016`'s definition verbatim.
+
+View-only; no table, column or constraint changes. Not yet applied: `database/verification/0044_replay_view_coordinates_checks.sql` runs once it is. <!-- 2026-09-27 -->
+
+Never edits `0009`/`0013`/`0016`.
+
+---
+
 # Schema Changes
 
 

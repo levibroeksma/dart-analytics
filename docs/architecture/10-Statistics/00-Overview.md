@@ -322,9 +322,11 @@ per-section views are still planned.
 | `v_stats_dart_facts` | one row per `VISUAL_BOARD` dart, owner-scoped | the base for every `board`/`intent-*` section; `v_dart_locations` columns plus `completed_at`, status, `ruleset_version_key`, `context_key` | built (0043) |
 | thin per-section views (`v_stats_<section>`) | reduced rows | only where SQL is the compute site; each reads the two base views (dependency depth ≤ 2) | planned |
 
-- Replay reads `v_game_replay`, widened with coordinates and `context_key`, or a
-  sibling view if its current consumers forbid widening — decided in the replay
-  phase's spec.
+- Replay reads `v_game_replay`, widened with participant identity
+  (`participant_id`, `participant_type_key`) and dart coordinates
+  (`location_x`/`location_y`) in place (migration `0044`) — no per-row
+  `context_key`; that is a session fact, already exposed once by
+  `v_stats_session_facts` (`0043`).
 - Index for the date-range entry point: `exercise_sessions (player_id, game_type_id,
   completed_at DESC)`. Others only when measured.
 - Every view change is a new numbered migration; applied migrations stay untouched.
