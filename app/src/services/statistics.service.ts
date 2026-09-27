@@ -2,6 +2,7 @@ import { getDb } from "@db/client";
 import {
   MAX_FOLD_DARTS,
   SECTIONS,
+  sectionSite,
   sectionsForGame,
   tagsForGameType,
 } from "@lib/stats/section-registry";
@@ -15,6 +16,7 @@ import {
   totalGamesPlayed,
   totalPlayTimeSeconds,
 } from "@modules/stats/career-summary.module";
+import { sessionSteps } from "@modules/stats/derived-aims.module";
 import {
   averageDartsPerLeg,
   bestLegDarts,
@@ -31,6 +33,8 @@ import {
   scoreBandCounts,
   totalDartsThrown,
 } from "@modules/stats/visit-stats.module";
+import { atcDartsPerTargetBuckets } from "@modules/stats/sections/atc-darts-per-target.module";
+import { bobs27SurvivalBuckets } from "@modules/stats/sections/bobs27-survival.module";
 import { bustRateBuckets } from "@modules/stats/sections/bust-rate.module";
 import { checkoutPathBuckets } from "@modules/stats/sections/checkout-path.module";
 import { checkoutRateBuckets } from "@modules/stats/sections/checkout-rate.module";
@@ -42,10 +46,12 @@ import {
   HEATMAP_CELL_MM,
   heatmapBuckets,
 } from "@modules/stats/sections/heatmap.module";
+import { aimCellRows } from "@modules/stats/sections/intent-cells.module";
 import { ladderProgressBuckets } from "@modules/stats/sections/ladder-progress.module";
 import { legStatsBuckets } from "@modules/stats/sections/leg-stats.module";
 import { looseDartsBuckets } from "@modules/stats/sections/loose-darts.module";
 import {
+  aimMissRows,
   missDirectionBuckets,
   missReferences,
 } from "@modules/stats/sections/miss-direction.module";
@@ -59,12 +65,14 @@ import {
   encodeDataVersion,
 } from "@modules/stats/sections/series.module";
 import { sessionResultBuckets } from "@modules/stats/sections/session-result.module";
+import { shanghaiCountBuckets } from "@modules/stats/sections/shanghai-count.module";
 import { targetAccuracyBuckets } from "@modules/stats/sections/target-accuracy.module";
 import { trebleRateBuckets } from "@modules/stats/sections/treble-rate.module";
 import { volumeBuckets } from "@modules/stats/sections/volume.module";
 import {
   findBucketFloor,
   findBucketedSessionAggregates,
+  findDartFoldRows,
   findGameDataVersion,
   findGameSessionsPage,
   findHeatmapCells,
@@ -82,6 +90,7 @@ import {
 } from "@repositories/statistics.repository";
 import type {
   Bucket,
+  ComputeSite,
   ContextFilter,
   GameTypeKey,
   IntentZoneKey,
@@ -103,6 +112,7 @@ import type {
   IntentMomentRow,
   MissSectorRow,
   SessionScope,
+  SessionSteps,
   StatsBucketRow,
   VisitScoringRow,
   X01FoldRow,
@@ -181,9 +191,24 @@ type ShapeContext = {
   target: TargetKey | null;
 };
 
+/**
+ * What a section's `load` resolves to: its rows, plus how many sessions a
+ * fold could not replay (phase-4 decision 4) — set only by a `server`
+ * section built on `stepsLoad`, and threaded straight into the response by
+ * `getGameSection`. Absent for every `sql`-site section, matching the
+ * `skippedSessions` field's optional zod schema (Task 2).
+ */
+type SectionLoadResult = {
+  rows: readonly unknown[];
+  skippedSessions?: number;
+};
+
 type SectionHandler = {
-  load: (db: Db, ctx: SectionContext) => Promise<unknown[]>;
-  shape: (rows: unknown[], ctx: ShapeContext) => SeriesBucket<unknown>[];
+  load: (db: Db, ctx: SectionContext) => Promise<SectionLoadResult>;
+  shape: (
+    rows: readonly unknown[],
+    ctx: ShapeContext,
+  ) => SeriesBucket<unknown>[];
 };
 
 /** Adapts one reader/shaper pair — each typed to its own row shape — into the uniform `SectionHandler` the registry dispatches through. */
@@ -192,8 +217,29 @@ function handler<TRow>(
   shape: (rows: readonly TRow[], ctx: ShapeContext) => SeriesBucket<unknown>[],
 ): SectionHandler {
   return {
-    load,
+    load: async (db, ctx) => ({ rows: await load(db, ctx) }),
     shape: (rows, ctx) => shape(rows as TRow[], ctx),
+  };
+}
+
+/**
+ * Adapts a `SessionSteps` shape function — every derived-intent and
+ * game-specific section (phase-4 Task 8) — into a `SectionHandler` sharing
+ * `stepsLoad`, so its own `skippedSessions` count always reaches
+ * `SectionLoadResult`.
+ */
+function stepsHandler(
+  shape: (
+    sessions: readonly SessionSteps<unknown>[],
+    ctx: ShapeContext,
+  ) => SeriesBucket<unknown>[],
+): SectionHandler {
+  return {
+    load: async (db, ctx) => {
+      const { sessions, skippedSessions } = await stepsLoad(db, ctx);
+      return { rows: sessions, skippedSessions };
+    },
+    shape: (rows, ctx) => shape(rows as SessionSteps<unknown>[], ctx),
   };
 }
 
@@ -355,25 +401,117 @@ async function foldLoad(
   return bucketedSessionsFromFoldRows(rows);
 }
 
-const HANDLERS: Record<SectionId, SectionHandler> = {
-  completion: handler(loadBucketedSessions, completionBuckets),
-  volume: handler(loadBucketedSessions, volumeBuckets),
-  "session-result": handler(loadBucketedSessions, sessionResultBuckets),
-  "target-accuracy": handler(loadIntentCells, targetAccuracyBuckets),
-  confusion: handler(loadIntentCells, confusionBuckets),
-  "loose-darts": handler(loadIntentCells, looseDartsBuckets),
-  grouping: handler(loadIntentMoments, groupingBuckets),
-  "miss-direction": handler(loadMissSectors, missDirectionBuckets),
-  heatmap: handler(loadHeatmapCells, heatmapBuckets),
-  "scoring-trend": handler(loadVisitScoring, scoringTrendBuckets),
-  "treble-rate": handler(loadHitNumberCells, trebleRateBuckets),
-  "ladder-progress": handler(foldLoad, ladderProgressBuckets),
-  "checkout-rate": handler(foldLoad, checkoutRateBuckets),
-  "double-performance": handler(foldLoad, doublePerformanceBuckets),
-  "checkout-path": handler(foldLoad, checkoutPathBuckets),
-  "bust-rate": handler(foldLoad, bustRateBuckets),
-  "leg-stats": handler(foldLoad, legStatsBuckets),
+/**
+ * The shared load for every derived-intent and game-specific server section
+ * (phase-4 decisions 1, 3-4, Task 8): every `v_stats_dart_facts` dart the
+ * scope covers (`findDartFoldRows`, Task 5), folded per session through its
+ * own engine reducer (`sessionSteps`, `derived-aims.module.ts`) — mirroring
+ * `foldLoad`'s phase-3 shape. The `MAX_FOLD_DARTS` gate runs earlier in
+ * `getGameSection`, before this is ever called.
+ */
+async function stepsLoad(
+  db: Db,
+  ctx: SectionContext,
+): Promise<{ sessions: SessionSteps<unknown>[]; skippedSessions: number }> {
+  const rows = await findDartFoldRows(db, {
+    ...sectionScope(ctx),
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+  });
+  return sessionSteps(rows);
+}
+
+/** `target-accuracy`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
+function targetAccuracyFromSessions(
+  sessions: readonly SessionSteps<unknown>[],
+  ctx: ShapeContext,
+): SeriesBucket<unknown>[] {
+  return targetAccuracyBuckets(aimCellRows(sessions), ctx);
+}
+
+/** `confusion`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
+function confusionFromSessions(
+  sessions: readonly SessionSteps<unknown>[],
+  ctx: ShapeContext,
+): SeriesBucket<unknown>[] {
+  return confusionBuckets(aimCellRows(sessions), ctx);
+}
+
+/** `loose-darts`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
+function looseDartsFromSessions(
+  sessions: readonly SessionSteps<unknown>[],
+  ctx: ShapeContext,
+): SeriesBucket<unknown>[] {
+  return looseDartsBuckets(aimCellRows(sessions), ctx);
+}
+
+/** `miss-direction`'s `server`-site shape (phase-4 decision 7): the fold's missed aimed darts, fed through phase-2's own bucket function. */
+function missDirectionFromSessions(
+  sessions: readonly SessionSteps<unknown>[],
+  ctx: ShapeContext,
+): SeriesBucket<unknown>[] {
+  return missDirectionBuckets(aimMissRows(sessions), ctx);
+}
+
+/**
+ * Every section's handler, keyed by the `ComputeSite` it runs at for a given
+ * game (`sectionSite`, phase-4 decision 5) — `getGameSection` resolves the
+ * site first, then looks up this table. Phase 1-3's sections keep their one
+ * site, unchanged; the four widened board sections gain a `server` entry
+ * that shares `stepsLoad` with the three game-specific sections.
+ */
+const HANDLERS: Record<
+  SectionId,
+  Partial<Record<ComputeSite, SectionHandler>>
+> = {
+  completion: { sql: handler(loadBucketedSessions, completionBuckets) },
+  volume: { sql: handler(loadBucketedSessions, volumeBuckets) },
+  "session-result": {
+    sql: handler(loadBucketedSessions, sessionResultBuckets),
+  },
+  "target-accuracy": {
+    sql: handler(loadIntentCells, targetAccuracyBuckets),
+    server: stepsHandler(targetAccuracyFromSessions),
+  },
+  confusion: {
+    sql: handler(loadIntentCells, confusionBuckets),
+    server: stepsHandler(confusionFromSessions),
+  },
+  "loose-darts": {
+    sql: handler(loadIntentCells, looseDartsBuckets),
+    server: stepsHandler(looseDartsFromSessions),
+  },
+  grouping: { sql: handler(loadIntentMoments, groupingBuckets) },
+  "miss-direction": {
+    sql: handler(loadMissSectors, missDirectionBuckets),
+    server: stepsHandler(missDirectionFromSessions),
+  },
+  heatmap: { sql: handler(loadHeatmapCells, heatmapBuckets) },
+  "scoring-trend": { sql: handler(loadVisitScoring, scoringTrendBuckets) },
+  "treble-rate": { sql: handler(loadHitNumberCells, trebleRateBuckets) },
+  "ladder-progress": { server: handler(foldLoad, ladderProgressBuckets) },
+  "checkout-rate": { server: handler(foldLoad, checkoutRateBuckets) },
+  "double-performance": { server: handler(foldLoad, doublePerformanceBuckets) },
+  "checkout-path": { server: handler(foldLoad, checkoutPathBuckets) },
+  "bust-rate": { server: handler(foldLoad, bustRateBuckets) },
+  "leg-stats": { server: handler(foldLoad, legStatsBuckets) },
+  "atc-darts-per-target": { server: stepsHandler(atcDartsPerTargetBuckets) },
+  "bobs27-survival": { server: stepsHandler(bobs27SurvivalBuckets) },
+  "shanghai-count": { server: stepsHandler(shanghaiCountBuckets) },
 };
+
+/**
+ * Resolves one `(section, game)` pair's handler via `sectionSite` — the
+ * single dispatch point `getGameSection` uses, exported so a registry-
+ * coverage test can assert every `sectionsForGame` pair actually resolves
+ * one without reaching into `HANDLERS` itself (phase-4 Task 8).
+ */
+export function resolveSectionHandler(
+  sectionId: SectionId,
+  gameTypeKey: GameTypeKey,
+): SectionHandler | undefined {
+  return HANDLERS[sectionId][sectionSite(SECTIONS[sectionId], gameTypeKey)];
+}
 
 /**
  * Resolves the accepted `status` values for a section (D367 decision 5): an
@@ -481,16 +619,20 @@ function sectionTarget(
 }
 
 /**
- * The `MAX_FOLD_DARTS` gate (phase-3 decision 1, Task 8): above the cap, the
- * `VALIDATION_FAILED` reason naming it; `null` when a `server` section's
- * scope is within it, or the section is not `server`-computed at all.
+ * The `MAX_FOLD_DARTS` gate (phase-3 decision 1, phase-4 decision 5, Task 8):
+ * above the cap, the `VALIDATION_FAILED` reason naming it; `null` when a
+ * `server`-site scope is within it, or the site this game resolves the
+ * section to is not `server` at all. Takes the resolved `site`, not
+ * `meta.computeSite` directly, so a section whose site only becomes `server`
+ * through `siteByTag` (the four widened board sections, on a derived game)
+ * is bounded exactly like one declared `server` outright.
  */
 async function foldBoundReason(
   db: Db,
-  meta: SectionMeta,
+  site: ComputeSite,
   ctx: SectionContext,
 ): Promise<string | null> {
-  if (meta.computeSite !== "server") return null;
+  if (site !== "server") return null;
   const dartCount = await findScopeDartCount(db, sectionScope(ctx));
   if (dartCount <= MAX_FOLD_DARTS) return null;
   return `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`;
@@ -557,7 +699,13 @@ export async function getGameSection(
     target,
   };
 
-  const foldError = await foldBoundReason(db, meta, sectionContext);
+  const site = sectionSite(meta, gameTypeKey);
+  const sectionHandler = resolveSectionHandler(sectionId, gameTypeKey);
+  if (sectionHandler === undefined) {
+    throw new Error(`no ${site} handler registered for section "${sectionId}"`);
+  }
+
+  const foldError = await foldBoundReason(db, site, sectionContext);
   if (foldError !== null) {
     return {
       ok: false,
@@ -566,15 +714,15 @@ export async function getGameSection(
     };
   }
 
-  const [dataVersionInput, rows] = await Promise.all([
+  const [dataVersionInput, loadResult] = await Promise.all([
     findGameDataVersion(db, playerId, gameTypeKey),
-    HANDLERS[sectionId].load(db, sectionContext),
+    sectionHandler.load(db, sectionContext),
   ]);
 
   const targetKey: TargetKey | null =
     target === null ? null : formatTargetKey(target.number, target.zone);
 
-  const buckets = HANDLERS[sectionId].shape(rows, {
+  const buckets = sectionHandler.shape(loadResult.rows, {
     from,
     to: q.to,
     now,
@@ -589,6 +737,9 @@ export async function getGameSection(
     tz: q.bucket === "none" ? null : (q.tz ?? null),
     range: { from, to: q.to },
     buckets,
+    ...(loadResult.skippedSessions === undefined
+      ? {}
+      : { skippedSessions: loadResult.skippedSessions }),
   } as SeriesResponse;
 
   return { ok: true, data: response };

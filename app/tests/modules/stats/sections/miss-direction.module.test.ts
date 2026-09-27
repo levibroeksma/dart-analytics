@@ -68,6 +68,16 @@ describe("missReferences", () => {
     expect(outer.rInner).toBe(6.35);
     expect(outer.rOuter).toBe(15.9);
   });
+
+  it("gives every numbered ring exactly the 4 stored-zone rows, never NUMBER or BULL", () => {
+    const numberedRingRefs = refs.filter((r) => r.targetNumber !== 25);
+    expect(numberedRingRefs).toHaveLength(80);
+    for (const ref of numberedRingRefs) {
+      expect(["DOUBLE", "TREBLE", "INNER_SINGLE", "OUTER_SINGLE"]).toContain(
+        ref.zoneKey,
+      );
+    }
+  });
 });
 
 describe("missDirectionBuckets", () => {

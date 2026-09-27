@@ -365,7 +365,7 @@ function mapDartFoldRow(row: {
   sessionId: string | null;
   gameTypeKey: string | null;
   rulesetVersionKey: string | null;
-  configuration: Record<string, unknown> | null;
+  configuration: unknown;
   sessionDartCount: number | null;
   bucketStart: string | null;
   bucketEnd: string | null;
@@ -382,7 +382,7 @@ function mapDartFoldRow(row: {
     sessionId: nonNull(row.sessionId, "session_id"),
     gameTypeKey: nonNull(row.gameTypeKey, "game_type_key") as GameTypeKey,
     rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
-    configuration: row.configuration,
+    configuration: row.configuration as Record<string, unknown> | null,
     sessionDartCount: nonNull(row.sessionDartCount, "dart_count"),
     bucketStart: nonNull(row.bucketStart, "bucket_start"),
     bucketEnd: nonNull(row.bucketEnd, "bucket_end"),

@@ -62,6 +62,15 @@ describe("groupingSummary", () => {
     expect(groupingSummary(moment, target)).toBeNull();
   });
 
+  it("returns null for a NUMBER/BULL aim instead of throwing (decision 6: grouping never actually reaches one, but zoneCentroid has no single centre for either)", () => {
+    const moment = momentFromPoints([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+    ]);
+    expect(groupingSummary(moment, { number: 20, zone: "NUMBER" })).toBeNull();
+    expect(groupingSummary(moment, { number: 25, zone: "BULL" })).toBeNull();
+  });
+
   it("sums additively: two split moments equal the combined moment's summary", () => {
     const points = [
       { x: centroid.x + 2, y: centroid.y },

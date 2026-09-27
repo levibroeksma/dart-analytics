@@ -15,7 +15,10 @@ import type {
   SessionSteps,
 } from "@modules/types";
 
-function centroidOf(number: number, zoneKey: IntentZoneKey) {
+function centroidOf(
+  number: number,
+  zoneKey: Exclude<IntentZoneKey, "NUMBER" | "BULL">,
+) {
   const centroid = zoneCentroid(number, zoneKey);
   if (centroid === null) {
     throw new Error(`no centroid for ${zoneKey}:${number}`);
@@ -24,7 +27,7 @@ function centroidOf(number: number, zoneKey: IntentZoneKey) {
 }
 
 const NUMBERED_RING_RADII: Record<
-  Exclude<IntentZoneKey, "INNER_BULL" | "OUTER_BULL">,
+  Exclude<IntentZoneKey, "INNER_BULL" | "OUTER_BULL" | "NUMBER" | "BULL">,
   { rInner: number; rOuter: number }
 > = {
   DOUBLE: {

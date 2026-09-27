@@ -9,10 +9,12 @@ import { GET } from "@routes/statistics/games/[gameTypeKey]/sections/[sectionId]
 import {
   CompletionSeriesResponse,
   CheckoutRateSeriesResponse,
+  ShanghaiCountSeriesResponse,
 } from "@routes/types";
 import type {
   CheckoutRateSeriesResponseData,
   CompletionSeriesResponseData,
+  ShanghaiCountSeriesResponseData,
 } from "@routes/types";
 
 const locals = {
@@ -211,6 +213,57 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
       "player-1",
       "501",
       "checkout-rate",
+      expect.objectContaining({
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      }),
+    );
+  });
+
+  it("dispatches shanghai-count through the service and returns a validated series", async () => {
+    const seriesResponse: ShanghaiCountSeriesResponseData = {
+      sectionId: "shanghai-count",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00+01:00",
+          end: "2026-02-01T00:00:00+01:00",
+          closed: true,
+          sampleSize: 1,
+          metrics: { sessions: 1, shanghais: 0, byRound: {} },
+        },
+      ],
+      skippedSessions: 0,
+    };
+    vi.mocked(getGameSection).mockResolvedValue({
+      ok: true,
+      data: seriesResponse as never,
+    });
+
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "SHANGHAI", sectionId: "shanghai-count" },
+      url: makeUrl("SHANGHAI", "shanghai-count", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data).toEqual(seriesResponse);
+    expect(ShanghaiCountSeriesResponse.safeParse(body.data).success).toBe(true);
+    expect(getGameSection).toHaveBeenCalledWith(
+      "player-1",
+      "SHANGHAI",
+      "shanghai-count",
       expect.objectContaining({
         from: "2026-01-01T00:00:00+01:00",
         to: "2026-02-01T00:00:00+01:00",

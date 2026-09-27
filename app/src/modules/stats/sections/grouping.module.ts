@@ -8,6 +8,9 @@ import type {
   IntentMomentRow,
 } from "@modules/types";
 
+/** Every zone `grouping` ever centres on: `NUMBER`/`BULL` never reach here (decision 6, `01-Section-Catalog.md` §2 — grouping stays stored-only). */
+type StoredIntentZoneKey = Exclude<IntentZoneKey, "NUMBER" | "BULL">;
+
 /** Folds `findIntentMoments` rows into `grouping` buckets: summed position moments per intended target. */
 export function groupingBuckets(
   rows: readonly IntentMomentRow[],
@@ -65,7 +68,9 @@ export function groupingBuckets(
  * bearing of that offset — derived isomorphically against `zoneCentroid` so
  * SQL never holds an aim point (phase-2 decision 3). `null` when there is
  * nothing to summarize: fewer than two darts, or the target has no single
- * centre.
+ * centre — which is also `zoneCentroid`'s answer for the `NUMBER`/`BULL` aim
+ * zones `target.zone` widened to (decision 2) but `grouping` never actually
+ * receives (decision 6), hence the cast to `StoredIntentZoneKey` below.
  */
 export function groupingSummary(
   m: GroupingMoment,
@@ -77,7 +82,10 @@ export function groupingSummary(
   bearingDegrees: number;
 } | null {
   if (m.n < 2) return null;
-  const centroid = zoneCentroid(target.number, target.zone);
+  const centroid = zoneCentroid(
+    target.number,
+    target.zone as StoredIntentZoneKey,
+  );
   if (centroid === null) return null;
 
   const meanX = m.sumX / m.n;
