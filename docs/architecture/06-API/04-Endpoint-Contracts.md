@@ -430,16 +430,22 @@ const GameSessionListResponse = z.object({
 
 `:sectionId` is `completion` | `volume` | `session-result` (phase 1),
 `heatmap` | `target-accuracy` | `confusion` | `grouping` | `miss-direction` |
-`loose-darts` (phase 2), or `checkout-rate` | `double-performance` |
+`loose-darts` (phase 2), `checkout-rate` | `double-performance` |
 `checkout-path` | `bust-rate` | `ladder-progress` | `leg-stats` |
-`scoring-trend` | `treble-rate` (phase 3, D369)
+`scoring-trend` | `treble-rate` (phase 3, D369), or `shanghai-count` |
+`atc-darts-per-target` | `bobs27-survival` (phase 4, D370)
 (`10-Statistics/01-Section-Catalog.md` §1); any other value, or a section not
-returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. Dispatches through
-the section registry (`lib/stats/section-registry.ts`) to one of the
-seventeen built section modules.
+returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. `target-accuracy`,
+`confusion`, `miss-direction` and `loose-darts` also widen onto Singles
+Training, Shanghai and Around the Clock in phase 4 (same section id, `server`
+site instead of `sql` — `sectionSite(meta, gameTypeKey)` resolves which).
+Dispatches through the section registry (`lib/stats/section-registry.ts`) to
+one of the twenty built section modules.
 
-**The fold bound (phase 3, D369):** the six `server`-computed sections above
-are gated by `MAX_FOLD_DARTS = 5_000` (`lib/stats/section-registry.ts`).
+**The fold bound (phase 3, D369; extended phase 4, D370):** every `server`
+site above — the six phase-3 checkout folds, the four phase-4 sections when
+resolved to `server` by `sectionSite`, and the three phase-4 game-specific
+sections — is gated by `MAX_FOLD_DARTS = 5_000` (`lib/stats/section-registry.ts`).
 Before folding, the service sums `dart_count` over the scoped
 `v_stats_session_facts` rows (`findScopeDartCount`); above the cap the
 request answers `VALIDATION_FAILED` with
@@ -471,6 +477,7 @@ const SeriesEnvelope = z.object({
       metrics: z.unknown(), // per-section shape below
     }),
   ),
+  skippedSessions: z.number().int().optional(), // server-site derived sections only (phase 4, D370 decision 4)
 });
 ```
 
@@ -625,6 +632,57 @@ bucket normally. `ladder-progress` alone declares
 `scoring-trend`, `treble-rate` and `leg-stats` pool ruleset versions instead
 (D369 decision 9). `scoring-trend`/`treble-rate` also serve Score Training
 through its `scoring`/`board` tags.
+
+**Phase 4 (derived intent + game-specific sections, D370):**
+`target-accuracy`, `confusion`, `miss-direction` and `loose-darts` reuse their
+phase-2 metric shapes unchanged (`TargetKey` now also matches `NUMBER:n`/
+`BULL:25`) when the game carries `intent-derived` (Singles Training, Shanghai,
+Around the Clock); `sectionSite(meta, gameTypeKey)` is what picks the `server`
+site and the `skippedSessions` count for these, instead of the `sql` site
+phase 2 built for `intent-stored` games. The three new game-specific sections,
+grouped by `configGroupKey` (`ruleset_version_key` plus the section's
+`configSensitive` fields):
+
+```typescript
+const AtcDartsPerTargetMetrics = GroupRecord(
+  TargetRecord(z.object({ darts: z.number().int(), cleared: z.number().int() })),
+);
+
+const Bobs27SurvivalMetrics = GroupRecord(
+  z.object({
+    runs: z.number().int(),
+    completed: z.number().int(),
+    reached: TargetRecord(z.number().int()),
+    died: TargetRecord(z.number().int()),
+    scoreAfter: TargetRecord(
+      z.object({
+        runs: z.number().int(),
+        sum: z.number().int(),
+        min: z.number().int(),
+        max: z.number().int(),
+      }),
+    ),
+  }),
+);
+
+const ShanghaiCountMetrics = z.object({
+  sessions: z.number().int(),
+  shanghais: z.number().int(),
+  byRound: ValueRecord(z.number().int()), // key: 1-based round number
+});
+```
+
+`GroupRecord = <T>(inner: T) => z.record(z.string(), inner)`, keyed by
+`configGroupKey`. `atc-darts-per-target` is gated to Around the Clock
+(`games: ["AROUND_THE_CLOCK"]`, `configSensitive: ["ruleset_version_key",
+"difficulty", "segment_rule"]`); `bobs27-survival` to Bob's 27
+(`configSensitive: ["ruleset_version_key", "start_score",
+"miss_penalty_multiplier", "bull_hit_value"]`); `shanghai-count` to Shanghai
+(no `configSensitive` — V1/V2 pool). All three are `server`-site, bucketable,
+and gated by `MAX_FOLD_DARTS` the same way as the phase-3 folds.
+`skippedSessions` (added to `SeriesEnvelope` above) is set on every
+server-site response in phase 4 and later, optional so phase 1-3 results
+stay valid against the same schema.
 
 **Errors (both routes):** `NOT_FOUND` (unknown `gameTypeKey` or `sectionId`),
 `VALIDATION_FAILED` (query, per the rules above — including an unsupported or

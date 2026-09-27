@@ -89,6 +89,48 @@ describe("classifyLanding", () => {
       hitZone: "INNER_SINGLE",
       expected: "loose",
     },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 20,
+      hitZone: "TREBLE",
+      expected: "onTarget",
+    },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 5,
+      hitZone: "DOUBLE",
+      expected: "nearMiss",
+    },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 25,
+      hitZone: "INNER_BULL",
+      expected: "loose",
+    },
+    {
+      aimNumber: 25,
+      aimZone: "BULL",
+      hitNumber: 3,
+      hitZone: "INNER_SINGLE",
+      expected: "nearMiss",
+    },
+    {
+      aimNumber: 25,
+      aimZone: "BULL",
+      hitNumber: 20,
+      hitZone: "TREBLE",
+      expected: "loose",
+    },
+    {
+      aimNumber: 1,
+      aimZone: "TREBLE",
+      hitNumber: 1,
+      hitZone: "TREBLE",
+      expected: "onTarget",
+    },
   ];
 
   for (const c of cases) {
@@ -101,6 +143,24 @@ describe("classifyLanding", () => {
       ).toBe(c.expected);
     });
   }
+
+  it("BULL:25 -> INNER_BULL:25 is onTarget (parity: the classifyBullAim branch)", () => {
+    expect(
+      classifyLanding(
+        { number: 25, zone: "BULL" as never },
+        { number: 25, zone: "INNER_BULL" as never },
+      ),
+    ).toBe("onTarget");
+  });
+
+  it("OUTER_BULL:25 -> INNER_SINGLE:20 is loose (parity: the stored-bull branch's non-adjacent case)", () => {
+    expect(
+      classifyLanding(
+        { number: 25, zone: "OUTER_BULL" as never },
+        { number: 20, zone: "INNER_SINGLE" as never },
+      ),
+    ).toBe("loose");
+  });
 });
 
 describe("looseDartsBuckets", () => {

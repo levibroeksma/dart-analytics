@@ -639,6 +639,196 @@ describe("gameStatsStore", () => {
     expect(store.bandCounts).toEqual({ ton: 3, tonForty: 1, oneEighty: 0 });
   });
 
+  it("ringSplit reads TREBLE:20's count off confusion's single bucket", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "confusion") {
+        return Promise.resolve(
+          series(
+            {
+              "NUMBER:20": {
+                "TREBLE:20": 7,
+                "INNER_SINGLE:20": 2,
+                "OUTER_SINGLE:20": 1,
+                "DOUBLE:20": 3,
+                MISS: 1,
+              },
+            },
+            14,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "SHANGHAI";
+    await store.load();
+
+    const rings = store.ringSplit("NUMBER:20");
+    expect(rings).toContainEqual({ ring: "TREBLE", count: 7 });
+    expect(rings).toContainEqual({ ring: "INNER_SINGLE", count: 2 });
+    expect(rings).toContainEqual({ ring: "OUTER_SINGLE", count: 1 });
+    expect(rings).toContainEqual({ ring: "DOUBLE", count: 3 });
+  });
+
+  it("ringSplit is empty for a non-NUMBER aim", async () => {
+    const store = gameStatsStore();
+    expect(store.ringSplit("DOUBLE:16")).toEqual([]);
+  });
+
+  it("slowestTargets sorts by darts/cleared descending, ignoring targets never cleared", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "atc-darts-per-target") {
+        return Promise.resolve(
+          series(
+            {
+              "AROUND_THE_CLOCK_V1|difficulty=|segment_rule=": {
+                "NUMBER:1": { darts: 5, cleared: 0 },
+                "NUMBER:2": { darts: 10, cleared: 2 },
+                "NUMBER:3": { darts: 12, cleared: 4 },
+              },
+            },
+            17,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "AROUND_THE_CLOCK";
+    await store.load();
+
+    const slowest = store.slowestTargets(
+      "AROUND_THE_CLOCK_V1|difficulty=|segment_rule=",
+      3,
+    );
+    expect(slowest).toEqual([
+      { targetKey: "NUMBER:2", darts: 10, cleared: 2, dartsPerTarget: 5 },
+      { targetKey: "NUMBER:3", darts: 12, cleared: 4, dartsPerTarget: 3 },
+    ]);
+  });
+
+  it("bobs27-survival merge test bridge: survivalCurve reads reached along doublesPath order and averages scoreAfter", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "bobs27-survival") {
+        return Promise.resolve(
+          series(
+            {
+              "BOBS27_V1|start_score=27|miss_penalty_multiplier=1|bull_hit_value=27":
+                {
+                  runs: 2,
+                  completed: 1,
+                  reached: { "DOUBLE:1": 2, "DOUBLE:2": 1 },
+                  died: { "DOUBLE:2": 1 },
+                  scoreAfter: {
+                    "DOUBLE:1": { runs: 2, sum: 40, min: 15, max: 25 },
+                  },
+                },
+            },
+            2,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "BOBS27";
+    await store.load();
+
+    const curve = store.survivalCurve(
+      "BOBS27_V1|start_score=27|miss_penalty_multiplier=1|bull_hit_value=27",
+    );
+    expect(curve[0]).toEqual({
+      targetKey: "DOUBLE:1",
+      reached: 2,
+      averageScore: 20,
+    });
+    expect(curve[1]).toEqual({
+      targetKey: "DOUBLE:2",
+      reached: 1,
+      averageScore: null,
+    });
+    expect(curve.at(-1)!.targetKey).toBe("INNER_BULL:25");
+  });
+
+  it("shanghaiRateTrend gates below MIN_TARGET_SAMPLE and shanghaiByRound sums the round histogram", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "shanghai-count") {
+        return Promise.resolve(
+          series(
+            { sessions: 40, shanghais: 4, byRound: { "3": 3, "7": 1 } },
+            40,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "SHANGHAI";
+    await store.load();
+
+    expect(store.shanghaiRateTrend).toEqual([
+      { start: "2026-01-01T00:00:00.000Z", rate: 0.1 },
+    ]);
+    expect(store.shanghaiByRound).toEqual([
+      { round: 3, count: 3 },
+      { round: 7, count: 1 },
+    ]);
+  });
+
+  it("pointsPerRound reads session-result's countedScoreSum/turnSum across rulesets", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "session-result") {
+        return Promise.resolve(
+          series(
+            {
+              SHANGHAI_V2: {
+                sessions: 2,
+                countedScoreSum: 300,
+                dartSum: 120,
+                turnSum: 40,
+                countedScoreMin: 100,
+                countedScoreMax: 200,
+                bestLowSessionId: "11111111-1111-1111-1111-111111111111",
+                bestHighSessionId: "22222222-2222-2222-2222-222222222222",
+              },
+            },
+            2,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "SHANGHAI";
+    await store.load();
+
+    expect(store.pointsPerRound).toBeCloseTo(300 / 40);
+  });
+
+  it("skippedSessionsFor reads a server section's skippedSessions, 0 before load", async () => {
+    const store = gameStatsStore();
+    expect(store.skippedSessionsFor("shanghai-count")).toBe(0);
+
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "shanghai-count") {
+        return Promise.resolve({
+          ...series({ sessions: 1, shanghais: 0, byRound: {} }, 1),
+          skippedSessions: 3,
+        });
+      }
+      return Promise.resolve(series({}, 0));
+    });
+    store.gameTypeKey = "SHANGHAI";
+    await store.load();
+
+    expect(store.skippedSessionsFor("shanghai-count")).toBe(3);
+  });
+
   it("trebleRate gates below MIN_TARGET_SAMPLE and trebleRateAll sums every hit number", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "treble-rate") {

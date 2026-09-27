@@ -105,6 +105,226 @@ const scope = JSON.stringify({
               x-text="$store.gameStats.weakestTarget ? `Weakest: ${$store.gameStats.weakestTarget.targetKey}` : ''"
             >
             </p>
+            <div
+              class="space-y-1"
+              x-data="{ ringTarget: '' }"
+              x-effect="ringTarget = ringTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
+              x-show="($store.gameStats.gameTypeKey === 'SINGLES_TRAINING' || $store.gameStats.gameTypeKey === 'SHANGHAI') && $store.gameStats.accuracyRows.length"
+              x-cloak
+            >
+              <p class="text-xs text-muted-foreground">Ring split:</p>
+              <Select
+                optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+                model="ringTarget"
+                ariaLabel="Ring split target"
+              />
+              <template
+                x-for="ring in $store.gameStats.ringSplit(ringTarget)"
+                :key="ring.ring"
+              >
+                <div class="flex items-center justify-between text-sm">
+                  <span
+                    class="text-foreground"
+                    x-text="ring.ring"
+                  ></span>
+                  <span
+                    class="text-muted-foreground"
+                    x-text="ring.count"
+                  ></span>
+                </div>
+              </template>
+            </div>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('target-accuracy') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('target-accuracy')} sessions could not be replayed`"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ atcGroup: '' }"
+            x-effect="atcGroup = atcGroup || ($store.gameStats.atcConfigGroups[0] ?? '')"
+            x-show="$store.gameStats.sections['atc-darts-per-target']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">
+              Darts per target
+            </h2>
+            <div
+              x-show="$store.gameStats.atcConfigGroups.length > 1"
+              x-cloak
+            >
+              <Select
+                optionsExpr="$store.gameStats.atcConfigGroups.map((g) => ({ value: g, label: g }))"
+                model="atcGroup"
+                ariaLabel="Around the Clock configuration"
+              />
+            </div>
+            <template
+              x-for="row in $store.gameStats.dartsPerTargetForGroup(atcGroup)"
+              :key="row.targetKey"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="row.targetKey"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-text="row.dartsPerTarget !== null ? row.dartsPerTarget.toFixed(1) + ' darts' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <div
+              class="space-y-1"
+              x-show="$store.gameStats.slowestTargets(atcGroup, 3).length"
+              x-cloak
+            >
+              <p class="text-xs text-muted-foreground">Slowest targets:</p>
+              <template
+                x-for="row in $store.gameStats.slowestTargets(atcGroup, 3)"
+                :key="row.targetKey"
+              >
+                <div class="flex items-center justify-between text-sm">
+                  <span
+                    class="text-foreground"
+                    x-text="row.targetKey"
+                  ></span>
+                  <span
+                    class="text-accent"
+                    x-text="row.dartsPerTarget.toFixed(1) + ' darts'"
+                  ></span>
+                </div>
+              </template>
+            </div>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('atc-darts-per-target') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('atc-darts-per-target')} sessions could not be replayed`"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-data="{ bobsGroup: '' }"
+            x-effect="bobsGroup = bobsGroup || ($store.gameStats.bobs27ConfigGroups[0] ?? '')"
+            x-show="$store.gameStats.sections['bobs27-survival']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Survival</h2>
+            <div
+              x-show="$store.gameStats.bobs27ConfigGroups.length > 1"
+              x-cloak
+            >
+              <Select
+                optionsExpr="$store.gameStats.bobs27ConfigGroups.map((g) => ({ value: g, label: g }))"
+                model="bobsGroup"
+                ariaLabel="Bob's 27 configuration"
+              />
+            </div>
+            <template
+              x-for="row in $store.gameStats.survivalCurve(bobsGroup)"
+              :key="row.targetKey"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span
+                  class="w-20 shrink-0 text-foreground"
+                  x-text="row.targetKey"
+                ></span>
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                >
+                  <div
+                    class="h-full bg-accent"
+                    :style="{ width: (row.reached / Math.max(1, $store.gameStats.survivalCurve(bobsGroup)[0]?.reached ?? 1) * 100) + '%' }"
+                  >
+                  </div>
+                </div>
+                <span
+                  class="w-20 shrink-0 text-right text-muted-foreground"
+                  x-text="`${row.reached} runs`"
+                ></span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-accent"
+              x-show="$store.gameStats.bobs27DeadliestTarget(bobsGroup)"
+              x-cloak
+              x-text="$store.gameStats.bobs27DeadliestTarget(bobsGroup) ? `Dies most at: ${$store.gameStats.bobs27DeadliestTarget(bobsGroup).targetKey}` : ''"
+            >
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.bobs27AverageScore(bobsGroup) !== null"
+              x-cloak
+              x-text="`Average running score: ${$store.gameStats.bobs27AverageScore(bobsGroup) !== null ? Math.round($store.gameStats.bobs27AverageScore(bobsGroup)) : ''}`"
+            >
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('bobs27-survival') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('bobs27-survival')} sessions could not be replayed`"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.gameStats.sections['shanghai-count']"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Shanghais</h2>
+            <template
+              x-for="point in $store.gameStats.shanghaiRateTrend"
+              :key="point.start"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+                ></span>
+                <span
+                  class="text-foreground"
+                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+                ></span>
+              </div>
+            </template>
+            <p class="text-xs text-muted-foreground">Rounds where they land:</p>
+            <template
+              x-for="row in $store.gameStats.shanghaiByRound"
+              :key="row.round"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span
+                  class="text-foreground"
+                  x-text="`Round ${row.round}`"
+                ></span>
+                <span
+                  class="text-muted-foreground"
+                  x-text="row.count"
+                ></span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.pointsPerRound !== null"
+              x-cloak
+              x-text="`Points per round (before Hard-mode halving): ${$store.gameStats.pointsPerRound !== null ? $store.gameStats.pointsPerRound.toFixed(1) : ''}`"
+            >
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('shanghai-count') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('shanghai-count')} sessions could not be replayed`"
+            >
+            </p>
           </div>
 
           <div
@@ -135,6 +355,13 @@ const scope = JSON.stringify({
                 ></span>
               </div>
             </template>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('confusion') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('confusion')} sessions could not be replayed`"
+            >
+            </p>
           </div>
 
           <div
@@ -201,6 +428,13 @@ const scope = JSON.stringify({
                 </div>
               </template>
             </div>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('miss-direction') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('miss-direction')} sessions could not be replayed`"
+            >
+            </p>
           </div>
 
           <div
@@ -224,6 +458,13 @@ const scope = JSON.stringify({
                 ></span>
               </div>
             </template>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="$store.gameStats.skippedSessionsFor('loose-darts') > 0"
+              x-cloak
+              x-text="`${$store.gameStats.skippedSessionsFor('loose-darts')} sessions could not be replayed`"
+            >
+            </p>
           </div>
 
           <div

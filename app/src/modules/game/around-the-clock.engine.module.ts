@@ -66,6 +66,29 @@ export function rulesOf(
   };
 }
 
+/** The target at `targetIndex` of an already-resolved rule set's path. */
+function targetOnPath(
+  rules: AroundTheClockRules,
+  targetIndex: number,
+): BoardTarget {
+  return targetAt(rules.path, targetIndex);
+}
+
+/**
+ * The seat's active target: `targetIndex` of the path `rulesOf(config)`
+ * resolves — V1's fixed 1..20 path, or V2's direction/odds-first order, both
+ * ending in BULL. The reducer already carries its own resolved `rules`
+ * rather than the raw `config` (resolved once per fold, not per dart), so it
+ * reads the target through the same `targetOnPath` this delegates to, one
+ * source of truth for the path-index lookup.
+ */
+export function activeTargetOf(
+  state: AroundTheClockSeatState,
+  config: AroundTheClockEngineConfig,
+): BoardTarget {
+  return targetOnPath(rulesOf(config), state.targetIndex);
+}
+
 function initialSeatState(seat: SeatFact): AroundTheClockSeatState {
   return {
     participantRef: seat.participantRef,
@@ -148,7 +171,7 @@ export function applyAroundTheClockDart(
   const lastIndex = rules.path.length - 1;
   const hit = isClockHit(
     rules,
-    targetAt(rules.path, state.targetIndex),
+    targetOnPath(rules, state.targetIndex),
     observation,
   );
   const closes = state.dartsThisVisit + 1 === 3;

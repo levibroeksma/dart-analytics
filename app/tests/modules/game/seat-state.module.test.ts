@@ -3,6 +3,7 @@ import {
   activeSeatState,
   completedByIndex,
   durationSeatComplete,
+  foldSeatSteps,
   foldSeatStates,
   otherSeatsComplete,
 } from "@modules/game/seat-state.module";
@@ -114,6 +115,60 @@ describe("foldSeatStates", () => {
         locationY: 2,
       },
     ]);
+  });
+});
+
+describe("foldSeatSteps", () => {
+  const darts: DartObservation[] = [
+    {
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    },
+    {
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    },
+    {
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    },
+  ];
+
+  it("returns exactly one step per dart", () => {
+    const steps = foldSeatSteps(darts, initialProgress(seats[0]), addScore);
+    expect(steps).toHaveLength(3);
+  });
+
+  it("chains each step's after into the next step's before", () => {
+    const steps = foldSeatSteps(darts, initialProgress(seats[0]), addScore);
+    expect(steps[0].after).toEqual(steps[1].before);
+    expect(steps[1].after).toEqual(steps[2].before);
+  });
+
+  it("carries the dart's own observation on each step", () => {
+    const steps = foldSeatSteps(darts, initialProgress(seats[0]), addScore);
+    expect(steps.map((step) => step.observation)).toEqual(darts);
+  });
+
+  it("returns an empty array for no darts", () => {
+    expect(foldSeatSteps([], initialProgress(seats[0]), addScore)).toEqual([]);
+  });
+
+  it("the last step's after equals foldSeatStates' own single-seat result over an equivalent turn", () => {
+    const steps = foldSeatSteps(darts, initialProgress(seats[0]), addScore);
+    const [folded] = foldSeatStates(
+      [turn("p1", [dart(20), dart(20), dart(20)])],
+      [seats[0]],
+      initialProgress,
+      addScore,
+    );
+    expect(steps.at(-1)!.after).toEqual(folded);
   });
 });
 

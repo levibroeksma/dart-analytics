@@ -22,6 +22,9 @@ import {
   LadderProgressSeriesResponse,
   ScoringTrendSeriesResponse,
   TrebleRateSeriesResponse,
+  AtcDartsPerTargetSeriesResponse,
+  Bobs27SurvivalSeriesResponse,
+  ShanghaiCountSeriesResponse,
 } from "@routes/types";
 
 describe("StatisticsOverviewResponse", () => {
@@ -367,6 +370,29 @@ describe("board section series responses", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("parses a target-accuracy series response with skippedSessions (derived, server site)", () => {
+    const result = TargetAccuracySeriesResponse.safeParse({
+      sectionId: "target-accuracy",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      skippedSessions: 2,
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 30,
+          metrics: { "NUMBER:20": { attempts: 30, hits: 9 } },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.skippedSessions).toBe(2);
   });
 
   it("parses a confusion series response with a MISS hit key", () => {
@@ -840,5 +866,90 @@ describe("checkout family series responses", () => {
       ],
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("derived and game-specific series responses", () => {
+  it("parses an atc-darts-per-target series response with skippedSessions", () => {
+    const result = AtcDartsPerTargetSeriesResponse.safeParse({
+      sectionId: "atc-darts-per-target",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      skippedSessions: 1,
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 4,
+          metrics: {
+            "AROUND_THE_CLOCK_V2|difficulty=HARD|segment_rule=ANY": {
+              "NUMBER:1": { darts: 3, cleared: 1 },
+            },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a bobs27-survival series response", () => {
+    const result = Bobs27SurvivalSeriesResponse.safeParse({
+      sectionId: "bobs27-survival",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 2,
+          metrics: {
+            "BOBS27_V1|start_score=27|miss_penalty_multiplier=1|bull_hit_value=25":
+              {
+                runs: 2,
+                completed: 1,
+                reached: { "DOUBLE:1": 2, "DOUBLE:2": 1 },
+                died: { "DOUBLE:2": 1 },
+                scoreAfter: {
+                  "DOUBLE:1": { runs: 2, sum: 40, min: 15, max: 25 },
+                },
+              },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a shanghai-count series response", () => {
+    const result = ShanghaiCountSeriesResponse.safeParse({
+      sectionId: "shanghai-count",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 5,
+          metrics: {
+            sessions: 5,
+            shanghais: 1,
+            byRound: { "3": 1 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
   });
 });

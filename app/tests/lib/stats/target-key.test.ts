@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { formatTargetKey, parseTargetKey } from "@lib/stats/target-key";
+import {
+  formatTargetKey,
+  isAimHit,
+  parseTargetKey,
+} from "@lib/stats/target-key";
 
 describe("target key", () => {
   it("round-trips DOUBLE:16", () => {
@@ -32,5 +36,81 @@ describe("target key", () => {
 
   it("rejects a missing number", () => {
     expect(parseTargetKey("DOUBLE:")).toBeNull();
+  });
+
+  it("accepts NUMBER:20", () => {
+    expect(parseTargetKey("NUMBER:20")).toEqual({ number: 20, zone: "NUMBER" });
+  });
+
+  it("accepts BULL:25", () => {
+    expect(parseTargetKey("BULL:25")).toEqual({ number: 25, zone: "BULL" });
+  });
+
+  it("rejects NUMBER:25", () => {
+    expect(parseTargetKey("NUMBER:25")).toBeNull();
+  });
+
+  it("rejects BULL:20", () => {
+    expect(parseTargetKey("BULL:20")).toBeNull();
+  });
+
+  it("rejects NUMBER:0", () => {
+    expect(parseTargetKey("NUMBER:0")).toBeNull();
+  });
+});
+
+describe("isAimHit", () => {
+  it("NUMBER:20 is hit by any ring of 20", () => {
+    expect(
+      isAimHit({ number: 20, zone: "NUMBER" }, { number: 20, zone: "TREBLE" }),
+    ).toBe(true);
+  });
+
+  it("NUMBER:20 is not hit by a different number", () => {
+    expect(
+      isAimHit(
+        { number: 20, zone: "NUMBER" },
+        { number: 1, zone: "OUTER_SINGLE" },
+      ),
+    ).toBe(false);
+  });
+
+  it("NUMBER:20 is not hit by a MISS on 20", () => {
+    expect(
+      isAimHit({ number: 20, zone: "NUMBER" }, { number: 20, zone: "MISS" }),
+    ).toBe(false);
+  });
+
+  it("BULL:25 is hit by the outer bull", () => {
+    expect(
+      isAimHit(
+        { number: 25, zone: "BULL" },
+        { number: 25, zone: "OUTER_BULL" },
+      ),
+    ).toBe(true);
+  });
+
+  it("BULL:25 is hit by the inner bull", () => {
+    expect(
+      isAimHit(
+        { number: 25, zone: "BULL" },
+        { number: 25, zone: "INNER_BULL" },
+      ),
+    ).toBe(true);
+  });
+
+  it("a stored zone aim is hit only by the exact pair", () => {
+    expect(
+      isAimHit({ number: 16, zone: "DOUBLE" }, { number: 16, zone: "DOUBLE" }),
+    ).toBe(true);
+  });
+
+  it("a stored zone aim is not hit by a different ring on the same number", () => {
+    expect(
+      isAimHit(
+        { number: 16, zone: "DOUBLE" },
+        { number: 16, zone: "OUTER_SINGLE" },
+      ),
+    ).toBe(false);
   });
 });

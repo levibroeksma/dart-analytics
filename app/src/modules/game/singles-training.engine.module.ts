@@ -173,6 +173,18 @@ function trainingPointsFor(
 }
 
 /**
+ * The seat's active target: `config.targetOrder`'s entry at `targetIndex`.
+ * The one place Singles Training answers "what am I aiming at" — the
+ * reducer and every external reader (the derived-aims fold) go through it.
+ */
+export function activeTargetOf(
+  state: SinglesTrainingSeatState,
+  config: SinglesEngineConfig,
+): BoardTarget {
+  return targetAt(numbersPath(config.targetOrder), state.targetIndex);
+}
+
+/**
  * Pure reducer: folds one dart observation onto one seat's
  * `SinglesTrainingSeatState`.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
@@ -188,7 +200,7 @@ export function applySinglesTrainingDart(
     );
   }
 
-  const target = targetAt(numbersPath(config.targetOrder), state.targetIndex);
+  const target = activeTargetOf(state, config);
   const totalPoints =
     state.totalPoints + trainingPointsFor(target, config, observation);
   const dartsThisVisit = state.dartsThisVisit + 1;

@@ -1,5 +1,10 @@
-import type { ContextFilter, GameTypeKey } from "@lib/types";
-import type { CheckoutVisitTotals, DartFact } from "@modules/types";
+import type { ContextFilter, GameTypeKey, TargetKey } from "@lib/types";
+import type {
+  CheckoutVisitTotals,
+  DartFact,
+  DartZoneKey,
+  SeatFoldStep,
+} from "@modules/types";
 
 /**
  * Fields `career-summary.module.ts` needs from a `v_session_overview` row.
@@ -398,3 +403,96 @@ export type TrebleRateMetrics = Record<
   string,
   { darts: number; trebles: number }
 >;
+
+/**
+ * One `findDartFoldRows` row: a `v_stats_dart_facts` dart joined to its
+ * session's `v_stats_session_facts` snapshot, dart count and bucket (phase-4
+ * Task 5) — the input `sessionSteps` (`derived-aims.module.ts`) groups by
+ * session and folds through the session's own engine reducer.
+ * `intendedTargetNumber`/`intendedZoneKey` are null for every derived-intent
+ * game (Singles/Shanghai/Around the Clock never store one), carried here only
+ * so this row shares its dart-fact columns with `X01CheckoutDartRow`.
+ */
+export type DartFoldRow = {
+  sessionId: string;
+  gameTypeKey: GameTypeKey;
+  rulesetVersionKey: string;
+  configuration: Record<string, unknown> | null;
+  sessionDartCount: number;
+  bucketStart: string;
+  bucketEnd: string;
+  turnSequence: number;
+  dartNumber: number;
+  hitTargetNumber: number | null;
+  hitZoneKey: DartZoneKey;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+  locationX: number | null;
+  locationY: number | null;
+};
+
+/**
+ * One derived-intent dart's recovered aim (`aimedDarts`,
+ * `derived-aims.module.ts`): the engine's own active target before the dart,
+ * mapped to a `TargetKey` (phase-4 decision 1), and whether the dart hit it
+ * (`isAimHit`, phase-4 decision 2). `hitNumber`/`hitZone`/`x`/`y` carry the
+ * dart's own observation through, so a caller never re-reads `DartFoldRow`.
+ */
+export type AimedDart = {
+  aim: TargetKey;
+  hit: boolean;
+  hitNumber: number | null;
+  hitZone: DartZoneKey;
+  x: number;
+  y: number;
+};
+
+/**
+ * One session's darts walked through its own engine reducer, one step per
+ * dart (`sessionSteps`, `derived-aims.module.ts`, phase-4 decision 3).
+ * `configuration` is the session's raw stored snapshot, kept alongside the
+ * walk so a caller (`aimedDarts`, or a Task 7 game-specific fold) can decode
+ * it again for whatever the reducer's own config carries beyond seat state.
+ */
+export type SessionSteps<TSeat> = {
+  sessionId: string;
+  rulesetVersionKey: string;
+  configuration: Record<string, unknown> | null;
+  bucketStart: string;
+  bucketEnd: string;
+  steps: readonly SeatFoldStep<TSeat>[];
+};
+
+/** `shanghai-count` section metrics — one bucket (phase-4 decision 12). */
+export type ShanghaiCountMetrics = {
+  sessions: number;
+  shanghais: number;
+  byRound: Record<string, number>;
+};
+
+/**
+ * `atc-darts-per-target` section metrics — one bucket, keyed by
+ * `configGroupKey` then by the aim's `TargetKey` (phase-4 decisions 13, 14).
+ */
+export type AtcDartsPerTargetMetrics = Record<
+  string,
+  Record<string, { darts: number; cleared: number }>
+>;
+
+/** One config group's Bob's 27 survival counts (phase-4 decision 15). */
+export type Bobs27SurvivalGroupMetrics = {
+  runs: number;
+  completed: number;
+  reached: Record<string, number>;
+  died: Record<string, number>;
+  scoreAfter: Record<
+    string,
+    { runs: number; sum: number; min: number; max: number }
+  >;
+};
+
+/**
+ * `bobs27-survival` section metrics — one bucket, keyed by `configGroupKey`
+ * (phase-4 decisions 13, 15).
+ */
+export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;

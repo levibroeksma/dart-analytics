@@ -1,4 +1,5 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
+import { isAimHit } from "@lib/stats/target-key";
 import { intendedKey } from "./intent-cells.module";
 import { isClosed } from "./series.module";
 import type { IntentZoneKey, SeriesBucket } from "@lib/types";
@@ -33,28 +34,49 @@ function ringAdjacent(a: DartZoneKey, b: DartZoneKey): boolean {
   return Math.abs(ia - ib) === 1;
 }
 
-/**
- * Classifies a landing against its intended target (phase-2 decision 9):
- * `onTarget` (exact pair), `nearMiss` (same ring in a neighbouring sector, a
- * neighbouring ring in the same sector, or the bull/outer-bull swap), else
- * `loose` — which includes every `MISS`.
- */
-export function classifyLanding(
+/** `classifyLanding` under a `NUMBER:n` aim (phase-4 decision 8). */
+function classifyNumberAim(
   intended: { number: number; zone: IntentZoneKey },
   hit: { number: number | null; zone: DartZoneKey },
 ): "onTarget" | "nearMiss" | "loose" {
-  if (hit.number === intended.number && hit.zone === intended.zone) {
+  if (isAimHit(intended, hit)) return "onTarget";
+  return hit.number !== null &&
+    neighborSectors(intended.number).includes(hit.number)
+    ? "nearMiss"
+    : "loose";
+}
+
+/** `classifyLanding` under a `BULL:25` aim (phase-4 decision 8). */
+function classifyBullAim(hit: {
+  number: number | null;
+  zone: DartZoneKey;
+}): "onTarget" | "nearMiss" | "loose" {
+  if (hit.zone === "OUTER_BULL" || hit.zone === "INNER_BULL") {
     return "onTarget";
   }
+  return hit.zone === "INNER_SINGLE" ? "nearMiss" : "loose";
+}
 
-  if (intended.zone === "INNER_BULL" || intended.zone === "OUTER_BULL") {
-    const bullNear: DartZoneKey =
-      intended.zone === "INNER_BULL" ? "OUTER_BULL" : "INNER_BULL";
-    return hit.zone === bullNear && hit.number === intended.number
-      ? "nearMiss"
-      : "loose";
-  }
+/** `intended.zone` once `NUMBER`/`BULL` are ruled out — every stored aim is a real `DartZoneKey`. */
+type StoredZone = Exclude<IntentZoneKey, "NUMBER" | "BULL">;
 
+/** Near-miss check for a stored bull aim (`INNER_BULL`/`OUTER_BULL`): the other bull ring, same number. */
+function nearMissOnStoredBull(
+  intended: { number: number; zone: StoredZone },
+  hit: { number: number | null; zone: DartZoneKey },
+): "nearMiss" | "loose" {
+  const bullNear: DartZoneKey =
+    intended.zone === "INNER_BULL" ? "OUTER_BULL" : "INNER_BULL";
+  return hit.zone === bullNear && hit.number === intended.number
+    ? "nearMiss"
+    : "loose";
+}
+
+/** Near-miss check for a stored numbered-ring aim (phase-2 decision 9): neighbouring sector same ring, or neighbouring ring same sector. */
+function nearMissOnStoredRing(
+  intended: { number: number; zone: StoredZone },
+  hit: { number: number | null; zone: DartZoneKey },
+): "nearMiss" | "loose" {
   if (hit.number === null) return "loose";
 
   const sameRingNeighborSector =
@@ -66,6 +88,41 @@ export function classifyLanding(
   return sameRingNeighborSector || sameSectorNeighborRing
     ? "nearMiss"
     : "loose";
+}
+
+/** `classifyLanding` under a stored-zone aim: exact pair, else phase-2 decision 9's adjacency. */
+function classifyStoredAim(
+  intended: { number: number; zone: StoredZone },
+  hit: { number: number | null; zone: DartZoneKey },
+): "onTarget" | "nearMiss" | "loose" {
+  if (hit.number === intended.number && hit.zone === intended.zone) {
+    return "onTarget";
+  }
+
+  if (intended.zone === "INNER_BULL" || intended.zone === "OUTER_BULL") {
+    return nearMissOnStoredBull(intended, hit);
+  }
+
+  return nearMissOnStoredRing(intended, hit);
+}
+
+/**
+ * Classifies a landing against its intended target: `onTarget` (exact pair
+ * on a stored zone, or `isAimHit` on a derived one), `nearMiss` (phase-2
+ * decision 9's ring/sector adjacency for a stored zone; phase-4 decision 8's
+ * neighbouring-number or `INNER_SINGLE`-of-any-number for `NUMBER`/`BULL`),
+ * else `loose` — which includes every `MISS`.
+ */
+export function classifyLanding(
+  intended: { number: number; zone: IntentZoneKey },
+  hit: { number: number | null; zone: DartZoneKey },
+): "onTarget" | "nearMiss" | "loose" {
+  if (intended.zone === "NUMBER") return classifyNumberAim(intended, hit);
+  if (intended.zone === "BULL") return classifyBullAim(hit);
+  return classifyStoredAim(
+    { number: intended.number, zone: intended.zone },
+    hit,
+  );
 }
 
 /** Folds `findIntentCells` rows into `loose-darts` buckets: on/near/loose shares per intended target. */

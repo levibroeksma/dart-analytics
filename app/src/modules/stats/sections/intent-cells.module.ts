@@ -1,6 +1,11 @@
-import { formatTargetKey } from "@lib/stats/target-key";
+import {
+  formatTargetKey,
+  isAimHit,
+  parseTargetKey,
+} from "@lib/stats/target-key";
+import { aimedDarts } from "../derived-aims.module";
 import type { IntentZoneKey, TargetKey } from "@lib/types";
-import type { IntentCellRow } from "@modules/types";
+import type { DartZoneKey, IntentCellRow, SessionSteps } from "@modules/types";
 
 /** The intended pair as a `TargetKey` (phase-2 decision 5). */
 export function intendedKey(
@@ -24,9 +29,11 @@ export function hitKey(
 }
 
 /**
- * Whether a dart landed exactly on its intended pair — parity-tested against
- * `isHitOn` (`board-progression.module.ts`) for every intent Doubles
- * Training and Bob's 27 store (phase-2 decision 2).
+ * Whether a dart landed on its intended aim — `isAimHit` (phase-4 decision
+ * 2): a `NUMBER`/`BULL` derived aim resolves by ring or by either bull, and
+ * every stored zone keeps the exact-pair rule `isHit` always used, parity-
+ * tested against `isHitOn` (`board-progression.module.ts`) for every intent
+ * Doubles Training and Bob's 27 store (phase-2 decision 2).
  */
 export function isHit(
   row: Pick<
@@ -37,8 +44,56 @@ export function isHit(
     | "hitZoneKey"
   >,
 ): boolean {
-  return (
-    row.hitTargetNumber === row.intendedTargetNumber &&
-    row.hitZoneKey === row.intendedZoneKey
+  return isAimHit(
+    {
+      number: row.intendedTargetNumber,
+      zone: row.intendedZoneKey as IntentZoneKey,
+    },
+    { number: row.hitTargetNumber, zone: row.hitZoneKey as DartZoneKey },
   );
+}
+
+/**
+ * Aggregates `aimedDarts` across `sessions` into `IntentCellRow`s, one row
+ * per bucket × intended aim × landing triple (phase-4 decisions 1-2):
+ * `intendedZoneKey` carries `NUMBER`/`BULL` for these derived aims, so every
+ * phase-2 shape function already folding `IntentCellRow[]`
+ * (`target-accuracy`, `confusion`) serves them unchanged.
+ */
+export function aimCellRows(
+  sessions: readonly SessionSteps<unknown>[],
+): IntentCellRow[] {
+  const cells = new Map<string, IntentCellRow>();
+
+  for (const session of sessions) {
+    for (const dart of aimedDarts(session)) {
+      const aim = parseTargetKey(dart.aim);
+      if (aim === null) continue;
+
+      const key = [
+        session.bucketStart,
+        aim.zone,
+        aim.number,
+        dart.hitZone,
+        dart.hitNumber,
+      ].join("|");
+
+      const existing = cells.get(key);
+      if (existing) {
+        existing.darts += 1;
+        continue;
+      }
+      cells.set(key, {
+        bucketStart: session.bucketStart,
+        bucketEnd: session.bucketEnd,
+        intendedTargetNumber: aim.number,
+        intendedZoneKey: aim.zone,
+        hitTargetNumber: dart.hitNumber,
+        hitZoneKey: dart.hitZone,
+        darts: 1,
+      });
+    }
+  }
+
+  return Array.from(cells.values());
 }

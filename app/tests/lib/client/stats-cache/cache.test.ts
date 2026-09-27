@@ -7,6 +7,7 @@ import {
   missingSpans,
 } from "@client/stats-cache/cache";
 import { STATS_DB_NAME } from "@client/stats-cache/db";
+import { SECTIONS } from "@lib/stats/section-registry";
 import type { SectionMeta } from "@lib/types";
 import type { CachedSeries } from "@client/types";
 
@@ -415,6 +416,38 @@ describe("readSection (server)", () => {
     });
   });
 
+  it("sums skippedSessions across every fetched chunk", async () => {
+    const query = {
+      bucket: "month" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve({
+          ...response(span.from, span.to, [
+            bucket(span.from, span.to, true, 1),
+          ]),
+          skippedSessions: span.from === "2026-01-01T00:00:00.000Z" ? 2 : 1,
+        }),
+      );
+
+    const result = await readSection(
+      "p1",
+      "501",
+      serverMeta,
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(result.skippedSessions).toBe(3);
+  });
+
   it("propagates a fetcher rejection (VALIDATION_FAILED) without fetching further chunks", async () => {
     const query = {
       bucket: "month" as const,
@@ -449,6 +482,77 @@ describe("readSection (server)", () => {
       ),
     ).rejects.toThrow("VALIDATION_FAILED");
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("readSection (site resolved per game, phase-4 decision 5)", () => {
+  beforeEach(() => deleteStatsDb());
+
+  it("chunks target-accuracy by month on SHANGHAI, whose intent-derived tag resolves it to server", async () => {
+    const query = {
+      bucket: "month" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve(
+          response(span.from, span.to, [bucket(span.from, span.to, true, 1)]),
+        ),
+      );
+
+    const result = await readSection(
+      "p1",
+      "SHANGHAI",
+      SECTIONS["target-accuracy"],
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[0]![0]).toEqual({
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      bucket: "month",
+    });
+    expect(result.buckets).toHaveLength(2);
+  });
+
+  it("does not chunk target-accuracy on DOUBLES_TRAINING, whose only intent tag resolves it to sql", async () => {
+    const query = {
+      bucket: "month" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(
+        response(query.from, query.to, [
+          bucket("2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z", true),
+          bucket("2026-02-01T00:00:00.000Z", "2026-03-01T00:00:00.000Z", true),
+        ]),
+      );
+
+    const result = await readSection(
+      "p1",
+      "DOUBLES_TRAINING",
+      SECTIONS["target-accuracy"],
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledWith({ from: query.from, to: query.to });
+    expect(result.buckets).toHaveLength(2);
   });
 });
 

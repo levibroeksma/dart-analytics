@@ -18,6 +18,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findX01FoldRows: vi.fn(),
   findVisitScoring: vi.fn(),
   findHitNumberCells: vi.fn(),
+  findDartFoldRows: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
@@ -25,9 +26,16 @@ import {
   getStatisticsOverview,
   listGameSessions,
   getGameSection,
+  resolveSectionHandler,
 } from "@services/statistics.service";
-import { SECTIONS, MAX_FOLD_DARTS } from "@lib/stats/section-registry";
+import {
+  SECTIONS,
+  MAX_FOLD_DARTS,
+  RESULT_DIRECTION,
+  sectionsForGame,
+} from "@lib/stats/section-registry";
 import { SCORE_BANDS } from "@modules/stats/sections/scoring-trend.module";
+import type { GameTypeKey } from "@lib/types";
 
 const playerId = "0198f200-0000-7000-8000-000000000001";
 
@@ -852,11 +860,11 @@ describe("getGameSection", () => {
     if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
   });
 
-  it("returns NOT_FOUND for target-accuracy on Singles Training", async () => {
+  it("returns NOT_FOUND for grouping on Singles Training (phase-4 decision 6: no aim point for a whole-number aim)", async () => {
     const result = await getGameSection(
       playerId,
       "SINGLES_TRAINING",
-      "target-accuracy",
+      "grouping",
       { ...baseRangeQuery, status: "completed" },
     );
 
@@ -1204,5 +1212,329 @@ describe("getGameSection dispatches the checkout family", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
     expect(repo.findScopeDartCount).not.toHaveBeenCalled();
+  });
+});
+
+/** One `findDartFoldRows` row for a Shanghai session: one dart at the first target, number 1. */
+function makeShanghaiFoldRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "s-shanghai",
+    gameTypeKey: "SHANGHAI",
+    rulesetVersionKey: "SHANGHAI_V1",
+    configuration: { seats: SEATS },
+    sessionDartCount: 1,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    turnSequence: 1,
+    dartNumber: 1,
+    hitTargetNumber: 1,
+    hitZoneKey: "OUTER_SINGLE",
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    locationX: 0,
+    locationY: 0,
+    ...overrides,
+  };
+}
+
+/** One `findDartFoldRows` row for an Around the Clock V1 session: one dart at the first target, number 1. */
+function makeAtcFoldRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "s-atc",
+    gameTypeKey: "AROUND_THE_CLOCK",
+    rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+    configuration: {},
+    sessionDartCount: 1,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    turnSequence: 1,
+    dartNumber: 1,
+    hitTargetNumber: 1,
+    hitZoneKey: "OUTER_SINGLE",
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    locationX: 0,
+    locationY: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * A Bob's 27 visit resolves on its 3rd dart (`applyBobs27Dart`): one made D1
+ * followed by two misses reaches D1 and advances.
+ */
+function makeBobs27FoldRows(): unknown[] {
+  const config = {
+    start_score: 27,
+    bull_hit_value: 50,
+    miss_penalty_multiplier: 1,
+    seats: SEATS,
+  };
+  const darts = [
+    { hitTargetNumber: 1, hitZoneKey: "DOUBLE" },
+    { hitTargetNumber: null, hitZoneKey: "MISS" },
+    { hitTargetNumber: null, hitZoneKey: "MISS" },
+  ];
+  return darts.map((dart, index) => ({
+    sessionId: "s-bobs27",
+    gameTypeKey: "BOBS27",
+    rulesetVersionKey: "BOBS27_V1",
+    configuration: config,
+    sessionDartCount: darts.length,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    turnSequence: 1,
+    dartNumber: index + 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    locationX: 0,
+    locationY: 0,
+    ...dart,
+  }));
+}
+
+describe("getGameSection dispatches derived-intent and game-specific sections (phase-4 Task 8)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("resolves a handler for every section each game's own page offers", () => {
+    for (const gameTypeKey of Object.keys(RESULT_DIRECTION) as GameTypeKey[]) {
+      for (const sectionId of sectionsForGame(gameTypeKey)) {
+        expect(resolveSectionHandler(sectionId, gameTypeKey)).toBeDefined();
+      }
+    }
+  });
+
+  it("dispatches target-accuracy through findIntentCells on DOUBLES_TRAINING (sql site)", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findIntentCells).mockResolvedValue([
+      {
+        bucketStart: baseRangeQuery.from,
+        bucketEnd: baseRangeQuery.to,
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: 16,
+        hitZoneKey: "DOUBLE",
+        darts: 5,
+      },
+    ]);
+
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "target-accuracy",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBeUndefined();
+    }
+    expect(repo.findIntentCells).toHaveBeenCalled();
+    expect(repo.findDartFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("dispatches target-accuracy through findDartFoldRows on SHANGHAI (server site, decision 5)", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeShanghaiFoldRow(),
+    ] as never);
+
+    const result = await getGameSection(
+      playerId,
+      "SHANGHAI",
+      "target-accuracy",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("target-accuracy");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "NUMBER:1": { attempts: 1, hits: 1 },
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(0);
+    }
+    expect(repo.findDartFoldRows).toHaveBeenCalled();
+    expect(repo.findIntentCells).not.toHaveBeenCalled();
+  });
+
+  it("dispatches miss-direction through findDartFoldRows on AROUND_THE_CLOCK (server site, decision 7)", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeAtcFoldRow({ hitTargetNumber: null, hitZoneKey: "MISS" }),
+    ] as never);
+
+    const result = await getGameSection(
+      playerId,
+      "AROUND_THE_CLOCK",
+      "miss-direction",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("miss-direction");
+      expect(Object.keys(result.data.buckets[0]!.metrics)).toEqual([
+        "NUMBER:1",
+      ]);
+    }
+    expect(repo.findDartFoldRows).toHaveBeenCalled();
+    expect(repo.findMissSectors).not.toHaveBeenCalled();
+  });
+
+  it("returns VALIDATION_FAILED above MAX_FOLD_DARTS on atc-darts-per-target and never calls findDartFoldRows", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    const dartCount = MAX_FOLD_DARTS + 1;
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(dartCount);
+
+    const result = await getGameSection(
+      playerId,
+      "AROUND_THE_CLOCK",
+      "atc-darts-per-target",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`,
+      );
+    }
+    expect(repo.findDartFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("dispatches atc-darts-per-target through the fold on AROUND_THE_CLOCK", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeAtcFoldRow(),
+    ] as never);
+
+    const result = await getGameSection(
+      playerId,
+      "AROUND_THE_CLOCK",
+      "atc-darts-per-target",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("atc-darts-per-target");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "AROUND_THE_CLOCK_V1|difficulty=|segment_rule=": {
+          "NUMBER:1": { darts: 1, cleared: 1 },
+        },
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(0);
+    }
+  });
+
+  it("dispatches bobs27-survival through the fold on BOBS27", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue(
+      makeBobs27FoldRows() as never,
+    );
+
+    const result = await getGameSection(playerId, "BOBS27", "bobs27-survival", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("bobs27-survival");
+      const [group] = Object.values(
+        result.data.buckets[0]!.metrics as unknown as Record<
+          string,
+          { runs: number; reached: Record<string, number> }
+        >,
+      );
+      expect(group!.runs).toBe(1);
+      expect(group!.reached).toEqual({ "DOUBLE:1": 1 });
+    }
+  });
+
+  it("returns NOT_FOUND for bobs27-survival on DOUBLES_TRAINING (game-gated to BOBS27)", async () => {
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "bobs27-survival",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+    expect(repo.findScopeDartCount).not.toHaveBeenCalled();
+  });
+
+  it("dispatches shanghai-count through the fold on SHANGHAI", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeShanghaiFoldRow(),
+    ] as never);
+
+    const result = await getGameSection(
+      playerId,
+      "SHANGHAI",
+      "shanghai-count",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("shanghai-count");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        sessions: 1,
+        shanghais: 0,
+        byRound: {},
+      });
+    }
+  });
+
+  it("returns VALIDATION_FAILED for heatmap+target on SHANGHAI (decision 16: derived games get no heatmap target filter)", async () => {
+    const result = await getGameSection(playerId, "SHANGHAI", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "NUMBER:20",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toContain("target");
+    }
+    expect(repo.findHeatmapCells).not.toHaveBeenCalled();
   });
 });

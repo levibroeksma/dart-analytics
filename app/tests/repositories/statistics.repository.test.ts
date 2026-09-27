@@ -11,6 +11,7 @@ import {
   findHeatmapCells,
   findScopeDartCount,
   findX01FoldRows,
+  findDartFoldRows,
   findVisitScoring,
   findHitNumberCells,
 } from "@repositories/statistics.repository";
@@ -806,6 +807,154 @@ describe("findX01FoldRows", () => {
     });
 
     expect(result).toEqual([row]);
+  });
+});
+
+describe("findDartFoldRows", () => {
+  it("reads v_stats_dart_facts joined to v_stats_session_facts, filtering status_key and completed_at", async () => {
+    const { db, statements } = renderingDb([]);
+    await findDartFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"status_key"/);
+    expect(sql).toMatch(/"completed_at" >= \$/);
+    expect(sql).toMatch(/"completed_at" < \$/);
+  });
+
+  it("orders by session, turn sequence and dart number, in that order", async () => {
+    const { db, statements } = renderingDb([]);
+    await findDartFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().indexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    const orderClause = sql.slice(orderIndex);
+    expect(orderClause).toMatch(/"session_id".*"turn_sequence".*"dart_number"/);
+  });
+
+  it("renders the bucket expression on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findDartFoldRows(db, {
+      ...sessionScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("maps configuration untouched", async () => {
+    const configuration = { difficulty: "HARD", segment_rule: "OUTER_SINGLE" };
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          gameTypeKey: "AROUND_THE_CLOCK",
+          rulesetVersionKey: "AROUND_THE_CLOCK_V2",
+          configuration,
+          sessionDartCount: 1,
+          bucketStart: sessionScope.from,
+          bucketEnd: sessionScope.to,
+          turnSequence: 1,
+          dartNumber: 1,
+          hitTargetNumber: 1,
+          hitZoneKey: "OUTER_SINGLE",
+          intendedTargetNumber: null,
+          intendedZoneKey: null,
+          locationX: "12.34",
+          locationY: "-5.60",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findDartFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result[0].configuration).toBe(configuration);
+  });
+
+  it("converts the NUMERIC location_x/location_y columns to numbers", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          gameTypeKey: "SINGLES_TRAINING",
+          rulesetVersionKey: "SINGLES_V1",
+          configuration: {},
+          sessionDartCount: 1,
+          bucketStart: sessionScope.from,
+          bucketEnd: sessionScope.to,
+          turnSequence: 1,
+          dartNumber: 1,
+          hitTargetNumber: 7,
+          hitZoneKey: "OUTER_SINGLE",
+          intendedTargetNumber: null,
+          intendedZoneKey: null,
+          locationX: "12.34",
+          locationY: "-5.60",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findDartFoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result[0].locationX).toBe(12.34);
+    expect(result[0].locationY).toBe(-5.6);
+  });
+
+  it("nonNull throws on a null turn_sequence", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          gameTypeKey: "SINGLES_TRAINING",
+          rulesetVersionKey: "SINGLES_V1",
+          configuration: {},
+          sessionDartCount: 1,
+          bucketStart: sessionScope.from,
+          bucketEnd: sessionScope.to,
+          turnSequence: null,
+          dartNumber: 1,
+          hitTargetNumber: 7,
+          hitZoneKey: "OUTER_SINGLE",
+          intendedTargetNumber: null,
+          intendedZoneKey: null,
+          locationX: "12.34",
+          locationY: "-5.60",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(
+      findDartFoldRows(db, { ...sessionScope, bucket: "none", tz: undefined }),
+    ).rejects.toThrow(/turn_sequence/);
   });
 });
 

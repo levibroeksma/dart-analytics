@@ -43,6 +43,22 @@
       "file": "src/lib/client/api/types.ts",
       "exports": ["ConfigurationPresetData", "SessionActiveData"],
     },
+    // Each per-game engine exports its own `activeTargetOf(state, config)`
+    // with the same name by design (D370 decision 1) — one aim-recovery
+    // entry point per engine, never re-exported through a shared barrel.
+    // `derived-aims.module.ts` imports all three with per-engine aliases.
+    {
+      "file": "src/modules/game/singles-training.engine.module.ts",
+      "exports": ["activeTargetOf"],
+    },
+    {
+      "file": "src/modules/game/shanghai.engine.module.ts",
+      "exports": ["activeTargetOf"],
+    },
+    {
+      "file": "src/modules/game/around-the-clock.engine.module.ts",
+      "exports": ["activeTargetOf"],
+    },
   ],
   "health": {
     "ignore": ["src/middleware.ts", "src/lib/auth/verify-jwt.ts"],
