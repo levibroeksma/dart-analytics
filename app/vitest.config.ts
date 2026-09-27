@@ -6,6 +6,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     setupFiles: ["./tests/setup.ts"],
+    env: { LC_ALL: "en_US.UTF-8" },
   },
   resolve: {
     alias: {
