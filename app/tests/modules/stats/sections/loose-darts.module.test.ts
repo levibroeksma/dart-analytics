@@ -89,6 +89,41 @@ describe("classifyLanding", () => {
       hitZone: "INNER_SINGLE",
       expected: "loose",
     },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 20,
+      hitZone: "TREBLE",
+      expected: "onTarget",
+    },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 5,
+      hitZone: "DOUBLE",
+      expected: "nearMiss",
+    },
+    {
+      aimNumber: 20,
+      aimZone: "NUMBER",
+      hitNumber: 25,
+      hitZone: "INNER_BULL",
+      expected: "loose",
+    },
+    {
+      aimNumber: 25,
+      aimZone: "BULL",
+      hitNumber: 3,
+      hitZone: "INNER_SINGLE",
+      expected: "nearMiss",
+    },
+    {
+      aimNumber: 25,
+      aimZone: "BULL",
+      hitNumber: 20,
+      hitZone: "TREBLE",
+      expected: "loose",
+    },
   ];
 
   for (const c of cases) {

@@ -138,3 +138,51 @@ export function zoneCentroid(
   const radians = index * SECTOR_WIDTH_DEGREES * (Math.PI / 180);
   return { x: radius * Math.sin(radians), y: -radius * Math.cos(radians) };
 }
+
+function clampToNumberedBand(radius: number): number {
+  return Math.min(
+    BOARD_RADII_MM.doubleOuter,
+    Math.max(BOARD_RADII_MM.outerBull, radius),
+  );
+}
+
+function pointAtBearing(bearing: number, radius: number): BoardPoint {
+  const radians = bearing * (Math.PI / 180);
+  return { x: radius * Math.sin(radians), y: -radius * Math.cos(radians) };
+}
+
+/** The signed angular distance from `bearing` to `center`, normalised to `(-180, 180]`. */
+function angleDelta(bearing: number, center: number): number {
+  return ((((bearing - center) % 360) + 540) % 360) - 180;
+}
+
+/**
+ * The nearest point of wedge `number`'s own angular span to `point`
+ * (phase-4 decision 7): inside the span, `point`'s own bearing with its
+ * radius clamped to `[outerBull, doubleOuter]`; outside the span, the
+ * projection onto whichever of the wedge's two edge rays is nearer, radius
+ * clamped the same way. Used as the miss-direction reference for a `NUMBER`
+ * aim, which has no single centre the way a stored zone does.
+ */
+export function wedgeNearestPoint(
+  number: number,
+  point: BoardPoint,
+): BoardPoint {
+  const index = SECTOR_ORDER.indexOf(number);
+  if (index < 0) {
+    throw new Error(`${number} is not a board number`);
+  }
+
+  const center = index * SECTOR_WIDTH_DEGREES;
+  const halfWidth = SECTOR_WIDTH_DEGREES / 2;
+  const bearing = bearingDegrees(point.x, point.y);
+  const delta = angleDelta(bearing, center);
+  const radius = clampToNumberedBand(radiusOf(point.x, point.y));
+
+  if (Math.abs(delta) <= halfWidth) {
+    return pointAtBearing(bearing, radius);
+  }
+
+  const edgeBearing = center + Math.sign(delta) * halfWidth;
+  return pointAtBearing(edgeBearing, radius);
+}

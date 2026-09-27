@@ -3,6 +3,7 @@ import {
   BOARD_RADII_MM,
   SECTOR_WIDTH_DEGREES,
   classify,
+  wedgeNearestPoint,
   zoneCentroid,
 } from "@lib/game/board/board-geometry.module";
 
@@ -167,5 +168,32 @@ describe("zoneCentroid", () => {
 describe("SECTOR_WIDTH_DEGREES", () => {
   it("is 18 degrees for 20 sectors", () => {
     expect(SECTOR_WIDTH_DEGREES).toBe(18);
+  });
+});
+
+describe("wedgeNearestPoint", () => {
+  it("clamps a point on the 20 wedge's own centre line off the board to doubleOuter", () => {
+    const point = wedgeNearestPoint(20, { x: 0, y: -400 });
+    expect(point.x).toBeCloseTo(0, 6);
+    expect(point.y).toBeCloseTo(-BOARD_RADII_MM.doubleOuter, 6);
+  });
+
+  it("projects a point in the 1 wedge onto the shared 20/1 edge ray", () => {
+    const landing = zoneCentroid(1, "OUTER_SINGLE")!;
+    const point = wedgeNearestPoint(20, landing);
+
+    const radius = Math.sqrt(point.x ** 2 + point.y ** 2);
+    const landingRadius = Math.sqrt(landing.x ** 2 + landing.y ** 2);
+    const bearing =
+      (Math.atan2(point.x, -point.y) * (180 / Math.PI) + 360) % 360;
+
+    expect(bearing).toBeCloseTo(9, 6);
+    expect(radius).toBeCloseTo(landingRadius, 6);
+  });
+
+  it("clamps a point in the bull to outerBull, on the 20 wedge's own bearing", () => {
+    const point = wedgeNearestPoint(20, { x: 0, y: -5 });
+    expect(point.x).toBeCloseTo(0, 6);
+    expect(point.y).toBeCloseTo(-BOARD_RADII_MM.outerBull, 6);
   });
 });
