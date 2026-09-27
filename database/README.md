@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0043)
+├── migrations/     # ordered schema migrations (0001–0044)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -138,6 +138,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0041_training_schedule_checks.sql` | migration `0041`: two active schedules for one player raise `unique_violation`, `day_of_week` 0/8 raise `check_violation`, a duplicate weekday within one schedule raises `unique_violation`, deleting a scheduled routine template raises `foreign_key_violation`, deleting a schedule cascades its days, deleting a player cascades their schedules, `v_training_schedules.day_count` and `v_training_schedule_days.routine_minutes` both read correctly (7 checks) |
 | `verification/0042_training_completions_view_checks.sql` | migration `0042`: `v_training_completions` lists a completed training with its snapshot routine id/name and excludes abandoned, active and snapshot-less activities (2026-09-22) |
 | `verification/0043_stats_base_views_checks.sql` | migration `0043`: `v_stats_session_facts` owner-scopes turn/dart/score counts and derives `context_key` (STANDALONE vs ROUTINE, no fan-out), an abandoned zero-turn session zeroes every count, an ACTIVE session and a training exercise session are absent from both views, `v_stats_dart_facts` owner-scopes darts and excludes non-VISUAL_BOARD sessions, the date-range index exists, anti-vacuity guard (11 checks) (D364, 2026-09-26) |
+| `verification/0044_replay_view_coordinates_checks.sql` | migration `0044`: `v_game_replay` returns a VISUAL_BOARD dart's `location_x`/`location_y` unchanged, NULL for both on a bounce-out, one row with NULL dart columns and a non-null `participant_id` for a turn-total-only turn, each of PLAYER/GUEST/DARTBOT with its `participant_type_key`, and the same row count as the `0016` definition, anti-vacuity guard (6 checks) (2026-09-27) |
 
 ## References
 
