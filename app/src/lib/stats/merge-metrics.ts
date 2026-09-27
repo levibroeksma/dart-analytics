@@ -4,6 +4,10 @@ import type {
   ServerSectionId,
   ServerSectionMetrics,
 } from "./types";
+import type {
+  Bobs27SurvivalGroupMetrics,
+  MissDirectionEntry,
+} from "@modules/types";
 
 /** A calendar date with no time-of-day or zone attached — the unit every chunk-window boundary is computed in. */
 type CivilDate = { year: number; month: number; day: number };
@@ -240,6 +244,129 @@ function mergeMaxTarget(a: number | null, b: number | null): number | null {
   return Math.max(a, b);
 }
 
+/** A `MissDirectionEntry`'s composite key: the (sector, radial) pair two chunks must match on to be the same slice. */
+function missEntryKey(entry: MissDirectionEntry): string {
+  return `${entry.sector}:${entry.radial}`;
+}
+
+/** Sums two aims' missed-dart entry lists by `(sector, radial)`, never double-counting or dropping a key only one side has. */
+function mergeMissEntries(
+  a: readonly MissDirectionEntry[],
+  b: readonly MissDirectionEntry[],
+): MissDirectionEntry[] {
+  const totals = new Map<string, MissDirectionEntry>();
+  for (const entry of [...a, ...b]) {
+    const key = missEntryKey(entry);
+    const existing = totals.get(key);
+    totals.set(key, {
+      sector: entry.sector,
+      radial: entry.radial,
+      darts: (existing?.darts ?? 0) + entry.darts,
+    });
+  }
+  return Array.from(totals.values());
+}
+
+/** `miss-direction`'s per-aim entry lists, merged by `(target, sector, radial)` (phase-4 decision 7). */
+function mergeMissDirection(
+  a: ServerSectionMetrics["miss-direction"],
+  b: ServerSectionMetrics["miss-direction"],
+): ServerSectionMetrics["miss-direction"] {
+  const result: ServerSectionMetrics["miss-direction"] = {};
+  for (const key of unionKeys(a, b)) {
+    result[key] = mergeMissEntries(a[key] ?? [], b[key] ?? []);
+  }
+  return result;
+}
+
+/** `atc-darts-per-target`'s two levels of keying: outer `configGroupKey`, inner aim (phase-4 decision 13). */
+function mergeAtcDartsPerTarget(
+  a: ServerSectionMetrics["atc-darts-per-target"],
+  b: ServerSectionMetrics["atc-darts-per-target"],
+): ServerSectionMetrics["atc-darts-per-target"] {
+  const result: ServerSectionMetrics["atc-darts-per-target"] = {};
+  for (const key of unionKeys(a, b)) {
+    result[key] = mergeCountRecord(a[key] ?? {}, b[key] ?? {});
+  }
+  return result;
+}
+
+/** One `scoreAfter` target's counts: `runs`/`sum` add, `min`/`max` merge to the smaller/larger side (phase-4 decision 15). */
+function mergeScoreAfterEntry(
+  a: { runs: number; sum: number; min: number; max: number },
+  b: { runs: number; sum: number; min: number; max: number },
+): { runs: number; sum: number; min: number; max: number } {
+  return {
+    runs: a.runs + b.runs,
+    sum: a.sum + b.sum,
+    min: Math.min(a.min, b.min),
+    max: Math.max(a.max, b.max),
+  };
+}
+
+function mergeScoreAfter(
+  a: Bobs27SurvivalGroupMetrics["scoreAfter"],
+  b: Bobs27SurvivalGroupMetrics["scoreAfter"],
+): Bobs27SurvivalGroupMetrics["scoreAfter"] {
+  const result: Bobs27SurvivalGroupMetrics["scoreAfter"] = {};
+  for (const key of unionKeys(a, b)) {
+    const left = a[key];
+    const right = b[key];
+    result[key] =
+      left === undefined
+        ? right!
+        : right === undefined
+          ? left
+          : mergeScoreAfterEntry(left, right);
+  }
+  return result;
+}
+
+/** One config group's Bob's 27 survival counts: everything additive except `scoreAfter`'s `min`/`max` (phase-4 decision 15). */
+function mergeBobs27Group(
+  a: Bobs27SurvivalGroupMetrics,
+  b: Bobs27SurvivalGroupMetrics,
+): Bobs27SurvivalGroupMetrics {
+  return {
+    runs: a.runs + b.runs,
+    completed: a.completed + b.completed,
+    reached: mergeCounts(a.reached, b.reached),
+    died: mergeCounts(a.died, b.died),
+    scoreAfter: mergeScoreAfter(a.scoreAfter, b.scoreAfter),
+  };
+}
+
+/** `bobs27-survival`'s outer `configGroupKey` level, folding each group with `mergeBobs27Group`. */
+function mergeBobs27Survival(
+  a: ServerSectionMetrics["bobs27-survival"],
+  b: ServerSectionMetrics["bobs27-survival"],
+): ServerSectionMetrics["bobs27-survival"] {
+  const result: ServerSectionMetrics["bobs27-survival"] = {};
+  for (const key of unionKeys(a, b)) {
+    const left = a[key];
+    const right = b[key];
+    result[key] =
+      left === undefined
+        ? right!
+        : right === undefined
+          ? left
+          : mergeBobs27Group(left, right);
+  }
+  return result;
+}
+
+/** `shanghai-count`'s three additive fields: `sessions`, `shanghais` and the `byRound` histogram (phase-4 decision 12). */
+function mergeShanghaiCount(
+  a: ServerSectionMetrics["shanghai-count"],
+  b: ServerSectionMetrics["shanghai-count"],
+): ServerSectionMetrics["shanghai-count"] {
+  return {
+    sessions: a.sessions + b.sessions,
+    shanghais: a.shanghais + b.shanghais,
+    byRound: mergeCounts(a.byRound, b.byRound),
+  };
+}
+
 function mergeLadderProgress(
   a: ServerSectionMetrics["ladder-progress"],
   b: ServerSectionMetrics["ladder-progress"],
@@ -269,6 +396,13 @@ const MERGERS: {
   "leg-stats": mergeCounts,
   "checkout-path": mergeCheckoutPath,
   "ladder-progress": mergeLadderProgress,
+  "target-accuracy": mergeCountRecord,
+  confusion: mergeCountRecord,
+  "loose-darts": mergeCountRecord,
+  "miss-direction": mergeMissDirection,
+  "atc-darts-per-target": mergeAtcDartsPerTarget,
+  "bobs27-survival": mergeBobs27Survival,
+  "shanghai-count": mergeShanghaiCount,
 };
 
 /**

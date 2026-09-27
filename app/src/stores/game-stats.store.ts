@@ -6,12 +6,16 @@ import {
   sectionsForGame,
 } from "@lib/stats/section-registry";
 import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
-import { parseTargetKey } from "@lib/stats/target-key";
+import { formatTargetKey, parseTargetKey } from "@lib/stats/target-key";
+import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
 import { readSection, readSessionPage } from "@client/stats-cache/cache";
 import type {
+  AtcDartsPerTargetMetrics,
+  Bobs27SurvivalMetrics,
   BustRateMetrics,
   CheckoutPathMetrics,
   CheckoutRateMetrics,
@@ -27,6 +31,7 @@ import type {
   MissDirectionMetrics,
   ScoringTrendMetrics,
   SessionResultMetrics,
+  ShanghaiCountMetrics,
   TargetAccuracyMetrics,
   TrebleRateMetrics,
   VolumeMetrics,
@@ -34,6 +39,7 @@ import type {
 import type { GameSessionListResponseData } from "@client/api/types";
 import type {
   GameTypeKey,
+  IntentZoneKey,
   RulesetVersionKey,
   SectionId,
   SeriesBucket,
@@ -76,6 +82,47 @@ const REMAINING_BANDS: readonly { label: string; low: number; high: number }[] =
 
 /** The width of one `ladderSummary` target band. */
 const LADDER_BAND_SIZE = 10;
+
+/** The four rings `ringSplit` reads off a `NUMBER:n` aim's `confusion` landings (phase-4 decision 9). */
+const NUMBER_AIM_RINGS = [
+  "INNER_SINGLE",
+  "OUTER_SINGLE",
+  "DOUBLE",
+  "TREBLE",
+] as const;
+
+/**
+ * Bob's 27's own doubles path (D1..D20, BULL), each entry mapped to its
+ * stored-intent `TargetKey` (`doubleTargetIntent`, `turn-log.module.ts`) —
+ * shared with `bobs27-survival.module.ts`'s own `targetKeyAt` so
+ * `survivalCurve` walks the exact same 21 keys the server folded.
+ */
+const BOBS27_PATH_KEYS: readonly TargetKey[] = doublesPath().map((_, index) => {
+  const intent = doubleTargetIntent(targetAt(doublesPath(), index));
+  return formatTargetKey(
+    intent.intendedTargetNumber!,
+    intent.intendedZoneKey as IntentZoneKey,
+  );
+});
+
+/** `atc-darts-per-target` totals for one config group, folded across every loaded bucket. */
+function sumAtcTargets(
+  series: CachedSeries<AtcDartsPerTargetMetrics> | undefined,
+  group: string,
+): Map<string, { darts: number; cleared: number }> {
+  const totals = new Map<string, { darts: number; cleared: number }>();
+  for (const b of series?.buckets ?? []) {
+    const groupMetrics = b.metrics[group];
+    if (!groupMetrics) continue;
+    for (const [targetKey, m] of Object.entries(groupMetrics)) {
+      const existing = totals.get(targetKey) ?? { darts: 0, cleared: 0 };
+      existing.darts += m.darts;
+      existing.cleared += m.cleared;
+      totals.set(targetKey, existing);
+    }
+  }
+  return totals;
+}
 
 type LadderTargetTotal = { attempts: number; successes: number };
 
@@ -988,6 +1035,228 @@ export function gameStatsStore() {
         trebles += entry.trebles;
       }
       return darts >= MIN_TARGET_SAMPLE ? trebles / darts : null;
+    },
+
+    /** Hits under a `NUMBER:n` aim, split by ring, read from `confusion`'s single bucket (phase-4 decision 9). `[]` for any other aim zone. */
+    ringSplit(
+      aim: string,
+    ): { ring: (typeof NUMBER_AIM_RINGS)[number]; count: number }[] {
+      const parsed = parseTargetKey(aim);
+      if (parsed === null || parsed.zone !== "NUMBER") return [];
+      const series = this.sections.confusion as
+        CachedSeries<ConfusionMetrics> | undefined;
+      const landings = series?.buckets[0]?.metrics[aim] ?? {};
+      return NUMBER_AIM_RINGS.map((ring) => ({
+        ring,
+        count: landings[`${ring}:${parsed.number}`] ?? 0,
+      }));
+    },
+
+    /** The count of sessions a server-computed section's fold could not replay, or `0` before it has loaded. */
+    skippedSessionsFor(sectionId: SectionId): number {
+      const series = this.sections[sectionId] as
+        CachedSeries<unknown> | undefined;
+      return series?.skippedSessions ?? 0;
+    },
+
+    /** The config groups `atc-darts-per-target` has data for, across every loaded bucket. */
+    get atcConfigGroups(): string[] {
+      const series = this.sections["atc-darts-per-target"] as
+        CachedSeries<AtcDartsPerTargetMetrics> | undefined;
+      const keys = new Set<string>();
+      for (const b of series?.buckets ?? []) {
+        for (const key of Object.keys(b.metrics)) keys.add(key);
+      }
+      return Array.from(keys).sort();
+    },
+
+    /** `atc-darts-per-target`'s darts-per-target for every aim in `group`, sorted along the path (target number ascending); `dartsPerTarget` is `null` for a target never cleared. */
+    dartsPerTargetForGroup(group: string): {
+      targetKey: string;
+      darts: number;
+      cleared: number;
+      dartsPerTarget: number | null;
+    }[] {
+      const series = this.sections["atc-darts-per-target"] as
+        CachedSeries<AtcDartsPerTargetMetrics> | undefined;
+      const totals = sumAtcTargets(series, group);
+      return Array.from(totals.entries())
+        .map(([targetKey, t]) => ({
+          targetKey,
+          darts: t.darts,
+          cleared: t.cleared,
+          dartsPerTarget: t.cleared > 0 ? t.darts / t.cleared : null,
+        }))
+        .sort(
+          (a, b) =>
+            (parseTargetKey(a.targetKey)?.number ?? 0) -
+            (parseTargetKey(b.targetKey)?.number ?? 0),
+        );
+    },
+
+    /** The `n` slowest targets in `group` by darts/cleared, descending, among targets cleared at least once (phase-4 decision 14). */
+    slowestTargets(
+      group: string,
+      n: number,
+    ): {
+      targetKey: string;
+      darts: number;
+      cleared: number;
+      dartsPerTarget: number;
+    }[] {
+      const series = this.sections["atc-darts-per-target"] as
+        CachedSeries<AtcDartsPerTargetMetrics> | undefined;
+      const totals = sumAtcTargets(series, group);
+      return Array.from(totals.entries())
+        .filter(([, t]) => t.cleared >= 1)
+        .map(([targetKey, t]) => ({
+          targetKey,
+          darts: t.darts,
+          cleared: t.cleared,
+          dartsPerTarget: t.darts / t.cleared,
+        }))
+        .sort((a, b) => b.dartsPerTarget - a.dartsPerTarget)
+        .slice(0, n);
+    },
+
+    /** The config groups `bobs27-survival` has data for, across every loaded bucket. */
+    get bobs27ConfigGroups(): string[] {
+      const series = this.sections["bobs27-survival"] as
+        CachedSeries<Bobs27SurvivalMetrics> | undefined;
+      const keys = new Set<string>();
+      for (const b of series?.buckets ?? []) {
+        for (const key of Object.keys(b.metrics)) keys.add(key);
+      }
+      return Array.from(keys).sort();
+    },
+
+    /** `bobs27-survival`'s survival curve for one config group: `reached` runs and the average running score, along the path's own D1..BULL order (phase-4 decision 15). Every path position is present, `0`/`null` where the group has no data for it. */
+    survivalCurve(
+      group: string,
+    ): { targetKey: string; reached: number; averageScore: number | null }[] {
+      const series = this.sections["bobs27-survival"] as
+        CachedSeries<Bobs27SurvivalMetrics> | undefined;
+
+      const reached = new Map<string, number>();
+      const scoreAfter = new Map<string, { runs: number; sum: number }>();
+      for (const b of series?.buckets ?? []) {
+        const g = b.metrics[group];
+        if (!g) continue;
+        for (const [targetKey, count] of Object.entries(g.reached)) {
+          reached.set(targetKey, (reached.get(targetKey) ?? 0) + count);
+        }
+        for (const [targetKey, s] of Object.entries(g.scoreAfter)) {
+          const existing = scoreAfter.get(targetKey) ?? { runs: 0, sum: 0 };
+          existing.runs += s.runs;
+          existing.sum += s.sum;
+          scoreAfter.set(targetKey, existing);
+        }
+      }
+
+      return BOBS27_PATH_KEYS.map((targetKey) => {
+        const scoreEntry = scoreAfter.get(targetKey);
+        return {
+          targetKey,
+          reached: reached.get(targetKey) ?? 0,
+          averageScore:
+            scoreEntry && scoreEntry.runs > 0
+              ? scoreEntry.sum / scoreEntry.runs
+              : null,
+        };
+      });
+    },
+
+    /** The target `bobs27-survival` runs die at most often in `group`, or `null` without any resolved run yet. */
+    bobs27DeadliestTarget(
+      group: string,
+    ): { targetKey: string; died: number } | null {
+      const series = this.sections["bobs27-survival"] as
+        CachedSeries<Bobs27SurvivalMetrics> | undefined;
+      const died = new Map<string, number>();
+      for (const b of series?.buckets ?? []) {
+        const g = b.metrics[group];
+        if (!g) continue;
+        for (const [targetKey, count] of Object.entries(g.died)) {
+          died.set(targetKey, (died.get(targetKey) ?? 0) + count);
+        }
+      }
+      if (died.size === 0) return null;
+      const [targetKey, count] = Array.from(died.entries()).reduce(
+        (best, entry) => (entry[1] > best[1] ? entry : best),
+      );
+      return { targetKey, died: count };
+    },
+
+    /** The average running score across every resolved Bob's 27 visit in `group`, or `null` without one. */
+    bobs27AverageScore(group: string): number | null {
+      const series = this.sections["bobs27-survival"] as
+        CachedSeries<Bobs27SurvivalMetrics> | undefined;
+      let sum = 0;
+      let runs = 0;
+      for (const b of series?.buckets ?? []) {
+        const g = b.metrics[group];
+        if (!g) continue;
+        for (const s of Object.values(g.scoreAfter)) {
+          sum += s.sum;
+          runs += s.runs;
+        }
+      }
+      return runs === 0 ? null : sum / runs;
+    },
+
+    /** `shanghai-count`'s Shanghai rate per bucket, for the trend line — `null` below `MIN_TARGET_SAMPLE` sessions. */
+    get shanghaiRateTrend(): { start: string; rate: number | null }[] {
+      const series = this.sections["shanghai-count"] as
+        CachedSeries<ShanghaiCountMetrics> | undefined;
+      if (!series) return [];
+      return series.buckets.map((b) => ({
+        start: b.start,
+        rate:
+          b.metrics.sessions >= MIN_TARGET_SAMPLE
+            ? b.metrics.shanghais / b.metrics.sessions
+            : null,
+      }));
+    },
+
+    /** `shanghai-count`'s round histogram, summed across every loaded bucket, sorted by round. */
+    get shanghaiByRound(): { round: number; count: number }[] {
+      const series = this.sections["shanghai-count"] as
+        CachedSeries<ShanghaiCountMetrics> | undefined;
+      if (!series) return [];
+      const totals = new Map<number, number>();
+      for (const b of series.buckets) {
+        for (const [key, count] of Object.entries(b.metrics.byRound)) {
+          const round = Number(key);
+          totals.set(round, (totals.get(round) ?? 0) + count);
+        }
+      }
+      return Array.from(totals.entries())
+        .sort(([a], [b]) => a - b)
+        .map(([round, count]) => ({ round, count }));
+    },
+
+    /**
+     * Shanghai's points-per-round headline (`01-Section-Catalog.md` §2.1):
+     * `session-result`'s `countedScoreSum / turnSum` across every loaded
+     * ruleset version. Reads the value `turns.total_score` actually stores —
+     * the raw per-dart board score. Hard mode's swindle halving
+     * (`applyShanghaiDart`) only ever touches the engine's own ephemeral seat
+     * state, never the persisted turn total, so this is the pre-halving
+     * total (`discovered-work` issue #624). `null` without any turns.
+     */
+    get pointsPerRound(): number | null {
+      const series = this.sections["session-result"] as
+        CachedSeries<SessionResultMetrics> | undefined;
+      if (!series) return null;
+      let scoreSum = 0;
+      let turnSum = 0;
+      for (const b of series.buckets) {
+        for (const m of Object.values(b.metrics)) {
+          scoreSum += m.countedScoreSum;
+          turnSum += m.turnSum;
+        }
+      }
+      return turnSum === 0 ? null : scoreSum / turnSum;
     },
   };
 }

@@ -211,4 +211,168 @@ describe("mergeMetrics", () => {
     );
     expect(merged.maxTarget).toBe(121);
   });
+
+  it("sums target-accuracy leaves", () => {
+    const merged = mergeMetrics(
+      "target-accuracy",
+      { "NUMBER:20": { attempts: 4, hits: 2 } },
+      {
+        "NUMBER:20": { attempts: 1, hits: 1 },
+        "BULL:25": { attempts: 2, hits: 0 },
+      },
+    );
+    expect(merged).toEqual({
+      "NUMBER:20": { attempts: 5, hits: 3 },
+      "BULL:25": { attempts: 2, hits: 0 },
+    });
+  });
+
+  it("sums loose-darts leaves", () => {
+    const merged = mergeMetrics(
+      "loose-darts",
+      { "NUMBER:20": { onTarget: 2, nearMiss: 1, loose: 1 } },
+      { "NUMBER:20": { onTarget: 1, nearMiss: 0, loose: 2 } },
+    );
+    expect(merged).toEqual({
+      "NUMBER:20": { onTarget: 3, nearMiss: 1, loose: 3 },
+    });
+  });
+
+  it("sums confusion counts two levels deep, including keys only one side has", () => {
+    const merged = mergeMetrics(
+      "confusion",
+      { "NUMBER:20": { "TREBLE:20": 3, MISS: 1 } },
+      {
+        "NUMBER:20": { "TREBLE:20": 2, "DOUBLE:20": 1 },
+        "BULL:25": { "INNER_BULL:25": 1 },
+      },
+    );
+    expect(merged).toEqual({
+      "NUMBER:20": { "TREBLE:20": 5, MISS: 1, "DOUBLE:20": 1 },
+      "BULL:25": { "INNER_BULL:25": 1 },
+    });
+  });
+
+  it("sums miss-direction entries by (target, sector, radial), not double-counting or overwriting overlapping keys", () => {
+    const merged = mergeMetrics(
+      "miss-direction",
+      {
+        "NUMBER:20": [
+          { sector: 0, radial: "WITHIN", darts: 2 },
+          { sector: 1, radial: "OUTSIDE", darts: 1 },
+        ],
+      },
+      {
+        "NUMBER:20": [{ sector: 0, radial: "WITHIN", darts: 3 }],
+        "BULL:25": [{ sector: 4, radial: "INSIDE", darts: 1 }],
+      },
+    );
+    expect(merged["NUMBER:20"]).toHaveLength(2);
+    expect(merged["NUMBER:20"]).toContainEqual({
+      sector: 0,
+      radial: "WITHIN",
+      darts: 5,
+    });
+    expect(merged["NUMBER:20"]).toContainEqual({
+      sector: 1,
+      radial: "OUTSIDE",
+      darts: 1,
+    });
+    expect(merged["BULL:25"]).toEqual([
+      { sector: 4, radial: "INSIDE", darts: 1 },
+    ]);
+  });
+
+  it("sums shanghai-count", () => {
+    const merged = mergeMetrics(
+      "shanghai-count",
+      { sessions: 3, shanghais: 1, byRound: { "3": 1 } },
+      { sessions: 2, shanghais: 1, byRound: { "3": 1, "5": 1 } },
+    );
+    expect(merged).toEqual({
+      sessions: 5,
+      shanghais: 2,
+      byRound: { "3": 2, "5": 1 },
+    });
+  });
+
+  it("sums atc-darts-per-target two levels deep, grouped by config key", () => {
+    const merged = mergeMetrics(
+      "atc-darts-per-target",
+      { "V1|": { "NUMBER:1": { darts: 2, cleared: 1 } } },
+      {
+        "V1|": {
+          "NUMBER:1": { darts: 1, cleared: 1 },
+          "NUMBER:2": { darts: 3, cleared: 0 },
+        },
+        "V2|": { "NUMBER:1": { darts: 5, cleared: 2 } },
+      },
+    );
+    expect(merged).toEqual({
+      "V1|": {
+        "NUMBER:1": { darts: 3, cleared: 2 },
+        "NUMBER:2": { darts: 3, cleared: 0 },
+      },
+      "V2|": { "NUMBER:1": { darts: 5, cleared: 2 } },
+    });
+  });
+
+  it("sums bobs27-survival counts, keeping the MIN of mins and MAX of maxes for scoreAfter", () => {
+    const merged = mergeMetrics(
+      "bobs27-survival",
+      {
+        "START27|": {
+          runs: 2,
+          completed: 1,
+          reached: { "DOUBLE:4": 2 },
+          died: { "DOUBLE:4": 1 },
+          scoreAfter: { "DOUBLE:4": { runs: 2, sum: 30, min: 10, max: 20 } },
+        },
+      },
+      {
+        "START27|": {
+          runs: 1,
+          completed: 0,
+          reached: { "DOUBLE:4": 1, "DOUBLE:5": 1 },
+          died: {},
+          scoreAfter: { "DOUBLE:4": { runs: 1, sum: 5, min: 5, max: 5 } },
+        },
+      },
+    );
+    expect(merged["START27|"]).toEqual({
+      runs: 3,
+      completed: 1,
+      reached: { "DOUBLE:4": 3, "DOUBLE:5": 1 },
+      died: { "DOUBLE:4": 1 },
+      scoreAfter: { "DOUBLE:4": { runs: 3, sum: 35, min: 5, max: 20 } },
+    });
+  });
+
+  it("keeps a bobs27-survival group present on only one side untouched", () => {
+    const merged = mergeMetrics(
+      "bobs27-survival",
+      {
+        "START27|": {
+          runs: 1,
+          completed: 0,
+          reached: {},
+          died: {},
+          scoreAfter: {},
+        },
+      },
+      {
+        "START15|": {
+          runs: 1,
+          completed: 1,
+          reached: { "INNER_BULL:25": 1 },
+          died: {},
+          scoreAfter: {
+            "INNER_BULL:25": { runs: 1, sum: 27, min: 27, max: 27 },
+          },
+        },
+      },
+    );
+    expect(merged["START27|"]!.runs).toBe(1);
+    expect(merged["START15|"]!.completed).toBe(1);
+  });
 });

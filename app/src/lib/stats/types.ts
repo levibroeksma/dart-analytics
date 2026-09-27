@@ -1,10 +1,17 @@
 import type {
+  AtcDartsPerTargetMetrics,
+  Bobs27SurvivalMetrics,
   BustRateMetrics,
   CheckoutPathMetrics,
   CheckoutRateMetrics,
+  ConfusionMetrics,
   DoublePerformanceMetrics,
   LadderProgressMetrics,
   LegStatsMetrics,
+  LooseDartsMetrics,
+  MissDirectionMetrics,
+  ShanghaiCountMetrics,
+  TargetAccuracyMetrics,
 } from "@modules/types";
 import type { GameTypeKey, StatsTag } from "@lib/types";
 
@@ -105,14 +112,29 @@ export interface Series<M> {
   buckets: SeriesBucket<M>[];
 }
 
-/** The section ids whose metrics fold checkout visits server-side (`00-Overview.md` §4, phase-3 decision 1). */
+/**
+ * The section ids whose metrics can fold server-side (`00-Overview.md` §4,
+ * phase-3 decision 1): phase 3's checkout family, always server, plus the
+ * four phase-4 derived-intent sections (server only on a game whose
+ * `siteByTag` resolves them there, `sectionSite`) and the three phase-4
+ * game-specific sections (always server). Exhaustive over every id
+ * `mergeMetrics` must handle — a section added here with no `MERGERS` entry
+ * is a type error, not a silent gap.
+ */
 export type ServerSectionId =
   | "ladder-progress"
   | "checkout-rate"
   | "double-performance"
   | "checkout-path"
   | "bust-rate"
-  | "leg-stats";
+  | "leg-stats"
+  | "target-accuracy"
+  | "confusion"
+  | "miss-direction"
+  | "loose-darts"
+  | "atc-darts-per-target"
+  | "bobs27-survival"
+  | "shanghai-count";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
@@ -122,6 +144,13 @@ export type ServerSectionMetrics = {
   "checkout-path": CheckoutPathMetrics;
   "bust-rate": BustRateMetrics;
   "leg-stats": LegStatsMetrics;
+  "target-accuracy": TargetAccuracyMetrics;
+  confusion: ConfusionMetrics;
+  "miss-direction": MissDirectionMetrics;
+  "loose-darts": LooseDartsMetrics;
+  "atc-darts-per-target": AtcDartsPerTargetMetrics;
+  "bobs27-survival": Bobs27SurvivalMetrics;
+  "shanghai-count": ShanghaiCountMetrics;
 };
 
 /** One chunked request's span (`00-Overview.md` §4, phase-3 decision 2). */

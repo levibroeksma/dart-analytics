@@ -25,6 +25,13 @@ export type CachedSeries<M> = {
   tz: string | null;
   range: { from: string; to: string };
   buckets: SeriesBucket<M>[];
+  /**
+   * The count of sessions a server-computed section's fold could not replay
+   * (`00-Overview.md` §4, phase-4 decision 4), summed across every chunk a
+   * server-site `readSection` fetched. Absent on a `sql`-site result, which
+   * never sets it.
+   */
+  skippedSessions?: number;
 };
 
 /**

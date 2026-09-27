@@ -3,9 +3,15 @@ import {
   mergeMetrics,
   zonedYearWindow,
 } from "@lib/stats/merge-metrics";
+import { sectionSite } from "@lib/stats/section-registry";
 import { openStatsDb } from "./db";
 import { paramsKey } from "./keys";
-import type { Bucket, SectionMeta, ServerSectionId } from "@lib/types";
+import type {
+  Bucket,
+  GameTypeKey,
+  SectionMeta,
+  ServerSectionId,
+} from "@lib/types";
 import type {
   CachedSeries,
   CachedSessionPage,
@@ -124,7 +130,7 @@ export async function readSection<M>(
 
   try {
     const key = sectionKey(playerId, gameTypeKey, meta, paramsKey(q));
-    if (meta.computeSite === "server") {
+    if (sectionSite(meta, gameTypeKey as GameTypeKey) === "server") {
       return await readServerSection(db, meta, key, q, fetcher, now);
     }
     if (q.bucket === "none") {
@@ -485,6 +491,11 @@ async function readServerSection<M>(
             .flatMap((chunk) => chunk.buckets)
             .sort((a, b) => a.start.localeCompare(b.start));
 
+  const skippedSessions = chunks.reduce(
+    (total, chunk) => total + (chunk.skippedSessions ?? 0),
+    0,
+  );
+
   return {
     sectionId: meta.id,
     sectionVersion: meta.version,
@@ -492,6 +503,7 @@ async function readServerSection<M>(
     bucket: q.bucket,
     tz: q.bucket === "none" ? null : tz,
     range: { from: q.from, to: q.to },
+    skippedSessions,
     buckets,
   };
 }
