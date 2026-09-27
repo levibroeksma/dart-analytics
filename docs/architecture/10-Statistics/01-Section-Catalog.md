@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-09-26
+updated: 2026-09-27
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.3.0 (2026-09-26, D369)
+> **Version:** 1.4.0 (2026-09-27, D370)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -15,8 +15,13 @@ updated: 2026-09-26
 > `completion`, `volume`, `heatmap`, `target-accuracy`, `confusion`,
 > `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
 > `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
-> `ladder-progress`, `scoring-trend` and `treble-rate` are **built** (phase 1 +
-> 2 + 3); every other section below is still designed, not built.
+> `ladder-progress`, `scoring-trend`, `treble-rate`, `shanghai-count`,
+> `atc-darts-per-target` and `bobs27-survival` are **built** (phase 1 + 2 + 3 +
+> 4); every other section below is still designed, not built. Phase 4
+> (D370) also widens `target-accuracy`, `confusion`, `miss-direction` and
+> `loose-darts` onto the `intent-derived` family (Singles Training, Shanghai,
+> Around the Clock) — those four were already built in phase 2 for
+> `intent-stored`.
 
 ---
 
@@ -45,12 +50,21 @@ Sections are reusable across games; a page picks them by capability tag
 | `completion` | any | sql | status counts per bucket | yes | abandon rate; where the player quits (progress and score state at quit); "never started" separated |
 | `volume` | any | sql | counts and durations | yes | sessions, darts, time; standalone vs routine split |
 
+`Requires: intent-*` is `{ anyOf: ["intent-stored", "intent-derived"] }`
+(D370 decision 5) — a section declaring it is offered on both families, and
+`SectionMeta.siteByTag` picks `server` for a game carrying `intent-derived`
+(Singles Training, Shanghai, Around the Clock) while every `intent-stored`
+game (Doubles Training, Bob's 27) keeps the `sql` site from phase 2.
+`sectionSite(meta, gameTypeKey)` is the one place that resolves it, read by
+both the service dispatcher and the client's chunking choice.
+
 `completion` is the only section with `includesAbandoned = true`.
 `session-result`, `completion`, `volume`, `heatmap`, `target-accuracy`,
 `confusion`, `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
 `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
-`ladder-progress`, `scoring-trend` and `treble-rate` are built (phase 1 + 2 +
-3); every other row above is planned.
+`ladder-progress`, `scoring-trend`, `treble-rate`, `shanghai-count`,
+`atc-darts-per-target` and `bobs27-survival` are built (phase 1 + 2 + 3 + 4);
+every other row above is planned.
 
 ## 1.1 Loose darts
 
@@ -70,16 +84,56 @@ SQL counts intended × hit cells over `v_stats_dart_facts`; TS classifies each
 rule is a constant in the section module; changing it bumps the section
 `version`.
 
+A dart aimed at a whole number or a bull (`NUMBER`/`BULL`, §1.2) is classified
+against the same three classes, adjacency read off the number/bull instead of
+a stored zone pair (D370 decision 8):
+
+| Aim | Class | Rule |
+| --- | ----- | ---- |
+| `NUMBER:n` | `on-target` | `isAimHit` — any ring of `n` except `MISS` |
+| `NUMBER:n` | `near-miss` | any ring of a neighbouring number (`SECTOR_ORDER`) |
+| `NUMBER:n` | `loose` | anywhere else, bull and `MISS` included |
+| `BULL:25` | `on-target` | either bull ring |
+| `BULL:25` | `near-miss` | `INNER_SINGLE` of any number |
+| `BULL:25` | `loose` | anywhere else |
+
 ## 1.2 Derived intent
 
 For `intent-derived` rulesets (Singles Training, Shanghai, Around the Clock)
-the aimed target is the engine's active number at the time of the dart. For
-Singles Training that is just the current number, any ring — every ring on it
-is a valid aim (D367), unlike Shanghai/Around the Clock where the active
-number also changes across the visit. It is recovered by folding the
-session's facts through the engine — the same pure engine the play page
-runs — in the `server` site, over a bounded range. It is never written back as
-stored intent.
+the aimed target is the engine's own active target immediately before the
+dart: each engine exports `activeTargetOf(state, config)`, and its reducer
+calls it, so the aim is never a second implementation of "what was this dart
+aimed at" (D370 decision 1). The target maps to an aim key:
+
+| Game | `NUMBER` target | `BULL` target |
+| ---- | --------------- | ------------- |
+| Singles Training (V1–V3) | `NUMBER:n` (any ring) | `BULL:25` (either ring) |
+| Shanghai (V1/V2) | `NUMBER:n` | never reached |
+| Around the Clock, `segmentRule = ANY` | `NUMBER:n` | `BULL:25` |
+| Around the Clock, `segmentRule = OUTER_SINGLE` | `OUTER_SINGLE:n` | `BULL:25` |
+
+For Singles Training every ring on the current number is a valid aim (D367),
+unlike Shanghai/Around the Clock where the active number also changes across
+the visit. It is recovered by folding the session's facts through the
+engine — the same pure engine the play page runs — in the `server` site, over
+a bounded range. It is never written back as stored intent.
+
+The fold is single-seat over the owner's own darts (D370 decision 3): every
+reducer in scope is per seat (`foldSeatStates`), and `v_stats_dart_facts`
+carries only the owner's own darts, so the walker (`foldSeatSteps`,
+`derived-aims.module.ts`) builds a one-seat config off the decoded snapshot
+with a synthetic seat and never reads the session's stored `seats` — a
+seatless historical snapshot folds exactly the same as one that named real
+seats.
+
+A session the fold cannot honestly replay contributes nothing, rather than
+being guessed at (D370 decision 4): it is skipped when it has no snapshot, the
+snapshot does not decode, its fold row count differs from
+`v_stats_session_facts.dart_count` (a dart without coordinates would shift
+every later aim), or the reducer throws (a dart fed after a terminal state).
+Skips are counted in the result as `skippedSessions`, an optional field on
+every server-site `Series` response, so a card can say "N sessions could not
+be replayed" rather than silently under-counting.
 
 ---
 
@@ -94,22 +148,51 @@ replay route (`02-Replay.md`).
 | **121** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Ten Up One Down** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Score Training** | scoring-trend, treble-rate, heatmap, session-result, completion, volume |
-| **Singles Training** | target-accuracy (per ring), confusion, grouping, miss-direction, loose-darts, heatmap, session-result, completion, volume |
+| **Singles Training** | target-accuracy (per ring), confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 | **Doubles Training** | target-accuracy (per double; favorite and weakest double), confusion, grouping, miss-direction (inside vs outside the wire), loose-darts, heatmap, session-result, completion, volume |
 | **Bob's 27** | target-accuracy (per double), `bobs27-survival`, confusion, grouping, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 | **Shanghai** | target-accuracy (per number and ring), `shanghai-count`, points-per-round via session-result, confusion, miss-direction, loose-darts, heatmap, completion, volume |
 | **Around the Clock** | `atc-darts-per-target`, target-accuracy, confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 
 X01 and Score Training carry no `grouping`/`miss-direction`/`loose-darts`: they
-store no intent (`00-Overview.md` §3).
+store no intent (`00-Overview.md` §3). Singles Training, Shanghai and Around
+the Clock carry `miss-direction`/`loose-darts`/`target-accuracy`/`confusion`
+(derived, `server`) but never `grouping`: a whole-number aim has no aim
+point, so a spread around the wedge measures ring choice, not skill (D370
+decision 6).
 
 ## 2.1 Game-specific sections
 
-| Section | Game | Site | Insight |
-| ------- | ---- | ---- | ------- |
-| `bobs27-survival` | Bob's 27 | server | the double where runs die; running-score curve per session |
-| `shanghai-count` | Shanghai | sql | Shanghai (S+D+T in one round) frequency per bucket |
-| `atc-darts-per-target` | Around the Clock | server | darts needed per target; slowest targets |
+`SectionMeta.games` gates each of these to exactly the named game(s), on top
+of its tags (D370 decision 10); `PAGE_ORDER_OVERRIDES` places `shanghai-count`
+and `session-result` in Shanghai's page order (decision 11).
+
+| Section | Game | Site | Reason for site | Insight |
+| ------- | ---- | ---- | ---------------- | ------- |
+| `bobs27-survival` | Bob's 27 | server | resolved-visit fold over `doublesPath()`, grouped by config | the double where runs die; running-score curve per session |
+| `shanghai-count` | Shanghai | server | a Shanghai is S+D+T of the *active* number in one visit, and the active number is itself a fold — a SQL pattern over three darts would risk counting the wrong number (D370 decision 12) | Shanghai (S+D+T in one round) frequency per bucket |
+| `atc-darts-per-target` | Around the Clock | server | darts-per-target needs the fold's own clear/lap/`COMPLETE` transitions | darts needed per target; slowest targets |
+
+Metrics (all additive; grouped by `configGroupKey`, D370 decision 13):
+
+- **`shanghai-count`**: `{ sessions, shanghais, byRound: Record<round, count> }`
+  per bucket. `configSensitive: []` — Shanghai V1/V2 pool (Hard mode changes
+  scoring, not the Shanghai rule).
+- **`atc-darts-per-target`**: `Record<configGroupKey, Record<TargetKey, {
+  darts, cleared }>>`. A dart counts against the aim before it; a target
+  *clears* when the fold moves past it (next path index, a lap, or
+  `COMPLETE` — a V2 step-back is not a clear). Darts on a target never
+  cleared stay in `darts`, the true cost of that target. Darts per target is
+  `darts / cleared`, derived client-side. `configSensitive:
+  ["ruleset_version_key", "difficulty", "segment_rule"]`.
+- **`bobs27-survival`**: `Record<configGroupKey, { runs, completed,
+  reached: Record<TargetKey, runs>, died: Record<TargetKey, runs>,
+  scoreAfter: Record<TargetKey, { runs, sum, min, max }> }>`. `reached`/`died`
+  are counted at the target whose visit resolved (`died` only when the seat
+  status is `LOST`); `scoreAfter` is the score once that visit resolved.
+  `completed` counts a session whose last step's seat status is `WON`.
+  `configSensitive: ["ruleset_version_key", "start_score",
+  "miss_penalty_multiplier", "bull_hit_value"]`.
 
 ## 2.2 Ruleset versions
 

@@ -2,26 +2,29 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-09-26
+updated: 2026-09-27
 -->
 
 # Statistics — Overview
 
-> **Version:** 1.3.0 (2026-09-26, D364/D365/D366/D367/D368/D369)
+> **Version:** 1.4.0 (2026-09-27, D364/D365/D366/D367/D368/D369/D370)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **phase 1 + 2 + 3 built** (§12) — base views (0043), the session
+> Status: **phase 1 + 2 + 3 + 4 built** (§12) — base views (0043), the session
 > list, the `completion`/`volume`/`session-result` sections, the registry
 > skeleton, the IndexedDB cache, the six board sections (`heatmap`,
 > `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
 > `loose-darts`) for every `board` game and the `intent-stored` family
-> (Doubles Training, Bob's 27), and the checkout family for 501/121/TUOD —
+> (Doubles Training, Bob's 27), the checkout family for 501/121/TUOD —
 > six `server` folds (`checkout-rate`, `double-performance`, `checkout-path`,
 > `bust-rate`, `ladder-progress`, `leg-stats`) plus two `sql` sections
 > (`scoring-trend`, `treble-rate`), all bounded by `MAX_FOLD_DARTS` and
-> fetched in client chunk windows (D369). Everything else is still designed,
-> not built.
+> fetched in client chunk windows (D369), and phase 4 (D370): derived intent
+> (`target-accuracy`, `confusion`, `miss-direction`, `loose-darts` widened
+> onto Singles Training, Shanghai and Around the Clock via an engine fold) and
+> three game-specific sections (`shanghai-count`, `atc-darts-per-target`,
+> `bobs27-survival`). Everything else is still designed, not built.
 
 | File | Covers |
 | ---- | ------ |
@@ -59,8 +62,10 @@ favorite double, …). Each section is one entry in a typed registry
 | ----- | ------- | ------------- |
 | `id` | stable section key (`heatmap`, `checkout-rate`, …) | routes and cache keys never change when sections are added |
 | `version` | integer, bumped on any logic change | part of every cache key — old results invalidate themselves |
-| `requires` | capability tags (§3) | a new game gets every section its tags admit, no list edits |
+| `requires` | `readonly Requirement[]`, `Requirement = StatsTag \| { anyOf: readonly StatsTag[] }` (§3) | a new game gets every section its tags admit, no list edits; `anyOf` lets one section serve two families that reach the same fact by different means (D370 decision 5) |
 | `computeSite` | `sql` \| `server` \| `client` (§4) | picked per section by cost, recorded with a reason |
+| `siteByTag` | `Partial<Record<StatsTag, ComputeSite>>`, optional | overrides `computeSite` when the game carries that tag; `sectionSite(meta, gameTypeKey)` is the one resolver the service and client both read (D370 decision 5) |
+| `games` | `readonly GameTypeKey[]`, optional | narrows a section to named games on top of its tags — how a game-specific section (`bobs27-survival`, …) attaches to exactly one game (D370 decision 10) |
 | `bucketable` | supports `bucket` (§5) | enables MoM / YoY series |
 | `includesAbandoned` | whether abandoned sessions enter the population | partial games never skew averages by accident |
 | `configSensitive` | snapshot fields the result is grouped by (e.g. `ruleset_version_key`, `starting_score`) | unlike configurations are never blended |
@@ -70,6 +75,13 @@ favorite double, …). Each section is one entry in a typed registry
 
 Adding an insight = one registry entry + one module + optionally one thin view.
 No new route, no contract change elsewhere.
+
+**Page order overrides (D370 decision 11):** `PAGE_ORDER_OVERRIDES:
+Partial<Record<GameTypeKey, readonly SectionId[]>>` lets one game reorder its
+own tag-derived section list — today only Shanghai, whose page puts
+`session-result` right after `shanghai-count` (`01-Section-Catalog.md` §2). An
+override may only reorder: a test asserts every override is a permutation of
+the same game's tag-derived set, so it can never add or drop a section.
 
 ---
 
@@ -97,6 +109,15 @@ aim, and `chk_dart_target_consistency` (`0007`) rejects a number without a
 zone — so its aimed number is recovered from the visit index, the same way as
 Shanghai and Around the Clock. Sections needing intent are not offered where
 neither tag applies; inferring an aim would fabricate a fact.
+
+**`intent-derived`'s aim zones (D370 decision 2):** the target key format
+(`01-Section-Catalog.md` §1.2, `<ZONE_KEY>:<number>`) gains two zones beyond
+the stored ones: `NUMBER:n` (any ring of number `n`, 1-20 — a hit is any ring
+except `MISS`) and `BULL:25` (either bull ring). Both are recovered from an
+engine's own `activeTargetOf`, never inferred by stats code, and are
+parity-tested against each engine's own hit rule (`isAimHit`,
+`lib/stats/target-key.ts`) so a section can never disagree with the play page
+about what counted as a hit.
 
 The tag map lives beside `RULESET_CAPABILITIES` (`lib/game/rulesets/capabilities.ts`)
 so a new ruleset declares its tags where it already declares its modes.
@@ -203,7 +224,7 @@ view-backed end to end (D63).
 | Route | Returns | Status |
 | ----- | ------- | ------ |
 | `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
-| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`) |
+| `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`; phase 4: `target-accuracy`/`confusion`/`miss-direction`/`loose-darts` widened onto Singles Training/Shanghai/Around the Clock, plus `shanghai-count`/`atc-darts-per-target`/`bobs27-survival`) |
 | `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | planned |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
@@ -343,8 +364,14 @@ Each phase is its own spec, plan, and migration.
    `MAX_FOLD_DARTS = 5_000` and fetched in client chunk windows; two `sql`
    sections (`scoring-trend`, `treble-rate`) also serving Score Training via
    its `scoring` tag.
-4. `intent-derived` sections (Singles, Shanghai, Around the Clock) and the
-   game-specific sections — including the phase-1 `null` `RESULT_DIRECTION`
-   games (issue #615).
+4. **Done** (derived intent + game-specific sections, 2026-09-27, D370):
+   `target-accuracy`, `confusion`, `miss-direction`, `loose-darts` widened
+   onto Singles Training, Shanghai and Around the Clock via a single-seat
+   engine fold (`derived-aims.module.ts`); `shanghai-count`,
+   `atc-darts-per-target` and `bobs27-survival` gated by `SectionMeta.games`.
+   `RESULT_DIRECTION` (issue #615) is untouched by this phase: it stays
+   `null` for Bob's 27 and Around the Clock, and the new game-specific
+   sections give each a headline of their own shape (a survival curve, a
+   darts-per-target list) rather than a `session-result` PB line.
 5. Replay route (`02-Replay.md`).
 6. Routine statistics (later; `context = routine`).
