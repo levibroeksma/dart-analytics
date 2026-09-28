@@ -230,6 +230,22 @@ describe("fetchSessionReplay", () => {
     expect(path).toContain("limit=10");
   });
 
+  it("encodes the session id into one path segment, so a ../ id cannot leave the replay route", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: pageResponse,
+    });
+
+    await fetchSessionReplay("../../profile#");
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe("/api/statistics/sessions/..%2F..%2Fprofile%23/replay?");
+    expect(new URL(path as string, "https://app.test").pathname).toBe(
+      "/api/statistics/sessions/..%2F..%2Fprofile%23/replay",
+    );
+  });
+
   it("throws StatisticsApiError on failure", async () => {
     vi.mocked(apiRequest).mockResolvedValue({
       ok: false,

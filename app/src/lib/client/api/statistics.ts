@@ -83,7 +83,7 @@ export async function fetchSessionReplay(
   if (q.limit !== undefined) params.set("limit", String(q.limit));
 
   const result = await apiRequest<ReplayPageSchemaData>(
-    `/api/statistics/sessions/${sessionId}/replay?${params.toString()}`,
+    `/api/statistics/sessions/${encodeURIComponent(sessionId)}/replay?${params.toString()}`,
   );
   if (!result.ok)
     throw new StatisticsApiError(result.error.code, result.error.message);

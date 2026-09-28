@@ -100,6 +100,7 @@ export {
   type StatisticsOverviewResponseData,
   type GameSessionListResponseData,
   type ReplayPageSchemaData,
+  ReplaySessionIdParam,
   type CompletionSeriesResponseData,
   type VolumeSeriesResponseData,
   type SessionResultSeriesResponseData,

@@ -6,6 +6,7 @@ import { replaySessionIdFromLocation } from "@lib/stats/replay-route";
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
 import { fetchSessionReplay, StatisticsApiError } from "@client/api/statistics";
 import { readReplayPage } from "@client/stats-cache/cache";
+import { ReplaySessionIdParam } from "@client/api/types";
 import type { ReplayPageSchemaData } from "@client/api/types";
 import type {
   BoardMarker,
@@ -103,10 +104,17 @@ export function replayStore() {
     error: null as ReplayLoadError | null,
     selectedIndex: null as number | null,
 
-    /** Reads `?session=` and loads the first page; no id is `NOT_FOUND`, and nothing is fetched. */
+    /**
+     * Reads `?session=` and loads the first page. No id, or one the replay
+     * route's own `ReplaySessionIdParam` would reject, is `NOT_FOUND`, and
+     * nothing is fetched: a malformed id never reaches a request path.
+     */
     async init() {
       const sessionId = replaySessionIdFromLocation();
-      if (sessionId === null) {
+      if (
+        sessionId === null ||
+        !ReplaySessionIdParam.safeParse(sessionId).success
+      ) {
         this.error = "NOT_FOUND";
         return;
       }

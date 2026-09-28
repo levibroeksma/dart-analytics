@@ -105,6 +105,21 @@ describe("replayStore", () => {
     expect(readReplayPage).not.toHaveBeenCalled();
   });
 
+  it.each(["../../profile#", "not-a-session", "01900000-0000-7000-8000"])(
+    "sets NOT_FOUND for a malformed session id %j and never fetches",
+    async (sessionId) => {
+      history.replaceState(null, "", replayPath(sessionId));
+      const store = replayStore();
+
+      await store.init();
+
+      expect(store.error).toBe("NOT_FOUND");
+      expect(store.sessionId).toBeNull();
+      expect(readReplayPage).not.toHaveBeenCalled();
+      expect(apiRequest).not.toHaveBeenCalled();
+    },
+  );
+
   it("appends each next page in order, refolds, and stops at nextCursor null", async () => {
     const game = playFiveOhOne();
     const store = await opened(game, [3, 5]);
