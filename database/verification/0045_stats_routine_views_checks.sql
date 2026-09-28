@@ -15,12 +15,16 @@
 --   3. v_stats_routine_step_facts: three step rows for fixture 1,
 --      the Warm-Up's input_mode_key null, the game step's
 --      game_type_key set, step_key formatted
---      <sequence_number>-<32 hex chars> and consistent with
---      step_fingerprint, and each row's step element matches its
---      own exercise_type_key.
+--      <sequence_number>-<32 hex chars>, step_fingerprint equal to
+--      md5((step - 'sequenceNumber')::text) exactly (not just
+--      matching the format) and step_key consistent with it, and
+--      each row's step element matches its own exercise_type_key.
 --   4. Two runs whose step 2 differs only in configuration -> two
 --      distinct step_key values at sequence_number = 2. Two runs
---      whose step 2 is identical -> one.
+--      whose step 2 is identical -> one. The same step content at
+--      sequenceNumber 1 in one run and 2 in another -> equal
+--      step_fingerprint (sequenceNumber is excluded from the hash)
+--      but different step_key.
 --   5. An activity abandoned with zero step sessions -> one run
 --      row, steps_started = 0, steps_completed = 0.
 --   6. An ACTIVE activity and an ACTIVE step session -> absent
@@ -382,6 +386,66 @@ VALUES
     );
 
 -- ------------------------------------------------------------
+-- Fixture 3c: the same step content (identical apart from
+-- sequenceNumber) at position 1 in one run (D1) and position 2 in
+-- another (D2) -- proves step_fingerprint excludes sequenceNumber
+-- (equal fingerprint) while step_key still encodes position
+-- (different step_key).
+-- ------------------------------------------------------------
+INSERT INTO activities (id, player_id, status_id, started_at, completed_at, created_at)
+VALUES
+    ('01990000-0000-7000-8000-0000000045a0', '01990000-0000-7000-8000-000000004501', (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'), now() - interval '1 hour', now(), now()),
+    ('01990000-0000-7000-8000-0000000045a3', '01990000-0000-7000-8000-000000004501', (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'), now() - interval '1 hour', now(), now());
+
+-- D1: step at sequenceNumber 1.
+INSERT INTO activity_configurations (id, activity_id, configuration, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045a1',
+        '01990000-0000-7000-8000-0000000045a0',
+        '{"routineTemplateId": "01990000-0000-7000-8000-0000000045f8", "routineName": "Position Independence D1", "steps": [
+            {"sequenceNumber": 1, "exerciseTypeKey": "SWITCHING", "exerciseRulesetVersionKey": "SWITCHING_V1", "gameTypeKey": null, "gameRulesetVersionKey": null, "durationSeconds": 240, "configuration": {"targetSequence": ["T18", "T17"]}}
+        ]}'::jsonb,
+        now()
+    );
+
+-- D2: the identical step content (minus sequenceNumber), at
+-- sequenceNumber 2 instead of 1.
+INSERT INTO activity_configurations (id, activity_id, configuration, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045a4',
+        '01990000-0000-7000-8000-0000000045a3',
+        '{"routineTemplateId": "01990000-0000-7000-8000-0000000045f9", "routineName": "Position Independence D2", "steps": [
+            {"sequenceNumber": 2, "exerciseTypeKey": "SWITCHING", "exerciseRulesetVersionKey": "SWITCHING_V1", "gameTypeKey": null, "gameRulesetVersionKey": null, "durationSeconds": 240, "configuration": {"targetSequence": ["T18", "T17"]}}
+        ]}'::jsonb,
+        now()
+    );
+
+INSERT INTO exercise_sessions (
+        id, activity_id, player_id, exercise_type_id, exercise_ruleset_version_id,
+        capture_mode_id, input_mode_id,
+        status_id, routine_step_sequence_number, started_at, completed_at, created_at
+    )
+VALUES
+    (
+        '01990000-0000-7000-8000-0000000045a2', '01990000-0000-7000-8000-0000000045a0', '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'),
+        (SELECT id FROM exercise_ruleset_versions WHERE implementation_key = 'SWITCHING_V1'),
+        (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
+        (SELECT id FROM input_modes WHERE implementation_key = 'VISUAL_BOARD'),
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        1, now() - interval '1 hour', now(), now()
+    ),
+    (
+        '01990000-0000-7000-8000-0000000045a5', '01990000-0000-7000-8000-0000000045a3', '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'),
+        (SELECT id FROM exercise_ruleset_versions WHERE implementation_key = 'SWITCHING_V1'),
+        (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
+        (SELECT id FROM input_modes WHERE implementation_key = 'VISUAL_BOARD'),
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        2, now() - interval '1 hour', now(), now()
+    );
+
+-- ------------------------------------------------------------
 -- Fixture 4: activity abandoned with zero step sessions.
 -- ------------------------------------------------------------
 INSERT INTO activities (id, player_id, status_id, started_at, completed_at, created_at)
@@ -651,8 +715,9 @@ FROM v_stats_routine_step_facts
 WHERE session_id = '01990000-0000-7000-8000-000000004516';
 
 INSERT INTO verification_results
-SELECT '3', 'v_stats_routine_step_facts: step_key is formatted <sequence_number>-<step_fingerprint> for all three rows',
+SELECT '3', 'v_stats_routine_step_facts: step_fingerprint equals md5((step - ''sequenceNumber'')::text) exactly, and step_key is <sequence_number>-<step_fingerprint>, for all three rows',
     CASE WHEN count(*) = 3
+          AND bool_and(step_fingerprint = md5((step - 'sequenceNumber')::text))
           AND bool_and(step_key = sequence_number::text || '-' || step_fingerprint)
           AND bool_and(step_fingerprint ~ '^[0-9a-f]{32}$')
           AND bool_and(step ->> 'exerciseTypeKey' = exercise_type_key)
@@ -679,6 +744,17 @@ SELECT '4', 'v_stats_routine_step_facts: two identical step-2 runs yield one ste
     format('found %s distinct step_key value(s): %s', count(DISTINCT step_key), array_agg(DISTINCT step_key))
 FROM v_stats_routine_step_facts
 WHERE session_id IN ('01990000-0000-7000-8000-000000004538', '01990000-0000-7000-8000-00000000453b');
+
+INSERT INTO verification_results
+SELECT '4', 'v_stats_routine_step_facts: identical step content at sequenceNumber 1 (D1) vs 2 (D2) yields equal step_fingerprint but different step_key',
+    CASE WHEN count(*) = 2
+          AND count(DISTINCT step_fingerprint) = 1
+          AND count(DISTINCT step_key) = 2
+         THEN 'PASS' ELSE 'FAIL' END,
+    format('%s row(s); step_fingerprint(s)=%s step_key(s)=%s',
+        count(*), array_agg(DISTINCT step_fingerprint), array_agg(step_key ORDER BY sequence_number))
+FROM v_stats_routine_step_facts
+WHERE session_id IN ('01990000-0000-7000-8000-0000000045a2', '01990000-0000-7000-8000-0000000045a5');
 
 -- ------------------------------------------------------------
 -- Check 5: an abandoned activity with zero step sessions -- one
@@ -800,9 +876,9 @@ WHERE session_id = '01990000-0000-7000-8000-000000004584';
 -- actually ran, separately from their pass/fail results.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
-SELECT '11', 'all 21 view-driven checks actually ran',
-    CASE WHEN count(*) = 21 THEN 'PASS' ELSE 'FAIL' END,
-    format('%s of 21 checks ran', count(*))
+SELECT '11', 'all 22 view-driven checks actually ran',
+    CASE WHEN count(*) = 22 THEN 'PASS' ELSE 'FAIL' END,
+    format('%s of 22 checks ran', count(*))
 FROM verification_results
 WHERE step IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
 
