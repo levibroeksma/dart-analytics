@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-09-27
+updated: 2026-09-28
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-09-27
 ---
 
 # Version History
+
+> **Version:** 1.138.0 (2026-09-28 — statistics-phase-6a-routine-database: migration `0045_stats_routine_views.sql` adds `v_stats_routine_run_facts` (one row per completed/abandoned training activity, routine identity resolved from the `activity_configurations` snapshot — `routineTemplateId`, or `'name-' || md5(routineName)` fallback — step counts read from the snapshot and from the activity's own step sessions, rule-free owner-scoped dart count) and `v_stats_routine_step_facts` (one row per completed/abandoned routine step session, identity resolved by matching `sequenceNumber` against the snapshot element, never array position; `step_fingerprint`/`step_key` exclude `sequenceNumber` from their hash, so identical step content at two positions shares one fingerprint but gets two different keys; rule-free owner-scoped turn/dart/score counts); verification script `0045_stats_routine_views_checks.sql` (22 checks, run against a throwaway local PostgreSQL 15 in Docker — all passed). `app/src/db/schema.ts` not regenerated: local introspection does not reproduce the Neon-generated file byte-for-byte (issue #404), so `schema-view-drift.test.ts` is red on this branch pending the owner running `db:migrate`/`db:introspect` against the dev database before merge. `05-Database/06-Spec/05-Read-Model-Layer.md`, `05-Views/00-Overview.md`, `03-Migrations.md`, `10-Statistics/00-Overview.md` §10, `docs/CLAUDE.md`, `database/CLAUDE.md` updated; migration/seed chain now `0001`–`0045`/`0001`–`0031`, also bumped in `database/README.md`, `00-Context-Map.md`, `README.md`, `10-Database-Agent-Guide.md`, `11-Neon-Integration.md` — root `CLAUDE.md`'s never-modify range stays at `0044` until the deploy. File Inventory gains the two `0045` rows; token claims re-measured for `03-Migrations.md` (~9.9k → ~12.4k), `05-Views/00-Overview.md` (~3.5k → ~3.9k), `06-Spec/05-Read-Model-Layer.md` (~5.4k → ~5.5k) and `10-Statistics/00-Overview.md` (~5.8k → ~5.9k). No decision id taken (identity rules 1–3 land as D372 in phase 6b). Plan `docs/superpowers/plans/2026-09-26-statistics-phase-6a-routine-database.md`.)
 
 > **Version:** 1.137.1 (2026-09-28 — statistics-phase-5b-replay, review fix: the "Detailed statistics page / insight section / statistics endpoint" pack now loads `10-Statistics/02-Replay.md` (budget re-measured ~17.2k → ~19.5k); `05-Database/06-Spec/05-Read-Model-Layer.md` §v_game_replay names its first `app/` reader, the statistics replay repository (D371); File Inventory rows for both refreshed, `00-Context-Map.md` claim re-measured ~1.9k → ~2.3k)
 
