@@ -377,7 +377,7 @@ Each phase is its own spec, plan, and migration.
    sections give each a headline of their own shape (a survival curve, a
    darts-per-target list) rather than a `session-result` PB line.
 5. **Done** (replay, 2026-09-28, D371): `GET sessions/:sessionId/replay`
-   (turn pages, first-page header, immutable caching) and the
+   (turn pages, first-page header, a forever client cache) and the
    `/statistics/replay?session=` page, whose per-turn values come from a
    client-side engine fold and per-game presenters (`02-Replay.md`).
 6. Routine statistics (later; `context = routine`).

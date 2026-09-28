@@ -52,8 +52,9 @@ that wants one (best leg, highest checkout) needs a new field first.
   and sets `nextCursor`, which is `null` after the last turn.
 - **Cursor:** base64url of `v1:<stageId>:<turnSequence>` for the page's last
   turn, built on the session-list codec's base64url helpers
-  (`modules/stats/sections/series.module.ts`). Malformed, or naming a stage outside this
-  session: `VALIDATION_FAILED`.
+  (`modules/stats/sections/series.module.ts`). Malformed (a turn sequence
+  outside 1–2147483647 included), or naming a stage outside this session:
+  `VALIDATION_FAILED`.
 - **Header, first page only (decision 5);** later pages carry `header: null`:
   - from `v_stats_session_facts`: `sessionId`, `gameTypeKey`,
     `rulesetVersionKey`, `inputModeKey`, `statusKey`, `contextKey`,
@@ -61,7 +62,8 @@ that wants one (best leg, highest checkout) needs a new field first.
     `routineStepSequenceNumber`, `configuration` (the snapshot),
     `startedAt`, `completedAt`, `durationSeconds`, `turnCount`, `dartCount`
   - `participants`: `{ participantId, displayName, participantTypeKey }[]`,
-    every seat (guests and DartBot included), ordered by first turn
+    every participant with at least one stored turn (guests and DartBot
+    included), in first-turn order
   - `stages`: `{ stageId, parentStageId, stageTypeKey, sequence }[]` in play
     order — the stages holding at least one turn (read via `v_game_replay`)
 
@@ -90,12 +92,14 @@ The server applies no game rule; derived per-turn values are the client's
 # 3. Cost
 
 - **Caching (decision 7):** the gate guarantees a terminal session and
-  completed gameplay is immutable, so every successful page is sent with
-  `Cache-Control: private, max-age=31536000, immutable`; errors keep
-  `private, no-store`. The client keeps pages forever in the `replayPages`
-  IndexedDB store, keyed `(sessionId, cursor ?? "")`, with no `dataVersion`
-  and no invalidation — wiped only with the rest of the cache on sign-out or
-  a schema bump. Adding the store bumped `STATS_SCHEMA_VERSION` 1 → 2.
+  completed gameplay is immutable, so the client keeps pages forever in the
+  `replayPages` IndexedDB store, keyed `(sessionId, cursor ?? "")`, with no
+  `dataVersion` and no invalidation — wiped only with the rest of the cache
+  on sign-out or a schema bump. Adding the store bumped
+  `STATS_SCHEMA_VERSION` 1 → 2. Every response, page or error, is
+  `Cache-Control: private, no-store`: the browser's HTTP cache is keyed by
+  URL alone and sign-out cannot wipe it, so a cached page could reach the
+  next user of a shared browser (`00-Overview.md` §7).
   Corrections (unbuilt) will add `supersededBy` to the header
   (`00-Overview.md` §11).
 - Only the pages the user asks for are fetched, one at a time and in order;
@@ -106,8 +110,9 @@ The server applies no game rule; derived per-turn values are the client's
   reads once from `v_stats_session_facts`. The view stays unfiltered by
   participant (`0023`).
 - **Indexes:** the page query relies on `idx_stages_session_sequence`,
-  `idx_turns_stage_sequence` and `idx_darts_turn_number` (`0008`). No index
-  was added, and its query plan has not been measured against a database.
+  `idx_turns_stage_sequence` (`0008`) and `uq_darts_turn_number` (`0011`). No
+  index was added, and its query plan has not been measured against a
+  database.
 
 ---
 
@@ -162,9 +167,13 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
   - `ENGINE_THREW`: `create` throws, or a turn's participant holds no seat or
     names a stage outside the session
 
-  A game type with no presenter also shows stored facts only. A seatless
+  A game type with no presenter also shows stored facts only, and a turn its
+  presenter throws on shows no cells while every other row keeps its own. A seatless
   one-participant snapshot gets one seat synthesized from that participant
   (`participantRef` = its id, `sideKey: "A"`).
 - **Page:** `replay.store.ts` (`$store.replay`) loads pages sequentially
   through `readReplayPage`, groups rows under stage headings (`Set 1 · Leg
-  2`), and marks the selected turn's located darts on the board.
+  2`; none for a session's lone exercise block), and marks the selected
+  turn's located darts on the board. Until the last page loads, "Load all
+  turns to see the result" stands where the session line will show; a
+  failed first page offers "Try again".
