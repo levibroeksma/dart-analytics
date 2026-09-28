@@ -9,16 +9,11 @@ import "@modules/game/singles-training.engine.module";
 import "@modules/game/tuod.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { seatOf } from "@modules/game/seat-rota.module";
+import { replayFacts } from "@modules/stats/replay.module";
 import { snapshotOf } from "@modules/stats/x01-checkout-sessions.module";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type { GameEngineFactory } from "@modules/interfaces";
-import type {
-  DartFact,
-  DartZoneKey,
-  EngineFacts,
-  StageTypeKey,
-  TurnFact,
-} from "@modules/types";
+import type { EngineFacts } from "@modules/types";
 import type {
   ReplayHeaderSchemaData,
   ReplayTurnSchemaData,
@@ -30,64 +25,8 @@ import type {
   ReplayStep,
 } from "./types";
 
-type ReplayDart = ReplayTurnSchemaData["darts"][number];
 type ReplayParticipant = ReplayHeaderSchemaData["participants"][number];
 type AnyEngineFactory = GameEngineFactory<unknown, unknown, unknown>;
-
-/**
- * Every replayed turn's `completedAt`. A replay page carries no per-turn
- * completion time, and the engines read `completedAt` only as open (`null`)
- * or closed, never its value: 121, TUOD and Score Training fold closed
- * visits only, and the seat rota hands an open visit back to its thrower.
- * So every loaded turn replays as a closed visit, an abandoned session's
- * unfinished last visit included.
- */
-const REPLAYED_TURN_CLOSED_AT = new Date(0).toISOString();
-
-function dartFactOf(dart: ReplayDart): DartFact {
-  return {
-    sequence: dart.dartNumber,
-    intendedTargetNumber: dart.intendedTargetNumber,
-    intendedZoneKey: dart.intendedZoneKey as DartZoneKey | null,
-    hitTargetNumber: dart.hitTargetNumber,
-    hitZoneKey: dart.hitZoneKey as DartZoneKey,
-    score: dart.score,
-    locationX: dart.locationX,
-    locationY: dart.locationY,
-  };
-}
-
-function turnFactOf(turn: ReplayTurnSchemaData): TurnFact {
-  return {
-    clientKey: `${turn.stageId}:${turn.turnSequence}`,
-    stageClientKey: turn.stageId,
-    participantRef: turn.participantId,
-    sequence: turn.turnSequence,
-    completedAt: REPLAYED_TURN_CLOSED_AT,
-    totalScore: turn.turnTotalScore,
-    darts: turn.darts.map(dartFactOf),
-  };
-}
-
-/**
- * The loaded replay as the engine fact log it was played as (D371 decision
- * 8): a stage's client key is its id, a turn's is `stageId:turnSequence`,
- * and a dart's sequence is its dart number.
- */
-export function replayFacts(
-  stages: ReplayHeaderSchemaData["stages"],
-  turns: readonly ReplayTurnSchemaData[],
-): EngineFacts {
-  return {
-    stages: stages.map((stage) => ({
-      clientKey: stage.stageId,
-      stageTypeKey: stage.stageTypeKey as StageTypeKey,
-      parentClientKey: stage.parentStageId,
-      sequence: stage.sequence,
-    })),
-    turns: turns.map(turnFactOf),
-  };
-}
 
 /** The seat a seatless snapshot's only participant held (`"A"`, the solo side). */
 function soloSeat(participant: ReplayParticipant): SeatFact {

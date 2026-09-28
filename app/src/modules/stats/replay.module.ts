@@ -1,15 +1,27 @@
 import { fromBase64Url, toBase64Url } from "./sections/series.module";
 import type {
+  DartFact,
+  DartZoneKey,
+  EngineFacts,
   ReplayCursor,
   ReplayDart,
   ReplayRow,
   ReplayStageRow,
   ReplayTurn,
+  StageTypeKey,
+  TurnFact,
 } from "@modules/types";
+import type {
+  ReplayHeaderSchemaData,
+  ReplayTurnSchemaData,
+} from "@routes/types";
 
 /**
  * Pure helpers a replay page is built from: stage play order, the cursor
- * codec (R2), and rows-to-turns grouping. No I/O; isomorphic.
+ * codec (R2), rows-to-turns grouping, and the loaded-replay-to-engine-facts
+ * conversion (`replayFacts`, moved here from `lib/stats/replay-fold.ts` —
+ * phase 6b Task 4 Step 2 — so the phase 6b step-result fold can reuse it
+ * without reaching into `lib/`). No I/O; isomorphic.
  */
 
 const REPLAY_CURSOR_VERSION = "v1";
@@ -160,4 +172,62 @@ export function rowsToTurns(rows: readonly ReplayRow[]): ReplayTurn[] {
   }
 
   return turns;
+}
+
+/**
+ * Every replayed turn's `completedAt`. A replay page carries no per-turn
+ * completion time, and the engines read `completedAt` only as open (`null`)
+ * or closed, never its value: 121, TUOD and Score Training fold closed
+ * visits only, and the seat rota hands an open visit back to its thrower.
+ * So every loaded turn replays as a closed visit, an abandoned session's
+ * unfinished last visit included.
+ */
+const REPLAYED_TURN_CLOSED_AT = new Date(0).toISOString();
+
+/** One `ReplayTurnSchemaData` turn's own dart shape — the wire schema's element type, named apart from `ReplayDart` (`@modules/types`) to avoid shadowing it. */
+type ReplayWireDart = ReplayTurnSchemaData["darts"][number];
+
+function dartFactOf(dart: ReplayWireDart): DartFact {
+  return {
+    sequence: dart.dartNumber,
+    intendedTargetNumber: dart.intendedTargetNumber,
+    intendedZoneKey: dart.intendedZoneKey as DartZoneKey | null,
+    hitTargetNumber: dart.hitTargetNumber,
+    hitZoneKey: dart.hitZoneKey as DartZoneKey,
+    score: dart.score,
+    locationX: dart.locationX,
+    locationY: dart.locationY,
+  };
+}
+
+function turnFactOf(turn: ReplayTurnSchemaData): TurnFact {
+  return {
+    clientKey: `${turn.stageId}:${turn.turnSequence}`,
+    stageClientKey: turn.stageId,
+    participantRef: turn.participantId,
+    sequence: turn.turnSequence,
+    completedAt: REPLAYED_TURN_CLOSED_AT,
+    totalScore: turn.turnTotalScore,
+    darts: turn.darts.map(dartFactOf),
+  };
+}
+
+/**
+ * The loaded replay as the engine fact log it was played as (D371 decision
+ * 8): a stage's client key is its id, a turn's is `stageId:turnSequence`,
+ * and a dart's sequence is its dart number.
+ */
+export function replayFacts(
+  stages: ReplayHeaderSchemaData["stages"],
+  turns: readonly ReplayTurnSchemaData[],
+): EngineFacts {
+  return {
+    stages: stages.map((stage) => ({
+      clientKey: stage.stageId,
+      stageTypeKey: stage.stageTypeKey as StageTypeKey,
+      parentClientKey: stage.parentStageId,
+      sequence: stage.sequence,
+    })),
+    turns: turns.map(turnFactOf),
+  };
 }

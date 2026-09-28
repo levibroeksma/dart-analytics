@@ -1,8 +1,9 @@
 import { isGameTypeKey } from "@lib/game/rulesets/capabilities";
 import { markersForTurns } from "@lib/game/board-input.data";
-import { foldReplay, replayFacts } from "@lib/stats/replay-fold";
+import { foldReplay } from "@lib/stats/replay-fold";
 import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import { replaySessionIdFromLocation } from "@lib/stats/replay-route";
+import { replayFacts } from "@modules/stats/replay.module";
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
 import { fetchSessionReplay, StatisticsApiError } from "@client/api/statistics";
 import { readReplayPage } from "@client/stats-cache/cache";

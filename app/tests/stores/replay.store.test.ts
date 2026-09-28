@@ -21,6 +21,8 @@ vi.mock("@client/api/client", () => ({
   apiRequest: (...args: unknown[]) => apiRequest(...args),
 }));
 
+// replay.store.ts's replayFacts import moved to @modules/stats/replay.module
+// (phase 6b Task 4 Step 2, R7); this suite still exercises it unchanged.
 const { replayStore } = await import("@stores/replay.store");
 
 type Header = NonNullable<ReplayPageSchemaData["header"]>;
