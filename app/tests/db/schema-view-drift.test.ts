@@ -95,10 +95,16 @@ function schemaViewBodies(): Map<string, string> {
  * identifier anywhere in the chain ends in `_<digits>`, so nothing else
  * matches the shape.
  *
- * Last, Postgres names an aggregate subquery's output column after the
+ * Postgres names an aggregate subquery's output column after the
  * function when the source does not (`count(*)` echoes as `count(*) AS
  * count`, `sum(rs.duration_value)` as `... AS sum`, both from 0041), so an
  * alias that only restates its own aggregate comes off.
+ *
+ * Last, Postgres drops a column alias that only restates the column's own
+ * name (`ec.configuration AS configuration`, from 0045's step facts, echoes
+ * as bare `ec.configuration`), so that redundant `AS <same name>` comes off
+ * too -- unlike the aggregate case above, this fires on any qualified
+ * column reference, not just an aggregate call.
  */
 /**
  * Postgres drops a column reference's qualifier when a single relation is in
@@ -119,21 +125,46 @@ function dropSoleRelationQualifier(sql: string): string {
   return sql.replace(new RegExp(`\\b${outermost}\\.`, "g"), "");
 }
 
+/**
+ * Postgres expands a single-output-column set-returning function's bare
+ * alias into an explicit column list, and every bare reference to that
+ * alias into a qualified one -- `jsonb_array_elements(...) AS e` used
+ * directly as `e` echoes as `jsonb_array_elements(...) AS e(value)`
+ * referenced as `e.value` (first seen with 0045's per-step element
+ * lookup) -- so `<alias>(value)` collapses back to `<alias>`, and every
+ * `<alias>.value` along with it.
+ */
+function collapseSrfDefaultColumnAlias(sql: string): string {
+  const match = /\b(\w+)\s*\(\s*value\s*\)/i.exec(sql);
+  if (!match) return sql;
+  const alias = match[1];
+  return sql
+    .replace(new RegExp(`\\b${alias}\\s*\\(\\s*value\\s*\\)`, "gi"), alias)
+    .replace(new RegExp(`\\b${alias}\\.value\\b`, "gi"), alias);
+}
+
 function normalize(sql: string): string {
-  return dropSoleRelationQualifier(sql)
-    .replace(
-      /::\s*[a-z_]+(\s+(?:precision|varying|with\s+time\s+zone|without\s+time\s+zone))?(\s*\[\])?/gi,
-      "",
-    )
-    .replace(/=\s*ANY\s*\(\s*ARRAY\s*\[([\s\S]*?)\]\s*\)/gi, "IN ($1)")
-    .replace(/\b(count|sum|avg|min|max)(\s*\([^()]*\))\s+AS\s+\1\b/gi, "$1$2")
-    .replace(/\b([a-z_][a-z0-9_]*?)_\d+\b/gi, "$1")
-    .replace(/[()]/g, " ")
-    .replace(/\s+,/g, ",")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/;+$/, "")
-    .toLowerCase();
+  return (
+    collapseSrfDefaultColumnAlias(dropSoleRelationQualifier(sql))
+      .replace(
+        /::\s*[a-z_]+(\s+(?:precision|varying|with\s+time\s+zone|without\s+time\s+zone))?(\s*\[\])?/gi,
+        "",
+      )
+      .replace(/=\s*ANY\s*\(\s*ARRAY\s*\[([\s\S]*?)\]\s*\)/gi, "IN ($1)")
+      .replace(/\b(count|sum|avg|min|max)(\s*\([^()]*\))\s+AS\s+\1\b/gi, "$1$2")
+      .replace(/\b([a-z_][a-z0-9_]*?)_\d+\b/gi, "$1")
+      .replace(/\b(\w+)\.(\w+)\s+AS\s+\2\b/gi, "$1.$2")
+      // Postgres makes a CASE without an ELSE branch's implicit NULL
+      // explicit -- 0045's step-count/element lookups both echo back
+      // `... END` as `... ELSE NULL END` -- so that addition comes off too.
+      .replace(/\bELSE\s+NULL\s+END\b/gi, "END")
+      .replace(/[()]/g, " ")
+      .replace(/\s+,/g, ",")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/;+$/, "")
+      .toLowerCase()
+  );
 }
 
 const chain = chainViewBodies();
