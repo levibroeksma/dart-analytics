@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { replayPath } from "@lib/stats/replay-route";
+import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { ReplayPageSchemaData } from "@client/api/types";
 import {
   PLAYER_ONE,
@@ -175,6 +176,48 @@ describe("replayStore", () => {
     expect(store.loading).toBe(false);
   });
 
+  it("fetches page 2 and later with the previous page's nextCursor, through the real fetcher", async () => {
+    const game = playFiveOhOne();
+    const pages = pagesOf(game, [3, 5]);
+    readReplayPage.mockImplementation(
+      (_sessionId: string, _cursor: unknown, fetcher: () => Promise<unknown>) =>
+        fetcher(),
+    );
+    apiRequest.mockImplementation((path: string) => {
+      const cursor =
+        new URL(path, "http://localhost").searchParams.get("cursor") ??
+        undefined;
+      const page = pages.get(cursor);
+      return Promise.resolve(
+        page
+          ? { ok: true, requestId: "r", data: page }
+          : {
+              ok: false,
+              requestId: "r",
+              error: {
+                code: "NOT_FOUND",
+                message: "Not found",
+                retryable: false,
+              },
+            },
+      );
+    });
+    history.replaceState(null, "", replayPath(game.header.sessionId));
+    const store = replayStore();
+
+    await store.init();
+    await store.loadNext();
+    await store.loadNext();
+
+    expect(
+      apiRequest.mock.calls.map(([path]) =>
+        new URL(path as string, "http://localhost").searchParams.get("cursor"),
+      ),
+    ).toEqual([null, "c1", "c2"]);
+    expect(store.turns).toEqual(game.turns);
+    expect(store.error).toBeNull();
+  });
+
   it("sets FAILED on any other failure", async () => {
     readReplayPage.mockRejectedValue(new Error("offline"));
     history.replaceState(
@@ -187,6 +230,26 @@ describe("replayStore", () => {
     await store.init();
 
     expect(store.error).toBe("FAILED");
+  });
+
+  it("loads the first page on a retry after it failed", async () => {
+    const game = playFiveOhOne();
+    serve(pagesOf(game, [3]));
+    readReplayPage.mockRejectedValueOnce(new Error("offline"));
+    history.replaceState(null, "", replayPath(game.header.sessionId));
+    const store = replayStore();
+
+    await store.init();
+    expect(store.error).toBe("FAILED");
+    expect(store.header).toBeNull();
+
+    await store.loadNext();
+
+    expect(cursorsRead()).toEqual([undefined, undefined]);
+    expect(store.error).toBeNull();
+    expect(store.header).toEqual(game.header);
+    expect(store.turns).toEqual(game.turns.slice(0, 3));
+    expect(store.nextCursor).toBe("c1");
   });
 
   it("shows stored darts plus presenter cells for a folded turn", async () => {
@@ -218,6 +281,34 @@ describe("replayStore", () => {
     expect(view.total).toBe(81);
     expect(view.cells).toEqual([]);
     expect(store.sessionLine).toBeNull();
+  });
+
+  it("skips the cells of a turn whose presenter throws, and keeps every row", async () => {
+    const game = playFiveOhOne();
+    const store = await opened(game);
+    const presenter = REPLAY_PRESENTERS["501"];
+    const turn = presenter.turn.bind(presenter);
+    const bad = store.fold?.ok ? store.fold.steps[1] : undefined;
+    const spy = vi
+      .spyOn(presenter, "turn")
+      .mockImplementation((step, snapshot) => {
+        if (step === bad) throw new Error("presenter bug");
+        return turn(step, snapshot);
+      });
+
+    try {
+      expect(bad).toBeDefined();
+      expect(store.cellsOf(1)).toEqual([]);
+      const rows = store.stageGroups.flatMap((group) => group.rows);
+      expect(rows).toHaveLength(game.turns.length);
+      expect(rows[1]!.cells).toEqual([]);
+      expect(rows[1]!.total).toBe(game.turns[1]!.turnTotalScore);
+      expect(rows[0]!.cells).toEqual([
+        { kind: "value", label: "Remaining", value: "20" },
+      ]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("treats an unknown game like a skipped fold", async () => {
@@ -253,6 +344,21 @@ describe("replayStore", () => {
       { heading: "Leg 1", turns: [0, 1, 2, 3, 4] },
       { heading: "Leg 2", turns: [5, 6] },
     ]);
+  });
+
+  it("hides the heading of a session's lone exercise block", async () => {
+    const game = playBobs27();
+    const store = await opened(game);
+
+    expect(game.header.stages.map((stage) => stage.stageTypeKey)).toEqual([
+      "EXERCISE_BLOCK",
+    ]);
+    expect(
+      store.stageGroups.map((group) => ({
+        heading: group.heading,
+        turns: group.rows.map((row) => row.index),
+      })),
+    ).toEqual([{ heading: null, turns: [0, 1, 2] }]);
   });
 
   it("shows the session line only once every page is loaded", async () => {

@@ -63,7 +63,15 @@ export function encodeReplayCursor(cursor: ReplayCursor): string {
   );
 }
 
-/** Returns `null` on any malformed input rather than throwing — a client never constructs this string. */
+/** The largest `turns.sequence_number` Postgres `integer` holds. */
+const MAX_TURN_SEQUENCE = 2147483647;
+
+/**
+ * Returns `null` on any malformed input rather than throwing — a client
+ * never constructs this string. A turn sequence outside `1..2147483647` is
+ * malformed too, so a crafted cursor is `VALIDATION_FAILED`, never a
+ * Postgres "integer out of range".
+ */
 export function decodeReplayCursor(value: string): ReplayCursor | null {
   const decoded = fromBase64Url(value);
   if (decoded === null) return null;
@@ -75,7 +83,15 @@ export function decodeReplayCursor(value: string): ReplayCursor | null {
   if (version !== REPLAY_CURSOR_VERSION || stageId.length === 0) return null;
   if (!/^\d+$/.test(turnSequenceText)) return null;
 
-  return { stageId, turnSequence: Number(turnSequenceText) };
+  const turnSequence = Number(turnSequenceText);
+  if (
+    !Number.isSafeInteger(turnSequence) ||
+    turnSequence < 1 ||
+    turnSequence > MAX_TURN_SEQUENCE
+  ) {
+    return null;
+  }
+  return { stageId, turnSequence };
 }
 
 /**

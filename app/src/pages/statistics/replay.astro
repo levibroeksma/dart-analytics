@@ -33,6 +33,16 @@ const scope = JSON.stringify({
       showExpr="$store.replay.error"
       textExpr="$store.replay.errorMessage"
     />
+    <button
+      type="button"
+      class="btn btn-ghost w-full"
+      x-show="$store.replay.error === 'FAILED' && !$store.replay.header"
+      x-cloak
+      :disabled="$store.replay.loading"
+      @click="$store.replay.loadNext()"
+    >
+      Try again
+    </button>
     <p
       class="text-sm text-muted-foreground"
       x-show="$store.replay.loading && !$store.replay.header"
@@ -109,6 +119,14 @@ const scope = JSON.stringify({
           x-cloak
         >
           Derived values unavailable for this session
+        </p>
+
+        <p
+          class="text-sm text-muted-foreground"
+          x-show="$store.replay.nextCursor && $store.replay.derivedAvailable"
+          x-cloak
+        >
+          Load all turns to see the result
         </p>
 
         <div
@@ -214,6 +232,8 @@ const scope = JSON.stringify({
           <section class="space-y-2">
             <h2
               class="text-sm font-semibold text-foreground"
+              x-show="group.heading !== null"
+              x-cloak
               x-text="group.heading"
             >
             </h2>

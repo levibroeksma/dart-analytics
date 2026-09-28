@@ -2,15 +2,13 @@ import type { APIRoute } from "astro";
 import { getSessionReplay } from "@services/statistics.service";
 import { ok, fail } from "@server/envelope";
 import { ReplayQuery, ReplaySessionIdParam } from "@routes/types";
-import type { ErrorCode } from "@server/types";
 
-/** `fail`, with the error `Cache-Control` decision 7 requires on every error path of this route. */
-function failNoStore(
-  code: ErrorCode,
-  requestId: string,
-  details?: Record<string, unknown>,
-): Response {
-  const response = fail(code, requestId, details);
+/**
+ * `response`, marked `private, no-store`: decision 7 sends it on every
+ * response of this route, page or error, so no replay page lands in the
+ * browser's HTTP cache, which sign-out does not wipe.
+ */
+function noStore(response: Response): Response {
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
@@ -21,24 +19,28 @@ function failNoStore(
  * gate ever runs, so a malformed id fails validation instead of surfacing
  * as a database error. Only `cursor` and `limit` are read off the query
  * string -- any other search param fails `ReplayQuery`'s `.strict()`
- * (decision 6). Only a successful page is cached immutably; every error
- * keeps `private, no-store` (decision 7).
+ * (decision 6). Every response, page or error, is `private, no-store`
+ * (decision 7): the client's `replayPages` store is the only cache.
  */
 export const GET: APIRoute = async ({ locals, params, url }) => {
   const auth = locals.auth!;
   const sessionId = params.sessionId!;
 
   if (!ReplaySessionIdParam.safeParse(sessionId).success) {
-    return failNoStore("VALIDATION_FAILED", locals.requestId, {
-      reason: "sessionId must be a UUID",
-    });
+    return noStore(
+      fail("VALIDATION_FAILED", locals.requestId, {
+        reason: "sessionId must be a UUID",
+      }),
+    );
   }
 
   const parsed = ReplayQuery.safeParse(Object.fromEntries(url.searchParams));
   if (!parsed.success) {
-    return failNoStore("VALIDATION_FAILED", locals.requestId, {
-      reason: parsed.error.issues[0]?.message ?? "invalid query",
-    });
+    return noStore(
+      fail("VALIDATION_FAILED", locals.requestId, {
+        reason: parsed.error.issues[0]?.message ?? "invalid query",
+      }),
+    );
   }
 
   const result = await getSessionReplay(auth.playerId!, sessionId, {
@@ -46,9 +48,7 @@ export const GET: APIRoute = async ({ locals, params, url }) => {
     limit: parsed.data.limit,
   });
   if (!result.ok)
-    return failNoStore(result.code, locals.requestId, result.details);
+    return noStore(fail(result.code, locals.requestId, result.details));
 
-  const response = ok(result.data, locals.requestId);
-  response.headers.set("Cache-Control", "private, max-age=31536000, immutable");
-  return response;
+  return noStore(ok(result.data, locals.requestId));
 };

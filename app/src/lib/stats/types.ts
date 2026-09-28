@@ -276,10 +276,10 @@ export type ReplayTurnView = {
   cells: readonly ReplayCell[];
 };
 
-/** The loaded turns of one stage, under its heading (`Leg 2`, `Set 1 · Leg 3`). */
+/** The loaded turns of one stage, under its heading (`Leg 2`, `Set 1 · Leg 3`); `null` hides it (a session's lone `EXERCISE_BLOCK`). */
 export type ReplayStageGroup = {
   stageId: string;
-  heading: string;
+  heading: string | null;
   rows: readonly ReplayTurnView[];
 };
 

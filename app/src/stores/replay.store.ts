@@ -198,13 +198,21 @@ export function replayStore() {
       );
     },
 
-    /** Turn `index`'s presenter cells, `[]` when derived values are unavailable. */
+    /**
+     * Turn `index`'s presenter cells, `[]` when derived values are
+     * unavailable or the presenter throws on that turn: one bad turn is
+     * skipped, never guessed, and never breaks the list.
+     */
     cellsOf(index: number): ReplayCell[] {
       const fold = this.fold;
       const presenter = this.presenter;
       const step = fold?.ok ? fold.steps[index] : undefined;
       if (!fold?.ok || presenter === null || step === undefined) return [];
-      return presenter.turn(step, fold.snapshot);
+      try {
+        return presenter.turn(step, fold.snapshot);
+      } catch {
+        return [];
+      }
     },
 
     /**
@@ -227,7 +235,12 @@ export function replayStore() {
       };
     },
 
-    /** The loaded turns grouped by stage in play order, each under its heading; stages with no loaded turn are left out. */
+    /**
+     * The loaded turns grouped by stage in play order, each under its
+     * heading; stages with no loaded turn are left out. A session whose only
+     * stage is an `EXERCISE_BLOCK` gets no heading (`null`): "Block 1" names
+     * nothing the page does not already show.
+     */
     get stageGroups(): ReplayStageGroup[] {
       const header = this.header;
       if (header === null) return [];
@@ -238,11 +251,14 @@ export function replayStore() {
           this.turnView(index),
         ]);
       });
+      const loneBlock =
+        header.stages.length === 1 &&
+        header.stages[0]!.stageTypeKey === "EXERCISE_BLOCK";
       return header.stages
         .filter((stage) => rows.has(stage.stageId))
         .map((stage) => ({
           stageId: stage.stageId,
-          heading: stageHeading(stage, header.stages),
+          heading: loneBlock ? null : stageHeading(stage, header.stages),
           rows: rows.get(stage.stageId)!,
         }));
     },

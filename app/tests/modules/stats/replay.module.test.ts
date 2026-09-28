@@ -111,6 +111,22 @@ describe("replay cursor codec", () => {
   it("returns null for a missing part", () => {
     expect(decodeReplayCursor(toBase64Url("v1:stage-1"))).toBeNull();
   });
+
+  it.each(["0", "2147483648", "99999999999", "99999999999999999999"])(
+    "returns null for a turn sequence %s outside Postgres integer 1..2147483647",
+    (turnSequence) => {
+      expect(
+        decodeReplayCursor(toBase64Url(`v1:stage-1:${turnSequence}`)),
+      ).toBeNull();
+    },
+  );
+
+  it("accepts the largest Postgres integer turn sequence", () => {
+    expect(decodeReplayCursor(toBase64Url("v1:stage-1:2147483647"))).toEqual({
+      stageId: "stage-1",
+      turnSequence: 2147483647,
+    });
+  });
 });
 
 describe("rowsToTurns", () => {

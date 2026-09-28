@@ -90,6 +90,7 @@ describe("GET /api/statistics/sessions/:sessionId/replay", () => {
     } as never);
 
     expect(response.status).toBe(422);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     const body = await response.json();
     expect(body.error.code).toBe("VALIDATION_FAILED");
     expect(getSessionReplay).not.toHaveBeenCalled();
@@ -168,7 +169,7 @@ describe("GET /api/statistics/sessions/:sessionId/replay", () => {
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   });
 
-  it("calls the service with the caller's playerId, the id and the default parsed query, returning an immutable, schema-valid page", async () => {
+  it("calls the service with the caller's playerId, the id and the default parsed query, returning a private, no-store, schema-valid page", async () => {
     vi.mocked(getSessionReplay).mockResolvedValue({
       ok: true,
       data: pageResponse as never,
@@ -181,9 +182,7 @@ describe("GET /api/statistics/sessions/:sessionId/replay", () => {
     } as never);
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("Cache-Control")).toBe(
-      "private, max-age=31536000, immutable",
-    );
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     const body = await response.json();
     expect(body.data).toEqual(pageResponse);
     expect(ReplayPageSchema.safeParse(body.data).success).toBe(true);
