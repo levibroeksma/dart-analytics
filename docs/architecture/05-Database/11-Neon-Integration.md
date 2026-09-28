@@ -2,7 +2,7 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-09-17
+updated: 2026-09-28
 -->
 
 # Neon Integration Guide
@@ -129,7 +129,7 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `database/migrations/` (`0001`–`0044`).
+Migrations remain in `database/migrations/` (`0001`–`0045`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 

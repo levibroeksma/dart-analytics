@@ -2,7 +2,7 @@
 status: canonical
 scope: database/views
 read-when: adding or changing views
-updated: 2026-09-26
+updated: 2026-09-28
 -->
 
 # Database View Strategy
@@ -138,7 +138,7 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0043)
+# Implemented Views (migrations 0009–0045)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
@@ -160,6 +160,8 @@ The name should describe the returned data, not the underlying tables.
 | `v_training_completions` | API Read Model | One row per completed training activity with the routine snapshot it ran, filtered by `player_id` and `completed_at`; abandoned trainings are excluded (0042, 2026-09-22) |
 | `v_stats_session_facts` | Analytics | One row per completed or abandoned game session, owner-scoped, with rule-free turn/dart/score counts and derived `context_key` (`ROUTINE` when the activity has an `activity_configurations` snapshot, else `STANDALONE`); base view for the detailed statistics pages (0043, D364, 2026-09-26) |
 | `v_stats_dart_facts` | Analytics | One row per `VISUAL_BOARD` dart with coordinates, owner-scoped, carrying the session columns every board/intent statistics section filters on; no consumer until statistics phase 2 (0043, D364, 2026-09-26) |
+| `v_stats_routine_run_facts` | Analytics | One row per completed or abandoned training activity with a routine identity resolved from the `activity_configurations` snapshot, step counts read from the snapshot and from the activity's own step sessions, and a rule-free owner-scoped dart count; no consumer until statistics phase 6b (0045, 2026-09-28) |
+| `v_stats_routine_step_facts` | Analytics | One row per completed or abandoned routine step session, its identity and snapshot element resolved by `sequenceNumber` (never array position), with rule-free owner-scoped turn/dart/score counts; no consumer until statistics phase 6b (0045, 2026-09-28) |
 
 Every view above that reaches `exercise_sessions.game_type_id` or
 `exercise_templates.game_type_id` joins `game_types` with a `LEFT JOIN` from
@@ -186,7 +188,7 @@ Per-view detail: `06-Database-Specification.md` Read Model Layer.
 
 Future views (`v_player_statistics`, `v_player_dashboard`, etc.) are planned — not yet implemented.
 
-`v_stats_session_facts` and `v_stats_dart_facts` are the two base views migration `0043` built; thin `v_stats_<section>` views over them (dependency depth ≤ 2) are still planned — see `10-Statistics/00-Overview.md` §10 (D364). <!-- 2026-09-26 -->
+`v_stats_session_facts` and `v_stats_dart_facts` are the two base views migration `0043` built; thin `v_stats_<section>` views over them (dependency depth ≤ 2) are still planned — see `10-Statistics/00-Overview.md` §10 (D364). <!-- 2026-09-26 --> `v_stats_routine_run_facts` and `v_stats_routine_step_facts` are migration `0045`'s routine fact views, deriving routine and step identity from the `activity_configurations` snapshot rather than a routine template — see `10-Statistics/00-Overview.md` §10. <!-- 2026-09-28 -->
 
 ---
 

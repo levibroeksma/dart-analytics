@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/documentation-philosophy
 read-when: understanding doc hierarchy and philosophy
-updated: 2026-09-10
+updated: 2026-09-28
 -->
 
 # Architecture Documentation
@@ -67,7 +67,7 @@ docs/
 │   └── 07-Frontend/     # Frontend handbook (00–05, 10)
 └── ...
 database/
-├── migrations/      # 0001–0044
+├── migrations/      # 0001–0045
 └── seeds/           # reference data, templates, presets
 ```
 
@@ -137,7 +137,7 @@ README.md (this file)
 
 Higher-level documents take precedence over lower-level documents.
 
-The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0044` and seeds `0001`–`0030` implement it.
+The canonical database entity reference is **`05-Database/06-Database-Specification.md`**. Migrations `0001`–`0045` and seeds `0001`–`0030` implement it.
 
 ---
 

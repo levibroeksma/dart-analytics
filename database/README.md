@@ -2,7 +2,7 @@
 status: canonical
 scope: database/sql-artifacts
 read-when: applying migrations and seeds
-updated: 2026-09-20
+updated: 2026-09-28
 -->
 
 # Database SQL Artifacts
@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0044)
+├── migrations/     # ordered schema migrations (0001–0045)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -139,6 +139,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0042_training_completions_view_checks.sql` | migration `0042`: `v_training_completions` lists a completed training with its snapshot routine id/name and excludes abandoned, active and snapshot-less activities (2026-09-22) |
 | `verification/0043_stats_base_views_checks.sql` | migration `0043`: `v_stats_session_facts` owner-scopes turn/dart/score counts and derives `context_key` (STANDALONE vs ROUTINE, no fan-out), an abandoned zero-turn session zeroes every count, an ACTIVE session and a training exercise session are absent from both views, `v_stats_dart_facts` owner-scopes darts and excludes non-VISUAL_BOARD sessions, the date-range index exists, anti-vacuity guard (11 checks) (D364, 2026-09-26) |
 | `verification/0044_replay_view_coordinates_checks.sql` | migration `0044`: `v_game_replay` returns a VISUAL_BOARD dart's `location_x`/`location_y` unchanged, NULL for both on a bounce-out, one row with NULL dart columns and a non-null `participant_id` for a turn-total-only turn, each of PLAYER/GUEST/DARTBOT with its `participant_type_key`, and the same row count as the `0016` definition, anti-vacuity guard (6 checks) (2026-09-27) |
+| `verification/0045_stats_routine_views_checks.sql` | migration `0045`: `v_stats_routine_run_facts`/`v_stats_routine_step_facts` resolve `routine_key`/`step_key` identity from the `activity_configurations` snapshot (template id, or a total `name-md5(routineName)` fallback that still resolves to `name-md5('')` when both `routineTemplateId` and `routineName` are absent, never NULL; `step_fingerprint` equals `md5((step - 'sequenceNumber')::text)` exactly, `step_key` by matched `sequenceNumber` not array position, and the same step content at a different `sequenceNumber` keeps its `step_fingerprint` but changes its `step_key`), step-content dedup, owner-scoped dart counts, ACTIVE and no-snapshot exclusion, a missing, string or non-integer `sequenceNumber` never matching a step session, and a non-array `configuration -> 'steps'` yielding a NULL `step_count`/no step rows instead of erroring (27 checks) (2026-09-28) |
 
 ## References
 

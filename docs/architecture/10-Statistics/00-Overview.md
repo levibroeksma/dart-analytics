@@ -321,6 +321,8 @@ per-section views are still planned.
 | ---- | ----- | ------ | ------ |
 | `v_stats_session_facts` | one row per completed or abandoned session, owner-scoped | session lists, `completion`, `volume`, `session-result`; carries `context_key`, `activity_id`, status, ruleset version, input mode, configuration snapshot, turn count | built (0043) |
 | `v_stats_dart_facts` | one row per `VISUAL_BOARD` dart, owner-scoped | the base for every `board`/`intent-*` section; `v_dart_locations` columns plus `completed_at`, status, `ruleset_version_key`, `context_key` | built (0043) |
+| `v_stats_routine_run_facts` | one row per completed or abandoned training activity, owner-scoped | routine statistics (§12 item 6, later); routine identity resolved from the `activity_configurations` snapshot, step counts, owner-scoped dart count | built (0045) |
+| `v_stats_routine_step_facts` | one row per completed or abandoned routine step session, owner-scoped | routine statistics (§12 item 6, later); step identity resolved by `sequenceNumber` (never array position), owner-scoped turn/dart/score counts | built (0045) |
 | thin per-section views (`v_stats_<section>`) | reduced rows | only where SQL is the compute site; each reads the two base views (dependency depth ≤ 2) | planned |
 
 - Replay reads `v_game_replay`, widened with participant identity
