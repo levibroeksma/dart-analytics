@@ -496,3 +496,73 @@ export type Bobs27SurvivalGroupMetrics = {
  * (phase-4 decisions 13, 15).
  */
 export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;
+
+/**
+ * One row of `exercise_stages`, restricted to what `stageOrder` needs to
+ * rebuild play order (D371 decision 3): the stage's own id, its parent
+ * (`null` for a root), its type, and its sibling order.
+ */
+export type ReplayStageRow = {
+  stageId: string;
+  parentStageId: string | null;
+  stageTypeKey: string;
+  sequence: number;
+};
+
+/**
+ * One row of `v_game_replay` (migration `0044`). Every dart column —
+ * `dartNumber` through `locationY` — is `null` together for a
+ * turn-total-only turn, the view's `LEFT JOIN` to `darts`.
+ */
+export type ReplayRow = {
+  stageId: string;
+  turnSequence: number;
+  participantId: string;
+  participantName: string;
+  participantTypeKey: string;
+  turnTotalScore: number;
+  dartNumber: number | null;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: DartZoneKey | null;
+  score: number | null;
+  locationX: number | null;
+  locationY: number | null;
+};
+
+/**
+ * A `ReplayRow`'s dart half, narrowed to a real dart: `dartNumber`, `score`
+ * and `hitZoneKey` are non-null, which `rowsToTurns` proves row by row (R3).
+ */
+export type ReplayDart = {
+  dartNumber: number;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: DartZoneKey | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: DartZoneKey;
+  score: number;
+  locationX: number | null;
+  locationY: number | null;
+};
+
+/**
+ * One turn `rowsToTurns` groups consecutive `ReplayRow`s into, in play
+ * order. `darts` is empty for a turn-total-only turn.
+ */
+export type ReplayTurn = {
+  stageId: string;
+  turnSequence: number;
+  participantId: string;
+  turnTotalScore: number;
+  darts: ReplayDart[];
+};
+
+/**
+ * The decoded replay cursor (`encodeReplayCursor`/`decodeReplayCursor`,
+ * R2): the last turn's `(stageId, turnSequence)` (D371 decision 4).
+ */
+export type ReplayCursor = {
+  stageId: string;
+  turnSequence: number;
+};
