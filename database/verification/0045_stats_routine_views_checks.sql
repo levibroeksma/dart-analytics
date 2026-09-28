@@ -43,6 +43,15 @@
 --      Global Constraints require this, and a lateral match on
 --      `e ->> 'sequenceNumber' = seq::text` alone lets the string
 --      case through).
+--  12. A snapshot whose configuration -> 'steps' is a non-array
+--      (an object) -> the run row is still produced with step_count
+--      NULL, and a step session tied to that activity still yields
+--      no v_stats_routine_step_facts row -- and critically this
+--      script completing at all (rather than aborting on a raised
+--      exception) is itself proof neither jsonb_array_length nor
+--      jsonb_array_elements errors on the malformed value.
+--  13. A snapshot with neither routineTemplateId nor routineName ->
+--      routine_key = 'name-' || md5('') (never NULL) in both views.
 --
 -- Everything runs inside one transaction that ends in ROLLBACK.
 -- Lookup rows are resolved by implementation_key, never by
@@ -646,6 +655,95 @@ VALUES (
     );
 
 -- ------------------------------------------------------------
+-- Fixture 9 (F2): configuration -> 'steps' is a JSON object, not an
+-- array. Paired with a COMPLETED step session (sequence 1) so
+-- absence from v_stats_routine_step_facts is proven despite a
+-- candidate session existing, not merely because none was created.
+-- ------------------------------------------------------------
+INSERT INTO activities (id, player_id, status_id, started_at, completed_at, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045b0',
+        '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        now() - interval '1 hour',
+        now(),
+        now()
+    );
+
+INSERT INTO activity_configurations (id, activity_id, configuration, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045b1',
+        '01990000-0000-7000-8000-0000000045b0',
+        '{
+            "routineTemplateId": "01990000-0000-7000-8000-0000000045fa",
+            "routineName": "Malformed Steps Object",
+            "steps": {"sequenceNumber": 1, "exerciseTypeKey": "WARM_UP"}
+        }'::jsonb,
+        now()
+    );
+
+INSERT INTO exercise_sessions (
+        id, activity_id, player_id, exercise_type_id, exercise_ruleset_version_id,
+        status_id, routine_step_sequence_number, started_at, completed_at, created_at
+    )
+VALUES (
+        '01990000-0000-7000-8000-0000000045b2',
+        '01990000-0000-7000-8000-0000000045b0',
+        '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'),
+        (SELECT id FROM exercise_ruleset_versions WHERE implementation_key = 'WARM_UP_V1'),
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        1,
+        now() - interval '1 hour',
+        now(),
+        now()
+    );
+
+-- ------------------------------------------------------------
+-- Fixture 10 (F3): a snapshot with neither routineTemplateId nor
+-- routineName -- routine_key must fall back to 'name-' || md5(''),
+-- never NULL, in both views.
+-- ------------------------------------------------------------
+INSERT INTO activities (id, player_id, status_id, started_at, completed_at, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045c0',
+        '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        now() - interval '1 hour',
+        now(),
+        now()
+    );
+
+INSERT INTO activity_configurations (id, activity_id, configuration, created_at)
+VALUES (
+        '01990000-0000-7000-8000-0000000045c1',
+        '01990000-0000-7000-8000-0000000045c0',
+        '{
+            "steps": [
+                {"sequenceNumber": 1, "exerciseTypeKey": "WARM_UP", "exerciseRulesetVersionKey": "WARM_UP_V1", "gameTypeKey": null, "gameRulesetVersionKey": null, "durationSeconds": 120, "configuration": {}}
+            ]
+        }'::jsonb,
+        now()
+    );
+
+INSERT INTO exercise_sessions (
+        id, activity_id, player_id, exercise_type_id, exercise_ruleset_version_id,
+        status_id, routine_step_sequence_number, started_at, completed_at, created_at
+    )
+VALUES (
+        '01990000-0000-7000-8000-0000000045c2',
+        '01990000-0000-7000-8000-0000000045c0',
+        '01990000-0000-7000-8000-000000004501',
+        (SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'),
+        (SELECT id FROM exercise_ruleset_versions WHERE implementation_key = 'WARM_UP_V1'),
+        (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+        1,
+        now() - interval '1 hour',
+        now(),
+        now()
+    );
+
+-- ------------------------------------------------------------
 -- Check 1: fixture 1 -- one run row, step_count/steps_started/
 -- steps_completed = 3, routine_key equal to the template id.
 -- ------------------------------------------------------------
@@ -872,15 +970,63 @@ FROM v_stats_routine_step_facts
 WHERE session_id = '01990000-0000-7000-8000-000000004584';
 
 -- ------------------------------------------------------------
+-- Check 12 (F2): a non-array configuration -> 'steps' (fixture 9)
+-- still yields a run row (step_count NULL, not an error) and yields
+-- no step rows for the step session tied to that activity. The
+-- script reaching this point at all is itself proof that neither
+-- jsonb_array_length nor jsonb_array_elements raised on the
+-- malformed value -- a raised exception would abort the whole
+-- transaction before any result row is produced.
+-- ------------------------------------------------------------
+INSERT INTO verification_results
+SELECT '12', 'v_stats_routine_run_facts: non-array steps snapshot still yields one run row with step_count NULL',
+    CASE WHEN count(*) = 1 AND bool_and(step_count IS NULL) THEN 'PASS' ELSE 'FAIL' END,
+    format('%s row(s); step_count=%s', count(*), max(step_count))
+FROM v_stats_routine_run_facts
+WHERE activity_id = '01990000-0000-7000-8000-0000000045b0';
+
+INSERT INTO verification_results
+SELECT '12', 'v_stats_routine_step_facts: non-array steps snapshot yields no step row despite a step session existing',
+    CASE WHEN count(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+    format('expected 0, found %s', count(*))
+FROM v_stats_routine_step_facts
+WHERE session_id = '01990000-0000-7000-8000-0000000045b2';
+
+-- ------------------------------------------------------------
+-- Check 13 (F3): a snapshot with neither routineTemplateId nor
+-- routineName (fixture 10) -- routine_key = 'name-' || md5(''),
+-- never NULL, in both views.
+-- ------------------------------------------------------------
+INSERT INTO verification_results
+SELECT '13', 'v_stats_routine_run_facts: snapshot with neither routineTemplateId nor routineName falls back to name-md5('''')',
+    CASE WHEN count(*) = 1
+          AND bool_and(routine_key = 'name-' || md5(''))
+          AND bool_and(routine_key IS NOT NULL)
+         THEN 'PASS' ELSE 'FAIL' END,
+    format('%s row(s); routine_key=%s', count(*), max(routine_key))
+FROM v_stats_routine_run_facts
+WHERE activity_id = '01990000-0000-7000-8000-0000000045c0';
+
+INSERT INTO verification_results
+SELECT '13', 'v_stats_routine_step_facts: same fallback applies to routine_key, never NULL',
+    CASE WHEN count(*) = 1
+          AND bool_and(routine_key = 'name-' || md5(''))
+          AND bool_and(routine_key IS NOT NULL)
+         THEN 'PASS' ELSE 'FAIL' END,
+    format('%s row(s); routine_key=%s', count(*), max(routine_key))
+FROM v_stats_routine_step_facts
+WHERE session_id = '01990000-0000-7000-8000-0000000045c2';
+
+-- ------------------------------------------------------------
 -- Anti-vacuity guard (D192): assert the count of checks that
 -- actually ran, separately from their pass/fail results.
 -- ------------------------------------------------------------
 INSERT INTO verification_results
-SELECT '11', 'all 22 view-driven checks actually ran',
-    CASE WHEN count(*) = 22 THEN 'PASS' ELSE 'FAIL' END,
-    format('%s of 22 checks ran', count(*))
+SELECT '14', 'all 26 view-driven checks ran (27 result rows incl. this guard)',
+    CASE WHEN count(*) = 26 THEN 'PASS' ELSE 'FAIL' END,
+    format('%s of 26 checks ran', count(*))
 FROM verification_results
-WHERE step IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
+WHERE step IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '12', '13');
 
 -- ------------------------------------------------------------
 -- Results

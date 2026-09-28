@@ -9,11 +9,15 @@
 -- activity_configurations snapshot (09-Training/01-Routines.md
 -- §18) and never reference a routine template -- editing or
 -- deleting a template can never alter historical statistics.
--- Three identity rules (phase 6b's D372):
+-- Three identity rules (recorded with phase 6b's routine-statistics
+-- decision):
 --
 --   1. routine_key = configuration ->> 'routineTemplateId'; a
 --      snapshot without it keys as
---      'name-' || md5(routineName).
+--      'name-' || md5(routineName), and a snapshot with neither
+--      field keys as 'name-' || md5('') -- the fallback is total,
+--      never NULL, because a NULL identity key would collapse or
+--      drop those runs under a GROUP BY.
 --   2. step_key = <sequenceNumber>-<md5((step - 'sequenceNumber')::text)>.
 --      The step element is found by its sequenceNumber field, not
 --      array position: LEFT JOIN LATERAL
@@ -24,28 +28,45 @@
 --      otherwise text-match an integer sequence number 2. A
 --      missing or non-integer sequenceNumber therefore yields no
 --      row (verified live: 0045_stats_routine_views_checks.sql
---      check 10). step_fingerprint is that md5 alone, so two runs
---      of the same routine whose step configuration differs (but
---      whose sequenceNumber is the same) get distinct step_key
---      values, and two identical runs collapse to one.
+--      check 10). The array itself is guarded the same way: the
+--      argument to jsonb_array_elements (and to jsonb_array_length
+--      for step_count, below) is wrapped in
+--      CASE WHEN jsonb_typeof(configuration -> 'steps') = 'array'
+--      THEN configuration -> 'steps' END, so a snapshot whose
+--      steps value is present but not an array (an object or a
+--      string) yields no step rows instead of erroring every query
+--      against both views for every player; a missing steps key
+--      was already safe (-> 'steps' is SQL NULL and both functions
+--      return NULL on NULL input) and stays that way.
+--      step_fingerprint is that md5 alone, so two runs of the same
+--      routine whose step configuration differs (but whose
+--      sequenceNumber is the same) get distinct step_key values,
+--      and two identical runs collapse to one.
 --   3. Two views; v_stats_session_facts (0043) stays game-only
 --      and untouched here.
 --
 -- v_stats_routine_run_facts: one row per COMPLETED or ABANDONED
 -- activity that has an activity_configurations row. step_count
--- reads the snapshot's own step array length; steps_started and
--- steps_completed count the activity's actual step sessions
--- (any status vs. COMPLETED), so a training abandoned before any
--- step session was created reads steps_started = 0. dart_count is
--- a rule-free LATERAL sum over the owning participant's darts
--- across every step session of the activity, integer-cast so
--- node-postgres does not deliver a NUMERIC/bigint string.
+-- reads the snapshot's own step array length, guarded per rule 2
+-- above so a non-array or missing steps value reads NULL instead
+-- of erroring; steps_started and steps_completed count the
+-- activity's actual step sessions (any status vs. COMPLETED), so a
+-- training abandoned before any step session was created reads
+-- steps_started = 0. dart_count is a rule-free LATERAL sum over
+-- the owning participant's darts across every session of the
+-- activity -- unlike steps_started/steps_completed above, it is
+-- NOT filtered to sessions with routine_step_sequence_number set,
+-- so it reads as "every dart thrown during the run", not "every
+-- dart thrown during a step"; that asymmetry is deliberate.
+-- integer-cast so node-postgres does not deliver a NUMERIC/bigint
+-- string.
 --
 -- v_stats_routine_step_facts: one row per COMPLETED or ABANDONED
 -- exercise session whose activity has a snapshot, whose
 -- routine_step_sequence_number is not null, and whose sequence
 -- number resolves a snapshot element (a session with no matching
--- element is dropped by requiring the LATERAL match non-null).
+-- element -- including because the snapshot's steps value is not
+-- an array -- is dropped by requiring the LATERAL match non-null).
 -- Lookups are LEFT JOINed wherever migration 0033 made the
 -- session's own key nullable (game_type_id, ruleset_version_id,
 -- input_mode_id, exercise_ruleset_version_id); exercise_type_id
@@ -60,7 +81,7 @@ SELECT a.id AS activity_id,
     a.player_id,
     COALESCE(
         ac.configuration ->> 'routineTemplateId',
-        'name-' || md5(ac.configuration ->> 'routineName')
+        'name-' || md5(COALESCE(ac.configuration ->> 'routineName', ''))
     ) AS routine_key,
     ac.configuration ->> 'routineTemplateId' AS routine_template_id,
     ac.configuration ->> 'routineName' AS routine_name,
@@ -68,7 +89,11 @@ SELECT a.id AS activity_id,
     a.started_at,
     a.completed_at,
     FLOOR(EXTRACT(EPOCH FROM (a.completed_at - a.started_at)))::integer AS duration_seconds,
-    jsonb_array_length(ac.configuration -> 'steps') AS step_count,
+    jsonb_array_length(
+        CASE WHEN jsonb_typeof(ac.configuration -> 'steps') = 'array'
+            THEN ac.configuration -> 'steps'
+        END
+    ) AS step_count,
     COALESCE(sf.steps_started, 0) AS steps_started,
     COALESCE(sf.steps_completed, 0) AS steps_completed,
     COALESCE(df.dart_count, 0) AS dart_count
@@ -94,7 +119,7 @@ FROM activities a
             AND p.player_id = a.player_id
     ) df ON TRUE
 WHERE gs.implementation_key IN ('COMPLETED', 'ABANDONED');
-COMMENT ON VIEW v_stats_routine_run_facts IS 'One row per terminal training activity (owning player only) with a resolved routine identity, step counts read from the activity_configurations snapshot, and a rule-free owner-scoped dart count across every step session. Statistics phase 6a, D372.';
+COMMENT ON VIEW v_stats_routine_run_facts IS 'One row per terminal training activity (owning player only) with a resolved routine identity, step counts read from the activity_configurations snapshot, and a rule-free owner-scoped dart count across every session of the activity. Statistics phase 6a; identity rules recorded with phase 6b''s routine-statistics decision.';
 
 CREATE VIEW v_stats_routine_step_facts AS
 SELECT es.id AS session_id,
@@ -102,7 +127,7 @@ SELECT es.id AS session_id,
     es.player_id,
     COALESCE(
         ac.configuration ->> 'routineTemplateId',
-        'name-' || md5(ac.configuration ->> 'routineName')
+        'name-' || md5(COALESCE(ac.configuration ->> 'routineName', ''))
     ) AS routine_key,
     ac.configuration ->> 'routineName' AS routine_name,
     es.routine_step_sequence_number AS sequence_number,
@@ -133,7 +158,11 @@ FROM exercise_sessions es
     LEFT JOIN exercise_configurations ec    ON ec.exercise_session_id = es.id
     LEFT JOIN LATERAL (
         SELECT e AS element
-        FROM jsonb_array_elements(ac.configuration -> 'steps') e
+        FROM jsonb_array_elements(
+            CASE WHEN jsonb_typeof(ac.configuration -> 'steps') = 'array'
+                THEN ac.configuration -> 'steps'
+            END
+        ) e
         WHERE jsonb_typeof(e -> 'sequenceNumber') = 'number'
             AND e ->> 'sequenceNumber' = es.routine_step_sequence_number::text
         LIMIT 1
@@ -159,7 +188,7 @@ FROM exercise_sessions es
 WHERE gs.implementation_key IN ('COMPLETED', 'ABANDONED')
     AND es.routine_step_sequence_number IS NOT NULL
     AND se.element IS NOT NULL;
-COMMENT ON VIEW v_stats_routine_step_facts IS 'One row per terminal routine step session (owning player only), its identity and snapshot element resolved by sequenceNumber (never array position), with rule-free owner-scoped turn/dart/score counts. Statistics phase 6a, D372.';
+COMMENT ON VIEW v_stats_routine_step_facts IS 'One row per terminal routine step session (owning player only), its identity and snapshot element resolved by sequenceNumber (never array position), with rule-free owner-scoped turn/dart/score counts. Statistics phase 6a; identity rules recorded with phase 6b''s routine-statistics decision.';
 
 -- migrate:down
 DROP VIEW IF EXISTS v_stats_routine_step_facts;
