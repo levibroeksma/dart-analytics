@@ -223,6 +223,38 @@ export type RoutineStepScope = {
 };
 
 /**
+ * The seven non-game dart exercise kinds `step-metrics.module.ts` defines
+ * metrics for (phase 6b plan decision 7) — `RoutineStepSummary.stepKey`'s
+ * non-`"GAME:…"` values. Warm-Up throws no darts and is excluded: it gets
+ * `step-volume` only, never `step-result` (decision 6).
+ */
+export type DartExerciseKind =
+  | "SWITCHING"
+  | "DOUBLE_PATTERN"
+  | "TARGET_SCORING"
+  | "SWITCHING_TARGET_SCORING"
+  | "SCORE_THRESHOLD"
+  | "BULLSEYE_CHECKOUT"
+  | "BULL_UP";
+
+/**
+ * One dart exercise kind's step-metric contract (phase 6b plan decision 7):
+ * which keys `stepMetrics` returns and how `mergeStepMetrics` combines two
+ * buckets' worth of them (`"sum"` adds, `"max"` takes the larger), which key
+ * is the headline stat shown for a bucket, and which key pairs the client
+ * divides into a displayed rate — e.g. `["hits", "darts"]` for a hit rate.
+ * `direction` is always `"higher"` today (every headline here reads better
+ * bigger); the field exists so a future kind can read the other way without
+ * a shape change.
+ */
+export type StepMetricSpec = {
+  metrics: Readonly<Record<string, "sum" | "max">>;
+  headline: string;
+  direction: "higher";
+  rates: readonly (readonly [string, string])[];
+};
+
+/**
  * One `findX01FoldRows` row: a `v_x01_checkout_darts` dart plus the bucket
  * its session's `completed_at` falls in. Session-ordered rows are grouped
  * and folded through `sessionCheckoutVisits` downstream, never here.
