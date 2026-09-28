@@ -23,6 +23,7 @@ const SECTION_RESULTS = "sectionResults";
 const COVERAGE = "coverage";
 const SESSION_LISTS = "sessionLists";
 const META = "meta";
+const REPLAY_PAGES = "replayPages";
 
 type CoverageRecord = {
   coveredFrom: string;
@@ -87,11 +88,15 @@ export async function clearStatsCache(): Promise<void> {
   if (db === null) return;
   try {
     await safe(async () => {
-      const tx = db.transaction(
-        [SECTION_RESULTS, COVERAGE, SESSION_LISTS, META],
-        "readwrite",
-      );
-      for (const store of [SECTION_RESULTS, COVERAGE, SESSION_LISTS, META]) {
+      const stores = [
+        SECTION_RESULTS,
+        COVERAGE,
+        SESSION_LISTS,
+        META,
+        REPLAY_PAGES,
+      ];
+      const tx = db.transaction(stores, "readwrite");
+      for (const store of stores) {
         await idbRequest(tx.objectStore(store).clear());
       }
     }, undefined);
@@ -539,6 +544,34 @@ export async function readSessionPage<T>(
       putRecord(db, SESSION_LISTS, key, response),
       putRecord(db, META, dataVersionKey, response.dataVersion),
     ]);
+    return response;
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * One replay page, keyed by `(sessionId, cursor)` (`10-Statistics/02-Replay.md`,
+ * D371 decision 7: pages are immutable, carry no `dataVersion`, and are never
+ * invalidated — only cleared with the rest of the cache). A miss fetches,
+ * stores only a successful page, and returns it. A null DB (IndexedDB
+ * unavailable) degrades to network-only, calling `fetcher` every time.
+ */
+export async function readReplayPage<T>(
+  sessionId: string,
+  cursor: string | undefined,
+  fetcher: () => Promise<T>,
+): Promise<T> {
+  const db = await openStatsDb();
+  if (db === null) return fetcher();
+
+  try {
+    const key = `${sessionId}:${cursor ?? ""}`;
+    const cached = await getRecord<T>(db, REPLAY_PAGES, key);
+    if (cached !== undefined) return cached;
+
+    const response = await fetcher();
+    await putRecord(db, REPLAY_PAGES, key, response);
     return response;
   } finally {
     db.close();

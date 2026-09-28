@@ -3,6 +3,8 @@ import type {
   GameSectionResponseData,
   GameSessionListResponseData,
   GameStatsRangeParams,
+  ReplayPageSchemaData,
+  ReplaySessionParams,
   StatisticsOverviewResponseData,
 } from "./types";
 
@@ -65,6 +67,23 @@ export async function fetchGameSection(
 
   const result = await apiRequest<GameSectionResponseData>(
     `/api/statistics/games/${gameTypeKey}/sections/${sectionId}?${params.toString()}`,
+  );
+  if (!result.ok)
+    throw new StatisticsApiError(result.error.code, result.error.message);
+  return result.data;
+}
+
+/** One page of a session's replay (`10-Statistics/02-Replay.md`), paginated by turn. */
+export async function fetchSessionReplay(
+  sessionId: string,
+  q: ReplaySessionParams = {},
+): Promise<ReplayPageSchemaData> {
+  const params = new URLSearchParams();
+  if (q.cursor !== undefined) params.set("cursor", q.cursor);
+  if (q.limit !== undefined) params.set("limit", String(q.limit));
+
+  const result = await apiRequest<ReplayPageSchemaData>(
+    `/api/statistics/sessions/${sessionId}/replay?${params.toString()}`,
   );
   if (!result.ok)
     throw new StatisticsApiError(result.error.code, result.error.message);
