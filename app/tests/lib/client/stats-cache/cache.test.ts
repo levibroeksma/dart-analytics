@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   readSection,
   readSessionPage,
+  readReplayPage,
   clearStatsCache,
   missingSpans,
 } from "@client/stats-cache/cache";
@@ -596,6 +597,75 @@ describe("readSessionPage", () => {
   });
 });
 
+type ReplayPageLike = { header: null; turns: unknown[]; nextCursor: null };
+
+function replayPage(): ReplayPageLike {
+  return { header: null, turns: [], nextCursor: null };
+}
+
+describe("readReplayPage", () => {
+  beforeEach(() => deleteStatsDb());
+
+  it("fetches on the first read", async () => {
+    const fetcher = vi.fn().mockResolvedValue(replayPage());
+
+    const result = await readReplayPage("s1", undefined, fetcher);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(replayPage());
+  });
+
+  it("does not call the fetcher again for an identical read", async () => {
+    const fetcher = vi.fn().mockResolvedValue(replayPage());
+    await readReplayPage("s1", undefined, fetcher);
+    fetcher.mockClear();
+
+    const result = await readReplayPage("s1", undefined, fetcher);
+
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(result).toEqual(replayPage());
+  });
+
+  it("misses the cache for a different cursor", async () => {
+    const fetcher = vi.fn().mockResolvedValue(replayPage());
+    await readReplayPage("s1", undefined, fetcher);
+    fetcher.mockClear();
+
+    await readReplayPage("s1", "v1:abc:2", fetcher);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not cache a fetcher rejection", async () => {
+    const fetcher = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce(replayPage());
+
+    await expect(readReplayPage("s1", undefined, fetcher)).rejects.toThrow(
+      "boom",
+    );
+    const result = await readReplayPage("s1", undefined, fetcher);
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result).toEqual(replayPage());
+  });
+
+  it("calls the fetcher every time when IndexedDB is unavailable", async () => {
+    const original = globalThis.indexedDB;
+    // @ts-expect-error simulating an environment without IndexedDB
+    delete globalThis.indexedDB;
+    const fetcher = vi.fn().mockResolvedValue(replayPage());
+
+    await readReplayPage("s1", undefined, fetcher);
+    const result = await readReplayPage("s1", undefined, fetcher);
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result).toEqual(replayPage());
+    globalThis.indexedDB = original;
+  });
+});
+
 describe("clearStatsCache", () => {
   beforeEach(() => deleteStatsDb());
 
@@ -618,6 +688,17 @@ describe("clearStatsCache", () => {
       from: baseQuery.from,
       to: baseQuery.to,
     });
+  });
+
+  it("empties replayPages", async () => {
+    const fetcher = vi.fn().mockResolvedValue(replayPage());
+    await readReplayPage("s1", undefined, fetcher);
+
+    await clearStatsCache();
+    fetcher.mockClear();
+    await readReplayPage("s1", undefined, fetcher);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
   });
 });
 

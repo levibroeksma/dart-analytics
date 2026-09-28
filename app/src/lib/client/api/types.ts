@@ -51,6 +51,12 @@ export type GameStatsRangeParams = {
   target?: string;
 };
 
+/** `fetchSessionReplay`'s params: `cursor`/`limit` are omitted from the query when absent, letting the server default `limit`. */
+export type ReplaySessionParams = {
+  cursor?: string;
+  limit?: number;
+};
+
 /** The section response `fetchGameSection` returns, whichever section was requested. */
 export type GameSectionResponseData =
   | CompletionSeriesResponseData
@@ -93,6 +99,8 @@ export {
   type PlayerProfileResponseData,
   type StatisticsOverviewResponseData,
   type GameSessionListResponseData,
+  type ReplayPageSchemaData,
+  ReplaySessionIdParam,
   type CompletionSeriesResponseData,
   type VolumeSeriesResponseData,
   type SessionResultSeriesResponseData,

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { checkoutPathBuckets } from "@modules/stats/sections/checkout-path.module";
+import {
+  checkoutPathBuckets,
+  dartLabel,
+} from "@modules/stats/sections/checkout-path.module";
 import type { BucketedSession, DartFact, StagedVisit } from "@modules/types";
 
 const CTX = {
@@ -113,5 +116,17 @@ describe("checkoutPathBuckets", () => {
     expect(buckets[1]!.metrics).toEqual({
       "40": { "1 20": { visits: 1, finished: 0 } },
     });
+  });
+});
+
+describe("dartLabel", () => {
+  it("labels every hit zone in route vocabulary", () => {
+    expect(dartLabel(dart(20, "TREBLE", 60))).toBe("T20");
+    expect(dartLabel(dart(16, "DOUBLE", 32))).toBe("D16");
+    expect(dartLabel(dart(5, "INNER_SINGLE", 5))).toBe("5");
+    expect(dartLabel(dart(5, "OUTER_SINGLE", 5))).toBe("5");
+    expect(dartLabel(dart(25, "OUTER_BULL", 25))).toBe("25");
+    expect(dartLabel(dart(25, "INNER_BULL", 50))).toBe("BULL");
+    expect(dartLabel(dart(null, "MISS", 0))).toBe("MISS");
   });
 });

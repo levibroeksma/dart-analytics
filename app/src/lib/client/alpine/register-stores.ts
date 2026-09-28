@@ -6,6 +6,7 @@ import { checkoutHintsStore } from "@stores/checkout-hints.store";
 import { gameStatsStore } from "@stores/game-stats.store";
 import { gameStore } from "@stores/game.store";
 import { profileStore } from "@stores/profile.store";
+import { replayStore } from "@stores/replay.store";
 import { settingsStore } from "@stores/settings.store";
 import { statsStore } from "@stores/stats.store";
 import { trainingSessionStore } from "@stores/training-session.store";
@@ -16,6 +17,7 @@ export function registerStores(Alpine: Alpine) {
   Alpine.store("profile", profileStore());
   Alpine.store("stats", statsStore());
   Alpine.store("gameStats", gameStatsStore());
+  Alpine.store("replay", replayStore());
   Alpine.store("trainingSession", trainingSessionStore());
   /**
    * Alpine's `$persist` getter returns a fresh persist() per access —

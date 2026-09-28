@@ -2,16 +2,16 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-09-27
+updated: 2026-09-28
 -->
 
 # Statistics — Overview
 
-> **Version:** 1.4.0 (2026-09-27, D364/D365/D366/D367/D368/D369/D370)
+> **Version:** 1.5.0 (2026-09-28, D364/D365/D366/D367/D368/D369/D370/D371)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **phase 1 + 2 + 3 + 4 built** (§12) — base views (0043), the session
+> Status: **phase 1 + 2 + 3 + 4 + 5 built** (§12) — base views (0043), the session
 > list, the `completion`/`volume`/`session-result` sections, the registry
 > skeleton, the IndexedDB cache, the six board sections (`heatmap`,
 > `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
@@ -24,7 +24,8 @@ updated: 2026-09-27
 > (`target-accuracy`, `confusion`, `miss-direction`, `loose-darts` widened
 > onto Singles Training, Shanghai and Around the Clock via an engine fold) and
 > three game-specific sections (`shanghai-count`, `atc-darts-per-target`,
-> `bobs27-survival`). Everything else is still designed, not built.
+> `bobs27-survival`), and phase 5 (D371): the paginated per-session replay
+> (`02-Replay.md`). Everything else is still designed, not built.
 
 | File | Covers |
 | ---- | ------ |
@@ -216,7 +217,7 @@ client caches it forever (§7). Precisely, `closed` iff `end ≤ min(to, now)`
 
 ---
 
-# 6. Endpoints (planned)
+# 6. Endpoints
 
 All under `/api/statistics/`, protected route class, caller is always `me`,
 view-backed end to end (D63).
@@ -225,14 +226,14 @@ view-backed end to end (D63).
 | ----- | ------- | ------ |
 | `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
 | `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`; phase 4: `target-accuracy`/`confusion`/`miss-direction`/`loose-darts` widened onto Singles Training/Shanghai/Around the Clock, plus `shanghai-count`/`atc-darts-per-target`/`bobs27-survival`) |
-| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | planned |
+| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | built (phase 5, D371) |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
 `:rulesetKey` (D367 decision 1): a game page spans ruleset versions (e.g.
 Singles V1–V3), and `configSensitive` (§2) is what keeps versions from
 blending within it. One generic section route keeps the route count flat as
 insights grow; the registry, not the router, is what grows. Full contracts
-for the two built routes are in `06-API/04-Endpoint-Contracts.md`.
+for the three built routes are in `06-API/04-Endpoint-Contracts.md`.
 
 ---
 
@@ -246,7 +247,7 @@ behind one module; Alpine stores read through it.
 | ----- | --- | ------------ |
 | `sectionResults` | `(playerId, sectionId, sectionVersion, params, bucketStart)` | closed buckets: never. Open bucket and `bucket = none`: when `dataVersion` changes. |
 | `sessionLists` | `(playerId, rulesetKey, params, cursor)` | when `dataVersion` changes |
-| `replayPages` | `(sessionId, cursor)` | never — completed gameplay is immutable |
+| `replayPages` | `(sessionId, cursor)` | never — completed gameplay is immutable; built (phase 5, D371, `STATS_SCHEMA_VERSION` 2) |
 | `facts` | `(playerId, rulesetKey, month)` | bounded windows only, LRU-evicted under a size budget |
 | `meta` | `schemaVersion`, per-game `dataVersion` | schema bump wipes all stores; logout wipes all stores |
 
@@ -375,5 +376,8 @@ Each phase is its own spec, plan, and migration.
    `null` for Bob's 27 and Around the Clock, and the new game-specific
    sections give each a headline of their own shape (a survival curve, a
    darts-per-target list) rather than a `session-result` PB line.
-5. Replay route (`02-Replay.md`).
+5. **Done** (replay, 2026-09-28, D371): `GET sessions/:sessionId/replay`
+   (turn pages, first-page header, a forever client cache) and the
+   `/statistics/replay?session=` page, whose per-turn values come from a
+   client-side engine fold and per-game presenters (`02-Replay.md`).
 6. Routine statistics (later; `context = routine`).

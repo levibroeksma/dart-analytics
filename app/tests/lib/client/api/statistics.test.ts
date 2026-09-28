@@ -7,6 +7,7 @@ import {
   fetchStatisticsOverview,
   fetchGameSessions,
   fetchGameSection,
+  fetchSessionReplay,
   StatisticsApiError,
 } from "@client/api/statistics";
 
@@ -182,5 +183,78 @@ describe("fetchGameSection", () => {
 
     const [path] = vi.mocked(apiRequest).mock.calls[0];
     expect(path).toContain("target=DOUBLE%3A16");
+  });
+});
+
+describe("fetchSessionReplay", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const pageResponse = {
+    header: null,
+    turns: [],
+    nextCursor: null,
+  };
+
+  it("omits cursor and limit from the query when absent", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: pageResponse,
+    });
+
+    const result = await fetchSessionReplay(
+      "11111111-1111-1111-1111-111111111111",
+    );
+
+    expect(result).toEqual(pageResponse);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe(
+      "/api/statistics/sessions/11111111-1111-1111-1111-111111111111/replay?",
+    );
+  });
+
+  it("includes cursor and limit in the query when given", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: pageResponse,
+    });
+
+    await fetchSessionReplay("11111111-1111-1111-1111-111111111111", {
+      cursor: "v1:abc:2",
+      limit: 10,
+    });
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain("cursor=v1%3Aabc%3A2");
+    expect(path).toContain("limit=10");
+  });
+
+  it("encodes the session id into one path segment, so a ../ id cannot leave the replay route", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: pageResponse,
+    });
+
+    await fetchSessionReplay("../../profile#");
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe("/api/statistics/sessions/..%2F..%2Fprofile%23/replay?");
+    expect(new URL(path as string, "https://app.test").pathname).toBe(
+      "/api/statistics/sessions/..%2F..%2Fprofile%23/replay",
+    );
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+
+    await expect(
+      fetchSessionReplay("11111111-1111-1111-1111-111111111111"),
+    ).rejects.toBeInstanceOf(StatisticsApiError);
   });
 });

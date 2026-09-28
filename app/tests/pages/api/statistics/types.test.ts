@@ -25,6 +25,11 @@ import {
   AtcDartsPerTargetSeriesResponse,
   Bobs27SurvivalSeriesResponse,
   ShanghaiCountSeriesResponse,
+  ReplayQuery,
+  ReplaySessionIdParam,
+  ReplayHeaderSchema,
+  ReplayTurnSchema,
+  ReplayPageSchema,
 } from "@routes/types";
 
 describe("StatisticsOverviewResponse", () => {
@@ -951,5 +956,142 @@ describe("derived and game-specific series responses", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("ReplayQuery", () => {
+  it("defaults limit to 30 with no cursor", () => {
+    const result = ReplayQuery.safeParse({});
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.limit).toBe(30);
+      expect(result.data.cursor).toBeUndefined();
+    }
+  });
+
+  it("accepts a cursor and an in-range limit", () => {
+    const result = ReplayQuery.safeParse({ cursor: "v1:abc:2", limit: "50" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.cursor).toBe("v1:abc:2");
+      expect(result.data.limit).toBe(50);
+    }
+  });
+
+  it("rejects limit=0", () => {
+    expect(ReplayQuery.safeParse({ limit: "0" }).success).toBe(false);
+  });
+
+  it("rejects limit=121", () => {
+    expect(ReplayQuery.safeParse({ limit: "121" }).success).toBe(false);
+  });
+
+  it("rejects a statistics-range param this route does not accept (decision 6)", () => {
+    expect(
+      ReplayQuery.safeParse({ from: "2026-01-01T00:00:00+01:00" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects an unrecognized param", () => {
+    expect(ReplayQuery.safeParse({ foo: "1" }).success).toBe(false);
+  });
+});
+
+describe("ReplaySessionIdParam", () => {
+  it("accepts a UUID", () => {
+    expect(
+      ReplaySessionIdParam.safeParse("018f1e2a-0000-7000-8000-000000000000")
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects a non-UUID", () => {
+    expect(ReplaySessionIdParam.safeParse("not-a-uuid").success).toBe(false);
+  });
+});
+
+describe("replay page schemas", () => {
+  const header = {
+    sessionId: "018f1e2a-0000-7000-8000-000000000000",
+    gameTypeKey: "501",
+    rulesetVersionKey: "501_V1",
+    inputModeKey: "VISUAL_BOARD",
+    statusKey: "COMPLETED",
+    contextKey: "STANDALONE",
+    activityId: "018f1e2a-0000-7000-8000-000000000001",
+    routineStepSequenceNumber: null,
+    configuration: null,
+    startedAt: "2026-01-01T00:00:00.000Z",
+    completedAt: "2026-01-01T00:05:00.000Z",
+    durationSeconds: 300,
+    turnCount: 1,
+    dartCount: 1,
+    participants: [
+      {
+        participantId: "018f1e2a-0000-7000-8000-000000000002",
+        displayName: "Levi",
+        participantTypeKey: "PLAYER",
+      },
+    ],
+    stages: [
+      {
+        stageId: "018f1e2a-0000-7000-8000-000000000003",
+        parentStageId: null,
+        stageTypeKey: "LEG",
+        sequence: 1,
+      },
+    ],
+  };
+
+  const turn = {
+    stageId: "018f1e2a-0000-7000-8000-000000000003",
+    turnSequence: 1,
+    participantId: "018f1e2a-0000-7000-8000-000000000002",
+    turnTotalScore: 60,
+    darts: [
+      {
+        dartNumber: 1,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: 12.3,
+        locationY: -4.5,
+      },
+    ],
+  };
+
+  it("parses a full header, including a turn-total-only turn", () => {
+    expect(ReplayHeaderSchema.safeParse(header).success).toBe(true);
+    expect(ReplayTurnSchema.safeParse({ ...turn, darts: [] }).success).toBe(
+      true,
+    );
+  });
+
+  it("parses a first page carrying a header", () => {
+    const result = ReplayPageSchema.safeParse({
+      header,
+      turns: [turn],
+      nextCursor: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a later page carrying a null header and a nextCursor", () => {
+    const result = ReplayPageSchema.safeParse({
+      header: null,
+      turns: [turn],
+      nextCursor: "v1:018f1e2a-0000-7000-8000-000000000003:1",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a dart with a null hitZoneKey (R3: real darts always carry one)", () => {
+    const result = ReplayTurnSchema.safeParse({
+      ...turn,
+      darts: [{ ...turn.darts[0], hitZoneKey: null }],
+    });
+    expect(result.success).toBe(false);
   });
 });

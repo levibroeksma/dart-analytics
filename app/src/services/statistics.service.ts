@@ -21,6 +21,12 @@ import {
   averageDartsPerLeg,
   bestLegDarts,
 } from "@modules/stats/leg-stats.module";
+import {
+  decodeReplayCursor,
+  encodeReplayCursor,
+  rowsToTurns,
+  stageOrder,
+} from "@modules/stats/replay.module";
 import { scoringAverageExcludingDoubles } from "@modules/stats/scoring-average.module";
 import {
   checkoutVisitsFromRows,
@@ -81,6 +87,10 @@ import {
   findIntentMoments,
   findLegFacts,
   findMissSectors,
+  findReplayParticipants,
+  findReplaySession,
+  findReplayStages,
+  findReplayTurnPage,
   findScopeDartCount,
   findSessionSummaries,
   findVisitFacts,
@@ -119,6 +129,8 @@ import type {
 } from "@modules/types";
 import type {
   GameSessionList,
+  ReplayHeader,
+  ReplayPage,
   ServiceResult,
   SeriesResponse,
   StatisticsOverview,
@@ -743,4 +755,88 @@ export async function getGameSection(
   } as SeriesResponse;
 
   return { ok: true, data: response };
+}
+
+/**
+ * One page of a session's replay (D371 decisions 2-5). `findReplaySession`
+ * is the one gate every page runs, first: missing, another player's, still
+ * active and training-only sessions all read back as `null` alike, so they
+ * all become `NOT_FOUND` here without telling the caller which. On a hit,
+ * `findReplayStages` rebuilds play order through `stageOrder`, which the
+ * cursor and the turn page both resolve a stage id against. A cursor is
+ * decoded and validated (malformed, or its stage outside this session's
+ * order) before either `findReplayTurnPage` or `findReplayParticipants`
+ * runs. `findReplayTurnPage` fetches up to `limit + 1` turns; the extra one
+ * is dropped and turned into `nextCursor`. The header -- the session's own
+ * facts plus its participants and stage tree -- is built only when `cursor`
+ * is `null`; every later page carries `header: null`, since a page is
+ * cached forever and the header would only repeat.
+ */
+export async function getSessionReplay(
+  playerId: string,
+  sessionId: string,
+  q: { cursor: string | null; limit: number },
+): Promise<ServiceResult<ReplayPage>> {
+  const db = getDb();
+
+  const session = await findReplaySession(db, playerId, sessionId);
+  if (session === null) {
+    return { ok: false, code: "NOT_FOUND" };
+  }
+
+  const stages = stageOrder(await findReplayStages(db, playerId, sessionId));
+  const stageIds = stages.map((stage) => stage.stageId);
+
+  let after: { position: number; turnSequence: number } | null = null;
+  if (q.cursor !== null) {
+    const decoded = decodeReplayCursor(q.cursor);
+    if (decoded === null) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        details: { reason: "cursor is malformed" },
+      };
+    }
+    const position = stageIds.indexOf(decoded.stageId) + 1;
+    if (position === 0) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        details: { reason: "cursor stage does not belong to this session" },
+      };
+    }
+    after = { position, turnSequence: decoded.turnSequence };
+  }
+
+  const rows = await findReplayTurnPage(db, {
+    playerId,
+    sessionId,
+    stageIds,
+    after,
+    limit: q.limit,
+  });
+  const pagedTurns = rowsToTurns(rows);
+  const hasMore = pagedTurns.length > q.limit;
+  const turns = hasMore ? pagedTurns.slice(0, q.limit) : pagedTurns;
+  const lastTurn = turns[turns.length - 1];
+  const nextCursor =
+    hasMore && lastTurn
+      ? encodeReplayCursor({
+          stageId: lastTurn.stageId,
+          turnSequence: lastTurn.turnSequence,
+        })
+      : null;
+
+  let header: ReplayHeader | null = null;
+  if (q.cursor === null) {
+    const participants = await findReplayParticipants(
+      db,
+      playerId,
+      sessionId,
+      stageIds,
+    );
+    header = { ...session, participants, stages };
+  }
+
+  return { ok: true, data: { header, turns, nextCursor } };
 }

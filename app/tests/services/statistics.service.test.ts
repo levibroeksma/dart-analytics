@@ -19,6 +19,10 @@ vi.mock("@repositories/statistics.repository", () => ({
   findVisitScoring: vi.fn(),
   findHitNumberCells: vi.fn(),
   findDartFoldRows: vi.fn(),
+  findReplaySession: vi.fn(),
+  findReplayStages: vi.fn(),
+  findReplayParticipants: vi.fn(),
+  findReplayTurnPage: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
@@ -26,8 +30,19 @@ import {
   getStatisticsOverview,
   listGameSessions,
   getGameSection,
+  getSessionReplay,
   resolveSectionHandler,
 } from "@services/statistics.service";
+import {
+  decodeReplayCursor,
+  encodeReplayCursor,
+} from "@modules/stats/replay.module";
+import type {
+  ReplayParticipantRow,
+  ReplayRow,
+  ReplaySessionRow,
+  ReplayStageRow,
+} from "@modules/types";
 import {
   SECTIONS,
   MAX_FOLD_DARTS,
@@ -1536,5 +1551,352 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
       expect(result.details?.reason).toContain("target");
     }
     expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+  });
+});
+
+function makeReplaySessionRow(
+  overrides: Partial<ReplaySessionRow> = {},
+): ReplaySessionRow {
+  return {
+    sessionId: "session-1",
+    gameTypeKey: "501",
+    rulesetVersionKey: "501_V1",
+    inputModeKey: "VISUAL_BOARD",
+    statusKey: "COMPLETED",
+    contextKey: "STANDALONE",
+    activityId: "activity-1",
+    routineStepSequenceNumber: null,
+    configuration: null,
+    startedAt: "2026-09-01T10:00:00.000Z",
+    completedAt: "2026-09-01T10:10:00.000Z",
+    durationSeconds: 600,
+    turnCount: 4,
+    dartCount: 12,
+    ...overrides,
+  };
+}
+
+function makeReplayStage(
+  overrides: Partial<ReplayStageRow> = {},
+): ReplayStageRow {
+  return {
+    stageId: "stage-1",
+    parentStageId: null,
+    stageTypeKey: "LEG",
+    sequence: 1,
+    ...overrides,
+  };
+}
+
+function makeReplayParticipant(
+  overrides: Partial<ReplayParticipantRow> = {},
+): ReplayParticipantRow {
+  return {
+    participantId: "participant-1",
+    displayName: "Alex",
+    participantTypeKey: "PLAYER",
+    ...overrides,
+  };
+}
+
+function makeReplayTotalOnlyRow(overrides: Partial<ReplayRow> = {}): ReplayRow {
+  return {
+    stageId: "stage-1",
+    turnSequence: 1,
+    participantId: "participant-1",
+    participantName: "Alex",
+    participantTypeKey: "PLAYER",
+    turnTotalScore: 60,
+    dartNumber: null,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: null,
+    hitZoneKey: null,
+    score: null,
+    locationX: null,
+    locationY: null,
+    ...overrides,
+  };
+}
+
+describe("getSessionReplay", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns NOT_FOUND when the session gate finds no row, and calls no other reader", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(null);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+    expect(repo.findReplayStages).not.toHaveBeenCalled();
+    expect(repo.findReplayTurnPage).not.toHaveBeenCalled();
+    expect(repo.findReplayParticipants).not.toHaveBeenCalled();
+  });
+
+  it("returns VALIDATION_FAILED for a malformed cursor, without paging turns", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([makeReplayStage()]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: "%%%",
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBeDefined();
+    }
+    expect(repo.findReplayTurnPage).not.toHaveBeenCalled();
+    expect(repo.findReplayParticipants).not.toHaveBeenCalled();
+  });
+
+  it("returns VALIDATION_FAILED when the cursor's stage does not belong to this session", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([
+      makeReplayStage({ stageId: "stage-1" }),
+    ]);
+
+    const cursor = encodeReplayCursor({
+      stageId: "other-session-stage",
+      turnSequence: 1,
+    });
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findReplayTurnPage).not.toHaveBeenCalled();
+    expect(repo.findReplayParticipants).not.toHaveBeenCalled();
+  });
+
+  it("returns nextCursor null when exactly limit turns come back", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([makeReplayStage()]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([
+      makeReplayParticipant(),
+    ]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([
+      makeReplayTotalOnlyRow({ turnSequence: 1 }),
+    ]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.turns).toHaveLength(1);
+      expect(result.data.nextCursor).toBeNull();
+    }
+  });
+
+  it("drops the extra turn and sets nextCursor from the last kept turn when limit+1 turns come back", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([makeReplayStage()]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([
+      makeReplayParticipant(),
+    ]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([
+      makeReplayTotalOnlyRow({ turnSequence: 1 }),
+      makeReplayTotalOnlyRow({ turnSequence: 2 }),
+    ]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.turns).toHaveLength(1);
+      expect(result.data.turns[0]!.turnSequence).toBe(1);
+      expect(result.data.nextCursor).not.toBeNull();
+      expect(decodeReplayCursor(result.data.nextCursor!)).toEqual({
+        stageId: "stage-1",
+        turnSequence: 1,
+      });
+    }
+  });
+
+  it("passes the cursor stage's 1-based position to findReplayTurnPage, and omits the header", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([
+      makeReplayStage({ stageId: "leg-1", sequence: 1 }),
+      makeReplayStage({ stageId: "leg-2", sequence: 2 }),
+    ]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([]);
+
+    const cursor = encodeReplayCursor({ stageId: "leg-2", turnSequence: 3 });
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor,
+      limit: 30,
+    });
+
+    expect(repo.findReplayTurnPage).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        after: { position: 2, turnSequence: 3 },
+      }),
+    );
+    expect(repo.findReplayParticipants).not.toHaveBeenCalled();
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.header).toBeNull();
+  });
+
+  it("builds the header from the session row, ordered stages and participants only on the first page", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(
+      makeReplaySessionRow({ sessionId: "session-1" }),
+    );
+    vi.mocked(repo.findReplayStages).mockResolvedValue([
+      makeReplayStage({ stageId: "leg-2", sequence: 2 }),
+      makeReplayStage({ stageId: "leg-1", sequence: 1 }),
+    ]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([
+      makeReplayParticipant({ participantId: "participant-1" }),
+    ]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.header?.sessionId).toBe("session-1");
+      expect(result.data.header?.participants).toEqual([
+        makeReplayParticipant({ participantId: "participant-1" }),
+      ]);
+      expect(result.data.header?.stages.map((s) => s.stageId)).toEqual([
+        "leg-1",
+        "leg-2",
+      ]);
+    }
+    expect(repo.findReplayParticipants).toHaveBeenCalledWith(
+      expect.anything(),
+      playerId,
+      "session-1",
+      ["leg-1", "leg-2"],
+    );
+  });
+
+  it("returns an empty header, no turns, and no cursor for a session with no stages (never started)", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(
+      makeReplaySessionRow({ turnCount: 0, dartCount: 0 }),
+    );
+    vi.mocked(repo.findReplayStages).mockResolvedValue([]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.header?.stages).toEqual([]);
+      expect(result.data.turns).toEqual([]);
+      expect(result.data.nextCursor).toBeNull();
+    }
+  });
+
+  it("pages a two-leg 501 fixture across the leg boundary without losing or repeating a turn", async () => {
+    const stageIds = ["leg-1", "leg-2"];
+    const rows: ReplayRow[] = [
+      makeReplayTotalOnlyRow({
+        stageId: "leg-1",
+        turnSequence: 1,
+        turnTotalScore: 60,
+      }),
+      makeReplayTotalOnlyRow({
+        stageId: "leg-1",
+        turnSequence: 2,
+        turnTotalScore: 45,
+      }),
+      makeReplayTotalOnlyRow({
+        stageId: "leg-2",
+        turnSequence: 1,
+        turnTotalScore: 30,
+      }),
+      makeReplayTotalOnlyRow({
+        stageId: "leg-2",
+        turnSequence: 2,
+        turnTotalScore: 20,
+      }),
+    ];
+
+    vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
+    vi.mocked(repo.findReplayStages).mockResolvedValue([
+      makeReplayStage({ stageId: "leg-1", sequence: 1 }),
+      makeReplayStage({ stageId: "leg-2", sequence: 2 }),
+    ]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([
+      makeReplayParticipant(),
+    ]);
+    vi.mocked(repo.findReplayTurnPage).mockImplementation(
+      async (
+        _db,
+        q: {
+          after: { position: number; turnSequence: number } | null;
+          limit: number;
+        },
+      ) => {
+        const withPos = rows.map((row) => ({
+          row,
+          pos: stageIds.indexOf(row.stageId) + 1,
+        }));
+        const remaining = q.after
+          ? withPos.filter(
+              ({ pos, row }) =>
+                pos > q.after!.position ||
+                (pos === q.after!.position &&
+                  row.turnSequence > q.after!.turnSequence),
+            )
+          : withPos;
+        const turnKeys: string[] = [];
+        for (const { row } of remaining) {
+          const key = `${row.stageId}:${row.turnSequence}`;
+          if (!turnKeys.includes(key)) turnKeys.push(key);
+        }
+        const keptKeys = new Set(turnKeys.slice(0, q.limit + 1));
+        return remaining
+          .filter(({ row }) =>
+            keptKeys.has(`${row.stageId}:${row.turnSequence}`),
+          )
+          .map(({ row }) => row);
+      },
+    );
+
+    const page1 = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 3,
+    });
+    expect(page1.ok).toBe(true);
+    if (!page1.ok) return;
+    expect(
+      page1.data.turns.map((t) => `${t.stageId}:${t.turnSequence}`),
+    ).toEqual(["leg-1:1", "leg-1:2", "leg-2:1"]);
+    expect(page1.data.nextCursor).not.toBeNull();
+
+    const page2 = await getSessionReplay(playerId, "session-1", {
+      cursor: page1.data.nextCursor!,
+      limit: 3,
+    });
+    expect(page2.ok).toBe(true);
+    if (!page2.ok) return;
+    expect(
+      page2.data.turns.map((t) => `${t.stageId}:${t.turnSequence}`),
+    ).toEqual(["leg-2:2"]);
+    expect(page2.data.nextCursor).toBeNull();
+    expect(page2.data.header).toBeNull();
   });
 });

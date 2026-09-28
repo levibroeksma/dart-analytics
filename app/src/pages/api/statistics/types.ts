@@ -484,6 +484,85 @@ export type ShanghaiCountSeriesResponseData = z.infer<
   typeof ShanghaiCountSeriesResponse
 >;
 
+/**
+ * One page of a session's replay (D371 decisions 4, 6): only `cursor` and
+ * `limit` are accepted -- any other search param fails `.strict()`, per
+ * `10-Statistics/00-Overview.md` §5's "never silently ignored" rule.
+ */
+export const ReplayQuery = z
+  .object({
+    cursor: z.string().optional(),
+    limit: z.coerce.number().int().min(1).max(120).default(30),
+  })
+  .strict();
+export type ReplayQueryData = z.infer<typeof ReplayQuery>;
+
+/** A replay route's `sessionId` path param: a UUID, else `VALIDATION_FAILED`. */
+export const ReplaySessionIdParam = z.string().uuid();
+
+const ReplayParticipant = z.object({
+  participantId: z.string().uuid(),
+  displayName: z.string(),
+  participantTypeKey: z.string(),
+});
+
+const ReplayStage = z.object({
+  stageId: z.string().uuid(),
+  parentStageId: z.string().uuid().nullable(),
+  stageTypeKey: z.string(),
+  sequence: z.number().int(),
+});
+
+/** Mirrors `ReplayHeader` (`@services/types`, D371 decision 5). */
+export const ReplayHeaderSchema = z.object({
+  sessionId: z.string().uuid(),
+  gameTypeKey: z.string(),
+  rulesetVersionKey: z.string(),
+  inputModeKey: z.string(),
+  statusKey: z.string(),
+  contextKey: z.string(),
+  activityId: z.string().uuid(),
+  routineStepSequenceNumber: z.number().int().nullable(),
+  configuration: z.record(z.unknown()).nullable(),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  durationSeconds: z.number().int(),
+  turnCount: z.number().int(),
+  dartCount: z.number().int(),
+  participants: z.array(ReplayParticipant),
+  stages: z.array(ReplayStage),
+});
+export type ReplayHeaderSchemaData = z.infer<typeof ReplayHeaderSchema>;
+
+const ReplayDart = z.object({
+  dartNumber: z.number().int(),
+  intendedTargetNumber: z.number().int().nullable(),
+  intendedZoneKey: z.string().nullable(),
+  hitTargetNumber: z.number().int().nullable(),
+  hitZoneKey: z.string(),
+  score: z.number().int(),
+  locationX: z.number().nullable(),
+  locationY: z.number().nullable(),
+});
+
+/** Mirrors `ReplayTurn` (`@modules/types`, D371 decision 3). */
+export const ReplayTurnSchema = z.object({
+  stageId: z.string().uuid(),
+  turnSequence: z.number().int(),
+  participantId: z.string().uuid(),
+  turnTotalScore: z.number().int(),
+  darts: z.array(ReplayDart),
+});
+export type ReplayTurnSchemaData = z.infer<typeof ReplayTurnSchema>;
+
+/** Mirrors `ReplayPage` (`@services/types`, D371 decisions 2, 4-5). */
+export const ReplayPageSchema = z.object({
+  header: ReplayHeaderSchema.nullable(),
+  turns: z.array(ReplayTurnSchema),
+  nextCursor: z.string().nullable(),
+});
+export type ReplayPageSchemaData = z.infer<typeof ReplayPageSchema>;
+
 const GameSessionListItem = z.object({
   sessionId: z.string().uuid(),
   rulesetVersionKey: z.string(),

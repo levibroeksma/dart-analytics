@@ -4,16 +4,20 @@ import type { SessionListCursor } from "@modules/types";
  * Shared, pure helpers every section module uses: bucket closure
  * (`10-Statistics/00-Overview.md` §5.2), the session-list cursor codec, and
  * the `dataVersion` codec (D367 decision 6). No I/O; isomorphic.
+ * `toBase64Url`/`fromBase64Url` are exported for `replay.module.ts`'s cursor
+ * codec too (R2, D371) — the only base64url codec in `modules/stats`.
  */
 
-function toBase64Url(input: string): string {
+/** Base64url encodes `input`, stripped of `=` padding (RFC 4648 §5). */
+export function toBase64Url(input: string): string {
   return btoa(input)
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replace(/=+$/, "");
 }
 
-function fromBase64Url(input: string): string | null {
+/** Base64url decodes `input`; `null` for anything outside the base64url alphabet or that fails to decode. */
+export function fromBase64Url(input: string): string | null {
   if (!/^[A-Za-z0-9_-]*$/.test(input)) return null;
   const padded = input.replace(/-/g, "+").replace(/_/g, "/");
   const padLength = (4 - (padded.length % 4)) % 4;

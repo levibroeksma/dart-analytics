@@ -11,6 +11,12 @@ import type {
   TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
+import type {
+  ReplayParticipantRow,
+  ReplaySessionRow,
+  ReplayStageRow,
+  ReplayTurn,
+} from "@modules/types";
 
 export * from "./exercise-rulesets/types";
 export * from "./rulesets/types";
@@ -144,6 +150,30 @@ export type SeriesResponse =
   | MissDirectionSeriesResponseData
   | LooseDartsSeriesResponseData
   | HeatmapSeriesResponseData;
+
+/**
+ * A replay page's header (D371 decision 5): the session's own stored facts
+ * (`ReplaySessionRow`) plus its participants and stage tree, both ordered by
+ * play order. Never carries a derived outcome -- the client folds one from
+ * the turns (decision 8).
+ */
+export type ReplayHeader = ReplaySessionRow & {
+  participants: ReplayParticipantRow[];
+  stages: ReplayStageRow[];
+};
+
+/**
+ * One page of a session's replay (D371 decisions 2, 4-5): whole turns in
+ * play order. `header` is present only on the first page (`cursor: null`) --
+ * every later page carries `header: null`, since a page is cached forever
+ * and the header would only repeat. `nextCursor` is `null` once the
+ * session's last turn has been paged.
+ */
+export type ReplayPage = {
+  header: ReplayHeader | null;
+  turns: ReplayTurn[];
+  nextCursor: string | null;
+};
 
 export type RoutineStep = {
   sequenceNumber: number;

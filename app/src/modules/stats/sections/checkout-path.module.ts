@@ -13,8 +13,12 @@ import type { SeriesBucket } from "@lib/types";
 /** A checkout chance can never take more than three darts. */
 const CHANCE_DARTS = 3;
 
-/** One dart's route label, in this section's own vocabulary. */
-function dartLabel(dart: DartFact): string {
+/**
+ * One dart's route label, in this section's own vocabulary (`T20`, `D16`,
+ * `20`, `25`, `BULL`, `MISS`) -- the replay page labels its stored darts
+ * the same way.
+ */
+export function dartLabel(dart: DartFact): string {
   if (dart.hitZoneKey === "TREBLE") return `T${dart.hitTargetNumber}`;
   if (dart.hitZoneKey === "DOUBLE") return `D${dart.hitTargetNumber}`;
   if (dart.hitZoneKey === "INNER_BULL") return "BULL";
