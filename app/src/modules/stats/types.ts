@@ -212,6 +212,17 @@ export type SessionScope = {
 };
 
 /**
+ * Identifies one step of one routine, by the `routine_key`/`step_key` pair
+ * `v_stats_routine_step_facts` derives from the activity's snapshot
+ * (migration `0045` header). Narrows `DartScope`/`SessionScope` to a single
+ * step's sessions.
+ */
+export type RoutineStepScope = {
+  routineKey: string;
+  stepKey: string;
+};
+
+/**
  * One `findX01FoldRows` row: a `v_x01_checkout_darts` dart plus the bucket
  * its session's `completed_at` falls in. Session-ordered rows are grouped
  * and folded through `sessionCheckoutVisits` downstream, never here.
