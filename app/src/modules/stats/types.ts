@@ -269,8 +269,12 @@ export type TrainedRoutineRow = {
 
 /**
  * One `findRoutineHeader` row: one routine's run counts and its earliest and
- * latest run, plus the latest run's own `activityId` — `findRoutineStepDescriptors`'s
- * `current` flag input (phase 6b plan decision 9).
+ * latest run, plus the latest run's own `stepCount` —
+ * `findRoutineStepDescriptors`'s `current` flag input (phase 6b plan
+ * decision 9, controller ruling R11): a step index beyond `latestStepCount`
+ * no longer exists in the routine's current shape, so nothing at that index
+ * can be current. `null` when the latest run's snapshot has no readable
+ * `steps` array (migration `0045` header rule 2).
  */
 export type RoutineHeaderRow = {
   routineKey: string;
@@ -278,15 +282,23 @@ export type RoutineHeaderRow = {
   runCount: number;
   firstRunAt: string;
   lastRunAt: string;
-  latestActivityId: string;
+  latestStepCount: number | null;
 };
 
 /**
  * One `findRoutineStepDescriptors` row: one step index's trained history.
- * `current` is set when the step key appears in the latest run's snapshot
- * (phase 6b plan decision 9). `gameTypeKey`/`rulesetVersionKey` are `null`
- * for a non-game step; `exerciseRulesetVersionKey` is `null` only for a
- * legacy session predating exercise rulesets.
+ * `current` is set when this step key is the most recently seen key at its
+ * `sequenceNumber` (the latest of the index's possibly-several historical
+ * configurations) *and* `sequenceNumber` is still within the latest run's
+ * `stepCount` (R11) — a superseded key, or an index the routine no longer
+ * has, is never current. `gameTypeKey`/`rulesetVersionKey` are `null` for a
+ * non-game step; `exerciseRulesetVersionKey` is `null` for a GAME step
+ * (which has no exercise ruleset at all, `training-session.service.ts`'s
+ * `GAME_EXERCISE_TYPE_KEY` doc) as well as for a legacy session predating
+ * exercise rulesets. `durationSeconds` is the snapshot element's own
+ * configured step length (`TrainingStepResolved.durationSeconds`), not the
+ * session's elapsed time — `null` when the snapshot element has no readable
+ * value.
  */
 export type RoutineStepDescriptorRow = {
   stepKey: string;
@@ -295,7 +307,7 @@ export type RoutineStepDescriptorRow = {
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: GameTypeKey | null;
   rulesetVersionKey: string | null;
-  durationSeconds: number;
+  durationSeconds: number | null;
   sessionCount: number;
   firstSeenAt: string;
   lastSeenAt: string;

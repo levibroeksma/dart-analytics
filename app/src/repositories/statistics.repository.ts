@@ -23,7 +23,6 @@ import {
   vX01CheckoutDarts,
 } from "@db/schema";
 import { nonNull } from "./row-helpers";
-import { encodeDataVersion } from "@modules/stats/sections/series.module";
 import type { getDb } from "@db/client";
 import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
@@ -1072,7 +1071,11 @@ export async function findBucketFloor(
  * context, ruleset version and never-started, so every section reads the
  * same index scan and projects only what it needs (`00-Overview.md` §5.2).
  * `bucket = none` groups with no bucket expression at all; the caller's
- * `from`/`to` become the single bucket's bounds.
+ * `from`/`to` become the single bucket's bounds. `routineStep`, when set,
+ * adds the same sub-select `dartScopeWhere`/`sessionScopeWhere` add (phase
+ * 6b plan decision 5, controller ruling R12) — this reader builds its own
+ * `WHERE` inline rather than through either shared predicate, so it needs
+ * its own wiring.
  */
 export async function findBucketedSessionAggregates(
   db: Db,
@@ -1085,6 +1088,7 @@ export async function findBucketedSessionAggregates(
     tz: string | undefined;
     statuses: string[];
     context: ContextFilter;
+    routineStep?: RoutineStepScope;
   },
 ): Promise<StatsBucketRow[]> {
   const conditions = [
@@ -1094,6 +1098,13 @@ export async function findBucketedSessionAggregates(
     lt(vStatsSessionFacts.completedAt, q.to),
     inArray(vStatsSessionFacts.statusKey, q.statuses),
     contextCondition(q.context),
+    q.routineStep === undefined
+      ? undefined
+      : routineStepCondition(
+          vStatsSessionFacts.sessionId,
+          q.playerId,
+          q.routineStep,
+        ),
   ].filter((condition) => condition !== undefined);
 
   const neverStartedExpr = sql<boolean>`(${vStatsSessionFacts.turnCount} = 0)`;
@@ -1501,8 +1512,11 @@ export async function findTrainedRoutines(
 
 /**
  * One routine's run counts, its earliest and latest run, and the latest
- * run's own `activity_id` over `v_stats_routine_run_facts` (phase 6b plan
- * decision 9) — `null` when the player has never trained this routine.
+ * run's own `step_count` over `v_stats_routine_run_facts` (phase 6b plan
+ * decision 9, controller ruling R11) — `null` when the player has never
+ * trained this routine. `latestStepCount` is `findRoutineStepDescriptors`'s
+ * bound for its `current` flag: an index beyond it no longer exists in the
+ * routine's current shape.
  */
 export async function findRoutineHeader(
   db: Db,
@@ -1510,7 +1524,9 @@ export async function findRoutineHeader(
   routineKey: string,
 ): Promise<RoutineHeaderRow | null> {
   const routineNameExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
-  const latestActivityIdExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.activityId} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const latestStepCountExpr = sql<
+    number | null
+  >`(array_agg(${vStatsRoutineRunFacts.stepCount} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
   const firstRunAtExpr = sql<string>`min(${vStatsRoutineRunFacts.completedAt})`;
   const lastRunAtExpr = sql<string>`max(${vStatsRoutineRunFacts.completedAt})`;
 
@@ -1521,7 +1537,7 @@ export async function findRoutineHeader(
       runCount: count(),
       firstRunAt: firstRunAtExpr,
       lastRunAt: lastRunAtExpr,
-      latestActivityId: latestActivityIdExpr,
+      latestStepCount: latestStepCountExpr,
     })
     .from(vStatsRoutineRunFacts)
     .where(
@@ -1541,25 +1557,36 @@ export async function findRoutineHeader(
     runCount: Number(nonNull(row.runCount, "run_count")),
     firstRunAt: nonNull(row.firstRunAt, "first_run_at"),
     lastRunAt: nonNull(row.lastRunAt, "last_run_at"),
-    latestActivityId: nonNull(row.latestActivityId, "latest_activity_id"),
+    latestStepCount: row.latestStepCount,
   };
 }
 
 /**
  * Every step index the routine has ever run, grouped by `step_key` over
  * `v_stats_routine_step_facts` (phase 6b plan decisions 2, 9) — a step's
- * identity, exercise/game type and duration are constant within one
- * `step_key` (the fingerprint half of the key is derived from exactly those
- * fields), so `min`/`max` picks a group's shared value rather than
- * re-deriving it. `current` is set when the step key appears in
- * `latestActivityId`'s own run. Ordered by `sequenceNumber`, then
- * `lastSeenAt` descending.
+ * identity, exercise/game type are constant within one `step_key` (the
+ * fingerprint half of the key is derived from exactly those fields, plus
+ * configuration), so `min` picks a group's shared value rather than
+ * re-deriving it. `durationSeconds` reads the snapshot element's own
+ * configured length (`step ->> 'durationSeconds'`,
+ * `TrainingStepResolved.durationSeconds`) — not `v_stats_routine_step_facts`'s
+ * own `duration_seconds` column, which is the session's elapsed real time
+ * (reviewer finding item 1).
+ *
+ * `current` (controller ruling R11) is set when this step key is the most
+ * recently seen key at its `sequenceNumber` — `max(completed_at)` compared
+ * against a window `max` of that same aggregate partitioned by
+ * `sequenceNumber`, so a superseded key at a reused index reads `false` even
+ * though it once ran — *and* `sequenceNumber` is still within
+ * `latestStepCount` (the caller's `findRoutineHeader` result): an index the
+ * routine no longer has can never be current, however recently its last key
+ * ran there. Ordered by `sequenceNumber`, then `lastSeenAt` descending.
  */
 export async function findRoutineStepDescriptors(
   db: Db,
   playerId: string,
   routineKey: string,
-  latestActivityId: string,
+  latestStepCount: number | null,
 ): Promise<RoutineStepDescriptorRow[]> {
   const exerciseTypeKeyExpr = sql<string>`min(${vStatsRoutineStepFacts.exerciseTypeKey})`;
   const exerciseRulesetVersionKeyExpr = sql<
@@ -1571,10 +1598,12 @@ export async function findRoutineStepDescriptors(
   const rulesetVersionKeyExpr = sql<
     string | null
   >`min(${vStatsRoutineStepFacts.rulesetVersionKey})`;
-  const durationSecondsExpr = sql<string>`max(${vStatsRoutineStepFacts.durationSeconds})`;
+  const durationSecondsExpr = sql<
+    number | null
+  >`min((${vStatsRoutineStepFacts.step} ->> 'durationSeconds')::integer)`;
   const firstSeenAtExpr = sql<string>`min(${vStatsRoutineStepFacts.completedAt})`;
   const lastSeenAtExpr = sql<string>`max(${vStatsRoutineStepFacts.completedAt})`;
-  const currentExpr = sql<boolean>`bool_or(${vStatsRoutineStepFacts.activityId} = ${latestActivityId})`;
+  const isCurrentAtSequenceExpr = sql<boolean>`(max(${vStatsRoutineStepFacts.completedAt}) = max(max(${vStatsRoutineStepFacts.completedAt})) over (partition by ${vStatsRoutineStepFacts.sequenceNumber}))`;
 
   const rows = await db
     .select({
@@ -1588,7 +1617,7 @@ export async function findRoutineStepDescriptors(
       sessionCount: count(),
       firstSeenAt: firstSeenAtExpr,
       lastSeenAt: lastSeenAtExpr,
-      current: currentExpr,
+      isCurrentAtSequence: isCurrentAtSequenceExpr,
     })
     .from(vStatsRoutineStepFacts)
     .where(
@@ -1603,34 +1632,46 @@ export async function findRoutineStepDescriptors(
     )
     .orderBy(vStatsRoutineStepFacts.sequenceNumber, desc(lastSeenAtExpr));
 
-  return rows.map((row) => ({
-    stepKey: nonNull(row.stepKey, "step_key"),
-    sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
-    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
-    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
-    gameTypeKey: row.gameTypeKey as GameTypeKey | null,
-    rulesetVersionKey: row.rulesetVersionKey,
-    durationSeconds: Number(
-      nonNull(row.durationSeconds as string | null, "duration_seconds"),
-    ),
-    sessionCount: Number(nonNull(row.sessionCount, "session_count")),
-    firstSeenAt: nonNull(row.firstSeenAt, "first_seen_at"),
-    lastSeenAt: nonNull(row.lastSeenAt, "last_seen_at"),
-    current: nonNull(row.current, "current"),
-  }));
+  return rows.map((row) => {
+    const sequenceNumber = nonNull(row.sequenceNumber, "sequence_number");
+    const isCurrentAtSequence = nonNull(
+      row.isCurrentAtSequence,
+      "is_current_at_sequence",
+    );
+    return {
+      stepKey: nonNull(row.stepKey, "step_key"),
+      sequenceNumber,
+      exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+      exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+      gameTypeKey: row.gameTypeKey as GameTypeKey | null,
+      rulesetVersionKey: row.rulesetVersionKey,
+      durationSeconds:
+        row.durationSeconds === null ? null : Number(row.durationSeconds),
+      sessionCount: Number(nonNull(row.sessionCount, "session_count")),
+      firstSeenAt: nonNull(row.firstSeenAt, "first_seen_at"),
+      lastSeenAt: nonNull(row.lastSeenAt, "last_seen_at"),
+      current:
+        isCurrentAtSequence &&
+        latestStepCount !== null &&
+        sequenceNumber <= latestStepCount,
+    };
+  });
 }
 
 /**
- * The `dataVersion` for one routine (phase 6b plan decision 12): reuses the
- * game `dataVersion`'s own `encodeDataVersion` codec over the routine's
- * terminal runs (`v_stats_routine_run_facts` already holds terminal runs
- * only, so no status filter is needed here).
+ * The `dataVersion` inputs for one routine (phase 6b plan decision 12,
+ * controller ruling R13): the routine's terminal-run population size and
+ * its most recent completion, over `v_stats_routine_run_facts` (already
+ * terminal runs only, so no status filter is needed here) — mirroring
+ * `findGameDataVersion`'s own raw shape. The repository layer never imports
+ * `@modules/`; Task 5's service encodes this the same way it encodes the
+ * game `dataVersion`.
  */
 export async function findRoutineDataVersion(
   db: Db,
   playerId: string,
   routineKey: string,
-): Promise<string> {
+): Promise<{ runCount: number; maxCompletedAt: string | null }> {
   const [row] = await db
     .select({
       count: count(),
@@ -1644,10 +1685,10 @@ export async function findRoutineDataVersion(
       ),
     );
 
-  return encodeDataVersion({
-    count: Number(nonNull(row?.count ?? null, "count")),
+  return {
+    runCount: Number(nonNull(row?.count ?? null, "count")),
     maxCompletedAt: row?.maxCompletedAt ?? null,
-  });
+  };
 }
 
 function mapRoutineRunBucketRow(row: {
@@ -1696,14 +1737,20 @@ function mapRoutineRunBucketRow(row: {
  * counts that partition the bucket's runs -- `never_started` is an
  * `ABANDONED` run with zero step sessions, so `abandoned` excludes it the
  * same way `completionBuckets` partitions the game session equivalent (D367
- * decision 5). `steps_completed_at_abandon` is a grouped sub-select
- * -- a per-row `LATERAL` histogram of the bucket's own abandoned runs by
- * `steps_completed`, joined ahead of the outer `GROUP BY` so it can
- * correlate on the bucket's own boundary, then carried through
- * `array_agg(...)[1]` since it is constant across every row of one bucket
- * (`jsonb` has no `MAX`/`MIN` aggregate). `bucket = none` skips the
- * `LATERAL` entirely -- the whole scope is already one bucket, so the
- * histogram sub-select needs no per-row correlation.
+ * decision 5). `steps_completed_at_abandon` is a grouped sub-select over
+ * only the *started* abandons (`steps_started > 0`) -- a never-started run
+ * has no step to have completed, so it is excluded from the histogram the
+ * same way it is excluded from `abandoned` (reviewer finding item 3).
+ * `bucket = none` groups the whole scope as one bucket, so the histogram is
+ * one plain scalar subquery; the bucketed branch pre-groups the histogram
+ * into a `hist` CTE (one row per `bucket_start`) and `LEFT JOIN`s it back --
+ * a per-bucket grouped join, not a per-row correlated `LATERAL`, since the
+ * histogram is identical for every row of one bucket (reviewer finding item
+ * 3's preferred fix). Bucket boundaries reuse the shared `bucketExprs` (the
+ * same date-math every other bucketed reader shares) rather than
+ * re-deriving them -- an earlier hand-rolled form here computed `bucketEnd`
+ * with the DST-unsafe ordering `bucketExprs` was written to avoid (reviewer
+ * finding item 2).
  */
 export async function findRoutineRunBuckets(
   db: Db,
@@ -1738,7 +1785,7 @@ export async function findRoutineRunBuckets(
           FROM (
             SELECT steps_completed, count(*)::integer AS cnt
             FROM scoped
-            WHERE status_key = 'ABANDONED'
+            WHERE status_key = 'ABANDONED' AND steps_started > 0
             GROUP BY steps_completed
           ) x
         ) AS steps_completed_at_abandon
@@ -1751,20 +1798,33 @@ export async function findRoutineRunBuckets(
   }
 
   const tz = nonNull(q.tz ?? null, "tz");
-  const unitLiteral = sql.raw(`'${BUCKET_UNIT[q.bucket]}'`);
-  const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[q.bucket]}'`);
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsRoutineRunFacts.completedAt,
+    q.bucket,
+    tz,
+  );
 
   const statement = sql`
     WITH scoped AS (
       SELECT *,
-        (date_trunc(${unitLiteral}, ${vStatsRoutineRunFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) AS bucket_start,
-        ((date_trunc(${unitLiteral}, ${vStatsRoutineRunFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) + ${intervalLiteral}) AS bucket_end
+        ${bucketStartExpr} AS bucket_start,
+        ${bucketEndExpr} AS bucket_end
       FROM ${vStatsRoutineRunFacts}
       WHERE ${vStatsRoutineRunFacts.playerId} = ${q.playerId}
         AND ${vStatsRoutineRunFacts.routineKey} = ${q.routineKey}
         AND ${vStatsRoutineRunFacts.completedAt} >= ${q.from}
         AND ${vStatsRoutineRunFacts.completedAt} < ${q.to}
         AND ${vStatsRoutineRunFacts.statusKey} = ANY(${statusesArray})
+    ),
+    hist AS (
+      SELECT bucket_start, jsonb_object_agg(steps_completed::text, cnt) AS agg
+      FROM (
+        SELECT bucket_start, steps_completed, count(*)::integer AS cnt
+        FROM scoped
+        WHERE status_key = 'ABANDONED' AND steps_started > 0
+        GROUP BY bucket_start, steps_completed
+      ) x
+      GROUP BY bucket_start
     )
     SELECT
       scoped.bucket_start AS bucket_start,
@@ -1777,18 +1837,10 @@ export async function findRoutineRunBuckets(
       count(*) filter (where status_key = 'COMPLETED')::integer AS completed,
       count(*) filter (where status_key = 'ABANDONED' AND steps_started > 0)::integer AS abandoned,
       count(*) filter (where status_key = 'ABANDONED' AND steps_started = 0)::integer AS never_started,
-      (array_agg(steps_at_abandon.agg))[1] AS steps_completed_at_abandon
+      coalesce(hist.agg, '{}'::jsonb) AS steps_completed_at_abandon
     FROM scoped
-    LEFT JOIN LATERAL (
-      SELECT coalesce(jsonb_object_agg(x.steps_completed::text, x.cnt), '{}'::jsonb) AS agg
-      FROM (
-        SELECT s2.steps_completed, count(*)::integer AS cnt
-        FROM scoped s2
-        WHERE s2.bucket_start = scoped.bucket_start AND s2.status_key = 'ABANDONED'
-        GROUP BY s2.steps_completed
-      ) x
-    ) steps_at_abandon ON TRUE
-    GROUP BY scoped.bucket_start, scoped.bucket_end
+    LEFT JOIN hist ON hist.bucket_start = scoped.bucket_start
+    GROUP BY scoped.bucket_start, scoped.bucket_end, hist.agg
     ORDER BY scoped.bucket_start
   `;
   const result = await db.execute(statement);

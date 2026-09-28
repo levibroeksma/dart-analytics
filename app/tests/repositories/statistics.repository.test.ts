@@ -1634,6 +1634,43 @@ describe("dartScopeWhere / sessionScopeWhere routineStep predicate (decision 5)"
     expect(sql).toMatch(/"session_id" in \(select/i);
     expect(sql).toContain('"v_stats_routine_step_facts"');
   });
+
+  it("findBucketedSessionAggregates (R12: its own inline WHERE, not sessionScopeWhere) adds the sub-select when routineStep is set", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, {
+      playerId: "p1",
+      gameTypeKey: "501",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      bucket: "none",
+      tz: undefined,
+      statuses: ["COMPLETED"],
+      context: "all",
+      routineStep,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"session_id" in \(select/i);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining([routineStep.routineKey, routineStep.stepKey]),
+    );
+  });
+
+  it("findBucketedSessionAggregates renders no sub-select when routineStep is unset", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, {
+      playerId: "p1",
+      gameTypeKey: "501",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      bucket: "none",
+      tz: undefined,
+      statuses: ["COMPLETED"],
+      context: "all",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).not.toMatch(/"session_id" in \(select/i);
+  });
 });
 
 describe("findTrainedRoutines", () => {
@@ -1644,7 +1681,24 @@ describe("findTrainedRoutines", () => {
     expect(sql).toContain('"v_stats_routine_run_facts"');
     expect(sql).toMatch(/"player_id" = \$/);
     expect(sql).toMatch(/group by/i);
-    expect(sql).toMatch(/order by/i);
+  });
+
+  it("picks routineName from the latest run via array_agg(... order by completed_at desc)", async () => {
+    const { db, statements } = renderingDb([]);
+    await findTrainedRoutines(db, "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /array_agg\("routine_name" order by "completed_at" desc\)/,
+    );
+  });
+
+  it("orders the routine list by last_run_at desc", async () => {
+    const { db, statements } = renderingDb([]);
+    await findTrainedRoutines(db, "p1");
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().indexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    expect(sql.slice(orderIndex)).toMatch(/max\(.*"completed_at"\) desc/);
   });
 
   it("maps the group, parsing count strings to numbers", async () => {
@@ -1747,7 +1801,7 @@ describe("findRoutineHeader", () => {
     expect(result).toBeNull();
   });
 
-  it("maps counts and the latest activity id, parsing the run count string", async () => {
+  it("maps counts and the latest run's step count, parsing the run count string", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -1758,7 +1812,7 @@ describe("findRoutineHeader", () => {
           runCount: "4",
           firstRunAt: "2026-08-01T10:00:00.000Z",
           lastRunAt: "2026-09-20T10:00:00.000Z",
-          latestActivityId: "activity-9",
+          latestStepCount: 3,
         },
       ]),
     };
@@ -1772,11 +1826,11 @@ describe("findRoutineHeader", () => {
       runCount: 4,
       firstRunAt: "2026-08-01T10:00:00.000Z",
       lastRunAt: "2026-09-20T10:00:00.000Z",
-      latestActivityId: "activity-9",
+      latestStepCount: 3,
     });
   });
 
-  it("nonNull throws on a null latest_activity_id column", async () => {
+  it("keeps a null latestStepCount as null (an unreadable steps snapshot)", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -1787,14 +1841,36 @@ describe("findRoutineHeader", () => {
           runCount: "4",
           firstRunAt: "2026-08-01T10:00:00.000Z",
           lastRunAt: "2026-09-20T10:00:00.000Z",
-          latestActivityId: null,
+          latestStepCount: null,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineHeader(db, "p1", "routine-1");
+
+    expect(result?.latestStepCount).toBeNull();
+  });
+
+  it("nonNull throws on a null routine_name column", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "routine-1",
+          routineName: null,
+          runCount: "4",
+          firstRunAt: "2026-08-01T10:00:00.000Z",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+          latestStepCount: 3,
         },
       ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
 
     await expect(findRoutineHeader(db, "p1", "routine-1")).rejects.toThrow(
-      /latest_activity_id/,
+      /routine_name/,
     );
   });
 });
@@ -1802,12 +1878,34 @@ describe("findRoutineHeader", () => {
 describe("findRoutineStepDescriptors", () => {
   it("selects from v_stats_routine_step_facts filtered by player and routine_key, grouped by step_key", async () => {
     const { db, statements } = renderingDb([]);
-    await findRoutineStepDescriptors(db, "p1", "routine-1", "activity-9");
+    await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
     const sql = onlyStatement(statements);
     expect(sql).toContain('"v_stats_routine_step_facts"');
     expect(sql).toMatch(/"player_id" = \$/);
     expect(sql).toMatch(/"routine_key" = \$/);
     expect(sql).toMatch(/group by/i);
+  });
+
+  it("reads durationSeconds from the snapshot element, not the session's own elapsed duration_seconds column (R11 item 1)", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"step" ->> 'durationSeconds'/);
+    expect(sql).not.toMatch(
+      /min\("duration_seconds"\)|max\("duration_seconds"\)/,
+    );
+  });
+
+  it("orders by sequence_number, then last_seen_at desc", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().indexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    const orderClause = sql.slice(orderIndex);
+    expect(orderClause).toMatch(
+      /"sequence_number".*max\(.*"completed_at"\) desc/,
+    );
   });
 
   it("maps a non-game step's null gameTypeKey/rulesetVersionKey through as null", async () => {
@@ -1827,18 +1925,13 @@ describe("findRoutineStepDescriptors", () => {
           sessionCount: "3",
           firstSeenAt: "2026-08-01T10:00:00.000Z",
           lastSeenAt: "2026-09-20T10:00:00.000Z",
-          current: true,
+          isCurrentAtSequence: true,
         },
       ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
 
-    const result = await findRoutineStepDescriptors(
-      db,
-      "p1",
-      "routine-1",
-      "activity-9",
-    );
+    const result = await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
 
     expect(result).toEqual([
       {
@@ -1855,6 +1948,34 @@ describe("findRoutineStepDescriptors", () => {
         current: true,
       },
     ]);
+  });
+
+  it("keeps a null durationSeconds as null (an unreadable snapshot element)", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "1-abc",
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: null,
+          sessionCount: "3",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          isCurrentAtSequence: true,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+
+    expect(result[0].durationSeconds).toBeNull();
   });
 
   it("maps a GAME step's resolved gameTypeKey/rulesetVersionKey through", async () => {
@@ -1874,7 +1995,107 @@ describe("findRoutineStepDescriptors", () => {
           sessionCount: "2",
           firstSeenAt: "2026-08-01T10:00:00.000Z",
           lastSeenAt: "2026-09-20T10:00:00.000Z",
-          current: false,
+          isCurrentAtSequence: false,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+
+    expect(result[0].gameTypeKey).toBe("501");
+    expect(result[0].rulesetVersionKey).toBe("501_V1");
+    expect(result[0].current).toBe(false);
+  });
+
+  it("R11: a superseded key at an index (not the most recent there) reads current=false even when the index is in range", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "1-old",
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "60",
+          sessionCount: "2",
+          firstSeenAt: "2026-01-01T10:00:00.000Z",
+          lastSeenAt: "2026-02-01T10:00:00.000Z",
+          isCurrentAtSequence: false,
+        },
+        {
+          stepKey: "1-new",
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V2",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "90",
+          sessionCount: "1",
+          firstSeenAt: "2026-09-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          isCurrentAtSequence: true,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+
+    expect(result.find((row) => row.stepKey === "1-old")?.current).toBe(false);
+    expect(result.find((row) => row.stepKey === "1-new")?.current).toBe(true);
+  });
+
+  it("R11: an index beyond the latest run's step count reads current=false even when it is the most recent key there", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "5-abc",
+          sequenceNumber: 5,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "60",
+          sessionCount: "1",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          isCurrentAtSequence: true,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(db, "p1", "routine-1", 3);
+
+    expect(result[0].current).toBe(false);
+  });
+
+  it("R11: current is always false when latestStepCount is null", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "1-abc",
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "60",
+          sessionCount: "1",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          isCurrentAtSequence: true,
         },
       ]),
     };
@@ -1884,11 +2105,9 @@ describe("findRoutineStepDescriptors", () => {
       db,
       "p1",
       "routine-1",
-      "activity-9",
+      null,
     );
 
-    expect(result[0].gameTypeKey).toBe("501");
-    expect(result[0].rulesetVersionKey).toBe("501_V1");
     expect(result[0].current).toBe(false);
   });
 
@@ -1909,20 +2128,20 @@ describe("findRoutineStepDescriptors", () => {
           sessionCount: "3",
           firstSeenAt: "2026-08-01T10:00:00.000Z",
           lastSeenAt: "2026-09-20T10:00:00.000Z",
-          current: true,
+          isCurrentAtSequence: true,
         },
       ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
 
     await expect(
-      findRoutineStepDescriptors(db, "p1", "routine-1", "activity-9"),
+      findRoutineStepDescriptors(db, "p1", "routine-1", 3),
     ).rejects.toThrow(/step_key/);
   });
 });
 
 describe("findRoutineDataVersion", () => {
-  it("encodes v1:<count>:<maxCompletedAtMs> the same way findGameDataVersion's caller does", async () => {
+  it("returns the raw { runCount, maxCompletedAt } shape, like findGameDataVersion, for the service to encode (R13)", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
       where: vi
@@ -1932,17 +2151,13 @@ describe("findRoutineDataVersion", () => {
         ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
-    const { encodeDataVersion } =
-      await import("@modules/stats/sections/series.module");
 
     const result = await findRoutineDataVersion(db, "p1", "routine-1");
 
-    expect(result).toBe(
-      encodeDataVersion({
-        count: 6,
-        maxCompletedAt: "2026-09-20T10:00:00.000Z",
-      }),
-    );
+    expect(result).toEqual({
+      runCount: 6,
+      maxCompletedAt: "2026-09-20T10:00:00.000Z",
+    });
   });
 
   it("selects from v_stats_routine_run_facts filtered by player and routine_key", async () => {
@@ -1977,7 +2192,7 @@ describe("findRoutineRunBuckets", () => {
     expect(sql).toMatch(/routine_key/);
   });
 
-  it("renders the whitelisted bucket expression on bucket=month", async () => {
+  it("renders the exact bucketExprs form for bucket_end (item 2: interval added inside the single AT TIME ZONE wrap, not outside it)", async () => {
     const { db, statements } = renderingDb([]);
     await findRoutineRunBuckets(db, {
       ...baseQuery,
@@ -1986,6 +2201,72 @@ describe("findRoutineRunBuckets", () => {
     });
     const sql = onlyStatement(statements);
     expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*\) \+ interval '1 month'\) AT TIME ZONE \$/,
+    );
+    expect(sql).not.toMatch(
+      /AT TIME ZONE \$\d+\) AT TIME ZONE \$\d+\) \+ interval '1 month'/,
+    );
+  });
+
+  it("filters the abandoned/never-started counts by steps_started (item 3: partition, mirroring completionBuckets)", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /status_key = 'ABANDONED' AND steps_started > 0.*AS abandoned/,
+    );
+    expect(sql).toMatch(
+      /status_key = 'ABANDONED' AND steps_started = 0.*AS never_started/,
+    );
+  });
+
+  it("filters the abandoned/never-started counts by steps_started on bucket=month too", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /status_key = 'ABANDONED' AND steps_started > 0.*AS abandoned/,
+    );
+    expect(sql).toMatch(
+      /status_key = 'ABANDONED' AND steps_started = 0.*AS never_started/,
+    );
+  });
+
+  it("excludes never-started runs from the abandon histogram (item 3)", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    const histogramIndex = sql.indexOf("steps_completed_at_abandon");
+    expect(histogramIndex).toBeGreaterThan(-1);
+    const histogramClause = sql.slice(0, histogramIndex);
+    expect(histogramClause).toMatch(
+      /status_key = 'ABANDONED' AND steps_started > 0/,
+    );
+  });
+
+  it("groups the histogram on bucket=month via a joined CTE, not a per-row correlated subquery", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql.toLowerCase()).not.toMatch(/lateral/);
+    expect(sql.toLowerCase()).toMatch(/left join "?hist"?/);
   });
 
   it("maps a bucket row, parsing every count/sum to a number and passing the histogram through", async () => {
@@ -2083,7 +2364,7 @@ describe("findStepBuckets", () => {
     expect(sql).toMatch(/"step_key" = \$/);
   });
 
-  it("renders the whitelisted bucket expression on bucket=week", async () => {
+  it("renders the whitelisted bucket expression on bucket=week (via the shared bucketExprs, item 2's check)", async () => {
     const { db, statements } = renderingDb([]);
     await findStepBuckets(db, {
       ...baseQuery,
@@ -2092,6 +2373,9 @@ describe("findStepBuckets", () => {
     });
     const sql = onlyStatement(statements);
     expect(sql).toMatch(/date_trunc\('week', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('week', .*\) \+ interval '1 week'\) AT TIME ZONE \$/,
+    );
   });
 
   it("parses the sum strings to numbers", async () => {
