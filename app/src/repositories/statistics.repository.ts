@@ -17,10 +17,13 @@ import {
   vPlayerVisitFacts,
   vSessionOverview,
   vStatsDartFacts,
+  vStatsRoutineRunFacts,
+  vStatsRoutineStepFacts,
   vStatsSessionFacts,
   vX01CheckoutDarts,
 } from "@db/schema";
 import { nonNull } from "./row-helpers";
+import { encodeDataVersion } from "@modules/stats/sections/series.module";
 import type { getDb } from "@db/client";
 import type { Bucket, ContextFilter, GameTypeKey } from "@lib/types";
 import type {
@@ -40,9 +43,19 @@ import type {
   ReplayRow,
   ReplaySessionRow,
   ReplayStageRow,
+  RoutineHeaderRow,
+  RoutineRunBucketRow,
+  RoutineScope,
+  RoutineStepDescriptorRow,
+  RoutineStepScope,
   SessionScope,
   StatsBucketRow,
   StatsSessionRow,
+  StepBucketRow,
+  StepFoldRow,
+  StepScope,
+  StepSessionRow,
+  TrainedRoutineRow,
   VisitScoringRow,
   X01CheckoutDartRow,
   X01FoldRow,
@@ -214,6 +227,20 @@ function bucketExprs(
   };
 }
 
+/**
+ * A GAME routine step's session_id sub-select (phase 6b plan decision 5):
+ * `dartScopeWhere`/`sessionScopeWhere` add this only when the caller's scope
+ * carries a `routineStep`, so every phase 2-4 handler and its tests are
+ * unaffected — the field is optional and no existing caller sets it.
+ */
+function routineStepCondition(
+  sessionIdColumn: Column,
+  playerId: string,
+  scope: RoutineStepScope,
+) {
+  return sql`${sessionIdColumn} IN (SELECT ${vStatsRoutineStepFacts.sessionId} FROM ${vStatsRoutineStepFacts} WHERE ${vStatsRoutineStepFacts.playerId} = ${playerId} AND ${vStatsRoutineStepFacts.routineKey} = ${scope.routineKey} AND ${vStatsRoutineStepFacts.stepKey} = ${scope.stepKey})`;
+}
+
 /** The shared filter every dart-level reader applies to `v_stats_dart_facts` (Task 3). */
 function dartScopeWhere(scope: DartScope) {
   const conditions = [
@@ -225,6 +252,13 @@ function dartScopeWhere(scope: DartScope) {
     scope.context === "all"
       ? undefined
       : eq(vStatsDartFacts.contextKey, scope.context.toUpperCase()),
+    scope.routineStep === undefined
+      ? undefined
+      : routineStepCondition(
+          vStatsDartFacts.sessionId,
+          scope.playerId,
+          scope.routineStep,
+        ),
   ].filter((condition) => condition !== undefined);
   return and(...conditions);
 }
@@ -243,6 +277,13 @@ function sessionScopeWhere(scope: SessionScope) {
     inArray(vStatsSessionFacts.statusKey, scope.statuses),
     eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
     contextCondition(scope.context),
+    scope.routineStep === undefined
+      ? undefined
+      : routineStepCondition(
+          vStatsSessionFacts.sessionId,
+          scope.playerId,
+          scope.routineStep,
+        ),
   ].filter((condition) => condition !== undefined);
   return and(...conditions);
 }
@@ -1414,4 +1455,612 @@ export async function findReplayTurnPage(
   }>(result);
 
   return rows.map(mapReplayRow);
+}
+
+/**
+ * Every routine the player has trained, grouped by `routine_key` over
+ * `v_stats_routine_run_facts` (phase 6b plan decision 9): `routineName` is
+ * the latest run's own name (a rename keeps history), ordered newest-first.
+ */
+export async function findTrainedRoutines(
+  db: Db,
+  playerId: string,
+): Promise<TrainedRoutineRow[]> {
+  const routineNameExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const routineTemplateIdExpr = sql<
+    string | null
+  >`min(${vStatsRoutineRunFacts.routineTemplateId})`;
+  const completedRunCountExpr = sql<string>`count(*) filter (where ${vStatsRoutineRunFacts.statusKey} = 'COMPLETED')`;
+  const lastRunAtExpr = max(vStatsRoutineRunFacts.completedAt);
+
+  const rows = await db
+    .select({
+      routineKey: vStatsRoutineRunFacts.routineKey,
+      routineTemplateId: routineTemplateIdExpr,
+      routineName: routineNameExpr,
+      runCount: count(),
+      completedRunCount: completedRunCountExpr,
+      lastRunAt: lastRunAtExpr,
+    })
+    .from(vStatsRoutineRunFacts)
+    .where(eq(vStatsRoutineRunFacts.playerId, playerId))
+    .groupBy(vStatsRoutineRunFacts.routineKey)
+    .orderBy(desc(lastRunAtExpr));
+
+  return rows.map((row) => ({
+    routineKey: nonNull(row.routineKey, "routine_key"),
+    routineTemplateId: row.routineTemplateId,
+    routineName: nonNull(row.routineName, "routine_name"),
+    runCount: Number(nonNull(row.runCount, "run_count")),
+    completedRunCount: Number(
+      nonNull(row.completedRunCount as string | null, "completed_run_count"),
+    ),
+    lastRunAt: nonNull(row.lastRunAt, "last_run_at"),
+  }));
+}
+
+/**
+ * One routine's run counts, its earliest and latest run, and the latest
+ * run's own `activity_id` over `v_stats_routine_run_facts` (phase 6b plan
+ * decision 9) — `null` when the player has never trained this routine.
+ */
+export async function findRoutineHeader(
+  db: Db,
+  playerId: string,
+  routineKey: string,
+): Promise<RoutineHeaderRow | null> {
+  const routineNameExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const latestActivityIdExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.activityId} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const firstRunAtExpr = sql<string>`min(${vStatsRoutineRunFacts.completedAt})`;
+  const lastRunAtExpr = sql<string>`max(${vStatsRoutineRunFacts.completedAt})`;
+
+  const rows = await db
+    .select({
+      routineKey: vStatsRoutineRunFacts.routineKey,
+      routineName: routineNameExpr,
+      runCount: count(),
+      firstRunAt: firstRunAtExpr,
+      lastRunAt: lastRunAtExpr,
+      latestActivityId: latestActivityIdExpr,
+    })
+    .from(vStatsRoutineRunFacts)
+    .where(
+      and(
+        eq(vStatsRoutineRunFacts.playerId, playerId),
+        eq(vStatsRoutineRunFacts.routineKey, routineKey),
+      ),
+    )
+    .groupBy(vStatsRoutineRunFacts.routineKey);
+
+  const row = rows[0];
+  if (row === undefined) return null;
+
+  return {
+    routineKey: nonNull(row.routineKey, "routine_key"),
+    routineName: nonNull(row.routineName, "routine_name"),
+    runCount: Number(nonNull(row.runCount, "run_count")),
+    firstRunAt: nonNull(row.firstRunAt, "first_run_at"),
+    lastRunAt: nonNull(row.lastRunAt, "last_run_at"),
+    latestActivityId: nonNull(row.latestActivityId, "latest_activity_id"),
+  };
+}
+
+/**
+ * Every step index the routine has ever run, grouped by `step_key` over
+ * `v_stats_routine_step_facts` (phase 6b plan decisions 2, 9) — a step's
+ * identity, exercise/game type and duration are constant within one
+ * `step_key` (the fingerprint half of the key is derived from exactly those
+ * fields), so `min`/`max` picks a group's shared value rather than
+ * re-deriving it. `current` is set when the step key appears in
+ * `latestActivityId`'s own run. Ordered by `sequenceNumber`, then
+ * `lastSeenAt` descending.
+ */
+export async function findRoutineStepDescriptors(
+  db: Db,
+  playerId: string,
+  routineKey: string,
+  latestActivityId: string,
+): Promise<RoutineStepDescriptorRow[]> {
+  const exerciseTypeKeyExpr = sql<string>`min(${vStatsRoutineStepFacts.exerciseTypeKey})`;
+  const exerciseRulesetVersionKeyExpr = sql<
+    string | null
+  >`min(${vStatsRoutineStepFacts.exerciseRulesetVersionKey})`;
+  const gameTypeKeyExpr = sql<
+    string | null
+  >`min(${vStatsRoutineStepFacts.gameTypeKey})`;
+  const rulesetVersionKeyExpr = sql<
+    string | null
+  >`min(${vStatsRoutineStepFacts.rulesetVersionKey})`;
+  const durationSecondsExpr = sql<string>`max(${vStatsRoutineStepFacts.durationSeconds})`;
+  const firstSeenAtExpr = sql<string>`min(${vStatsRoutineStepFacts.completedAt})`;
+  const lastSeenAtExpr = sql<string>`max(${vStatsRoutineStepFacts.completedAt})`;
+  const currentExpr = sql<boolean>`bool_or(${vStatsRoutineStepFacts.activityId} = ${latestActivityId})`;
+
+  const rows = await db
+    .select({
+      stepKey: vStatsRoutineStepFacts.stepKey,
+      sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
+      exerciseTypeKey: exerciseTypeKeyExpr,
+      exerciseRulesetVersionKey: exerciseRulesetVersionKeyExpr,
+      gameTypeKey: gameTypeKeyExpr,
+      rulesetVersionKey: rulesetVersionKeyExpr,
+      durationSeconds: durationSecondsExpr,
+      sessionCount: count(),
+      firstSeenAt: firstSeenAtExpr,
+      lastSeenAt: lastSeenAtExpr,
+      current: currentExpr,
+    })
+    .from(vStatsRoutineStepFacts)
+    .where(
+      and(
+        eq(vStatsRoutineStepFacts.playerId, playerId),
+        eq(vStatsRoutineStepFacts.routineKey, routineKey),
+      ),
+    )
+    .groupBy(
+      vStatsRoutineStepFacts.stepKey,
+      vStatsRoutineStepFacts.sequenceNumber,
+    )
+    .orderBy(vStatsRoutineStepFacts.sequenceNumber, desc(lastSeenAtExpr));
+
+  return rows.map((row) => ({
+    stepKey: nonNull(row.stepKey, "step_key"),
+    sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
+    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    gameTypeKey: row.gameTypeKey as GameTypeKey | null,
+    rulesetVersionKey: row.rulesetVersionKey,
+    durationSeconds: Number(
+      nonNull(row.durationSeconds as string | null, "duration_seconds"),
+    ),
+    sessionCount: Number(nonNull(row.sessionCount, "session_count")),
+    firstSeenAt: nonNull(row.firstSeenAt, "first_seen_at"),
+    lastSeenAt: nonNull(row.lastSeenAt, "last_seen_at"),
+    current: nonNull(row.current, "current"),
+  }));
+}
+
+/**
+ * The `dataVersion` for one routine (phase 6b plan decision 12): reuses the
+ * game `dataVersion`'s own `encodeDataVersion` codec over the routine's
+ * terminal runs (`v_stats_routine_run_facts` already holds terminal runs
+ * only, so no status filter is needed here).
+ */
+export async function findRoutineDataVersion(
+  db: Db,
+  playerId: string,
+  routineKey: string,
+): Promise<string> {
+  const [row] = await db
+    .select({
+      count: count(),
+      maxCompletedAt: max(vStatsRoutineRunFacts.completedAt),
+    })
+    .from(vStatsRoutineRunFacts)
+    .where(
+      and(
+        eq(vStatsRoutineRunFacts.playerId, playerId),
+        eq(vStatsRoutineRunFacts.routineKey, routineKey),
+      ),
+    );
+
+  return encodeDataVersion({
+    count: Number(nonNull(row?.count ?? null, "count")),
+    maxCompletedAt: row?.maxCompletedAt ?? null,
+  });
+}
+
+function mapRoutineRunBucketRow(row: {
+  bucket_start: string | null;
+  bucket_end: string | null;
+  runs: unknown;
+  duration_sum: unknown;
+  duration_min: unknown;
+  duration_max: unknown;
+  darts: unknown;
+  completed: unknown;
+  abandoned: unknown;
+  never_started: unknown;
+  steps_completed_at_abandon: Record<string, number> | null;
+}): RoutineRunBucketRow {
+  return {
+    bucketStart: nonNull(row.bucket_start, "bucket_start"),
+    bucketEnd: nonNull(row.bucket_end, "bucket_end"),
+    runs: Number(nonNull(row.runs as string | null, "runs")),
+    durationSum: Number(
+      nonNull(row.duration_sum as string | null, "duration_sum"),
+    ),
+    durationMin: Number(
+      nonNull(row.duration_min as string | null, "duration_min"),
+    ),
+    durationMax: Number(
+      nonNull(row.duration_max as string | null, "duration_max"),
+    ),
+    darts: Number(nonNull(row.darts as string | null, "darts")),
+    completed: Number(nonNull(row.completed as string | null, "completed")),
+    abandoned: Number(nonNull(row.abandoned as string | null, "abandoned")),
+    neverStarted: Number(
+      nonNull(row.never_started as string | null, "never_started"),
+    ),
+    stepsCompletedAtAbandon: nonNull(
+      row.steps_completed_at_abandon,
+      "steps_completed_at_abandon",
+    ),
+  };
+}
+
+/**
+ * One shared aggregate query for `routine-volume` and `routine-completion`
+ * over `v_stats_routine_run_facts` (phase 6b plan decision 6): one row per
+ * bucket, with `completed`/`abandoned`/`never_started` as `FILTER`-restricted
+ * counts that partition the bucket's runs -- `never_started` is an
+ * `ABANDONED` run with zero step sessions, so `abandoned` excludes it the
+ * same way `completionBuckets` partitions the game session equivalent (D367
+ * decision 5). `steps_completed_at_abandon` is a grouped sub-select
+ * -- a per-row `LATERAL` histogram of the bucket's own abandoned runs by
+ * `steps_completed`, joined ahead of the outer `GROUP BY` so it can
+ * correlate on the bucket's own boundary, then carried through
+ * `array_agg(...)[1]` since it is constant across every row of one bucket
+ * (`jsonb` has no `MAX`/`MIN` aggregate). `bucket = none` skips the
+ * `LATERAL` entirely -- the whole scope is already one bucket, so the
+ * histogram sub-select needs no per-row correlation.
+ */
+export async function findRoutineRunBuckets(
+  db: Db,
+  q: RoutineScope & { bucket: Bucket; tz: string | undefined },
+): Promise<RoutineRunBucketRow[]> {
+  const statusesArray = sql`${sql.param(q.statuses)}::text[]`;
+
+  if (q.bucket === "none") {
+    const statement = sql`
+      WITH scoped AS (
+        SELECT *
+        FROM ${vStatsRoutineRunFacts}
+        WHERE ${vStatsRoutineRunFacts.playerId} = ${q.playerId}
+          AND ${vStatsRoutineRunFacts.routineKey} = ${q.routineKey}
+          AND ${vStatsRoutineRunFacts.completedAt} >= ${q.from}
+          AND ${vStatsRoutineRunFacts.completedAt} < ${q.to}
+          AND ${vStatsRoutineRunFacts.statusKey} = ANY(${statusesArray})
+      )
+      SELECT
+        ${q.from}::timestamptz AS bucket_start,
+        ${q.to}::timestamptz AS bucket_end,
+        count(*)::integer AS runs,
+        coalesce(sum(duration_seconds), 0)::integer AS duration_sum,
+        coalesce(min(duration_seconds), 0)::integer AS duration_min,
+        coalesce(max(duration_seconds), 0)::integer AS duration_max,
+        coalesce(sum(dart_count), 0)::integer AS darts,
+        count(*) filter (where status_key = 'COMPLETED')::integer AS completed,
+        count(*) filter (where status_key = 'ABANDONED' AND steps_started > 0)::integer AS abandoned,
+        count(*) filter (where status_key = 'ABANDONED' AND steps_started = 0)::integer AS never_started,
+        (
+          SELECT coalesce(jsonb_object_agg(x.steps_completed::text, x.cnt), '{}'::jsonb)
+          FROM (
+            SELECT steps_completed, count(*)::integer AS cnt
+            FROM scoped
+            WHERE status_key = 'ABANDONED'
+            GROUP BY steps_completed
+          ) x
+        ) AS steps_completed_at_abandon
+      FROM scoped
+    `;
+    const result = await db.execute(statement);
+    return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(
+      result,
+    ).map(mapRoutineRunBucketRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const unitLiteral = sql.raw(`'${BUCKET_UNIT[q.bucket]}'`);
+  const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[q.bucket]}'`);
+
+  const statement = sql`
+    WITH scoped AS (
+      SELECT *,
+        (date_trunc(${unitLiteral}, ${vStatsRoutineRunFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) AS bucket_start,
+        ((date_trunc(${unitLiteral}, ${vStatsRoutineRunFacts.completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) + ${intervalLiteral}) AS bucket_end
+      FROM ${vStatsRoutineRunFacts}
+      WHERE ${vStatsRoutineRunFacts.playerId} = ${q.playerId}
+        AND ${vStatsRoutineRunFacts.routineKey} = ${q.routineKey}
+        AND ${vStatsRoutineRunFacts.completedAt} >= ${q.from}
+        AND ${vStatsRoutineRunFacts.completedAt} < ${q.to}
+        AND ${vStatsRoutineRunFacts.statusKey} = ANY(${statusesArray})
+    )
+    SELECT
+      scoped.bucket_start AS bucket_start,
+      scoped.bucket_end AS bucket_end,
+      count(*)::integer AS runs,
+      coalesce(sum(duration_seconds), 0)::integer AS duration_sum,
+      coalesce(min(duration_seconds), 0)::integer AS duration_min,
+      coalesce(max(duration_seconds), 0)::integer AS duration_max,
+      coalesce(sum(dart_count), 0)::integer AS darts,
+      count(*) filter (where status_key = 'COMPLETED')::integer AS completed,
+      count(*) filter (where status_key = 'ABANDONED' AND steps_started > 0)::integer AS abandoned,
+      count(*) filter (where status_key = 'ABANDONED' AND steps_started = 0)::integer AS never_started,
+      (array_agg(steps_at_abandon.agg))[1] AS steps_completed_at_abandon
+    FROM scoped
+    LEFT JOIN LATERAL (
+      SELECT coalesce(jsonb_object_agg(x.steps_completed::text, x.cnt), '{}'::jsonb) AS agg
+      FROM (
+        SELECT s2.steps_completed, count(*)::integer AS cnt
+        FROM scoped s2
+        WHERE s2.bucket_start = scoped.bucket_start AND s2.status_key = 'ABANDONED'
+        GROUP BY s2.steps_completed
+      ) x
+    ) steps_at_abandon ON TRUE
+    GROUP BY scoped.bucket_start, scoped.bucket_end
+    ORDER BY scoped.bucket_start
+  `;
+  const result = await db.execute(statement);
+  return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(result).map(
+    mapRoutineRunBucketRow,
+  );
+}
+
+function mapStepBucketRow(row: {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+  sessions: unknown;
+  durationSum: unknown;
+  darts: unknown;
+}): StepBucketRow {
+  return {
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
+    sessions: Number(nonNull(row.sessions as string | null, "sessions")),
+    durationSum: Number(
+      nonNull(row.durationSum as string | null, "duration_sum"),
+    ),
+    darts: Number(nonNull(row.darts as string | null, "darts")),
+  };
+}
+
+/**
+ * One bucket's session volume over `v_stats_routine_step_facts` (phase 6b
+ * plan decision 6): `sessions`/`durationSum`/`darts`, using the same
+ * whitelisted `bucketExprs` every other bucketed reader shares.
+ */
+export async function findStepBuckets(
+  db: Db,
+  q: StepScope & { bucket: Bucket; tz: string | undefined },
+): Promise<StepBucketRow[]> {
+  const whereClause = and(
+    eq(vStatsRoutineStepFacts.playerId, q.playerId),
+    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+    gte(vStatsRoutineStepFacts.completedAt, q.from),
+    lt(vStatsRoutineStepFacts.completedAt, q.to),
+    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+  );
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+        sessions: count(),
+        durationSum: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.durationSeconds}), 0)`,
+        darts: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)`,
+      })
+      .from(vStatsRoutineStepFacts)
+      .where(whereClause);
+    return rows.map(mapStepBucketRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsRoutineStepFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
+  const rows = await db
+    .select({
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
+      sessions: count(),
+      durationSum: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.durationSeconds}), 0)`,
+      darts: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)`,
+    })
+    .from(vStatsRoutineStepFacts)
+    .where(whereClause)
+    .groupBy(bucketStartExpr, bucketEndExpr);
+  return rows.map(mapStepBucketRow);
+}
+
+/**
+ * One page of one step's terminal sessions through
+ * `v_stats_routine_step_facts`, newest first (phase 6b plan decision 10,
+ * mirroring `findGameSessionsPage`, D367 decision 4). Fetches `limit + 1`
+ * rows so the service can detect a further page without a second query.
+ */
+export async function findStepSessionPage(
+  db: Db,
+  q: StepScope & {
+    limit: number;
+    after?: { completedAt: string; sessionId: string };
+  },
+): Promise<StepSessionRow[]> {
+  const conditions = [
+    eq(vStatsRoutineStepFacts.playerId, q.playerId),
+    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+    gte(vStatsRoutineStepFacts.completedAt, q.from),
+    lt(vStatsRoutineStepFacts.completedAt, q.to),
+    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+    q.after
+      ? sql`(${vStatsRoutineStepFacts.completedAt}, ${vStatsRoutineStepFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`
+      : undefined,
+  ].filter((condition) => condition !== undefined);
+
+  const rows = await db
+    .select({
+      sessionId: vStatsRoutineStepFacts.sessionId,
+      rulesetVersionKey: vStatsRoutineStepFacts.rulesetVersionKey,
+      exerciseRulesetVersionKey:
+        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+      statusKey: vStatsRoutineStepFacts.statusKey,
+      startedAt: vStatsRoutineStepFacts.startedAt,
+      completedAt: vStatsRoutineStepFacts.completedAt,
+      durationSeconds: vStatsRoutineStepFacts.durationSeconds,
+      turnCount: vStatsRoutineStepFacts.turnCount,
+      dartCount: vStatsRoutineStepFacts.dartCount,
+      countedScore: vStatsRoutineStepFacts.countedScore,
+    })
+    .from(vStatsRoutineStepFacts)
+    .where(and(...conditions))
+    .orderBy(
+      desc(vStatsRoutineStepFacts.completedAt),
+      desc(vStatsRoutineStepFacts.sessionId),
+    )
+    .limit(q.limit + 1);
+
+  return rows.map((row) => {
+    const statusKey = nonNull(row.statusKey, "status_key");
+    const turnCount = nonNull(row.turnCount, "turn_count");
+    return {
+      sessionId: nonNull(row.sessionId, "session_id"),
+      rulesetVersionKey: row.rulesetVersionKey,
+      exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+      statusKey,
+      neverStarted: statusKey === "ABANDONED" && turnCount === 0,
+      startedAt: nonNull(row.startedAt, "started_at"),
+      completedAt: nonNull(row.completedAt, "completed_at"),
+      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+      turnCount,
+      dartCount: nonNull(row.dartCount, "dart_count"),
+      countedScore: nonNull(row.countedScore, "counted_score"),
+    };
+  });
+}
+
+function mapStepFoldRow(row: {
+  sessionId: string | null;
+  completedAt: string | null;
+  exerciseRulesetVersionKey: string | null;
+  configuration: unknown;
+  stageId: string | null;
+  turnSequence: number | null;
+  participantId: string | null;
+  participantName: string | null;
+  participantTypeKey: string | null;
+  turnTotalScore: number | null;
+  dartNumber: number | null;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: string | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: string | null;
+  score: number | null;
+  locationX: string | number | null;
+  locationY: string | number | null;
+}): StepFoldRow {
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    configuration: row.configuration as Record<string, unknown> | null,
+    stageId: nonNull(row.stageId, "stage_id"),
+    turnSequence: nonNull(row.turnSequence, "turn_sequence"),
+    participantId: nonNull(row.participantId, "participant_id"),
+    participantName: nonNull(row.participantName, "participant_name"),
+    participantTypeKey: nonNull(row.participantTypeKey, "participant_type_key"),
+    turnTotalScore: nonNull(row.turnTotalScore, "turn_total_score"),
+    dartNumber: row.dartNumber,
+    intendedTargetNumber: row.intendedTargetNumber,
+    intendedZoneKey: row.intendedZoneKey as DartZoneKey | null,
+    hitTargetNumber: row.hitTargetNumber,
+    hitZoneKey: row.hitZoneKey as DartZoneKey | null,
+    score: row.score,
+    locationX: row.locationX === null ? null : Number(row.locationX),
+    locationY: row.locationY === null ? null : Number(row.locationY),
+  };
+}
+
+/**
+ * `v_game_replay` joined to `v_stats_routine_step_facts` on `session_id`,
+ * scoped to one step (phase 6b plan decision 8) -- the input to the
+ * server-side `step-result` fold, which rebuilds each session's exercise
+ * engine from these facts. Unbucketed: bucket assignment happens after the
+ * fold, keyed by each row's own `completedAt` (its session's, not the
+ * dart's). Ordered by session, stage, turn and dart -- the order every
+ * replay fold requires (matching `findX01FoldRows`).
+ */
+export async function findStepFoldRows(
+  db: Db,
+  q: StepScope,
+): Promise<StepFoldRow[]> {
+  const rows = await db
+    .select({
+      sessionId: vGameReplay.sessionId,
+      completedAt: vStatsRoutineStepFacts.completedAt,
+      exerciseRulesetVersionKey:
+        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+      configuration: vStatsRoutineStepFacts.configuration,
+      stageId: vGameReplay.stageId,
+      turnSequence: vGameReplay.turnSequence,
+      participantId: vGameReplay.participantId,
+      participantName: vGameReplay.participantName,
+      participantTypeKey: vGameReplay.participantTypeKey,
+      turnTotalScore: vGameReplay.turnTotalScore,
+      dartNumber: vGameReplay.dartNumber,
+      intendedTargetNumber: vGameReplay.intendedTargetNumber,
+      intendedZoneKey: vGameReplay.intendedZoneKey,
+      hitTargetNumber: vGameReplay.hitTargetNumber,
+      hitZoneKey: vGameReplay.hitZoneKey,
+      score: vGameReplay.score,
+      locationX: vGameReplay.locationX,
+      locationY: vGameReplay.locationY,
+    })
+    .from(vGameReplay)
+    .innerJoin(
+      vStatsRoutineStepFacts,
+      eq(vGameReplay.sessionId, vStatsRoutineStepFacts.sessionId),
+    )
+    .where(
+      and(
+        eq(vStatsRoutineStepFacts.playerId, q.playerId),
+        eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+        eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+        gte(vStatsRoutineStepFacts.completedAt, q.from),
+        lt(vStatsRoutineStepFacts.completedAt, q.to),
+        inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+      ),
+    )
+    .orderBy(
+      vGameReplay.sessionId,
+      vGameReplay.stageSequence,
+      vGameReplay.turnSequence,
+      vGameReplay.dartNumber,
+    );
+
+  return rows.map(mapStepFoldRow);
+}
+
+/**
+ * The `dart_count` sum over `v_stats_routine_step_facts` for one step scope
+ * (phase 6b plan decision 8, mirroring `findScopeDartCount`): the fold bound
+ * `MAX_FOLD_DARTS` gates against this before the `step-result` section reads
+ * `findStepFoldRows`.
+ */
+export async function findStepScopeDartCount(
+  db: Db,
+  q: StepScope,
+): Promise<number> {
+  const [row] = await db
+    .select({
+      dartCount: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)::integer`,
+    })
+    .from(vStatsRoutineStepFacts)
+    .where(
+      and(
+        eq(vStatsRoutineStepFacts.playerId, q.playerId),
+        eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+        eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+        gte(vStatsRoutineStepFacts.completedAt, q.from),
+        lt(vStatsRoutineStepFacts.completedAt, q.to),
+        inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+      ),
+    );
+
+  return Number(nonNull(row?.dartCount ?? null, "dart_count"));
 }

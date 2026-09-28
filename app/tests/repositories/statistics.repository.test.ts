@@ -18,6 +18,15 @@ import {
   findReplayStages,
   findReplayParticipants,
   findReplayTurnPage,
+  findTrainedRoutines,
+  findRoutineHeader,
+  findRoutineStepDescriptors,
+  findRoutineDataVersion,
+  findRoutineRunBuckets,
+  findStepBuckets,
+  findStepSessionPage,
+  findStepFoldRows,
+  findStepScopeDartCount,
 } from "@repositories/statistics.repository";
 
 function fakeSelect(rows: unknown[]) {
@@ -1580,5 +1589,766 @@ describe("findReplayTurnPage", () => {
     } as any;
 
     await expect(findReplayTurnPage(db, baseQuery)).rejects.toThrow(/stage_id/);
+  });
+});
+
+const routineStep = { routineKey: "routine-1", stepKey: "3-abc123" };
+
+describe("dartScopeWhere / sessionScopeWhere routineStep predicate (decision 5)", () => {
+  it("findIntentCells renders no session_id sub-select when routineStep is unset", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
+    const sql = onlyStatement(statements);
+    expect(sql).not.toMatch(/"session_id" in \(select/i);
+  });
+
+  it("findIntentCells adds the routine step session_id sub-select when routineStep is set", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+      routineStep,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"session_id" in \(select/i);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/"step_key" = \$/);
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining([routineStep.routineKey, routineStep.stepKey]),
+    );
+  });
+
+  it("findScopeDartCount renders no session_id sub-select when routineStep is unset", async () => {
+    const { db, statements } = renderingDb([["0"]]);
+    await findScopeDartCount(db, sessionScope);
+    const sql = onlyStatement(statements);
+    expect(sql).not.toMatch(/"session_id" in \(select/i);
+  });
+
+  it("findScopeDartCount adds the routine step session_id sub-select when routineStep is set", async () => {
+    const { db, statements } = renderingDb([["0"]]);
+    await findScopeDartCount(db, { ...sessionScope, routineStep });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"session_id" in \(select/i);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+  });
+});
+
+describe("findTrainedRoutines", () => {
+  it("selects from v_stats_routine_run_facts scoped to the player, grouped by routine_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findTrainedRoutines(db, "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_run_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/group by/i);
+    expect(sql).toMatch(/order by/i);
+  });
+
+  it("maps the group, parsing count strings to numbers", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "routine-1",
+          routineTemplateId: "template-1",
+          routineName: "Switching Ladder",
+          runCount: "5",
+          completedRunCount: "3",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findTrainedRoutines(db, "p1");
+
+    expect(result).toEqual([
+      {
+        routineKey: "routine-1",
+        routineTemplateId: "template-1",
+        routineName: "Switching Ladder",
+        runCount: 5,
+        completedRunCount: 3,
+        lastRunAt: "2026-09-20T10:00:00.000Z",
+      },
+    ]);
+  });
+
+  it("keeps a legacy routine's null routineTemplateId as null", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "name-abcdef0123456789abcdef0123456789",
+          routineTemplateId: null,
+          routineName: "Old Routine",
+          runCount: "1",
+          completedRunCount: "0",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findTrainedRoutines(db, "p1");
+
+    expect(result[0].routineTemplateId).toBeNull();
+  });
+
+  it("nonNull throws on a null routine_key column", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: null,
+          routineTemplateId: null,
+          routineName: "Old Routine",
+          runCount: "1",
+          completedRunCount: "0",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(findTrainedRoutines(db, "p1")).rejects.toThrow(/routine_key/);
+  });
+});
+
+describe("findRoutineHeader", () => {
+  it("selects from v_stats_routine_run_facts filtered by player and routine_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineHeader(db, "p1", "routine-1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_run_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+  });
+
+  it("returns null when the routine has no runs", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineHeader(db, "p1", "routine-1");
+
+    expect(result).toBeNull();
+  });
+
+  it("maps counts and the latest activity id, parsing the run count string", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "routine-1",
+          routineName: "Switching Ladder",
+          runCount: "4",
+          firstRunAt: "2026-08-01T10:00:00.000Z",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+          latestActivityId: "activity-9",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineHeader(db, "p1", "routine-1");
+
+    expect(result).toEqual({
+      routineKey: "routine-1",
+      routineName: "Switching Ladder",
+      runCount: 4,
+      firstRunAt: "2026-08-01T10:00:00.000Z",
+      lastRunAt: "2026-09-20T10:00:00.000Z",
+      latestActivityId: "activity-9",
+    });
+  });
+
+  it("nonNull throws on a null latest_activity_id column", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "routine-1",
+          routineName: "Switching Ladder",
+          runCount: "4",
+          firstRunAt: "2026-08-01T10:00:00.000Z",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+          latestActivityId: null,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(findRoutineHeader(db, "p1", "routine-1")).rejects.toThrow(
+      /latest_activity_id/,
+    );
+  });
+});
+
+describe("findRoutineStepDescriptors", () => {
+  it("selects from v_stats_routine_step_facts filtered by player and routine_key, grouped by step_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineStepDescriptors(db, "p1", "routine-1", "activity-9");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/group by/i);
+  });
+
+  it("maps a non-game step's null gameTypeKey/rulesetVersionKey through as null", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "1-abc",
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "60",
+          sessionCount: "3",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          current: true,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(
+      db,
+      "p1",
+      "routine-1",
+      "activity-9",
+    );
+
+    expect(result).toEqual([
+      {
+        stepKey: "1-abc",
+        sequenceNumber: 1,
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_V1",
+        gameTypeKey: null,
+        rulesetVersionKey: null,
+        durationSeconds: 60,
+        sessionCount: 3,
+        firstSeenAt: "2026-08-01T10:00:00.000Z",
+        lastSeenAt: "2026-09-20T10:00:00.000Z",
+        current: true,
+      },
+    ]);
+  });
+
+  it("maps a GAME step's resolved gameTypeKey/rulesetVersionKey through", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: "2-def",
+          sequenceNumber: 2,
+          exerciseTypeKey: "GAME",
+          exerciseRulesetVersionKey: null,
+          gameTypeKey: "501",
+          rulesetVersionKey: "501_V1",
+          durationSeconds: "0",
+          sessionCount: "2",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          current: false,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findRoutineStepDescriptors(
+      db,
+      "p1",
+      "routine-1",
+      "activity-9",
+    );
+
+    expect(result[0].gameTypeKey).toBe("501");
+    expect(result[0].rulesetVersionKey).toBe("501_V1");
+    expect(result[0].current).toBe(false);
+  });
+
+  it("nonNull throws on a null step_key column", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          stepKey: null,
+          sequenceNumber: 1,
+          exerciseTypeKey: "SWITCHING",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          gameTypeKey: null,
+          rulesetVersionKey: null,
+          durationSeconds: "60",
+          sessionCount: "3",
+          firstSeenAt: "2026-08-01T10:00:00.000Z",
+          lastSeenAt: "2026-09-20T10:00:00.000Z",
+          current: true,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(
+      findRoutineStepDescriptors(db, "p1", "routine-1", "activity-9"),
+    ).rejects.toThrow(/step_key/);
+  });
+});
+
+describe("findRoutineDataVersion", () => {
+  it("encodes v1:<count>:<maxCompletedAtMs> the same way findGameDataVersion's caller does", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi
+        .fn()
+        .mockResolvedValue([
+          { count: "6", maxCompletedAt: "2026-09-20T10:00:00.000Z" },
+        ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+    const { encodeDataVersion } =
+      await import("@modules/stats/sections/series.module");
+
+    const result = await findRoutineDataVersion(db, "p1", "routine-1");
+
+    expect(result).toBe(
+      encodeDataVersion({
+        count: 6,
+        maxCompletedAt: "2026-09-20T10:00:00.000Z",
+      }),
+    );
+  });
+
+  it("selects from v_stats_routine_run_facts filtered by player and routine_key", async () => {
+    const { db, statements } = renderingDb([["0", null]]);
+    await findRoutineDataVersion(db, "p1", "routine-1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_run_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+  });
+});
+
+describe("findRoutineRunBuckets", () => {
+  const baseQuery = {
+    playerId: "p1",
+    routineKey: "routine-1",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED", "ABANDONED"],
+  };
+
+  it("reads v_stats_routine_run_facts filtered by player_id and routine_key on bucket=none", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_run_facts"');
+    expect(sql).toMatch(/player_id/);
+    expect(sql).toMatch(/routine_key/);
+  });
+
+  it("renders the whitelisted bucket expression on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("maps a bucket row, parsing every count/sum to a number and passing the histogram through", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            bucket_start: "2026-01-01T00:00:00.000Z",
+            bucket_end: "2026-02-01T00:00:00.000Z",
+            runs: 5,
+            duration_sum: 3000,
+            duration_min: 100,
+            duration_max: 900,
+            darts: 450,
+            completed: 3,
+            abandoned: 2,
+            never_started: 1,
+            steps_completed_at_abandon: { "1": 1, "2": 1 },
+          },
+        ],
+      }),
+    } as any;
+
+    const result = await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([
+      {
+        bucketStart: "2026-01-01T00:00:00.000Z",
+        bucketEnd: "2026-02-01T00:00:00.000Z",
+        runs: 5,
+        durationSum: 3000,
+        durationMin: 100,
+        durationMax: 900,
+        darts: 450,
+        completed: 3,
+        abandoned: 2,
+        neverStarted: 1,
+        stepsCompletedAtAbandon: { "1": 1, "2": 1 },
+      },
+    ]);
+  });
+
+  it("nonNull throws on a null bucket_start column", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            bucket_start: null,
+            bucket_end: "2026-02-01T00:00:00.000Z",
+            runs: 0,
+            duration_sum: 0,
+            duration_min: 0,
+            duration_max: 0,
+            darts: 0,
+            completed: 0,
+            abandoned: 0,
+            never_started: 0,
+            steps_completed_at_abandon: {},
+          },
+        ],
+      }),
+    } as any;
+
+    await expect(
+      findRoutineRunBuckets(db, {
+        ...baseQuery,
+        bucket: "none",
+        tz: undefined,
+      }),
+    ).rejects.toThrow(/bucket_start/);
+  });
+});
+
+describe("findStepBuckets", () => {
+  const baseQuery = {
+    playerId: "p1",
+    routineKey: "routine-1",
+    stepKey: "3-abc123",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED"],
+  };
+
+  it("reads v_stats_routine_step_facts filtered by player_id, routine_key and step_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepBuckets(db, { ...baseQuery, bucket: "none", tz: undefined });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/"step_key" = \$/);
+  });
+
+  it("renders the whitelisted bucket expression on bucket=week", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "week",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('week', .*AT TIME ZONE \$/);
+  });
+
+  it("parses the sum strings to numbers", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([
+        {
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
+          sessions: "4",
+          durationSum: "240",
+          darts: "120",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([
+      {
+        bucketStart: "2026-01-01T00:00:00.000Z",
+        bucketEnd: "2026-02-01T00:00:00.000Z",
+        sessions: 4,
+        durationSum: 240,
+        darts: 120,
+      },
+    ]);
+  });
+});
+
+describe("findStepSessionPage", () => {
+  const baseQuery = {
+    playerId: "p1",
+    routineKey: "routine-1",
+    stepKey: "3-abc123",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED", "ABANDONED"],
+    limit: 25,
+  };
+
+  it("selects from v_stats_routine_step_facts scoped to player, routine_key and step_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepSessionPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/"step_key" = \$/);
+  });
+
+  it("orders by completed_at desc, session_id desc and fetches limit + 1", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepSessionPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/order by .*"completed_at" desc.*"session_id" desc/);
+    expect(statements[0].params).toContain(26);
+  });
+
+  it("adds the keyset predicate when a cursor is given", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepSessionPage(db, {
+      ...baseQuery,
+      after: { completedAt: "2026-01-15T00:00:00.000Z", sessionId: "s1" },
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain("<");
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining(["2026-01-15T00:00:00.000Z", "s1"]),
+    );
+  });
+
+  it("marks a turn-free abandoned row as neverStarted", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          rulesetVersionKey: null,
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          statusKey: "ABANDONED",
+          startedAt: "2026-01-01T00:00:00.000Z",
+          completedAt: "2026-01-01T00:01:00.000Z",
+          durationSeconds: 60,
+          turnCount: 0,
+          dartCount: 0,
+          countedScore: 0,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepSessionPage(db, baseQuery);
+
+    expect(result[0].neverStarted).toBe(true);
+  });
+});
+
+describe("findStepFoldRows", () => {
+  const stepScope = {
+    playerId: "p1",
+    routineKey: "routine-1",
+    stepKey: "3-abc123",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED", "ABANDONED"],
+  };
+
+  it("reads v_game_replay joined to v_stats_routine_step_facts, scoped to player, routine_key and step_key", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepFoldRows(db, stepScope);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/"step_key" = \$/);
+  });
+
+  it("orders by session_id, stage_sequence, turn_sequence, dart_number", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepFoldRows(db, stepScope);
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().indexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    const orderClause = sql.slice(orderIndex);
+    expect(orderClause).toMatch(
+      /"session_id".*"stage_sequence".*"turn_sequence".*"dart_number"/,
+    );
+  });
+
+  it("carries sessionId, completedAt, exerciseRulesetVersionKey and configuration alongside the replay row", async () => {
+    const configuration = { targetSequence: [20, 19, 18] };
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          completedAt: "2026-01-05T10:00:00.000Z",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          configuration,
+          stageId: "stage-1",
+          turnSequence: 1,
+          participantId: "participant-1",
+          participantName: "Alex",
+          participantTypeKey: "PLAYER",
+          turnTotalScore: 60,
+          dartNumber: 1,
+          intendedTargetNumber: 20,
+          intendedZoneKey: "TREBLE",
+          hitTargetNumber: 20,
+          hitZoneKey: "TREBLE",
+          score: 60,
+          locationX: "1.50",
+          locationY: "-2.25",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepFoldRows(db, stepScope);
+
+    expect(result).toEqual([
+      {
+        sessionId: "s1",
+        completedAt: "2026-01-05T10:00:00.000Z",
+        exerciseRulesetVersionKey: "SWITCHING_V1",
+        configuration,
+        stageId: "stage-1",
+        turnSequence: 1,
+        participantId: "participant-1",
+        participantName: "Alex",
+        participantTypeKey: "PLAYER",
+        turnTotalScore: 60,
+        dartNumber: 1,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: 1.5,
+        locationY: -2.25,
+      },
+    ]);
+  });
+
+  it("nonNull throws on a null session_id column", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          sessionId: null,
+          completedAt: "2026-01-05T10:00:00.000Z",
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          configuration: null,
+          stageId: "stage-1",
+          turnSequence: 1,
+          participantId: "participant-1",
+          participantName: "Alex",
+          participantTypeKey: "PLAYER",
+          turnTotalScore: 60,
+          dartNumber: null,
+          intendedTargetNumber: null,
+          intendedZoneKey: null,
+          hitTargetNumber: null,
+          hitZoneKey: null,
+          score: null,
+          locationX: null,
+          locationY: null,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(findStepFoldRows(db, stepScope)).rejects.toThrow(/session_id/);
+  });
+});
+
+describe("findStepScopeDartCount", () => {
+  const stepScope = {
+    playerId: "p1",
+    routineKey: "routine-1",
+    stepKey: "3-abc123",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED"],
+  };
+
+  it("selects the dart-count sum from v_stats_routine_step_facts scoped by routine_key and step_key", async () => {
+    const { db, statements } = renderingDb([["0"]]);
+    await findStepScopeDartCount(db, stepScope);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"routine_key" = \$/);
+    expect(sql).toMatch(/"step_key" = \$/);
+  });
+
+  it("parses the sum from a string", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([{ dartCount: "789" }]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepScopeDartCount(db, stepScope);
+
+    expect(result).toBe(789);
   });
 });

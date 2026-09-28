@@ -186,7 +186,13 @@ export type SessionListCursor = {
   sessionId: string;
 };
 
-/** The shared filter every dart-level reader applies to `v_stats_dart_facts` (phase-2 Task 3). */
+/**
+ * The shared filter every dart-level reader applies to `v_stats_dart_facts`
+ * (phase-2 Task 3). `routineStep`, when set, narrows to one GAME routine
+ * step's sessions (phase 6b plan decision 5) — every phase 2-4 handler
+ * inherits this unchanged, since the field is optional and every existing
+ * caller leaves it unset.
+ */
 export type DartScope = {
   playerId: string;
   gameTypeKey: GameTypeKey;
@@ -194,13 +200,15 @@ export type DartScope = {
   to: string;
   statuses: string[];
   context: ContextFilter;
+  routineStep?: RoutineStepScope;
 };
 
 /**
  * The shared filter every Task 3 fold/scoring reader applies to
  * `v_stats_session_facts`: player, game type and status in range, restricted
  * to `input_mode_key = 'VISUAL_BOARD'` (`00-Overview.md` §10, phase-3 plan
- * "Shared session scope").
+ * "Shared session scope"). `routineStep` narrows the same way as `DartScope`
+ * (phase 6b plan decision 5).
  */
 export type SessionScope = {
   playerId: string;
@@ -209,6 +217,7 @@ export type SessionScope = {
   to: string;
   statuses: string[];
   context: ContextFilter;
+  routineStep?: RoutineStepScope;
 };
 
 /**
@@ -220,6 +229,130 @@ export type SessionScope = {
 export type RoutineStepScope = {
   routineKey: string;
   stepKey: string;
+};
+
+/**
+ * The shared filter every routine-run reader applies to
+ * `v_stats_routine_run_facts`: owning player, routine identity and terminal
+ * status in range (phase 6b plan decision 1, Task 3).
+ */
+export type RoutineScope = {
+  playerId: string;
+  routineKey: string;
+  from: string;
+  to: string;
+  statuses: string[];
+};
+
+/**
+ * `RoutineScope` narrowed to one step's sessions, applied to
+ * `v_stats_routine_step_facts` (phase 6b plan decision 2, Task 3).
+ */
+export type StepScope = RoutineScope & {
+  stepKey: string;
+};
+
+/**
+ * One `findTrainedRoutines` row: a routine the player has trained, named for
+ * its latest run (phase 6b plan decision 9). `routineTemplateId` is `null`
+ * for a legacy snapshot keyed by `routineName` alone (migration `0045`
+ * header rule 1).
+ */
+export type TrainedRoutineRow = {
+  routineKey: string;
+  routineTemplateId: string | null;
+  routineName: string;
+  runCount: number;
+  completedRunCount: number;
+  lastRunAt: string;
+};
+
+/**
+ * One `findRoutineHeader` row: one routine's run counts and its earliest and
+ * latest run, plus the latest run's own `activityId` — `findRoutineStepDescriptors`'s
+ * `current` flag input (phase 6b plan decision 9).
+ */
+export type RoutineHeaderRow = {
+  routineKey: string;
+  routineName: string;
+  runCount: number;
+  firstRunAt: string;
+  lastRunAt: string;
+  latestActivityId: string;
+};
+
+/**
+ * One `findRoutineStepDescriptors` row: one step index's trained history.
+ * `current` is set when the step key appears in the latest run's snapshot
+ * (phase 6b plan decision 9). `gameTypeKey`/`rulesetVersionKey` are `null`
+ * for a non-game step; `exerciseRulesetVersionKey` is `null` only for a
+ * legacy session predating exercise rulesets.
+ */
+export type RoutineStepDescriptorRow = {
+  stepKey: string;
+  sequenceNumber: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: GameTypeKey | null;
+  rulesetVersionKey: string | null;
+  durationSeconds: number;
+  sessionCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  current: boolean;
+};
+
+/**
+ * One `findRoutineRunBuckets` row: a bucket's run volume and completion over
+ * `v_stats_routine_run_facts` (phase 6b plan decision 6). `neverStarted`
+ * counts abandoned runs with zero step sessions. `stepsCompletedAtAbandon`
+ * keys the number of steps completed at abandonment (as a string, `Record`
+ * keys are always strings) to how many of the bucket's abandoned runs
+ * abandoned at that count.
+ */
+export type RoutineRunBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  runs: number;
+  durationSum: number;
+  durationMin: number;
+  durationMax: number;
+  darts: number;
+  completed: number;
+  abandoned: number;
+  neverStarted: number;
+  stepsCompletedAtAbandon: Record<string, number>;
+};
+
+/** One `findStepBuckets` row: a bucket's session volume over `v_stats_routine_step_facts` (phase 6b plan decision 6). */
+export type StepBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  sessions: number;
+  durationSum: number;
+  darts: number;
+};
+
+/**
+ * One `findStepSessionPage` row: one step session, listed newest-first
+ * (phase 6b plan decision 10). `v_stats_routine_step_facts` has no
+ * `context_key` column — every row is routine context by definition —
+ * unlike `StatsSessionRow`. `rulesetVersionKey`/`exerciseRulesetVersionKey`
+ * are mutually exclusive: a GAME step sets the former, a non-game step the
+ * latter.
+ */
+export type StepSessionRow = {
+  sessionId: string;
+  rulesetVersionKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  statusKey: string;
+  neverStarted: boolean;
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+  countedScore: number;
 };
 
 /**
@@ -643,4 +776,19 @@ export type ReplayTurn = {
 export type ReplayCursor = {
   stageId: string;
   turnSequence: number;
+};
+
+/**
+ * One `findStepFoldRows` row: a `v_game_replay` dart/turn joined to its own
+ * step session's identity, for the server-side `step-result` fold (phase 6b
+ * plan decision 8) — `configuration` is the session's own snapshot, passed
+ * to the exercise engine exactly as the routine play adapter's `open()`
+ * passes it; `completedAt` is the input the fold buckets a session's merged
+ * metrics by, after folding.
+ */
+export type StepFoldRow = ReplayRow & {
+  sessionId: string;
+  completedAt: string;
+  exerciseRulesetVersionKey: string | null;
+  configuration: Record<string, unknown> | null;
 };
