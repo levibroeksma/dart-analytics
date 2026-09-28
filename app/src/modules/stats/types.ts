@@ -804,3 +804,52 @@ export type StepFoldRow = ReplayRow & {
   exerciseRulesetVersionKey: string | null;
   configuration: Record<string, unknown> | null;
 };
+
+/**
+ * `foldStepResult`'s own row alias for `StepFoldRow` (phase 6b Task 4): the
+ * flat, session-mixed rows a `step-result` request scopes, named at the
+ * `sections` module boundary for what the fold does with them — group by
+ * `sessionId`, one `EngineFacts` rebuild per group.
+ */
+export type StepFoldSession = StepFoldRow;
+
+/** `routine-volume` section metrics — one bucket (phase 6b plan decision 6). `minutes`/`minMinutes`/`maxMinutes` convert `findRoutineRunBuckets`' seconds columns; the division is exact-preserving under `mergeStepMetrics`-style re-aggregation, so a chunked sum never drifts from an unchunked one. */
+export type RoutineVolumeMetrics = {
+  runs: number;
+  minutes: number;
+  minMinutes: number;
+  maxMinutes: number;
+  darts: number;
+};
+
+/** `routine-completion` section metrics — one bucket (phase 6b plan decision 6); the three counts partition a bucket's runs, matching `CompletionMetrics`' shape at the routine grain. */
+export type RoutineCompletionMetrics = {
+  completed: number;
+  abandoned: number;
+  neverStarted: number;
+  stepsCompletedAtAbandon: Record<string, number>;
+};
+
+/** `step-volume` section metrics — one bucket, over any routine step (phase 6b plan decision 6). */
+export type StepVolumeMetrics = {
+  sessions: number;
+  minutes: number;
+  darts: number;
+};
+
+/**
+ * `step-result` section metrics — one bucket (phase 6b plan decision 6, 7):
+ * `metrics` are `STEP_METRIC_SPECS[kind]`'s own keys, merged across every
+ * successfully folded session (`mergeStepMetrics`); `headlineMin`/`Max` are
+ * the spec's headline key's extremes across those same sessions, `null`
+ * when none folded; `sessions` counts folded sessions, `skippedSessions`
+ * counts a missing engine factory or an engine that threw (decision 8) —
+ * the two counts partition the bucket's scoped session population.
+ */
+export type StepResultMetric = {
+  metrics: Record<string, number>;
+  headlineMin: number | null;
+  headlineMax: number | null;
+  sessions: number;
+  skippedSessions: number;
+};

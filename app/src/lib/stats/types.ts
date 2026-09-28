@@ -93,6 +93,26 @@ export interface SectionMeta {
   games?: readonly GameTypeKey[];
 }
 
+/**
+ * Run- or step-surface routine section ids (phase 6b plan decision 6) —
+ * disjoint from `SectionId`, which stays game-only (controller ruling R3).
+ */
+export type RoutineSectionId =
+  "routine-volume" | "routine-completion" | "step-volume" | "step-result";
+
+/**
+ * One routine-tab section's registry entry: `SectionMeta`'s fields with
+ * `id` narrowed to `RoutineSectionId`, `requires` fixed to `[]` (no game
+ * ever gates a routine section — decision 6's table names no `requires`),
+ * plus `surface`, which page the section appears on (phase 6b plan
+ * decision 6, controller ruling R3).
+ */
+export type RoutineSectionMeta = Omit<SectionMeta, "id" | "requires"> & {
+  id: RoutineSectionId;
+  requires: readonly [];
+  surface: "routine" | "step";
+};
+
 /** One bucket of a `Series<M>` result (`00-Overview.md` §5.2). */
 export interface SeriesBucket<M> {
   start: string;
