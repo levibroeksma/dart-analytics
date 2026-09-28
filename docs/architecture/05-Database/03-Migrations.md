@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-09-20
+updated: 2026-09-28
 -->
 
 # Database Migration Strategy
@@ -1000,6 +1000,25 @@ Widened in place rather than adding a sibling view: nothing in `app/` reads `v_g
 View-only; no table, column or constraint changes. Not yet applied: `database/verification/0044_replay_view_coordinates_checks.sql` runs once it is. <!-- 2026-09-27 -->
 
 Never edits `0009`/`0013`/`0016`.
+
+---
+
+## 0045_stats_routine_views.sql
+
+Purpose:
+
+Routine fact views for the detailed statistics pages (`10-Statistics/00-Overview.md` §8, §10), deriving routine and step identity from the `activity_configurations` snapshot rather than a routine template, so editing or deleting a template can never alter historical statistics. <!-- 2026-09-28 -->
+
+Contains:
+
+- new `v_stats_routine_run_facts` — one row per `COMPLETED`/`ABANDONED` training activity that has an `activity_configurations` row: `routine_key` (the snapshot's `routineTemplateId`, or `'name-' || md5(routineName)` when absent), `step_count` read from the snapshot's own step array, `steps_started`/`steps_completed` counted from the activity's actual step sessions, and a rule-free owner-scoped `dart_count` across every step session
+- new `v_stats_routine_step_facts` — one row per `COMPLETED`/`ABANDONED` routine step session whose `routine_step_sequence_number` resolves a snapshot element by that field (never array position): `step_fingerprint` (`md5` of the matched element with `sequenceNumber` removed) and `step_key` (`<sequence_number>-<step_fingerprint>`), plus rule-free owner-scoped `turn_count`/`counted_score`/`dart_count`
+
+The snapshot element is matched with a `LEFT JOIN LATERAL` requiring `jsonb_typeof(e -> 'sequenceNumber') = 'number'` in addition to the text-equal match on `routine_step_sequence_number` — a missing, string (`"2"`), or non-integer (`2.5`) `sequenceNumber` therefore never matches, even when it would otherwise line up by array position (verified live: `database/verification/0045_stats_routine_views_checks.sql` check 10). `step_fingerprint` excludes `sequenceNumber` from its hash, so identical step content at two different positions shares one fingerprint but gets two different `step_key` values; two runs whose step differs only in configuration get two distinct `step_key` values, and two identical runs collapse to one.
+
+View-only; no table, column or constraint changes. Not yet applied: `database/verification/0045_stats_routine_views_checks.sql` runs once it is. <!-- 2026-09-28 -->
+
+Never edits `0002`/`0005`/`0006`/`0027`/`0030`.
 
 ---
 
