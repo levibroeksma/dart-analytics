@@ -498,6 +498,30 @@ export type Bobs27SurvivalGroupMetrics = {
 export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;
 
 /**
+ * One row of `v_stats_session_facts`, restricted to a replay page's header
+ * fields (D371 decision 5): the session's own identity plus the stored facts
+ * a replay never re-derives. `configuration` and `routineStepSequenceNumber`
+ * are the view's own nullable columns, passed through untouched --
+ * `routineStepSequenceNumber` is `null` for a standalone session.
+ */
+export type ReplaySessionRow = {
+  sessionId: string;
+  gameTypeKey: GameTypeKey;
+  rulesetVersionKey: string;
+  inputModeKey: string;
+  statusKey: string;
+  contextKey: string;
+  activityId: string;
+  routineStepSequenceNumber: number | null;
+  configuration: Record<string, unknown> | null;
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+};
+
+/**
  * One row of `exercise_stages`, restricted to what `stageOrder` needs to
  * rebuild play order (D371 decision 3): the stage's own id, its parent
  * (`null` for a root), its type, and its sibling order.
@@ -507,6 +531,17 @@ export type ReplayStageRow = {
   parentStageId: string | null;
   stageTypeKey: string;
   sequence: number;
+};
+
+/**
+ * One of `v_game_replay`'s distinct participants for a session, ordered by
+ * that participant's own first turn in play order (`findReplayParticipants`,
+ * R4).
+ */
+export type ReplayParticipantRow = {
+  participantId: string;
+  displayName: string;
+  participantTypeKey: string;
 };
 
 /**

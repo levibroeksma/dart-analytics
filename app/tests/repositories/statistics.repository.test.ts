@@ -14,6 +14,10 @@ import {
   findDartFoldRows,
   findVisitScoring,
   findHitNumberCells,
+  findReplaySession,
+  findReplayStages,
+  findReplayParticipants,
+  findReplayTurnPage,
 } from "@repositories/statistics.repository";
 
 function fakeSelect(rows: unknown[]) {
@@ -1170,5 +1174,411 @@ describe("findHeatmapCells", () => {
     await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
     const sql = onlyStatement(statements);
     expect(sql).not.toContain("intended_target_number");
+  });
+});
+
+function fakeSelectDistinct(rows: unknown[]) {
+  const fromCalls: unknown[] = [];
+  const chain = {
+    from: vi.fn((table: unknown) => {
+      fromCalls.push(table);
+      return chain;
+    }),
+    where: vi.fn().mockResolvedValue(rows),
+  };
+  return { chain, fromCalls };
+}
+
+function fakeLimitedQuery(rows: unknown[]) {
+  return {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue(rows),
+  };
+}
+
+describe("findReplaySession", () => {
+  it("selects from v_stats_session_facts filtered by player and session", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplaySession(db, "p1", "s1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"session_id" = \$/);
+  });
+
+  it("returns null when no row matches", async () => {
+    const db = { select: vi.fn(() => fakeLimitedQuery([])) } as any;
+
+    const result = await findReplaySession(db, "p1", "s1");
+
+    expect(result).toBeNull();
+  });
+
+  it("maps the decision 5 fields, passing configuration through untouched", async () => {
+    const configuration = { starting_score: 501 };
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      inputModeKey: "VISUAL_BOARD",
+      statusKey: "COMPLETED",
+      contextKey: "STANDALONE",
+      activityId: "activity-1",
+      routineStepSequenceNumber: null,
+      configuration,
+      startedAt: "2026-09-19T10:00:00.000Z",
+      completedAt: "2026-09-19T10:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 9,
+      dartCount: 27,
+    };
+    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
+
+    const result = await findReplaySession(db, "p1", "s1");
+
+    expect(result).toEqual(row);
+    expect(result?.configuration).toBe(configuration);
+  });
+
+  it("passes a non-null routineStepSequenceNumber through for a routine step", async () => {
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      inputModeKey: "VISUAL_BOARD",
+      statusKey: "COMPLETED",
+      contextKey: "ROUTINE",
+      activityId: "activity-1",
+      routineStepSequenceNumber: 2,
+      configuration: null,
+      startedAt: "2026-09-19T10:00:00.000Z",
+      completedAt: "2026-09-19T10:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 9,
+      dartCount: 27,
+    };
+    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
+
+    const result = await findReplaySession(db, "p1", "s1");
+
+    expect(result?.routineStepSequenceNumber).toBe(2);
+  });
+
+  it("nonNull throws on a null activityId column", async () => {
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      inputModeKey: "VISUAL_BOARD",
+      statusKey: "COMPLETED",
+      contextKey: "STANDALONE",
+      activityId: null,
+      routineStepSequenceNumber: null,
+      configuration: null,
+      startedAt: "2026-09-19T10:00:00.000Z",
+      completedAt: "2026-09-19T10:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 9,
+      dartCount: 27,
+    };
+    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
+
+    await expect(findReplaySession(db, "p1", "s1")).rejects.toThrow(
+      /activity_id/,
+    );
+  });
+});
+
+describe("findReplayStages", () => {
+  it("selects distinct stage columns from v_game_replay filtered by player and session", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayStages(db, "p1", "s1");
+    const sql = onlyStatement(statements);
+    expect(sql.toLowerCase()).toContain("distinct");
+    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"session_id" = \$/);
+  });
+
+  it("maps stage_sequence to sequence, passing parentStageId through", async () => {
+    const row = {
+      stageId: "stage-1",
+      parentStageId: null,
+      stageTypeKey: "LEG",
+      sequence: 1,
+    };
+    const { chain, fromCalls } = fakeSelectDistinct([row]);
+    const db = { selectDistinct: vi.fn(() => chain) } as any;
+    const { vGameReplay } = await import("@db/schema");
+
+    const result = await findReplayStages(db, "p1", "s1");
+
+    expect(result).toEqual([row]);
+    expect(fromCalls).toEqual([vGameReplay]);
+  });
+
+  it("nonNull throws on a null stage_id column", async () => {
+    const { chain } = fakeSelectDistinct([
+      {
+        stageId: null,
+        parentStageId: null,
+        stageTypeKey: "LEG",
+        sequence: 1,
+      },
+    ]);
+    const db = { selectDistinct: vi.fn(() => chain) } as any;
+
+    await expect(findReplayStages(db, "p1", "s1")).rejects.toThrow(/stage_id/);
+  });
+});
+
+describe("findReplayParticipants", () => {
+  const stageIds = ["stage-1", "stage-2"];
+
+  it("selects from v_game_replay filtered by player and session", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayParticipants(db, "p1", "s1", stageIds);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"session_id" = \$/);
+  });
+
+  it("ranks each participant's first appearance with array_position cast to uuid[], bound as one parameter", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayParticipants(db, "p1", "s1", stageIds);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /array_position\(\$\d+::uuid\[\], "v_game_replay"\."stage_id"\)/,
+    );
+    expect(statements[0].params).toContainEqual(stageIds);
+  });
+
+  it("uses DISTINCT ON participant_id, ordered by array_position then turn_sequence", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayParticipants(db, "p1", "s1", stageIds);
+    const sql = onlyStatement(statements);
+    expect(sql.toLowerCase()).toMatch(
+      /distinct on \("v_game_replay"\."participant_id"\)/,
+    );
+    expect(sql).toMatch(
+      /order by "v_game_replay"\."participant_id", pos, turn_sequence/i,
+    );
+  });
+
+  it("maps participant rows, throwing on a null participant_id", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            participant_id: null,
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+          },
+        ],
+      }),
+    } as any;
+
+    await expect(
+      findReplayParticipants(db, "p1", "s1", stageIds),
+    ).rejects.toThrow(/participant_id/);
+  });
+
+  it("maps a participant row to participantId/displayName/participantTypeKey", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+          },
+        ],
+      }),
+    } as any;
+
+    const result = await findReplayParticipants(db, "p1", "s1", stageIds);
+
+    expect(result).toEqual([
+      {
+        participantId: "participant-1",
+        displayName: "Alex",
+        participantTypeKey: "PLAYER",
+      },
+    ]);
+  });
+});
+
+describe("findReplayTurnPage", () => {
+  const stageIds = ["stage-1", "stage-2"];
+  const baseQuery = {
+    playerId: "p1",
+    sessionId: "s1",
+    stageIds,
+    after: null as { position: number; turnSequence: number } | null,
+    limit: 30,
+  };
+
+  it("selects from v_game_replay filtered by player and session", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"session_id" = \$/);
+  });
+
+  it("ranks turns with dense_rank over array_position and turn_sequence, casting stageIds to uuid[]", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /dense_rank\(\) over \(order by array_position\(\$\d+::uuid\[\], "v_game_replay"\."stage_id"\), "v_game_replay"\."turn_sequence"\)/i,
+    );
+    expect(statements[0].params).toContainEqual(stageIds);
+  });
+
+  it("keeps turn_rank <= limit + 1", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/turn_rank <= \$/);
+    expect(statements[0].params).toContain(31);
+  });
+
+  it("orders the final page by pos, turn_sequence, dart_number", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    const orderIndex = sql.toLowerCase().lastIndexOf("order by");
+    expect(orderIndex).toBeGreaterThan(-1);
+    expect(sql.slice(orderIndex)).toMatch(
+      /order by pos, turn_sequence, dart_number/i,
+    );
+  });
+
+  it("renders no keyset predicate when after is null", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).not.toMatch(/turn_sequence"\)\s*>\s*\(/i);
+  });
+
+  it("adds the row-comparison keyset predicate inside the ranked subquery when after is set", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, {
+      ...baseQuery,
+      after: { position: 2, turnSequence: 5 },
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /array_position\(\$\d+::uuid\[\], "v_game_replay"\."stage_id"\), "v_game_replay"\."turn_sequence"\)\s*>\s*\(\$\d+, \$\d+\)/i,
+    );
+    expect(statements[0].params).toContain(2);
+    expect(statements[0].params).toContain(5);
+  });
+
+  it("converts NUMERIC location_x/location_y strings to numbers, keeping null coordinates null", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            stage_id: "stage-1",
+            turn_sequence: 1,
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+            turn_total_score: 60,
+            dart_number: 1,
+            intended_target_number: 20,
+            intended_zone_key: "TREBLE",
+            hit_target_number: 20,
+            hit_zone_key: "TREBLE",
+            score: 60,
+            location_x: "12.50",
+            location_y: null,
+          },
+        ],
+      }),
+    } as any;
+
+    const result = await findReplayTurnPage(db, baseQuery);
+
+    expect(result).toEqual([
+      {
+        stageId: "stage-1",
+        turnSequence: 1,
+        participantId: "participant-1",
+        participantName: "Alex",
+        participantTypeKey: "PLAYER",
+        turnTotalScore: 60,
+        dartNumber: 1,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: 12.5,
+        locationY: null,
+      },
+    ]);
+  });
+
+  it("returns a turn-total-only row with every dart column null", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            stage_id: "stage-1",
+            turn_sequence: 1,
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+            turn_total_score: 45,
+            dart_number: null,
+            intended_target_number: null,
+            intended_zone_key: null,
+            hit_target_number: null,
+            hit_zone_key: null,
+            score: null,
+            location_x: null,
+            location_y: null,
+          },
+        ],
+      }),
+    } as any;
+
+    const result = await findReplayTurnPage(db, baseQuery);
+
+    expect(result[0].dartNumber).toBeNull();
+    expect(result[0].score).toBeNull();
+  });
+
+  it("nonNull throws on a null stage_id column", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            stage_id: null,
+            turn_sequence: 1,
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+            turn_total_score: 45,
+            dart_number: null,
+            intended_target_number: null,
+            intended_zone_key: null,
+            hit_target_number: null,
+            hit_zone_key: null,
+            score: null,
+            location_x: null,
+            location_y: null,
+          },
+        ],
+      }),
+    } as any;
+
+    await expect(findReplayTurnPage(db, baseQuery)).rejects.toThrow(/stage_id/);
   });
 });

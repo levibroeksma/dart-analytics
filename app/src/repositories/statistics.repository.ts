@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm";
 import type { Column } from "drizzle-orm";
 import {
+  vGameReplay,
   vPlayerLegFacts,
   vPlayerVisitFacts,
   vSessionOverview,
@@ -35,6 +36,10 @@ import type {
   PlayerLegFactRow,
   PlayerSessionSummaryRow,
   PlayerVisitFactRow,
+  ReplayParticipantRow,
+  ReplayRow,
+  ReplaySessionRow,
+  ReplayStageRow,
   SessionScope,
   StatsBucketRow,
   StatsSessionRow,
@@ -1160,4 +1165,253 @@ function mapBucketRow(row: {
     minSessionId: nonNull(row.minSessionId, "min_session_id"),
     maxSessionId: nonNull(row.maxSessionId, "max_session_id"),
   };
+}
+
+/**
+ * The replay gate (D371 decision 2): one `v_stats_session_facts` row scoped
+ * to `player_id` and `session_id`, carrying the header's decision-5 fields.
+ * `null` when the session is missing, belongs to another player, is still
+ * active, or is a training session — `v_stats_session_facts` excludes all
+ * four alike, so a replay page cannot tell them apart. `configuration` and
+ * `routineStepSequenceNumber` are the view's own nullable columns, passed
+ * through untouched.
+ */
+export async function findReplaySession(
+  db: Db,
+  playerId: string,
+  sessionId: string,
+): Promise<ReplaySessionRow | null> {
+  const rows = await db
+    .select({
+      sessionId: vStatsSessionFacts.sessionId,
+      gameTypeKey: vStatsSessionFacts.gameTypeKey,
+      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+      inputModeKey: vStatsSessionFacts.inputModeKey,
+      statusKey: vStatsSessionFacts.statusKey,
+      contextKey: vStatsSessionFacts.contextKey,
+      activityId: vStatsSessionFacts.activityId,
+      routineStepSequenceNumber: vStatsSessionFacts.routineStepSequenceNumber,
+      configuration: vStatsSessionFacts.configuration,
+      startedAt: vStatsSessionFacts.startedAt,
+      completedAt: vStatsSessionFacts.completedAt,
+      durationSeconds: vStatsSessionFacts.durationSeconds,
+      turnCount: vStatsSessionFacts.turnCount,
+      dartCount: vStatsSessionFacts.dartCount,
+    })
+    .from(vStatsSessionFacts)
+    .where(
+      and(
+        eq(vStatsSessionFacts.playerId, playerId),
+        eq(vStatsSessionFacts.sessionId, sessionId),
+      ),
+    )
+    .limit(1);
+
+  const row = rows[0];
+  if (row === undefined) return null;
+
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key") as GameTypeKey,
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    inputModeKey: nonNull(row.inputModeKey, "input_mode_key"),
+    statusKey: nonNull(row.statusKey, "status_key"),
+    contextKey: nonNull(row.contextKey, "context_key"),
+    activityId: nonNull(row.activityId, "activity_id"),
+    routineStepSequenceNumber: row.routineStepSequenceNumber,
+    configuration: row.configuration as Record<string, unknown> | null,
+    startedAt: nonNull(row.startedAt, "started_at"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+    turnCount: nonNull(row.turnCount, "turn_count"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+  };
+}
+
+/**
+ * `exercise_stages` restricted to one session's own play tree, read through
+ * `v_game_replay` (D371 decision 3): every dart/turn row carries its own
+ * stage, so `DISTINCT` collapses the result back to one row per stage.
+ * Unordered — `stageOrder` (`replay.module.ts`) rebuilds play order from
+ * `parentStageId`/`sequence`.
+ */
+export async function findReplayStages(
+  db: Db,
+  playerId: string,
+  sessionId: string,
+): Promise<ReplayStageRow[]> {
+  const rows = await db
+    .selectDistinct({
+      stageId: vGameReplay.stageId,
+      parentStageId: vGameReplay.parentStageId,
+      stageTypeKey: vGameReplay.stageTypeKey,
+      sequence: vGameReplay.stageSequence,
+    })
+    .from(vGameReplay)
+    .where(
+      and(
+        eq(vGameReplay.playerId, playerId),
+        eq(vGameReplay.sessionId, sessionId),
+      ),
+    );
+
+  return rows.map((row) => ({
+    stageId: nonNull(row.stageId, "stage_id"),
+    parentStageId: row.parentStageId,
+    stageTypeKey: nonNull(row.stageTypeKey, "stage_type_key"),
+    sequence: nonNull(row.sequence, "stage_sequence"),
+  }));
+}
+
+/**
+ * `v_game_replay`'s distinct participants for one session, ordered by each
+ * participant's own first turn in play order (R4): `array_position` locates
+ * a dart row's stage within the caller's own `stageIds` play order (the
+ * `stageOrder` result), and `DISTINCT ON` keeps only the row with the
+ * smallest `(pos, turn_sequence)` per participant. `stageIds` is bound as
+ * one `uuid[]` parameter — `array_position` needs the whole ordered array,
+ * not a membership test, so it is never unrolled the way `inArray` unrolls a
+ * list.
+ */
+export async function findReplayParticipants(
+  db: Db,
+  playerId: string,
+  sessionId: string,
+  stageIds: readonly string[],
+): Promise<ReplayParticipantRow[]> {
+  const posExpr = sql`array_position(${sql.param(stageIds)}::uuid[], ${vGameReplay.stageId})`;
+
+  const statement = sql`
+    SELECT participant_id, participant_name, participant_type_key
+    FROM (
+      SELECT DISTINCT ON (${vGameReplay.participantId})
+        ${vGameReplay.participantId} AS participant_id,
+        ${vGameReplay.participantName} AS participant_name,
+        ${vGameReplay.participantTypeKey} AS participant_type_key,
+        ${posExpr} AS pos,
+        ${vGameReplay.turnSequence} AS turn_sequence
+      FROM ${vGameReplay}
+      WHERE ${vGameReplay.playerId} = ${playerId} AND ${vGameReplay.sessionId} = ${sessionId}
+      ORDER BY ${vGameReplay.participantId}, pos, turn_sequence
+    ) first_appearance
+    ORDER BY pos, turn_sequence
+  `;
+
+  const result = await db.execute(statement);
+  const rows = executedRows<{
+    participant_id: string | null;
+    participant_name: string | null;
+    participant_type_key: string | null;
+  }>(result);
+
+  return rows.map((row) => ({
+    participantId: nonNull(row.participant_id, "participant_id"),
+    displayName: nonNull(row.participant_name, "participant_name"),
+    participantTypeKey: nonNull(
+      row.participant_type_key,
+      "participant_type_key",
+    ),
+  }));
+}
+
+function mapReplayRow(row: {
+  stage_id: string | null;
+  turn_sequence: number | null;
+  participant_id: string | null;
+  participant_name: string | null;
+  participant_type_key: string | null;
+  turn_total_score: number | null;
+  dart_number: number | null;
+  intended_target_number: number | null;
+  intended_zone_key: string | null;
+  hit_target_number: number | null;
+  hit_zone_key: string | null;
+  score: number | null;
+  location_x: string | number | null;
+  location_y: string | number | null;
+}): ReplayRow {
+  return {
+    stageId: nonNull(row.stage_id, "stage_id"),
+    turnSequence: nonNull(row.turn_sequence, "turn_sequence"),
+    participantId: nonNull(row.participant_id, "participant_id"),
+    participantName: nonNull(row.participant_name, "participant_name"),
+    participantTypeKey: nonNull(
+      row.participant_type_key,
+      "participant_type_key",
+    ),
+    turnTotalScore: nonNull(row.turn_total_score, "turn_total_score"),
+    dartNumber: row.dart_number,
+    intendedTargetNumber: row.intended_target_number,
+    intendedZoneKey: row.intended_zone_key as DartZoneKey | null,
+    hitTargetNumber: row.hit_target_number,
+    hitZoneKey: row.hit_zone_key as DartZoneKey | null,
+    score: row.score,
+    locationX: row.location_x === null ? null : Number(row.location_x),
+    locationY: row.location_y === null ? null : Number(row.location_y),
+  };
+}
+
+/**
+ * One page of a session's turns, in play order (D371 decision 4): `stageIds`
+ * is the caller's own `stageOrder` result, bound as a single `uuid[]`
+ * parameter so `array_position` can rank a dart row's stage within it.
+ * `dense_rank() OVER (ORDER BY array_position(...), turn_sequence)` assigns
+ * one rank per turn — every dart row of a turn shares it, so `turn_rank <=
+ * limit + 1` keeps whole turns, never splitting one across the page
+ * boundary. The keyset predicate (`after`) is a `WHERE` clause inside this
+ * same ranking query, ahead of the window function, so `dense_rank` restarts
+ * at 1 for whatever remains after the cursor — a fresh page, not a slice of
+ * the first one. `after: null` renders no keyset predicate. `position` is
+ * 1-based, matching `array_position`'s own convention.
+ */
+export async function findReplayTurnPage(
+  db: Db,
+  q: {
+    playerId: string;
+    sessionId: string;
+    stageIds: readonly string[];
+    after: { position: number; turnSequence: number } | null;
+    limit: number;
+  },
+): Promise<ReplayRow[]> {
+  const posExpr = sql`array_position(${sql.param(q.stageIds)}::uuid[], ${vGameReplay.stageId})`;
+  const keysetClause = q.after
+    ? sql`AND (${posExpr}, ${vGameReplay.turnSequence}) > (${q.after.position}, ${q.after.turnSequence})`
+    : sql``;
+
+  const statement = sql`
+    SELECT stage_id, turn_sequence, participant_id, participant_name, participant_type_key,
+      turn_total_score, dart_number, intended_target_number, intended_zone_key,
+      hit_target_number, hit_zone_key, score, location_x, location_y
+    FROM (
+      SELECT *,
+        ${posExpr} AS pos,
+        dense_rank() OVER (ORDER BY ${posExpr}, ${vGameReplay.turnSequence}) AS turn_rank
+      FROM ${vGameReplay}
+      WHERE ${vGameReplay.playerId} = ${q.playerId} AND ${vGameReplay.sessionId} = ${q.sessionId}
+      ${keysetClause}
+    ) ranked
+    WHERE turn_rank <= ${q.limit + 1}
+    ORDER BY pos, turn_sequence, dart_number
+  `;
+
+  const result = await db.execute(statement);
+  const rows = executedRows<{
+    stage_id: string | null;
+    turn_sequence: number | null;
+    participant_id: string | null;
+    participant_name: string | null;
+    participant_type_key: string | null;
+    turn_total_score: number | null;
+    dart_number: number | null;
+    intended_target_number: number | null;
+    intended_zone_key: string | null;
+    hit_target_number: number | null;
+    hit_zone_key: string | null;
+    score: number | null;
+    location_x: string | number | null;
+    location_y: string | number | null;
+  }>(result);
+
+  return rows.map(mapReplayRow);
 }
