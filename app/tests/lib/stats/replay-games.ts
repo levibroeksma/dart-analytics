@@ -326,6 +326,26 @@ export function playDoubles(): ScriptedGame {
   );
 }
 
+/**
+ * An abandoned Doubles session: D1 on the second dart, then an unfinished
+ * visit of two misses at D2 that never recorded an outcome of its own.
+ */
+export function playDoublesUnfinished(): ScriptedGame {
+  return scripted(
+    doublesTrainingEngineFactory,
+    {
+      mode: "EASY",
+      orderMode: "LOW_TO_HIGH",
+      targetOrder: LOW_TO_HIGH,
+      seats: SOLO_SEATS,
+    },
+    [
+      [MISS, dart(1, "DOUBLE")],
+      [MISS, MISS],
+    ],
+  );
+}
+
 /** Three Bob's 27 visits: one hit at D1, none at D2, two at D3. */
 export function playBobs27(): ScriptedGame {
   return scripted(

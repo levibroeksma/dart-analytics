@@ -9,6 +9,7 @@ import {
   playAroundTheClock,
   playBobs27,
   playDoubles,
+  playDoublesUnfinished,
   playFiveOhOne,
   playOneTwentyOne,
   playScoreTraining,
@@ -201,6 +202,18 @@ describe("REPLAY_PRESENTERS", () => {
       ["miss", "hit"],
       ["miss", "miss", "miss"],
       ["hit"],
+    ]);
+  });
+
+  it("marks every dart of a Doubles visit that recorded no outcome a miss", () => {
+    const game = playDoublesUnfinished();
+    const cells = turnCells(game);
+
+    expect(game.turns.map((turn) => turn.darts.length)).toEqual([2, 2]);
+    expect(valuesOf(cells, "Target")).toEqual(["D2", "D2"]);
+    expect(marksOf(cells)).toEqual([
+      ["miss", "hit"],
+      ["miss", "miss"],
     ]);
   });
 

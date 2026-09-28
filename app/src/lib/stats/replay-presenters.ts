@@ -259,14 +259,31 @@ function doublesTargetLabel(
 }
 
 /**
+ * The outcome `turn` itself recorded: the one its seat's `outcomes` gained
+ * across it, or `undefined` for a visit that ended before it resolved (no
+ * hit and fewer than three darts), which records none.
+ */
+function visitOutcome(
+  { turn, before }: ReplayStep,
+  seat: DoublesTrainingSeatState,
+): DoublesTrainingSeatState["outcomes"][number] | undefined {
+  const earlier = seatIn<DoublesTrainingSeatState>(before, turn.participantRef);
+  return seat.outcomes.length > earlier.outcomes.length
+    ? seat.outcomes.at(-1)
+    : undefined;
+}
+
+/**
  * Doubles Training, read as `doubles-training-play.data.ts` does
  * (`currentTargetLabelFor`, the seat's `outcomes`): the hit dart is the one
- * the visit's own recorded outcome names.
+ * the visit's own recorded outcome names, and a visit that recorded none
+ * marks every dart a miss.
  */
 const DOUBLES: ReplayPresenter = {
-  turn({ turn, after }, snapshot) {
+  turn(step, snapshot) {
+    const { turn, after } = step;
     const seat = seatIn<DoublesTrainingSeatState>(after, turn.participantRef);
-    const outcome = seat.outcomes.at(-1);
+    const outcome = visitOutcome(step, seat);
     return [
       valueCell("Target", doublesTargetLabel(seat, snapshot)),
       hitsCell(
